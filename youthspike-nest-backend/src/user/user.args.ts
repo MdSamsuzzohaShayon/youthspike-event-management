@@ -1,0 +1,30 @@
+import { ArgsType, Field, InputType, PartialType } from '@nestjs/graphql';
+
+// https://docs.nestjs.com/graphql/resolvers#class-inheritance
+@ArgsType()
+@InputType()
+export class CreateDirectorArgs {
+  @Field({ nullable: false })
+  firstName: string;
+
+  @Field({ nullable: false })
+  lastName: string;
+
+  @Field({ nullable: false })
+  email: string;
+
+  @Field({ nullable: false })
+  password: string;
+
+  // LDO
+  @Field({ nullable: true })
+  name?: string;
+}
+
+
+@ArgsType()
+@InputType()
+export class UpdateDirectorArgs extends PartialType(CreateDirectorArgs){
+  @Field({ nullable: true })
+  name?: string;
+}

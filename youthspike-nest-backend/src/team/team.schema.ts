@@ -1,0 +1,46 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Field, ObjectType } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
+import { Event } from 'src/event/event.schema';
+import { Match } from 'src/match/match.schema';
+import { Player } from 'src/player/player.schema';
+import { AppDocument } from 'src/shared/schema/document.schema';
+import { User } from 'src/user/user.schema';
+
+/**
+ * Event
+ */
+@ObjectType()
+@Schema({ timestamps: true })
+export class Team extends AppDocument {
+  @Field()
+  @Prop({ required: true })
+  name: string;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  active: boolean;
+
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
+  @Field((type) => Player, { nullable: true })
+  captain?: Player | string; // Make the captain field nullable
+
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
+  @Field((type) => Match, { nullable: true })
+  match?: Match | string; // Make the captain field nullable
+
+  @Field((type) => Event, { nullable: false })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
+  event: Event | string;
+
+  @Field(() => [Player], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
+  players?: Player[] | string[]; // Update the type of players to allow null values
+}
+
+export const TeamSchema = SchemaFactory.createForClass(Team);
+export const TeamSchemaFactory = async () => {
+  return TeamSchema;
+};

@@ -1,0 +1,93 @@
+I have got little bit of confusion, can you please clearify them.
+Are all those properties going to have in an event?
+
+# Event Properties
+
+        name
+        startDate
+        endDate
+        playerLimit
+        active
+        
+        divisions
+        nets
+        rounds
+        netVariance
+        homeTeam
+        autoAssign
+        autoAssignLogic
+        rosterLock
+        timeout
+        passcode
+        coachPassword
+        location
+        sponsors
+
+
+{
+  "query": "mutation CreateOrUpdateLeague($name: String!, $startDate: DateTime!, $endDate: DateTime!, $playerLimit: Int!, $active: Boolean!, $divisions: String!, $nets: Int!, $rounds: Int!, $netVariance: Int!, $homeTeam: String!, $autoAssign: Boolean!, $autoAssignLogic: String!, $rosterLock: String!, $timeout: Int!, $passcode: String!, $coachPassword: String!, $location: String!, $sponsors: Upload!) {
+  createOrUpdateLeague(name: $name, startDate: $startDate, endDate: $endDate, playerLimit: $playerLimit, active: $active, divisions: $divisions, nets: $nets, rounds: $rounds, netVariance: $netVariance, homeTeam: $homeTeam, autoAssign: $autoAssign, autoAssignLogic: $autoAssignLogic, rosterLock: $rosterLock, timeout: $timeout, passcode: $passcode, coachPassword: $coachPassword, location: $location, sponsors: $sponsors) {
+    code
+    message
+    success
+    data {
+      _id
+      active
+      name
+      nets
+      autoAssign
+      autoAssignLogic
+      coachPassword
+      directorId
+      endDate
+    }
+  }
+}",
+  "variables": {
+  "name": "L30",
+  "startDate": "2023-11-11T13:24:13",
+  "endDate": "2023-11-11T13:24:13",
+  "playerLimit": 20,
+  "active": true,
+  "divisions": "d1, d2, d3",
+  "nets": 3,
+  "rounds": 4,
+  "netVariance": 3,
+  "homeTeam": "toss",
+  "autoAssign":true,
+  "autoAssignLogic": "toss",
+  "rosterLock": "locked",
+  "timeout": 4,
+  "passcode": "Test1234",
+  "coachPassword": "Test1234",
+  "location": "Location 1",
+  "sponsors": "This is a sponsor"
+}
+}
+
+
+
+
+
+
+
+{
+  "name": "L30",
+  "startDate": "2023-11-11T13:24:13",
+  "endDate": "2023-11-11T13:24:13",
+  "playerLimit": 20,
+  "active": true,
+  "divisions": "d1, d2, d3",
+  "nets": 3,
+  "rounds": 4,
+  "netVariance": 3,
+  "homeTeam": "toss",
+  "autoAssign":true,
+  "autoAssignLogic": "toss",
+  "rosterLock": "locked",
+  "timeout": 4,
+  "passcode": "Test1234",
+  "coachPassword": "Test1234",
+  "location": "Location 1",
+  "sponsors": "This is a sponsor"
+}

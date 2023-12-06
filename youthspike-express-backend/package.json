@@ -1,0 +1,35 @@
+{
+  "name": "spikeball-events",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=development node app.js",
+    "frontend": "npm start --prefix ../client",
+    "backend": "nodemon app.js",
+    "dev": "cross-env NODE_ENV=development concurrently \"nodemon app.js\" \"npm run frontend\""
+  },
+  "author": "Shayon",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^6.2.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "csvtojson": "^2.0.10",
+    "dotenv": "^10.0.0",
+    "excel4node": "^1.2.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
+    "express-validator": "^6.12.1",
+    "formidable": "^1.2.2",
+    "mongoose": "^5.13.14",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "underscore": "^1.13.4"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.19"
+  }
+}
