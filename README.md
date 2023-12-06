@@ -183,6 +183,17 @@ ___
 ___
 
 
+### Github Action Pipeline
+ - [Tutorial Guide](https://www.youtube.com/watch?v=V2YYhGn3MGo)
+ - Connect VPS server via SSH
+ - Change directory to ssh `cd .ssh`
+ - Now create the key `ssh-keygen -t rsa -b 4096 -c "mdshayon0@gmail.com"` (Set key name)
+ - Copy the public key `cat keyname.pub`
+ - Navigate to github repo -> setting -> ssh -> new ssh key (paste the public key)
+ - Copy private key `cat keyname`
+ - Github actions -> create a new secret key -> and paste the private key `SSH_PRIVATE_KEY=ssh_private_key_value`
+ - Make the key authorized `cat keyname.pub >> authorized_keys` and check the key 
+ - Github actions -> *set up a workflow yourself* 
 
 ### Deployment
  - Setup docker
