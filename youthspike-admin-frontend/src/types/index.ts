@@ -1,10 +1,11 @@
-import { IEvent, IEventAdd, IEventAddProps } from "./event";
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch } from "./event";
 import {
   ITextInputProps,
   IError,
   IOption,
   ISelectInputProps,
   INumberInputProps,
+  IToggleInputProps,
   IButtonProps,
   IMenuItem,
   IMenuArrangeProps,
@@ -17,7 +18,7 @@ import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
 import { IPlayer } from "./player";
 import { ITeam, ITeamAdd } from "./team";
-import { IAddMatch, IMatch } from "./match";
+import { IAddMatch, IMatch, IDefaultMatchProps } from "./match";
 
 export type {
   // Elements
@@ -28,6 +29,7 @@ export type {
   ISelectInputProps,
   IFileFileProps,
   INumberInputProps,
+  IToggleInputProps,
   IButtonProps,
   IMenuArrangeProps,
   ILoginProps,
@@ -37,6 +39,7 @@ export type {
   IEvent,
   IEventAdd,
   IEventAddProps,
+  IDefaultEventMatch,
 
 
   // User
@@ -65,4 +68,5 @@ export type {
   // Match
   IAddMatch,
   IMatch,
+  IDefaultMatchProps
 };

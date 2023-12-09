@@ -29,7 +29,7 @@ const itemList: IItem[] = [
   { id: 4, text: 'Orlando' }
 ];
 
-function EventsPage() {
+async function EventsPage() {
 
   const user = useUser();
   const router = useRouter();

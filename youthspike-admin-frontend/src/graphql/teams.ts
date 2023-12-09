@@ -52,7 +52,6 @@ const eventResponse = `
     location
     name
     netVariance
-    passcode
     playerLimit
     rosterLock
     timeout

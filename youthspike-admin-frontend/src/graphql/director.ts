@@ -16,7 +16,6 @@ const eventResponse = `
   rounds
   netVariance
   rosterLock
-  passcode
   timeout
   sponsors
 `;

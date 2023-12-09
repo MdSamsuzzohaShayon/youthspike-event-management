@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import Message from '@/components/elements/Message';
-import LeagueAddUpdate from '@/components/event/EventAddUpdate';
+import EventAddUpdate from '@/components/event/EventAddUpdate';
 import { IError } from '@/types';
 import Loader from '@/components/elements/Loader';
 
@@ -15,7 +15,7 @@ const EventNewPage = () => {
     <div className='container mx-auto px-2'>
       <h1>Event New</h1>
       {actErr && <Message error={actErr} />}
-      <LeagueAddUpdate update={false} setActErr={setActErr} setIsLoading={setIsLoading} />
+      <EventAddUpdate update={false} setActErr={setActErr} setIsLoading={setIsLoading} />
     </div>
   )
 }

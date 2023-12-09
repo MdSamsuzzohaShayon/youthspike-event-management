@@ -88,7 +88,7 @@ function Menu() {
     const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
     const [user, setUser] = useState<ICookieUser>(initialUser);
 
-    const [fetchLDO, {data, error, loading}] = useLazyQuery(GET_LDO);
+    const [fetchLDO, { data, error, loading }] = useLazyQuery(GET_LDO);
 
     const openMenuHandler = () => {
         user.info && user.token && user.token !== '' ? setOpenMenu(true) : setOpenMenu(false);
@@ -103,9 +103,10 @@ function Menu() {
         e.preventDefault();
         removeCookie('token');
         removeCookie('user');
-        setIsAuthenticated(false);
-        setOpenMenu(false);
-        return router.push('/login');
+        // setIsAuthenticated(false);
+        // setOpenMenu(false);
+        // return router.push('/login');
+        return window.location.href = "/login";
     }
 
     /**
@@ -134,7 +135,7 @@ function Menu() {
     }, []);
 
     // console.log({data});
-    
+
 
     useEffect(() => {
         const pathList = pathname.split('/');

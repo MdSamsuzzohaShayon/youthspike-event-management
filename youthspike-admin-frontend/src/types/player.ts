@@ -4,7 +4,7 @@ export interface IPlayerAdd {
   firstName: string;
   lastName: string;
   email: string;
-  rank?: number | null;
+  rank?: string | null;
   event?: string;
   team?: string;
 }

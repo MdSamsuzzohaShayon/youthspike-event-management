@@ -21,7 +21,6 @@ const commonResponse = `
   rounds
   netVariance
   rosterLock
-  passcode
   timeout
   sponsors
 `;

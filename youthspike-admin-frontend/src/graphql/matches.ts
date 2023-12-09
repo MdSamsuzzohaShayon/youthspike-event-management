@@ -2,6 +2,8 @@ import { gql } from "@apollo/client";
 
 const eventResponse = `
     _id
+    nets
+    rounds
     active
     autoAssign
     autoAssignLogic
@@ -12,7 +14,6 @@ const eventResponse = `
     location
     name
     netVariance
-    passcode
     playerLimit
     rosterLock
     timeout
@@ -21,12 +22,20 @@ const eventResponse = `
 
 const matchResponse = `
     _id
-    date
+    netRange
+
+    divisions
     numberOfNets
     numberOfRounds
+    netVariance
+    homeTeam
+    autoAssign
+    autoAssignLogic
+    rosterLock
+    timeout
+    coachPassword
     location
-    netRange
-    pairLimit
+
     teamA {
       _id
       name
@@ -91,9 +100,9 @@ const teamResponse = `
  * QUERIES
  * ===========================================================================================
  */
-const GET_MATCHES = gql`
-  query GetMatches($eventId: String!) {
-    getMatches(eventId: $eventId) {
+const GET_A_MATCH = gql`
+  query GetMatch($matchId: String!) {
+    getMatch(matchId: $matchId) {
       code
       message
       success
@@ -104,14 +113,13 @@ const GET_MATCHES = gql`
   }
 `;
 
-
 const GET_EVENT_WITH_MATCHES_TEAMS = gql`
-query GetEvent($eventId: String!) {
-  getEvent(eventId: $eventId) {
-    code
-    message
-    success
-     data {
+  query GetEvent($eventId: String!) {
+    getEvent(eventId: $eventId) {
+      code
+      message
+      success
+      data {
         ${eventResponse}
         matches {
           ${matchResponse}
@@ -124,9 +132,9 @@ query GetEvent($eventId: String!) {
           name
           logo
         }
-     }
+      }
+    }
   }
-}
 `;
 
 /**
@@ -146,4 +154,17 @@ mutation CreateMatch($input: CreateMatchInput!) {
 }
 `;
 
-export { GET_MATCHES, CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS };
+const UPDATE_MATCH = gql`
+mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
+  updateMatch(input: $input, matchId: $matchId) {
+    code
+    message
+    success
+    data {
+      ${matchResponse}
+    }
+  }
+}
+`;
+
+export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, GET_A_MATCH, UPDATE_MATCH };

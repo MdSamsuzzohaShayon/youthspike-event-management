@@ -1,12 +1,14 @@
 import { IMatch } from '@/types/match';
+import Link from 'next/link';
 import React, { useState } from 'react';
 
 interface MatchCardProps {
   match: IMatch;
-  sl: number
+  sl: number;
+  eventId: string;
 }
 
-function MatchCard({ match, sl }: MatchCardProps) {
+function MatchCard({ match, sl, eventId}: MatchCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
 
@@ -18,7 +20,7 @@ function MatchCard({ match, sl }: MatchCardProps) {
   return (
     <li className='w-full bg-gray-700 py-2 flex justify-between items-center relative' style={{ minHeight: '6rem' }}>
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 z-10 rounded-lg`}>
-        <li> Edit</li>
+        <li> <Link href={`/${eventId}/matches/${match._id}`} >Edit</Link></li>
         <li> Start</li>
       </ul>
 

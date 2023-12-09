@@ -16,7 +16,7 @@ export interface ITextInputProps {
   lblTxt?: string;
   name: string;
   required: boolean;
-  defaultValue: string | number;
+  defaultValue: string | null | undefined;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
 
@@ -47,13 +47,23 @@ export interface IFileFileProps {
 export interface INumberInputProps {
   name: string;
   required: boolean;
-  defaultValue: number | null;
+  defaultValue?: number | null | undefined;
   handleInputChange: (e: React.SyntheticEvent) => void;
   lw?: string;
   rw?: string;
   vertical?: boolean;
   extraCls?: string;
   lblTxt?: string;
+}
+
+export interface IToggleInputProps {
+  lw?: string;
+  widthCls?: number;
+  extraCls?: string;
+  lblTxt?: string;
+  name: string;
+  value: boolean | null | undefined;
+  handleValueChange: (e: React.SyntheticEvent, stateName: string) => void;
 }
 
 export interface IOption {

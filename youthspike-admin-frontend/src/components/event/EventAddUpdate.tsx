@@ -4,6 +4,7 @@ import { ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW } from '@/grap
 import { AdvancedImage } from '@cloudinary/react';
 import { useMutation } from '@apollo/client';
 
+
 // Components
 import ToggleInput from '../elements/forms/ToggleInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -20,11 +21,11 @@ import { useUser } from '@/lib/UserProvider';
 import { IEventAddProps, IEventAdd, IOption } from '@/types';
 import { UserRole } from '@/types/user';
 
+import staticData from '../../lib/data.json';
+
 
 // Select Input Options
-const homeTeamStrategyList: IOption[] = [{ value: 'toss', text: "Toss" }];
-const rosterLockList: IOption[] = [{ value: 'first', text: 'First roster submit' }];
-const assignLogicList: IOption[] = [{ value: 'hight' }, { value: 'random' }];
+const {homeTeamStrategy, rosterLockList, assignLogicList} = staticData;
 
 const initialEvent = {
     name: 'N-2',
@@ -33,19 +34,18 @@ const initialEvent = {
     nets: 3,
     rounds: 2,
     netVariance: 3,
-    homeTeam: homeTeamStrategyList[0].value,
+    homeTeam: homeTeamStrategy[0].value,
     autoAssign: false,
     autoAssignLogic: assignLogicList[1].value,
     rosterLock: rosterLockList[0].value,
-    timeout: 3,
-    passcode: '0913',
-    coachPassword: 'Spikeball',
-    location: 'USA',
     startDate: new Date().toISOString(),
     endDate: new Date().toISOString(),
     // ldo: new Date().toISOString(),
     playerLimit: 10,
-    active: true
+    active: true,
+    timeout: 3,
+    coachPassword: 'Spikeball',
+    location: 'USA',
 }
 
 function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAddProps) {
@@ -293,7 +293,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <NumberInput defaultValue={eventState.rounds} handleInputChange={handleInputChange} lblTxt='Number of rounds' name='rounds' required={!update} />
             <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleInputChange} lblTxt='Net Variance' name='netVariance' required={!update} />
 
-            <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategyList} lblTxt='How is home team decided?' handleSelect={handleInputChange} />
+            <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} />
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={eventState.autoAssign}
                 name="autoAssign" />
             <SelectInput defaultValue={eventState.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
@@ -318,6 +318,9 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <div className="input-group w-full">
                 <button className='border border-gray-300 bg-gray-900 text-gray-300 p-2' type='submit'>Create</button>
             </div> */}
+            <NumberInput required lblTxt='Timeout' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
+            <TextInput handleInputChange={handleInputChange} name='coachPassword' required defaultValue={eventState.coachPassword} />
+            <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} />
             <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
                 <h3 className='text-2xl capitalize'>Sponsors</h3>
                 <button type="button" onClick={handleOpenImg} className="btn-primary">Add New</button>

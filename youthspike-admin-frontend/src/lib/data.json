@@ -1,0 +1,22 @@
+{
+    "homeTeamStrategy": [
+        {
+            "value": "toss",
+            "text": "Toss"
+        }
+    ],
+    "rosterLockList": [
+        {
+            "value": "first",
+            "text": "First roster submit"
+        }
+    ],
+    "assignLogicList": [
+        {
+            "value": "hight"
+        },
+        {
+            "value": "random"
+        }
+    ]
+}

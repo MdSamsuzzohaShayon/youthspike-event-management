@@ -84,17 +84,15 @@ function PlayerAdd({ eventId, setIsLoading }: IPlayerAddProps) {
 
 
   return (
-    <div>
-      <form onSubmit={handleAddPlayer}>
-        <TextInput name='firstName' lblTxt='First Name' defaultValue={playerAdd.firstName} handleInputChange={handleInputChange} required vertical />
-        <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerAdd.lastName} handleInputChange={handleInputChange} required vertical />
-        <EmailInput name='email' defaultValue={playerAdd.email} handleInputChange={handleInputChange} required vertical />
-        {/* <NumberInput name='rank' defaultValue={playerAdd.rank ? playerAdd.rank : null} handleInputChange={handleInputChange} lw="w-full" rw="w-full" required vertical /> */}
-        <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical />
-        <button type="submit" className='btn-secondary'>Submit</button>
-      </form>
-    </div>
+    <form onSubmit={handleAddPlayer}>
+      <TextInput name='firstName' lblTxt='First Name' defaultValue={playerAdd.firstName} handleInputChange={handleInputChange} required vertical />
+      <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerAdd.lastName} handleInputChange={handleInputChange} required vertical />
+      <EmailInput name='email' defaultValue={playerAdd.email} handleInputChange={handleInputChange} required vertical />
+      {/* <NumberInput name='rank' defaultValue={playerAdd.rank ? playerAdd.rank : null} handleInputChange={handleInputChange} lw="w-full" rw="w-full" required vertical /> */}
+      <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical />
+      <button type="submit" className='btn-secondary'>Submit</button>
+    </form>
   )
 }
 
-export default PlayerAdd
+export default PlayerAdd;

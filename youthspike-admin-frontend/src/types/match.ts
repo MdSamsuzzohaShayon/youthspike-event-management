@@ -1,26 +1,36 @@
 import { ITeam } from ".";
 
-export interface IAddMatch {
-  date: Date;
-  event: string;
+export interface IDefaultMatch{
+  divisions: string;
+  netVariance: number;
+  homeTeam: string;
+  autoAssign: boolean;
+  autoAssignLogic: string;
+  rosterLock: string;
+  timeout: number;
+  coachPassword: string;
   location: string;
-  netRange: number;
+}
+
+export interface IDefaultMatchProps extends IDefaultMatch {
   numberOfNets: number;
   numberOfRounds: number;
-  pairLimit: number;
+}
+
+
+interface IMatchBase extends Partial<IDefaultMatchProps>{
+  date: Date;
+  event: string;
+  netRange: number;
+}
+
+export interface IAddMatch extends IMatchBase{
   teamA: string;
   teamB: string;
 }
 
-export interface IMatch {
+export interface IMatch extends IMatchBase{
   _id: string;
-  date: string; // ISO String
-  event: string;
-  location: string;
-  netRange: number;
-  numberOfNets: number;
-  numberOfRounds: number;
-  pairLimit: number;
   teamA: ITeam;
   teamB: ITeam;
 }

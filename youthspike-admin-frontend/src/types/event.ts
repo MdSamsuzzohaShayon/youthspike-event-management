@@ -1,20 +1,15 @@
 import { IError, ITeam } from ".";
 import { IDocument } from "./document";
+import { IDefaultMatch } from "./match";
 
-export interface IEvent extends IDocument {
-  name: string;
-  divisions: string;
+export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
   rounds: number;
-  netVariance: number;
-  homeTeam: string;
-  autoAssign: boolean;
-  autoAssignLogic: string;
-  timeout: number;
-  passcode: string;
-  coachPassword: string;
-  location: string;
-  rosterLock: string;
+}
+
+export interface IEvent extends IDefaultEventMatch {
+  _id: string;
+  name: string;
   startDate: string;
   endDate: string;
   playerLimit: number;
@@ -22,20 +17,8 @@ export interface IEvent extends IDocument {
   sponsors: string[];
 }
 
-export interface IEventAdd {
+export interface IEventAdd extends IDefaultEventMatch {
   name: string;
-  divisions: string;
-  nets: number;
-  rounds: number;
-  netVariance: number;
-  homeTeam: string;
-  autoAssign: boolean;
-  autoAssignLogic: string;
-  timeout: number;
-  passcode: string;
-  coachPassword: string;
-  location: string;
-  rosterLock: string;
   startDate: string;
   endDate: string;
   playerLimit: number;
