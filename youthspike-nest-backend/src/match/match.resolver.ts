@@ -10,9 +10,7 @@ import { MatchService } from './match.service';
 import { NetService } from 'src/net/net.service';
 import { RoundService } from 'src/round/round.service';
 import { TeamService } from 'src/team/team.service';
-import { Team } from 'src/team/team.schema';
 import { UserRole } from 'src/user/user.schema';
-import { sendMail } from 'src/util/mail';
 import { Match } from './match.schema';
 import { CreateMatchInput, UpdateMatchInput } from './match.input';
 
@@ -52,7 +50,7 @@ export class MatchResolver {
        *    Step-4: Update Match with with netId and roundId
        *    Step-5: Update Match with eventId
        */
-      const findEvent = await this.eventService.findById(input.event);
+      const findEvent = await this.eventService.findById(input.event.toString());
       if (!findEvent) return AppResponse.notFound('Event');
 
       const netIds = [];
@@ -128,6 +126,11 @@ export class MatchResolver {
   @Mutation((returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
     try {
+      /**
+       * TODO:
+       *    Step-1: Create new nets or delete if nets number changes
+       *    Step-2: Create new rounds or delete if rounds number changes
+       */
       const updatedMatch = await this.matchService.update(input, matchId);
       return {
         data: updatedMatch,
@@ -154,12 +157,12 @@ export class MatchResolver {
   }
 
   @Query((returns) => GetMatchResponse)
-  async getMatch(@Args('id') id: string) {
+  async getMatch(@Args('matchId') matchId: string) {
     try {
       return {
         code: 200,
         success: true,
-        data: await this.matchService.findById(id),
+        data: await this.matchService.findById(matchId),
       };
     } catch (err) {
       return AppResponse.getError(err);
