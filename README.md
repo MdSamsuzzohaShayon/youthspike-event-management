@@ -37,7 +37,7 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Create match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
+ - Make captain login working, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
 
 ### Requirements
  - Add and delete cookie properly (Use a library)
@@ -109,6 +109,7 @@ ___
  - For a new match there will be whole new setup  (rounds, nets, etc)
  - Database modeling *round, match, and net* make relationship properly
  - Get all the defaults values from the event in order to create a new match
+ - Update match
  - Matches page -> pair limit does not work -> 
  - From a single match -> login as captain
  - Pair score is combine ranking of two players. [04:00 exlain new varience](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), net verience means if a team has pair score of 9 and they submit their lineup, the other team can only assign player that does not exceed a limit as pair score, in this case it is 6 to 12 (pair score).
