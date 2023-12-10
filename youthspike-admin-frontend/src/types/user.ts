@@ -6,6 +6,7 @@ import { IDocument } from "./document";
 export enum UserRole {
   "admin" = "admin",
   "coach" = "coach",
+  "captain" = "captain",
   "director" = "director",
   "manager" = "manager",
   "player" = "player",

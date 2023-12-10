@@ -72,6 +72,7 @@ async function EventsPage() {
     setFilteredItems(prevState => [...prevState.filter((fi) => fi.id !== iid)]);
   }
 
+
   /**
    * Copy event - copy from server and redirect to edit page
    * Redirect to edit event page if event is been created successfully

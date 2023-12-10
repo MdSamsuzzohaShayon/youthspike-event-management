@@ -1,6 +1,5 @@
 import { ArgsType, Field, ID, InputType, PartialType } from '@nestjs/graphql';
 
-@ArgsType()
 @InputType()
 export class CreateTeamInput {
   @Field()
@@ -19,8 +18,6 @@ export class CreateTeamInput {
   players?: string[];
 }
 
+
 @InputType()
-export class UpdateTeamInput extends PartialType(CreateTeamInput) {
-  @Field()
-  name?: string;
-}
+export class UpdateTeamInput extends PartialType(CreateTeamInput) {}

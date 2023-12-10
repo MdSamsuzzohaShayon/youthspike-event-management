@@ -6,8 +6,9 @@ import { UserRole } from './types/user';
 
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const authenticatedPages = ['/', '/players', '/matches', "/settings", "/teams"];
-const adminPages = ['/admin'];
+const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams"];
+const captainAuthPages = ['/players', "/teams"];
+const adminPages = ['/admin', '/directors'];
 
 /**
  * Configuration for the Next.js middleware
@@ -42,10 +43,10 @@ export function middleware(request: NextRequest) {
    * Unauthenticated pages can not access authenticated or admin content
    */
   if (!token || !token.value || token.value === '' || !user || !user.value || user.value === '') {
-    console.log('Unauthenticated page match ');
 
     // Redirect to login page if the requested page requires authentication or admin access
-    if ([...authenticatedPages, ...adminPages].some(page => new RegExp(`${pathname}\\/?`, 'gi').test(page))) {
+    // @ts-ignore
+    if ([...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])].some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
       return NextResponse.redirect(new URL('/login', request.url));
     } else {
       return NextResponse.next(); // Continue to the requested page if no authentication is required
@@ -53,7 +54,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Authenticated user can not visit login or register page
-  const isUnauthenticatedPage = unauthenticatedPages.includes(pathname) || unauthenticatedPages.some(page => new RegExp(`^${page}/?$`, 'i').test(pathname));
+  const isUnauthenticatedPage = unauthenticatedPages.includes(pathname) || unauthenticatedPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
   if (isUnauthenticatedPage) {
     return NextResponse.redirect(new URL('/', request.url));
   }
@@ -62,15 +63,21 @@ export function middleware(request: NextRequest) {
   const userObj = user?.value && user.value !== '' ? JSON.parse(user.value) : null;
 
   // Handle access to authenticated pages
-  const isAuthenticatedPage = authenticatedPages.includes(pathname) || authenticatedPages.some(page => new RegExp(`^${page}/?$`, 'i').test(pathname));
+  // @ts-ignore
+  const directorAndCaptainPages = [...new Set([...directorAuthPages, ...captainAuthPages])];
+  const isAuthenticatedPage = directorAndCaptainPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
   if (isAuthenticatedPage) {
     // Redirect if the user is not a director
-    if (userObj && userObj.role === UserRole.director) return NextResponse.next();
-    return NextResponse.redirect(new URL('/not-found', request.url));
+    if (userObj && userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+      return NextResponse.next();
+    } else if (userObj && userObj.role === UserRole.captain && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL('/not-found/404', request.url));
   }
 
   // Handle access to admin pages
-  const isAdminPage = adminPages.includes(pathname) || adminPages.some(page => new RegExp(`^${page}/?$`, 'i').test(pathname));
+  const isAdminPage = adminPages.includes(pathname) || adminPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
   if (isAdminPage) {
     console.log('Admin page match ');
 

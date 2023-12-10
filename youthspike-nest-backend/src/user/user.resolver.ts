@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Field, Mutation, ObjectType, Resolver } from '@nestjs/graphql';
+import { Args, Field, Mutation, ObjectType, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
-import { Coach, User, UserRole } from './user.schema';
+import { User, UserBase, UserRole } from './user.schema';
 import { UserService } from './user.service';
 import { compare, hash } from 'bcrypt';
+import { Player } from 'src/player/player.schema';
+import { PlayerService } from 'src/player/player.service';
 
 @ObjectType()
 class LoginResponseData {
@@ -11,7 +13,7 @@ class LoginResponseData {
   token: string;
 
   @Field()
-  user: User;
+  user: UserBase;
 }
 
 @ObjectType()
@@ -34,15 +36,12 @@ class ChangePWDDataRes extends AppResponse<ChangePWDData> {
 
 @Resolver((of) => User)
 export class UserResolver {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService, private playerService: PlayerService) { }
 
   @Mutation((returns) => LoginResponse)
   async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
     try {
-      const user = await this.userService.login({
-        email,
-        password,
-      });
+      const user = await this.userService.login(email, password,);
       return {
         code: 200,
         success: true,
@@ -61,9 +60,9 @@ export class UserResolver {
   ): Promise<ChangePWDDataRes> {
     try {
       const user = await this.userService.findById(id);
-      const isValid = await compare(oldPassword, user?.login?.password);
+      const isValid = await compare(oldPassword, user?.password);
       if (isValid) {
-        user.login.password = newPassword;
+        user.password = newPassword;
         user.save();
       }
       return {
@@ -72,6 +71,24 @@ export class UserResolver {
       };
     } catch (err) {
       return AppResponse.getError(err);
+    }
+  }
+
+  /**
+   * Populate data
+   */
+  @ResolveField(() => Player, { nullable: true })
+  async captainplayer(@Parent() user: User) {
+    try {
+      if (user.captainplayer) {
+        const captain = await this.playerService.findById(user.captainplayer.toString());
+        return captain || null; // Return null if captain is not found
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.log(error);
+      return null;
     }
   }
 }

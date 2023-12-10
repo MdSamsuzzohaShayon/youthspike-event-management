@@ -36,7 +36,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} />
-      <PlayerList playerList={players} eventId={params.eventId} />
+      <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} />
     </div>
   )
 }

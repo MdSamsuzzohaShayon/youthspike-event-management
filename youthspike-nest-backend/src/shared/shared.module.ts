@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ModuleRef } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
+import * as bcrypt from 'bcrypt';
 import { Event, EventSchemaFactory } from 'src/event/event.schema';
 import { Match, MatchSchemaFactory } from 'src/match/match.schema';
 import { Net, NetSchemaFactory } from 'src/net/net.schema';
@@ -123,15 +124,14 @@ export class SharedModule {
   async onApplicationBootstrap() {
     try {
       const userService = this.modRef.get(UserService);
+      const hashedPassword = await bcrypt.hash(this.configService.get<string>('ADMIN_PASSWORD'), 10);
       await userService.createOrUpdateAdmin({
         firstName: this.configService.get<string>('ADMIN_FIRST_NAME'),
         lastName: this.configService.get<string>('ADMIN_LAST_NAME'),
         role: UserRole.admin,
         active: true,
-        login: {
-          email: this.configService.get<string>('ADMIN_EMAIL'),
-          password: this.configService.get<string>('ADMIN_PASSWORD'),
-        },
+        email: this.configService.get<string>('ADMIN_EMAIL'),
+        password: hashedPassword,
       });
     } catch (error) {
       console.log(error);

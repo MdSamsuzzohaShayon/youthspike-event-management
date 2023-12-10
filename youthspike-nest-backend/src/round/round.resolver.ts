@@ -39,7 +39,7 @@ export class RoundResolver {
     private subService: SubService,
   ) {}
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetRoundResponse)
   async create(
     @Args('match') match: string,
@@ -60,7 +60,7 @@ export class RoundResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateRoundResponse)
   async updateRound(
     @Args('matchId') matchId: string,
@@ -81,7 +81,7 @@ export class RoundResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
+  @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetRoundsResponse)
   async getRounds(@Args('matchId') matchId: string) {
     try {
@@ -98,7 +98,7 @@ export class RoundResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
+  @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetRoundResponse)
   async getRound(@Args('id') id: string) {
     try {

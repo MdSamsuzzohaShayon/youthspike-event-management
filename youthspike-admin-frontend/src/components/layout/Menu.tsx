@@ -106,7 +106,7 @@ function Menu() {
         // setIsAuthenticated(false);
         // setOpenMenu(false);
         // return router.push('/login');
-        return window.location.href = "/login";
+        return window.location.reload();
     }
 
     /**
@@ -148,6 +148,8 @@ function Menu() {
 
             if (user.info?.role === UserRole.admin) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
+            } else if (user.info?.role === UserRole.captain) {
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 2 || menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
             }
@@ -155,6 +157,8 @@ function Menu() {
             setEventId(eventPath);
             if (user.info?.role === UserRole.director) {
                 setUserMenuList((prevState) => [...prevState.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
+            } else if (user.info?.role === UserRole.captain) {
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 2 || menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList(initialUserMenuList);
             }
@@ -211,7 +215,7 @@ function Menu() {
                     )}
                     <ul className='menu-list flex justify-start flex-col gap-8'>
                         {renderMenuItems(eventId, userMenuList)}
-                        {(user && user.token && user.token !== '') && <li><button className="btn-danger" onClick={handleLogout}>Logout</button></li>}
+                        {(user && user.token && user.token !== '') && <li><button className="btn-danger" type='button' onClick={handleLogout}>Logout</button></li>}
                     </ul>
                 </div>
             )}

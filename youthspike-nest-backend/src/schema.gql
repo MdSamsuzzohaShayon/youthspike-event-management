@@ -115,9 +115,20 @@ type Player {
   captainuser: User
 }
 
-type Login {
+type UserBase {
+  _id: String
+  firstName: String!
+  lastName: String!
+  role: UserRole!
+  captainplayer: Player
   email: String!
-  password: String
+  active: Boolean!
+}
+
+enum UserRole {
+  admin
+  director
+  captain
 }
 
 type User {
@@ -126,23 +137,14 @@ type User {
   lastName: String!
   role: UserRole!
   captainplayer: Player
-  login: Login
+  email: String!
   active: Boolean!
-}
-
-enum UserRole {
-  admin
-  director
-  coach
-  captain
-  manager
-  player
-  playerAndCoach
+  password: String!
 }
 
 type LoginResponseData {
   token: String!
-  user: User!
+  user: UserBase!
 }
 
 type ChangePWDData {
@@ -305,7 +307,6 @@ type Query {
   getRound(id: String!): GetRoundResponse!
   getNets(roundId: String!): GetNetsResponse!
   getNet(id: String!): GetNetResponse!
-  getSub(id: String!): GetSubResponse!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
   getPlayers(eventId: String!): PlayersResponse!
@@ -326,10 +327,10 @@ type Mutation {
   createNet(input: CreateNetInput!): GetNetResponse!
   updateNet(input: UpdateNetInput!): GetNetResponse!
   subAddPlayer(id: String!, roundId: String!, playerId: String!): GetSubResponse!
-  subRemovePlayer(id: String!, roundId: String!, playerId: String!): GetSubResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
   createPlayer(input: CreatePlayerInput!): PlayerResponse!
+  updatePlayer(input: UpdatePlayerInput!, playerId: String!): PlayerResponse!
   createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
 }
 
@@ -389,7 +390,11 @@ input CreateTeamInput {
 }
 
 input UpdateTeamInput {
-  name: String!
+  name: String
+  active: Boolean
+  captain: String
+  event: String
+  players: [ID!]
 }
 
 input CreateMatchInput {
@@ -466,6 +471,15 @@ input CreatePlayerInput {
   lastName: String!
   event: String!
   email: String!
-  rank: String!
+  rank: Float!
+  team: String
+}
+
+input UpdatePlayerInput {
+  firstName: String
+  lastName: String
+  event: String
+  email: String
+  rank: Float
   team: String
 }

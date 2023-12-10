@@ -1,14 +1,19 @@
+import { UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayer } from '@/types/player';
+import { useMutation } from '@apollo/client';
 import React, { useState } from 'react';
 
 interface PlayerCardProps {
   player: IPlayer;
   index: number;
+  teamId: string | null;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function PlayerCard({ player, index }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, setIsLoading }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
+  const [mutateTeam] = useMutation(UPDATE_TEAM);
 
   const handleOpenAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -20,11 +25,20 @@ function PlayerCard({ player, index }: PlayerCardProps) {
     setActionOpen(prevState => !prevState);
     console.log(`Edit player: ${playerId}`);
   }
-  const handleMakeCaptain = (e: React.SyntheticEvent, playerId: string) => {
+  const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
     setActionOpen(prevState => !prevState);
-    console.log(`Make captain player: ${playerId}`);
-
+    console.log(`Make captain player of the current player that he is on or select team if the player does not have a team`, { playerId, teamId });
+    try {
+      setIsLoading(true);
+      const changeCaptainRes = await mutateTeam({ variables: { input: { captain: playerId }, teamId } });
+      console.log(changeCaptainRes);
+      
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
   const handleMakeCoCaptain = (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
@@ -83,7 +97,7 @@ function PlayerCard({ player, index }: PlayerCardProps) {
       <div className="text-box w-5/12">
         <div className="w-full">
           <p className='break-words' >7676-783-8263</p>
-          <p className='break-words' >{player.email}</p>
+          <p className='break-words' >E: {player.email}</p>
           <p className='break-words' >2-3 / +3 games</p>
         </div>
       </div>

@@ -17,6 +17,7 @@ interface TeamSingleProps {
 function TeamSingle({ params }: TeamSingleProps) {
   const [fetchTeam, { data, loading, error }] = useLazyQuery(GET_A_TEAM, { variables: { teamId: params.teamId } });
   const [actErr, setActErr] = useState<IError | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (params.teamId) {
@@ -29,7 +30,7 @@ function TeamSingle({ params }: TeamSingleProps) {
 
   }, [params.teamId]);
 
-  if (loading) return <Loader />;
+  if (loading || isLoading) return <Loader />;
 
   const teamData = data?.getTeam?.data;
 
@@ -67,7 +68,7 @@ function TeamSingle({ params }: TeamSingleProps) {
 
       <div className="bulk-operations-players mt-8">
         <p>Make Inactive / Re-rank / A-Z</p>
-        <PlayerList eventId='random' playerList={teamData ? teamData.players : []} />
+        <PlayerList eventId='random' playerList={teamData ? teamData.players : []} teamId={params.teamId} setIsLoading={setIsLoading} />
       </div>
     </div>
   )

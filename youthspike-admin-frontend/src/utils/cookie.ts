@@ -11,9 +11,15 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+function setCookie(name: string, value: string, days: number): void {
+  const expirationDate = new Date();
+  expirationDate.setDate(expirationDate.getDate() + days);
+
+  document.cookie = `${name}=${value}; expires=${expirationDate.toUTCString()}; path=/;`;
+}
 
 function removeCookie(name: string): void {
-  document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-};
+  document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/;`;
+}
 
-export { getCookie, removeCookie };
+export { getCookie, setCookie, removeCookie };

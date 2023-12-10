@@ -3,8 +3,6 @@
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import MatchAdd from '@/components/match/MatchAdd';
-import CaptainCard from '@/components/player/CaptainCard';
-import PlayerList from '@/components/player/PlayerList';
 import { GET_A_MATCH } from '@/graphql/matches';
 import { IError } from '@/types';
 import { isValidObjectId, toMatchDefaultData } from '@/utils/helper';

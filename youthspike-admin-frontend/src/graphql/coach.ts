@@ -15,10 +15,8 @@ const GET_COACHES_IN_DETAIL = gql`
         firstName
         lastName
         role
-        login {
-          email
-          password
-        }
+        email
+        password
         active
         player {
           shirtNumber

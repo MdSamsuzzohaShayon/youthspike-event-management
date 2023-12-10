@@ -19,11 +19,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
   const [fetchPlayers, { loading, data, error }] = useLazyQuery(GET_PLAYERS);
   const [actErr, setActErr] = useState<IError | null>(null);
-
   
-  const handleTeamAdd=(e: React.SyntheticEvent)=>{
-    e.preventDefault();
-  }
 
   const handleClose=(e: React.SyntheticEvent)=>{
     e.preventDefault();
@@ -44,16 +40,14 @@ function TeamsPage({ params }: ITeamsPageProps) {
       }
     })()
   }, [params.eventId]);
+
   if(loading || isLoading) return <Loader />;
 
   return (
     <div className='container mx-auto px-2'>
+      <h1>Teams</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <p>List of teams</p>
-      <p>Add New Team(Assign players to the team)</p>
-      <p>Make captain</p>
-      <p>Handle error</p>
       <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} />
     </div>
   )

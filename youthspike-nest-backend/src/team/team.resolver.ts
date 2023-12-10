@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import * as bcrypt from 'bcrypt';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserService } from 'src/user/user.service';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { TeamService } from 'src/team/team.service';
-import { UserRole } from 'src/user/user.schema';
+import { User, UserRole } from 'src/user/user.schema';
 import { Team } from './team.schema';
 import { CreateTeamInput, UpdateTeamInput } from './team.args';
 import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -36,8 +40,11 @@ export class TeamResolver {
     private eventService: EventService,
     private playerService: PlayerService,
     private userService: UserService,
-  ) {}
+  ) { }
 
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((resolves) => CreateOrUpdateTeamResponse)
   async createTeam(@Args('input') input: CreateTeamInput): Promise<CreateOrUpdateTeamResponse> {
     /**
@@ -63,17 +70,15 @@ export class TeamResolver {
     if (input.captain) {
       // Create new user for captain
       const findPlayer = await this.playerService.findById(input.captain.toString());
-      const captainDefaultPassword = 'Test1234';
+      const hashedPassword = await bcrypt.hash("Test1234", 10);
       const captainUser = await this.userService.create({
         firstName: findPlayer.firstName,
         lastName: findPlayer.lastName,
         role: UserRole.captain,
         active: true,
         captainplayer: input.captain,
-        login: {
-          email: findPlayer.email,
-          password: captainDefaultPassword,
-        },
+        email: findPlayer.email,
+        password: hashedPassword,
       });
       promiseOperations.push(
         this.playerService.update({ captainofteam: newTeam._id, captainuser: captainUser._id }, input.captain),
@@ -91,42 +96,51 @@ export class TeamResolver {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((resolves) => CreateOrUpdateTeamResponse)
   async updateTeam(
     @Args('input') input: UpdateTeamInput,
     @Args('teamId') teamId: string,
   ): Promise<CreateOrUpdateTeamResponse> {
-    const teamData = await this.teamService.update(input, { _id: teamId });
+    /**
+     * TODO:
+     *  Step-1: Find team, captain and captain user if someone wants to change captain
+     *  Step-2: Check prev captain and current is in the same team
+     *  Step-3: Create user if there are no user found
+     *  Step-4: Update captain, captainuser
+     */
+    const findTeam = await this.teamService.findById(teamId);
+    const updatePromises = [];
 
-    // if (changeEvent) {
-    //   await this.teamEventMappingService.delete({
-    //     teamId: teamData?._id.toString(),
-    //     event: rmCaptainId,
-    //     ...(reamoveCoachId?.length > 0 && { userId: reamoveCoachId }),
-    //   });
-    // }
-    // let isPresent;
-    // if (reamoveCoachId?.length > 0) {
-    //   isPresent = await this.teamEventMappingService.query({
-    //     teamId: teamData?._id.toString(),
-    //     eventId,
-    //     userId: reamoveCoachId,
-    //   });
-    // } else {
-    //   isPresent = await this.teamEventMappingService.query({
-    //     teamId: teamData?._id.toString(),
-    //     eventId,
-    //   });
-    // }
+    // Update captain
+    if (input.captain) {
+      const findPlayer = await this.playerService.findById(input.captain.toString());
 
-    // if (isPresent?.length === 0) {
-    //   await this.teamEventMappingService.create(teamData?._id, eventId, coachId);
-    // }
+      if (findPlayer && findTeam.captain && findTeam.captain.toString() !== input.captain.toString()) {
+        const prevCaptain = await this.playerService.findById(findTeam.captain.toString());
+        updatePromises.push(this.playerService.update({ captainofteam: null, captainuser: null }, findTeam.captain.toString()));
+        const prevCaptainuser = await this.userService.findOne({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }] });
+        if (prevCaptainuser) {
+          updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: prevCaptainuser._id }, input.captain.toString()));
+          updatePromises.push(this.userService.createOrUpdate({ email: findPlayer.email, captainplayer: findPlayer._id }, prevCaptainuser._id.toString()));
+        } else {
+          const hashedPassword = await bcrypt.hash("Test1234", 10);
+          const newUser = await this.userService.create({
+            email: findPlayer.email, password: hashedPassword,
+            firstName: findPlayer.firstName, lastName: findPlayer.lastName, role: UserRole.captain, captainplayer: findPlayer._id, active: true
+          });
+          updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: newUser._id }, input.captain.toString()));
+        }
+        updatePromises.push(this.teamService.update({ captain: findPlayer._id }, { _id: teamId }));
+      }
+    }
+    await Promise.all(updatePromises);
     try {
       return {
         code: 200,
         success: true,
-        data: teamData,
+        data: findTeam,
       };
     } catch (err) {
       return AppResponse.getError(err);
@@ -136,7 +150,7 @@ export class TeamResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
-    const teams = await this.teamService.query({ event: eventId.toString() });
+    const teams = await this.teamService.find({});
     try {
       return {
         code: 200,

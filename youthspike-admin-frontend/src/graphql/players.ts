@@ -82,10 +82,7 @@ const CREATE_MULTIPLE_PLAYERS_RAW = `
       message
       success
       data {
-        _id
-        firstName
-        lastName
-        email
+        ${playerResponse}
       }
     }
   }
@@ -99,6 +96,9 @@ mutation CreatePlayer($input: CreatePlayerInput!) {
     code
     message
     success
+    data{
+      ${playerResponse}
+    }
   }
 }
 `;

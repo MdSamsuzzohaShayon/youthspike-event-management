@@ -15,7 +15,7 @@ export class CreatePlayerInput {
   email: string;
 
   @Field()
-  rank?: string;
+  rank?: number;
 
   @Field({ nullable: true })
   team?: string;

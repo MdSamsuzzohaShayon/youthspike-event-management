@@ -9,9 +9,10 @@ import TeamList from '@/components/teams/TeamList';
 import { isValidObjectId } from '@/utils/helper';
 import { IError } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
+import Link from 'next/link';
 
 interface ITeamsOfEventPage {
-        eventId: string
+    eventId: string
 }
 
 function TeamMain({ eventId }: ITeamsOfEventPage) {
@@ -68,10 +69,10 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
     }, [eventId]);
 
-    
+
     if (loading) return <Loader />;
     const teamList = eventData?.getEvent?.data?.teams ? eventData.getEvent.data.teams : [];
-    
+
 
     return (
         <div className="TeamMain">
@@ -108,8 +109,12 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 </select>
             </div>
             <div className="mb-8 make-team flex w-full justify-between">
-                <button onClick={handleOpenAdd} className="bg-yellow-500 text-gray-900 px-4 py-3 rounded-full flex justify-between gap-2 font-bold"><span><img src="/icons/plus.svg" alt="plus" className='w-6 svg-black' /></span>Add New Team</button>
-                <button onClick={(e) => { if (importerEl.current) importerEl.current.showModal() }} className="bg-yellow-500 text-gray-900 px-4 py-3 rounded-full flex justify-between gap-2 font-bold"><span><img src="/icons/import.svg" alt="import" className='w-6 svg-black' /></span>Import File</button>
+                <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>
+                    <span><img src="/icons/plus.svg" alt="plus" className='w-6 svg-white' /></span>Add New Team
+                </Link>
+                {/* <button onClick={handleOpenAdd} className="bg-yellow-500 text-gray-900 px-4 py-3 rounded-full flex justify-between gap-2 font-bold">
+                </button> */}
+                <button onClick={(e) => { if (importerEl.current) importerEl.current.showModal() }} className="btn-info flex justify-between items-center gap-2"><span><img src="/icons/import.svg" alt="import" className='w-6 svg-white' /></span>Import File</button>
             </div>
             <div className="list-with-filter w-full relative">
                 <div className="action-section flex justify-between mb-4">

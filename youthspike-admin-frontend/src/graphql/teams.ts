@@ -9,6 +9,7 @@ const teamResponse = `
       firstName
       lastName
       rank
+      email
       captainofteam {
         _id
         name
@@ -17,6 +18,7 @@ const teamResponse = `
         _id
         firstName
         lastName
+        email
       }
     }
     captain {
@@ -32,10 +34,7 @@ const teamResponse = `
         _id
         firstName
         lastName
-        login {
-          email
-          password
-        }
+        email
       }
     }
 `;
@@ -127,4 +126,29 @@ const ADD_A_TEAM = gql`
   }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, GET_A_TEAM, GET_EVENT_WITH_TEAMS };
+const UPDATE_TEAM = gql`
+  mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!) {
+    updateTeam(input: $input, teamId: $teamId) {
+      code
+      data {
+        _id
+        active
+        name
+        captain {
+          _id
+          email
+          firstName
+          lastName
+          captainuser {
+            _id
+            firstName
+            lastName
+            email
+          }
+        }
+      }
+    }
+  }
+`;
+
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM };

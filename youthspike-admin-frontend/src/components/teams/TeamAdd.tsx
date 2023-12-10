@@ -6,6 +6,7 @@ import { IOption, IPlayer, ITeam, ITeamAdd } from '@/types';
 import { ADD_A_TEAM } from '@/graphql/teams';
 import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
+import Link from 'next/link';
 
 interface ITeamAddProps {
     eventId: string;
@@ -27,7 +28,6 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeam
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
 
     // GraphQL
-    // Get all coaches / players
     const [addTeam, { data, loading, error, reset }] = useMutation(ADD_A_TEAM); // Do caching
 
 
@@ -104,9 +104,8 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeam
             </div>
 
             <TextInput name='name' required vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
-            <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
             <div className='input-group w-full flex flex-col'>
-                <label htmlFor="players">Select Players</label>
+                <label htmlFor="players">Select Players. <Link href={`/${eventId}/players`} className='underline underline-offset-1' >Create New Player!</Link></label>
                 <ul className='flex flex-wrap items-center gap-2'>
                     {availablePlayers.map((ap) => (<li key={ap._id} className='flex gap-1 items-center'>
                         <input type="checkbox" onChange={(e) => handleCheckboxChange(e, ap._id)} />
@@ -114,6 +113,9 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeam
                     </li>))}
                 </ul>
             </div>
+            {playerIdList.length > 0 && (
+                <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
+            )}
 
             <div className="input-group w-full">
                 <button className='btn-primary' type='submit'>Create</button>

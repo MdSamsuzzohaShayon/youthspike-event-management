@@ -13,8 +13,13 @@ const LOGIN_USER = gql`
           firstName
           lastName
           role
-          login {
-            email
+          email
+          captainplayer {
+            _id
+            event {
+              _id
+              name
+            }
           }
         }
       }

@@ -88,10 +88,7 @@ const teamResponse = `
         _id
         firstName
         lastName
-        login {
-          email
-          password
-        }
+        email
       }
     }
 `;

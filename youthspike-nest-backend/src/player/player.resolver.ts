@@ -1,6 +1,6 @@
 import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { PlayerService } from './player.service';
-import { CreatePlayerInput } from './player.input';
+import { CreatePlayerInput, UpdatePlayerInput } from './player.input';
 import { Player } from './player.schema';
 import { AppResponse } from 'src/shared/response';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -58,6 +58,22 @@ export class PlayerResolver {
         success: true,
         code: 201,
         data: newPlayer,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns)=> PlayerResponse)
+  async updatePlayer(@Args('input') input: UpdatePlayerInput, @Args("playerId") playerId: string): Promise<PlayerResponse>{
+    try {
+      const updatedPlayer = await this.playerService.update(input, playerId);
+      return {
+        success: true,
+        code: 201,
+        data: updatedPlayer,
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -157,8 +173,8 @@ export class PlayerResolver {
   async captainuser(@Parent() player: Player): Promise<User | null> {
     try {
       if (!player.captainuser) return null;
-      const findTeam = await this.userService.findById(player.captainuser.toString());
-      return findTeam;
+      const findUser = await this.userService.findById(player.captainuser.toString());
+      return findUser;
     } catch (error) {
       return null;
     }

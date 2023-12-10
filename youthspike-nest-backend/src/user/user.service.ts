@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { FilterQuery, Model, ObjectId } from 'mongoose';
 import { AppResponse } from 'src/shared/response';
-import { Login, User, UserDocument } from './user.schema';
+import { User, UserDocument } from './user.schema';
 
 @Injectable()
 export class UserService {
@@ -15,21 +15,13 @@ export class UserService {
 
   async create(user: User) {
     const userObj = { ...user };
-    const password = userObj.login.password;
+    const password = userObj.password;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const loginObj: { email: string; password: string } = {
-      email: userObj.login.email,
-      password: hashedPassword,
-    };
-    const newUser = { ...userObj, login: loginObj };
-    const existing = await this.userModel.findOne({
-      'login.email': user.login.email,
-    });
+    userObj.password = hashedPassword;
+    const existing = await this.userModel.findOne({ email: user.email, });
 
     if (existing) throw AppResponse.exists('user');
-    return this.userModel.create({
-      ...newUser,
-    });
+    return this.userModel.create({ ...userObj });
   }
 
   async findById(id: string) {
@@ -46,21 +38,22 @@ export class UserService {
     return user;
   }
 
-  async login(login: Login): Promise<{ user: User; token: string }> {
-    const existing: UserDocument = await this.userModel.findOne({
-      'login.email': login.email,
-    });
-    if (!existing) throw this.invalidCredentials;
-    const passwordFromUser = existing.login.password;
-    const passwordMatched = await bcrypt.compare(login.password, passwordFromUser);
+  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    const existingUser: UserDocument = await this.userModel.findOne({ email });
+    if (!existingUser) throw this.invalidCredentials;
+    const passwordFromUser = existingUser.password;
+    const passwordMatched = await bcrypt.compare(password, passwordFromUser);
     if (!passwordMatched) throw this.invalidCredentials;
 
-    const user = JSON.parse(JSON.stringify(existing));
-    const token = await this.jwtService.sign({ _id: existing._id });
+    const user = JSON.parse(JSON.stringify(existingUser));
+    const userObj = { ...user };
+    delete userObj.password;
+
+    const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, existingUser: user.role });
 
     return {
       token,
-      user,
+      user: userObj,
     };
   }
 
@@ -83,15 +76,11 @@ export class UserService {
 
   async createOrUpdateAdmin(user: User) {
     let admin = await this.userModel.findOne({
-      'login.email': user.login.email,
+      email: user.email,
     });
 
-    if (!admin) admin = await this.userModel.create(user);
-    else {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(user.login.password, salt);
-      admin.login.password = hashedPassword;
-      await admin.save();
+    if (!admin) {
+      admin = await this.userModel.create(user);
     }
   }
 

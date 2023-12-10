@@ -28,7 +28,7 @@ class GetSubResponse extends AppResponse<Sub> {
 export class SubResolver {
   constructor(private subService: SubService) {}
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetSubResponse)
   async subAddPlayer(@Args('id') id: string, @Args('roundId') roundId: string, @Args('playerId') playerId: string) {
     try {
@@ -53,44 +53,6 @@ export class SubResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
-  @Mutation((returns) => GetSubResponse)
-  async subRemovePlayer(@Args('id') id: string, @Args('roundId') roundId: string, @Args('playerId') playerId: string) {
-    try {
-      const sub = await this.subService.findOne({
-        _id: id,
-        roundId,
-      });
-
-      const existing = sub.players.findIndex((i) => i == playerId);
-      if (existing > -1) {
-        sub.players.splice(existing, 1);
-        await sub.save();
-      }
-
-      return {
-        code: 200,
-        success: true,
-        data: await this.subService.findById(id),
-      };
-    } catch (err) {
-      return AppResponse.getError(err);
-    }
-  }
-
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
-  @Query((returns) => GetSubResponse)
-  async getSub(@Args('id') id: string) {
-    try {
-      return {
-        code: 200,
-        success: true,
-        data: await this.subService.findById(id),
-      };
-    } catch (err) {
-      return AppResponse.getError(err);
-    }
-  }
 
   @ResolveField()
   async playerObjects(@Parent() sub: Sub) {

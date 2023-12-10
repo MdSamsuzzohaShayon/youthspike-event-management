@@ -7,6 +7,7 @@ import { IError, IOption } from '@/types';
 import { gql, useMutation } from '@apollo/client';
 import { CREATE_PLAYER, GET_PLAYERS } from '@/graphql/players';
 import EmailInput from '../elements/forms/EmailInput';
+import Link from 'next/link';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -57,6 +58,8 @@ function PlayerAdd({ eventId, setIsLoading }: IPlayerAddProps) {
     try {
       setIsLoading(true);
       const playerAddObj = structuredClone(playerAdd);
+      // @ts-ignore
+      if(playerAddObj.rank) playerAddObj.rank = parseInt(playerAddObj.rank, 10);
       playerAddObj.event = eventId;
       const playerRes = await addPlayer({ variables: { input: playerAddObj } });
       if (playerRes.data.createPlayer.code === 201) {
@@ -90,7 +93,10 @@ function PlayerAdd({ eventId, setIsLoading }: IPlayerAddProps) {
       <EmailInput name='email' defaultValue={playerAdd.email} handleInputChange={handleInputChange} required vertical />
       {/* <NumberInput name='rank' defaultValue={playerAdd.rank ? playerAdd.rank : null} handleInputChange={handleInputChange} lw="w-full" rw="w-full" required vertical /> */}
       <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical />
-      <button type="submit" className='btn-secondary'>Submit</button>
+      <Link className='underline underline-offset-8' href={`/${eventId}/teams/new`}>Create Team!</Link>
+      <div className="input-group w-full">
+        <button type="submit" className='btn-secondary mt-8'>Submit</button>
+      </div>
     </form>
   )
 }

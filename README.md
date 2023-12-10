@@ -37,7 +37,7 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Make captain login working, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
+ - Make captain operations, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
 
 ### Requirements
  - Add and delete cookie properly (Use a library)
@@ -77,9 +77,8 @@ ___
     - Tournament (1 or 2 days duration)
     - League (8 or 8 weeks) also called league
  - Dashboard menu -> when a director comes to the dashboard first time he will see only account (setting option) -> If the user goes into the event then he will see some specific menu items such as players, teams, matches, settings -> event name will be shown to the top
- - Click on the logo to return to leagues
- - When someone login as captain he can only see teams and matches
- - Create league director organization(LDO) from admin, Assign a league director to a league so he can organize his own league, A director can have a name, profile picture, and logo
+ - Click on the logo to return to leagues (Event name and logo)
+ - ✅✅ Create league director organization(LDO) from admin, Assign a league director to a league so he can organize his own league, A director can have a name, profile picture, and logo
  - ✅✅ Focus on league director and captain for now. 
  - ✅✅ League director can add an event, copy and edit event
  - ✅✅ In order to create an event, select a home team
@@ -87,23 +86,27 @@ ___
  - On click setting button, a setting screen will appear
  - Rosters can be submitted only once
  - On Iphone we need to do passcode verification, to edit match or roster
- - Set default password for all captains and they can change their password later on
- - Send welcome email to all of our captains
  - Show sponsers only on the public view (Not in admin project)
  - Make sure of Test Driven Development (Unit testing, End To End Testing)
  - On Click team, it will redirect to roster
  - ✅✅ Upload sponsors logo and all images to Cloudinary
- - Add Name of the sponsors
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
  - Coach/Captain can login and change profile picture
  - Coach/Captain can change 4 digit passcode
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
+
+ - **Captain**
+ - When someone login as captain he can only see teams and matches
+ - Set default password for all captains and they can change their password later on
+ - Send welcome email to all of our captains
+ - From a single match -> login as captain
+ - But coach/captain can change only his team
  
  - **Event**
  - ✅✅ League director can change anything in his event
- - But coach/captain can change only his team
  - Getting error with updating event
+ - Add Name of the sponsors
 
  - **Match**
  - For a new match there will be whole new setup  (rounds, nets, etc)
@@ -111,7 +114,6 @@ ___
  - Get all the defaults values from the event in order to create a new match
  - Update match
  - Matches page -> pair limit does not work -> 
- - From a single match -> login as captain
  - Pair score is combine ranking of two players. [04:00 exlain new varience](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), net verience means if a team has pair score of 9 and they submit their lineup, the other team can only assign player that does not exceed a limit as pair score, in this case it is 6 to 12 (pair score).
  - Create pair -> there is a limit in pair score -> If someone is added make sure a list of player with whom the pair score limit does not exceed.
  - Start match should not be there -> Instead when both coach appear there will be a clock to start
@@ -127,6 +129,7 @@ ___
  - Submit lineup
  - On click of empty player (player placeholder) a list of players will appear, (name, record). On the second box only appear those players who can pair up with the first.
  - Add an action button in the place of submit lineup. Are all of your players there **check in**. Both caption will have this option [action box sequences T-14:00](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
+ - Both team captains need to check in whatever team assign first then he will send a pop up box and other team will accept and the clock start
  - Once both captain checked in the clock will start. They will have 3 minutes
  - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
@@ -149,9 +152,7 @@ ___
 
 ___
  - **New Design**
- - Both team captains need to check in whatever team assign first then he will send a pop up box and other team will accept and the clock start
  - When make the phone landscape more need to show all three nets
- - Is the coach and captain are different
  - There are 3 different strategies when assignin players
     1. Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
