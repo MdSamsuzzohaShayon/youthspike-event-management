@@ -10,6 +10,7 @@ const teamResponse = `
       lastName
       rank
       email
+      status
       captainofteam {
         _id
         name

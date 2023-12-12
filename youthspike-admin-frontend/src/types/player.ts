@@ -1,5 +1,14 @@
 import { IDocument } from "./document";
 
+/**
+ * Player Status
+ */
+export enum PlayerStatus {
+  "ACTIVE" = "ACTIVE",
+  "INACTIVE" = "INACTIVE",
+}
+
+
 export interface IPlayerAdd {
   firstName: string;
   lastName: string;
@@ -14,6 +23,7 @@ export interface IPlayer extends IDocument {
   lastName: string;
   email: string;
   rank: number | null;
+  status: PlayerStatus,
   event?: string;
   team?: string;
   captainofteam: {

@@ -38,6 +38,7 @@ ___
 
 ### Running
  - Make captain operations, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
+ - Move team, or players to different event
 
 ### Requirements
  - Add and delete cookie properly (Use a library)
@@ -92,11 +93,11 @@ ___
  - ✅✅ Upload sponsors logo and all images to Cloudinary
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
- - Coach/Captain can login and change profile picture
- - Coach/Captain can change 4 digit passcode
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
 
  - **Captain**
+ - Coach/Captain can login and change profile picture
+ - Coach/Captain can change 4 digit passcode
  - When someone login as captain he can only see teams and matches
  - Set default password for all captains and they can change their password later on
  - Send welcome email to all of our captains

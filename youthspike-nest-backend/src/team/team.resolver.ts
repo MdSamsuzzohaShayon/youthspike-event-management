@@ -66,7 +66,10 @@ export class TeamResolver {
     // Captain - User - Player - Team Relationship update
     const promiseOperations = [];
     promiseOperations.push(this.eventService.update({ teams: [newTeam._id] }, input.event));
-    promiseOperations.push(this.playerService.updateMany({ _id: { $in: players } }, { team: newTeam._id }));
+    // promiseOperations.push(this.playerService.updateMany({ _id: { $in: players } }, { team: newTeam._id, $inc: { rank: 1 } }));
+    for (let i = 0; i < players.length; i += 1) {
+      promiseOperations.push(this.playerService.update({ team: newTeam._id, rank: i + 1 }, players[i]));
+    }
     if (input.captain) {
       // Create new user for captain
       const findPlayer = await this.playerService.findById(input.captain.toString());

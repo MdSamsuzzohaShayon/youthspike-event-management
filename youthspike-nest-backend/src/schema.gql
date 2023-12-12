@@ -108,11 +108,17 @@ type Player {
   firstName: String!
   lastName: String!
   email: String!
+  status: PlayerStatus!
   rank: Int
   event: Event
   team: Team
   captainofteam: Team
   captainuser: User
+}
+
+enum PlayerStatus {
+  ACTIVE
+  INACTIVE
 }
 
 type UserBase {
@@ -331,6 +337,7 @@ type Mutation {
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
   createPlayer(input: CreatePlayerInput!): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!): PlayerResponse!
+  updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
 }
 
@@ -482,4 +489,15 @@ input UpdatePlayerInput {
   email: String
   rank: Float
   team: String
+  status: String
+}
+
+input UpdatePlayersInput {
+  firstName: String
+  lastName: String
+  event: String
+  email: String
+  rank: Float
+  team: String
+  _id: String!
 }

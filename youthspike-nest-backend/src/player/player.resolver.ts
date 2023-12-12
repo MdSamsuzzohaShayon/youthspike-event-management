@@ -1,6 +1,6 @@
 import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { PlayerService } from './player.service';
-import { CreatePlayerInput, UpdatePlayerInput } from './player.input';
+import { CreatePlayerInput, RankingPlayerInput, UpdatePlayerInput, UpdatePlayersInput } from './player.input';
 import { Player } from './player.schema';
 import { AppResponse } from 'src/shared/response';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -35,7 +35,7 @@ export class PlayerResolver {
     private eventService: EventService,
     private teamService: TeamService,
     private userService: UserService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -66,8 +66,8 @@ export class PlayerResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns)=> PlayerResponse)
-  async updatePlayer(@Args('input') input: UpdatePlayerInput, @Args("playerId") playerId: string): Promise<PlayerResponse>{
+  @Mutation((returns) => PlayerResponse)
+  async updatePlayer(@Args('input') input: UpdatePlayerInput, @Args("playerId") playerId: string): Promise<PlayerResponse> {
     try {
       const updatedPlayer = await this.playerService.update(input, playerId);
       return {
@@ -79,6 +79,34 @@ export class PlayerResolver {
       return AppResponse.handleError(error);
     }
   }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Mutation((_returns) => PlayersResponse)
+  async updatePlayers(@Args('input', { type: () => [UpdatePlayersInput] }) input: UpdatePlayersInput[]): Promise<PlayersResponse> {
+    try {
+      let players = [];
+      if (input && input.length > 0) {
+        const updatePromises = [];
+        for (let i = 0; i < input.length; i++) {
+          const playerId = input[i]._id;
+          const playerObj = { ...input[i] };
+          if (playerObj._id) delete playerObj._id;
+          updatePromises.push(this.playerService.update(playerObj, playerId));
+        }
+        players = await Promise.all(updatePromises);
+      }
+      return {
+        success: true,
+        code: 202,
+        data: players,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
 
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(

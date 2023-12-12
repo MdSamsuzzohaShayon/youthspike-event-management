@@ -103,6 +103,34 @@ mutation CreatePlayer($input: CreatePlayerInput!) {
 }
 `;
 
+
+const UPDATE_PLAYERS = gql`
+mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
+  updatePlayers(input: $input) {
+    code
+    message
+    success
+    data {
+      ${playerResponse}
+    }
+  }
+}
+`;
+
+const UPDATE_PLAYER = gql`
+mutation UpdatePlayer($input: UpdatePlayerInput!, $playerId: String!) {
+  updatePlayer(input: $input, playerId: $playerId) {
+    code
+    message
+    success
+    data {
+      ${playerResponse}
+    }
+  }
+}
+`;
+
 const CREATE_PLAYER = gql`${CREATE_PLAYER_RAW}`;
 
-export { GET_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER, GET_EVENT_WITH_PLAYERS };
+export { GET_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, 
+  CREATE_PLAYER, GET_EVENT_WITH_PLAYERS, UPDATE_PLAYERS, UPDATE_PLAYER };
