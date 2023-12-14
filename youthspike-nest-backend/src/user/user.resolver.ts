@@ -8,12 +8,18 @@ import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
 
 @ObjectType()
+class LoginUser extends UserBase {
+  @Field((type) => String, { nullable: true })
+  event?: string;
+}
+
+@ObjectType()
 class LoginResponseData {
   @Field()
   token: string;
 
   @Field()
-  user: UserBase;
+  user: LoginUser;
 }
 
 @ObjectType()
@@ -29,6 +35,12 @@ class LoginResponse extends AppResponse<LoginResponseData> {
 }
 
 @ObjectType()
+class UserResponse extends AppResponse<User> {
+  @Field((type) => User, { nullable: true })
+  data?: User;
+}
+
+@ObjectType()
 class ChangePWDDataRes extends AppResponse<ChangePWDData> {
   @Field((type) => ChangePWDData, { nullable: true })
   data?: ChangePWDData;
@@ -41,11 +53,13 @@ export class UserResolver {
   @Mutation((returns) => LoginResponse)
   async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
     try {
-      const user = await this.userService.login(email, password,);
+      const userData = await this.userService.login(email, password,);
+      // const user = await this.userService.query({email});
       return {
-        code: 200,
+        code: 202,
         success: true,
-        data: user,
+        data: userData
+        // data: user && user.length > 0 ? user[0] : null,
       };
     } catch (err) {
       return AppResponse.getError(err);
@@ -80,14 +94,15 @@ export class UserResolver {
   @ResolveField(() => Player, { nullable: true })
   async captainplayer(@Parent() user: User) {
     try {
+      console.log('User ID:', user._id);
       if (user.captainplayer) {
         const captain = await this.playerService.findById(user.captainplayer.toString());
-        return captain || null; // Return null if captain is not found
+        return captain || null;
       } else {
         return null;
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return null;
     }
   }

@@ -4,14 +4,16 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { FilterQuery, Model, ObjectId } from 'mongoose';
 import { AppResponse } from 'src/shared/response';
-import { User, UserDocument } from './user.schema';
+import { User, UserDocument, UserRole } from './user.schema';
+import { PlayerService } from 'src/player/player.service';
+import { TeamService } from 'src/team/team.service';
 
 @Injectable()
 export class UserService {
   private readonly notFound = AppResponse.notFound('user');
   private readonly invalidCredentials = AppResponse.invalidCredentials();
 
-  constructor(@InjectModel(User.name) private userModel: Model<User>, private jwtService: JwtService) { }
+  constructor(@InjectModel(User.name) private userModel: Model<User>, private jwtService: JwtService, private teamService: TeamService) { }
 
   async create(user: User) {
     const userObj = { ...user };
@@ -39,17 +41,25 @@ export class UserService {
   }
 
   async login(email: string, password: string): Promise<{ user: User; token: string }> {
-    const existingUser: UserDocument = await this.userModel.findOne({ email });
+    const existingUser: any = await this.userModel.findOne({ email });
     if (!existingUser) throw this.invalidCredentials;
     const passwordFromUser = existingUser.password;
     const passwordMatched = await bcrypt.compare(password, passwordFromUser);
     if (!passwordMatched) throw this.invalidCredentials;
-
-    const user = JSON.parse(JSON.stringify(existingUser));
-    const userObj = { ...user };
+    
+    const userObj = { ...existingUser._doc };
     delete userObj.password;
 
-    const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, existingUser: user.role });
+    if(userObj.role === UserRole.captain && userObj.captainplayer){
+      // const player = await this.playerService.findById(userObj.captainplayer.toString());
+      const teamWithCaptain = await this.teamService.findOne({captain: userObj.captainplayer.toString()});
+      if(teamWithCaptain){
+        userObj.event = teamWithCaptain.event;
+      }
+      delete userObj.captainplayer
+    }
+
+    const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
 
     return {
       token,

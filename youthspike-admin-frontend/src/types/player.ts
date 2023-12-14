@@ -21,6 +21,7 @@ export interface IPlayerAdd {
 export interface IPlayer extends IDocument {
   firstName: string;
   lastName: string;
+  profile: string | null;
   email: string;
   rank: number | null;
   status: PlayerStatus,

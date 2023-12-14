@@ -77,12 +77,12 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading }: IPlayerListPr
     <div>
       <h1 className='mb-8'>Players</h1>
       <ul className='flex flex-wrap items-center gap-2'>
-        {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} player={player} index={index} teamId={teamId}
+        {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
-        {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} player={player} index={index} teamId={teamId}
+        {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} />)}
       </ul>
       <button className="btn-secondary mt-4" type='button' onClick={handleUpdate}>Update</button>

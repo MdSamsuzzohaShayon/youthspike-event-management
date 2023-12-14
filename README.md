@@ -14,6 +14,8 @@ ___
  - [Explan previous project video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82), [Explan previous project video 2(How the match works)](https://www.loom.com/share/142b7cc2efc64e208a3e6f6f0e779ffc), [Explanation video 3](https://www.loom.com/share/6c7397a3939c4896b090ff29275577da)
  - [Match explain](https://loom.com/share/679281f727f541b5a52b49ad755079ae)
 
+ - [Explain action boxes](https://www.loom.com/share/1c0ddb26379b465a947958594a2252a5)
+
  -  [Dashboard part 1](https://www.loom.com/share/e56a6f1caf114970b80c1f3aef218f19), [Dashboard part 2](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
  - [Director dashboard menu explain](https://www.loom.com/share/cbdfd52937474c6995391edf609a4b0c)
 
@@ -37,7 +39,7 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Make captain operations, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
+ - Update player, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
  - Move team, or players to different event
 
 ### Requirements
@@ -88,6 +90,7 @@ ___
  - Rosters can be submitted only once
  - On Iphone we need to do passcode verification, to edit match or roster
  - Show sponsers only on the public view (Not in admin project)
+ - Add text field for sponsors name and image url
  - Make sure of Test Driven Development (Unit testing, End To End Testing)
  - On Click team, it will redirect to roster
  - ✅✅ Upload sponsors logo and all images to Cloudinary
@@ -97,6 +100,7 @@ ___
 
  - **Captain**
  - Coach/Captain can login and change profile picture
+ - Captain setting
  - Coach/Captain can change 4 digit passcode
  - When someone login as captain he can only see teams and matches
  - Set default password for all captains and they can change their password later on
@@ -120,6 +124,11 @@ ___
  - Start match should not be there -> Instead when both coach appear there will be a clock to start
  - If a player plays with someone in the round 1 he can not play with with in round 2 or three
  - Make it more SEO friendly
+
+ - **Match**
+ - First team will assign players (and click on submit lineup)
+ - Captain will not see other team's action box but he can see rosters of other team
+ - There is a action flow to explain boxes
 
 ___
  - **Single Match (public)**

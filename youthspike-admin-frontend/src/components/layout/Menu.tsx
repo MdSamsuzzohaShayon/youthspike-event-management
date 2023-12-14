@@ -149,7 +149,7 @@ function Menu() {
             if (user.info?.role === UserRole.admin) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
             } else if (user.info?.role === UserRole.captain) {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 2 || menuItem.id === 3 || menuItem.id === 4)]); // captain
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
             }
@@ -158,7 +158,7 @@ function Menu() {
             if (user.info?.role === UserRole.director) {
                 setUserMenuList((prevState) => [...prevState.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
             } else if (user.info?.role === UserRole.captain) {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 2 || menuItem.id === 3 || menuItem.id === 4)]); // captain
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList(initialUserMenuList);
             }

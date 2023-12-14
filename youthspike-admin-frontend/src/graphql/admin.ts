@@ -14,13 +14,7 @@ const LOGIN_USER = gql`
           lastName
           role
           email
-          captainplayer {
-            _id
-            event {
-              _id
-              name
-            }
-          }
+          event
         }
       }
     }

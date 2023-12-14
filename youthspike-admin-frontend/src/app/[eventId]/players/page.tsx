@@ -28,6 +28,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   
   if (loading || isLoading) return <Loader />;
   
+  
   const players = data?.getEvent?.data?.players ? data.getEvent.data.players : [];
 
   return (
@@ -35,7 +36,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       <h1>Player Add</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} />
+      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update={false} />
       <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} />
     </div>
   )

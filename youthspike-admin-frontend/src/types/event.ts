@@ -1,3 +1,4 @@
+import React from "react";
 import { IError, ITeam } from ".";
 import { IDocument } from "./document";
 import { IDefaultMatch } from "./match";
@@ -29,7 +30,7 @@ export interface IEventAdd extends IDefaultEventMatch {
 
 export interface IEventAddProps {
   update: boolean;
-  setActErr: (state: IError) => void;
-  setIsLoading: (state: boolean) => void;
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
 }

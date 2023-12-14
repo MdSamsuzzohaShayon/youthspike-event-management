@@ -40,7 +40,7 @@ export interface IFileFileProps {
   extraCls?: string;
   lblTxt?: string;
   name: string;
-  defaultValue: string | number;
+  defaultValue?: string | undefined | null;
   handleFileChange: (e: React.SyntheticEvent) => void;
 }
 

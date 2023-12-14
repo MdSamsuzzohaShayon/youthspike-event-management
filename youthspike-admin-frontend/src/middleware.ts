@@ -6,8 +6,8 @@ import { UserRole } from './types/user';
 
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams"];
-const captainAuthPages = ['/players', "/teams"];
+const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new"];
+const captainAuthPages = ['/players', "/matches",  "/settings"];
 const adminPages = ['/admin', '/directors'];
 
 /**
@@ -72,6 +72,8 @@ export function middleware(request: NextRequest) {
       return NextResponse.next();
     } else if (userObj && userObj.role === UserRole.captain && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
       return NextResponse.next();
+    }else if (userObj && userObj.role === UserRole.captain && userObj.event){
+      return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url));
     }
     return NextResponse.redirect(new URL('/not-found/404', request.url));
   }

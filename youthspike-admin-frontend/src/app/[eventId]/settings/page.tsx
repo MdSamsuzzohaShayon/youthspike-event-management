@@ -3,15 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import Message from '@/components/elements/Message';
 import EventAddUpdate from '@/components/event/EventAddUpdate';
-import { IError } from '@/types';
+import { IError, } from '@/types';
+import { UserRole } from '@/types/user';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import { GET_A_EVENT } from '@/graphql/event';
 import Loader from '@/components/elements/Loader';
 import { isValidObjectId } from '@/utils/helper';
+import { useUser } from '@/lib/UserProvider';
+import PlayerAdd from '@/components/player/PlayerAdd';
 
 const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const user = useUser();
+
   /**
    * Read query from cache or fetch data from server
    */
@@ -31,12 +36,14 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   const prevEvent = data?.getEvent?.data;
 
 
+  // Fetch previous player
+
   return (
     <div className='container mx-auto px-2'>
       <h1>Update Event</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />
+      <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />) 
     </div>
   )
 }

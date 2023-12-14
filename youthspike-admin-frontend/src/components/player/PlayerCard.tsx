@@ -1,20 +1,24 @@
+import cld from '@/config/cloudinary.config';
 import { UPDATE_PLAYER } from '@/graphql/players';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayer, PlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
+import { AdvancedImage } from '@cloudinary/react';
+import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface PlayerCardProps {
   player: IPlayer;
   index: number;
   teamId: string | null;
+  eventId: string,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   touchDragStart: (index: number) => void;
   touchDragEnter: (index: number) => void;
   touchDragEnd: (index: number, playerId: string) => void;
 }
 
-function PlayerCard({ player, index, teamId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -133,7 +137,7 @@ function PlayerCard({ player, index, teamId, setIsLoading, touchDragStart, touch
     <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable style={{ minHeight: '6rem' }}
       onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter} >
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
-        <li role="presentation" onClick={(e) => handleEdit(e, player._id)} > Edit</li>
+        <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
         <li role="presentation" onClick={(e) => handleMakeCaptain(e, player._id)} > Make Captain</li>
         <li role="presentation" onClick={(e) => handleMakeCoCaptain(e, player._id)} > Make Co-captain</li>
         <li role="presentation" onClick={(e) => handleMovePlayer(e, player._id)} > Move Player</li>
@@ -144,7 +148,8 @@ function PlayerCard({ player, index, teamId, setIsLoading, touchDragStart, touch
       <input type="checkbox" name="player-select" id="option" className='w-1/12' />
 
       <div className="img-wrapper h-full w-4/12 flex justify-between items-center gap-1">
-        <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />
+        {/* <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> */}
+        {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
         <div className="player-name flex flex-col w-full">
           <h3 className='break-words'>{player.firstName + ' ' + player.lastName}</h3>
           {player?.captainofteam && <p className='text-yellow-500 uppercase'>Captain</p>}

@@ -1,28 +1,28 @@
 import { gql } from "@apollo/client";
 
-const commonResponse = `
+const eventResponse = `
+_id
+name
+startDate
+endDate
+active
+autoAssign
+autoAssignLogic
+coachPassword
+ldo {
   _id
   name
-  startDate
-  endDate
-  active
-  autoAssign
-  autoAssignLogic
-  coachPassword
-  ldo {
-    _id
-    name
-    logo
-  }
-  divisions
-  homeTeam
-  location
-  nets
-  rounds
-  netVariance
-  rosterLock
-  timeout
-  sponsors
+  logo
+}
+divisions
+homeTeam
+location
+nets
+rounds
+netVariance
+rosterLock
+timeout
+sponsors
 `;
 
 /**
@@ -36,23 +36,24 @@ const GET_EVENTS = gql`
       message
       success
       data {
-        ${commonResponse}
+        ${eventResponse}
       }
     }
   }
 `;
 
 const GET_A_EVENT = gql`
-  query GetEvent($eventId: String!) {
-    getEvent(id: $eventId) {
-      code
-      message
-      success
-      data {
-        ${commonResponse}
-      }
+query GetEvent($eventId: String!) {
+  getEvent(eventId: $eventId) {
+    code
+    message
+    success
+    data {
+      ${eventResponse}
     }
   }
+}
+
 `;
 
 /**
@@ -64,7 +65,7 @@ mutation CreateEvent($sponsors: [Upload!]!, $input: CreateEventInput!) {
   createEvent(sponsors: $sponsors, input: $input) {
     code
     data {
-      ${commonResponse}
+      ${eventResponse}
     }
   }
 }
@@ -79,7 +80,7 @@ mutation UpdateEvent($sponsors: [Upload!]!, $input: UpdateEventInput!, $eventId:
     message
     success
     data {
-      ${commonResponse}
+      ${eventResponse}
     }
   }
 }
@@ -94,10 +95,10 @@ const CLONE_EVENT = gql`
       message
       success
       data {
-        ${commonResponse}
+        ${eventResponse}
       }
     }
   }
 `;
 
-export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW , UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT };
+export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT };

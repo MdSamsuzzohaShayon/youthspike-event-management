@@ -28,18 +28,17 @@ function LoginPage() {
         password,
       },
     });
-    if(email === '' || password === '') return setActionsErrors({name: "Invalid Credentials", message: "Set correct email and password!"})
-    if (resultData?.login?.code === 200) {
+    if(email === '' || password === '') return setActionsErrors({name: "Invalid Credentials", message: "Set correct email and password!"});
+    if (resultData?.login?.code === 202) {
       setCookie('token', resultData.login.data.token, 7);
       setCookie('user', JSON.stringify(resultData.login.data.user), 7);
       console.log(resultData.login.data.user.role);
-      // p4d4@e.com
       if (resultData?.login?.data?.user?.role === UserRole.admin) {
         router.push('/admin/directors');
       }else if (resultData?.login?.data?.user?.role === UserRole.captain) {
-        const eventIdOfPlayer = resultData.login.data.user?.captainplayer?.event?._id;
+        const eventIdOfPlayer = resultData.login.data.user?.event;
         if(eventIdOfPlayer){
-          router.push(`/${eventIdOfPlayer}/teams`);
+          router.push(`/${eventIdOfPlayer}/matches`);
         }else{
           router.push('/');
         }

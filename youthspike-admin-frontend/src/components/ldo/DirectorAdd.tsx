@@ -15,7 +15,7 @@ import Message from '../elements/Message';
 interface DirectorAddProps {
     update: boolean;
     prevLdo?: null | ILDO | undefined;
-    setIsLoading: (state: boolean) => void;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const initialLdo: ILDO = {

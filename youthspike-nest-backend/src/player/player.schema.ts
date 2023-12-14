@@ -39,6 +39,9 @@ export class Player extends AppDocument {
   @Prop({ required: false })
   rank?: number;
 
+  @Prop({ required: false })
+  @Field({ nullable: true })
+  profile?: string;
 
   @Field((_type) => Event, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })

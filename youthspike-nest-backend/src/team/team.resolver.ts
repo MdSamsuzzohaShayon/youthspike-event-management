@@ -14,6 +14,7 @@ import { PlayerService } from 'src/player/player.service';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -40,6 +41,7 @@ export class TeamResolver {
     private eventService: EventService,
     private playerService: PlayerService,
     private userService: UserService,
+    private configService: ConfigService
   ) { }
 
 
@@ -73,7 +75,7 @@ export class TeamResolver {
     if (input.captain) {
       // Create new user for captain
       const findPlayer = await this.playerService.findById(input.captain.toString());
-      const hashedPassword = await bcrypt.hash("Test1234", 10);
+      const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
       const captainUser = await this.userService.create({
         firstName: findPlayer.firstName,
         lastName: findPlayer.lastName,
@@ -81,7 +83,7 @@ export class TeamResolver {
         active: true,
         captainplayer: input.captain,
         email: findPlayer.email,
-        password: hashedPassword,
+        password: rawPassword,
       });
       promiseOperations.push(
         this.playerService.update({ captainofteam: newTeam._id, captainuser: captainUser._id }, input.captain),
@@ -128,7 +130,8 @@ export class TeamResolver {
           updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: prevCaptainuser._id }, input.captain.toString()));
           updatePromises.push(this.userService.createOrUpdate({ email: findPlayer.email, captainplayer: findPlayer._id }, prevCaptainuser._id.toString()));
         } else {
-          const hashedPassword = await bcrypt.hash("Test1234", 10);
+          const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
+          const hashedPassword = await bcrypt.hash(rawPassword, 10);
           const newUser = await this.userService.create({
             email: findPlayer.email, password: hashedPassword,
             firstName: findPlayer.firstName, lastName: findPlayer.lastName, role: UserRole.captain, captainplayer: findPlayer._id, active: true

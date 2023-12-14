@@ -110,6 +110,7 @@ type Player {
   email: String!
   status: PlayerStatus!
   rank: Int
+  profile: String
   event: Event
   team: Team
   captainofteam: Team
@@ -119,22 +120,6 @@ type Player {
 enum PlayerStatus {
   ACTIVE
   INACTIVE
-}
-
-type UserBase {
-  _id: String
-  firstName: String!
-  lastName: String!
-  role: UserRole!
-  captainplayer: Player
-  email: String!
-  active: Boolean!
-}
-
-enum UserRole {
-  admin
-  director
-  captain
 }
 
 type User {
@@ -148,9 +133,26 @@ type User {
   password: String!
 }
 
+enum UserRole {
+  admin
+  director
+  captain
+}
+
+type LoginUser {
+  _id: String
+  firstName: String!
+  lastName: String!
+  role: UserRole!
+  captainplayer: Player
+  email: String!
+  active: Boolean!
+  event: String
+}
+
 type LoginResponseData {
   token: String!
-  user: UserBase!
+  user: LoginUser!
 }
 
 type ChangePWDData {
@@ -315,6 +317,7 @@ type Query {
   getNet(id: String!): GetNetResponse!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
+  getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
 }
 
@@ -335,8 +338,8 @@ type Mutation {
   subAddPlayer(id: String!, roundId: String!, playerId: String!): GetSubResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
-  createPlayer(input: CreatePlayerInput!): PlayerResponse!
-  updatePlayer(input: UpdatePlayerInput!, playerId: String!): PlayerResponse!
+  createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
+  updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
 }
