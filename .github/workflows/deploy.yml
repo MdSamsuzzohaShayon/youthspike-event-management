@@ -8,17 +8,13 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  nest_backend:
-    # The type of runner that the job will run on
+  mutation:
     runs-on: ubuntu-latest
 
     env:
         VPS_USER: ${{ secrets.HOST }}
         VPS_IP: ${{ secrets.USERNAME }}
         VPS_PATH: "/home/shayon/youthspike-event-management"
-
-      # Steps represent a sequence of tasks that will be executed as part of the job
     steps:       
     - name: Checkout app
       uses: actions/checkout@v4   
@@ -32,8 +28,27 @@ jobs:
         script: |
           cd /home/shayon/youthspike-event-management
           git pull --rebase origin master
-          cd youthspike-nest-backend
-          npm install
-          npm run build
-          pm2 startOrRestart ecosystem.config.js --env production
-          pm2 save --force
+
+  nest_backend:
+    needs: [mutation]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build and deploy
+      run: |
+        npm run build
+        pm2 startOrRestart ecosystem.config.js --env production
+        pm2 save --force
+
+    
