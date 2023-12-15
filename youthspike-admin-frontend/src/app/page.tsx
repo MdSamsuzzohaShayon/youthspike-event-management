@@ -72,6 +72,7 @@ function EventsPage() {
     setFilteredItems(prevState => [...prevState.filter((fi) => fi.id !== iid)]);
   }
 
+
   /**
    * Copy event - copy from server and redirect to edit page
    * Redirect to edit event page if event is been created successfully
@@ -89,7 +90,7 @@ function EventsPage() {
     (async () => {
       if (user.info?.role === UserRole.admin) {
         const newLdoId = searchParams.get('ldoId');
-        if (!newLdoId) return router.push('/admin'); 
+        if (!newLdoId) return router.push('/admin');
         setLdoId(newLdoId);
         const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match        
         const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
@@ -97,10 +98,10 @@ function EventsPage() {
         // const eventsRes = await fetchEvents({ variables: { directorId: newDirectorId } });
         // console.log({ eventsRes, newDirectorId, ldoId: newLdoId });
       } else {
-        setDirectorId(user.info?._id ? user.info._id : null);      
-        const ldoRes= await fetchLDO();
-        if(ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-        
+        setDirectorId(user.info?._id ? user.info._id : null);
+        const ldoRes = await fetchLDO();
+        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+
       }
     })()
   }, [router, user]);
@@ -110,7 +111,7 @@ function EventsPage() {
 
   const newLdoData = ldoData?.getEventDirector?.data;
   const eventLogo = newLdoData ? cld.image(newLdoData?.logo) : null;
-  
+
   return (
     <div className="container px-2 mx-auto">
       <dialog ref={filterListEl}>
@@ -140,7 +141,7 @@ function EventsPage() {
             <p>Add New</p>
           </Link>
         </div>
-        
+
         {eventList && eventList.length > 0 && eventList.map((event: IEvent) => (
           <EventCard key={event._id} copyEvent={handleCopyEvent} event={event} />
         ))}

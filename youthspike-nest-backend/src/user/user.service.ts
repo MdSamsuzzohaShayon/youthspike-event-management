@@ -4,32 +4,26 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { FilterQuery, Model, ObjectId } from 'mongoose';
 import { AppResponse } from 'src/shared/response';
-import { Login, User, UserDocument } from './user.schema';
+import { User, UserDocument, UserRole } from './user.schema';
+import { PlayerService } from 'src/player/player.service';
+import { TeamService } from 'src/team/team.service';
 
 @Injectable()
 export class UserService {
   private readonly notFound = AppResponse.notFound('user');
   private readonly invalidCredentials = AppResponse.invalidCredentials();
 
-  constructor(@InjectModel(User.name) private userModel: Model<User>, private jwtService: JwtService) { }
+  constructor(@InjectModel(User.name) private userModel: Model<User>, private jwtService: JwtService, private teamService: TeamService) { }
 
   async create(user: User) {
     const userObj = { ...user };
-    const password = userObj.login.password;
+    const password = userObj.password;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const loginObj: { email: string; password: string } = {
-      email: userObj.login.email,
-      password: hashedPassword,
-    };
-    const newUser = { ...userObj, login: loginObj };
-    const existing = await this.userModel.findOne({
-      'login.email': user.login.email,
-    });
+    userObj.password = hashedPassword;
+    const existing = await this.userModel.findOne({ email: user.email, });
 
     if (existing) throw AppResponse.exists('user');
-    return this.userModel.create({
-      ...newUser,
-    });
+    return this.userModel.create({ ...userObj });
   }
 
   async findById(id: string) {
@@ -46,21 +40,30 @@ export class UserService {
     return user;
   }
 
-  async login(login: Login): Promise<{ user: User; token: string }> {
-    const existing: UserDocument = await this.userModel.findOne({
-      'login.email': login.email,
-    });
-    if (!existing) throw this.invalidCredentials;
-    const passwordFromUser = existing.login.password;
-    const passwordMatched = await bcrypt.compare(login.password, passwordFromUser);
+  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    const existingUser: any = await this.userModel.findOne({ email });
+    if (!existingUser) throw this.invalidCredentials;
+    const passwordFromUser = existingUser.password;
+    const passwordMatched = await bcrypt.compare(password, passwordFromUser);
     if (!passwordMatched) throw this.invalidCredentials;
+    
+    const userObj = { ...existingUser._doc };
+    delete userObj.password;
 
-    const user = JSON.parse(JSON.stringify(existing));
-    const token = await this.jwtService.sign({ _id: existing._id });
+    if(userObj.role === UserRole.captain && userObj.captainplayer){
+      // const player = await this.playerService.findById(userObj.captainplayer.toString());
+      const teamWithCaptain = await this.teamService.findOne({captain: userObj.captainplayer.toString()});
+      if(teamWithCaptain){
+        userObj.event = teamWithCaptain.event;
+      }
+      delete userObj.captainplayer
+    }
+
+    const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
 
     return {
       token,
-      user,
+      user: userObj,
     };
   }
 
@@ -83,15 +86,11 @@ export class UserService {
 
   async createOrUpdateAdmin(user: User) {
     let admin = await this.userModel.findOne({
-      'login.email': user.login.email,
+      email: user.email,
     });
 
-    if (!admin) admin = await this.userModel.create(user);
-    else {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(user.login.password, salt);
-      admin.login.password = hashedPassword;
-      await admin.save();
+    if (!admin) {
+      admin = await this.userModel.create(user);
     }
   }
 

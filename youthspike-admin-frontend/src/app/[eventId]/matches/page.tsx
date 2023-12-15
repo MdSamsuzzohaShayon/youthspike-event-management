@@ -1,19 +1,22 @@
 'use client'
 
-import Loader from '@/components/elements/Loader'
-import Message from '@/components/elements/Message'
-import MatchAdd from '@/components/match/MatchAdd'
-import MatchList from '@/components/match/MatchList'
-import { GET_EVENT_WITH_MATCHES_TEAMS, GET_MATCHES } from '@/graphql/matches'
-import { IError } from '@/types'
-import { isValidObjectId } from '@/utils/helper'
-import { useLazyQuery, useQuery } from '@apollo/client'
-import React, { useEffect, useState } from 'react'
+import Loader from '@/components/elements/Loader';
+import Message from '@/components/elements/Message';
+import MatchAdd from '@/components/match/MatchAdd';
+import MatchList from '@/components/match/MatchList';
+import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
+import { IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, ITeam } from '@/types';
+import { isValidObjectId, toMatchDefaultData } from '@/utils/helper';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import React, { useEffect, useState } from 'react';
+
+
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   // Fetch teams and players of the teams
-  const [fetchEvent, { data, loading, error } ]= useLazyQuery(GET_EVENT_WITH_MATCHES_TEAMS, { variables: { eventId: params.eventId } });
+  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_EVENT_WITH_MATCHES_TEAMS, { variables: { eventId: params.eventId } });
 
   useEffect(() => {
     if (params.eventId) {
@@ -25,7 +28,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     }
   }, [params.eventId]);
 
-  if(loading) return <Loader />;
+  if (loading || isLoading) return <Loader />;
 
   const eventData = data?.getEvent?.data;
 
@@ -34,8 +37,8 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       <h1>Matches</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <MatchAdd eventData={eventData} />
-      {eventData?.matches && <MatchList matches={eventData.matches} />}
+      <MatchAdd matchData={toMatchDefaultData(eventData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} />
+      {eventData?.matches && <MatchList eventId={params.eventId} matches={eventData.matches} />}
     </div>
   )
 }

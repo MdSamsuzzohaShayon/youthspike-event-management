@@ -13,9 +13,8 @@ const LOGIN_USER = gql`
           firstName
           lastName
           role
-          login {
-            email
-          }
+          email
+          event
         }
       }
     }

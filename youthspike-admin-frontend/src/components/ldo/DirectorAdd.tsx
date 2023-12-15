@@ -14,8 +14,8 @@ import Message from '../elements/Message';
 
 interface DirectorAddProps {
     update: boolean;
-    prevLdo?: null | ILDO;
-    setIsLoading: (state: boolean) => void;
+    prevLdo?: null | ILDO | undefined;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const initialLdo: ILDO = {
@@ -41,10 +41,6 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
     const [directorUpdate, setDirectorUpdate] = useState<ILdoUpdate>({});
     const [actErr, setActErr] = useState<IError>();
     const uploadedLogo = useRef<File | null>(null);
-
-
-    const [errorList, setErrorList] = useState<string[]>([]);
-
     const [registerDirector, { loading, error }] = useMutation(ADD_DIRECTOR,
         {
             refetchQueries: [{ query: GET_LDOS }]
@@ -108,24 +104,31 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
     const handleDirectorSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const isPasswordMismatch = () => {
-            if ((!update && directorState.password !== directorState.confirmPassword) || (update && directorUpdate?.password && directorUpdate.password !== directorUpdate.confirmPassword)) {
-                setErrorList(['Password did not match!']);
-                return true;
+        const directorUpdateObj = { ...directorUpdate };
+        if (update) {
+            if (directorUpdateObj.password && directorUpdateObj.password !== '') {
+                if (directorUpdateObj.confirmPassword !== directorUpdateObj.password) {
+                    return setActErr({name: "Invalid Password", message: "Password did not match"});
+                }
+            } else {
+                delete directorUpdateObj.password;
+                delete directorUpdateObj.confirmPassword;
             }
-            return false;
-        };
-
-        if (isPasswordMismatch()) return;
+        } else {
+            if (directorState.password !== directorState.confirmPassword) {
+                return setActErr({name: "Invalid Password", message: "Password did not match"});
+            }
+        }
 
         const formData = new FormData();
         const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, email: directorState.email, password: directorState.password };
+
 
         const addFileToFormData = () => {
             if (uploadedLogo.current) {
                 formData.set('operations', JSON.stringify({
                     query: update ? UPDATE_DIRECTOR_RAW : ADD_DIRECTOR_RAW,
-                    variables: { args: update ? { ...ldoUpdate, ...directorUpdate } : inputArgs, logo: null },
+                    variables: { args: update ? { ...ldoUpdate, ...directorUpdateObj } : inputArgs, logo: null },
                 }));
 
                 formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
@@ -146,11 +149,14 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
                 }
 
                 const responseData = await response.json();
-                console.log(responseData);
+
             } else {
                 // Conditionally call updateDirector or registerDirector based on the existence of uploadedLogo.current
                 if (update) {
-                    const { data } = await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdate } } });
+
+                    const { data } = await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdateObj } } });
+                    console.log(data);
+                    
                 } else {
                     const { data } = await registerDirector({ variables: { args: inputArgs, logo: null } });
                 }
@@ -163,7 +169,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
             }
         } catch (error: any) {
             console.error('Error during GraphQL mutation:', error);
-            setActErr({ name: "", message: error.message ? error.message : '', main: error });
+            setActErr(error);
         } finally {
             setIsLoading(false);
         }
@@ -181,6 +187,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
             {!update ? <h2>Add Director</h2> : <h2>Update Director</h2>}
 
             {error && <Message error={error} />}
+            {updateError && <Message error={updateError} />}
             {actErr && <Message error={actErr} />}
 
 

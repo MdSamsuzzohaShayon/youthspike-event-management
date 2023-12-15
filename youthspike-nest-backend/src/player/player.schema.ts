@@ -1,10 +1,20 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
+
+
+export enum PlayerStatus{
+  'ACTIVE' = 'ACTIVE',
+  'INACTIVE' = 'INACTIVE',
+}
+
+registerEnumType(PlayerStatus, {
+  name: "PlayerStatus"
+})
 
 @Schema()
 @ObjectType()
@@ -21,9 +31,17 @@ export class Player extends AppDocument {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Field((_types)=> PlayerStatus, {nullable: false})
+  @Prop({required: true, enum: PlayerStatus, default: PlayerStatus.ACTIVE})
+  status: PlayerStatus
+
   @Field((_type) => Int, { nullable: true })
   @Prop({ required: false })
   rank?: number;
+
+  @Prop({ required: false })
+  @Field({ nullable: true })
+  profile?: string;
 
   @Field((_type) => Event, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })

@@ -19,7 +19,7 @@ function DirectorPage() {
   if (error) return <Message error={error} />
   return (
     <div className='container mx-auto px-2'>
-      <h1>Directors (Only accessable by admin)</h1>
+      <h1 className='mb-8'>Directors</h1>
       <DirectorAdd setIsLoading={setIsLoading} update={false} />
       <DirectorList ldoList={data?.getEventDirectors?.data} />
     </div>

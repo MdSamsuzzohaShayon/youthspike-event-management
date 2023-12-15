@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Player } from './player.schema';
-import { FilterQuery, Model, ObjectId, Query } from 'mongoose';
+import { FilterQuery, Model, ObjectId, Query, UpdateQuery } from 'mongoose';
 import { UserDocument } from 'src/user/user.schema';
 import { CreatePlayerInput } from './player.input';
 import { rmInvalidProps } from 'src/util/helper';
@@ -51,18 +51,18 @@ export class PlayerService {
   }
 
   async query(filter: FilterQuery<Player>) {
-    return this.playerModel.find(filter);
+    return this.playerModel.find(filter).sort({rank: 1});
   }
 
   async findById(playerId: string) {
     return this.playerModel.findById(playerId);
   }
 
-  async update(player: OptionalProps<Player>, playerId: string) {
+  async update(player: UpdateQuery<Player>, playerId: string) {
     return this.playerModel.findOneAndUpdate({ _id: playerId }, { ...player });
   }
 
-  async updateMany(filter: FilterQuery<Player>, player: OptionalProps<Player>) {
+  async updateMany(filter: FilterQuery<Player>, player: UpdateQuery<Player>) {
     return this.playerModel.updateMany(filter, player);
   }
 

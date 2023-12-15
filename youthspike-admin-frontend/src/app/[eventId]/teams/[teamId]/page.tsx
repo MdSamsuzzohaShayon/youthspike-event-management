@@ -11,12 +11,13 @@ import { useLazyQuery, useQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 
 interface TeamSingleProps {
-  params: { teamId: string },
+  params: { teamId: string, eventId: string },
 }
 
 function TeamSingle({ params }: TeamSingleProps) {
   const [fetchTeam, { data, loading, error }] = useLazyQuery(GET_A_TEAM, { variables: { teamId: params.teamId } });
   const [actErr, setActErr] = useState<IError | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (params.teamId) {
@@ -29,13 +30,14 @@ function TeamSingle({ params }: TeamSingleProps) {
 
   }, [params.teamId]);
 
-  if (loading) return <Loader />;
+  if (loading || isLoading) return <Loader />;
 
   const teamData = data?.getTeam?.data;
 
   return (
     <div className='container mx-auto px-2'>
       <h1 className='uppercase text-center'>Teams/roster</h1>
+      <p>Need to test drag and drop with mobile (important)</p>
       <a target='_blink' href="https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1">Figma Link (Page 6)</a>
       <p>League director can change captain </p>
       <p>Captain can change team player ranking</p>
@@ -67,7 +69,7 @@ function TeamSingle({ params }: TeamSingleProps) {
 
       <div className="bulk-operations-players mt-8">
         <p>Make Inactive / Re-rank / A-Z</p>
-        <PlayerList eventId='random' playerList={teamData ? teamData.players : []} />
+        <PlayerList eventId={params.eventId} playerList={teamData ? teamData.players : []} teamId={params.teamId} setIsLoading={setIsLoading} />
       </div>
     </div>
   )

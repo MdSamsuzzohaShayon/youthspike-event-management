@@ -16,7 +16,6 @@ const eventResponse = `
   rounds
   netVariance
   rosterLock
-  passcode
   timeout
   sponsors
 `;
@@ -30,9 +29,7 @@ const ldoResponse = `
     firstName
     lastName
     role
-    login {
-      email
-    }
+    email
   }
   events {
     ${eventResponse}

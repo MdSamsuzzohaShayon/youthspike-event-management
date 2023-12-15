@@ -1,6 +1,6 @@
 import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { PlayerService } from './player.service';
-import { CreatePlayerInput } from './player.input';
+import { CreatePlayerInput, RankingPlayerInput, UpdatePlayerInput, UpdatePlayersInput } from './player.input';
 import { Player } from './player.schema';
 import { AppResponse } from 'src/shared/response';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -15,6 +15,7 @@ import { TeamService } from 'src/team/team.service';
 import { UserService } from 'src/user/user.service';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
+import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 
 @ObjectType()
 class PlayerResponse extends AppResponse<Player> {
@@ -35,12 +36,16 @@ export class PlayerResolver {
     private eventService: EventService,
     private teamService: TeamService,
     private userService: UserService,
-  ) {}
+    private cloudinaryService: CloudinaryService
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((_returns) => PlayerResponse) // Specify the return type
-  async createPlayer(@Args('input') input: CreatePlayerInput): Promise<PlayerResponse> {
+  @Mutation((returns) => PlayerResponse) // Specify the return type
+  async createPlayer(
+    @Args('input') input: CreatePlayerInput,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
+    ) {
     /**
      * TODO:
      *    Step-1: Get all the inputs
@@ -49,7 +54,11 @@ export class PlayerResolver {
      *    Step-4: Update events
      */
     try {
-      const newPlayer = await this.playerService.create(input);
+      // Upload image to cloudinary
+      let profileUrl: string | null = null;
+      if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
+      const playerObj = { ...input, profile: profileUrl };
+      const newPlayer = await this.playerService.create(playerObj);
       const updateEvent = await this.eventService.update(
         { players: [newPlayer._id.toString()] },
         input.event.toString(),
@@ -64,6 +73,59 @@ export class PlayerResolver {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Mutation((returns) => PlayerResponse)
+  async updatePlayer(@Args('input') input: UpdatePlayerInput, @Args("playerId") playerId: string, @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true })
+  profile?: Upload,): Promise<PlayerResponse> {
+    try {
+      // Upload image to cloudinary
+      const playerObj: any = { ...input };
+      if (profile) {
+        const profileUrl = await this.cloudinaryService.uploadFiles(profile);
+        playerObj.profile = profileUrl
+      };
+      const updatedPlayer = await this.playerService.update(playerObj, playerId);
+      return {
+        success: true,
+        code: 202,
+        data: updatedPlayer,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Mutation((_returns) => PlayersResponse)
+  async updatePlayers(@Args('input', { type: () => [UpdatePlayersInput] }) input: UpdatePlayersInput[]): Promise<PlayersResponse> {
+    try {
+      let players = [];
+      if (input && input.length > 0) {
+        const updatePromises = [];
+        for (let i = 0; i < input.length; i++) {
+          const playerId = input[i]._id;
+          const playerObj = { ...input[i] };
+          if (playerObj._id) delete playerObj._id;
+          updatePromises.push(this.playerService.update(playerObj, playerId));
+        }
+        players = await Promise.all(updatePromises);
+      }
+      return {
+        success: true,
+        code: 202,
+        data: players,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(
     @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Upload,
@@ -105,6 +167,21 @@ export class PlayerResolver {
     }
   }
 
+
+  @Query((_returns) => PlayerResponse) // Specify the return type
+  async getPlayer(@Args('playerId') playerId: string): Promise<PlayerResponse> {
+    try {
+      const player = await this.playerService.findById(playerId.toString());
+      return {
+        success: true,
+        code: 200,
+        data: player,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
   @Query((_returns) => PlayersResponse) // Specify the return type
   async getPlayers(@Args('eventId') eventId: string): Promise<PlayersResponse> {
     try {
@@ -119,6 +196,9 @@ export class PlayerResolver {
     }
   }
 
+  /**
+   * Populate
+   */
   @ResolveField(() => Event) // Specify the return type
   async event(@Parent() player: Player): Promise<Event | null> {
     try {
@@ -157,8 +237,8 @@ export class PlayerResolver {
   async captainuser(@Parent() player: Player): Promise<User | null> {
     try {
       if (!player.captainuser) return null;
-      const findTeam = await this.userService.findById(player.captainuser.toString());
-      return findTeam;
+      const findUser = await this.userService.findById(player.captainuser.toString());
+      return findUser;
     } catch (error) {
       return null;
     }

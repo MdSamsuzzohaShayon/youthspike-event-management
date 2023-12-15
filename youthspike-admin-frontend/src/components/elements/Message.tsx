@@ -67,7 +67,7 @@ const Message = ({ error }: { error: IError | null }) => {
         </button>
       </div>
       {expandDetail && <div className="error-detail w-full">
-        <p>
+        <p className='break-words'>
           {error.main ? JSON.stringify(error.main) : JSON.stringify(error)}
         </p>
       </div>}

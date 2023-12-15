@@ -9,7 +9,8 @@ import { UserRole } from '@/types/user';
 import { useMutation } from '@apollo/client';
 import Head from 'next/head'
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { setCookie } from '@/utils/cookie';
 
 function LoginPage() {
 
@@ -27,13 +28,20 @@ function LoginPage() {
         password,
       },
     });
-    if(email === '' || password === '') return setActionsErrors({name: "Invalid Credentials", message: "Set correct email and password!"})
-    if (resultData?.login?.code === 200) {
-      document.cookie = `token=${resultData.login.data.token};`;
-      document.cookie = `user=${JSON.stringify(resultData.login.data.user)};`;
+    if(email === '' || password === '') return setActionsErrors({name: "Invalid Credentials", message: "Set correct email and password!"});
+    if (resultData?.login?.code === 202) {
+      setCookie('token', resultData.login.data.token, 7);
+      setCookie('user', JSON.stringify(resultData.login.data.user), 7);
       console.log(resultData.login.data.user.role);
       if (resultData?.login?.data?.user?.role === UserRole.admin) {
         router.push('/admin/directors');
+      }else if (resultData?.login?.data?.user?.role === UserRole.captain) {
+        const eventIdOfPlayer = resultData.login.data.user?.event;
+        if(eventIdOfPlayer){
+          router.push(`/${eventIdOfPlayer}/matches`);
+        }else{
+          router.push('/');
+        }
       } else {
         router.push('/');
       }

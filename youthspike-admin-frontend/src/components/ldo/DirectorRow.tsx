@@ -19,7 +19,7 @@ const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
                 {ldo?.logo ? <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> : ''}
             </td>
             <td className="py-2 px-4 capitalize" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
-            <td className="py-2 px-4 lowercase" >{ldo.director?.login?.email}</td>
+            <td className="py-2 px-4 lowercase" >{ldo.director?.email}</td>
             <td className="py-2 px-4 capitalize flex justify-center items-center gap-2" >
                 <Link href={`/?ldoId=${ldo._id}`}>
                     <img src='/icons/event.svg' alt='edit' className='w-6 svg-white' />

@@ -18,13 +18,11 @@ jobs:
         VPS_IP: ${{ secrets.USERNAME }}
         VPS_PATH: "/home/shayon/youthspike-event-management"
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:    
-    
+      # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:       
     - name: Checkout app
       uses: actions/checkout@v4   
-
-    - name: Copy repository
+    - name: Deploy using ssh
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}

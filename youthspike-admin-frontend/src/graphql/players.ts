@@ -12,7 +12,6 @@ const eventResponse = `
     location
     name
     netVariance
-    passcode
     playerLimit
     rosterLock
     timeout
@@ -24,8 +23,10 @@ const playerResponse = `
   _id
   firstName
   lastName
+  profile
   email
   rank
+  status
   team {
     _id
     name
@@ -37,6 +38,19 @@ const playerResponse = `
  * Queries
  * =======================================================================================
  */
+
+const GET_A_PLAYER = gql`
+query GetPlayer($playerId: String!) {
+  getPlayer(playerId: $playerId) {
+    code
+    message
+    success
+    data {
+      ${playerResponse}
+    }
+  }
+}
+`;
 const GET_PLAYERS = gql`
 query GetPlayers($eventId: String!) {
   getPlayers(eventId: $eventId) {
@@ -83,10 +97,7 @@ const CREATE_MULTIPLE_PLAYERS_RAW = `
       message
       success
       data {
-        _id
-        firstName
-        lastName
-        email
+        ${playerResponse}
       }
     }
   }
@@ -95,15 +106,51 @@ const CREATE_MULTIPLE_PLAYERS_RAW = `
 const CREATE_MULTIPLE_PLAYERS = gql`${CREATE_MULTIPLE_PLAYERS_RAW}`;
 
 const CREATE_PLAYER_RAW = `
-mutation CreatePlayer($input: CreatePlayerInput!) {
-  createPlayer(input: $input) {
+  mutation CreatePlayer($input: CreatePlayerInput!, $profile: Upload) {
+    createPlayer(input: $input, profile: $profile) {
+      code
+      message
+      success
+      data{
+        ${playerResponse}
+      }
+    }
+  }
+`;
+const CREATE_PLAYER = gql`${CREATE_PLAYER_RAW}`;
+
+const UPDATE_PLAYER_RAW = `
+  mutation UpdatePlayer($input: UpdatePlayerInput!, $playerId: String!, $profile: Upload) {
+    updatePlayer(input: $input, playerId: $playerId, profile: $profile) {
+      code
+      message
+      success
+      data {
+        ${playerResponse}
+      }
+    }
+  }
+`;
+
+const UPDATE_PLAYER = gql`${UPDATE_PLAYER_RAW}`;
+
+const UPDATE_PLAYERS = gql`
+mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
+  updatePlayers(input: $input) {
     code
     message
     success
+    data {
+      ${playerResponse}
+    }
   }
 }
 `;
 
-const CREATE_PLAYER = gql`${CREATE_PLAYER_RAW}`;
 
-export { GET_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER, GET_EVENT_WITH_PLAYERS };
+
+export {
+  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER,
+  CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER,
+  UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER
+};

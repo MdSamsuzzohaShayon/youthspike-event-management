@@ -45,14 +45,8 @@ export class LdoResolver {
     private cloudinaryService: CloudinaryService,
     private userService: UserService,
     private eventService: EventService,
-  ) {}
+  ) { }
 
-  /**
-   * Create LDO = Event Director Organization
-   * Upload ldo logo image if there is a image
-   * Create User as director
-   */
-  // @Args({ name: 'sponsors', type: () => [GraphQLUpload] }) sponsors: Upload[],
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
   @Mutation((returns) => GetDirectorLDOResponse)
@@ -61,6 +55,11 @@ export class LdoResolver {
     @Context() context: any,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ) {
+    /**
+     * Create LDO = Event Director Organization
+     * Upload ldo logo image if there is a image
+     * Create User as director
+     */
     try {
       // Upload image to cloudinary
       let logoUrl: string | null = null;
@@ -74,7 +73,8 @@ export class LdoResolver {
         lastName: args.lastName,
         role: UserRole.director,
         active: true,
-        login: { email: args.email, password: hashPwd },
+        email: args.email,
+        password: hashPwd
       };
 
       const director = await this.userService.createOrUpdate(userObj);
@@ -105,7 +105,6 @@ export class LdoResolver {
     @Context() context: any,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
     logo?: Upload,
-    // @Args({ name: 'dId', type: () => String, nullable: true }) dId?: string,
     @Args({ name: 'dId', type: () => String, nullable: true }) dId?: string,
   ) {
     try {

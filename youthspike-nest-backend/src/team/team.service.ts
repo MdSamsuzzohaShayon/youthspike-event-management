@@ -16,6 +16,7 @@ export class TeamService {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
+    // https://mongoosejs.com/docs/populate.html#population
     return this.teamModel.findById(id);
   }
 
@@ -26,6 +27,10 @@ export class TeamService {
 
   async findOne(filter: FilterQuery<Team>) {
     return this.teamModel.findOne(filter);
+  }
+
+  async find(filter: FilterQuery<Team>) {
+    return this.teamModel.find(filter);
   }
 
   async create(team: Team) {

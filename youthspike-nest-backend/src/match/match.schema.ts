@@ -55,47 +55,47 @@ export class Match extends AppDocument {
   // Default properties
   @Field({ nullable: false })
   @Prop({ required: false })
-  divisions: string;
+  divisions?: string;
 
   @Field((type) => Int)
   @Prop({ required: false })
-  numberOfNets: number;
+  numberOfNets?: number;
 
   @Field((type) => Int)
   @Prop({ required: false })
-  numberOfRounds: number;
+  numberOfRounds?: number;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  netVariance: number;
+  netVariance?: number;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  homeTeam: string;
+  homeTeam?: string;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  autoAssign: boolean;
+  autoAssign?: boolean;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  autoAssignLogic: string;
+  autoAssignLogic?: string;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  rosterLock: string;
+  rosterLock?: string;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  timeout: number;
+  timeout?: number;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  coachPassword: string;
+  coachPassword?: string;
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  location: string;
+  location?: string;
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);

@@ -28,22 +28,16 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   
   if (loading || isLoading) return <Loader />;
   
+  
   const players = data?.getEvent?.data?.players ? data.getEvent.data.players : [];
 
   return (
     <div className='contaimer mx-auto px-2'>
-      <h1 className="text-red-500">Read all instractions regarding creating player</h1>
-      <h1 className="text-red-500">Model the database according to the instructions</h1>
-      <h1 className="text-red-500">Do no follow  existing model</h1>
-
-      <h1>Players</h1>
+      <h1>Player Add</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <p>List of players of the event</p>
-      <p>Add Player</p>
-      <p>Update player</p>
-      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} />
-      <PlayerList playerList={players} eventId={params.eventId} />
+      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update={false} />
+      <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} />
     </div>
   )
 }

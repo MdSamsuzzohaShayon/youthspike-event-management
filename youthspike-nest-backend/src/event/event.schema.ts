@@ -41,6 +41,9 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   playerLimit?: number;
 
+  /**
+   * Database Relationship
+   */
   @Field(() => LDO, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: LDO.name })
   ldo: string | LDO;

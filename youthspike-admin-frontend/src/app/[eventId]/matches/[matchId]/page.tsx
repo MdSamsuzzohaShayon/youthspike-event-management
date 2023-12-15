@@ -1,0 +1,55 @@
+'use client'
+
+import Loader from '@/components/elements/Loader';
+import Message from '@/components/elements/Message';
+import MatchAdd from '@/components/match/MatchAdd';
+import { GET_A_MATCH } from '@/graphql/matches';
+import { IError } from '@/types';
+import { isValidObjectId, toMatchDefaultData } from '@/utils/helper';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import React, { useState, useEffect } from 'react';
+
+interface MatchSingleProps {
+    params: { eventId: string; matchId: string };
+}
+
+function MatchSingle({ params }: MatchSingleProps) {
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [actErr, setActErr] = useState<IError | null>(null);
+    const [fetchMatch, { data, loading, error }] = useLazyQuery(GET_A_MATCH, { variables: { matchId: params.matchId } });
+    
+
+    useEffect(() => {
+        if (params.matchId) {
+            if (isValidObjectId(params.matchId)) {
+                fetchMatch({ variables: { matchId: params.matchId } });
+            } else {
+                setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+            }
+        }
+
+    }, [params.matchId]);
+
+    if (loading || isLoading) return <Loader />;
+
+    const matchData = data?.getMatch?.data;
+
+
+    return (
+        <div className='container mx-auto px-2'>
+            <h1 className='uppercase text-center'>Match</h1>
+
+            {error && <Message error={error} />}
+            {actErr && <Message error={actErr} />}
+
+            <p>Teams with captain</p>
+            <p>Rounds</p>
+            <p>Nets</p>
+
+            <h1>Update Match</h1>
+            <MatchAdd matchData={toMatchDefaultData(matchData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />
+        </div>
+    )
+}
+
+export default MatchSingle;

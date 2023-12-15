@@ -306,7 +306,7 @@ export class EventResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.coach, UserRole.playerAndCoach)
+  @Roles(UserRole.admin)
   @Query((returns) => GetEventResponse)
   async getEventByName(@Args('name') name: string) {
     try {
