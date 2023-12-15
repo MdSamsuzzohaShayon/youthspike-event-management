@@ -195,8 +195,6 @@ ___
 
 
 
-c2
-
 ### Deployment
  - Setup docker
  - Setup Github actions
