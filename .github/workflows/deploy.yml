@@ -31,7 +31,7 @@ jobs:
         port: 22
         script: |
           cd /home/shayon/youthspike-event-management
-          git pull origin master
+          git pull --rebase origin master
           cd youthspike-nest-backend
           npm install
           npm run build
