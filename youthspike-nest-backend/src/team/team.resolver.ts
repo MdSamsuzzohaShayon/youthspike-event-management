@@ -57,25 +57,28 @@ export class TeamResolver {
      *  Step-4: Player and user relationship - Create a user with login access as captain of the team
      */
     const players = input.players ? input.players : [];
-    const newTeam = await this.teamService.create({
-      name: input.name,
-      captain: input.captain,
-      event: input.event,
-      active: true,
-      players,
-    });
 
+    const [newTeam, findEvent] = await Promise.all([
+      this.teamService.create({
+        name: input.name,
+        captain: input.captain,
+        event: input.event,
+        active: true,
+        players,
+      }),
+      this.eventService.findById(input.event.toString())
+    ]);
     // Captain - User - Player - Team Relationship update
     const promiseOperations = [];
     promiseOperations.push(this.eventService.update({ teams: [newTeam._id] }, input.event));
-    // promiseOperations.push(this.playerService.updateMany({ _id: { $in: players } }, { team: newTeam._id, $inc: { rank: 1 } }));
     for (let i = 0; i < players.length; i += 1) {
       promiseOperations.push(this.playerService.update({ team: newTeam._id, rank: i + 1 }, players[i]));
     }
     if (input.captain) {
       // Create new user for captain
       const findPlayer = await this.playerService.findById(input.captain.toString());
-      const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
+      // const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
+      const rawPassword = findEvent.coachPassword;
       const captainUser = await this.userService.create({
         firstName: findPlayer.firstName,
         lastName: findPlayer.lastName,

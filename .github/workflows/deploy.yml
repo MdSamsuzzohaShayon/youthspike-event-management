@@ -29,6 +29,6 @@ jobs:
         port: 22
         script: |
           cd /path/to/the/project
-          git pull origin main
+          git pull origin master
           git status
           npm install --only=prod

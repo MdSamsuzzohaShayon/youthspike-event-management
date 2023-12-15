@@ -43,12 +43,11 @@ ___
  - Move team, or players to different event
 
 ### Requirements
- - Add and delete cookie properly (Use a library)
  - Next js testing with react testing library
  - Handling error properly
  - Make only logical comments and make sure clean coding
  - Make the program responsive
- - One league director will have multiple leagues
+ - One league director will have multiple events
  - Handle error just like uploading multiple player file error handling
 
 ___
@@ -92,20 +91,20 @@ ___
  - Show sponsers only on the public view (Not in admin project)
  - Add text field for sponsors name and image url
  - Make sure of Test Driven Development (Unit testing, End To End Testing)
- - On Click team, it will redirect to roster
+ - ✅✅ On Click team, it will redirect to roster
  - ✅✅ Upload sponsors logo and all images to Cloudinary
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
 
  - **Captain**
- - Coach/Captain can login and change profile picture
- - Captain setting
+ - ✅✅ Coach/Captain can login and change profile picture
+ - ✅✅ Captain setting
  - Coach/Captain can change 4 digit passcode
  - When someone login as captain he can only see teams and matches
  - Set default password for all captains and they can change their password later on
  - Send welcome email to all of our captains
- - From a single match -> login as captain
+ - ✅✅ From a single match -> login as captain
  - But coach/captain can change only his team
  
  - **Event**
@@ -200,7 +199,16 @@ ___
  - Setup docker
  - Setup Github actions
  - Setup apache server
- - 
+
+
+### Github action deployment
+ - Create secrets in github repos
+ - Create ssh key from server
+ - Github Profile -> setting -> add ssh public key of ubuntu server
+ - Copy ssh private key of server as action secret key in github repo
+ - Add public key to authorized key `cat .ssh/id_rsa.pub >> .ssh/authorized_keys` on the server
+ - Clone the repository from server `git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git` (*Use ssh not http*)
+ - Create **deploy.myl** file and deploy
 
 
 
