@@ -31,7 +31,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/shayon/youthspike-event-management/youthspike-nest-backend
+            cd /home/shayon/youthspike-event-management
+            git pull origin master --rebase
+            cd youthspike-nest-backend
             npm install
             npm run build
             pm2 startOrRestart ecosystem.config.js --env production
