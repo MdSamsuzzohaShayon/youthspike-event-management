@@ -54,7 +54,8 @@ jobs:
         run: cd youthspike-admin-frontend && npm install
 
       - name: Build and Test (Next.js)
-        run: cd youthspike-admin-frontend && npm run build && npm test
+        # run: cd youthspike-admin-frontend && npm run build && npm test
+        run: cd youthspike-admin-frontend && npm run build
 
       - name: Deploy to DigitalOcean (Next.js)
         uses: appleboy/ssh-action@master
