@@ -211,6 +211,7 @@ ___
  - Create **deploy.myl** file and deploy
 
 
+ - Install git, nodejs, mongodb
 
 
 ### Ask

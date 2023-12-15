@@ -414,11 +414,11 @@ input CreateMatchInput {
   teamA: String
   teamB: String
   divisions: String!
-  numberOfNets: Float
-  numberOfRounds: Float
-  playerLimit: Int
-  netVariance: Int
-  homeTeam: String
+  numberOfNets: Float!
+  numberOfRounds: Float!
+  playerLimit: Int!
+  netVariance: Int!
+  homeTeam: String!
   autoAssign: Boolean
   autoAssignLogic: String
   rosterLock: String

@@ -57,7 +57,10 @@ export class MatchResolver {
       const roundIds = [];
       const playerIds = [];
 
-      const matchObj = { ...input, nets: netIds, rounds: roundIds, players: playerIds };
+      const matchObj: any = {
+        ...input, 
+        nets: netIds, rounds: roundIds, players: playerIds,
+      };
       if (!matchObj.divisions) matchObj.divisions = findEvent.divisions;
       if (!matchObj.numberOfNets) matchObj.numberOfNets = findEvent.nets;
       if (!matchObj.numberOfRounds) matchObj.numberOfRounds = findEvent.rounds;
@@ -70,6 +73,8 @@ export class MatchResolver {
       if (!matchObj.timeout) matchObj.timeout = findEvent.timeout;
       if (!matchObj.coachPassword) matchObj.coachPassword = findEvent.coachPassword;
       if (!matchObj.location) matchObj.location = findEvent.location;
+
+
       const newMatch = await this.matchService.create(matchObj);
 
       const promisesAll = [];
