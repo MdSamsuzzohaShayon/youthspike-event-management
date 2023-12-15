@@ -2,8 +2,7 @@ name: Multi-App CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [ master ]
 
 jobs:
   deploy-nestjs-backend:
