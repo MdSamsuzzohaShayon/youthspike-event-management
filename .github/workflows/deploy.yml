@@ -24,7 +24,7 @@ jobs:
         run: cd youthspike-nest-backend && npm run build && npm test
 
       - name: Deploy to DigitalOcean (Nest.js)
-        uses: appleboy/ssh-action@v0.4.0
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -56,7 +56,7 @@ jobs:
         run: cd youthspike-admin-frontend && npm run build && npm test
 
       - name: Deploy to DigitalOcean (Next.js)
-        uses: appleboy/ssh-action@v0.4.0
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
