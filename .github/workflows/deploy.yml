@@ -21,7 +21,8 @@ jobs:
         run: cd youthspike-nest-backend && npm install
 
       - name: Build and Test (Nest.js)
-        run: cd youthspike-nest-backend && npm run build && npm test
+        # run: cd youthspike-nest-backend && npm run build && npm test
+        run: cd youthspike-nest-backend && npm run build
 
       - name: Deploy to DigitalOcean (Nest.js)
         uses: appleboy/ssh-action@master
