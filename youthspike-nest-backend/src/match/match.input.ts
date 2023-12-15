@@ -19,7 +19,7 @@ export class CreateMatchInput {
   teamB: string;
 
   // Default properties
-  @Field()
+  @Field({nullable: true})
   divisions?: string;
   
   @Field({ nullable: true })

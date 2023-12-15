@@ -74,7 +74,6 @@ type Match {
   autoAssignLogic: String
   rosterLock: String
   timeout: Float
-  passcode: String
   coachPassword: String
   location: String
 }
@@ -94,15 +93,14 @@ type Event {
   nets: Float!
   rounds: Float!
   netVariance: Float!
-  homeTeam: String
-  autoAssign: Boolean
-  autoAssignLogic: String
-  rosterLock: String
-  timeout: Float
-  passcode: String
-  coachPassword: String
-  location: String
-  sponsors: [String!]
+  homeTeam: String!
+  autoAssign: Boolean!
+  autoAssignLogic: String!
+  rosterLock: String!
+  timeout: Float!
+  coachPassword: String!
+  location: String!
+  sponsors: [String!]!
 }
 
 type Player {
@@ -400,17 +398,16 @@ input CreateMatchInput {
   netRange: Float!
   teamA: String
   teamB: String
-  divisions: String!
-  numberOfNets: Float!
-  numberOfRounds: Float!
-  playerLimit: Int!
-  netVariance: Int!
-  homeTeam: String!
+  divisions: String
+  numberOfNets: Float
+  numberOfRounds: Float
+  playerLimit: Int
+  netVariance: Int
+  homeTeam: String
   autoAssign: Boolean
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
-  passcode: String
   coachPassword: String
   location: String!
 }
@@ -436,7 +433,6 @@ input UpdateMatchInput {
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
-  passcode: String
   coachPassword: String
   location: String
 }

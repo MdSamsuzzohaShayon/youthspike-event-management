@@ -191,6 +191,7 @@ ___
  - 
 
 
+ - Install git, nodejs, mongodb
 
 
 ### Ask
