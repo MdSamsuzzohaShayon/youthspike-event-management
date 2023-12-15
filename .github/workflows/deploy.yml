@@ -16,7 +16,7 @@ jobs:
     env:
         VPS_USER: ${{ secrets.HOST }}
         VPS_IP: ${{ secrets.USERNAME }}
-        VPS_PATH: "/path/to/your/app"
+        VPS_PATH: "/home/shayon/youthspike-event-management"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:       
@@ -28,7 +28,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22
         script: |
-          cd /path/to/the/project
+          cd /home/shayon/youthspike-event-management
           git pull origin master
           git status
           npm install --only=prod
