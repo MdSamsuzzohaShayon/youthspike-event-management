@@ -196,9 +196,9 @@ ___
 
 
 ### Deployment
- - Setup docker
  - Setup Github actions
  - Setup apache server
+ - Setup docker
 
 
 ### Github action deployment
@@ -209,8 +209,6 @@ ___
  - Add public key to authorized key `cat .ssh/id_rsa.pub >> .ssh/authorized_keys` on the server
  - Clone the repository from server `git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git` (*Use ssh not http*)
  - Create **deploy.myl** file and deploy
-
-
  - Install git, nodejs, mongodb
 
 
