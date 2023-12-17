@@ -198,6 +198,7 @@ ___
 ### Deployment
  - Setup Github actions
  - Setup apache server
+ - Cinfigure firewall
  - Setup docker
 
 
