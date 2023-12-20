@@ -197,8 +197,11 @@ ___
 
 ### Deployment
  - Setup Github actions
- - Setup apache server
+ - [Setup apache server](https://www.digitalocean.com/community/tutorials/how-to-install-the-apache-web-server-on-ubuntu-22-04)
+ - [Secure Apache with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-22-04)
  - Cinfigure firewall
+ - Create reverse proxies
+ - 
  - Setup docker
 
 
