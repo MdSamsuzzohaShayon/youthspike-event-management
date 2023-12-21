@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google';
 import ApolloWrapper from '@/lib/ApolloWrapper';
 import ReduxProvider from '@/lib/ReduxProviders';
 import './globals.css';
+import Menu from '@/components/layout/Menu';
+import Footer from '@/components/layout/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,9 +17,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-100 text-gray-900`}>
+      <body className={`${inter.className} bg-gray-950 text-gray-100`}>
         <ApolloWrapper>
-          <ReduxProvider>{children}</ReduxProvider>
+          <ReduxProvider>
+            <Menu />
+            {children}
+            <Footer />
+          </ReduxProvider>
         </ApolloWrapper>
       </body>
     </html>

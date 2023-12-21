@@ -11,6 +11,8 @@
   "dependencies": {
     "@apollo/client": "^3.8.0-rc.2",
     "@apollo/experimental-nextjs-app-support": "^0.5.1",
+    "@cloudinary/react": "^1.11.2",
+    "@cloudinary/url-gen": "^1.14.0",
     "@reduxjs/toolkit": "^1.9.7",
     "@types/jest": "^29.5.7",
     "graphql": "^16.8.1",

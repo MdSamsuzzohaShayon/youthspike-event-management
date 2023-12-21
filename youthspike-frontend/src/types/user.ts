@@ -1,59 +1,16 @@
 import { IDocument } from "./document";
-import { ILeague } from "./league";
-import { ITeam } from "./team";
 
 /**
  * User Roles
  */
 export enum UserRole {
   "admin" = "admin",
-  "coach" = "coach",
-  "manager" = "manager",
+  "captain" = "captain",
+  "director" = "director",
   "player" = "player",
 }
 
-/**
- * Admin
- */
-export interface IAdmin { }
-
-/**
- * Coach
- */
-export interface ICoach {
-  team?: ITeam;
-}
-
-/**
- * Manager
- */
-export interface IManager { }
-
-/**
- * Player
- */
-export interface IPlayer {
-  shirtNumber: number;
-  rank: number;
-  leagueId?: string;
-  teamId?: string;
-}
-
-/**
- * Player User
- */
-export interface IPlayerUser extends IDocument{
-  firstName: string;
-  lastName: string,
-  role: string,
-  active: true,
-  player: IPlayer;
-}
-
-/**
- * Login
- */
-export interface ILogin {
+export interface ILogin{
   email: string;
   password: string;
 }
@@ -65,15 +22,31 @@ export interface IUser extends IDocument {
   firstName: string;
   lastName: string;
   role: UserRole;
-  coach?: ICoach;
-  admin?: IAdmin;
-  manager?: IManager;
-  player?: IPlayer;
-  login?: ILogin;
   active: boolean;
+  login: ILogin;
 }
 
-export interface IPlayerList extends IDocument {
-  selectedList: string[];
-  dangerList: string[];
+/**
+ * Add director user
+ */
+export interface IDirector{
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface IDirectorItem{
+  firstName: string;
+  lastName: string;
+  email: string;
+  login: {email: string}
+}
+
+
+
+export interface IUserContext {
+  token: string | null;
+  info: IUser | null;
 }

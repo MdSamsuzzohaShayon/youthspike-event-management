@@ -6,7 +6,7 @@ import Menu from '@/components/layout/Menu';
 import Footer from '@/components/layout/Footer';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Youthspike - administration',

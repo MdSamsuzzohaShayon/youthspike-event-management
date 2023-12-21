@@ -171,8 +171,6 @@ export class LdoResolver {
     }
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetDirectorLDOResponse)
   async getEventDirector(
     @Context() context: any,
@@ -180,6 +178,13 @@ export class LdoResolver {
   ) {
     try {
       // If the user is admin we must need ldoId otherwise get id from token
+      if (dId) {
+        return {
+          code: 200,
+          success: true,
+          data: await this.ldoService.findByDirectorId(dId),
+        };
+      }
       const secret = this.configService.get<string>('JWT_SECRET');
       const userId = tokenToUser(context, secret);
       if (!userId) return AppResponse.unauthorized();
@@ -209,8 +214,6 @@ export class LdoResolver {
     }
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin)
   @Query((returns) => GetDirectorsLDOResponse)
   async getEventDirectors() {
     try {

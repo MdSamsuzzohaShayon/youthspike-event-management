@@ -5,10 +5,11 @@
 import { HttpLink, ApolloLink } from '@apollo/client';
 import React from 'react';
 import { NextSSRApolloClient, ApolloNextAppProvider, NextSSRInMemoryCache, SSRMultipartLink } from '@apollo/experimental-nextjs-app-support/ssr';
+import { BACKEND_URL } from '@/utils/keys';
 
 function makeClient() {
   const httpLink = new HttpLink({
-    uri: 'http://localhost:4000/graphql',
+    uri: BACKEND_URL,
   });
 
   return new NextSSRApolloClient({
