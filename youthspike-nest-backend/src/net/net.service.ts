@@ -41,4 +41,8 @@ export class NetService {
   async findById(id: string) {
     return this.netModel.findById(id);
   }
+
+  async delete(filter: FilterQuery<Net>) {
+    return this.netModel.deleteMany(filter);
+  }
 }

@@ -1,5 +1,7 @@
 import cld from '@/config/cloudinary.config'
+import { DELETE_DIRECTOR } from '@/graphql/director'
 import { ILDO, ILDOItem } from '@/types'
+import { useMutation } from '@apollo/client'
 import { AdvancedImage } from '@cloudinary/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -7,9 +9,11 @@ import React from 'react'
 
 const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
     const router = useRouter();
+    const [deleteDirector, { data }] = useMutation(DELETE_DIRECTOR);
 
-    const handleDeleteLDO = (e: React.SyntheticEvent, ldoId: string): void => {
+    const handleDeleteLDO = (e: React.SyntheticEvent, ldoId: string) => {
         e.preventDefault();
+        deleteDirector({ variables: { dId: ldoId } });
     }
 
     return (
@@ -18,7 +22,7 @@ const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
             <td className="py-2 px-4 capitalize" >
                 {ldo?.logo ? <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> : ''}
             </td>
-            <td className="py-2 px-4 capitalize" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
+            <td className="py-2 px-4 capitalize break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
             <td className="py-2 px-4 lowercase" >{ldo.director?.email}</td>
             <td className="py-2 px-4 capitalize flex justify-center items-center gap-2" >
                 <Link href={`/?ldoId=${ldo._id}`}>

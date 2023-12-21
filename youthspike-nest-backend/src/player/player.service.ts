@@ -97,4 +97,8 @@ export class PlayerService {
         });
     });
   }
+
+  async delete(filter: FilterQuery<Player>) {
+    return this.playerModel.deleteMany(filter);
+  }
 }

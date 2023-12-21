@@ -18,6 +18,11 @@ import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { ConfigService } from '@nestjs/config';
 import { EventService } from 'src/event/event.service';
+import { TeamService } from 'src/team/team.service';
+import { PlayerService } from 'src/player/player.service';
+import { MatchService } from 'src/match/match.service';
+import { RoundService } from 'src/round/round.service';
+import { NetService } from 'src/net/net.service';
 
 // @ObjectType()
 // class GetPlayerResponse extends AppResponse<User> {
@@ -45,6 +50,11 @@ export class LdoResolver {
     private cloudinaryService: CloudinaryService,
     private userService: UserService,
     private eventService: EventService,
+    private teamService: TeamService,
+    private playerService: PlayerService,
+    private matchService: MatchService,
+    private roundsService: RoundService,
+    private netService: NetService
   ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -161,7 +171,6 @@ export class LdoResolver {
     }
   }
 
-  // Example ldoId = 6553d59680c96ec47a8a6eb0
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetDirectorLDOResponse)
@@ -209,6 +218,80 @@ export class LdoResolver {
       const ldo = await this.ldoService.query({ role: UserRole.director });
       return {
         code: 200,
+        success: true,
+        data: ldo,
+      };
+    } catch (err) {
+      return AppResponse.getError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin)
+  @Mutation((returns) => GetDirectorLDOResponse)
+  async deleteEventDirector(
+    @Context() context: any,
+    @Args({ name: 'dId', type: () => String }) dId: string,
+  ) {
+    /**
+     * Delete all events assosiated with it
+     * Delete the user that is assosiated with it
+     * Delete all teams, players, rounds, nets assosiated with it
+     * Delete captain and players assosiated with it
+     */
+    try {
+      const promisesToDelete = [];
+      const ldo = await this.ldoService.findByDirectorId(dId);
+      if (ldo && ldo.events && ldo.events.length > 0) {
+        const ldoEventIds = ldo.events.map((le) => le.toString());
+        promisesToDelete.push(this.eventService.delete({ _id: { $in: ldoEventIds } }));
+
+        const events = await this.eventService.query({ _id: { $in: ldoEventIds } });
+        if (events && events.length > 0) {
+          for (const event of events) {
+            // teams, players, matches
+            if (event.teams && event.teams.length > 0) {
+              const teamIds = event.teams.map((team) => team.toString());
+              promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
+
+              // captains
+              const teams = await this.teamService.query({ _id: { $in: teamIds } });
+              if (teams && teams.length > 0) {
+                const captainPlayerIds = teams.filter(team => team.captain).map(team => team.captain.toString());
+                promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
+              }
+            }
+            if (event.players && event.players.length > 0) {
+              const playerIds = event.players.map((player) => player.toString());
+              promisesToDelete.push(this.playerService.delete({ _id: { $in: playerIds } }))
+            }
+            if (event.matches && event.matches.length > 0) {
+              const matchIds = event.matches.map((match) => match.toString());
+              promisesToDelete.push(this.matchService.delete({ _id: { $in: matchIds } }));
+
+              // Rounds, nets
+              const matches = await this.matchService.query({ _id: { $in: matchIds } });
+              if (matches && matches.length > 0) {
+                for (const match of matches) {
+                  const roundIds = match.rounds.map(r => r.toString());
+                  promisesToDelete.push(this.roundsService.delete({ _id: { $in: roundIds } }));
+
+                  const netIds = match.nets.map(r => r.toString());
+                  promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));
+                }
+              }
+            }
+          }
+        }
+      }
+      if (ldo && ldo.director) {
+        promisesToDelete.push(this.ldoService.delete({ _id: ldo._id.toString() }));
+        promisesToDelete.push(this.userService.delete({ _id: ldo.director.toString() }));
+      }
+
+      await Promise.all(promisesToDelete);
+      return {
+        code: 204,
         success: true,
         data: ldo,
       };

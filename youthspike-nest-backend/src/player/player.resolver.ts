@@ -45,7 +45,7 @@ export class PlayerResolver {
   async createPlayer(
     @Args('input') input: CreatePlayerInput,
     @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
-    ) {
+  ) {
     /**
      * TODO:
      *    Step-1: Get all the inputs
@@ -58,6 +58,7 @@ export class PlayerResolver {
       let profileUrl: string | null = null;
       if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
       const playerObj = { ...input, profile: profileUrl };
+      if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
       const newPlayer = await this.playerService.create(playerObj);
       const updateEvent = await this.eventService.update(
         { players: [newPlayer._id.toString()] },

@@ -97,4 +97,7 @@ export class UserService {
   async query(filter: FilterQuery<User>) {
     return this.userModel.find(filter).sort({ updatedAt: -1 });
   }
+  async delete(filter: FilterQuery<User>) {
+    return this.userModel.deleteMany(filter);
+  }
 }

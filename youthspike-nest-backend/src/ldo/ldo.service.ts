@@ -55,4 +55,8 @@ export class LdoService {
   async query(filter: FilterQuery<LDO>) {
     return this.ldoModel.find(filter);
   }
+
+  async delete(filter: FilterQuery<LDO>) {
+    return this.ldoModel.deleteMany(filter);
+  }
 }

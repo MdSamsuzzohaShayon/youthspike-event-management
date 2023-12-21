@@ -309,7 +309,7 @@ type Query {
   getEventByName(name: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
-  getMatches(eventId: String!): GetMatchesResponse!
+  getMatches(eventId: String): GetMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
   getRound(id: String!): GetRoundResponse!
@@ -338,6 +338,7 @@ type Mutation {
   subAddPlayer(id: String!, roundId: String!, playerId: String!): GetSubResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
+  deleteEventDirector(dId: String!): GetDirectorLDOResponse!
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!

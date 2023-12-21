@@ -43,6 +43,7 @@ ___
  - Move team, or players to different event
 
 ### Requirements
+ - Make domain __admin.aslsquads.com__ for *admin*
  - Next js testing with react testing library
  - Handling error properly
  - Make only logical comments and make sure clean coding

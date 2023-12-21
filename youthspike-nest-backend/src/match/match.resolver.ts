@@ -58,7 +58,7 @@ export class MatchResolver {
       const playerIds = [];
 
       const matchObj: any = {
-        ...input, 
+        ...input,
         nets: netIds, rounds: roundIds, players: playerIds,
       };
       if (!matchObj.divisions) matchObj.divisions = findEvent.divisions;
@@ -148,9 +148,14 @@ export class MatchResolver {
   }
 
   @Query((returns) => GetMatchesResponse)
-  async getMatches(@Args('eventId') eventId: string) {
+  async getMatches(@Args('eventId', { nullable: true }) eventId?: string | null) {
     try {
-      const matches = await this.matchService.query({ event: eventId });
+      const query: { eventId?: null | string } = {};
+      if (eventId) query.eventId = eventId;
+
+      // Assuming matchService is injected in your class
+      const matches = await this.matchService.query(query);
+
       return {
         code: 200,
         success: true,
@@ -160,6 +165,7 @@ export class MatchResolver {
       return AppResponse.getError(err);
     }
   }
+  
 
   @Query((returns) => GetMatchResponse)
   async getMatch(@Args('matchId') matchId: string) {

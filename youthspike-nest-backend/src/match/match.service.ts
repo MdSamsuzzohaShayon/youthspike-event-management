@@ -51,4 +51,7 @@ export class MatchService {
       { upsert: true, new: true },
     );
   }
+  async delete(filter: FilterQuery<Match>) {
+    return this.matchModel.deleteMany(filter);
+  }
 }
