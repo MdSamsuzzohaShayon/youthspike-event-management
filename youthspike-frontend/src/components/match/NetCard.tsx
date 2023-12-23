@@ -7,6 +7,7 @@ import PlayerScoreCard from './PlayerScoreCard';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import { INetRelatives } from '@/types';
+import { useUser } from '@/lib/UserProvider';
 
 interface INetProps {
   net?: INetRelatives | null | undefined;
@@ -22,6 +23,7 @@ const TBPB: number = 4;
 function NetCard({ net }: INetProps) {
   // Hook
   const dispatch = useAppDispatch();
+  const user = useUser();
 
   // Redux State
   const currNetNum = useAppSelector((state) => state.nets.currNetNum);
@@ -58,9 +60,9 @@ function NetCard({ net }: INetProps) {
   const handleTouchEnd = (e: React.TouchEvent) => {
     const newEndPositionX = e.changedTouches[0].clientX;
     if (startPosX - newEndPositionX > touchThreshold) {
-      handleLeftShift();
+      // handleLeftShift();
     } else if (newEndPositionX - startPosX > touchThreshold) {
-      handleRightShift();
+      // handleRightShift();
     }
   };
 
@@ -69,6 +71,7 @@ function NetCard({ net }: INetProps) {
   };
 
   const handleEvacuatePlayer = (tpNum: number) => {
+    if(!user.token || !user.info) return;
     /**
      * Delete a player from the net
      * team a player 1 = 1, team a player 2 = 2, team b player 1 = 3, team b player 2 = 4
@@ -92,6 +95,7 @@ function NetCard({ net }: INetProps) {
   };
 
   const handleDropdownPlayer = (teamPlayer: number) => {
+    if(!user.token || !user.info) return;
     setDropDown(true);
     setTeamPlayerNum(teamPlayer);
     /**
@@ -111,6 +115,7 @@ function NetCard({ net }: INetProps) {
   };
 
   const handleSelectPlayer = (e: React.SyntheticEvent, teamPlayerId: string) => {
+    if(!user.token || !user.info) return;
     e.preventDefault();
     setDropDown(false);
     

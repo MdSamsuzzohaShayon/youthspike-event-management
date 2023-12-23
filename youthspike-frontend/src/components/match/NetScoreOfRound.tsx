@@ -71,10 +71,10 @@ function NetScoreOfRound() {
               </p>
             ))}
           </div>
-          <PointsByRound dark />
+          <PointsByRound roundList={roundList} dark />
         </div>
         <div className="round-bottom h-3/6 w-full border border-gray-900 px-2 flex flex-col items-center justify-around">
-          <PointsByRound dark={false} />
+          <PointsByRound roundList={roundList} dark={false} />
           <LogoMatchScore dark={false} team={teamB} />
         </div>
       </div>

@@ -16,7 +16,7 @@ export interface ITextInputProps {
   lblTxt?: string;
   name: string;
   required: boolean;
-  defaultValue: string | null | undefined;
+  defaultValue?: string | null | undefined;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
 

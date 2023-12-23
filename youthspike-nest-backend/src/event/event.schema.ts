@@ -7,8 +7,8 @@ import { Match } from 'src/match/match.schema';
 import { Player } from 'src/player/player.schema';
 import { DateScalar } from 'src/shared/date-scaler';
 import { AppDocument } from 'src/shared/schema/document.schema';
+import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Team } from 'src/team/team.schema';
-import { User } from 'src/user/user.schema';
 
 /**
  * Event
@@ -60,6 +60,10 @@ export class Event extends AppDocument {
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
   matches: Match[] | string[];
 
+  @Field(() => [Sponsor], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' }] })
+  sponsors: Sponsor[] | string[];
+
   /**
    * Default properties for match
    */
@@ -107,9 +111,6 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   location: string;
 
-  @Field(() => [String], { nullable: false })
-  @Prop({ required: true, type: [String] })
-  sponsors: string[];
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);

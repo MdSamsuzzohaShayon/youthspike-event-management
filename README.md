@@ -39,8 +39,7 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Update player, Update match, Database modeling *round, match, and net* make relationship properly. Do all operations of team/roster page
- - Move team, or players to different event
+ - Update event (Especially sponsor image)
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*

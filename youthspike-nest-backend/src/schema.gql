@@ -74,6 +74,13 @@ type Match {
   location: String
 }
 
+type Sponsor {
+  _id: String
+  company: String!
+  logo: String!
+  event: Event
+}
+
 type Event {
   _id: String
   name: String!
@@ -85,6 +92,7 @@ type Event {
   players: [Player!]!
   teams: [Team!]!
   matches: [Match!]!
+  sponsors: [Sponsor!]!
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -96,7 +104,6 @@ type Event {
   timeout: Float!
   coachPassword: String!
   location: String!
-  sponsors: [String!]!
 }
 
 type Player {
@@ -313,7 +320,7 @@ type Query {
 type Mutation {
   login(email: String!, password: String!): LoginResponse!
   changePassword(id: String!, oldPassword: String, newPassword: String): ChangePWDDataRes!
-  createEvent(sponsors: [Upload!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
+  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
   updateEvent(sponsors: [Upload!]!, input: UpdateEventInput!, eventId: String!): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   createTeam(input: CreateTeamInput!): CreateOrUpdateTeamResponse!
@@ -331,6 +338,11 @@ type Mutation {
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
+}
+
+input EventSponsorInput {
+  company: String!
+  logo: Upload!
 }
 
 """The `Upload` scalar type represents a file upload."""

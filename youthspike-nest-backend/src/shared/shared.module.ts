@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ModuleRef } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
-import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseModule, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Event, EventSchemaFactory } from 'src/event/event.schema';
 import { Match, MatchSchemaFactory } from 'src/match/match.schema';
@@ -24,6 +24,8 @@ import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { CloudinaryService } from './services/cloudinary.service';
 import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
+import { SponsorService } from 'src/sponsor/sponsor.service';
+import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
 
 @Module({
   imports: [
@@ -75,6 +77,10 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
         name: LDO.name,
         useFactory: LDOSchemaFactory,
       },
+      {
+        name: Sponsor.name,
+        useFactory: SponsorSchemaFactory
+      }
     ]),
 
     ConfigModule,
@@ -94,6 +100,7 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
     NetService,
     PlayerService,
     LdoService,
+    SponsorService
     // { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [
@@ -101,13 +108,13 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
     UserService,
     PlayerService,
     TeamService,
-
     EventService,
     MatchService,
     RoundService,
     NetService,
     PlayerService,
     LdoService,
+    SponsorService
   ],
 })
 export class SharedModule {

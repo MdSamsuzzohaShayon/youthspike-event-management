@@ -1,4 +1,4 @@
-import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch } from "./event";
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, IEventSponsorAdd } from "./event";
 import {
   ITextInputProps,
   IError,
@@ -40,6 +40,8 @@ export type {
   IEventAdd,
   IEventAddProps,
   IDefaultEventMatch,
+  IEventSponsor,
+  IEventSponsorAdd,
 
 
   // User

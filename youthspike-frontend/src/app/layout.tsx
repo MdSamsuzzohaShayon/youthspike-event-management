@@ -6,6 +6,7 @@ import ReduxProvider from '@/lib/ReduxProviders';
 import './globals.css';
 import Menu from '@/components/layout/Menu';
 import Footer from '@/components/layout/Footer';
+import UserProvider from '@/lib/UserProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,11 +20,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.className} bg-gray-950 text-gray-100`}>
         <ApolloWrapper>
-          <ReduxProvider>
-            <Menu />
-            {children}
-            <Footer />
-          </ReduxProvider>
+          <UserProvider>
+            <ReduxProvider>
+              <Menu />
+              {children}
+              <Footer />
+            </ReduxProvider>
+          </UserProvider>
         </ApolloWrapper>
       </body>
     </html>

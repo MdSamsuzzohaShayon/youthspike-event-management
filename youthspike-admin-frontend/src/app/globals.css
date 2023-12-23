@@ -8,38 +8,58 @@ h2,
 h3,
 h4,
 h5,
-h6 {
-}
+h6 {}
+
 h1 {
   @apply text-3xl font-bold;
 }
+
 h2 {
   @apply text-2xl font-bold;
 }
+
 h3 {
   @apply text-xl font-semibold;
 }
+
 h4 {
   @apply text-lg font-medium;
 }
+
 h5 {
   @apply text-base font-light;
 }
+
 h6 {
   @apply text-sm font-light;
 }
+
 p {
   @apply text-sm;
 }
+
 label {
   @apply text-lg font-normal;
 }
+
+dialog {}
+
+dialog::backdrop {
+  background-image: linear-gradient(45deg,
+      magenta,
+      rebeccapurple,
+      dodgerblue,
+      green);
+  opacity: 0.75;
+}
+
 /* Typography End  */
 
 /* SVG Style start  */
 .svg-white {
   filter: grayscale(100%) brightness(0) invert(100%);
 }
+
 .svg-black {
   filter: grayscale(100%) brightness(0);
 }
@@ -51,6 +71,7 @@ label {
 .svg-red {
   filter: grayscale(100%) brightness(0);
 }
+
 /* SVG Style end  */
 
 /* Button style start  */

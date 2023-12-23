@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @next/next/no-img-element */
 import cld from '@/config/cloudinary.config';
+import { useUser } from '@/lib/UserProvider';
 import { IPlayer } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
 import { profile } from 'console';
@@ -15,6 +16,7 @@ interface IPalyerScoreCard {
 }
 
 function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer }: IPalyerScoreCard) {
+  const user = useUser();
   const [blackCard, setBlankCard] = React.useState<boolean>(!!player);
 
   const handleDropDown = (e: React.SyntheticEvent) => {
@@ -28,7 +30,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
   return (
     <>
       <div className="p-img-wrap relative w-full h-24">
-        {player && <img src="/icons/close.svg" alt="cross" className="absolute top-1 right-1 w-4" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />}
+        {player && user.token && <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full"> <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross"  role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} /> </div>}
         {player?.profile ? <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(player.profile)} /> : (<img
           src="/empty-img.jpg"
           alt="random-img"
@@ -48,7 +50,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
       </div>
       <div className="p-name-rank w-full flex h-9">
         <div className={`rank w-4 h-full bg-yellow-500 ${dark ? 'text-gray-100' : 'text-gray-900'} text-lg flex justify-center text-center items-center`}>{player ? player.rank : 0}</div>
-        <p className={`name flex justify-center text-center items-center w-12 leading-3 ${dark ? 'text-gray-100' : 'text-gray-900'}`} style={{ fontSize: '0.6rem' }}>
+        <p className={`name flex justify-center text-center items-center w-12 leading-3 capitalize ${dark ? 'text-gray-100' : 'text-gray-900'}`} style={{ fontSize: '0.6rem' }}>
           {!player ? 'Not Selected' : `${player?.firstName} ${player?.lastName}`}
         </p>
       </div>

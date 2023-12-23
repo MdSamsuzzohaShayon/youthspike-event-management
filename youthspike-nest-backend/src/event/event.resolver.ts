@@ -26,12 +26,13 @@ import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { ConfigService } from '@nestjs/config';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
-import { CreateEventInput, UpdateEventInput } from './event.args';
+import { CreateEventInput, EventSponsorInput, UpdateEventInput } from './event.args';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { LdoService } from 'src/ldo/ldo.service';
 import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
+import { SponsorService } from 'src/sponsor/sponsor.service';
 
 interface JwtPayload {
   _id: string;
@@ -67,13 +68,15 @@ export class EventResolver {
     private playerService: PlayerService,
     private matchService: MatchService,
     private userService: UserService,
+    private sponsorService: SponsorService,
   ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateEventResponse)
   async createEvent(
-    @Args({ name: 'sponsors', type: () => [GraphQLUpload] }) sponsors: Upload[],
+    // @Args({ name: 'sponsors', type: () => [GraphQLUpload] }) sponsors: Upload[],
+    @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') args: CreateEventInput,
     @Context() context: any,
   ): Promise<CreateOrUpdateEventResponse> {
@@ -116,23 +119,33 @@ export class EventResolver {
 
       // Upload file to cloudinary
       const uploadPromises = [];
-      for (let i = 0; i < sponsors.length; i++) {
-        uploadPromises.push(this.cloudinaryService.uploadFiles(sponsors[i]));
+      for (let i = 0; i < sponsorsInput.length; i++) {
+        uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
       }
-      const cloudinaryUrls: string[] = await Promise.all(uploadPromises);
+      const sponsorsFileList = await Promise.all(uploadPromises);
+
+      let sponsorsIds = [];
+      if (sponsorsFileList) {
+        const sponsors = await this.sponsorService.insertMany(sponsorsFileList);
+        sponsorsIds = sponsors.map((s) => s._id);
+      }
 
       // Arrange data and save to database
       const eventData = {
         ...args,
         ldo: findLdo._id,
-        sponsors: cloudinaryUrls,
+        sponsors: sponsorsIds,
         players: [],
         teams: [],
-        matches: []
+        matches: [],
       };
 
       const savedEvent = await this.eventService.create(eventData);
-      const updateLdo = await this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString());
+      await Promise.all([
+        this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
+        this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id })
+      ]);
+      
 
       return {
         data: savedEvent,
@@ -328,6 +341,11 @@ export class EventResolver {
   @ResolveField()
   async teams(@Parent() event: Event) {
     return this.teamService.query({ _id: { $in: event.teams } });
+  }
+
+  @ResolveField()
+  async sponsors(@Parent() event: Event) {
+    return this.sponsorService.query({ _id: { $in: event.sponsors } });
   }
 
   @ResolveField()

@@ -18,6 +18,7 @@ import { NetModule } from './net/net.module';
 import { GatewayModule } from './getway/getway.module';
 import { LdoModule } from './ldo/ldo.module';
 import { PlayerModule } from './player/player.module';
+import { SponsorModule } from './sponsor/sponsor.module';
 
 @Module({
   imports: [
@@ -60,6 +61,8 @@ import { PlayerModule } from './player/player.module';
     LdoModule,
 
     PlayerModule,
+
+    SponsorModule,
 
   ],
   controllers: [AppController],
