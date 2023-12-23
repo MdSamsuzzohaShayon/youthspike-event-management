@@ -7,8 +7,6 @@ import { AppResponse } from 'src/shared/response';
 import { MatchService } from 'src/match/match.service';
 import { NetService } from 'src/net/net.service';
 import { RoundService } from './round.service';
-import { SubService } from 'src/shared/services/sub.service';
-import { Sub } from 'src/sub/sub.schema';
 import { UserRole } from 'src/user/user.schema';
 import { Round } from './round.schema';
 
@@ -36,7 +34,6 @@ export class RoundResolver {
     private roundService: RoundService,
     private matchService: MatchService,
     private netService: NetService,
-    private subService: SubService,
   ) {}
 
   @Roles(UserRole.admin, UserRole.director)
@@ -127,21 +124,6 @@ export class RoundResolver {
       return this.netService.query({
         roundId: round._id,
       });
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField((returns) => Sub)
-  async sub(@Parent() round: Round) {
-    try {
-      return this.subService
-        .findOne({
-          roundId: round._id,
-        })
-        .then((r) => {
-          return r;
-        });
     } catch {
       return null;
     }

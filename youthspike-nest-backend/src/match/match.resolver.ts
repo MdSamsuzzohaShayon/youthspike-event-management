@@ -86,6 +86,8 @@ export class MatchResolver {
           match: newMatch._id,
           num: i + 1,
           nets: [], // Will be populated later
+          players: playerIds,
+          subs: []
         };
         const round = await this.roundService.create(newRound);
         roundIds.push(round._id);

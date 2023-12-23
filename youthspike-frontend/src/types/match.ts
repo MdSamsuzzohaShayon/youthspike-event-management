@@ -1,4 +1,4 @@
-import { ITeam } from ".";
+import { IEvent, IRoundExpRel, ITeam } from ".";
 
 export interface IDefaultMatch{
   divisions: string;
@@ -20,7 +20,6 @@ export interface IDefaultMatchProps extends IDefaultMatch {
 
 interface IMatchBase extends Partial<IDefaultMatchProps>{
   date: Date;
-  event: string;
   netRange: number;
 }
 
@@ -29,8 +28,19 @@ export interface IAddMatch extends IMatchBase{
   teamB: string;
 }
 
-export interface IMatch extends IMatchBase{
+
+export interface IMatchRelatives extends IMatchBase{
   _id: string;
+  event: string;
+  teamA: string;
+  teamB: string;
+  rounds: string[];
+}
+
+export interface IMatchExpRel extends IMatchBase{
+  _id: string;
+  event: IEvent;
   teamA: ITeam;
   teamB: ITeam;
+  rounds: IRoundExpRel[];
 }

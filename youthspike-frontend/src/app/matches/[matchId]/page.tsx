@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable no-unused-vars */
-// http://localhost:3000/match/653a6c9bc9f29c001febc211
+// http://localhost:3001/matches/6583df73a31ed7dedcc16909
 import Head from 'next/head';
 import { redirect } from 'next/navigation';
 import React, { useEffect, useState, useRef, useLayoutEffect, useCallback, Suspense } from 'react';
@@ -23,7 +23,7 @@ import { GET_MATCH_DETAIL } from '@/graphql/matches';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
-import { setCurrentLeagueInfo } from '@/redux/slices/leagueSlice';
+import { setCurrentEventInfo } from '@/redux/slices/eventSlice';
 import { setRoundList } from '@/redux/slices/roundSlice';
 import { setNets } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -33,24 +33,13 @@ import { setScreenSize } from '@/redux/slices/elementSlice';
 import { screen } from '@/utils/constant';
 
 // Types
-import { IResponse } from '@/types/response';
-import { IMatch } from '@/types/match';
-import { IPlayerUser } from '@/types/user';
-import { ITeam } from '@/types/team';
-import { ILeague } from '@/types/league';
-import { IRound } from '@/types/round';
-import { INet } from '@/types/net';
+import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase } from '@/types';
+import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
+import { getCookie } from '@/utils/cookie';
+import { INetRelatives } from '@/types/net';
 
-interface IRoundModify extends IRound {
-  nets: INet[];
-}
 
-interface IMatchFetch extends IMatch {
-  teamA: ITeam;
-  teamB: ITeam;
-  league: ILeague;
-  rounds: IRoundModify[];
-}
+
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
@@ -64,49 +53,55 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
 
-  const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery<{
-    getMatch: IResponse<IMatchFetch>;
-  }>(GET_MATCH_DETAIL);
+  const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
 
-  const setStateGetMatchData = (matchData: IMatchFetch) => {
+  const setStateGetMatchData = (matchData: IMatchExpRel) => {
     /**
      * Setting data as state of redux that is fetched from backend using GraphAL
      */
 
-    const { _id, location, numberOfNets, numberOfRounds, netRange, pairLimit, active, league, teamA, teamB, teamAId, teamBId, leagueId, date, rounds } = matchData;
+    const { _id, location, numberOfNets, numberOfRounds, netRange, teamA, teamB, date, rounds, event } = matchData;
 
     /**
      * Setting teams
      */
-    dispatch(setTeamA({ _id: teamA._id, active: teamA.active, leagueId: teamA.leagueId, coachId: teamA.coachId, name: teamA.name }));
-    dispatch(setTeamB({ _id: teamB._id, active: teamB.active, leagueId: teamB.leagueId, coachId: teamB.coachId, name: teamB.name }));
+    dispatch(setTeamA({ ...teamA }));
+    dispatch(setTeamB({ ...teamB }));
 
     /**
      * Setting players
      */
     if (teamA.players) {
-      const reformatAPlayers = teamA.players.map((player: IPlayerUser) => {
-        const newPlayer: IPlayerUser = {
+      const reformatAPlayers = teamA.players.map((player: IPlayer) => {
+        const newPlayer: IPlayer = {
           _id: player._id,
-          active: player.active,
+          status: player.status,
           firstName: player.firstName,
           lastName: player.lastName,
-          role: player.role,
-          player: { shirtNumber: player.player.shirtNumber, rank: player.player.rank, leagueId: player.player.leagueId, teamId: player.player.teamId },
+          email: player.email,
+          rank: player.rank,
+          team: teamA._id,
+          event: event._id,
+          captainofteam: player.captainofteam,
+          profile: player.profile
         };
         return newPlayer;
       });
       dispatch(setTeamAPlayers(reformatAPlayers));
     }
     if (teamB.players) {
-      const reformatBPlayers = teamB.players.map((player: IPlayerUser) => {
-        const newPlayer: IPlayerUser = {
+      const reformatBPlayers = teamB.players.map((player: IPlayer) => {
+        const newPlayer: IPlayer = {
           _id: player._id,
-          active: player.active,
+          status: player.status,
           firstName: player.firstName,
           lastName: player.lastName,
-          role: player.role,
-          player: { shirtNumber: player.player.shirtNumber, rank: player.player.rank, leagueId: player.player.leagueId, teamId: player.player.teamId },
+          email: player.email,
+          rank: player.rank,
+          team: teamA._id,
+          event: event._id,
+          captainofteam: player.captainofteam,
+          profile: player.profile
         };
         return newPlayer;
       });
@@ -114,31 +109,43 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
 
     /**
-     * Setting league
+     * Setting event
      */
-    dispatch(setCurrentLeagueInfo({ _id: league._id, name: league.name, startDate: league.startDate, endDate: league.endDate, active: league.active, playerLimit: league.playerLimit }));
+    // if(event){
+    //   dispatch(setCurrentEventInfo({
+    //     _id: event._id,
+    //     name: event.normalize,
+    //     startDate: string;
+    //     endDate: string;
+    //     playerLimit: number;
+    //     active: boolean;
+    //     sponsors: string[];
+    //   }));
+    // }
 
     /**
-     * Setting rounds
+     * Setting rounds and nets
      */
-    const formatRounds = rounds.map((round: IRound) => {
-      const newRound: IRound = {
-        _id: round._id,
-        locked: round.locked,
-        num: round.num,
-      };
-      return newRound;
-    });
-    dispatch(setRoundList(formatRounds));
+    const formattedRounds: IRoundRelatives[] = [];
+    const formattedNets: INetRelatives[] = [];
 
-    /**
-     * Setting nets for different rounds
-     */
-    const netList: INet[] = [];
-    for (let i = 0; i < rounds.length; i += 1) {
-      Array.prototype.push.apply(netList, rounds[i].nets);
+    for (const round of rounds) {
+      const playerIds = round.players ? round.players.map((r)=> r._id) : [];
+      const subIds = round.subs ? round.subs.map((r)=> r._id) : [];
+      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: params.matchId};
+      if(round.nets && round.nets.length > 0){
+        const netIds: string[] =[];
+        for(const n of round.nets){
+          netIds.push(n._id);
+          formattedNets.push({_id: n._id, num: n.num, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id});
+        }
+        roundObj.nets = netIds;
+      }
+      formattedRounds.push(roundObj);
     }
-    dispatch(setNets(netList));
+
+    dispatch(setNets(formattedNets));
+    dispatch(setRoundList(formattedRounds));
 
     /**
      * Setting match
@@ -146,32 +153,28 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     dispatch(
       setMatchInfo({
         _id,
-        teamAId,
-        teamBId,
-        leagueId,
         date,
         location,
         numberOfNets,
         numberOfRounds,
         netRange,
-        pairLimit,
-        active,
-        roundIdList: [],
+        teamA: teamA._id,
+        teamB: teamB._id,
+        event: event._id
       }),
     );
   };
 
   useEffect(() => {
     // Set user info here
-    const token = localStorage.getItem('token');
-    const userInfo = localStorage.getItem('userInfo');
+    const token = getCookie('token');
+    const userInfo = getCookie('user');
 
     if (params.matchId) {
       (async () => {
-        fetchMatch({ variables: { matchId: params.matchId } });
-        console.log('Got Match', data?.getMatch?.data);
-        if (data?.getMatch?.data) {
-          setStateGetMatchData(data.getMatch.data);
+        const result = await fetchMatch({ variables: { matchId: params.matchId } });
+        if (result?.data?.getMatch?.data) {
+          setStateGetMatchData(result.data.getMatch.data);
         }
       })();
     }
@@ -197,14 +200,14 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       </Head>
       <Suspense fallback={<Loader />}>
         <div className="bg-[#FCFCFC] h-full relative" ref={mainEl}>
-          {/* My Players  */}
+          {/* Oponents Players  */}
           <TeamPlayers teamPlayers={teamAPlayers} />
           {/* Oponent Round Runner  */}
           <RoundRunner />
           <NetScoreOfRound />
           {/* My Round Runner */}
           <RoundRunner />
-          {/* Oponent Players  */}
+          {/* My Players  */}
           <TeamPlayers teamPlayers={teamBPlayers} />
         </div>
       </Suspense>

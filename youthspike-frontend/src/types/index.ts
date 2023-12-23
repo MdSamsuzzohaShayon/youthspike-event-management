@@ -17,23 +17,19 @@ import { UserRole } from "./user";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
 import { IPlayer } from "./player";
-import { ITeam, ITeamAdd } from "./team";
-import { IAddMatch, IMatch, IDefaultMatchProps } from "./match";
+import { ITeam } from "./team";
+import { IAddMatch, IMatchExpRel, IDefaultMatchProps } from "./match";
+import { INetBase, INetRelatives, INetPlayers } from "./net";
+import { IRoundBase, IRoundExpRel } from "./round";
 
 export type {
   // Elements
   IMenuItem,
   IOption,
   IError,
-  ITextInputProps,
-  ISelectInputProps,
-  IFileFileProps,
-  INumberInputProps,
-  IToggleInputProps,
   IButtonProps,
   IMenuArrangeProps,
   ILoginProps,
-  IDateinputProps,
 
   // Event
   IEvent,
@@ -62,11 +58,19 @@ export type {
 
   // Team
   ITeam,
-  ITeamAdd,
 
 
   // Match
   IAddMatch,
-  IMatch,
-  IDefaultMatchProps
+  IMatchExpRel,
+  IDefaultMatchProps,
+
+  // Net
+  INetBase,
+  INetRelatives,
+  INetPlayers,
+
+  // Round
+  IRoundBase,
+  IRoundExpRel,
 };

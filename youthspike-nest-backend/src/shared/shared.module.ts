@@ -8,7 +8,6 @@ import { Event, EventSchemaFactory } from 'src/event/event.schema';
 import { Match, MatchSchemaFactory } from 'src/match/match.schema';
 import { Net, NetSchemaFactory } from 'src/net/net.schema';
 import { Round, RoundSchemaFactory } from 'src/round/round.schema';
-import { Sub, SubSchemaFactory } from 'src/sub/sub.schema';
 import { Team, TeamSchemaFactory } from 'src/team/team.schema';
 import { User, UserRole, UserSchemaFactory } from 'src/user/user.schema';
 import { JwtAuthGuard } from './auth/jwt.guard';
@@ -23,7 +22,6 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
-import { SubService } from './services/sub.service';
 import { CloudinaryService } from './services/cloudinary.service';
 import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
 
@@ -70,10 +68,6 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
         useFactory: NetSchemaFactory,
       },
       {
-        name: Sub.name,
-        useFactory: SubSchemaFactory,
-      },
-      {
         name: Player.name,
         useFactory: PlayerSchemaFactory,
       },
@@ -100,7 +94,6 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
     NetService,
     PlayerService,
     LdoService,
-    SubService,
     // { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [
@@ -115,7 +108,6 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
     NetService,
     PlayerService,
     LdoService,
-    SubService,
   ],
 })
 export class SharedModule {

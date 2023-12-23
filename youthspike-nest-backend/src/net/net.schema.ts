@@ -29,21 +29,21 @@ export class Net extends AppDocument {
   /**
    * A team will have many players, In each net captain will choose 2 player to play on their net
    */
-  @Field(() => Player, { nullable: true })
+  @Field(() => String, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamAPlayerA?: Player | string;
+  teamAPlayerA?:  string;
 
-  @Field(() => Player, { nullable: true })
+  @Field(() => String, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamAPlayerB?: Player | string;
+  teamAPlayerB?:  string;
 
-  @Field(() => Player, { nullable: true })
+  @Field(() => String, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamBPlayerA?: Player | string;
+  teamBPlayerA?:  string;
 
-  @Field(() => Player, { nullable: true })
+  @Field(() => String, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamBPlayerB?: Player | string;
+  teamBPlayerB?:  string;
 
   /**
    * Points / Score / Stats
@@ -61,6 +61,7 @@ export class Net extends AppDocument {
   teamBScore: number;
 
   @Field((type) => Int)
+  @Prop({ required: false, min: 0, default: 0 })
   pairRange?: number;
 }
 

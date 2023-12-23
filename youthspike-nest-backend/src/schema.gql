@@ -16,19 +16,15 @@ type LDO {
   events: [Event!]
 }
 
-type Sub {
-  _id: String
-  roundId: String!
-  players: [String!]!
-  playerObjects: [User!]
-}
-
 type Round {
   _id: String
-  match: Match!
   num: Int!
+  match: Match!
   nets: [Net!]
-  sub: Sub
+  players: [Player!]
+  subs: [Player!]
+  teamAScore: Int
+  teamBScore: Int
 }
 
 type Net {
@@ -36,10 +32,10 @@ type Net {
   match: Match!
   round: Round!
   num: Int!
-  teamAPlayerA: Player
-  teamAPlayerB: Player
-  teamBPlayerA: Player
-  teamBPlayerB: Player
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
   points: Int!
   teamAScore: Int
   teamBScore: Int
@@ -264,13 +260,6 @@ type GetNetResponse {
   data: Net!
 }
 
-type GetSubResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Sub!
-}
-
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
@@ -335,7 +324,6 @@ type Mutation {
   updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
   createNet(input: CreateNetInput!): GetNetResponse!
   updateNet(input: UpdateNetInput!): GetNetResponse!
-  subAddPlayer(id: String!, roundId: String!, playerId: String!): GetSubResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!

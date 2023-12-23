@@ -20,7 +20,7 @@ function MatchCard({ match }: MatchCardProps) {
 
     return (
         <li className='w-full bg-gray-700 py-2 flex justify-between items-center' style={{ minHeight: '6rem' }}>
-            <div className="w-full flex justify-between items-center">
+            <Link href={`/matches/${match._id}`} className="w-full flex justify-between items-center" >
                 <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
                     <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full ml-2" />
                     <div className="match-name flex flex-col w-full">
@@ -36,7 +36,7 @@ function MatchCard({ match }: MatchCardProps) {
                     </div>
                     <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full mr-2" />
                 </div>
-            </div>
+            </Link>
         </li>
     )
 }

@@ -1,255 +1,93 @@
 import { gql } from '@apollo/client';
 
 const GET_MATCH_DETAIL = gql`
-  query GetMatch($matchId: String!) {
-    getMatch(id: $matchId) {
-      code
-      success
-      message
-      data {
+query GetMatch($matchId: String!) {
+  getMatch(matchId: $matchId) {
+    code
+    message
+    success
+    data {
+      _id
+      autoAssign
+      autoAssignLogic
+      date
+      divisions
+      homeTeam
+      location
+      netRange
+      netVariance
+      numberOfNets
+      numberOfRounds
+      rosterLock
+      timeout
+      event {
         _id
-        teamAId
-        teamBId
-        leagueId
-        date
-        location
-        numberOfNets
-        numberOfRounds
-        rounds {
+      }
+      rounds {
+        _id
+        num
+        players {
           _id
-          locked
-          num
-          nets {
-            _id
-            roundId
-            teamAPlayerAId
-            teamAPlayerBId
-            teamBPlayerAId
-            teamBPlayerBId
-            points
-            teamAScore
-            teamBScore
-            locked
-            pairRange
-            lockedB
-          }
+          email
         }
-        netRange
-        pairLimit
-        teamA {
+        subs {
           _id
-          name
-          active
-          coachId
-          coach {
-            _id
-            firstName
-            lastName
-            role
-            player {
-              shirtNumber
-              rank
-              leagueId
-              teamId
-              team {
-                _id
-                name
-                active
-                coachId
-                leagueId
-              }
-            }
-            login {
-              email
-              password
-            }
-          }
-          leagueId
-          players {
-            _id
-            firstName
-            lastName
-            role
-            active
-            player {
-              shirtNumber
-              rank
-              leagueId
-              teamId
-              team {
-                _id
-                name
-                active
-                coachId
-                leagueId
-              }
-            }
-          }
+          email
         }
-        teamB {
-          _id
-          name
-          active
-          coachId
-          leagueId
-          players {
-            _id
-            firstName
-            lastName
-            role
-            active
-            player {
-              shirtNumber
-              rank
-              leagueId
-              teamId
-              team {
-                _id
-                name
-                active
-                coachId
-                leagueId
-              }
-            }
-          }
-          coach {
-            _id
-            firstName
-            lastName
-            role
-            player {
-              shirtNumber
-              rank
-              leagueId
-              teamId
-              team {
-                _id
-                name
-                active
-                coachId
-                leagueId
-              }
-            }
-            login {
-              email
-              password
-            }
-          }
-        }
-        league {
-          _id
-          name
-          startDate
-          endDate
-          active
-          playerLimit
-        }
-        winner {
-          _id
-          name
-          active
-          coachId
-          leagueId
-        }
-        rounds {
+        nets {
           _id
           num
-          locked
-          nets {
-            roundId
-            num
-            teamAPlayerAId
-            teamAPlayerBId
-            teamBPlayerAId
-            teamBPlayerBId
-            points
-            teamAScore
-            teamBScore
-            locked
-            lockedB
-            teamAPlayerA {
-              _id
-              firstName
-              lastName
-              player {
-                shirtNumber
-                rank
-                leagueId
-                teamId
-              }
-              login {
-                email
-              }
-            }
-            teamAPlayerB {
-              _id
-              firstName
-              lastName
-              player {
-                shirtNumber
-                rank
-                leagueId
-                teamId
-              }
-              login {
-                email
-              }
-            }
-            teamBPlayerA {
-              _id
-              firstName
-              lastName
-              player {
-                shirtNumber
-                rank
-                leagueId
-                teamId
-              }
-              login {
-                email
-              }
-            }
-            teamBPlayerB {
-              _id
-              firstName
-              lastName
-              player {
-                shirtNumber
-                rank
-                leagueId
-                teamId
-              }
-              login {
-                email
-              }
-            }
-          }
-          sub {
-            _id
-            roundId
-            players
-            playerObjects {
-              _id
-              firstName
-              lastName
-              player {
-                shirtNumber
-                rank
-                leagueId
-                teamId
-              }
-              login {
-                email
-              }
-            }
-          }
+          teamAScore
+          teamBScore
+          points
+          pairRange
         }
-        teamAScore
-        teamBScore
+      }
+      teamA {
+        _id
         active
+        name
+        players {
+          _id
+          firstName
+          lastName
+          profile
+          email
+          rank
+        }
+        captain {
+          _id
+          firstName
+          lastName
+          profile
+          email
+          rank
+        }
+      }
+      teamB {
+        _id
+        active
+        name
+        players {
+          _id
+          firstName
+          lastName
+          profile
+          email
+          rank
+        }
+        captain {
+          _id
+          firstName
+          lastName
+          profile
+          email
+          rank
+        }
       }
     }
   }
+}
 `;
 
 
