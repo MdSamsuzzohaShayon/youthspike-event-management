@@ -9,6 +9,8 @@ import { Team } from 'src/team/team.schema';
 import { User, UserRole } from 'src/user/user.schema';
 import { Net } from './net.schema';
 import { CreateNetInput, UpdateNetInput } from './input.args';
+import { PlayerService } from 'src/player/player.service';
+import { TeamService } from 'src/team/team.service';
 
 @ObjectType()
 class GetNetsResponse extends AppResponse<Net[]> {
@@ -24,7 +26,7 @@ class GetNetResponse extends AppResponse<Net> {
 
 @Resolver((of) => Net)
 export class NetResolver {
-  constructor(private roundService: RoundService, private netService: NetService) {}
+  constructor(private roundService: RoundService, private netService: NetService, private teamService: TeamService) { }
 
   @Roles(UserRole.admin, UserRole.director, UserRole.captain)
   @Mutation((returns) => GetNetResponse)
@@ -45,13 +47,22 @@ export class NetResolver {
 
   @Roles(UserRole.admin, UserRole.director, UserRole.captain)
   @Mutation((returns) => GetNetResponse)
-  async updateNet(@Args('input') input: UpdateNetInput): Promise<GetNetResponse> {
+  async updateNet(@Args('input') input: UpdateNetInput, @Args('netId') netId: string): Promise<GetNetResponse> {
     try {
       /**
        * TODO:
-       */
+       *  Set players for team A and team B
+      */
+      const findNetPromise: any = (await this.netService.findOne({_id: netId})).populate('match');
+      const findNet = await findNetPromise;
+      const teamIds = [];
+      if (findNet.match?.teamA) teamIds.push(findNet.match.teamA);
+      if (findNet.match?.teamB) teamIds.push(findNet.match.teamB);
+
+      const updateNet = await this.netService.update(input, netId);
+      const updateTeam = await this.teamService.update({ $push: { nets: updateNet._id } }, { _id: { $in: teamIds } });
       return {
-        data: null,
+        data: updateNet,
         success: true,
         code: 202,
       };
@@ -76,15 +87,36 @@ export class NetResolver {
 
   @Roles(UserRole.admin, UserRole.director, UserRole.captain)
   @Query((returns) => GetNetResponse)
-  async getNet(@Args('id') id: string) {
+  async getNet(@Args('netId') netId: string) {
     try {
       return {
         code: 200,
         success: true,
-        data: await this.netService.findById(id),
+        data: await this.netService.findById(netId),
       };
     } catch (err) {
       return AppResponse.getError(err);
+    }
+  }
+
+
+  @ResolveField((returns) => Round)
+  async teamA(@Parent() net: Net) {
+    try {
+      if (!net?.teamA) return null;
+      return this.teamService.findById(net.teamA.toString());
+    } catch {
+      return null;
+    }
+  }
+
+  @ResolveField((returns) => Round)
+  async teamB(@Parent() net: Net) {
+    try {
+      if (!net?.teamB) return null;
+      return this.teamService.findById(net.teamB.toString());
+    } catch {
+      return null;
     }
   }
 
@@ -97,39 +129,4 @@ export class NetResolver {
     }
   }
 
-  @ResolveField((returns) => User)
-  async teamAPlayerA(@Parent() net: Net) {
-    try {
-      return null; // find player
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField((returns) => User)
-  async teamAPlayerB(@Parent() net: Net) {
-    try {
-      return; // find player
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField((returns) => User)
-  async teamBPlayerA(@Parent() net: Net) {
-    try {
-      return; // find player
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField((returns) => User)
-  async teamBPlayerB(@Parent() net: Net) {
-    try {
-      return; // find player
-    } catch {
-      return null;
-    }
-  }
 }

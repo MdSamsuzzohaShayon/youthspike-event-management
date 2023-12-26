@@ -13,10 +13,12 @@ interface INetBase {
 interface INetRelatives extends INetBase {
     // match: string | Match;
     round: string;
-    teamAPlayerA?: string;
-    teamAPlayerB?: string;
-    teamBPlayerA?: string;
-    teamBPlayerB?: string;
+    teamA?: string | null;
+    teamB?: string | null;
+    teamAPlayerA?: string | null;
+    teamAPlayerB?: string | null;
+    teamBPlayerA?: string | null;
+    teamBPlayerB?: string | null;
 }
 
 interface INetPlayers {
@@ -26,6 +28,7 @@ interface INetPlayers {
     teamBPlayerA?: string | null;
     teamBPlayerB?: string | null;
 }
+
 
 
 export type { INetBase, INetRelatives, INetPlayers };

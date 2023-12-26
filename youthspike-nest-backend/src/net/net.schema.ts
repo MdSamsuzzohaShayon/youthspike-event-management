@@ -6,6 +6,7 @@ import { Match } from 'src/match/match.schema';
 import { Player } from 'src/player/player.schema';
 import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
+import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
 
 /**
@@ -14,6 +15,16 @@ import { User } from 'src/user/user.schema';
 @ObjectType()
 @Schema({ timestamps: true })
 export class Net extends AppDocument {
+  
+  
+  @Field((type) => Int)
+  @Prop({ required: true, default: 1 })
+  num?: number;
+
+
+  /**
+   * Relationship
+   */
   @Field((type) => Match, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
   match: string | Match;
@@ -22,28 +33,33 @@ export class Net extends AppDocument {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Round' })
   round: Round | string;
 
-  @Field((type) => Int)
-  @Prop({ required: true, default: 1 })
-  num?: number;
+  @Field((type) => Team, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
+  teamA?: Team | string;
+
+  @Field((type) => Team, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
+  teamB?: Team | string;
+
 
   /**
    * A team will have many players, In each net captain will choose 2 player to play on their net
    */
   @Field(() => String, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamAPlayerA?:  string;
+  @Prop({ required: false })
+  teamAPlayerA?: string;
 
   @Field(() => String, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamAPlayerB?:  string;
+  @Prop({ required: false })
+  teamAPlayerB?: string;
 
   @Field(() => String, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamBPlayerA?:  string;
+  @Prop({ required: false })
+  teamBPlayerA?: string;
 
   @Field(() => String, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  teamBPlayerB?:  string;
+  @Prop({ required: false })
+  teamBPlayerB?: string;
 
   /**
    * Points / Score / Stats

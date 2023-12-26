@@ -1,6 +1,9 @@
+import useResizeObserver from '@/hooks/useResizeObserver';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { setScreenSize } from '@/redux/slices/elementSlice';
 import { IEvent } from '@/types/event';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 interface IEventCardProps {
     event: IEvent;
@@ -14,9 +17,10 @@ const monthNames: string[] = [
 
 
 function EventCard({ event }: IEventCardProps) {
+    const screenWidth = useAppSelector((state)=> state.elements.screenWidth);
 
     return (
-        <div key={event._id} style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md">
+        <div key={event._id} style={{ width: screenWidth <= 768 ?  '48.5%' : '24.6%' }} className="box mb-1 p-2 h-48 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md">
             <Link href={`/events/${event._id}`}>
                 <div className="img-wrapper w-full flex justify-center items-center">
                     <img src="/free-logo.svg" alt="plus" className="w-12" />
@@ -32,4 +36,4 @@ function EventCard({ event }: IEventCardProps) {
     )
 }
 
-export default EventCard
+export default EventCard;

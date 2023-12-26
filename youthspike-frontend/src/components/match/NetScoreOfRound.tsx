@@ -13,10 +13,8 @@ import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
 
-// Constant variables
-const currRoundId: string = '6583df73a31ed7dedcc1690b';
 
-function NetScoreOfRound() {
+function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
   /**
    * Display specific selected net in mobile screen
    * Display multiple nets with slider
@@ -45,17 +43,12 @@ function NetScoreOfRound() {
     dialogSettingEl.current.close();
   };
 
-  useEffect(() => {
-    if(allNets && allNets.length > 0){
-      dispatch(setNetsByRoundId(currRoundId));
-    }
-  }, [allNets]);
 
   useEffect(() => {
     if (currRoundNets && currRoundNets.length > 0) {
       dispatch(setCurrNetNum(currRoundNets[0].num));
     }
-  }, [currRoundNets]);
+  }, []);
 
   return (
     <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative">
@@ -93,7 +86,7 @@ function NetScoreOfRound() {
       {/* Setting end  */}
       
       {/* Right side net detail start */}
-      {screenWidth > screen.xs ? currRoundNets.map((net) => <NetCard key={net._id} net={net} />) : <NetCard net={currRoundNets.find((n) => n.num === currNetNum)} />}
+      {screenWidth > screen.xs ? currRoundNets.map((net) => <NetCard key={net._id} net={net} />) : <NetCard net={currRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} />}
       {/* Right side net detail end */}
     </div>
   );

@@ -14,7 +14,7 @@ function TeamCard({ team }: ITeamCardProps) {
 
     return (
         <>
-            <div className="team-card w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between mt-2">
+            <div className="team-card w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between">
                 <div className="w-6/12">
                     <Link href={`/teams/${team._id}`}>
                         <div className="brand flex gap-1 items-center">

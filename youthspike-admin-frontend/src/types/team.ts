@@ -1,4 +1,4 @@
-import { IEvent, IPlayer } from ".";
+import { IEvent, INetRelatives, IPlayer } from ".";
 
 export interface ITeam {
   _id: string;
@@ -7,6 +7,7 @@ export interface ITeam {
   event: IEvent;
   players: IPlayer[];
   captain: IPlayer | null;
+  nets: INetRelatives[];
 }
 
 export interface ITeamAdd {

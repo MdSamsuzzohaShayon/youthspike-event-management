@@ -7,12 +7,21 @@ interface INetState {
   nets: INetRelatives[];
   currentRoundNets: INetRelatives[];
   currNetNum: number;
+  updateTeam: INetPlayers;
 }
 
 const initialState: INetState = {
   nets: [],
   currentRoundNets: [],
   currNetNum: 0,
+  updateTeam: {
+    _id: '',
+    teamAPlayerA: null,
+    teamAPlayerB: null,
+
+    teamBPlayerA: null,
+    teamBPlayerB: null,
+  }
 };
 const netSlice = createSlice({
   name: 'net',
@@ -21,32 +30,13 @@ const netSlice = createSlice({
     setNets: (state, action: PayloadAction<INetRelatives[]>) => {
       state.nets = action.payload;
     },
-    // Unused
     setCurrentRoundNets: (state, action: PayloadAction<INetRelatives[]>) => {
       state.currentRoundNets = action.payload;
     },
+    // Unused
     setNetsByRoundId: (state, action: PayloadAction<string>) => {
       const newCurrNets: INetRelatives[] = state.nets.filter((net) => net.round === action.payload);
       state.currentRoundNets = newCurrNets;
-
-      // Set net players precisely
-      // const newNetPlayers: INetRelatives[] = [];
-      // for (let i = 0; i < newCurrNets.length; i += 1) {
-      //   const netPlayer: INetRelatives = {
-      //     netId: newCurrNets[i]._id,
-      //     roundId: newCurrNets[i]._id,
-      //     teamA: {
-      //       playerAId: newCurrNets[i].teamAPlayerAId,
-      //       playerBId: newCurrNets[i].teamAPlayerBId,
-      //     },
-      //     teamB: {
-      //       playerAId: newCurrNets[i].teamBPlayerAId,
-      //       playerBId: newCurrNets[i].teamBPlayerBId,
-      //     },
-      //   };
-      //   newNetPlayers.push(netPlayer);
-      // }
-      // state.netPlayers = newNetPlayers;
     },
     setCurrNetNum: (state, action: PayloadAction<number>) => {
       state.currNetNum = action.payload;
@@ -58,12 +48,12 @@ const netSlice = createSlice({
       if (prevNPI >= 0) {
         const netObj: INetRelatives = {
           ...state.currentRoundNets[prevNPI],
+          teamAPlayerA: action.payload.teamAPlayerA,
+          teamAPlayerB: action.payload.teamAPlayerB,
+          teamBPlayerA: action.payload.teamBPlayerA,
+          teamBPlayerB: action.payload.teamBPlayerB,
         };
 
-        if (action.payload.teamAPlayerA) netObj.teamAPlayerA = action.payload.teamAPlayerA;
-        if (action.payload.teamAPlayerB) netObj.teamAPlayerB = action.payload.teamAPlayerB;
-        if (action.payload.teamBPlayerA) netObj.teamBPlayerA = action.payload.teamBPlayerA;
-        if (action.payload.teamBPlayerB) netObj.teamBPlayerB = action.payload.teamBPlayerB;
 
         state.currentRoundNets[prevNPI] = netObj;
 
@@ -77,8 +67,12 @@ const netSlice = createSlice({
     setNetPlayers: (state, action: PayloadAction<INetRelatives[]>) => {
       // state.netPlayers = action.payload;
     },
+
+    setUpdateNetTeam: (state, action: PayloadAction<INetPlayers>) => {
+      state.updateTeam = action.payload;
+    }
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setNetPlayers } = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setNetPlayers, setUpdateNetTeam } = netSlice.actions;
 export default netSlice.reducer;

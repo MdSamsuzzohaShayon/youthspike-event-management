@@ -16,7 +16,7 @@ ___
 
  - [Explain action boxes](https://www.loom.com/share/1c0ddb26379b465a947958594a2252a5)
 
- -  [Dashboard part 1](https://www.loom.com/share/e56a6f1caf114970b80c1f3aef218f19), [Dashboard part 2](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
+ - [Dashboard part 1](https://www.loom.com/share/e56a6f1caf114970b80c1f3aef218f19), [Dashboard part 2](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
  - [Director dashboard menu explain](https://www.loom.com/share/cbdfd52937474c6995391edf609a4b0c)
 
  - [Explain Prototype](https://www.loom.com/share/89dd7d2e95ee439ab3e89e331fb411c6)
@@ -39,7 +39,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Update event (Especially sponsor image)
+ - Make player leave of or inavtive in the match day
+ - Work with action boxes
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*
@@ -59,7 +60,7 @@ ___
     - Admins are I, Alex, and Keleb
  - ✅✅ Shows all the events, add new event
  - ✅✅ Create seperate model for event and league(ldo)
- - Inside a league (ldo) there will be some screens
+ - Director, admin, and captain can change password
 
  - **Players**
  - ✅✅ Player will be seperate from user
@@ -84,6 +85,7 @@ ___
  - ✅✅ Focus on league director and captain for now. 
  - ✅✅ League director can add an event, copy and edit event
  - ✅✅ In order to create an event, select a home team
+ - Copy Events properly (Do something for players)
  - If date is pass the status of league will be past, add past events in  the filter, 
  - On click setting button, a setting screen will appear
  - Rosters can be submitted only once
@@ -101,7 +103,7 @@ ___
  - ✅✅ Coach/Captain can login and change profile picture
  - ✅✅ Captain setting
  - Coach/Captain can change 4 digit passcode
- - When someone login as captain he can only see teams and matches
+ - When someone login as captain he can only see teams and matches of different events since a player can be in diffrent event
  - Set default password for all captains and they can change their password later on
  - Send welcome email to all of our captains
  - ✅✅ From a single match -> login as captain
@@ -144,6 +146,7 @@ ___
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
  - When the clock runs out it will automitically randomly assign
  - From the second round a player can not play with someone who had paired up with in the previous round
+ - Dedicated pages for nets and rounds of the match
 
 
  - **Team**
@@ -217,10 +220,6 @@ ___
 
 
 ### Ask
- 1. When we are going to move team from one event to another event do we need to move all the players associated with the team? Should we copy all players or move players? Yes
- 2. If you create a match between 2 team with 3 rounds and 3 nets, are those rounds and nets going to effect other matches played by other teams? Nope
-
- 1. Is a round going to have multiple nets or a net going to have multiple rounds?
- 2. Is a team going to have maximum of 2 players? If not how many players a team going to have as limit?
-
-Clean
+ 1. If anyone put the score they can put whatever they want, this should not be the case. In my opinion, either team director should put the score in or they validate score of both team given by captains are correct.
+ 2. There is another issue with putting score and  doing any actions on that screen, it is better to add a update button after selecting players for the new captain should click on that update in that way the program will run little bit faster. 
+ 3. Last question was a bit incorrect. The question is when I login as captain of my team and you login as captain of your team, we both will see our team at the bottom of the screen on 2 different mobile screen. In that case, oponent team will be presented at the top side there for who logged in as captain will not see any buttons or controls of another team that is placed at the top side.

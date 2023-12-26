@@ -79,7 +79,7 @@ export class MatchResolver {
 
       const promisesAll = [];
 
-      // Create Round
+      // Create Round and nets inside a round
       for (let i = 0; i < input.numberOfRounds; i += 1) {
         const netObjs = [];
         const newRound = {

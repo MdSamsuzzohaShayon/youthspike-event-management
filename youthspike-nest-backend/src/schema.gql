@@ -27,21 +27,6 @@ type Round {
   teamBScore: Int
 }
 
-type Net {
-  _id: String
-  match: Match!
-  round: Round!
-  num: Int!
-  teamAPlayerA: String
-  teamAPlayerB: String
-  teamBPlayerA: String
-  teamBPlayerB: String
-  points: Int!
-  teamAScore: Int
-  teamBScore: Int
-  pairRange: Int!
-}
-
 type Team {
   _id: String
   name: String!
@@ -50,6 +35,24 @@ type Team {
   match: Match
   event: Event!
   players: [Player!]!
+  nets: [Net!]!
+}
+
+type Net {
+  _id: String
+  num: Int!
+  match: Match!
+  round: Round!
+  teamA: Team
+  teamB: Team
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  points: Int!
+  teamAScore: Int
+  teamBScore: Int
+  pairRange: Int!
 }
 
 type Match {
@@ -114,9 +117,9 @@ type Player {
   status: PlayerStatus!
   rank: Int
   profile: String
-  event: Event
-  team: Team
-  captainofteam: Team
+  events: [Event!]
+  teams: [Team!]
+  captainofteams: [Team!]
   captainuser: User
 }
 
@@ -308,9 +311,9 @@ type Query {
   getMatches(eventId: String): GetMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
-  getRound(id: String!): GetRoundResponse!
+  getRound(roundId: String!): GetRoundResponse!
   getNets(roundId: String!): GetNetsResponse!
-  getNet(id: String!): GetNetResponse!
+  getNet(netId: String!): GetNetResponse!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
   getPlayer(playerId: String!): PlayerResponse!
@@ -330,7 +333,7 @@ type Mutation {
   create(match: String!, locked: Boolean, id: String): GetRoundResponse!
   updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
   createNet(input: CreateNetInput!): GetNetResponse!
-  updateNet(input: UpdateNetInput!): GetNetResponse!
+  updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!
@@ -459,6 +462,10 @@ input CreateNetInput {
 
 input UpdateNetInput {
   match: String
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
 }
 
 input CreateDirectorArgs {

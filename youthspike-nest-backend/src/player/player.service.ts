@@ -22,7 +22,7 @@ export class PlayerService {
     return this.playerModel.create(inputObj);
   }
 
-  async createMany(input: CreatePlayerInput[]) {
+  async createMany(input) {
     const uniqueEmail: string[] = [];
     const playerDocs = [];
 
@@ -66,10 +66,10 @@ export class PlayerService {
     return this.playerModel.updateMany(filter, player);
   }
 
-  async arrangeFromCSV(uploadedFile: Upload, event: string): Promise<CreatePlayerInput[]> {
+  async arrangeFromCSV(uploadedFile: Upload, event: string) {
     const { createReadStream, filename, mimetype, encoding } = await uploadedFile;
     return new Promise((resolve, reject) => {
-      const data: CreatePlayerInput[] = [];
+      const data = [];
       createReadStream()
         .pipe(Papa.parse(Papa.NODE_STREAM_INPUT, { header: true }))
         .on('data', (row: Player) => {
@@ -85,7 +85,8 @@ export class PlayerService {
               lastName: lnv,
               // rank: Math.floor(Math.random() * 99 + 1),
               email: ev,
-              event,
+              events: [event],
+              teams: []
             });
           }
         })

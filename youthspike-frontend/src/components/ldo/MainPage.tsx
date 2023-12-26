@@ -18,7 +18,7 @@ function LDOMainPage() {
     const ldos = data?.getEventDirectors?.data ? data.getEventDirectors.data : [];
     return (
         <div>
-            <h1>League Director Organizations</h1>
+            <h1 className='mb-4 capitalize'>League Director Organizations</h1>
             <DirectorList ldoList={ldos} />
         </div>
     )

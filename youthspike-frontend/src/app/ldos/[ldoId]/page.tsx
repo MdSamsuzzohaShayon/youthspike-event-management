@@ -6,20 +6,31 @@ import EventCard from '@/components/event/EventCard';
 import EventList from '@/components/event/EventList';
 import DirectorDetail from '@/components/ldo/DirectorDetail';
 import { GET_LDO } from '@/graphql/ldo';
+import useResizeObserver from '@/hooks/useResizeObserver';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { setScreenSize } from '@/redux/slices/elementSlice';
 import { IEvent } from '@/types';
 import { useApolloClient, useLazyQuery, useQuery } from '@apollo/client';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 function LDOSingle({ params }: { params: { ldoId: string } }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { data, error, loading } = useQuery(GET_LDO, { variables: { dId: params.ldoId } })
+  const dispatch = useAppDispatch();
+  const { data, error, loading } = useQuery(GET_LDO, { variables: { dId: params.ldoId } });
+
+
+  // Resize window width 
+  const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
+    dispatch(setScreenSize(entry.contentRect.width));
+  }, []);
+  const mainEl = useResizeObserver(onResize);
 
   if (loading || isLoading) return <Loader />;
 
   const ldo = data?.getEventDirector?.data;
 
   return (
-    <div className='container mx-auto px-2'>
+    <div className='container mx-auto px-2' ref={mainEl}>
       {error && <Message error={error} />}
       {ldo && <DirectorDetail ldo={ldo} />}
       <br />

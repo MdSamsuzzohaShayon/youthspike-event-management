@@ -22,6 +22,11 @@ query GetMatch($matchId: String!) {
       timeout
       event {
         _id
+        sponsors{
+          _id
+          company
+          logo
+        }
       }
       rounds {
         _id
@@ -41,6 +46,10 @@ query GetMatch($matchId: String!) {
           teamBScore
           points
           pairRange
+          teamAPlayerA
+          teamAPlayerB
+          teamBPlayerA
+          teamBPlayerB
         }
       }
       teamA {

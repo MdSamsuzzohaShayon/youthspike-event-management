@@ -17,7 +17,11 @@ const eventResponse = `
   netVariance
   rosterLock
   timeout
-  sponsors
+  sponsors{
+    _id 
+    company
+    logo
+  }
 `;
 const ldoResponse = `
   _id

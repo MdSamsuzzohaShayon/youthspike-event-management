@@ -5,6 +5,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { Match } from 'src/match/match.schema';
+import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { User } from 'src/user/user.schema';
@@ -38,6 +39,10 @@ export class Team extends AppDocument {
   @Field(() => [Player], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
   players?: Player[] | string[]; // Update the type of players to allow null values
+
+  @Field(() => [Net], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
+  nets?: Net[] | string[]; // Update the type of Nets to allow null values
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

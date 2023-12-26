@@ -68,9 +68,6 @@ function Menu() {
         e.preventDefault();
         removeCookie('token');
         removeCookie('user');
-        // setIsAuthenticated(false);
-        // setOpenMenu(false);
-        // return router.push('/login');
         return window.location.reload();
     }
 
@@ -149,15 +146,15 @@ function Menu() {
     // if (!user.info || !user.token || user.token === '') return null;
 
     return (
-        <div className='container px-2 mx-auto'>
+        <div className='container px-2 mx-auto bg-gray-800 text-gray-100'>
             {isAuthenticated && (
-                <button onClick={openMenuHandler} className='menu-button block md:hidden'>
+                <button onClick={openMenuHandler} className='menu-button'>
                     <img src='/icons/menu.svg' className='w-10 mt-4 svg-white' alt='menu' />
                 </button>
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-700 w-5/6 absolute h-full top-0 left-0 z-20 p-4">
+                <div className="menu-content bg-gray-950 text-gray-100 w-5/6 absolute h-full top-0 left-0 z-20 p-4">
                     <div className="w-full flex justify-end items-center">
 
                         {user && user.info && (

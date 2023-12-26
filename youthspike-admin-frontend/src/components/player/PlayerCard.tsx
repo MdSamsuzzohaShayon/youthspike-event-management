@@ -16,9 +16,10 @@ interface PlayerCardProps {
   touchDragStart: (index: number) => void;
   touchDragEnter: (index: number) => void;
   touchDragEnd: (index: number, playerId: string) => void;
+  touchMove: (e: TouchEvent) => void;
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -66,7 +67,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     e.preventDefault();
     setActionOpen(prevState => !prevState);
     console.log(`Move player: ${playerId}`);
-
   }
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: PlayerStatus, playerId: string) => {
     e.preventDefault();
@@ -114,8 +114,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     touchDragEnd(index, player._id)
   }
   const handleTouchMove = (e: TouchEvent) => {
-    console.log(`Touch Move of a player ${player._id}, index ${index}`);
-    e.preventDefault(); // Prevent scrolling
+    touchMove(e);
   }
 
   useEffect(() => {
@@ -151,8 +150,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         {/* <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> */}
         {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
         <div className="player-name flex flex-col w-full">
-          <h3 className='break-words'>{player.firstName + ' ' + player.lastName}</h3>
-          {player?.captainofteam && <p className='text-yellow-500 uppercase'>Captain</p>}
+          <h3 className='break-words capitalize'>{player.firstName + ' ' + player.lastName}</h3>
+          {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
         </div>
       </div>
 

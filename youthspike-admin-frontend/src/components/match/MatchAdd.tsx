@@ -19,7 +19,7 @@ interface IMatchAddProps {
     eventId: string;
     matchId?: string;
     matchData: IMatchTeams | null;
-    setActErr: React.Dispatch<React.SetStateAction<IError>>;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

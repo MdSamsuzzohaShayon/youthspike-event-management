@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Touch, useEffect, useRef, useState } from 'react';
 import PlayerCard from './PlayerCard';
 import { IPlayer, PlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
@@ -8,7 +8,8 @@ interface IPlayerListProps {
   playerList: IPlayer[];
   eventId: string;
   teamId: string | null;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  rankControls?: boolean;
 }
 
 interface IPlayerRank {
@@ -16,7 +17,7 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, teamId, setIsLoading }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading }] = useMutation(UPDATE_PLAYERS);
 
@@ -31,12 +32,15 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading }: IPlayerListPr
    * Drag or touch event for players rankings
    */
   const handleDragStart = (index: number) => {
+    if(!rankControls) return;
     dragPI.current = index;
   };
   const handleDragEnter = (index: number) => {
+    if(!rankControls) return;
     dragOverPI.current = index;
   };
   const handleDragEnd = (index: number, playerId: string) => {
+    if(!rankControls) return;
     // Create a new list to submit
     console.log(`Drag start index: ${dragPI.current}, drag over index: ${dragOverPI.current}`);
     let activeList = [...playerActiveClone];
@@ -49,9 +53,14 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading }: IPlayerListPr
     setPlayerRanking(activeList.map((p, i) => ({ rank: i += 1, _id: p._id })));
     setPlayerActiveClone(activeList);
   };
+  const handleTouchMove=(e: TouchEvent)=>{
+    if(!rankControls) return;
+    e.preventDefault(); // Prevent scrolling
+  }
 
   const handleUpdate = async (e: React.SyntheticEvent) => {
     e.preventDefault();
+    if(!rankControls) return;
     if (playerRanking.length > 0) {
       try {
         setIsLoading(true)
@@ -78,12 +87,12 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading }: IPlayerListPr
       <h1 className='mb-8'>Players</h1>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} />)}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} />)}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
       </ul>
       <button className="btn-secondary mt-4" type='button' onClick={handleUpdate}>Update</button>
     </div>

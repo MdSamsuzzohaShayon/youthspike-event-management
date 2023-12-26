@@ -20,6 +20,27 @@ const eventResponse = `
     startDate
 `;
 
+const roundResponse = `
+rounds {
+  _id
+  num
+  teamAScore
+  teamBScore
+  nets {
+    _id
+    num
+    points
+    points
+    teamAPlayerA
+    teamAPlayerB
+    teamAScore
+    teamBPlayerA
+    teamBPlayerB
+    teamBScore
+  }
+}
+`;
+
 const matchResponse = `
     _id
     netRange
@@ -35,7 +56,7 @@ const matchResponse = `
     timeout
     coachPassword
     location
-
+    ${roundResponse}
     teamA {
       _id
       name
@@ -43,6 +64,7 @@ const matchResponse = `
         _id
         firstName
         lastName
+        profile
       }
     }
     teamB {
@@ -52,6 +74,7 @@ const matchResponse = `
         _id
         firstName
         lastName
+        profile
       }
     }
 `;
@@ -65,7 +88,7 @@ const teamResponse = `
       firstName
       lastName
       rank
-      captainofteam {
+      captainofteams {
         _id
         name
       }
@@ -80,7 +103,7 @@ const teamResponse = `
       firstName
       lastName
       rank
-      captainofteam {
+      captainofteams {
         _id
         name
       }

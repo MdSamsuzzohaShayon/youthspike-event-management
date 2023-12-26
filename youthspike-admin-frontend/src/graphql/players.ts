@@ -27,7 +27,7 @@ const playerResponse = `
   email
   rank
   status
-  team {
+  teams {
     _id
     name
   }

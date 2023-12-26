@@ -112,3 +112,20 @@ export interface ILoginProps {
   password: string;
   setPassword: (state: string) => void;
 }
+
+
+export enum EActionProcess{
+  CHECKIN_OPONENT,
+  CHECKIN,
+  PLACING_OPONENT,
+  PLACING,
+  LINEUP_OPONENT,
+  LINEUP,
+}
+
+export interface IActionBox{
+  title: string;
+  roundNum: number;
+  text: string;
+  process: EActionProcess;
+}

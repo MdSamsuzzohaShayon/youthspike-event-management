@@ -4,10 +4,14 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 export interface ElementState {
   screenWidth: number;
+  playerAssignStrategy: string[];
 }
+
+const initialStrategyList = ["high", "random"]
 
 const initialState: ElementState = {
   screenWidth: 0,
+  playerAssignStrategy: initialStrategyList
 };
 
 export const elementSlice = createSlice({

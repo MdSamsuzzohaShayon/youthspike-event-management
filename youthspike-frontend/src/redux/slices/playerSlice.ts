@@ -1,10 +1,10 @@
 /* eslint-disable no-param-reassign */
+import { IPlayer } from '@/types';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
-import { IPlayerUser } from '@/types/user';
 
 interface PlayersState {
-  teamAPlayers: IPlayerUser[];
-  teamBPlayers: IPlayerUser[];
+  teamAPlayers: IPlayer[];
+  teamBPlayers: IPlayer[];
 }
 
 const initialState: PlayersState = {
@@ -15,10 +15,10 @@ export const playerSlice = createSlice({
   name: 'player',
   initialState,
   reducers: {
-    setTeamAPlayers: (state, action: PayloadAction<IPlayerUser[]>) => {
+    setTeamAPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.teamAPlayers = action.payload;
     },
-    setTeamBPlayers: (state, action: PayloadAction<IPlayerUser[]>) => {
+    setTeamBPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.teamBPlayers = action.payload;
     },
   },

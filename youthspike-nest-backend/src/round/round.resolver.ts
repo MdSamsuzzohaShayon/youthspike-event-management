@@ -97,12 +97,12 @@ export class RoundResolver {
 
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetRoundResponse)
-  async getRound(@Args('id') id: string) {
+  async getRound(@Args('roundId') roundId: string) {
     try {
       return {
         code: 200,
         success: true,
-        data: await this.roundService.findById(id),
+        data: await this.roundService.findById(roundId),
       };
     } catch (err) {
       return AppResponse.getError(err);
@@ -122,7 +122,7 @@ export class RoundResolver {
   async nets(@Parent() round: Round) {
     try {
       return this.netService.query({
-        roundId: round._id,
+        round: round._id,
       });
     } catch {
       return null;

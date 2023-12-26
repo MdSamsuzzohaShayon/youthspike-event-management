@@ -41,7 +41,7 @@ function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayer[] }) {
     // // @ts-ignore
     // if (playerList.length > 0) setTrimPlayers(playerList.slice(initialStartTrim - 1, playersLimit));
 
-    if (teamPlayers.length > 0){
+    if (teamPlayers.length > 0) {
       setCloneTeamPlayers(teamPlayers.slice());
       setTrimPlayers(teamPlayers.slice(initialStartTrim - 1, playersLimit));
     };
@@ -77,8 +77,6 @@ function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayer[] }) {
     }
   };
 
-  const handleEvacuatePlayer=(teamPlayer: number, playerId: string)=>{}
-  const handleDropdownPlayer=(teamPlayer: number)=>{}
 
   return (
     <div className="bg-gray-900 text-gray-100 py-4">
@@ -87,13 +85,12 @@ function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayer[] }) {
           <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftLeft}>
             <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-4" style={{ transform: 'scaleX(-1)' }} />
           </button>
-          {trimPlayers &&
-            trimPlayers.map((player) => (
-              // @ts-ignore
-              <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-                <PlayerScoreCard player={player} dark teamPlayer={1} evacuatePlayer={handleEvacuatePlayer} dropdownPlayer={handleDropdownPlayer}  />
-              </div>
-            ))}
+          {trimPlayers && trimPlayers.map((player) => (
+            // @ts-ignore
+            <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
+              <PlayerScoreCard player={player} dark teamPlayer={1} />
+            </div>
+          ))}
           <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftRight}>
             <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-4" />
           </button>

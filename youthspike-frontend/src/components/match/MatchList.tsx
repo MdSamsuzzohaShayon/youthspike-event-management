@@ -1,4 +1,4 @@
-import { IMatch, IPlayer, ITeam } from '@/types';
+import { IMatchExpRel, IPlayer, ITeam } from '@/types';
 import React from 'react';
 import MatchCard from './MatchCard';
 
@@ -6,14 +6,14 @@ interface ITeamCaptain extends ITeam{
   captain: IPlayer;
 }
 
-interface IMatchCaptain extends IMatch{
+interface IMatchCaptain extends IMatchExpRel{
   teamA: ITeamCaptain;
   teamB: ITeamCaptain;
 }
 
 function MatchList({ matchList }: { matchList?: IMatchCaptain[] }) {
   return (
-    <div className='matchList'>
+    <div className='matchList flex flex-col gap-1'>
       {matchList && matchList.length > 0 && (matchList.map((match, i) => (<MatchCard match={match} key={i} />)))}
     </div>
   )

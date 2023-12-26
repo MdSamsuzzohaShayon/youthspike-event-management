@@ -8,6 +8,12 @@ export interface IDefaultEventMatch extends IDefaultMatch {
   rounds: number;
 }
 
+export interface IEventSponsor{
+  _id: string;
+  company: string;
+  logo: string;
+}
+
 export interface IEvent extends IDefaultEventMatch {
   _id: string;
   name: string;
@@ -15,7 +21,7 @@ export interface IEvent extends IDefaultEventMatch {
   endDate: string;
   playerLimit: number;
   active: boolean;
-  sponsors: string[];
+  sponsors: IEventSponsor[];
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

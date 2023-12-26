@@ -27,12 +27,11 @@ function EventSingle({ params }: { params: { eventId: string } }) {
   }, [params.eventId]);
 
   if (loading || isLoading) return <Loader />;
-  console.log(data);
   
   const prevEvent = data?.getEvent?.data;
 
   return (
-    <div className='caontainer mx-auto px-2'>
+    <div className='container mx-auto px-2'>
       {prevEvent && <EventDetail event={prevEvent} />}
     </div>
   )

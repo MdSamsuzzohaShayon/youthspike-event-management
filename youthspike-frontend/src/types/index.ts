@@ -1,4 +1,4 @@
-import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch } from "./event";
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor } from "./event";
 import {
   ITextInputProps,
   IError,
@@ -11,7 +11,7 @@ import {
   IMenuArrangeProps,
   IFileFileProps,
   ILoginProps,
-  IDateinputProps,
+  IActionBox
 } from "./elements";
 import { UserRole } from "./user";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
@@ -30,12 +30,14 @@ export type {
   IButtonProps,
   IMenuArrangeProps,
   ILoginProps,
+  IActionBox,
 
   // Event
   IEvent,
   IEventAdd,
   IEventAddProps,
   IDefaultEventMatch,
+  IEventSponsor,
 
 
   // User

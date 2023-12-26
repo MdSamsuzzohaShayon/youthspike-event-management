@@ -12,7 +12,7 @@ function PlayerCard({ player }: PlayerCardProps) {
   const playerLiEl = useRef<HTMLLIElement | null>(null);
 
   return (
-    <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-2 rounded-md mt-2`} style={{ minHeight: '6rem' }} >
+    <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-2 rounded-md`} style={{ minHeight: '6rem' }} >
 
       <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
         {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full ml-2" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white ml-2" />}

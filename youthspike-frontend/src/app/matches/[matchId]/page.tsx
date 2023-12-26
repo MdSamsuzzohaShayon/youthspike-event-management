@@ -16,16 +16,16 @@ import NetScoreOfRound from '@/components/match/NetScoreOfRound';
 import Loader from '@/components/elements/Loader';
 
 // GraphQL
-import { useLazyQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_MATCH_DETAIL } from '@/graphql/matches';
 
 // Redux
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
-import { setCurrentEventInfo } from '@/redux/slices/eventSlice';
-import { setRoundList } from '@/redux/slices/roundSlice';
-import { setNets } from '@/redux/slices/netSlice';
+import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setScreenSize } from '@/redux/slices/elementSlice';
 
@@ -37,6 +37,11 @@ import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase } from '@/types';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
 import { getCookie } from '@/utils/cookie';
 import { INetRelatives } from '@/types/net';
+import { AdvancedImage } from '@cloudinary/react';
+import cld from '@/config/cloudinary.config';
+import { useUser } from '@/lib/UserProvider';
+import Message from '@/components/elements/Message';
+import { UPDATE_NET_PLAYERS } from '@/graphql/net';
 
 
 
@@ -49,15 +54,43 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
    * Get all rounds and the round we are on
    */
   const dispatch = useAppDispatch();
+  const user = useUser();
+
+
   const teamAPlayers = useAppSelector((state) => state.players.teamAPlayers);
   const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
+  const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
+  const currentRound = useAppSelector((state) => state.rounds.current);
+  const teamUpdate = useAppSelector((state) => state.nets.updateTeam);
+  const actionBox = useAppSelector((state) => state.rounds.actionBox);
+  const actionBoxOponent = useAppSelector((state) => state.rounds.actionBoxOponent);
+
 
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
+  const [mutateNet, { data: mData, error: mErr }] = useMutation(UPDATE_NET_PLAYERS);
+
+  /**
+   * Event handlers
+   */
+  const handleNetPlayers = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    try {
+      if (!teamUpdate._id || teamUpdate._id === '') return;
+      const updateTeamObj: any = { ...teamUpdate };
+      const netId = teamUpdate._id;
+      delete updateTeamObj._id;
+      const updateRes = await mutateNet({ variables: { input: updateTeamObj, netId: netId } });
+      console.log(updateRes);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   const setStateGetMatchData = (matchData: IMatchExpRel) => {
     /**
      * Setting data as state of redux that is fetched from backend using GraphAL
+     * Set action box values
      */
 
     const { _id, location, numberOfNets, numberOfRounds, netRange, teamA, teamB, date, rounds, event } = matchData;
@@ -124,20 +157,30 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // }
 
     /**
+     * Event sponsors
+     */
+    dispatch(setEventSponsors(event.sponsors));
+
+    /**
      * Setting rounds and nets
      */
     const formattedRounds: IRoundRelatives[] = [];
     const formattedNets: INetRelatives[] = [];
 
     for (const round of rounds) {
-      const playerIds = round.players ? round.players.map((r)=> r._id) : [];
-      const subIds = round.subs ? round.subs.map((r)=> r._id) : [];
-      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: params.matchId};
-      if(round.nets && round.nets.length > 0){
-        const netIds: string[] =[];
-        for(const n of round.nets){
+      const playerIds = round.players ? round.players.map((r) => r._id) : [];
+      const subIds = round.subs ? round.subs.map((r) => r._id) : [];
+      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: params.matchId };
+
+      // Nets
+      if (round.nets && round.nets.length > 0) {
+        const netIds: string[] = [];
+        for (const n of round.nets) {
           netIds.push(n._id);
-          formattedNets.push({_id: n._id, num: n.num, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id});
+          formattedNets.push({
+            _id: n._id, num: n.num, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id,
+            teamAPlayerA: n.teamAPlayerA, teamAPlayerB: n.teamAPlayerB, teamBPlayerA: n.teamBPlayerA, teamBPlayerB: n.teamBPlayerB
+          });
         }
         roundObj.nets = netIds;
       }
@@ -146,6 +189,14 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
     dispatch(setNets(formattedNets));
     dispatch(setRoundList(formattedRounds));
+    if (formattedRounds.length > 0) {
+      dispatch(setCurrentRound(formattedRounds[0]));
+    }
+
+    if (formattedNets.length > 0 && formattedRounds.length > 0) {
+      const filteredNets = formattedNets.filter((net) => net.round === formattedRounds[0]._id);
+      dispatch(setCurrentRoundNets(filteredNets));
+    }
 
     /**
      * Setting match
@@ -166,7 +217,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   };
 
   useEffect(() => {
-    // Set user info here
+    // Get user info here
     const token = getCookie('token');
     const userInfo = getCookie('user');
 
@@ -199,14 +250,33 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Suspense fallback={<Loader />}>
-        <div className="bg-[#FCFCFC] h-full relative" ref={mainEl}>
+        <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
+          {error && <Message error={error} />}
           {/* Oponents Players  */}
           <TeamPlayers teamPlayers={teamAPlayers} />
+
           {/* Oponent Round Runner  */}
-          <RoundRunner />
-          <NetScoreOfRound />
+          <RoundRunner actionBox={actionBoxOponent} />
+
+          {/* Net  */}
+          {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+          <div className="controls px-4 flex justify-center">
+            <button className='btn-primary mt-4' type="button" onClick={handleNetPlayers}>Update</button>
+          </div>
+
+
           {/* My Round Runner */}
-          <RoundRunner />
+          <RoundRunner actionBox={actionBox} />
+
+          {!user.token && !user.info && (
+            <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
+              <h3>Sponsors</h3>
+              <div className="flex items-center justify-between flex-wrap w-full">
+                {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
+              </div>
+            </div>
+          )}
+
           {/* My Players  */}
           <TeamPlayers teamPlayers={teamBPlayers} />
         </div>

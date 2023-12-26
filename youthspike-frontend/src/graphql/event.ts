@@ -22,7 +22,11 @@ rounds
 netVariance
 rosterLock
 timeout
-sponsors
+sponsors{
+  _id
+  company
+  logo
+}
 matches {
   _id
   date

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
 import { Types } from 'mongoose';
 
@@ -40,7 +40,11 @@ export class TeamService {
     });
   }
 
-  async update(team: Partial<Team>, filter: FilterQuery<Team>) {
+  async insertMany(teams: Team[]) {
+    return this.teamModel.insertMany(teams);
+  }
+
+  async update(team: UpdateQuery<Team>, filter: FilterQuery<Team>) {
     const teamObj = { ...team };
     return this.teamModel.findOneAndUpdate(filter, teamObj, { upsert: true, new: true });
   }

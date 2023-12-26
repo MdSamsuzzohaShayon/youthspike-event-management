@@ -1,4 +1,4 @@
-import { IMatchExpRel, IMatchRelatives, INetBase, IPlayer } from ".";
+import { IMatchExpRel, IMatchRelatives, INetBase, INetRelatives, IPlayer } from ".";
 
 interface IRoundBase {
     _id: string;
@@ -16,7 +16,7 @@ interface IRoundRelatives extends IRoundBase{
 
 interface IRoundExpRel extends IRoundBase{
     match: IMatchRelatives;
-    nets?: INetBase[];
+    nets?: INetRelatives[];
     players: IPlayer[];
     subs: IPlayer[];
 }

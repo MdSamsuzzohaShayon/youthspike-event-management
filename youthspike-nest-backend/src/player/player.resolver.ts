@@ -57,7 +57,10 @@ export class PlayerResolver {
       // Upload image to cloudinary
       let profileUrl: string | null = null;
       if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
-      const playerObj = { ...input, profile: profileUrl };
+      const playerObj = { ...input, profile: profileUrl, events: [input.event], teams: [] };
+      if (input.team) playerObj.teams = [input.team];
+      if (playerObj.team) delete playerObj.team;
+      delete playerObj.event;
       if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
       const newPlayer = await this.playerService.create(playerObj);
       const updateEvent = await this.eventService.update(
@@ -145,7 +148,7 @@ export class PlayerResolver {
       if (!allowedFileTypes.includes(fileExtension)) {
         throw new BadRequestException('Invalid file type. Please upload a CSV or XLSX file.');
       }
-      const playersObjList: CreatePlayerInput[] = await this.playerService.arrangeFromCSV(uploadedFile, event);
+      const playersObjList = await this.playerService.arrangeFromCSV(uploadedFile, event);
       const playerList = await this.playerService.createMany(playersObjList);
       const playerIdList = playerList.map((p) => p._id);
       await this.eventService.update({ players: playerIdList }, event);
@@ -186,7 +189,7 @@ export class PlayerResolver {
   @Query((_returns) => PlayersResponse) // Specify the return type
   async getPlayers(@Args('eventId') eventId: string): Promise<PlayersResponse> {
     try {
-      const players = await this.playerService.query({ event: eventId });
+      const players = await this.playerService.query({ events: { $in: [eventId] } });
       return {
         success: true,
         code: 200,
@@ -201,34 +204,34 @@ export class PlayerResolver {
    * Populate
    */
   @ResolveField(() => Event) // Specify the return type
-  async event(@Parent() player: Player): Promise<Event | null> {
+  async events(@Parent() player: Player): Promise<Event[]> {
     try {
-      if (!player.event) return null;
-      const findEvent = await this.eventService.findById(player.event.toString());
-      return findEvent;
+      if (!player.events) return [];
+      const findEvents = await this.eventService.query({ _id: { $in: player.events } });
+      return findEvents;
     } catch (error) {
-      return null;
+      return [];
     }
   }
   // Do this for team and net as well
   @ResolveField(() => Team)
-  async team(@Parent() player: Player): Promise<Team | null> {
+  async teams(@Parent() player: Player): Promise<Team[]> {
     try {
-      if (!player.team) return null;
-      const findTeam = await this.teamService.findById(player.team.toString());
-      return findTeam;
+      if (!player.teams) return null;
+      const findTeams = await this.teamService.query({ _id: { $in: player.teams } });
+      return findTeams;
     } catch (error) {
       console.log(error);
-      return null;
+      return [];
     }
   }
 
   @ResolveField(() => Team, { nullable: true })
-  async captainofteam(@Parent() player: Player): Promise<Team | null> {
+  async captainofteams(@Parent() player: Player): Promise<Team[]> {
     try {
-      if (!player.captainofteam) return null;
-      const findTeam = await this.teamService.findById(player.captainofteam.toString());
-      return findTeam;
+      if (!player.captainofteams) return null;
+      const findTeams = await this.teamService.query({ _id: { $in: player.captainofteams } });
+      return findTeams;
     } catch (error) {
       return null;
     }

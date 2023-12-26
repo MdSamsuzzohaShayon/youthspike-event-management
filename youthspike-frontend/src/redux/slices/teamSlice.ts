@@ -1,7 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { ITeam } from '@/types/team';
-import { Nullable } from '@/types/document';
 
 export interface TeamsState {
   teamA?: ITeam | null;

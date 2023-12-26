@@ -11,7 +11,7 @@ const teamResponse = `
       rank
       email
       status
-      captainofteam {
+      captainofteams {
         _id
         name
       }
@@ -27,7 +27,7 @@ const teamResponse = `
       firstName
       lastName
       rank
-      captainofteam {
+      captainofteams {
         _id
         name
       }

@@ -145,7 +145,7 @@ export class EventResolver {
         this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
         this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id })
       ]);
-      
+
 
       return {
         data: savedEvent,
@@ -235,32 +235,67 @@ export class EventResolver {
      * Step-3: If user is admin create a new ldo user and assign him to new event
      * Step-4: If user is director let him allow to clone only those events which he has created
      */
-    // Get User
-    const secret = this.configService.get<string>('JWT_SECRET');
-    const userId = tokenToUser(context, secret);
-    const loggedUser = await this.userService.findById(userId);
-    if (!loggedUser) return AppResponse.unauthorized();
+    try {
+      // Get User
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userId = tokenToUser(context, secret);
+      const loggedUser = await this.userService.findById(userId);
+      if (!loggedUser) return AppResponse.unauthorized();
 
-    // Role Check
-    let findEvent = null;
-    if (loggedUser.role === UserRole.director) {
-      findEvent = await this.eventService.findOne({ $and: [{ _id: eventId }, { directorId: userId }] });
-    } else if (loggedUser.role === UserRole.admin) {
-      findEvent = await this.eventService.findById(eventId);
+      // Role Check
+      let findEvent = null;
+      if (loggedUser.role === UserRole.director) {
+        findEvent = await this.eventService.findOne({ $and: [{ _id: eventId }, { directorId: userId }] });
+      } else if (loggedUser.role === UserRole.admin) {
+        findEvent = await this.eventService.findById(eventId);
+      }
+      if (!findEvent) return AppResponse.notFound(findEvent.name);
+
+      const playerIds = findEvent.players;
+
+      // Event Clone
+      const eventObj = { ...findEvent._doc, teams: [], sponsors: [], players: playerIds };
+      eventObj.name = eventObj.name + ' Clone';
+      delete eventObj._id;
+      const clonedEvent = await this.eventService.create(eventObj);
+
+      const updatedPlayers = await this.playerService.updateMany({ _id: { $in: playerIds } }, { $push: { events: clonedEvent._id } });
+
+      // teams
+      const teamIds = findEvent.teams;
+      const findTeams = await this.teamService.query({ _id: { $in: teamIds } });
+      const teamObjList = [];
+      for (const team of findTeams) {
+        const teamObj = { ...team, name: team.name, active: true, event: clonedEvent._id };
+        delete teamObj._id;
+        teamObjList.push(teamObj)
+      }
+      const newTeams = await this.teamService.insertMany(teamObjList);
+      const newTeamIds = newTeams.map((t) => t._id);
+
+      // sponsors
+      const sponsorIds = findEvent.sponsors;
+      const findsponsors = await this.sponsorService.query({ _id: { $in: sponsorIds } });
+      const sponsorObjList = [];
+      for (const sponsor of findsponsors) {
+        const sponsorObj = { ...sponsor, company: sponsor.company, logo: sponsor.logo, event: clonedEvent._id };
+        delete sponsorObj._id;
+        sponsorObjList.push(sponsorObj)
+      }
+      const newSponsors = await this.sponsorService.insertMany(sponsorObjList);
+      const newSponsorIds = newSponsors.map((t) => t._id);
+
+      const updatedEvent = await this.eventService.update({ teams: newTeamIds, sponsors: newSponsorIds }, clonedEvent._id);
+
+      return {
+        data: updatedEvent,
+        success: true,
+        code: 201,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
     }
-    if (!findEvent) return AppResponse.notFound(findEvent.name);
 
-    // Clone
-    const eventObj = { ...findEvent._doc };
-    eventObj.name = eventObj.name + ' Clone';
-    delete eventObj._id;
-    const clonedEvent = await this.eventService.create(eventObj);
-
-    return {
-      data: clonedEvent,
-      success: true,
-      code: 201,
-    };
   }
 
   @Roles(UserRole.admin, UserRole.director)

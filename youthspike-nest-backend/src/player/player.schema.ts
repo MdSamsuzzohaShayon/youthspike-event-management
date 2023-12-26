@@ -43,18 +43,21 @@ export class Player extends AppDocument {
   @Field({ nullable: true })
   profile?: string;
 
-  @Field((_type) => Event, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
-  event?: Event | string;
+  /**
+   * Relatives
+   */
+  @Field((_type) => [Event], { nullable: true })
+  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Event'}] })
+  events?: Event[] | string[];
 
-  @Field(() => Team, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
-  team?: Team | string;
+  @Field(() => [Team], { nullable: true })
+  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
+  teams?: Team[] | string[];
 
   // Create a user itself for captain of an event and make relation with event
-  @Field((_type) => Team, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
-  captainofteam?: Team | string;
+  @Field((_type) => [Team], { nullable: true })
+  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
+  captainofteams?: Team[] | string[];
 
   // User to login as captain
   @Field((_type) => User, { nullable: true })

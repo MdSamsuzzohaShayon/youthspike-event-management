@@ -25,10 +25,10 @@ export interface IPlayer extends IDocument {
   email: string;
   rank: number | null;
   status: PlayerStatus,
-  event?: string;
-  team?: string;
-  captainofteam: {
+  events?: string[];
+  teams?: string[];
+  captainofteams: {
     _id: string;
     name: string;
-  } | null;
+  }[] | null;
 }

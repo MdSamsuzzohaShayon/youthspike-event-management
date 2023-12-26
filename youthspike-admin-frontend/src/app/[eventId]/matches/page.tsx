@@ -38,6 +38,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <MatchAdd matchData={toMatchDefaultData(eventData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} />
+      <br />
       {eventData?.matches && <MatchList eventId={params.eventId} matches={eventData.matches} />}
     </div>
   )

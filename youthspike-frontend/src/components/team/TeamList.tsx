@@ -8,7 +8,7 @@ interface IteamCaptain extends ITeam {
 
 function TeamList({teamList}: {teamList?: IteamCaptain[]}) {
   return (
-    <div className='teamList w-full'>
+    <div className='teamList w-full flex flex-col gap-1'>
         {teamList && teamList.length > 0 && teamList.map((team, i)=> (<TeamCard team={team} key={i} />))}
     </div>
   )

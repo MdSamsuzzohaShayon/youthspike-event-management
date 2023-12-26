@@ -4,7 +4,7 @@ import EventCard from './EventCard'
 
 function EventList({eventList}: {eventList: IEvent[]}) {
   return (
-    <div className='EventList'>
+    <div className='EventList flex flex-wrap gap-1 justify-start'>
       {eventList.length > 0 && eventList.map((event: IEvent) => (
           <EventCard key={event._id} event={event} />
         ))}
