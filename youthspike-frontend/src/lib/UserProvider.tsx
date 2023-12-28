@@ -19,7 +19,7 @@ function UserProvider({ children }: React.PropsWithChildren) {
     useEffect(() => {
         const findToken = getCookie('token');
         const findUser = getCookie('user');
-        console.log({token: findToken, findUser});
+
         // Can not set info or token if that is already exist
         if (findToken && findToken !== '' && findToken !== null && (!token || token === '')) setToken(findToken);
         if (findUser && findToken !== '' && findToken !== null && (!token || token === '')) setInfo(JSON.parse(findUser));

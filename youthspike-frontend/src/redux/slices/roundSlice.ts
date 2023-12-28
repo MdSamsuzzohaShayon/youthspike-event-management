@@ -10,6 +10,7 @@ interface RoundState {
   actionBox: IActionBox;
 };
 
+
 const initialAction = {
   title: '',
   roundNum: 1,

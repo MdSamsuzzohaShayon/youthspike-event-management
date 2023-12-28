@@ -19,7 +19,7 @@ export interface IDefaultMatchProps extends IDefaultMatch {
 
 
 interface IMatchBase extends Partial<IDefaultMatchProps>{
-  date: Date;
+  date: string;
   netRange: number;
 }
 
@@ -43,4 +43,12 @@ export interface IMatchExpRel extends IMatchBase{
   teamA: ITeam;
   teamB: ITeam;
   rounds: IRoundExpRel[];
+}
+
+
+// Local - Not related to database
+export interface ICaptainSide{
+  matchId: string | null;
+  captainId: string | null;
+  teamId: string | null;
 }

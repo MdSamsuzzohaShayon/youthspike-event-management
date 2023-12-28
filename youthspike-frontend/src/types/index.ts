@@ -18,7 +18,7 @@ import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
 import { IPlayer } from "./player";
 import { ITeam } from "./team";
-import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from "./match";
+import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives, ICaptainSide } from "./match";
 import { INetBase, INetRelatives, INetPlayers } from "./net";
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from "./round";
 
@@ -67,6 +67,7 @@ export type {
   IMatchExpRel,
   IDefaultMatchProps,
   IMatchRelatives,
+  ICaptainSide,
 
   // Net
   INetBase,

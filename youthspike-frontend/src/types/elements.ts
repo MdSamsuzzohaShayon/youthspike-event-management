@@ -115,6 +115,8 @@ export interface ILoginProps {
 
 
 export enum EActionProcess{
+  INITIATE_OPONENT,
+  INITIATE,
   CHECKIN_OPONENT,
   CHECKIN,
   PLACING_OPONENT,

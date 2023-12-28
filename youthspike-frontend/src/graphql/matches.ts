@@ -31,6 +31,8 @@ query GetMatch($matchId: String!) {
       rounds {
         _id
         num
+        teamAProcess
+        teamBProcess
         players {
           _id
           email
