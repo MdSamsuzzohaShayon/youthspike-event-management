@@ -26,6 +26,8 @@ import { CloudinaryService } from './services/cloudinary.service';
 import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
 import { SponsorService } from 'src/sponsor/sponsor.service';
 import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
+import { Room, RoomSchemaFactory } from 'src/room/room.schema';
+import { RoomService } from 'src/room/room.service';
 
 @Module({
   imports: [
@@ -80,6 +82,10 @@ import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
       {
         name: Sponsor.name,
         useFactory: SponsorSchemaFactory
+      },
+      {
+        name: Room.name,
+        useFactory: RoomSchemaFactory
       }
     ]),
 
@@ -100,8 +106,9 @@ import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
     NetService,
     PlayerService,
     LdoService,
-    SponsorService
+    SponsorService,
     // { provide: APP_GUARD, useClass: RolesGuard },
+    RoomService,
   ],
   exports: [
     CloudinaryService,
@@ -114,7 +121,8 @@ import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
     NetService,
     PlayerService,
     LdoService,
-    SponsorService
+    SponsorService,
+    RoomService,
   ],
 })
 export class SharedModule {

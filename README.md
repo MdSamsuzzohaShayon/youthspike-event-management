@@ -32,6 +32,7 @@ ___
  - Apache Server tutorial - https://www.youtube.com/watch?v=1CDxpAzvLKY
  - [Similar project - 1](https://github.com/dvikas/nextjs-graphql-adminpanel/tree/main)
  - [Similar project - 2](https://github.com/TomDoesTech/NestJS-GraphQL/tree/main/part-three)
+ - [Nest.js Websocket](https://github.com/mokuteki225/nest-websockets-chat-boilerplate/tree/master)
  - Learn GraphQL Apollo client data caching
  - Learn Next.js 13/14 updated
 
@@ -147,6 +148,11 @@ ___
  - When the clock runs out it will automitically randomly assign
  - From the second round a player can not play with someone who had paired up with in the previous round
  - Dedicated pages for nets and rounds of the match
+
+ - **Match Actions**
+ - Create a room with name of 2 team
+ - Join two captains 
+ - And work with actions boxes
 
 
  - **Team**

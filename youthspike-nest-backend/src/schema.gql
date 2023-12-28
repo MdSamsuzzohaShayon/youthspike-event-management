@@ -25,6 +25,15 @@ type Round {
   subs: [Player!]
   teamAScore: Int
   teamBScore: Int
+  teamAProcess: EActionProcess!
+  teamBProcess: EActionProcess!
+}
+
+enum EActionProcess {
+  INITIATE
+  CHECKIN
+  PLACING
+  LINEUP
 }
 
 type Team {
@@ -55,6 +64,13 @@ type Net {
   pairRange: Int!
 }
 
+type Room {
+  _id: String
+  teamA: Team!
+  teamB: Team!
+  match: Match
+}
+
 type Match {
   _id: String
   event: Event!
@@ -63,6 +79,7 @@ type Match {
   rounds: [Round!]!
   teamA: Team
   teamB: Team
+  room: Room
   netRange: Int!
   divisions: String!
   numberOfNets: Int!
@@ -150,7 +167,7 @@ type LoginUser {
   firstName: String!
   lastName: String!
   role: UserRole!
-  captainplayer: Player
+  captainplayer: String
   email: String!
   active: Boolean!
   event: String

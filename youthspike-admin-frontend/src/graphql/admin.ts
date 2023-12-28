@@ -15,6 +15,7 @@ const LOGIN_USER = gql`
           role
           email
           event
+          captainplayer
         }
       }
     }

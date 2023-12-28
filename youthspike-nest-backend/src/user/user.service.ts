@@ -7,13 +7,14 @@ import { AppResponse } from 'src/shared/response';
 import { User, UserDocument, UserRole } from './user.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
+import { ResolveField } from '@nestjs/graphql';
 
 @Injectable()
 export class UserService {
   private readonly notFound = AppResponse.notFound('user');
   private readonly invalidCredentials = AppResponse.invalidCredentials();
 
-  constructor(@InjectModel(User.name) private userModel: Model<User>, private jwtService: JwtService, private teamService: TeamService) { }
+  constructor(@InjectModel(User.name) private userModel: Model<User>, private readonly jwtService: JwtService, private readonly teamService: TeamService, private readonly playerService: PlayerService) { }
 
   async create(user: User) {
     const userObj = { ...user };

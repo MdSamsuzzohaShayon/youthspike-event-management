@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ConfigService } from '@nestjs/config';
 import { Args, Field, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { Round } from 'src/round/round.schema';
+import { EActionProcess, Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserService } from 'src/user/user.service';
 import { AppResponse } from 'src/shared/response';
@@ -13,6 +13,7 @@ import { TeamService } from 'src/team/team.service';
 import { UserRole } from 'src/user/user.schema';
 import { Match } from './match.schema';
 import { CreateMatchInput, UpdateMatchInput } from './match.input';
+import { RoomService } from 'src/room/room.service';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -34,8 +35,7 @@ export class MatchResolver {
     private eventService: EventService,
     private roundService: RoundService,
     private netService: NetService,
-    private configService: ConfigService,
-    private userService: UserService,
+    private roomService: RoomService,
   ) { }
 
   @Roles(UserRole.admin, UserRole.director)
@@ -74,8 +74,8 @@ export class MatchResolver {
       if (!matchObj.coachPassword) matchObj.coachPassword = findEvent.coachPassword;
       if (!matchObj.location) matchObj.location = findEvent.location;
 
-
-      const newMatch = await this.matchService.create(matchObj);
+      const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB })
+      const newMatch = await this.matchService.create({ ...matchObj, room: newRoom._id });
 
       const promisesAll = [];
 
@@ -87,6 +87,8 @@ export class MatchResolver {
           num: i + 1,
           nets: [], // Will be populated later
           players: playerIds,
+          teamAProcess: EActionProcess.INITIATE,
+          teamBProcess: EActionProcess.INITIATE,
           subs: []
         };
         const round = await this.roundService.create(newRound);
@@ -115,6 +117,7 @@ export class MatchResolver {
       }
       promisesAll.push(this.teamService.update({ match: newMatch._id }, { _id: input.teamA }));
       promisesAll.push(this.teamService.update({ match: newMatch._id }, { _id: input.teamB }));
+      promisesAll.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
       promisesAll.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
       promisesAll.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
       await Promise.all(promisesAll);
@@ -167,15 +170,16 @@ export class MatchResolver {
       return AppResponse.getError(err);
     }
   }
-  
+
 
   @Query((returns) => GetMatchResponse)
   async getMatch(@Args('matchId') matchId: string) {
     try {
+      const findMatch = await this.matchService.findById(matchId)
       return {
         code: 200,
         success: true,
-        data: await this.matchService.findById(matchId),
+        data: findMatch ,
       };
     } catch (err) {
       return AppResponse.getError(err);
@@ -228,6 +232,17 @@ export class MatchResolver {
   async event(@Parent() match: Match) {
     try {
       return this.eventService.findById(match.event.toString());
+    } catch {
+      return null;
+    }
+  }
+
+  @ResolveField()
+  async room(@Parent() match: Match) {
+    try {
+      if (!match.room) return null;
+      const findRoom = await this.roomService.findOne({ _id: match.room.toString() });
+      return findRoom;
     } catch {
       return null;
     }

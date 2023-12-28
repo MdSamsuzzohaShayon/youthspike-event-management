@@ -4,6 +4,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { Net } from 'src/net/net.schema';
+import { Room } from 'src/room/room.schema';
 import { Round } from 'src/round/round.schema';
 import { DateScalar } from 'src/shared/date-scaler';
 import { AppDocument } from 'src/shared/schema/document.schema';
@@ -39,6 +40,10 @@ export class Match extends AppDocument {
   @Field((type) => Team, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
   teamB?: string | Team;
+
+  @Field((type) => Room, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Room' })
+  room?: Room | string;
 
   @Field((type) => Int)
   @Prop({ required: true })

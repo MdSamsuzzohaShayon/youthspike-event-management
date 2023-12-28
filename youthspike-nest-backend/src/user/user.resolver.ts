@@ -3,14 +3,20 @@ import { Args, Field, Mutation, ObjectType, Parent, ResolveField, Resolver } fro
 import { AppResponse } from 'src/shared/response';
 import { User, UserBase, UserRole } from './user.schema';
 import { UserService } from './user.service';
-import { compare, hash } from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
+import { TeamService } from 'src/team/team.service';
+import { JwtService } from '@nestjs/jwt';
+
 
 @ObjectType()
 class LoginUser extends UserBase {
   @Field((type) => String, { nullable: true })
   event?: string;
+
+  @Field((type) => String, { nullable: true })
+  captainplayer?: string;
 }
 
 @ObjectType()
@@ -48,17 +54,32 @@ class ChangePWDDataRes extends AppResponse<ChangePWDData> {
 
 @Resolver((of) => User)
 export class UserResolver {
-  constructor(private userService: UserService, private playerService: PlayerService) { }
+  constructor(private readonly userService: UserService, private playerService: PlayerService, private teamService: TeamService, private jwtService: JwtService) { }
 
   @Mutation((returns) => LoginResponse)
   async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
     try {
-      const userData = await this.userService.login(email, password,);
-      // const user = await this.userService.query({email});
+      const existingUser: any = await this.userService.findOne({ email });
+      if (!existingUser) return AppResponse.invalidCredentials();
+      const passwordFromUser = existingUser.password;
+      const passwordMatched = await bcrypt.compare(password, passwordFromUser);
+      if (!passwordMatched) return AppResponse.invalidCredentials();
+      
+      const userObj = { ...existingUser._doc };
+      delete userObj.password;
+  
+      if(userObj.role === UserRole.captain && userObj.captainplayer){
+        const teamWithCaptain = await this.teamService.findOne({captain: userObj.captainplayer.toString()});
+        if(teamWithCaptain){
+          userObj.event = teamWithCaptain.event;
+        }
+      }
+  
+      const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
       return {
         code: 202,
         success: true,
-        data: userData
+        data: {token, user: userObj}
         // data: user && user.length > 0 ? user[0] : null,
       };
     } catch (err) {
@@ -74,7 +95,7 @@ export class UserResolver {
   ): Promise<ChangePWDDataRes> {
     try {
       const user = await this.userService.findById(id);
-      const isValid = await compare(oldPassword, user?.password);
+      const isValid = await bcrypt.compare(oldPassword, user?.password);
       if (isValid) {
         user.password = newPassword;
         user.save();
@@ -94,7 +115,6 @@ export class UserResolver {
   @ResolveField(() => Player, { nullable: true })
   async captainplayer(@Parent() user: User) {
     try {
-      console.log('User ID:', user._id);
       if (user.captainplayer) {
         const captain = await this.playerService.findById(user.captainplayer.toString());
         return captain || null;
