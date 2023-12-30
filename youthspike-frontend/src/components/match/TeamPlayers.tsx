@@ -1,20 +1,24 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React from 'react';
-import { IPlayerUser } from '@/types/user';
+import { IPlayer } from '@/types';
 import PlayerScoreCard from './PlayerScoreCard';
+
+interface ITeamPlayersProps {
+  teamPlayers: IPlayer[]; team: string;
+}
 
 // Static variables
 const playersLimit: number = 5;
 const touchThreshold: number = 50;
 const initialStartTrim: number = 1;
 
-function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayerUser[] }) {
+function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
 
   // Local State
-  const [cloneTeamPlayers, setCloneTeamPlayers] = React.useState<IPlayerUser[]>([]);
+  const [cloneTeamPlayers, setCloneTeamPlayers] = React.useState<IPlayer[]>([]);
   const [startTrim, setStartTrim] = React.useState<number>(initialStartTrim);
-  const [trimPlayers, setTrimPlayers] = React.useState<IPlayerUser[]>([]);
+  const [trimPlayers, setTrimPlayers] = React.useState<IPlayer[]>([]);
   const [startPosX, setStartPosX] = React.useState<number>(0);
 
   /*
@@ -41,7 +45,7 @@ function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayerUser[] }) {
     // // @ts-ignore
     // if (playerList.length > 0) setTrimPlayers(playerList.slice(initialStartTrim - 1, playersLimit));
 
-    if (teamPlayers.length > 0){
+    if (teamPlayers.length > 0) {
       setCloneTeamPlayers(teamPlayers.slice());
       setTrimPlayers(teamPlayers.slice(initialStartTrim - 1, playersLimit));
     };
@@ -77,22 +81,22 @@ function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayerUser[] }) {
     }
   };
 
+
   return (
     <div className="bg-gray-900 text-gray-100 py-4">
       <div className="container px-4 mx-auto">
         <div className="player-list flex justify-between items-center">
           <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftLeft}>
-            <img src="/svg_icons/arrow.svg" alt="left-arrow" className="w-4" style={{ transform: 'scaleX(-1)' }} />
+            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-4" style={{ transform: 'scaleX(-1)' }} />
           </button>
-          {trimPlayers &&
-            trimPlayers.map((player) => (
-              // @ts-ignore
-              <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-                <PlayerScoreCard player={player} />
-              </div>
-            ))}
+          {trimPlayers && trimPlayers.map((player) => (
+            // @ts-ignore
+            <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
+              <PlayerScoreCard player={player} dark teamPlayer={1} />
+            </div>
+          ))}
           <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftRight}>
-            <img src="/svg_icons/arrow.svg" alt="left-arrow" className="w-4" />
+            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-4" />
           </button>
         </div>
       </div>

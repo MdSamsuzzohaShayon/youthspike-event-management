@@ -6,6 +6,7 @@ type AppAbout {
   app: String!
   version: String!
   author: String!
+  mode: String
 }
 
 type LDO {
@@ -16,34 +17,24 @@ type LDO {
   events: [Event!]
 }
 
-type Sub {
-  _id: String
-  roundId: String!
-  players: [String!]!
-  playerObjects: [User!]
-}
-
 type Round {
   _id: String
-  match: Match!
   num: Int!
+  match: Match!
   nets: [Net!]
-  sub: Sub
-}
-
-type Net {
-  _id: String
-  match: Match!
-  round: Round!
-  num: Int!
-  teamAPlayerA: Player
-  teamAPlayerB: Player
-  teamBPlayerA: Player
-  teamBPlayerB: Player
-  points: Int!
+  players: [Player!]
+  subs: [Player!]
   teamAScore: Int
   teamBScore: Int
-  pairRange: Int!
+  teamAProcess: EActionProcess!
+  teamBProcess: EActionProcess!
+}
+
+enum EActionProcess {
+  INITIATE
+  CHECKIN
+  PLACING
+  LINEUP
 }
 
 type Team {
@@ -54,6 +45,31 @@ type Team {
   match: Match
   event: Event!
   players: [Player!]!
+  nets: [Net!]!
+}
+
+type Net {
+  _id: String
+  num: Int!
+  match: Match!
+  round: Round!
+  teamA: Team
+  teamB: Team
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  points: Int!
+  teamAScore: Int
+  teamBScore: Int
+  pairRange: Int!
+}
+
+type Room {
+  _id: String
+  teamA: Team!
+  teamB: Team!
+  match: Match
 }
 
 type Match {
@@ -64,6 +80,7 @@ type Match {
   rounds: [Round!]!
   teamA: Team
   teamB: Team
+  room: Room
   netRange: Int!
   divisions: String!
   numberOfNets: Int!
@@ -78,6 +95,13 @@ type Match {
   location: String
 }
 
+type Sponsor {
+  _id: String
+  company: String!
+  logo: String!
+  event: Event
+}
+
 type Event {
   _id: String
   name: String!
@@ -89,6 +113,7 @@ type Event {
   players: [Player!]!
   teams: [Team!]!
   matches: [Match!]!
+  sponsors: [Sponsor!]!
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -100,7 +125,6 @@ type Event {
   timeout: Float!
   coachPassword: String!
   location: String!
-  sponsors: [String!]!
 }
 
 type Player {
@@ -111,9 +135,9 @@ type Player {
   status: PlayerStatus!
   rank: Int
   profile: String
-  event: Event
-  team: Team
-  captainofteam: Team
+  events: [Event!]
+  teams: [Team!]
+  captainofteams: [Team!]
   captainuser: User
 }
 
@@ -144,7 +168,7 @@ type LoginUser {
   firstName: String!
   lastName: String!
   role: UserRole!
-  captainplayer: Player
+  captainplayer: String
   email: String!
   active: Boolean!
   event: String
@@ -264,13 +288,6 @@ type GetNetResponse {
   data: Net!
 }
 
-type GetSubResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Sub!
-}
-
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
@@ -309,12 +326,12 @@ type Query {
   getEventByName(name: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
-  getMatches(eventId: String!): GetMatchesResponse!
+  getMatches(eventId: String): GetMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
-  getRound(id: String!): GetRoundResponse!
+  getRound(roundId: String!): GetRoundResponse!
   getNets(roundId: String!): GetNetsResponse!
-  getNet(id: String!): GetNetResponse!
+  getNet(netId: String!): GetNetResponse!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
   getPlayer(playerId: String!): PlayerResponse!
@@ -324,7 +341,7 @@ type Query {
 type Mutation {
   login(email: String!, password: String!): LoginResponse!
   changePassword(id: String!, oldPassword: String, newPassword: String): ChangePWDDataRes!
-  createEvent(sponsors: [Upload!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
+  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
   updateEvent(sponsors: [Upload!]!, input: UpdateEventInput!, eventId: String!): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   createTeam(input: CreateTeamInput!): CreateOrUpdateTeamResponse!
@@ -334,14 +351,19 @@ type Mutation {
   create(match: String!, locked: Boolean, id: String): GetRoundResponse!
   updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
   createNet(input: CreateNetInput!): GetNetResponse!
-  updateNet(input: UpdateNetInput!): GetNetResponse!
-  subAddPlayer(id: String!, roundId: String!, playerId: String!): GetSubResponse!
+  updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
+  deleteEventDirector(dId: String!): GetDirectorLDOResponse!
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
+}
+
+input EventSponsorInput {
+  company: String!
+  logo: Upload!
 }
 
 """The `Upload` scalar type represents a file upload."""
@@ -413,12 +435,12 @@ input CreateMatchInput {
   netRange: Float!
   teamA: String
   teamB: String
-  divisions: String!
-  numberOfNets: Float!
-  numberOfRounds: Float!
-  playerLimit: Int!
-  netVariance: Int!
-  homeTeam: String!
+  divisions: String
+  numberOfNets: Float
+  numberOfRounds: Float
+  playerLimit: Int
+  netVariance: Int
+  homeTeam: String
   autoAssign: Boolean
   autoAssignLogic: String
   rosterLock: String
@@ -458,6 +480,10 @@ input CreateNetInput {
 
 input UpdateNetInput {
   match: String
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
 }
 
 input CreateDirectorArgs {

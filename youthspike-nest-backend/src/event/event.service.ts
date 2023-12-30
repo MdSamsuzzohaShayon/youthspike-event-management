@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Event } from './event.schema';
 import { Types } from 'mongoose';
 
@@ -49,7 +49,7 @@ export class EventService {
     });
   }
 
-  async update(updateData: Partial<Event>, id: string) {
+  async update(updateData: UpdateQuery<Event>, id: string) {
     const updateObj: any = { ...updateData };
   
     if (updateData.players) {
@@ -79,5 +79,9 @@ export class EventService {
     );
   
     return updatedEvent;
+  }
+
+  async delete(filter: FilterQuery<Event>) {
+    return this.eventModel.deleteMany(filter);
   }
 }

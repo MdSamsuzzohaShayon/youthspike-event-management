@@ -3,10 +3,23 @@ import { IError, ITeam } from ".";
 import { IDocument } from "./document";
 import { IDefaultMatch } from "./match";
 
+export interface IEventSponsor{
+  _id: string;
+  company: string;
+  logo: string;
+  event: string;
+}
+
+export interface IEventSponsorAdd{
+  company: string;
+  logo: File | null ;
+}
+
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
   rounds: number;
 }
+
 
 export interface IEvent extends IDefaultEventMatch {
   _id: string;

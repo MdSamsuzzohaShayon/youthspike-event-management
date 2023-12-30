@@ -24,7 +24,7 @@ const initialPlayerAdd = {
   email: '',
   event: '',
   // team: '',
-  rank: "1"
+  rank: "0"
 };
 const eventOption: IOption[] = [{ text: 'Team 1', value: 't1' }, { text: 'Team 2', value: 't2' }];
 

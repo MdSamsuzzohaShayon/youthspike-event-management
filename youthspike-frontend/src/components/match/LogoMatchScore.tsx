@@ -2,12 +2,12 @@ import { ITeam } from '@/types/team';
 
 interface ILogoMatchScoreProps {
   dark: boolean;
-  team: ITeam;
+  team?: ITeam | null;
 }
 
 function LogoMatchScore({ dark, team }: ILogoMatchScoreProps) {
   return (
-    <div className="logo-match-score w-full ">
+    <div className={`logo-match-score w-full ${dark ? "text-gray-100" : "text-gray-900"}`}>
       <div className="flex justify-between items-center pt-4 gap-1">
         <img src="/next.svg" alt="next" className="w-2/6" />
         <h3 className="leading-4 w-2/6">Match Score</h3>

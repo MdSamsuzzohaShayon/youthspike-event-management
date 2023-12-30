@@ -43,7 +43,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       <h1>Update Event</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />) 
+      <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />
     </div>
   )
 }

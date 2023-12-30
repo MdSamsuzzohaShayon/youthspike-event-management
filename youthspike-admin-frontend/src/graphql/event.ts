@@ -22,7 +22,11 @@ rounds
 netVariance
 rosterLock
 timeout
-sponsors
+sponsors {
+  _id
+  company
+  logo
+}
 `;
 
 /**
@@ -61,9 +65,11 @@ query GetEvent($eventId: String!) {
  * =========================================================================================================================================
  */
 const ADD_EVENT_RAW = `
-mutation CreateEvent($sponsors: [Upload!]!, $input: CreateEventInput!) {
-  createEvent(sponsors: $sponsors, input: $input) {
+mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventInput!) {
+  createEvent(sponsorsInput: $sponsorsInput, input: $input) {
     code
+    message
+    success
     data {
       ${eventResponse}
     }

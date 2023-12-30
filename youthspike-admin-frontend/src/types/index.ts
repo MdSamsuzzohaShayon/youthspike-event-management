@@ -1,4 +1,4 @@
-import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch } from "./event";
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, IEventSponsorAdd } from "./event";
 import {
   ITextInputProps,
   IError,
@@ -19,6 +19,8 @@ import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
 import { IPlayer } from "./player";
 import { ITeam, ITeamAdd } from "./team";
 import { IAddMatch, IMatch, IDefaultMatchProps } from "./match";
+import { IRoundBase, IRoundRelatives } from "./round";
+import { INetRelatives, INetBase, INetExpRel } from "./net";
 
 export type {
   // Elements
@@ -40,6 +42,8 @@ export type {
   IEventAdd,
   IEventAddProps,
   IDefaultEventMatch,
+  IEventSponsor,
+  IEventSponsorAdd,
 
 
   // User
@@ -68,5 +72,15 @@ export type {
   // Match
   IAddMatch,
   IMatch,
-  IDefaultMatchProps
+  IDefaultMatchProps,
+
+
+  // Round
+  IRoundBase, 
+  IRoundRelatives,
+
+  // Net
+  INetBase,
+  INetRelatives,
+  INetExpRel,
 };

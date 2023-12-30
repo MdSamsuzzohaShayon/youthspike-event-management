@@ -1,7 +1,17 @@
 // events.dto.ts
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { DateScalar } from 'src/shared/date-scaler';
+
+@InputType()
+export class EventSponsorInput{
+  @Field()
+  company: string;
+
+  @Field(()=> GraphQLUpload)
+  logo: Upload;
+}
 
 @InputType()
 export class CreateEventInput {

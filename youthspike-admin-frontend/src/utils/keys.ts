@@ -1,2 +1,6 @@
-// export const BACKEND_URL: string = 'http://localhost:4000/graphql';
-export const BACKEND_URL: string = 'http://aslsquads.com/graphql';
+let BACKEND_URL: string = 'http://localhost:4000/graphql';
+
+if (process.env.NODE_ENV === 'production') BACKEND_URL = 'https://aslsquads.com/graphql';
+
+
+export { BACKEND_URL }

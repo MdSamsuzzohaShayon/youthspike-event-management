@@ -1,36 +1,34 @@
-import { IDocument } from './document';
-// import { IRound } from "./round";
-import { IUser } from './user';
+import { IPlayer } from ".";
 
-export interface INet extends IDocument {
-  locked: boolean;
-  lockedB: boolean;
-  num: number;
-  pairRange: number;
-  roundId: string;
-  points: number;
-  teamAPlayerA?: IUser;
-  teamAPlayerAId?: string;
-  teamAPlayerB?: IUser;
-  teamAPlayerBId?: string;
-  teamBPlayerA?: IUser;
-  teamBPlayerAId?: string;
-  teamBPlayerB?: IUser;
-  teamBPlayerBId?: string;
-  teamAScore: number;
-  teamBScore: number;
-  // round?: IRound;
-  timestamp: number;
+interface INetBase {
+    _id: string;
+    num: number;
+    points: number;
+    teamAScore: number;
+    teamBScore: number;
+    pairRange?: number;
 }
 
-export interface INetTeamPlayer {
-  playerAId: string | null | undefined;
-  playerBId: string | null | undefined;
+
+interface INetRelatives extends INetBase {
+    // match: string | Match;
+    round: string;
+    teamA?: string | null;
+    teamB?: string | null;
+    teamAPlayerA?: string | null;
+    teamAPlayerB?: string | null;
+    teamBPlayerA?: string | null;
+    teamBPlayerB?: string | null;
 }
 
-export interface INetTeam {
-  roundId: string;
-  netId: string;
-  teamA: INetTeamPlayer;
-  teamB: INetTeamPlayer;
+interface INetPlayers {
+    _id: string;
+    teamAPlayerA?: string | null;
+    teamAPlayerB?: string | null;
+    teamBPlayerA?: string | null;
+    teamBPlayerB?: string | null;
 }
+
+
+
+export type { INetBase, INetRelatives, INetPlayers };

@@ -31,7 +31,10 @@ function TeamsPage({ params }: ITeamsPageProps) {
         if(isValidObjectId(params.eventId)){
           const playerRes = await fetchPlayers({ variables: { eventId: params.eventId } });
           if (playerRes?.data?.getPlayers?.data) {
-            const newAvailablePlayers = playerRes.data.getPlayers.data.filter((p:IPlayer) => !p.team);
+            console.log(playerRes.data.getPlayers.data);
+            
+            // Get all team ids
+            const newAvailablePlayers = playerRes.data.getPlayers.data.filter((p:IPlayer) =>!p.teams || p.teams.length === 0);
             if (newAvailablePlayers.length > 0) setAvailablePlayers(newAvailablePlayers);
           }
         }else{

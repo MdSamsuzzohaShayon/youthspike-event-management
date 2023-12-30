@@ -7,6 +7,11 @@ import { v2 as cloudinary } from 'cloudinary';
 import { unlink } from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 
+type SponsorType = {
+  company: string,
+  logo: string
+}
+
 @Injectable()
 export class CloudinaryService {
   constructor(private configService: ConfigService) {
@@ -45,6 +50,38 @@ export class CloudinaryService {
 
       await unlink(localPath);
       return cloudinaryResponse.public_id;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async uploadSponsors(files: Upload, company: string, w = 300, h = 300): Promise<SponsorType | null> {
+    const { createReadStream, filename, mimetype, encoding } = await files;
+    try {
+      const localPath = `./uploads/${filename}`;
+      const stream = createReadStream();
+      const uploadFilesToServer = new Promise((resolve, reject) =>
+        stream
+          .pipe(createWriteStream(localPath))
+          .on('finish', () => resolve(true))
+          .on('error', () => reject(false)),
+      );
+
+      await uploadFilesToServer;
+
+      // Upload the file to Cloudinary
+      const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
+        folder: this.configService.get('CLOUDINARY_API_FOLDER', {
+          infer: true,
+        }),
+        transformation: {
+          width: w,
+          height: h,
+        },
+      });
+
+      await unlink(localPath);
+      return {company, logo: cloudinaryResponse.public_id};
     } catch (error) {
       return null;
     }

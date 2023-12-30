@@ -3,6 +3,7 @@
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import MatchAdd from '@/components/match/MatchAdd';
+import RoundList from '@/components/round/RoundList';
 import { GET_A_MATCH } from '@/graphql/matches';
 import { IError } from '@/types';
 import { isValidObjectId, toMatchDefaultData } from '@/utils/helper';
@@ -33,6 +34,8 @@ function MatchSingle({ params }: MatchSingleProps) {
     if (loading || isLoading) return <Loader />;
 
     const matchData = data?.getMatch?.data;
+    const roundList = data?.getMatch?.data?.rounds;
+    
 
 
     return (
@@ -48,6 +51,9 @@ function MatchSingle({ params }: MatchSingleProps) {
 
             <h1>Update Match</h1>
             <MatchAdd matchData={toMatchDefaultData(matchData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />
+
+            <h3>Rounds</h3>
+            <RoundList roundList={roundList} eventId={params.eventId} />
         </div>
     )
 }

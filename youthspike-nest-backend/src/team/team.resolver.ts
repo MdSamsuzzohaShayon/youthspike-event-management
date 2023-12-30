@@ -56,44 +56,46 @@ export class TeamResolver {
      *  Step-3: Team player as captain relationship - Update captain in player
      *  Step-4: Player and user relationship - Create a user with login access as captain of the team
      */
-    const players = input.players ? input.players : [];
 
-    const [newTeam, findEvent] = await Promise.all([
-      this.teamService.create({
-        name: input.name,
-        captain: input.captain,
-        event: input.event,
-        active: true,
-        players,
-      }),
-      this.eventService.findById(input.event.toString())
-    ]);
-    // Captain - User - Player - Team Relationship update
-    const promiseOperations = [];
-    promiseOperations.push(this.eventService.update({ teams: [newTeam._id] }, input.event));
-    for (let i = 0; i < players.length; i += 1) {
-      promiseOperations.push(this.playerService.update({ team: newTeam._id, rank: i + 1 }, players[i]));
-    }
-    if (input.captain) {
-      // Create new user for captain
-      const findPlayer = await this.playerService.findById(input.captain.toString());
-      // const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
-      const rawPassword = findEvent.coachPassword;
-      const captainUser = await this.userService.create({
-        firstName: findPlayer.firstName,
-        lastName: findPlayer.lastName,
-        role: UserRole.captain,
-        active: true,
-        captainplayer: input.captain,
-        email: findPlayer.email,
-        password: rawPassword,
-      });
-      promiseOperations.push(
-        this.playerService.update({ captainofteam: newTeam._id, captainuser: captainUser._id }, input.captain),
-      );
-    }
-    await Promise.all(promiseOperations);
     try {
+      const players = input.players ? input.players : [];
+
+      const [newTeam, findEvent] = await Promise.all([
+        this.teamService.create({
+          name: input.name,
+          captain: input.captain,
+          event: input.event,
+          active: true,
+          players,
+          nets: []
+        }),
+        this.eventService.findById(input.event.toString())
+      ]);
+      // Captain - User - Player - Team Relationship update
+      const promiseOperations = [];
+      promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
+      for (let i = 0; i < players.length; i += 1) {
+        promiseOperations.push(this.playerService.update({ $push: { teams: newTeam._id }, rank: i + 1 }, players[i]));
+      }
+      if (input.captain) {
+        // Create new user for captain
+        const findPlayer = await this.playerService.findById(input.captain.toString());
+        // const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
+        const rawPassword = findEvent.coachPassword;
+        const captainUser = await this.userService.create({
+          firstName: findPlayer.firstName,
+          lastName: findPlayer.lastName,
+          role: UserRole.captain,
+          active: true,
+          captainplayer: input.captain,
+          email: findPlayer.email,
+          password: rawPassword,
+        });
+        promiseOperations.push(
+          this.playerService.update({ captainofteams: [newTeam._id], captainuser: captainUser._id }, input.captain),
+        );
+      }
+      await Promise.all(promiseOperations);
       return {
         code: 201,
         success: true,
@@ -188,7 +190,7 @@ export class TeamResolver {
   @ResolveField() // Specify the return type for "players"
   async players(@Parent() team: Team): Promise<Player[]> {
     try {
-      const players = await this.playerService.query({ team: team._id.toString() });
+      const players = await this.playerService.query({ teams: { $in: [team._id.toString()] } });
       return players;
     } catch (error) {
       console.error(error);

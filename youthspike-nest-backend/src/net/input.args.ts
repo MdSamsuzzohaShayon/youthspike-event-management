@@ -7,4 +7,17 @@ export class CreateNetInput {
 }
 
 @InputType()
-export class UpdateNetInput extends PartialType(CreateNetInput) {}
+export class UpdateNetInput extends PartialType(CreateNetInput) {
+
+  @Field({ nullable: true })
+  teamAPlayerA?: string | null;
+
+  @Field({ nullable: true })
+  teamAPlayerB?: string | null;
+
+  @Field({ nullable: true })
+  teamBPlayerA?: string | null;
+
+  @Field({ nullable: true })
+  teamBPlayerB?: string | null;
+}

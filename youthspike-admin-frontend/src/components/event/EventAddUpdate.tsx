@@ -18,14 +18,14 @@ import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 
 // TypeScript
-import { IEventAddProps, IEventAdd, IOption } from '@/types';
+import { IEventAddProps, IEventAdd, IOption, IEventSponsorAdd } from '@/types';
 import { UserRole } from '@/types/user';
 
 import staticData from '../../lib/data.json';
 
 
 // Select Input Options
-const {homeTeamStrategy, rosterLockList, assignLogicList} = staticData;
+const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
 
 const initialEvent = {
     name: 'N-2',
@@ -46,7 +46,9 @@ const initialEvent = {
     timeout: 3,
     coachPassword: 'Spikeball',
     location: 'USA',
-}
+};
+
+const initialCurrSponsor = { logo: null, company: '' };
 
 function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAddProps) {
     // Hooks
@@ -57,9 +59,13 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
 
     // Local State
     const sponsorInputEl = useRef<HTMLInputElement>(null);
+    const addSponsorDialogEl = useRef<HTMLDialogElement | null>(null);
+    const [currSponsor, setCurrSponsor] = useState<IEventSponsorAdd>(initialCurrSponsor);
+
     const [eventState, setEventState] = useState<IEventAdd>(prevEvent ? prevEvent : initialEvent);
     const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
-    const [sponsorImgList, setSponsorImgList] = useState<File[] | string[]>(prevEvent && prevEvent.sponsors ? prevEvent.sponsors : []);
+    // const [sponsorImgList, setSponsorImgList] = useState<File[] | string[]>(prevEvent && prevEvent.sponsors ? prevEvent.sponsors : []);
+    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>([]);
     const [directorId, setDirectorId] = useState<string | null>(null);
     const [eventId, setEventId] = useState<string | null>(null);
 
@@ -77,8 +83,9 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         let newEventId = null;
         const inputData = update ? { ...updateEvent } : { ...eventState };
         inputData.ldo = directorId ? directorId : 'auto_detect_from_server';
+
         const mutationVariables = {
-            sponsors: sponsorImgList.length > 0 ? null : [],
+            sponsorsInput: [],
             input: inputData,
         };
         // @ts-ignore
@@ -88,16 +95,33 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             if (sponsorImgList.length > 0 && sponsorInputEl.current && sponsorInputEl.current.value && sponsorInputEl.current?.value !== '') {
                 // Use FormData with fetch if there is a file to upload on the server
                 const formData = new FormData();
+
+                const sponsorsInputList = [];
+                for (let i = 0; i < sponsorImgList.length; i += 1) {
+                    sponsorsInputList.push({company: sponsorImgList[i].company, logo: null});
+                }
+                // @ts-ignore
+                mutationVariables.sponsorsInput = sponsorsInputList;
+
                 formData.set('operations', JSON.stringify({
                     query: update ? UPDATE_EVENT_RAW : ADD_EVENT_RAW,
                     variables: mutationVariables,
                 }));
-                formData.set('map', JSON.stringify({ '0': ['variables.sponsors'] }));
+                // formdata.append("map", "{\n  \"0\": [\"variables.sponsorsInput.0.logo\"],\n  \"1\": [\"variables.sponsorsInput.1.logo\"]\n}");
+                // formdata.append("0", fileInput.files[0], "pexels-harpreet-grewal-19576544.jpg");
+                // formdata.append("1", fileInput.files[0], "pexels-simone-cisale-19580730.jpg");
 
-                // Append sponsors to the FormData
-                sponsorImgList.forEach((file, index) => {
-                    formData.set(index.toString(), file);
-                });
+                const mapObj: any = {};
+                for (let i = 0; i < sponsorImgList.length; i += 1) {
+                    mapObj[i.toString()] = [`variables.sponsorsInput.${i}.logo`];
+                }
+                formData.set("map", JSON.stringify(mapObj));
+                for (let i = 0; i < sponsorImgList.length; i += 1) {
+                    if (sponsorImgList[i].logo && sponsorImgList[i].logo instanceof File && sponsorImgList[i].company && sponsorImgList[i].company !== "") {
+                        const uploadedFile = sponsorImgList[i].logo as File;
+                        formData.set(`${i}`, uploadedFile);
+                    }
+                }
 
                 const token = getCookie('token');
                 const response = await fetch(BACKEND_URL, {
@@ -123,7 +147,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                 }
             } else {
                 // Use Apollo Client mutation
-                if (!mutationVariables.sponsors) mutationVariables.sponsors = [];
+                if (!mutationVariables.sponsorsInput) mutationVariables.sponsorsInput = [];
                 let eventRes = null;
                 if (update) {
                     eventRes = await eventUpdate({ variables: mutationVariables });
@@ -138,6 +162,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                 }
 
             }
+
 
             // Reset form and navigate
             setEventState(initialEvent);
@@ -185,17 +210,42 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         }
     }
 
-    const handleImgRemove = (e: React.SyntheticEvent, imgName: string) => {
+    const handleImgRemove = (e: React.SyntheticEvent, companyName: string) => {
         e.preventDefault();
         // @ts-ignore
-        setSponsorImgList((prevState) => {
-            return prevState.filter((imgFile) => typeof imgFile === "string" ? imgFile !== imgName : imgFile.name !== imgName);
+        setSponsorImgList((prevState) => { // Need to update
+            return prevState.filter((imgFile) => typeof imgFile === "string" ? imgFile !== companyName : imgFile.company !== companyName);
         });
     }
 
     /**
      * File Upload
      */
+    const handleSponsorDialog = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        if (addSponsorDialogEl.current) {
+            setCurrSponsor(initialCurrSponsor);
+            addSponsorDialogEl.current.showModal();
+        }
+    }
+
+    const handleCloseModal = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        if (addSponsorDialogEl.current) {
+            addSponsorDialogEl.current.close();
+        }
+    }
+
+    const handleFileNameChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const inputEl = e.target as HTMLInputElement;
+        if (!update) {
+            setCurrSponsor((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        } else {
+            // setEventState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        }
+    }
+
     const handleOpenImg = (e: React.SyntheticEvent) => {
         e.preventDefault();
         if (!sponsorInputEl.current) return;
@@ -205,9 +255,22 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     const handleFileChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const fileInputEl = e.target as HTMLInputElement;
-        if (fileInputEl.files && fileInputEl.files.length > 0) {
+        if (!fileInputEl.files || fileInputEl.files.length === 0) return;
+        if (currSponsor.company && currSponsor.company !== '') {
+            const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
+            let sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: fileInputEl.files[0] };
             // @ts-ignore
-            setSponsorImgList((prevState) => ([...prevState, fileInputEl.files[0]]));
+            setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
+            // @ts-ignore
+            setCurrSponsor((prevState) => ({ ...prevState, logo: fileInputEl.files[0] }));
+            if (addSponsorDialogEl.current) {
+                addSponsorDialogEl.current.close();
+            }
+        } else {
+            // @ts-ignore
+            setCurrSponsor((prevState) => ({ ...prevState, logo: fileInputEl.files[0] }));
+            // @ts-ignore
+            setSponsorImgList((prevState) => [...prevState, { company: currSponsor.company, logo: fileInputEl.files[0] }]);
         }
     }
 
@@ -247,22 +310,25 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         return <ul className='flex gap-1'>{listEl}</ul>
     }
 
-    const renderSponsorImg = (fileList: File[] | string[]) => {
+    const renderSponsorImg = (fileList: IEventSponsorAdd[]) => {
         const imgElList: React.ReactNode[] = []
         for (let i = 0; i < fileList.length; i += 1) {
             let imgEl = null;
             if (typeof fileList[i] === "string") {
-                const imgUrl = fileList[i] as string;
-                imgEl = <AdvancedImage className="w-20 static" cldImg={cld.image(imgUrl)} />;
+                // const imgUrl = fileList[i] as string; // Need to update
+                // imgEl = <AdvancedImage className="w-20 static" cldImg={cld.image(imgUrl)} />;
             } else {
-                const imgFile = fileList[i] as File;
+                const imgFile = fileList[i].logo as File;
                 imgEl = (
-                    <img
-                        src={URL.createObjectURL(imgFile)}
-                        alt={`Sponsor ${i + 1}`}
-                        className="w-20 static"
-                        key={imgFile.name + '' + i}
-                    />
+                    <div className="w-20 static" >
+                        <img
+                            src={URL.createObjectURL(imgFile)}
+                            alt={`Sponsor ${i + 1}`}
+                            className="w-full"
+                            key={imgFile.name + '' + i}
+                        />
+                        <p>{fileList[i].company}</p>
+                    </div>
                 );
             }
             const liEl = (
@@ -271,7 +337,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                     <img src='/icons/close.svg' className='absolute top-1 right-1 w-6 h-6 rounded-full svg-white'
                         role="presentation"
                         // @ts-ignore 
-                        onClick={e => handleImgRemove(e, typeof fileList[i] === "string" ? fileList[i] : fileList[i].name)}
+                        onClick={e => handleImgRemove(e, typeof fileList[i] === "string" ? fileList[i] : fileList[i].company)}
                     />
                 </li>
             );
@@ -321,12 +387,24 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <NumberInput required lblTxt='Timeout' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
             <TextInput handleInputChange={handleInputChange} name='coachPassword' required defaultValue={eventState.coachPassword} />
             <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} />
+
+            {/* File upload start  */}
+            <dialog ref={addSponsorDialogEl} className='w-4/6 bg-gray-800 h-2/6 p-2' >
+                <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white mt-2' />
+                <div className='flex items-center justify-center'>
+                    <TextInput handleInputChange={handleFileNameChange} name='company' required={false} defaultValue={currSponsor.company} />
+                    <img src='/icons/plus.svg' role="presentation" onClick={handleOpenImg} className='svg-white w-20 h-20' />
+                    <input type="file" name="sponsor" id="sponsor" className='hidden' ref={sponsorInputEl} onChange={handleFileChange} />
+                </div>
+            </dialog>
             <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
                 <h3 className='text-2xl capitalize'>Sponsors</h3>
-                <button type="button" onClick={handleOpenImg} className="btn-primary">Add New</button>
-                <input type="file" name="sponsor" id="sponsor" className='hidden' ref={sponsorInputEl} onChange={handleFileChange} />
+                <button type="button" onClick={handleSponsorDialog} className="btn-primary">Add New</button>
             </div>
+            {/* File upload end  */}
+
             {renderSponsorImg(sponsorImgList)}
+
             <button className="btn-info" type="submit" >{update ? "Update" : "Submit"}</button>
         </form>
     )

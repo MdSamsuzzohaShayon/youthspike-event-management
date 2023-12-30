@@ -1,10 +1,27 @@
 import { Module } from '@nestjs/common';
 import { UserResolver } from './user.resolver';
 import { SharedModule } from 'src/shared/shared.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
-  imports: [SharedModule, ConfigModule.forRoot()],
+  imports: [
+    SharedModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+
+      useFactory: async (config: ConfigService) => {
+        return {
+          secret: config.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: '1d',
+          },
+        };
+      },
+
+      inject: [ConfigService],
+    }),
+    ConfigModule.forRoot()],
 
   providers: [UserResolver],
 })

@@ -1,12 +1,23 @@
-/* eslint-disable import/no-cycle */
-import { IDocument } from './document';
-import { ILeague } from './league';
-import { IPlayerUser } from './user';
+import { IEvent, IPlayer } from ".";
 
-export interface ITeam extends IDocument {
-  name: string;
+export interface ITeam {
+  _id: string;
   active: boolean;
-  coachId: string;
-  leagueId: string;
-  players?: IPlayerUser[];
+  name: string;
+  event: IEvent;
+  players: IPlayer[];
+  captain: IPlayer | null;
+}
+
+export interface ITeamAdd {
+  active: boolean;
+  name: string;
+  event: string;
+  players: string[];
+  captain: string | null;
+}
+
+export enum ETeam{
+  teamA = 'teamA',
+  teamB = 'teamB',
 }

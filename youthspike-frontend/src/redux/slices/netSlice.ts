@@ -1,73 +1,78 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { INet, INetTeam } from '@/types/net';
+import { INetBase, IPlayer } from '@/types';
+import { INetPlayers, INetRelatives } from '@/types/net';
 
 interface INetState {
-  nets: INet[];
-  currentRoundNets: INet[];
+  nets: INetRelatives[];
+  currentRoundNets: INetRelatives[];
   currNetNum: number;
-  netPlayers: INetTeam[];
+  updateTeam: INetPlayers;
 }
 
 const initialState: INetState = {
   nets: [],
   currentRoundNets: [],
   currNetNum: 0,
-  netPlayers: [],
+  updateTeam: {
+    _id: '',
+    teamAPlayerA: null,
+    teamAPlayerB: null,
+
+    teamBPlayerA: null,
+    teamBPlayerB: null,
+  }
 };
 const netSlice = createSlice({
   name: 'net',
   initialState,
   reducers: {
-    setNets: (state, action: PayloadAction<INet[]>) => {
+    setNets: (state, action: PayloadAction<INetRelatives[]>) => {
       state.nets = action.payload;
     },
-    // Unused
-    setCurrentRoundNets: (state, action: PayloadAction<INet[]>) => {
+    setCurrentRoundNets: (state, action: PayloadAction<INetRelatives[]>) => {
       state.currentRoundNets = action.payload;
     },
+    // Unused
     setNetsByRoundId: (state, action: PayloadAction<string>) => {
-      const newCurrNets: INet[] = state.nets.filter((net) => net.roundId === action.payload);
+      const newCurrNets: INetRelatives[] = state.nets.filter((net) => net.round === action.payload);
       state.currentRoundNets = newCurrNets;
-
-      // Set net players precisely
-      const newNetPlayers: INetTeam[] = [];
-      for (let i = 0; i < newCurrNets.length; i += 1) {
-        const netPlayer: INetTeam = {
-          netId: newCurrNets[i]._id,
-          roundId: newCurrNets[i]._id,
-          teamA: {
-            playerAId: newCurrNets[i].teamAPlayerAId,
-            playerBId: newCurrNets[i].teamAPlayerBId,
-          },
-          teamB: {
-            playerAId: newCurrNets[i].teamBPlayerAId,
-            playerBId: newCurrNets[i].teamBPlayerBId,
-          },
-        };
-        newNetPlayers.push(netPlayer);
-      }
-      state.netPlayers = newNetPlayers;
     },
     setCurrNetNum: (state, action: PayloadAction<number>) => {
       state.currNetNum = action.payload;
     },
-    updateNetPlayer: (state, action: PayloadAction<INetTeam>) => {
+    updateNetPlayer: (state, action: PayloadAction<INetPlayers>) => {
+      const prevNPI = state.currentRoundNets.findIndex((np) => np._id === action.payload._id);
+      const prevANPI = state.nets.findIndex((np) => np._id === action.payload._id);
       // net should be unique
-      const prevNPI = state.netPlayers.findIndex((np) => np.netId === action.payload.netId);
       if (prevNPI >= 0) {
-        state.netPlayers[prevNPI] = action.payload;
-      } else {
-        state.netPlayers = [...state.netPlayers, action.payload];
+        const netObj: INetRelatives = {
+          ...state.currentRoundNets[prevNPI],
+          teamAPlayerA: action.payload.teamAPlayerA,
+          teamAPlayerB: action.payload.teamAPlayerB,
+          teamBPlayerA: action.payload.teamBPlayerA,
+          teamBPlayerB: action.payload.teamBPlayerB,
+        };
+
+
+        state.currentRoundNets[prevNPI] = netObj;
+
+        if (prevANPI >= 0) {
+          state.nets[prevANPI] = netObj;
+        }
       }
     },
 
     // Unused
-    setNetPlayers: (state, action: PayloadAction<INetTeam[]>) => {
-      state.netPlayers = action.payload;
+    setNetPlayers: (state, action: PayloadAction<INetRelatives[]>) => {
+      // state.netPlayers = action.payload;
     },
+
+    setUpdateNetTeam: (state, action: PayloadAction<INetPlayers>) => {
+      state.updateTeam = action.payload;
+    }
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setNetPlayers } = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setNetPlayers, setUpdateNetTeam } = netSlice.actions;
 export default netSlice.reducer;

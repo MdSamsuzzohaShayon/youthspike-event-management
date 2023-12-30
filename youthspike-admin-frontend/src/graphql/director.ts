@@ -17,7 +17,11 @@ const eventResponse = `
   netVariance
   rosterLock
   timeout
-  sponsors
+  sponsors {
+    _id
+    company
+    logo
+  }
 `;
 const ldoResponse = `
   _id
@@ -95,4 +99,17 @@ const UPDATE_DIRECTOR = gql`
   ${UPDATE_DIRECTOR_RAW}
 `;
 
-export { GET_LDO, GET_LDOS, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW };
+const DELETE_DIRECTOR = gql`
+mutation DeleteEventDirector($dId: String!) {
+  deleteEventDirector(dId: $dId) {
+    code
+    message
+    success
+    data {
+      ${ldoResponse}
+    }
+  }
+}
+`;
+
+export { GET_LDO, GET_LDOS, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };

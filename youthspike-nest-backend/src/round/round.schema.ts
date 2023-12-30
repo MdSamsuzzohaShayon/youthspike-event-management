@@ -1,12 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
+import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
-import { Sub } from 'src/sub/sub.schema';
-import { Team } from 'src/team/team.schema';
+
+export enum EActionProcess {
+  INITIATE = 'INITIATE',
+  CHECKIN = 'CHECKIN',
+  PLACING = 'PLACING',
+  LINEUP = 'LINEUP',
+};
+
+registerEnumType(EActionProcess, {
+  name: 'EActionProcess',
+});
 
 /**
  * Round
@@ -14,25 +24,44 @@ import { Team } from 'src/team/team.schema';
 @ObjectType()
 @Schema({ timestamps: true })
 export class Round extends AppDocument {
-  @Field((type) => Match, { nullable: false })
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
-  match: string | Match;
 
   @Field((type) => Int)
   @Prop({ required: true, default: 1 })
   num: number;
 
+  @Field((type) => Match, { nullable: false })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
+  match: string | Match;
+
   @Field((type) => [Net], { nullable: true })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets?: Net[] | string[];
 
-  @Field((type) => Sub, { nullable: true })
-  sub?: Sub | string;
+  // Only one relations
+  @Field((type) => [Player], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
+  players?: Player[] | string[];
 
-  // @Field((type) => Int, { nullable: true })
-  // teamAScore?: number;
+  // Only one relations
+  @Field((type) => [Player], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
+  subs?: Player[] | string[];
 
-  // @Field((type) => Int, { nullable: true })
-  // teamBScore?: number;
+  @Field((type) => Int, { nullable: true })
+  @Prop({ required: false })
+  teamAScore?: number;
+
+  @Field((type) => Int, { nullable: true })
+  @Prop({ required: false })
+  teamBScore?: number;
+
+  @Field((type) => EActionProcess, { nullable: false })
+  @Prop({ required: true, type: String, default: EActionProcess.INITIATE, enum: EActionProcess })
+  teamAProcess: EActionProcess;
+
+  @Field((type) => EActionProcess, { nullable: false })
+  @Prop({ required: true, type: String, default: EActionProcess.INITIATE, enum: EActionProcess })
+  teamBProcess: EActionProcess;
 }
 
 export const RoundSchema = SchemaFactory.createForClass(Round);

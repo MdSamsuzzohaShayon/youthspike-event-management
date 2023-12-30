@@ -13,10 +13,8 @@ import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
 
-// Constant variables
-const currRoundId: string = '653a6c9bc9f29c001febc213';
 
-function NetScoreOfRound() {
+function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
   /**
    * Display specific selected net in mobile screen
    * Display multiple nets with slider
@@ -24,6 +22,7 @@ function NetScoreOfRound() {
 
   // Redux
   const dispatch = useAppDispatch();
+  const allNets = useAppSelector((state) => state.nets.nets);
   const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const currNetNum = useAppSelector((state) => state.nets.currNetNum);
@@ -44,15 +43,12 @@ function NetScoreOfRound() {
     dialogSettingEl.current.close();
   };
 
-  useEffect(() => {
-    dispatch(setNetsByRoundId(currRoundId));
-  }, []);
 
   useEffect(() => {
     if (currRoundNets && currRoundNets.length > 0) {
       dispatch(setCurrNetNum(currRoundNets[0].num));
     }
-  }, [currRoundNets]);
+  }, []);
 
   return (
     <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative">
@@ -68,11 +64,10 @@ function NetScoreOfRound() {
               </p>
             ))}
           </div>
-          <PointsByRound dark />
+          <PointsByRound roundList={roundList} dark />
         </div>
         <div className="round-bottom h-3/6 w-full border border-gray-900 px-2 flex flex-col items-center justify-around">
-          <PointsByRound dark={false} />
-
+          <PointsByRound roundList={roundList} dark={false} />
           <LogoMatchScore dark={false} team={teamB} />
         </div>
       </div>
@@ -82,16 +77,16 @@ function NetScoreOfRound() {
       <dialog ref={dialogSettingEl} className="w-5/6 py-2 h-96" style={{ left: '8.5%', top: '25%', border: 'none' }}>
         <h3>Setting</h3>
         <div className="w-8 h-8" onClick={handleSettingClose} role="presentation">
-          <img src="/svg_icons/crossIcon.svg" alt="cross" className="w-full" />
+          <img src="/icons/close.svg" alt="cross" className="w-full" />
         </div>
       </dialog>
       <div className="img-holder p-2 w-8 absolute left-1 border-3 bg-gray-100 rounded-full cursor-pointer" style={{ top: '47%' }} role="presentation" onClick={handleSettingOpen} onKeyDown={(e) => {}}>
-        <img src="/svg_icons/setting.svg" alt="setting" className="w-full" />
+        <img src="/icons/setting.svg" alt="setting" className="w-full" />
       </div>
       {/* Setting end  */}
-
+      
       {/* Right side net detail start */}
-      {screenWidth > screen.xs ? currRoundNets.map((net) => <NetCard key={net._id} net={net} />) : <NetCard net={currRoundNets.find((n) => n.num === currNetNum)} />}
+      {screenWidth > screen.xs ? currRoundNets.map((net) => <NetCard key={net._id} net={net} />) : <NetCard net={currRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} />}
       {/* Right side net detail end */}
     </div>
   );

@@ -2,13 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ModuleRef } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
-import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseModule, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Event, EventSchemaFactory } from 'src/event/event.schema';
 import { Match, MatchSchemaFactory } from 'src/match/match.schema';
 import { Net, NetSchemaFactory } from 'src/net/net.schema';
 import { Round, RoundSchemaFactory } from 'src/round/round.schema';
-import { Sub, SubSchemaFactory } from 'src/sub/sub.schema';
 import { Team, TeamSchemaFactory } from 'src/team/team.schema';
 import { User, UserRole, UserSchemaFactory } from 'src/user/user.schema';
 import { JwtAuthGuard } from './auth/jwt.guard';
@@ -23,9 +22,12 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
-import { SubService } from './services/sub.service';
 import { CloudinaryService } from './services/cloudinary.service';
 import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
+import { SponsorService } from 'src/sponsor/sponsor.service';
+import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
+import { Room, RoomSchemaFactory } from 'src/room/room.schema';
+import { RoomService } from 'src/room/room.service';
 
 @Module({
   imports: [
@@ -70,10 +72,6 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
         useFactory: NetSchemaFactory,
       },
       {
-        name: Sub.name,
-        useFactory: SubSchemaFactory,
-      },
-      {
         name: Player.name,
         useFactory: PlayerSchemaFactory,
       },
@@ -81,6 +79,14 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
         name: LDO.name,
         useFactory: LDOSchemaFactory,
       },
+      {
+        name: Sponsor.name,
+        useFactory: SponsorSchemaFactory
+      },
+      {
+        name: Room.name,
+        useFactory: RoomSchemaFactory
+      }
     ]),
 
     ConfigModule,
@@ -100,22 +106,23 @@ import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
     NetService,
     PlayerService,
     LdoService,
-    SubService,
+    SponsorService,
     // { provide: APP_GUARD, useClass: RolesGuard },
+    RoomService,
   ],
   exports: [
     CloudinaryService,
     UserService,
     PlayerService,
     TeamService,
-
     EventService,
     MatchService,
     RoundService,
     NetService,
     PlayerService,
     LdoService,
-    SubService,
+    SponsorService,
+    RoomService,
   ],
 })
 export class SharedModule {

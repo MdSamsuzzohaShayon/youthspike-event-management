@@ -1,4 +1,6 @@
+import cld from '@/config/cloudinary.config';
 import { IMatch } from '@/types/match';
+import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useState } from 'react';
 
@@ -8,7 +10,7 @@ interface MatchCardProps {
   eventId: string;
 }
 
-function MatchCard({ match, sl, eventId}: MatchCardProps) {
+function MatchCard({ match, sl, eventId }: MatchCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
 
@@ -27,7 +29,8 @@ function MatchCard({ match, sl, eventId}: MatchCardProps) {
       <input type="checkbox" name="match-select" id="option" className='w-1/12' />
       <div className="w-10/12 flex justify-between items-center">
         <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
-          <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />
+          {match?.teamA?.captain?.profile ? <AdvancedImage cldImg={cld.image(match.teamA.captain?.profile)} className="w-10 h-10 border-4 border-yellow-500 rounded-full" /> : <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />}
+
           <div className="match-name flex flex-col w-full">
             <h3>{match?.teamA?.name}</h3>
             <p>Captain: {match?.teamA?.captain?.firstName + ' ' + match?.teamA?.captain?.lastName}</p>
@@ -39,7 +42,7 @@ function MatchCard({ match, sl, eventId}: MatchCardProps) {
             <h3>{match?.teamB?.name}</h3>
             <p>Captain: {match?.teamB?.captain?.firstName + ' ' + match?.teamB?.captain?.lastName}</p>
           </div>
-          <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />
+          {match?.teamB?.captain?.profile ? <AdvancedImage cldImg={cld.image(match.teamB.captain?.profile)} className="w-10 h-10 border-4 border-yellow-500 rounded-full" /> : <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />}
         </div>
       </div>
 

@@ -1,13 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useState } from 'react';
-import { INet, INetTeam, INetTeamPlayer } from '@/types/net';
-import { IPlayerUser } from '@/types/user';
+import { IPlayer, INetBase, INetPlayers } from '@/types';
 import { setCurrNetNum, updateNetPlayer } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import PlayerScoreCard from './PlayerScoreCard';
+import { AdvancedImage } from '@cloudinary/react';
+import cld from '@/config/cloudinary.config';
+import { INetRelatives } from '@/types';
+import { useUser } from '@/lib/UserProvider';
+import { setUpdateNetTeam } from '@/redux/slices/netSlice';
 
 interface INetProps {
-  net: INet | null | undefined;
+  net?: INetRelatives | null | undefined;
 }
 
 // Constant
@@ -20,20 +24,25 @@ const TBPB: number = 4;
 function NetCard({ net }: INetProps) {
   // Hook
   const dispatch = useAppDispatch();
+  const user = useUser();
 
   // Redux State
   const currNetNum = useAppSelector((state) => state.nets.currNetNum);
   const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
-  const netPlayers = useAppSelector((state) => state.nets.netPlayers);
   const teamAPlayers = useAppSelector((state) => state.players.teamAPlayers);
   const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
+  const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
   const [teamPlayerNum, setTeamPlayerNum] = useState<number>(0);
   const [drapDown, setDropDown] = useState<boolean>(false);
   const [availablePlayerIds, setAvailablePlayerIds] = useState<string[]>([]);
+  const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
 
+  /**
+   * Handle events
+   */
   const handleRightShift = () => {
     const netIndex = currRoundNets.findIndex((n) => n.num === currNetNum);
     if (netIndex === null || netIndex === 0) return;
@@ -51,7 +60,6 @@ function NetCard({ net }: INetProps) {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // e.preventDefault();
     setStartPosX(e.touches[0].clientX);
   };
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -68,31 +76,43 @@ function NetCard({ net }: INetProps) {
   };
 
   const handleEvacuatePlayer = (tpNum: number) => {
+    if (!user.token || !user.info) return;
     /**
      * Delete a player from the net
      * team a player 1 = 1, team a player 2 = 2, team b player 1 = 3, team b player 2 = 4
      */
-    if (!net || !net._id || !net.roundId || tpNum <= 0 || tpNum > 4) return;
-    const prevNetPlayer = netPlayers.find((np) => np.netId === net._id);
-    if (!prevNetPlayer) return;
-    const netPlayerObj: INetTeam = window.structuredClone(prevNetPlayer);
+    if (!net || !net._id || !net.round || tpNum <= 0 || tpNum > 4) return;
+    let netPlayerObj: INetPlayers = {
+      _id: net._id,
+      teamAPlayerA: net.teamAPlayerA ? net.teamAPlayerA : null,
+      teamAPlayerB: net.teamAPlayerB ? net.teamAPlayerB : null,
+      teamBPlayerA: net.teamBPlayerA ? net.teamBPlayerA : null,
+      teamBPlayerB: net.teamBPlayerB ? net.teamBPlayerB : null,
+    };
+
     if (tpNum === 1) {
-      netPlayerObj.teamA.playerAId = null;
+      netPlayerObj.teamAPlayerA = null;
     } else if (tpNum === 2) {
-      netPlayerObj.teamA.playerBId = null;
+      netPlayerObj.teamAPlayerB = null;
     } else if (tpNum === 3) {
-      netPlayerObj.teamB.playerAId = null;
+      netPlayerObj.teamBPlayerA = null;
     } else if (tpNum === 4) {
-      netPlayerObj.teamB.playerBId = null;
+      netPlayerObj.teamBPlayerB = null;
     }
     dispatch(updateNetPlayer(netPlayerObj));
+    dispatch(setUpdateNetTeam(netPlayerObj));
+
   };
 
   const handleDropdownPlayer = (teamPlayer: number) => {
+    if (!user.token || !user.info) return;
     setDropDown(true);
     setTeamPlayerNum(teamPlayer);
     /**
      * Show list of available player
+     * Remove players from subs of the rounds
+     * Remove players who is already selected
+     * Remove players who had been palyed with same player in the previous round
      */
 
     let playerIds: string[] = [];
@@ -105,78 +125,68 @@ function NetCard({ net }: INetProps) {
   };
 
   const handleSelectPlayer = (e: React.SyntheticEvent, teamPlayerId: string) => {
+    if (!user.token || !user.info) return;
     e.preventDefault();
     setDropDown(false);
 
-    if (!net || !net._id || !net.roundId || teamPlayerNum <= 0 || teamPlayerNum > 4) return;
-    const prevNetPlayer = netPlayers.find((np) => np.netId === net._id);
-
-    let teamObj: INetTeamPlayer = {
-      playerAId: null,
-      playerBId: null,
+    if (!net || !net._id || !net.round || teamPlayerNum <= 0 || teamPlayerNum > 4) return;
+    let netPlayerObj: INetPlayers = {
+      _id: net._id,
+      teamAPlayerA: net.teamAPlayerA ? net.teamAPlayerA : null,
+      teamAPlayerB: net.teamAPlayerB ? net.teamAPlayerB : null,
+      teamBPlayerA: net.teamBPlayerA ? net.teamBPlayerA : null,
+      teamBPlayerB: net.teamBPlayerB ? net.teamBPlayerB : null,
     };
-
-    const netPlayerObj: INetTeam = {
-      netId: net._id,
-      roundId: net.roundId,
-      teamA: { ...teamObj },
-      teamB: { ...teamObj },
-    };
-
-    // Update previous net if there is any
-    if (prevNetPlayer) {
-      netPlayerObj.teamA = { ...prevNetPlayer.teamA };
-      netPlayerObj.teamB = { ...prevNetPlayer.teamB };
-      if (teamPlayerNum === 1 || teamPlayerNum === 2) {
-        teamObj = { ...prevNetPlayer.teamA };
-      } else if (teamPlayerNum === 3 || teamPlayerNum === 4) {
-        teamObj = { ...prevNetPlayer.teamB };
-      }
-    }
 
     // Assign players
     if (teamPlayerNum === 1) {
-      teamObj.playerAId = teamPlayerId;
-      netPlayerObj.teamA = teamObj;
+      netPlayerObj.teamAPlayerA = teamPlayerId;
     } else if (teamPlayerNum === 2) {
-      teamObj.playerBId = teamPlayerId;
-      netPlayerObj.teamA = teamObj;
+      netPlayerObj.teamAPlayerB = teamPlayerId;
     } else if (teamPlayerNum === 3) {
-      teamObj.playerAId = teamPlayerId;
-      netPlayerObj.teamB = teamObj;
+      netPlayerObj.teamBPlayerA = teamPlayerId;
     } else if (teamPlayerNum === 4) {
-      teamObj.playerBId = teamPlayerId;
-      netPlayerObj.teamB = teamObj;
+      netPlayerObj.teamBPlayerB = teamPlayerId;
     }
+    // Update players of the net
     dispatch(updateNetPlayer(netPlayerObj));
+    dispatch(setUpdateNetTeam(netPlayerObj));
   };
 
-  const matchTPlayer = (tpNum: number): null | IPlayerUser => {
-    // tpNum = Team Player Number
-    if (tpNum <= 0 || tpNum > 4 || !net || net._id === null) return null;
-    const netId = net._id;
-    const precizedNetPlayer = netPlayers.find((n) => n.netId === netId);
-    if (!precizedNetPlayer) return null;
-    let expectedPlayer: IPlayerUser | null | undefined = null;
-    if (tpNum === 1) {
-      expectedPlayer = teamAPlayers.find((p) => p._id === precizedNetPlayer.teamA.playerAId);
-    } else if (tpNum === 2) {
-      expectedPlayer = teamAPlayers.find((p) => p._id === precizedNetPlayer.teamA.playerBId);
-    } else if (tpNum === 3) {
-      expectedPlayer = teamBPlayers.find((p) => p._id === precizedNetPlayer.teamB.playerAId);
-    } else if (tpNum === 4) {
-      expectedPlayer = teamBPlayers.find((p) => p._id === precizedNetPlayer.teamB.playerBId);
-    }
-    return expectedPlayer === undefined ? null : expectedPlayer;
-  };
 
+  const handlePASSelect = (e: React.SyntheticEvent, pas: string) => { // PAS = Player Assign Strategies
+    e.preventDefault();
+    setOpenPasControl((prevState) => !prevState);
+  }
+
+
+  
   useEffect(() => {
     /**
      * Create a mock net if there is not net found
      * Set player for specific net for set previously
      * Get net player that is selected and pass them to player score card
-     */
+    */
   }, []);
+  
+  /**
+   * Renders logically
+   */
+  const matchTPlayer = (tpNum: number): null | IPlayer => {
+    // tpNum = Team Player Number
+    if (tpNum <= 0 || tpNum > 4 || !net || !net.round || !net._id) return null;
+    let expectedPlayer: IPlayer | null | undefined = null;
+    if (tpNum === 1) {
+      expectedPlayer = teamAPlayers.find((p) => p._id === net.teamAPlayerA);
+    } else if (tpNum === 2) {
+      expectedPlayer = teamAPlayers.find((p) => p._id === net.teamAPlayerB);
+    } else if (tpNum === 3) {
+      expectedPlayer = teamBPlayers.find((p) => p._id === net.teamBPlayerA);
+    } else if (tpNum === 4) {
+      expectedPlayer = teamBPlayers.find((p) => p._id === net.teamBPlayerB);
+    }
+    return expectedPlayer === undefined ? null : expectedPlayer;
+  };
 
   const renderPlayers = (): React.ReactNode => {
     /**
@@ -185,19 +195,22 @@ function NetCard({ net }: INetProps) {
      * Which player to show that can be founded in Available Ids
      */
     const playerListEl: React.ReactNode[] = [];
-    let teamPlayerList: IPlayerUser[] = [];
+    let teamPlayerList: IPlayer[] = [];
     if (teamPlayerNum === 1 || teamPlayerNum === 2) {
-      teamPlayerList = teamAPlayers.slice();
+      teamPlayerList = teamAPlayers.slice(); // Shallow copy
     } else if (teamPlayerNum === 4 || teamPlayerNum === 3) {
-      teamPlayerList = teamBPlayers.slice();
+      teamPlayerList = teamBPlayers.slice(); // Shallow copy
     }
 
     for (let i = 0; i < teamPlayerList.length; i += 1) {
       if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
-          <p key={i} className="py-2 border-b border-gray-500" role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)}>
-            {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
-          </p>,
+          <div key={i} className="p-2 border-b border-gray-500 flex justify-between items-center w-full gap-1" role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
+            {teamPlayerList[i].profile ? <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-10 h-10 rounded-full border-2 border-gray-900" /> : <img src='/icons/sports-man.svg' className='svg-black w-10 h-10 rounded-full p-2 border-2 border-gray-900' />}
+            <p className='words-break capitalize'>
+              {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
+            </p>
+          </div>
         );
       }
     }
@@ -225,16 +238,16 @@ function NetCard({ net }: INetProps) {
 
       {/* Net point start  */}
       <div className="absolute z-10 h-28 w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center" style={{ top: '39%' }}>
-        <div className="score-card-in-net w-3/6 bg-gray-100 text-gray-900 text-center px-4 py-1">
-          <p>{net?.teamAScore}</p>
+        <div className="score-card-in-net w-3/6">
+          <input type="number" defaultValue={net?.teamAScore ? net?.teamAScore : '0'} className='w-full bg-gray-100 text-gray-900 px-4 py-1 text-center outline-none' />
         </div>
         <div className="net-card flex justify-around w-full">
-          <img src="/svg_icons/arrow.svg" alt="right-arrow" onKeyUp={handleKeyUp} onClick={handleRightShift} role="presentation" className="w-4" style={{ transform: 'scaleX(-1)' }} />
+          <img src="/icons/right-arrow.svg" alt="right-arrow" onKeyUp={handleKeyUp} onClick={handleRightShift} role="presentation" className="w-4 h-4 svg-white" style={{ transform: 'scaleX(-1)' }} />
           <h3>Net {net?.num}</h3>
-          <img src="/svg_icons/arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4" />
+          <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 h-4 svg-white" />
         </div>
         <div className="score-card-in-net w-3/6 bg-gray-100 text-gray-900 text-center px-4 py-1">
-          <p>{net?.teamBScore}</p>
+          <input type="number" defaultValue={net?.teamBScore ? net?.teamBScore : '0'} className='w-full bg-gray-100 text-gray-900 px-4 py-1 text-center outline-none' />
         </div>
       </div>
       {/* Net point end  */}
@@ -250,7 +263,16 @@ function NetCard({ net }: INetProps) {
             <PlayerScoreCard dark={false} teamPlayer={TBPB} player={matchTPlayer(TBPB)} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
           </div>
         </div>
-        <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p>
+        <div className="h-6 w-6 border-0 rounded-full bg-yellow-500 text-gray-100 relative">
+          <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
+          {openPasControl && (
+            <ul className="player-select-strategy bg-gray-800 w-24 absolute bottom-6 inset-x-0" style={{ left: '50%', transform: 'translate(-50%)' }} >
+              {playerAssignStrategies.map(pas => (
+                <li className='p-2 border-b border-yellow-500 capitalize' key={pas} role="presentation" onClick={e => handlePASSelect(e, pas)} >{pas}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       {/* Net bottom section end */}
     </div>

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Net } from 'src/net/net.schema';
 
 @Injectable()
 export class NetService {
-  constructor(@InjectModel(Net.name) private netModel: Model<Net>) {}
+  constructor(@InjectModel(Net.name) private netModel: Model<Net>) { }
 
   async create(net: Net) {
     return this.netModel.create({
@@ -18,7 +18,7 @@ export class NetService {
     return newNets;
   }
 
-  async update(net: Partial<Net>, id: string) {
+  async update(net: UpdateQuery<Net>, id: string) {
     return this.netModel.findOneAndUpdate(
       {
         _id: id,
@@ -38,7 +38,15 @@ export class NetService {
     return this.netModel.countDocuments(filter);
   }
 
+  async findOne(filter: FilterQuery<Net>) {
+    return this.netModel.findOne(filter);
+  }
+
   async findById(id: string) {
     return this.netModel.findById(id);
+  }
+
+  async delete(filter: FilterQuery<Net>) {
+    return this.netModel.deleteMany(filter);
   }
 }

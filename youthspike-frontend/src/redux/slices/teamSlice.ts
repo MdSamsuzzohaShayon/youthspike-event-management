@@ -1,28 +1,15 @@
 /* eslint-disable no-param-reassign */
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { ITeam } from '@/types/team';
-import { Nullable } from '@/types/document';
 
 export interface TeamsState {
-  teamA: Nullable<ITeam>;
-  teamB: Nullable<ITeam>;
+  teamA?: ITeam | null;
+  teamB?: ITeam | null;
 }
 
 const initialState: TeamsState = {
-  teamA: {
-    _id: null,
-    name: null,
-    active: false,
-    coachId: null,
-    leagueId: null,
-  },
-  teamB: {
-    _id: null,
-    name: null,
-    active: false,
-    coachId: null,
-    leagueId: null,
-  },
+  teamA: null,
+  teamB: null,
 };
 
 const teamSlice = createSlice({
