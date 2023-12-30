@@ -89,7 +89,7 @@ export interface IButtonProps {
   text?: string;
 }
 
-export interface IMenuArrangeProps{
+export interface IMenuArrangeProps {
   eventId: null | string;
   closeMenuHandler: (e: React.SyntheticEvent) => void;
   renderMenuItems: (eventId: string, userMenuList: IMenuItem[]) => React.ReactNode;
@@ -114,20 +114,20 @@ export interface ILoginProps {
 }
 
 
-export enum EActionProcess{
-  INITIATE_OPONENT,
-  INITIATE,
-  CHECKIN_OPONENT,
-  CHECKIN,
-  PLACING_OPONENT,
-  PLACING,
-  LINEUP_OPONENT,
-  LINEUP,
+export enum EActionProcess {
+  INITIATE_OPONENT = 'INITIATE_OPONENT',
+  INITIATE = 'INITIATE',
+  CHECKIN_OPONENT = 'CHECKIN_OPONENT',
+  CHECKIN = 'CHECKIN',
+  PLACING_OPONENT = 'PLACING_OPONENT',
+  PLACING = 'PLACING',
+  LINEUP_OPONENT = 'LINEUP_OPONENT',
+  LINEUP = 'LINEUP',
 }
 
-export interface IActionBox{
+export interface IActionBox {
   title: string;
   roundNum: number;
   text: string;
-  process: EActionProcess;
+  process: string;
 }

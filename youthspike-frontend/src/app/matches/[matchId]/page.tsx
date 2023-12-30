@@ -23,7 +23,7 @@ import { setMatchInfo, setMyDetail, setOponentDetail } from '@/redux/slices/matc
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setActionBox, setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setScreenSize } from '@/redux/slices/elementSlice';
@@ -41,6 +41,7 @@ import { INetRelatives } from '@/types/net';
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
+import { ETeam } from '@/types/team';
 
 
 
@@ -235,23 +236,31 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   }, [data?.getMatch?.data, fetchMatch, params.matchId]); // props, client
 
   useEffect(() => {
+    /**
+     * Socket real time connection
+     * After joining to the room action button will be visiable
+     */
     if (!socket || !user || !user.token || !user.info || !user.info.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain) return;
-    let userTeamId = null;
+    let userTeamId = null, oponentTeamId = null;
     if (user.info.captainplayer === teamA.captain._id) {
       userTeamId = teamA._id;
       // Set my team and oponent team
+      dispatch(setMyDetail({ captainId: user.info.captainplayer, matchId: params.matchId, teamId: userTeamId }));
+      dispatch(setOponentDetail({ captainId: teamB.captain._id, matchId: params.matchId, teamId: teamB._id }));
     } else if (user.info.captainplayer === teamB.captain._id) {
       userTeamId = teamB._id;
       // Set my team and oponent team
+      dispatch(setMyDetail({ captainId: user.info.captainplayer, matchId: params.matchId, teamId: userTeamId }));
+      dispatch(setOponentDetail({ captainId: teamA.captain._id, matchId: params.matchId, teamId: teamA._id }));
     } else {
       return;
     }
     // @ts-ignore
-    socket.emit('join', { match: params.matchId, team: userTeamId });
+    socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId });
 
     // Listen to events
     // @ts-ignore
-    socket.on('message', (data) => {
+    socket.on('join-room-response', (data) => {
       console.log({ data });
     });
 
@@ -276,33 +285,40 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <Suspense fallback={<Loader />}>
         <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
           {error && <Message error={error} />}
-          {/* Oponents Players  */}
-          <TeamPlayers teamPlayers={teamAPlayers} />
 
-          {/* Oponent Round Runner  */}
-          <RoundRunner actionBox={actionBoxOponent} />
 
           {/* Net  */}
-          {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-          <div className="controls px-4 flex justify-center">
-            <button className='btn-primary mt-4' type="button" onClick={handleNetPlayers}>Update</button>
-          </div>
+          {/* {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />} */}
 
-
-          {/* My Round Runner */}
-          <RoundRunner actionBox={actionBox} />
-
-          {!user.token && !user.info && (
+          {user && user.info ? (<>
+            {user.info.captainplayer === teamA?.captain ? (
+              <>
+                {currentRound && <RoundRunner actionBox={actionBox} process={currentRound.teamBProcess} />}
+                <TeamPlayers teamPlayers={teamAPlayers} team={ETeam.teamA} />
+              </>
+            ) : (<>
+              {currentRound && <RoundRunner actionBox={actionBox} process={currentRound.teamBProcess} />}
+              <TeamPlayers teamPlayers={teamBPlayers} team={ETeam.teamB} />
+            </>)}
+            <div className="controls px-4 flex justify-center">
+              <button className='btn-primary mt-4' type="button" onClick={handleNetPlayers}>Update</button>
+            </div>
+          </>) : (<>
+            {/* Oponents Players  */}
+            <TeamPlayers teamPlayers={teamAPlayers} team={ETeam.teamA} />
+            {/* Oponent Round Runner  */}
+            {currentRound?.teamAProcess && <RoundRunner actionBox={actionBoxOponent} process={currentRound.teamAProcess} />}
+            {/* My Round Runner */}
+            {currentRound?.teamBProcess && <RoundRunner actionBox={actionBox} process={currentRound.teamBProcess} />}
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>
               <div className="flex items-center justify-between flex-wrap w-full">
                 {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
               </div>
             </div>
-          )}
-
-          {/* My Players  */}
-          <TeamPlayers teamPlayers={teamBPlayers} />
+            {/* My Players  */}
+            <TeamPlayers teamPlayers={teamBPlayers} team={ETeam.teamB} />
+          </>)}
         </div>
       </Suspense>
     </>

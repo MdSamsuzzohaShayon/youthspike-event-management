@@ -8,6 +8,7 @@ import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 
 @ObjectType()

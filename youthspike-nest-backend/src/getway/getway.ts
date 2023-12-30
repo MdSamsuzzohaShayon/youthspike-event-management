@@ -32,10 +32,23 @@ export class MyGatWay implements OnModuleInit {
   handleDisconnect(client: Socket) {
     console.log('Client disconnected:', client.id);
 
-    // Remove the user from all rooms
-    this.roomsLocal.forEach((users, room) => {
-      // this.roomsLocal.set(room, users.filter(userId => userId !== client.id));
-    });
+    // Remove the team from all rooms
+    for (const [rk, rv] of this.roomsLocal) {
+      console.log(`${rk} = ${rv}`);
+      const roomData = { ...JSON.parse(rv) };
+      if (roomData.teamAClient === client.id) {
+        roomData.teamA = null;
+        roomData.teamAClient = null;
+        this.roomsLocal.set(rk, JSON.stringify(roomData));
+      }
+      if (roomData.teamBClient === client.id) {
+        roomData.teamB = null;
+        roomData.teamBClient = null;
+        this.roomsLocal.set(rk, JSON.stringify(roomData));
+      }
+    }
+    console.log(this.roomsLocal);
+
   }
 
   // @SubscribeMessage('createRoom')
@@ -44,46 +57,51 @@ export class MyGatWay implements OnModuleInit {
   //   this.server.emit('roomList', Array.from(this.roomsLocal.keys())); // Send the updated room list to all clients
   // }
 
-  @SubscribeMessage('join')
+  @SubscribeMessage('join-room-from-client')
   async onRoomJoin(client: Socket, joinData: JoinRoomInput) {
     /**
      * Find room id from database by team ID
      * If room not found return
      * Update room socket ID if necessary
      */
-    // , $or: [{ teamA: joinData.team }, { teamB: joinData.team },] 
-    const roomExist = await this.roomService.findOne({ match: joinData.match});
+    const roomExist = await this.roomService.findOne({ match: joinData.match, $or: [{ teamA: joinData.team }, { teamB: joinData.team },] });
     if (!roomExist) return;
 
     client.join(roomExist._id.toString());
     let roomData = {
       match: roomExist.match,
       teamA: null,
+      teamAClient: null,
       teamB: null,
+      teamBClient: null,
     };
 
+    // Set room data initially
     if (joinData.team === roomExist.teamA.toString()) {
-      roomData = { ...roomData, teamA: roomExist.teamA.toString() };
+      roomData = { ...roomData, teamA: roomExist.teamA.toString(), teamAClient: client.id };
     } else if (joinData.team === roomExist.teamB.toString()) {
-      roomData = { ...roomData, teamB: roomExist.teamB.toString() };
+      roomData = { ...roomData, teamB: roomExist.teamB.toString(), teamBClient: client.id };
     }
 
     if (!this.roomsLocal.has(roomExist._id.toString())) {
+      // Create new room
       this.roomsLocal.set(roomExist._id.toString(), JSON.stringify(roomData))
     } else {
+      // Update existing room
       const prevRoom = JSON.parse(this.roomsLocal.get(roomExist._id.toString()));
       roomData = { ...prevRoom };
-      if(!roomData.teamA && joinData.team === roomExist.teamA.toString()){
-        roomData.teamA = roomExist.teamA. toString();
-      }else if(!roomData.teamB && joinData.team === roomExist.teamB.toString()){
-        roomData.teamB = roomExist.teamB. toString();
+      if (!roomData.teamA && joinData.team === roomExist.teamA.toString()) {
+        roomData.teamA = roomExist.teamA.toString();
+        roomData.teamAClient = client.id;
+      } else if (!roomData.teamB && joinData.team === roomExist.teamB.toString()) {
+        roomData.teamB = roomExist.teamB.toString();
+        roomData.teamBClient = client.id;
       }
       this.roomsLocal.set(roomExist._id.toString(), JSON.stringify(roomData))
     }
 
     console.log(this.roomsLocal);
-    
-    client.emit('message', "Joined to the room successfully");
+    client.emit('join-room-response', roomData);
   }
 
 

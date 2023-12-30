@@ -11,13 +11,14 @@ function LDOMainPage() {
      * Show list of directors
      */
     const { data, loading, error } = useQuery(GET_LDOS);
+    
 
     if (loading || isLoading) return <Loader />;
     if (error) return <Message error={error} />;
 
     const ldos = data?.getEventDirectors?.data ? data.getEventDirectors.data : [];
     return (
-        <div>
+        <div style={{minHeight: '80vh'}}>
             <h1 className='mb-4 capitalize'>League Director Organizations</h1>
             <DirectorList ldoList={ldos} />
         </div>

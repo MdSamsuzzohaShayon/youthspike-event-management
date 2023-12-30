@@ -16,3 +16,8 @@ export interface ITeamAdd {
   players: string[];
   captain: string | null;
 }
+
+export enum ETeam{
+  teamA = 'teamA',
+  teamB = 'teamB',
+}

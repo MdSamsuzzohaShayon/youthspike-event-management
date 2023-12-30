@@ -6,6 +6,7 @@ type AppAbout {
   app: String!
   version: String!
   author: String!
+  mode: String
 }
 
 type LDO {

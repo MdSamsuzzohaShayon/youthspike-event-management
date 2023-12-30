@@ -15,7 +15,7 @@ const initialAction = {
   title: '',
   roundNum: 1,
   text: '',
-  process: EActionProcess.CHECKIN,
+  process: EActionProcess.INITIATE,
 };
 
 const initialState: RoundState = {

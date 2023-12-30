@@ -4,12 +4,16 @@ import React from 'react';
 import { IPlayer } from '@/types';
 import PlayerScoreCard from './PlayerScoreCard';
 
+interface ITeamPlayersProps {
+  teamPlayers: IPlayer[]; team: string;
+}
+
 // Static variables
 const playersLimit: number = 5;
 const touchThreshold: number = 50;
 const initialStartTrim: number = 1;
 
-function TeamPlayers({ teamPlayers }: { teamPlayers: IPlayer[] }) {
+function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
 
   // Local State
   const [cloneTeamPlayers, setCloneTeamPlayers] = React.useState<IPlayer[]>([]);

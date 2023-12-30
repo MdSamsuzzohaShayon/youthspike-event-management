@@ -20,6 +20,9 @@ jobs:
       - name: Install Dependencies (Nest.js)
         run: cd youthspike-nest-backend && npm install
 
+      - name: Set Production environment
+        run: export NODE_ENV=production
+
       - name: Build and Test (Nest.js)
         # run: cd youthspike-nest-backend && npm run build && npm test
         run: cd youthspike-nest-backend && npm run build
@@ -55,6 +58,9 @@ jobs:
       - name: Install Dependencies (Next.js)
         run: cd youthspike-admin-frontend && npm install
 
+      - name: Set Production environment
+        run: export NODE_ENV=production
+
       - name: Build and Test (Next.js)
         # run: cd youthspike-admin-frontend && npm run build && npm test
         run: cd youthspike-admin-frontend && npm run build
@@ -87,6 +93,9 @@ jobs:
 
       - name: Install Dependencies (Next.js)
         run: cd youthspike-frontend && npm install
+
+      - name: Set Production environment
+        run: export NODE_ENV=production
 
       - name: Build and Test (Next.js)
         # run: cd youthspike-frontend && npm run build && npm test

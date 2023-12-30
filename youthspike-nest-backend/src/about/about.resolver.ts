@@ -1,3 +1,5 @@
+import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Field, ObjectType, Query, Resolver } from '@nestjs/graphql';
 
 @ObjectType()
@@ -10,16 +12,24 @@ class AppAbout {
 
   @Field()
   author: string;
+
+  @Field({nullable: true})
+  mode?: string | null;
 }
 
 @Resolver()
 export class AboutResolver {
+
+  constructor(private configService: ConfigService){}
+
   @Query((returns) => AppAbout)
   getAbout() {
+    console.log(this.configService.get<string | null>('NODE_ENV'));
     return {
       app: 'spikeball-game',
       version: '1.0.0',
-      author: 'Ahmad Raza <pro.se.ahmad.raza.1@gmail.com>',
+      author: 'Md Samsuzzoha <mdsamsuzzoha5222@gmail.com>',
+      mode: null
     };
   }
 }
