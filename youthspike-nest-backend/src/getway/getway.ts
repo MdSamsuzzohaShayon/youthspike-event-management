@@ -30,11 +30,9 @@ export class MyGatWay implements OnModuleInit {
   }
 
   handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
 
     // Remove the team from all rooms
     for (const [rk, rv] of this.roomsLocal) {
-      console.log(`${rk} = ${rv}`);
       const roomData = { ...JSON.parse(rv) };
       if (roomData.teamAClient === client.id) {
         roomData.teamA = null;
@@ -47,8 +45,6 @@ export class MyGatWay implements OnModuleInit {
         this.roomsLocal.set(rk, JSON.stringify(roomData));
       }
     }
-    console.log(this.roomsLocal);
-
   }
 
   // @SubscribeMessage('createRoom')

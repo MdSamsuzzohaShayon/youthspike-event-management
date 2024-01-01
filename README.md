@@ -209,7 +209,7 @@ ___
  - [Setup apache server](https://www.digitalocean.com/community/tutorials/how-to-install-the-apache-web-server-on-ubuntu-22-04)
  - [Secure Apache with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-22-04)
  - Cinfigure firewall
- - Create reverse proxies
+ - Create reverse proxies (For nest-backend, admin-frontend, frontend, websocket)
  - 
  - Setup docker
 
@@ -224,8 +224,26 @@ ___
  - Create **deploy.myl** file and deploy
  - Install git, nodejs, mongodb
 
+### Speed Up
+ - Server optimization, 
+ - Caching strategies, and 
+ - Content delivery networks (CDNs) can also significantly impact the server's ability to handle traffic. 
+ - Nature of Requests: If the requests are simple and lightweight, such as serving static content or simple API calls, a $5 droplet may handle 50,000 requests per day without much trouble.
+ - Optimization: Efficient coding practices, proper server optimization, and caching mechanisms can significantly improve the performance of your applications and help the server handle more requests.
+ - Traffic Distribution: If the requests are evenly distributed throughout the day, the server may handle the load better than if they come in large spikes. Implementing load balancing and CDN services can also help distribute the load.
+ - Type of Application: Resource-intensive applications or those that require a lot of processing power may not perform as well on a $5 droplet. In such cases, you might need to consider a higher-tier droplet or other scaling strategies.
+ - Scaling Options: DigitalOcean provides options to scale vertically (upgrading the droplet to a higher plan) or horizontally (adding more droplets). If you find that the $5 droplet is reaching its capacity, you can consider scaling up or out.
+
 
 ### Ask
  1. If anyone put the score they can put whatever they want, this should not be the case. In my opinion, either team director should put the score in or they validate score of both team given by captains are correct.
  2. There is another issue with putting score and  doing any actions on that screen, it is better to add a update button after selecting players for the new captain should click on that update in that way the program will run little bit faster. 
  3. Last question was a bit incorrect. The question is when I login as captain of my team and you login as captain of your team, we both will see our team at the bottom of the screen on 2 different mobile screen. In that case, oponent team will be presented at the top side there for who logged in as captain will not see any buttons or controls of another team that is placed at the top side.
+
+
+ curl -i -N  \
+    -H "Connection: Upgrade"  \
+    -H "Upgrade: websocket"  \
+    -H "Host: echo.websocket.org"  \
+    -H "Origin: http://www.websocket.org"  \
+    http://echo.websocket.org

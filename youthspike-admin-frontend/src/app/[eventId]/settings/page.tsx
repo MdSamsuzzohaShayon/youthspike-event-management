@@ -39,7 +39,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   // Fetch previous player
 
   return (
-    <div className='container mx-auto px-2'>
+    <div className='container mx-auto px-2 min-h-screen'>
       <h1>Update Event</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}

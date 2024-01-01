@@ -15,7 +15,7 @@ function DirectorList({ ldoList }: { ldoList: ILDOItem[] }) {
             <div className="overflow-x-auto">
                 <table className="w-full bg-transparent border shadow">
                     <thead>
-                        <tr>
+                        <tr className='border-b border-gray-800 hover:bg-gray-800'>
                             <th className="py-2 px-4 capitalize" >Name</th>
                             <th className="py-2 px-4 capitalize" >Logo</th>
                             <th className="py-2 px-4 capitalize" >Director</th>

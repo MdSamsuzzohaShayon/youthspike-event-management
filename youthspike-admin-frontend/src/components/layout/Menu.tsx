@@ -119,11 +119,13 @@ function Menu() {
     /**
      * Mount hooks
      */
-    useEffect(() => {
+    const hasValidUser = () => {
         const instantToken = getCookie('token'); // Fetch again
         const instantInfo = getCookie('user');
+        console.log("has effect");
+
         if (instantInfo && instantToken) {
-            setIsAuthenticated(true);
+            if (!isAuthenticated) setIsAuthenticated(true);
             if (instantToken) {
                 setUser((prevState) => ({ ...prevState, token: instantToken }))
             }
@@ -132,12 +134,15 @@ function Menu() {
             }
             fetchLDO();
         }
-    }, []);
+    }
 
     // console.log({data});
 
 
     useEffect(() => {
+        // Effect
+        hasValidUser();
+
         const pathList = pathname.split('/');
         let eventPath = pathList.length > 0 ? pathList[1] : null;
         if (eventPath && eventPath.length < 5) eventPath = null;
@@ -164,7 +169,7 @@ function Menu() {
             }
         }
 
-    }, [user, router, pathname]);
+    }, [router, pathname]);
 
     /**
      * Renders sub components

@@ -18,7 +18,7 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies (Nest.js)
-        run: cd youthspike-nest-backend && npm install
+        run: cd youthspike-nest-backend && npm install --production
 
       - name: Set Production environment
         run: export NODE_ENV=production
@@ -37,7 +37,7 @@ jobs:
             cd /home/shayon/youthspike-event-management
             git pull origin master --rebase
             cd youthspike-nest-backend
-            npm install
+            npm install --production
             npm run build
             pm2 startOrRestart ecosystem.config.js --env production
             pm2 save --force
@@ -56,7 +56,7 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies (Next.js)
-        run: cd youthspike-admin-frontend && npm install
+        run: cd youthspike-admin-frontend && npm install --production
 
       - name: Set Production environment
         run: export NODE_ENV=production
@@ -73,7 +73,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/shayon/youthspike-event-management/youthspike-admin-frontend
-            npm install
+            npm install --production
             npm run build
             pm2 startOrRestart ecosystem.config.js --env production
             pm2 save --force
@@ -92,7 +92,7 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies (Next.js)
-        run: cd youthspike-frontend && npm install
+        run: cd youthspike-frontend && npm install --production
 
       - name: Set Production environment
         run: export NODE_ENV=production
@@ -109,7 +109,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/shayon/youthspike-event-management/youthspike-frontend
-            npm install
+            npm install --production
             npm run build
             pm2 startOrRestart ecosystem.config.js --env production
             pm2 save --force

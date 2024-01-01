@@ -28,7 +28,7 @@ import staticData from '../../lib/data.json';
 const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
 
 const initialEvent = {
-    name: 'N-2',
+    name: 'Event 1',
     // startDate, endDate, playerLimit
     divisions: 'division 1, division 2,',
     nets: 3,
@@ -359,7 +359,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <NumberInput defaultValue={eventState.rounds} handleInputChange={handleInputChange} lblTxt='Number of rounds' name='rounds' required={!update} />
             <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleInputChange} lblTxt='Net Variance' name='netVariance' required={!update} />
 
-            <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} />
+            <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={eventState.autoAssign}
                 name="autoAssign" />
             <SelectInput defaultValue={eventState.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />

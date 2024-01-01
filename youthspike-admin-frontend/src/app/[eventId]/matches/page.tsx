@@ -33,7 +33,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   const eventData = data?.getEvent?.data;
 
   return (
-    <div className="container mx-auto px-2">
+    <div className="container mx-auto px-2 min-h-screen">
       <h1>Matches</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}

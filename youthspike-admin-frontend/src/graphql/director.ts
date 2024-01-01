@@ -23,6 +23,23 @@ const eventResponse = `
     logo
   }
 `;
+
+const eventResponseLight = `
+  _id
+  sponsors {
+    _id
+  }
+  matches {
+    _id
+  }
+  players {
+    _id
+  }
+  teams {
+    _id
+  }
+`;
+
 const ldoResponse = `
   _id
   name
@@ -48,6 +65,25 @@ const GET_LDOS = gql`
       success
       data {
         ${ldoResponse}
+      }
+    }
+  }
+`;
+
+const GET_LDOS_LIGHT = gql`
+  query GetEventDirectors {
+    getEventDirectors {
+      code
+      message
+      success
+      data {
+        _id
+      director {
+        _id
+      }
+      events {
+        ${eventResponseLight}
+      }
       }
     }
   }
@@ -112,4 +148,4 @@ mutation DeleteEventDirector($dId: String!) {
 }
 `;
 
-export { GET_LDO, GET_LDOS, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };
+export { GET_LDO, GET_LDOS, GET_LDOS_LIGHT, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };

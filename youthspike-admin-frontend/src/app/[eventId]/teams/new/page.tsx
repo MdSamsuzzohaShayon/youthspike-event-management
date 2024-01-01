@@ -47,7 +47,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
   if(loading || isLoading) return <Loader />;
 
   return (
-    <div className='container mx-auto px-2'>
+    <div className='container mx-auto px-2 min-h-screen'>
       <h1>Teams</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}

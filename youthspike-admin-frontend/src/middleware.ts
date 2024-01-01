@@ -7,7 +7,7 @@ import { UserRole } from './types/user';
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
 const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new"];
-const captainAuthPages = ['/players', "/matches",  "/settings"];
+const captainAuthPages = ['/players', "/matches", "/settings"];
 const adminPages = ['/admin', '/directors'];
 
 /**
@@ -67,12 +67,16 @@ export function middleware(request: NextRequest) {
   const directorAndCaptainPages = [...new Set([...directorAuthPages, ...captainAuthPages])];
   const isAuthenticatedPage = directorAndCaptainPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
   if (isAuthenticatedPage) {
-    // Redirect if the user is not a director
-    if (userObj && userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+    // If admin try get to the home page he will be redirected to /admin page
+    if (userObj && userObj.role === UserRole.admin) {
+      return NextResponse.redirect(new URL(`/admin`, request.url));
+    } else if (userObj && userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+      // Redirect if the user is not a director
       return NextResponse.next();
     } else if (userObj && userObj.role === UserRole.captain && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
       return NextResponse.next();
-    }else if (userObj && userObj.role === UserRole.captain && userObj.event){
+    } else if (userObj && userObj.role === UserRole.captain && userObj.event) {
+      // If captain has an event id he will be redirected to /eventId/players page
       return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url));
     }
     return NextResponse.redirect(new URL('/not-found/404', request.url));
@@ -81,8 +85,6 @@ export function middleware(request: NextRequest) {
   // Handle access to admin pages
   const isAdminPage = adminPages.includes(pathname) || adminPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
   if (isAdminPage) {
-    console.log('Admin page match ');
-
     // Redirect if the user is not an admin
     if (userObj && userObj.role === UserRole.admin) return NextResponse.next();
     return NextResponse.redirect(new URL('/', request.url));

@@ -8,11 +8,12 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
-import { IDirector, ILDO } from '@/types';
+import { IDirector, IError, ILDO } from '@/types';
 
 function AccountPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [ldoState, setLdoState] = useState<ILDO | null>(null);
+  const [actErr, setActErr] = useState<IError | null>(null);
 
   const [getLdo, { loading, error, data: ldoData }] = useLazyQuery(GET_LDO);
   // Query for director
@@ -42,10 +43,11 @@ function AccountPage() {
   if (loading || isLoading) return <Loader />;
 
   return (
-    <div className="container px-2 mx-auto">
-      <h1 className='mb-4 text-2xl font-bold pt-6 text-center'>Account Setting (LDO)</h1>
+    <div className="container px-2 mx-auto min-h-screen">
+      <h1 className='my-4 text-center'>Account Setting (LDO)</h1>
       {error && <Message error={error} />}
-      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={ldoState} />
+      {actErr && <Message error={actErr} />}
+      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={ldoState} setActErr={setActErr} />
     </div>
   )
 }

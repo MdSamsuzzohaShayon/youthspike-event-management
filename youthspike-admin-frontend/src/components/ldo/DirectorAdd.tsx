@@ -3,19 +3,22 @@ import { useMutation } from '@apollo/client';
 import { ADD_DIRECTOR_RAW, ADD_DIRECTOR, GET_LDOS } from '@/graphql/director';
 import Loader from '../elements/Loader';
 import TextInput from '../elements/forms/TextInput';
-import { IUser, IDirector, ILDO, ILdoUpdate, IError } from '@/types';
+import { IDirector, ILDO, ILdoUpdate, IError } from '@/types';
 import EmailInput from '../elements/forms/EmailInput';
 import PasswordInput from '../elements/forms/PasswordInput';
 import FileInput from '../elements/forms/FileInput';
-import { getCookie } from '@/utils/cookie';
-import { BACKEND_URL } from '@/utils/keys';
+import { getCookie, removeCookie } from '@/utils/cookie';
+import { ADMIN_URL, BACKEND_URL } from '@/utils/keys';
 import { UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW } from '@/graphql/director';
 import Message from '../elements/Message';
+import { useRouter } from 'next/navigation';
 
 interface DirectorAddProps {
     update: boolean;
     prevLdo?: null | ILDO | undefined;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const initialLdo: ILDO = {
@@ -34,34 +37,16 @@ const initialDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
+function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector }: DirectorAddProps) {
+
     const [directorState, setDirectorState] = useState<IDirector>(prevLdo && prevLdo.director ? prevLdo.director : initialDirector);
     const [ldoState, setLdoState] = useState<ILDO>(prevLdo ? prevLdo : initialLdo);
     const [ldoUpdate, setLdoUpdate] = useState({});
     const [directorUpdate, setDirectorUpdate] = useState<ILdoUpdate>({});
-    const [actErr, setActErr] = useState<IError>();
+    const [registerDirector, { loading, error, client }] = useMutation(ADD_DIRECTOR);
+
     const uploadedLogo = useRef<File | null>(null);
-    const [registerDirector, { loading, error }] = useMutation(ADD_DIRECTOR,
-        {
-            refetchQueries: [{ query: GET_LDOS }]
-            /*
-                // Follow - https://www.apollographql.com/docs/react/data/mutations/#the-update-function
-                update: (cache, { data: { createDirector } }) => {
-                    // Read the existing cache
-                    const existingData = cache.readQuery({ query: GET_LDOS });
-    
-                    // Update the cache with the new director
-                    cache.writeQuery({
-                        query: GET_LDOS,
-                        data: {
-                            // @ts-ignore
-                            getEventDirectors: [...existingData.getEventDirectors.data, createDirector.data],
-                        },
-                    });
-                },
-                */
-        }
-    );
+    const router = useRouter();
 
 
     const [updateDirector, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_DIRECTOR);
@@ -108,7 +93,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
         if (update) {
             if (directorUpdateObj.password && directorUpdateObj.password !== '') {
                 if (directorUpdateObj.confirmPassword !== directorUpdateObj.password) {
-                    return setActErr({name: "Invalid Password", message: "Password did not match"});
+                    return setActErr({ name: "Invalid Password", message: "Password did not match" });
                 }
             } else {
                 delete directorUpdateObj.password;
@@ -116,7 +101,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
             }
         } else {
             if (directorState.password !== directorState.confirmPassword) {
-                return setActErr({name: "Invalid Password", message: "Password did not match"});
+                return setActErr({ name: "Invalid Password", message: "Password did not match" });
             }
         }
 
@@ -153,22 +138,32 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
             } else {
                 // Conditionally call updateDirector or registerDirector based on the existence of uploadedLogo.current
                 if (update) {
-
-                    const { data } = await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdateObj } } });
-                    console.log(data);
-                    
+                    await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdateObj } } });
                 } else {
-                    const { data } = await registerDirector({ variables: { args: inputArgs, logo: null } });
+                    await registerDirector({ variables: { args: inputArgs, logo: null } });
+                    // Reset form and state
+                    setDirectorState(initialDirector);
+                    setLdoState(initialLdo);
+                    const formEl = e.target as HTMLFormElement;
+                    formEl.reset();
                 }
-
-                // Reset form and state
-                setDirectorState(initialDirector);
-                setLdoState(initialLdo);
-                const formEl = e.target as HTMLFormElement;
-                formEl.reset();
             }
+            setActErr(null);
+            await client.refetchQueries({
+                include: [GET_LDOS],
+            });
+            if (setAddNetDirector) setAddNetDirector(false);
         } catch (error: any) {
             console.error('Error during GraphQL mutation:', error);
+            if (error && error?.graphQLErrors && error.graphQLErrors?.length && error.graphQLErrors.length > 0) {
+                // Valid error
+                const invalidAuth = error.graphQLErrors.find((e: any) => e && e?.extensions && e.extensions?.response && e.extensions.response.statusCode === 401);
+                if (invalidAuth) {
+                    // Delete cookies and redirect to login page
+                    await Promise.all([removeCookie('token'), removeCookie('info')]);
+                    window.location.href = `${ADMIN_URL}/login`
+                }
+            }
             setActErr(error);
         } finally {
             setIsLoading(false);
@@ -180,17 +175,19 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
         if (prevLdo?.director) setDirectorState(prevLdo.director);
     }, [prevLdo]);
 
+    useEffect(() => {
+        if (error) {
+            setActErr({ name: error.name, message: error.message, main: error })
+        } else if (updateError) {
+            setActErr({ name: updateError.name, message: updateError.message, main: updateError })
+        }
+    }, [error, updateError]);
+
     if (loading) return <Loader />;
 
     return (
         <div>
             {!update ? <h2>Add Director</h2> : <h2>Update Director</h2>}
-
-            {error && <Message error={error} />}
-            {updateError && <Message error={updateError} />}
-            {actErr && <Message error={actErr} />}
-
-
             <form onSubmit={handleDirectorSubmit} className="flex flex-col gap-2">
                 <FileInput defaultValue='' handleFileChange={handleFileChange} name='logo' />
                 <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
@@ -206,7 +203,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading }: DirectorAddProps) {
                 <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
                     defaultValue={directorState.confirmPassword} handleInputChange={handleDirectorChange} />
                 <div className="input-group w-full">
-                    <button className="btn-primary" type="submit">
+                    <button className="btn-info" type="submit">
                         {update ? 'Update' : 'Register'}
                     </button>
                 </div>

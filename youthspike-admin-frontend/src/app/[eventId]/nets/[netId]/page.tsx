@@ -44,7 +44,7 @@ function SingleNet({ params }: INetSingleProps) {
 
 
     return (
-        <div className='SingleNet container px-2 mx-auto'>
+        <div className='SingleNet container px-2 mx-auto min-h-screen'>
             <h1 className='text-center'>Net {currNet?.num}</h1>
             <div className="teams">
                 {currNet.teamA ? <NetTeamCard team={currNet.teamA} teamScore={currNet.teamAScore} /> : <NetTeamCard />}

@@ -40,7 +40,7 @@ function RoundSingle({ params }: IRoundSingleProps) {
     const allNets = data?.getRound?.data?.nets;
 
     return (
-        <div className='RoundSingle container px-2 mx-auto'>
+        <div className='RoundSingle container px-2 mx-auto min-h-screen'>
             <h1>Round {currRound?.num}</h1>
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}

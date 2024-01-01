@@ -5,6 +5,8 @@ import UserProvider, { useUser } from '@/lib/UserProvider';
 import Menu from '@/components/layout/Menu';
 import Footer from '@/components/layout/Footer';
 import './globals.css';
+import { Suspense } from 'react';
+import LoadingPage from './loading';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,17 +21,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
 
-  console.log(process.env.NODE_ENV);
-  
+
 
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-950 text-gray-100`}>
         <ApolloWrapper>
           <UserProvider>
-            <Menu />
-            {children}
-            <Footer />
+            <Suspense fallback={<LoadingPage />}>
+              <Menu />
+              {children}
+              <Footer />
+            </Suspense>
           </UserProvider>
         </ApolloWrapper>
       </body>
