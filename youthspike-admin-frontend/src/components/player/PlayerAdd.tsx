@@ -4,7 +4,7 @@ import { IPlayer, IPlayerAdd } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
 import { IError, IOption } from '@/types';
 import { gql, useMutation } from '@apollo/client';
-import { CREATE_PLAYER, GET_PLAYERS, CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW, UPDATE_PLAYER } from '@/graphql/players';
+import { CREATE_PLAYER, GET_PLAYERS, CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW, UPDATE_PLAYER, GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import EmailInput from '../elements/forms/EmailInput';
 import Link from 'next/link';
 import FileInput from '../elements/forms/FileInput';
@@ -16,6 +16,7 @@ interface IPlayerAddProps {
   update: boolean;
   prevPlayer?: IPlayer | null;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const initialPlayerAdd = {
@@ -28,36 +29,12 @@ const initialPlayerAdd = {
 };
 const eventOption: IOption[] = [{ text: 'Team 1', value: 't1' }, { text: 'Team 2', value: 't2' }];
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer }: IPlayerAddProps) {
+function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer }: IPlayerAddProps) {
   const [actErr, setActErr] = useState<IError | null>(null);
   const [playerAdd, setPlayerAdd] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
-  const [addPlayer, { data }] = useMutation(CREATE_PLAYER, {
-
-    /*
-    update(cache, { data: { createPlayer } }) {
-      console.log({createPlayer});
-      
-      cache.modify({
-        fields: {
-          players(existingPlayers = []) {
-            const newPlayerRef = cache.writeFragment({
-              data: createPlayer.data,
-              fragment: gql`
-                fragment NewPlayer on Player {
-                  id
-                  type
-                }
-                `
-              });
-            return [...existingPlayers, newPlayerRef];
-          }
-        }
-      });
-    }
-    */
-  });
-  const [updatePlayer, { data: puData }] = useMutation(UPDATE_PLAYER);
+  const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
+  const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
 
   const uploadedProfile = useRef<File | null>(null);
 
@@ -104,7 +81,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer }: IPlayerAddProp
           profile: null
         };
         // @ts-ignore
-        if(update) mutationVariables.playerId = prevPlayer?._id;
+        if (update) mutationVariables.playerId = prevPlayer?._id;
         formData.set('operations', JSON.stringify({
           query: update ? UPDATE_PLAYER_RAW : CREATE_PLAYER_RAW,
           variables: mutationVariables,
@@ -129,13 +106,19 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer }: IPlayerAddProp
           playerRes = await addPlayer({ variables: { input: playerAddObj } });
         }
       }
-      if (playerRes && playerRes.data.createPlayer.code === 201) {
+
+      if (update) {
+        mutateClient.refetchQueries({ include: [GET_EVENT_WITH_PLAYERS] });
+      } else {
+        client.refetchQueries({ include: [GET_EVENT_WITH_PLAYERS] });
+      } if (playerRes && playerRes.data.createPlayer.code === 201) {
         setPlayerAdd(initialPlayerAdd);
         const formEl = e.target as HTMLFormElement;
         formEl.reset();
       } else {
         setActErr({ name: playerRes.data.createPlayer.code, message: playerRes.data.createPlayer.message, main: playerRes.data.createPlayer })
       }
+      if (setAddPlayer) setAddPlayer(false);
     } catch (error) {
       console.log(error);
     } finally {

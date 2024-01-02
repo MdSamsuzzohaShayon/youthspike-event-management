@@ -43,7 +43,9 @@ export interface IDirectorItem{
   firstName: string;
   lastName: string;
   email: string;
-  login: {email: string}
+  password: string;
+  event: string | null;
+  captainplayer: string | null;
 }
 
 

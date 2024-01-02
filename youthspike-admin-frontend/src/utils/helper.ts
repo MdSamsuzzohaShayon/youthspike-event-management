@@ -1,6 +1,6 @@
 import { IDefaultEventMatch, IDefaultMatchProps, ITeam } from "@/types";
 
-export function isValidObjectId(docId: string) {
+export function isValidObjectId(docId: string): boolean {
   // Pattern to match a valid ObjectId
   const objectIdPattern = /^[0-9a-fA-F]{24}$/;
 

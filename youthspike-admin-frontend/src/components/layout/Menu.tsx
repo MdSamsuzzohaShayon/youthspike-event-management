@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import MenuItem from './MenuItem';
-import { IUser, UserRole } from '@/types/user';
+import { IUser, IUserContext, UserRole } from '@/types/user';
 import { IMenuItem } from '@/types';
 import { gql, useApolloClient, useLazyQuery, useReadQuery } from '@apollo/client';
 import { GET_LDO } from '@/graphql/director';
@@ -12,6 +12,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Link from 'next/link';
 import { getCookie, removeCookie } from '@/utils/cookie';
+import { isValidObjectId } from '@/utils/helper';
 
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
@@ -119,10 +120,9 @@ function Menu() {
     /**
      * Mount hooks
      */
-    const hasValidUser = () => {
+    const hasValidUser = (): IUserContext => {
         const instantToken = getCookie('token'); // Fetch again
         const instantInfo = getCookie('user');
-        console.log("has effect");
 
         if (instantInfo && instantToken) {
             if (!isAuthenticated) setIsAuthenticated(true);
@@ -134,6 +134,10 @@ function Menu() {
             }
             fetchLDO();
         }
+        return {
+            info: instantInfo ? JSON.parse(instantInfo) : null,
+            token: instantToken ? instantToken : null
+        }
     }
 
     // console.log({data});
@@ -141,28 +145,28 @@ function Menu() {
 
     useEffect(() => {
         // Effect
-        hasValidUser();
+        const userDetail = hasValidUser();
 
+        // Check path has event Id or not
         const pathList = pathname.split('/');
         let eventPath = pathList.length > 0 ? pathList[1] : null;
-        if (eventPath && eventPath.length < 5) eventPath = null;
-        if (eventPath && eventPaths.includes(eventPath)) eventPath = null;
+        let isValidId = eventPath ? isValidObjectId(eventPath) : false;
+        if (eventPath && eventPaths.includes(eventPath)) isValidId = false;
 
-        if (!eventPath || eventPath === '') {
+        if (!eventPath || !isValidId) {
             setEventId(null);
-
-            if (user.info?.role === UserRole.admin) {
+            if (userDetail.info?.role === UserRole.admin) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
-            } else if (user.info?.role === UserRole.captain) {
+            } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
             }
         } else {
             setEventId(eventPath);
-            if (user.info?.role === UserRole.director) {
+            if (userDetail.info?.role === UserRole.director) {
                 setUserMenuList((prevState) => [...prevState.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
-            } else if (user.info?.role === UserRole.captain) {
+            } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList(initialUserMenuList);

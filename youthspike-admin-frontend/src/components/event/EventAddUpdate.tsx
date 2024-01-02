@@ -384,8 +384,8 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <div className="input-group w-full">
                 <button className='border border-gray-300 bg-gray-900 text-gray-300 p-2' type='submit'>Create</button>
             </div> */}
-            <NumberInput required lblTxt='Timeout' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
-            <TextInput handleInputChange={handleInputChange} name='coachPassword' required defaultValue={eventState.coachPassword} />
+            <NumberInput required lblTxt='Sub Clock' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
+            <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required defaultValue={eventState.coachPassword} />
             <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} />
 
             {/* File upload start  */}

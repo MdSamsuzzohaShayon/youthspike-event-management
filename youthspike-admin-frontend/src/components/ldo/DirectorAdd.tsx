@@ -39,16 +39,18 @@ const initialDirector = {
  */
 function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector }: DirectorAddProps) {
 
+    // Hooks
+    const router = useRouter();
+
+    // Local State
     const [directorState, setDirectorState] = useState<IDirector>(prevLdo && prevLdo.director ? prevLdo.director : initialDirector);
     const [ldoState, setLdoState] = useState<ILDO>(prevLdo ? prevLdo : initialLdo);
     const [ldoUpdate, setLdoUpdate] = useState({});
     const [directorUpdate, setDirectorUpdate] = useState<ILdoUpdate>({});
-    const [registerDirector, { loading, error, client }] = useMutation(ADD_DIRECTOR);
-
     const uploadedLogo = useRef<File | null>(null);
-    const router = useRouter();
 
-
+    // Graphql
+    const [registerDirector, { loading, error, client }] = useMutation(ADD_DIRECTOR);
     const [updateDirector, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_DIRECTOR);
 
     /**
@@ -160,7 +162,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
                 const invalidAuth = error.graphQLErrors.find((e: any) => e && e?.extensions && e.extensions?.response && e.extensions.response.statusCode === 401);
                 if (invalidAuth) {
                     // Delete cookies and redirect to login page
-                    await Promise.all([removeCookie('token'), removeCookie('info')]);
+                    await Promise.all([removeCookie('token'), removeCookie('user')]);
                     window.location.href = `${ADMIN_URL}/login`
                 }
             }

@@ -31,23 +31,24 @@ const itemList: IItem[] = [
 
 function EventsPage() {
 
+  // Hooks
   const user = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Local States
   const [filteredItems, setFilteredItems] = useState<IItem[]>([]);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [eventList, setEventList] = useState<IEvent[]>([])
-
-  const filterListEl = useRef<HTMLDialogElement | null>(null);
-
   const [ldoId, setLdoId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
+  const filterListEl = useRef<HTMLDialogElement | null>(null);
 
-  // const [fetchEvents, { loading, error, data: eventsData }] = useLazyQuery(GET_EVENTS);
+  // GraphQL Queries
   const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO);
   const [cloneEvent] = useMutation(CLONE_EVENT);
 
+  // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!filterListEl.current) return;

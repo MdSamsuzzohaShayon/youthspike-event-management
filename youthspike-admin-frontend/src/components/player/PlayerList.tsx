@@ -10,6 +10,7 @@ interface IPlayerListProps {
   teamId: string | null;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   rankControls?: boolean;
+  setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface IPlayerRank {
@@ -17,7 +18,7 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading }] = useMutation(UPDATE_PLAYERS);
 
@@ -32,15 +33,15 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls }:
    * Drag or touch event for players rankings
    */
   const handleDragStart = (index: number) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     dragPI.current = index;
   };
   const handleDragEnter = (index: number) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     dragOverPI.current = index;
   };
   const handleDragEnd = (index: number, playerId: string) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     // Create a new list to submit
     console.log(`Drag start index: ${dragPI.current}, drag over index: ${dragOverPI.current}`);
     let activeList = [...playerActiveClone];
@@ -53,19 +54,20 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls }:
     setPlayerRanking(activeList.map((p, i) => ({ rank: i += 1, _id: p._id })));
     setPlayerActiveClone(activeList);
   };
-  const handleTouchMove=(e: TouchEvent)=>{
-    if(!rankControls) return;
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!rankControls) return;
     e.preventDefault(); // Prevent scrolling
   }
 
   const handleUpdate = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if(!rankControls) return;
+    if (!rankControls) return;
     if (playerRanking.length > 0) {
       try {
         setIsLoading(true)
         // Submit to the server
         await rankPlayers({ variables: { input: playerRanking } });
+        if (setAddPlayer) setAddPlayer(false);
       } catch (error) {
         console.log(error);
 
@@ -83,8 +85,7 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls }:
   }, [playerList]);
 
   return (
-    <div>
-      <h1 className='mb-8'>Players</h1>
+    <div className='mt-2'>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
