@@ -9,6 +9,9 @@ export class CreateTeamInput {
   active: boolean;
 
   @Field()
+  division: string;
+
+  @Field()
   captain?: string;
 
   @Field()

@@ -65,6 +65,7 @@ export class TeamResolver {
           name: input.name,
           captain: input.captain,
           event: input.event,
+          division: input.division,
           active: true,
           players,
           nets: []

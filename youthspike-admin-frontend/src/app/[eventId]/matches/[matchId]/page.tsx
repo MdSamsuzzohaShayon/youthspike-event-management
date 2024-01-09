@@ -45,10 +45,6 @@ function MatchSingle({ params }: MatchSingleProps) {
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
 
-            <p>Teams with captain</p>
-            <p>Rounds</p>
-            <p>Nets</p>
-
             <h1>Update Match</h1>
             <MatchAdd matchData={toMatchDefaultData(matchData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />
 

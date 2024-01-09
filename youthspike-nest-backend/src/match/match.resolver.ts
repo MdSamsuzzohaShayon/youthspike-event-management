@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ConfigService } from '@nestjs/config';
 import { Args, Field, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { EActionProcess, Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
-import { UserService } from 'src/user/user.service';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { MatchService } from './match.service';
@@ -23,7 +21,7 @@ class GetMatchesResponse extends AppResponse<Match[]> {
 
 @ObjectType()
 class GetMatchResponse extends AppResponse<Match> {
-  @Field((type) => Match, { nullable: false })
+  @Field((type) => Match, { nullable: true })
   data?: Match;
 }
 

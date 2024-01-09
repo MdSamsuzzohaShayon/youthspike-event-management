@@ -24,49 +24,59 @@ interface ITeamCaptain extends ITeam {
     captain: IPlayer;
 }
 
+enum EItem{
+    PLAYER = "PLAYER",
+    MATCH = "MATCH",
+    TEAM = "TEAM",
+}
 
 
 function EventDetail({ event }: { event: IEventRelatives }) {
-    const [selectedItem, setSelectedItem] = useState(1);
+    const [selectedItem, setSelectedItem] = useState<EItem>(EItem.PLAYER);
 
     const renderContent = () => {
-        if (selectedItem === 1) {
-            return <PlayerList playerList={event.players} />;
-        } else if (selectedItem === 2) {
-            return <TeamList teamList={event.teams} />;
-        } else {
-            return <MatchList matchList={event.matches} />;
+        switch (selectedItem) {
+            case EItem.PLAYER:
+                return <PlayerList playerList={event.players} />;
+            case EItem.TEAM:
+                return <TeamList teamList={event.teams} />;
+            case EItem.MATCH:
+                return <MatchList matchList={event.matches} />;
+            default:
+                return null;
         }
-    }
+    };
 
-
+    const renderSponsors = () => {
+        return event.sponsors?.map((sponsor, i) => (
+            <AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={i} className="w-20" />
+        ));
+    };
 
     return (
         <div className='w-full'>
-            <h1 className='mb-4'>{event.name}</h1>
+            <h1 className='my-4 text-center'>{event.name}</h1>
             {event?.sponsors && event.sponsors.length > 0 && (
                 <>
                     <h3 className='mb-4'>Sponsors</h3>
                     <div className="sponsors w-full flex items-center justify-between md:justify-start flex-wrap gap-2">
-                        {event.sponsors.map((sponsor, i) => (
-                            <AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={i} className="w-20" />
-                        ))}
+                        {renderSponsors()}
                     </div>
                 </>
             )}
 
-            <div className="players-teams-matches w-full flex justify-between items-center flex-col md:flex-row mt-8 bg-gray-900 px-2">
-                <div className="side-bar w-full md:w-2/6 flex justify-between items-center flex-row md:flex-col flex-wrap mb-2">
-                    <li role="presentation" onClick={() => setSelectedItem(1)} className={`item list-none cursor-pointer p-2 ${selectedItem === 1 ? "font-bold bg-yellow-500" : ""} players`}>Players</li>
-                    <li role="presentation" onClick={() => setSelectedItem(2)} className={`item list-none cursor-pointer p-2 ${selectedItem === 2 ? "font-bold bg-yellow-500" : ""} teams`}>Teams</li>
-                    <li role="presentation" onClick={() => setSelectedItem(3)} className={`item list-none cursor-pointer p-2 ${selectedItem === 3 ? "font-bold bg-yellow-500" : ""} matches`}>Matches</li>
+            <div className="flex flex-col md:flex-row mt-8 bg-gray-900 px-2">
+                <div className="side-bar sticky top-0 w-full md:w-2/6 flex flex-row md:flex-col flex-wrap mb-2">
+                    <li role="presentation" onClick={() => setSelectedItem(EItem.PLAYER)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.PLAYER ? "font-bold bg-yellow-500" : ""}`}>Players</li>
+                    <li role="presentation" onClick={() => setSelectedItem(EItem.TEAM)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? "font-bold bg-yellow-500" : ""}`}>Teams</li>
+                    <li role="presentation" onClick={() => setSelectedItem(EItem.MATCH)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.MATCH ? "font-bold bg-yellow-500" : ""}`}>Matches</li>
                 </div>
-                <div className="Content w-full md:w-4/6">
-                    {event && renderContent()}
+                <div className="content w-full md:w-4/6">
+                    {renderContent()}
                 </div>
             </div>
         </div>
     );
 }
 
-export default EventDetail
+export default EventDetail;

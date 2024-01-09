@@ -35,12 +35,14 @@ enum EActionProcess {
   CHECKIN
   PLACING
   LINEUP
+  LOCKED
 }
 
 type Team {
   _id: String
   name: String!
   active: Boolean!
+  division: String!
   captain: Player
   match: Match
   event: Event!
@@ -74,14 +76,13 @@ type Room {
 
 type Match {
   _id: String
+  date: String!
   event: Event!
-  date: Date!
   nets: [Net!]!
   rounds: [Round!]!
   teamA: Team
   teamB: Team
   room: Room
-  netRange: Int!
   divisions: String!
   numberOfNets: Int!
   numberOfRounds: Int!
@@ -250,7 +251,7 @@ type GetMatchResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: Match!
+  data: Match
 }
 
 type CreateOrUpdateRoundResponse {
@@ -416,6 +417,7 @@ input UpdateEventInput {
 input CreateTeamInput {
   name: String!
   active: Boolean!
+  division: String!
   captain: String!
   event: String!
   players: [ID!]
@@ -424,6 +426,7 @@ input CreateTeamInput {
 input UpdateTeamInput {
   name: String
   active: Boolean
+  division: String
   captain: String
   event: String
   players: [ID!]
@@ -431,8 +434,7 @@ input UpdateTeamInput {
 
 input CreateMatchInput {
   event: String!
-  date: DateTime!
-  netRange: Float!
+  date: String!
   teamA: String
   teamB: String
   divisions: String
@@ -449,15 +451,9 @@ input CreateMatchInput {
   location: String!
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 input UpdateMatchInput {
   event: String
-  date: DateTime
-  netRange: Float
+  date: String
   teamA: String
   teamB: String
   divisions: String

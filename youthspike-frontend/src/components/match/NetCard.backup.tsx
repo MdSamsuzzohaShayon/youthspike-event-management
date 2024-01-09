@@ -114,12 +114,15 @@ function NetCard({ net }: INetProps) {
     }
     dispatch(updateNetPlayer(netPlayerObj));
     dispatch(setUpdateNetTeam(netPlayerObj));
+
   };
 
-  const handleDropdownPlayer = (e: React.SyntheticEvent, teamPlayer: number) => {
+  const handleDropdownPlayer = (e:React.SyntheticEvent,  teamPlayer: number) => {
     e.preventDefault();
     if (!user.token || !user.info) return;
-    if (teamPlayer === 1 || teamPlayer === 2) return;
+    if(user.info.captainplayer === teamA?.captain?._id){
+
+    }
 
     setDropDown(true);
     setTeamPlayerNum(teamPlayer);
@@ -132,9 +135,9 @@ function NetCard({ net }: INetProps) {
 
     let playerIds: string[] = [];
     if (teamPlayer === 1 || teamPlayer === 2) {
-      playerIds = opPlayers.map((p) => p._id);
+      playerIds = teamAPlayers.map((p) => p._id);
     } else if (teamPlayer === 3 || teamPlayer === 4) {
-      playerIds = myPlayers.map((p) => p._id);
+      playerIds = teamBPlayers.map((p) => p._id);
     }
     setAvailablePlayerIds(playerIds);
   };
@@ -187,17 +190,13 @@ function NetCard({ net }: INetProps) {
 
   useEffect(() => {
     if (!teamAPlayers || !teamBPlayers || !user) return;
-    if (user.info && user.info.captainplayer === teamA?.captain?._id) {
-      // setMyTeam({...teamA});
-      // setOpTeam({...teamB});
-      setMyPlayers([...teamAPlayers]);
-      setOpPlayers([...teamBPlayers]);
-    } else {
-      // setMyTeam({...teamB});
-      // setOpTeam({...teamA});
-      setMyPlayers([...teamBPlayers]);
-      setOpPlayers([...teamAPlayers]);
-    }
+    // if (user.info && user.info.captainplayer === teamA?.captain?._id){
+    //   setMyTeam({...teamA});
+    //   setOpTeam({...teamB});
+    // }else{
+    //   setMyTeam({...teamB});
+    //   setOpTeam({...teamA});
+    // }
   }, [teamAPlayers, teamBPlayers, user]);
 
   /**
@@ -254,7 +253,7 @@ function NetCard({ net }: INetProps) {
       <div className={`drop-down-select h-full w-full overflow-y-scroll absolute top-0 left-0 text-gray-900 bg-gray-100 z-20 ${drapDown ? '' : 'hidden'}`}>{renderPlayers()}</div>
       {/* Net top section start  */}
       <div className="net-top h-60 w-full bg-gray-900 text-gray-100 px-2 text-center flex flex-col items-center justify-start">
-        {/* <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p> */}
+        <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p>
         <div className="player-pair flex justify-between w-full">
           <div className="player-card team-a-player-1 w-16">
             <PlayerScoreCard dark teamPlayer={TAPA} player={matchTPlayer(TAPA)} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
@@ -265,11 +264,11 @@ function NetCard({ net }: INetProps) {
         </div>
         <h3>Pair Score 5</h3>
       </div>
+
       {/* Net top section end  */}
-
       <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} />
-
       {/* Net bottom section start  */}
+
       <div className="net-bottom h-60 w-full border border-gray-900 px-2 text-center flex flex-col items-center justify-end">
         <h3>Pair Score 5</h3>
         <div className="player-pair flex justify-between w-full">
@@ -284,7 +283,7 @@ function NetCard({ net }: INetProps) {
           <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
           {openPasControl && (
             <ul className="player-select-strategy bg-gray-800 w-24 absolute bottom-6 inset-x-0" style={{ left: '50%', transform: 'translate(-50%)' }} >
-              {playerAssignStrategies.map((pas) => (
+              {playerAssignStrategies.map(pas => (
                 <li className='p-2 border-b border-yellow-500 capitalize' key={pas} role="presentation" onClick={e => handlePASSelect(e, pas)} >{pas}</li>
               ))}
             </ul>

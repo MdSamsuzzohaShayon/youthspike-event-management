@@ -125,7 +125,7 @@ function Menu() {
         const instantInfo = getCookie('user');
 
         if (instantInfo && instantToken) {
-            if (!isAuthenticated) setIsAuthenticated(true);
+            if (!isAuthenticated) setIsAuthenticated(true); // 
             if (instantToken) {
                 setUser((prevState) => ({ ...prevState, token: instantToken }))
             }
@@ -194,15 +194,14 @@ function Menu() {
     return (
         <div className='container px-2 mx-auto'>
             {isAuthenticated && (
-                <button onClick={openMenuHandler} className='menu-button block md:hidden'>
+                <button onClick={openMenuHandler} className='menu-button'>
                     <img src='/icons/menu.svg' className='w-10 mt-4 svg-white' alt='menu' />
                 </button>
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-700 w-5/6 absolute h-full top-0 left-0 z-20 p-4">
+                <div className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4">
                     <div className="w-full flex justify-end items-center">
-
                         {user && user.info && (
                             <button onClick={closeMenuHandler} className='close-button'>
                                 <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />

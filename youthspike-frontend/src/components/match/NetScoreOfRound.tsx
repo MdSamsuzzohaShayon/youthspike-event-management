@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -12,6 +12,8 @@ import { screen } from '@/utils/constant';
 import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
+import { ITeam } from '@/types';
+import { useUser } from '@/lib/UserProvider';
 
 
 function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
@@ -19,9 +21,12 @@ function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
    * Display specific selected net in mobile screen
    * Display multiple nets with slider
    */
+  // Hooks
+  const user = useUser();
 
   // Redux
   const dispatch = useAppDispatch();
+
   const allNets = useAppSelector((state) => state.nets.nets);
   const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
@@ -29,9 +34,12 @@ function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
   const roundList = useAppSelector((state) => state.rounds.roundList);
   const teamA = useAppSelector((state) => state.teams.teamA);
   const teamB = useAppSelector((state) => state.teams.teamB);
+  const {myTeam, opTeam} = useAppSelector((state) => state.matches);
 
+  // Local State
   const dialogSettingEl = useRef<HTMLDialogElement | null>(null);
 
+  // Handle events
   const handleSettingOpen = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!dialogSettingEl.current) return;
@@ -55,7 +63,7 @@ function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
       {/* Left side round detail start  */}
       <div className="round-detail w-3/6" style={{ height: '30rem' }}>
         <div className="round-top h-3/6 w-full bg-gray-900 text-gray-100 px-2 flex flex-col items-center justify-around">
-          <LogoMatchScore dark team={teamA} />
+          <LogoMatchScore dark team={opTeam} />
 
           <div className="round-nums mt-4 flex w-full justify-between items-center">
             {roundList.map((round) => (
@@ -68,7 +76,7 @@ function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
         </div>
         <div className="round-bottom h-3/6 w-full border border-gray-900 px-2 flex flex-col items-center justify-around">
           <PointsByRound roundList={roundList} dark={false} />
-          <LogoMatchScore dark={false} team={teamB} />
+          <LogoMatchScore dark={false} team={myTeam} />
         </div>
       </div>
       {/* Left side round detail end  */}

@@ -7,6 +7,7 @@ import eventSlice from './slices/eventSlice';
 import roundSlice from './slices/roundSlice';
 import netSlice from './slices/netSlice';
 import elementSlice from './slices/elementSlice';
+import roomSlice from './slices/roomSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     events: eventSlice,
     rounds: roundSlice,
     nets: netSlice,
+    rooms: roomSlice,
     elements: elementSlice
   },
 });

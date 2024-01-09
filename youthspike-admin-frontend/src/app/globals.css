@@ -122,6 +122,26 @@ dialog::backdrop {
   @apply border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center;
 }
 
+/* Default styles for the input */
+.datetime-input {
+  /* Add any other styles you want for the input */
+}
+
+/* Change the color of the calendar icon inside the input */
+.datetime-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Change the color of the clock icon inside the input (for Firefox) */
+.datetime-input::-moz-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Change the color of the clock icon inside the input (for Edge) */
+.datetime-input::-ms-clear {
+  filter: invert(1);
+}
+
 /* Loading animation  */
 @keyframes spin {
   to {

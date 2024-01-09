@@ -8,7 +8,7 @@ import NumberInput from '../elements/forms/NumberInput';
 import SelectInput from '../elements/forms/SelectInput';
 import staticData from '../../lib/data.json';
 import ToggleInput from '../elements/forms/ToggleInput';
-import { CREATE_MATCH, UPDATE_MATCH } from '@/graphql/matches';
+import { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, UPDATE_MATCH } from '@/graphql/matches';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -21,13 +21,13 @@ interface IMatchAddProps {
     matchData: IMatchTeams | null;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
 const initialAddMatch = {
-    date: new Date(),
+    date: new Date().toISOString(),
     event: "",
-    netRange: 5,
     location: "",
     numberOfNets: 0,
     numberOfRounds: 0,
@@ -39,13 +39,16 @@ const initialAddMatch = {
 }
 
 
-function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId }: IMatchAddProps) {
+function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId, showAddMatch }: IMatchAddProps) {
     const { homeTeamStrategy, assignLogicList, rosterLockList } = staticData;
 
+    // Local State
     const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
     const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
-    const [createMatch] = useMutation(CREATE_MATCH);
-    const [mutateMatch] = useMutation(UPDATE_MATCH)
+
+    // GraphQL
+    const [createMatch, {client}] = useMutation(CREATE_MATCH);
+    const [mutateMatch, {client: updateClient}] = useMutation(UPDATE_MATCH)
 
     /**
      * Input change
@@ -101,17 +104,24 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
             let matchRes = null;
             if (update) {
                 const updateMatchObj = { ...updateMatch, event: eventId };
+                if (updateMatchObj.date) {
+                    updateMatchObj.date = new Date(updateMatchObj.date).toISOString();
+                }
                 if (Object.entries(updateMatchObj).length <= 1) return setIsLoading(false); // Do not allow to update empty object
                 // @ts-ignore
                 if (updateMatchObj.teams) delete updateMatchObj.teams;
                 matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
+                await updateClient.refetchQueries({include: [GET_EVENT_WITH_MATCHES_TEAMS]});
             } else {
                 const addMatchObj = { ...addMatch, event: eventId };
+                addMatchObj.date = new Date(addMatchObj.date).toISOString();
                 if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ name: 'Invalid Teams', message: 'Teams can not be empty to unselected!' })
                 // @ts-ignore
                 if (addMatchObj.teams) delete addMatchObj.teams;
                 matchRes = await createMatch({ variables: { input: addMatchObj } });
+                await client.refetchQueries({include: [GET_EVENT_WITH_MATCHES_TEAMS]});
             }
+            if (showAddMatch) showAddMatch(false);
         } catch (error) {
             console.log(error);
         } finally {
@@ -141,7 +151,7 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
         return options;
     }
 
-    useEffect(() => {        
+    useEffect(() => {
         if (matchData) {
             setAddMatch((prevState) => ({
                 ...prevState,
@@ -153,29 +163,28 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
     const teams = matchData?.teams;
 
     return (
-        <form onSubmit={handleAddMatch}>
-            <DateInput handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical />
-            <NumberInput required={!update} lblTxt='Net Range' name='netRange' defaultValue={addMatch.netRange} handleInputChange={handleNumInputChange} vertical />
+        <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
+            <DateInput handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
 
             {!update && (<>
-                <SelectInput name='teamA' optionList={showTeamList(teams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical />
-                <SelectInput name='teamB' optionList={showTeamList(teams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical />
+                <SelectInput name='teamA' optionList={showTeamList(teams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
+                <SelectInput name='teamB' optionList={showTeamList(teams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
             </>)}
 
-            <h3>Default settings</h3>
-            <SelectInput name='divisions' optionList={showDivisionList(addMatch.divisions)} handleSelect={handleSelectChange} defaultValue={addMatch.divisions} vertical />
-            <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical />
-            <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical />
-            <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical />
-            <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical />
+            <h3 className='w-full'>Default settings</h3>
+            <SelectInput name='divisions' optionList={showDivisionList(addMatch.divisions)} handleSelect={handleSelectChange} defaultValue={addMatch.divisions} vertical extraCls='md:w-5/12' />
+            <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
+            <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
+            <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
+            <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
-                name="autoAssign" lw='w-3/6' />
-            <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
-            <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
-            <NumberInput required={!update} lblTxt='Timeout' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical />
-            <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required={!update} defaultValue={addMatch.coachPassword} vertical />
-            <TextInput handleInputChange={handleInputChange} name='location' required={!update} defaultValue={addMatch.location} vertical />
-            <button className="btn-secondary mt-4">{update ? 'Update': 'Add'}</button>
+                name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
+            <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
+            <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required={!update} defaultValue={addMatch.coachPassword} vertical extraCls='md:w-5/12' />
+            <TextInput handleInputChange={handleInputChange} name='location' required={!update} defaultValue={addMatch.location} vertical extraCls='md:w-5/12' />
+            <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
         </form>
     )
 }

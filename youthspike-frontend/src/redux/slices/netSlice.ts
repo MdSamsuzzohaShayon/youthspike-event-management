@@ -2,12 +2,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { INetBase, IPlayer } from '@/types';
 import { INetPlayers, INetRelatives } from '@/types/net';
+import { ETeam } from '@/types/team';
 
 interface INetState {
   nets: INetRelatives[];
   currentRoundNets: INetRelatives[];
   currNetNum: number;
   updateTeam: INetPlayers;
+}
+
+interface INetScore {
+  netId: string; teamScore: number; teamAorB: string;
 }
 
 const initialState: INetState = {
@@ -62,6 +67,19 @@ const netSlice = createSlice({
         }
       }
     },
+    updateNetScore: (state, action: PayloadAction<INetScore>) => {
+      const netIndex = state.nets.findIndex((n) => n._id === action.payload.netId);
+      if(!netIndex) return;
+
+      const prevNet = structuredClone(state.nets[netIndex]);
+      if(action.payload.teamAorB === ETeam.teamA){
+        prevNet.teamAScore = action.payload.teamScore;
+        state.nets[netIndex] = prevNet;
+      }else if(action.payload.teamAorB === ETeam.teamB){
+        prevNet.teamBScore = action.payload.teamScore;
+        state.nets[netIndex] = prevNet;
+      }
+    },
 
     // Unused
     setNetPlayers: (state, action: PayloadAction<INetRelatives[]>) => {
@@ -74,5 +92,5 @@ const netSlice = createSlice({
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setNetPlayers, setUpdateNetTeam } = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setNetPlayers, setUpdateNetTeam, updateNetScore } = netSlice.actions;
 export default netSlice.reducer;

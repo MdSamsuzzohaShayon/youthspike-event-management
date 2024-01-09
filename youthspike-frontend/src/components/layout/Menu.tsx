@@ -154,7 +154,7 @@ function Menu() {
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-950 text-gray-100 w-5/6 absolute h-full top-0 left-0 z-20 p-4">
+                <div className="menu-content bg-gray-950 text-gray-100 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4">
                     <div className="w-full flex justify-end items-center">
 
                         {user && user.info && (

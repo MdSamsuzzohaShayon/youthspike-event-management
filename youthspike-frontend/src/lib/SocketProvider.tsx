@@ -16,7 +16,7 @@ export function useSocket() {
 // Provider
 function SocketProvider({ children }: React.PropsWithChildren) {
   const [socket, setSocket] = React.useState<any | null>(null);
-
+  
   React.useEffect(() => {    
     setSocket(io(SOCKET_URL));
   }, []);

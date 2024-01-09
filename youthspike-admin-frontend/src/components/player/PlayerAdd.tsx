@@ -129,14 +129,13 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer }: 
 
 
   return (
-    <form onSubmit={handleAddPlayer}>
-      <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} />
-      <TextInput name='firstName' lblTxt='First Name' defaultValue={prevPlayer?.firstName} handleInputChange={handleInputChange} required={!update} vertical />
-      <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical />
-      <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical />
-      {/* <NumberInput name='rank' defaultValue={playerAdd.rank ? playerAdd.rank : null} handleInputChange={handleInputChange} lw="w-full" rw="w-full" required={!update} vertical /> */}
-      <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical />
-      <Link className='underline underline-offset-8' href={`/${eventId}/teams/new`}>Create Team!</Link>
+    <form onSubmit={handleAddPlayer} className='flex justify-between items-center flex-wrap'>
+      <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
+      <TextInput name='firstName' lblTxt='First Name' defaultValue={prevPlayer?.firstName} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
+      <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
+      <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
+      <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical  extraCls='md:w-5/12' />
+      <Link className='underline underline-offset-8 w-full mt-4' href={`/${eventId}/teams/new`}>Create Team!</Link>
       <div className="input-group w-full">
         <button type="submit" className='btn-secondary mt-8'>Submit</button>
       </div>

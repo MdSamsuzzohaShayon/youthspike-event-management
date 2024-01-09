@@ -2,7 +2,11 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
-import { JoinRoomInput } from './gateway.input';
+import { CheckInInput, JoinRoomInput, SubmitLineupInput, } from './gateway.input';
+import { Field, ObjectType } from '@nestjs/graphql';
+import { RoundService } from 'src/round/round.service';
+import { EActionProcess } from 'src/round/round.schema';
+import { NetService } from 'src/net/net.service';
 
 // @WebSocketGateway({
 //     cors: {
@@ -10,14 +14,44 @@ import { JoinRoomInput } from './gateway.input';
 //     }
 // })
 
+@ObjectType()
+class RoomLocal {
+  @Field({ nullable: false })
+  _id: string;
+
+  @Field({ nullable: false })
+  match: string;
+
+  @Field({ nullable: false })
+  round: string;
+
+  @Field({ nullable: true })
+  teamA: null | string;
+
+  @Field({ nullable: true })
+  teamAClient: null | string;
+
+  @Field({ nullable: true })
+  teamAProcess: null | EActionProcess;
+
+  @Field({ nullable: true })
+  teamB: null | string;
+
+  @Field({ nullable: true })
+  teamBClient: null | string;
+
+  @Field({ nullable: true })
+  teamBProcess: null | EActionProcess;
+}
+
 @WebSocketGateway({ cors: true, namespace: "websocket" })
 export class MyGatWay implements OnModuleInit {
   @WebSocketServer()
   server: Server;
 
-  private roomsLocal = new Map<string, string>(); // Map to store room information
+  private roomsLocal = new Map<string, RoomLocal>(); // Map to store room information
 
-  constructor(private readonly roomService: RoomService) { }
+  constructor(private readonly roomService: RoomService, private readonly roundService: RoundService, private readonly netService: NetService) { }
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
@@ -33,16 +67,16 @@ export class MyGatWay implements OnModuleInit {
 
     // Remove the team from all rooms
     for (const [rk, rv] of this.roomsLocal) {
-      const roomData = { ...JSON.parse(rv) };
+      const roomData = { ...rv };
       if (roomData.teamAClient === client.id) {
         roomData.teamA = null;
         roomData.teamAClient = null;
-        this.roomsLocal.set(rk, JSON.stringify(roomData));
+        this.roomsLocal.set(rk, roomData);
       }
       if (roomData.teamBClient === client.id) {
         roomData.teamB = null;
         roomData.teamBClient = null;
-        this.roomsLocal.set(rk, JSON.stringify(roomData));
+        this.roomsLocal.set(rk, roomData);
       }
     }
   }
@@ -61,15 +95,21 @@ export class MyGatWay implements OnModuleInit {
      * Update room socket ID if necessary
      */
     const roomExist = await this.roomService.findOne({ match: joinData.match, $or: [{ teamA: joinData.team }, { teamB: joinData.team },] });
-    if (!roomExist) return;
+    const roundExist = await this.roundService.findById(joinData.round);
+    
+    if (!roomExist || !roundExist) return;
 
     client.join(roomExist._id.toString());
     let roomData = {
-      match: roomExist.match,
-      teamA: null,
+      _id: roomExist._id.toString(),
+      match: roomExist.match.toString(),
+      round: joinData.round,
+      teamA: roomExist.teamA.toString(),
       teamAClient: null,
-      teamB: null,
+      teamAProcess: roundExist.teamAProcess,
+      teamB: roomExist.teamB.toString(),
       teamBClient: null,
+      teamBProcess: roundExist.teamBProcess,
     };
 
     // Set room data initially
@@ -81,23 +121,82 @@ export class MyGatWay implements OnModuleInit {
 
     if (!this.roomsLocal.has(roomExist._id.toString())) {
       // Create new room
-      this.roomsLocal.set(roomExist._id.toString(), JSON.stringify(roomData))
+      this.roomsLocal.set(roomExist._id.toString(), roomData)
     } else {
       // Update existing room
-      const prevRoom = JSON.parse(this.roomsLocal.get(roomExist._id.toString()));
+      const prevRoom = this.roomsLocal.get(roomExist._id.toString());
       roomData = { ...prevRoom };
-      if (!roomData.teamA && joinData.team === roomExist.teamA.toString()) {
+      if (joinData.team === roomExist.teamA.toString()) {
         roomData.teamA = roomExist.teamA.toString();
         roomData.teamAClient = client.id;
-      } else if (!roomData.teamB && joinData.team === roomExist.teamB.toString()) {
+      } else if (joinData.team === roomExist.teamB.toString()) {
         roomData.teamB = roomExist.teamB.toString();
         roomData.teamBClient = client.id;
       }
-      this.roomsLocal.set(roomExist._id.toString(), JSON.stringify(roomData))
+      this.roomsLocal.set(roomExist._id.toString(), roomData)
     }
 
     console.log(this.roomsLocal);
     client.emit('join-room-response', roomData);
+    // client.to(roomExist._id.toString()).emit('join-room-response', roomData);
+  }
+
+  @SubscribeMessage('check-in-from-client')
+  async onCheckIn(client, checkIn: CheckInInput) {
+    /**
+     * Find room from database by match
+     * Find room from local map
+     * Update process
+     */
+    const prevRoom = this.roomsLocal.get(checkIn.room);
+    if (!prevRoom) return;
+    let roomData = { ...prevRoom };
+    console.log({ ta: prevRoom.teamAClient === client.id, tb: prevRoom.teamBClient === client.id });
+
+    if (prevRoom.teamAClient === client.id) {
+      roomData.teamAProcess = EActionProcess.CHECKIN;
+    } else {
+      roomData.teamBProcess = EActionProcess.CHECKIN;
+    }
+    this.roomsLocal.set(checkIn.room, roomData)
+
+    // client.emit('check-in-response', roomData); // Send message to everyone 
+    client.to(prevRoom._id).emit('check-in-response', roomData);
+  }
+
+  @SubscribeMessage('submit-lineup-from-client')
+  async onSubmitLineup(client, submitLineup: SubmitLineupInput) {
+    /**
+     * Find round from the database and update round
+     * Find room from local map
+     * Update process in the round to lock it if both team submit their players
+     */
+    const prevRoom = this.roomsLocal.get(submitLineup.room);
+    if (!prevRoom) return;
+    let roomData = { ...prevRoom };
+    if (prevRoom.teamAClient === client.id) {
+      roomData.teamAProcess = EActionProcess.LINEUP;
+    } else {
+      roomData.teamBProcess = EActionProcess.LINEUP;
+    }
+
+    const updatePromises = [];
+    if (roomData.teamAProcess === EActionProcess.LINEUP && roomData.teamBProcess === EActionProcess.LINEUP) {
+      updatePromises.push(this.roundService.update({ teamAProcess: EActionProcess.LOCKED, teamBProcess: EActionProcess.LOCKED }, submitLineup.round));
+    }
+    for (const n of submitLineup.nets) {
+      updatePromises.push(this.netService.update({
+        teamAPlayerA: n.teamAPlayerA,
+        teamAPlayerB: n.teamAPlayerB,
+        teamBPlayerA: n.teamBPlayerA,
+        teamBPlayerB: n.teamBPlayerB,
+      }, n._id));
+    }
+    // await Promise.all(updatePromises);
+    console.log("Submit lineup ->", submitLineup);
+
+    this.roomsLocal.set(submitLineup.room, roomData);
+    client.to(prevRoom._id).emit('submit-lineup-response', roomData);
   }
 
 

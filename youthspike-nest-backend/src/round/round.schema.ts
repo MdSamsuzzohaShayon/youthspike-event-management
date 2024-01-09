@@ -12,6 +12,7 @@ export enum EActionProcess {
   CHECKIN = 'CHECKIN',
   PLACING = 'PLACING',
   LINEUP = 'LINEUP',
+  LOCKED = 'LOCKED',
 };
 
 registerEnumType(EActionProcess, {

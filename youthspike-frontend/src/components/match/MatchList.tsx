@@ -12,6 +12,8 @@ interface IMatchCaptain extends IMatchExpRel{
 }
 
 function MatchList({ matchList }: { matchList?: IMatchCaptain[] }) {
+  console.log(matchList);
+  
   return (
     <div className='matchList flex flex-col gap-1'>
       {matchList && matchList.length > 0 && (matchList.map((match, i) => (<MatchCard match={match} key={i} />)))}

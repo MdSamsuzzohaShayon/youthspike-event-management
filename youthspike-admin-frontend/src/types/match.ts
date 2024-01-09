@@ -19,9 +19,8 @@ export interface IDefaultMatchProps extends IDefaultMatch {
 
 
 interface IMatchBase extends Partial<IDefaultMatchProps>{
-  date: Date;
+  date: string;
   event: string;
-  netRange: number;
 }
 
 export interface IAddMatch extends IMatchBase{

@@ -33,7 +33,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const players = data?.getEvent?.data?.players ? data.getEvent.data.players : [];
 
   return (
-    <div className='contaimer mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-2 min-h-screen'>
       <h1 className='mt-4 text-center'>Players</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}

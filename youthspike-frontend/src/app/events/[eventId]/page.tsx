@@ -1,7 +1,7 @@
 'use client'
 import Loader from '@/components/elements/Loader';
 import EventDetail from '@/components/event/EventDetail';
-import { GET_A_EVENT } from '@/graphql/event';
+import { GET_AN_EVENT } from '@/graphql/event';
 import { IError } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery } from '@apollo/client';
@@ -14,7 +14,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
   /**
    * Read query from cache or fetch data from server
    */
-  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
+  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_AN_EVENT, { variables: { eventId: params.eventId } });
 
   useEffect(() => {
     if (params.eventId) {
@@ -31,7 +31,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
   const prevEvent = data?.getEvent?.data;
 
   return (
-    <div className='container mx-auto px-2'>
+    <div className='container mx-auto px-2 min-h-screen'>
       {prevEvent && <EventDetail event={prevEvent} />}
     </div>
   )

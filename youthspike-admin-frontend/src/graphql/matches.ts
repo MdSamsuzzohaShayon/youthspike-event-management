@@ -43,7 +43,6 @@ rounds {
 
 const matchResponse = `
     _id
-    netRange
 
     divisions
     numberOfNets

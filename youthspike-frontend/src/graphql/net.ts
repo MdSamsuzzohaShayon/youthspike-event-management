@@ -12,6 +12,10 @@ mutation UpdateNet($input: UpdateNetInput!, $netId: String!) {
         teamAPlayerB
         teamBPlayerA
         teamBPlayerB
+        num
+        pairRange
+        teamAScore
+        teamBScore
       }
     }
   }

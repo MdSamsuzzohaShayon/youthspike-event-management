@@ -67,6 +67,10 @@ ___
  - ✅✅ Player will be seperate from user
  - ✅✅ A captain can be a player and user so that he can login
  - ✅✅ Import players from excel file
+ - Import players from excel file should have a confirmation message
+ - Player edit -> team needs to be edited properly
+ - Inactive player will have no rank -> Ranking system won't work on inactive players
+ - If there is a team of player create the team for him as well on the import of players file
  - [Exports players](https://www.loom.com/share/835208d304cf48ec9f951e42f198d10e) from __manager.leagueapps.com__ and import that into this program
  - ✅✅ *All players will be in the event. Moreover, any team can assign any player. Or director will assign players to a team*
  - Make player leave of or inavtive in the match day
@@ -98,13 +102,16 @@ ___
  - ✅✅ Upload sponsors logo and all images to Cloudinary
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
+ - Select division properly - teams are assigned by divisions
+ - Division on a match [12:12](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
+ - Net range is same as net variance, therefore, delete one of them
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
 
  - **Captain**
  - ✅✅ Coach/Captain can login and change profile picture
  - ✅✅ Captain setting
  - Coach/Captain can change 4 digit passcode
- - When someone login as captain he can only see teams and matches of different events since a player can be in diffrent event
+ - ✅✅  When someone login as captain he can only see teams and matches of different events since a player can be in diffrent event
  - Set default password for all captains and they can change their password later on
  - Send welcome email to all of our captains
  - ✅✅ From a single match -> login as captain
@@ -112,15 +119,18 @@ ___
  
  - **Event**
  - ✅✅ League director can change anything in his event
- - Getting error with updating event
- - Add Name of the sponsors
+ - ✅✅ Getting error with updating event
+ - ✅✅ Add Name of the sponsors
+ - Add location, date, and logo properly
 
  - **Match**
- - For a new match there will be whole new setup  (rounds, nets, etc)
- - Database modeling *round, match, and net* make relationship properly
- - Get all the defaults values from the event in order to create a new match
- - Update match
- - Matches page -> pair limit does not work -> 
+ - ✅✅ For a new match there will be whole new setup  (rounds, nets, etc)
+ - ✅✅ Database modeling *round, match, and net* make relationship properly
+ - ✅✅ Get all the defaults values from the event in order to create a new match
+ - ✅✅ Update match
+ - Instead of timeout call it sub clock from match setting [13:20](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
+ - Coach password and Location should not be in the match setting
+ - Currently captain is able to create a match that should not be -> only LDO can create a match
  - Pair score is combine ranking of two players. [04:00 exlain new varience](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), net verience means if a team has pair score of 9 and they submit their lineup, the other team can only assign player that does not exceed a limit as pair score, in this case it is 6 to 12 (pair score).
  - Create pair -> there is a limit in pair score -> If someone is added make sure a list of player with whom the pair score limit does not exceed.
  - Start match should not be there -> Instead when both coach appear there will be a clock to start
@@ -130,15 +140,13 @@ ___
  - **Match**
  - First team will assign players (and click on submit lineup)
  - Captain will not see other team's action box but he can see rosters of other team
- - There is a action flow to explain boxes
 
 ___
  - **Single Match (public)**
  - Create a setting option
- - Create swap net no touch event
+ - Create swap net on touch event -> Need to work properly
  - Players need to be assign within 3 minutes or less
  - Work with user authentication - https://www.apollographql.com/docs/react/networking/authentication/#header
- - Submit lineup
  - On click of empty player (player placeholder) a list of players will appear, (name, record). On the second box only appear those players who can pair up with the first.
  - Add an action button in the place of submit lineup. Are all of your players there **check in**. Both caption will have this option [action box sequences T-14:00](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
  - Both team captains need to check in whatever team assign first then he will send a pop up box and other team will accept and the clock start
@@ -158,9 +166,13 @@ ___
  - **Team**
  - add team then -> add coach -> (step by step)
  - There will be a setting button to make some setting
+ - Add search function for player when creating a new team
  - A coach and make a team with all players of a league
  - Players page -> do not make filter -> Insteand just select team to see the team
  - In teams section, There are many leagues, and coaches, if you do not want to use filter how do you want to find teams (any plan for this)?
+ - Team logo need to be muteable
+ - First of all, it will show all the all unassigned players to create a team, then it will show players who had been assigned. If I select an assigned players the player will be moved from previous to to current team. [06:00](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
+ - No division selection on team edit page, move team will have option for division selection.
 
 
  - __Calculating__ score

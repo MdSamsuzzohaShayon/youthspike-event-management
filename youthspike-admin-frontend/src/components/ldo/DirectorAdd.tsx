@@ -190,21 +190,21 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
     return (
         <div>
             {!update ? <h2>Add Director</h2> : <h2>Update Director</h2>}
-            <form onSubmit={handleDirectorSubmit} className="flex flex-col gap-2">
-                <FileInput defaultValue='' handleFileChange={handleFileChange} name='logo' />
+            <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
+                <FileInput defaultValue='' handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12' />
                 <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
-                    defaultValue={ldoState.name} handleInputChange={handleLdoChange} />
+                    defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
                 <TextInput vertical name='firstName' required={!update} lblTxt='First Name'
-                    defaultValue={directorState.firstName} handleInputChange={handleDirectorChange} />
+                    defaultValue={directorState.firstName} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
                 <TextInput vertical name='lastName' required={!update} lblTxt='Last Name'
-                    defaultValue={directorState.lastName} handleInputChange={handleDirectorChange} />
+                    defaultValue={directorState.lastName} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
                 <EmailInput vertical name='email' required={!update} lblTxt='Email'
-                    defaultValue={directorState.email} handleInputChange={handleDirectorChange} />
+                    defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
                 <PasswordInput vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
-                    defaultValue={directorState.password} handleInputChange={handleDirectorChange} />
+                    defaultValue={directorState.password} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
                 <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
-                    defaultValue={directorState.confirmPassword} handleInputChange={handleDirectorChange} />
-                <div className="input-group w-full">
+                    defaultValue={directorState.confirmPassword} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+                <div className="input-group w-full mt-4">
                     <button className="btn-info" type="submit">
                         {update ? 'Update' : 'Register'}
                     </button>

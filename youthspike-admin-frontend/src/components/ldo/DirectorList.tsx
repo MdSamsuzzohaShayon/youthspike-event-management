@@ -10,26 +10,23 @@ import DirectorRow from './DirectorRow';
 function DirectorList({ ldoList }: { ldoList: ILDOItem[] }) {
 
     return (
-        <div>
-            <h2>Direstor List</h2>
-            <div className="overflow-x-auto">
-                <table className="w-full bg-transparent border shadow">
-                    <thead>
-                        <tr className='border-b border-gray-800 hover:bg-gray-800'>
-                            <th className="py-2 px-4 capitalize" >Name</th>
-                            <th className="py-2 px-4 capitalize" >Logo</th>
-                            <th className="py-2 px-4 capitalize" >Director</th>
-                            <th className="py-2 px-4 capitalize" >Director Email</th>
-                            <th className="py-2 px-4 capitalize" >Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {ldoList?.map((ldo: ILDOItem, i: number) => (
-                            <DirectorRow key={i} ldo={ldo} />
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+        <div className="overflow-x-auto">
+            <table className="w-full bg-transparent border shadow border-b border-gray-800">
+                <thead>
+                    <tr className='border-b border-gray-800 hover:bg-gray-800'>
+                        <th className="py-2 px-4 uppercase" >Name</th>
+                        <th className="py-2 px-4 uppercase" >Logo</th>
+                        <th className="py-2 px-4 uppercase" >Director</th>
+                        <th className="py-2 px-4 uppercase" >Director Email</th>
+                        <th className="py-2 px-4 uppercase" >Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ldoList?.map((ldo: ILDOItem, i: number) => (
+                        <DirectorRow key={i} ldo={ldo} />
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 };

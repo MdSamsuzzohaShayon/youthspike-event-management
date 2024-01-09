@@ -2,7 +2,7 @@
 
 /* eslint-disable no-unused-vars */
 import Head from 'next/head';
-import React, { useEffect, useCallback, Suspense } from 'react';
+import React, { useEffect, useCallback, Suspense, useState } from 'react';
 
 // Hooks
 import useResizeObserver from '@/hooks/useResizeObserver';
@@ -19,7 +19,7 @@ import { GET_MATCH_DETAIL } from '@/graphql/matches';
 import { UPDATE_NET_PLAYERS } from '@/graphql/net';
 
 // Redux
-import { setMatchInfo, setMyDetail, setOponentDetail } from '@/redux/slices/matchesSlice';
+import { setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE, setTeamProcess } from '@/redux/slices/matchesSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
@@ -33,18 +33,18 @@ import { screen } from '@/utils/constant';
 import { getCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
-
 // Types
-import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase } from '@/types';
+import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup } from '@/types';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
+import { UserRole } from '@/types/user';
 import { INetRelatives } from '@/types/net';
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
 import { ETeam } from '@/types/team';
-
-
-
+import { EActionProcess, IError } from '@/types/elements';
+import { setCurrentRoom } from '@/redux/slices/roomSlice';
+import { isValidObjectId } from '@/utils/helper';
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
@@ -57,7 +57,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const user = useUser();
   const socket = useSocket();
 
-  // Local States
+  // Redux States
   const teamAPlayers = useAppSelector((state) => state.players.teamAPlayers);
   const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
   const teamA = useAppSelector((state) => state.teams.teamA);
@@ -65,10 +65,15 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const currentRound = useAppSelector((state) => state.rounds.current);
+  const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
   const teamUpdate = useAppSelector((state) => state.nets.updateTeam);
   const actionBox = useAppSelector((state) => state.rounds.actionBox);
   const actionBoxOponent = useAppSelector((state) => state.rounds.actionBoxOponent);
+  const currentRoom = useAppSelector((state) => state.rooms.current);
+  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, myTeamProcess, opTeamProcess } = useAppSelector((state) => state.matches);
 
+  // const [myTeam, setMyTeam] = useState<ETeam>(ETeam.teamB);
+  const [actErr, setActErr] = useState<IError | null>(null);
 
   // GraphAL
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
@@ -81,29 +86,99 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     e.preventDefault();
     try {
       if (!teamUpdate._id || teamUpdate._id === '') return;
-      const updateTeamObj: any = { ...teamUpdate };
+      const updateNetObj: any = { ...teamUpdate };
       const netId = teamUpdate._id;
-      delete updateTeamObj._id;
-      const updateRes = await mutateNet({ variables: { input: updateTeamObj, netId: netId } });
+      const findNet = currRoundNets.find((crn) => crn._id === netId);
+
+      delete updateNetObj._id;
+      if (findNet && findNet.teamAScore && findNet.teamAScore !== 0) updateNetObj.teamAScore = findNet?.teamAScore;
+      if (findNet && findNet.teamBScore && findNet.teamBScore !== 0) updateNetObj.teamBScore = findNet?.teamBScore;
+      const updateRes = await mutateNet({ variables: { input: updateNetObj, netId: netId } });
       console.log(updateRes);
     } catch (error) {
       console.log(error);
     }
   }
+
+
+  
+  const handleActionRunner = (event: React.SyntheticEvent, team: string | null | undefined, process: string) => {
+    event.preventDefault();
+    if (!currentRoom || !currentRound) return;
+    
+    const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+    const updateRoomProcess = (teamProcess: EActionProcess) => {
+      return isTeamACaptain ? { teamAProcess: teamProcess } : { teamBProcess: teamProcess };
+    };
+    const updateTeamProcess = () => {
+      return isTeamACaptain
+        ? { myTeamProcess: process, opTeamProcess }
+        : { myTeamProcess, opTeamProcess: process };
+    };
+
+    let actionData = {};
+
+    switch (process) {
+      case EActionProcess.INITIATE:
+        // @ts-ignore
+        socket.emit('join-room-from-client', { match: params.matchId, team });
+        break;
+      case EActionProcess.CHECKIN:
+        actionData = {
+          room: currentRoom._id,
+          round: currentRound._id,
+          ...updateRoomProcess(EActionProcess.CHECKIN)
+        };
+        // @ts-ignore
+        socket.emit('check-in-from-client', actionData);
+        break;
+      case EActionProcess.LINEUP:
+        const roundNetAssign: INetAssign[] = currRoundNets.map((net) => ({
+          _id: net._id,
+          teamAPlayerA: net.teamAPlayerA,
+          teamAPlayerB: net.teamAPlayerB,
+          teamBPlayerA: net.teamBPlayerA,
+          teamBPlayerB: net.teamBPlayerB,
+        }));
+        actionData = {
+          room: currentRoom._id,
+          round: currentRound._id,
+          ...updateRoomProcess(EActionProcess.LOCKED),
+          nets: roundNetAssign
+        };
+        // @ts-ignore
+        socket.emit('submit-lineup-from-client', actionData);
+        break;
+      default:
+        // Handle unknown process
+        console.error('Unknown process:', process);
+        return;
+    }
+
+    // @ts-ignore
+    dispatch(setTeamProcess(updateTeamProcess()));
+    dispatch(setCurrentRoom({ ...currentRoom, ...updateRoomProcess(process) }));
+  };
+
+  /**
+   * Set initial state for current match
+   */
   const setStateGetMatchData = (matchData: IMatchExpRel) => {
     /**
      * Setting data as state of redux that is fetched from backend using GraphAL
      * Set action box values
      */
 
-    const { _id, location, numberOfNets, numberOfRounds, netRange, teamA, teamB, date, rounds, event } = matchData;
+    const { _id, location, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event } = matchData;
 
     // Setting teams
-    dispatch(setTeamA({ ...teamA }));
-    dispatch(setTeamB({ ...teamB }));
+    dispatch(setTeamA({ ...teamAF }));
+    dispatch(setTeamB({ ...teamBF }));
+
     // Setting players
-    if (teamA.players) {
-      const reformatAPlayers = teamA.players.map((player: IPlayer) => {
+    let reformatAPlayers: IPlayer[] = [], reformatBPlayers: IPlayer[] = [];
+    if (teamAF.players) {
+      reformatAPlayers = teamAF.players.map((player: IPlayer) => {
         const newPlayer: IPlayer = {
           _id: player._id,
           status: player.status,
@@ -111,7 +186,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           lastName: player.lastName,
           email: player.email,
           rank: player.rank,
-          team: teamA._id,
+          team: teamAF._id,
           event: event._id,
           captainofteam: player.captainofteam,
           profile: player.profile
@@ -120,8 +195,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       });
       dispatch(setTeamAPlayers(reformatAPlayers));
     }
-    if (teamB.players) {
-      const reformatBPlayers = teamB.players.map((player: IPlayer) => {
+    if (teamBF.players) {
+      reformatBPlayers = teamBF.players.map((player: IPlayer) => {
         const newPlayer: IPlayer = {
           _id: player._id,
           status: player.status,
@@ -129,7 +204,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           lastName: player.lastName,
           email: player.email,
           rank: player.rank,
-          team: teamA._id,
+          team: teamBF._id,
           event: event._id,
           captainofteam: player.captainofteam,
           profile: player.profile
@@ -138,17 +213,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       });
       dispatch(setTeamBPlayers(reformatBPlayers));
     }
-    // Setting captain side
-    dispatch(setMyDetail({
-      matchId: _id,
-      captainId: '',
-      teamId: ''
-    }));
-    dispatch(setOponentDetail({
-      matchId: _id,
-      captainId: '',
-      teamId: ''
-    }));
 
     // Setting event
     /*
@@ -210,19 +274,52 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         location,
         numberOfNets,
         numberOfRounds,
-        netRange,
-        teamA: teamA._id,
-        teamB: teamB._id,
+        teamA: teamAF._id,
+        teamB: teamBF._id,
         event: event._id,
         rounds: [...rounds.map(r => r._id)]
       }),
     );
+
+    if (user?.info?.captainplayer === teamAF?.captain?._id) {
+      dispatch(setMyTeam(teamAF));
+      dispatch(setOpTeam(teamBF));
+      dispatch(setMyPlayers(reformatAPlayers));
+      dispatch(setOpPlayers(reformatBPlayers));
+      dispatch(setTeamE({ myTeamE: ETeam.teamA, opTeamE: ETeam.teamB }));
+      if (rounds && rounds.length > 0) {
+        // @ts-ignore
+        dispatch(setTeamProcess({ myTeamProcess: rounds[0].teamBProcess, opTeamProcess: rounds[0].teamAProcess }));
+      }
+    } else {
+      dispatch(setMyTeam(teamBF));
+      dispatch(setOpTeam(teamAF));
+      dispatch(setMyPlayers(reformatBPlayers));
+      dispatch(setOpPlayers(reformatAPlayers));
+      if (rounds && rounds.length > 0) {
+        // @ts-ignore
+        dispatch(setTeamProcess({ myTeamProcess: rounds[0].teamAProcess, opTeamProcess: rounds[0].teamBProcess }));
+      }
+    }
   };
 
   useEffect(() => {
     // Get user info here
     const token = getCookie('token');
     const userInfo = getCookie('user');
+
+    if (isValidObjectId(params.matchId)) {
+      (async () => {
+        const result = await fetchMatch({ variables: { matchId: params.matchId } });
+        if (result?.data?.getMatch?.data) {
+          setStateGetMatchData(result.data.getMatch.data);
+        } else {
+          setActErr({ name: "Invalid Id", message: "No data found with given ID!" })
+        }
+      })();
+    } else {
+      setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+    }
 
     if (params.matchId) {
       (async () => {
@@ -240,28 +337,59 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Socket real time connection
      * After joining to the room action button will be visiable
      */
-    if (!socket || !user || !user.token || !user.info || !user.info.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain) return;
-    let userTeamId = null, oponentTeamId = null;
+    if (!socket || !user || !user.token || !user.info || !user.info.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
+    let userTeamId = null, myTeamProcess = EActionProcess.INITIATE, opTeamProcess: EActionProcess.INITIATE;
     if (user.info.captainplayer === teamA.captain._id) {
       userTeamId = teamA._id;
-      // Set my team and oponent team
-      dispatch(setMyDetail({ captainId: user.info.captainplayer, matchId: params.matchId, teamId: userTeamId }));
-      dispatch(setOponentDetail({ captainId: teamB.captain._id, matchId: params.matchId, teamId: teamB._id }));
     } else if (user.info.captainplayer === teamB.captain._id) {
       userTeamId = teamB._id;
-      // Set my team and oponent team
-      dispatch(setMyDetail({ captainId: user.info.captainplayer, matchId: params.matchId, teamId: userTeamId }));
-      dispatch(setOponentDetail({ captainId: teamA.captain._id, matchId: params.matchId, teamId: teamA._id }));
     } else {
       return;
     }
+
     // @ts-ignore
-    socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId });
+    socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId, round: currentRound._id });
 
     // Listen to events
     // @ts-ignore
-    socket.on('join-room-response', (data) => {
-      console.log({ data });
+    socket.on('join-room-response', (data: IRoom) => {
+      if (user?.info?.captainplayer === teamA?.captain?._id) {
+        // @ts-ignore 
+        myTeamProcess = data.teamAProcess; opTeamProcess = data.teamBProcess;
+      } else {
+        // @ts-ignore
+        myTeamProcess = data.teamBProcess; opTeamProcess = data.teamAProcess;
+      }
+      // @ts-ignore
+      dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
+      dispatch(setCurrentRoom(data));
+    });
+    // @ts-ignore
+    socket.on('check-in-response', (data: IRoom) => {
+      if (user?.info?.captainplayer === teamA?.captain?._id) {
+        // @ts-ignore 
+        myTeamProcess = data.teamAProcess; opTeamProcess = data.teamBProcess;
+      } else {
+        // @ts-ignore
+        myTeamProcess = data.teamBProcess; opTeamProcess = data.teamAProcess;
+      }
+      // @ts-ignore
+      dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
+      dispatch(setCurrentRoom(data));
+    });
+
+    // @ts-ignore
+    socket.on('submit-lineup-response', (data: IRoom) => {
+      if (user?.info?.captainplayer === teamA?.captain?._id) {
+        // @ts-ignore 
+        myTeamProcess = data.teamAProcess; opTeamProcess = data.teamBProcess;
+      } else {
+        // @ts-ignore
+        myTeamProcess = data.teamBProcess; opTeamProcess = data.teamAProcess;
+      }
+      // @ts-ignore
+      dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
+      dispatch(setCurrentRoom(data));
     });
 
   }, [socket, user, teamA, teamB]);
@@ -274,6 +402,37 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   if (loading) return <Loader />;
 
+
+  // Renders
+  const renderTeams = (): React.ReactNode => {
+    // let abo = actionBoxOponent, currORoundProcess = currentRoom?.teamAProcess, teamOEnum = ETeam.teamA, teamOPlayers = teamAPlayers, opTeam = teamA; // Oponent
+    // let ab = actionBox, currRoundProcess = currentRoom?.teamBProcess, teamEnum = ETeam.teamB, teamPlayers = teamBPlayers, myTeam = teamB; // Mine
+
+    // // Check Director
+    // if (user.info && user.info.captainplayer === teamA?.captain?._id) {
+
+    //   // Oponent team B, therefore them B will be at the top
+    //   currORoundProcess = currentRoom?.teamBProcess, teamOEnum = ETeam.teamB, teamOPlayers = teamBPlayers, opTeam = teamB;
+    //   currRoundProcess = currentRoom?.teamAProcess, teamEnum = ETeam.teamA, teamPlayers = teamAPlayers, myTeam = teamA;
+    // }
+
+    return (<>
+      <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
+      {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} />}
+      {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+
+      {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={myTeamE} />}
+      <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
+        <h3>Sponsors</h3>
+        <div className="flex items-center justify-between flex-wrap w-full">
+          {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
+        </div>
+      </div>
+      <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
+    </>);
+  }
+
+
   return (
     <>
       <Head>
@@ -285,31 +444,21 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <Suspense fallback={<Loader />}>
         <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
           {error && <Message error={error} />}
-
-
-          {/* Net  */}
-          {/* {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />} */}
-
           {user && user.info ? (<>
-            {user.info.captainplayer === teamA?.captain ? (
-              <>
-                {currentRound && <RoundRunner actionBox={actionBox} process={currentRound.teamBProcess} />}
-                <TeamPlayers teamPlayers={teamAPlayers} team={ETeam.teamA} />
-              </>
-            ) : (<>
-              {currentRound && <RoundRunner actionBox={actionBox} process={currentRound.teamBProcess} />}
-              <TeamPlayers teamPlayers={teamBPlayers} team={ETeam.teamB} />
-            </>)}
+            {renderTeams()}
             <div className="controls px-4 flex justify-center">
               <button className='btn-primary mt-4' type="button" onClick={handleNetPlayers}>Update</button>
             </div>
           </>) : (<>
-            {/* Oponents Players  */}
-            <TeamPlayers teamPlayers={teamAPlayers} team={ETeam.teamA} />
+            {/* Public Version Start ============================================> */}
+            <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
             {/* Oponent Round Runner  */}
-            {currentRound?.teamAProcess && <RoundRunner actionBox={actionBoxOponent} process={currentRound.teamAProcess} />}
-            {/* My Round Runner */}
-            {currentRound?.teamBProcess && <RoundRunner actionBox={actionBox} process={currentRound.teamBProcess} />}
+            {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} />}
+
+            {/* Net  */}
+            {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+
+            {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={opTeamE} />}
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>
               <div className="flex items-center justify-between flex-wrap w-full">
@@ -317,7 +466,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
               </div>
             </div>
             {/* My Players  */}
-            <TeamPlayers teamPlayers={teamBPlayers} team={ETeam.teamB} />
+            <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
+            {/* Public Version End ============================================> */}
           </>)}
         </div>
       </Suspense>

@@ -13,7 +13,6 @@ import {
   ILoginProps,
   IActionBox
 } from "./elements";
-import { UserRole } from "./user";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
 import { IPlayer } from "./player";
@@ -21,6 +20,7 @@ import { ITeam } from "./team";
 import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives, ICaptainSide } from "./match";
 import { INetBase, INetRelatives, INetPlayers } from "./net";
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from "./round";
+import { IRoom, ICheckIn, ISubmitLineup, INetAssign } from "./room";
 
 export type {
   // Elements
@@ -41,7 +41,6 @@ export type {
 
 
   // User
-  UserRole,
   IUser,
   IDirector,
   IDirectorItem,
@@ -78,4 +77,10 @@ export type {
   IRoundBase,
   IRoundRelatives,
   IRoundExpRel,
+
+  // Room
+  IRoom,
+  ICheckIn,
+  ISubmitLineup,
+  INetAssign
 };

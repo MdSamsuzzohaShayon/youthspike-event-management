@@ -115,14 +115,11 @@ export interface ILoginProps {
 
 
 export enum EActionProcess {
-  INITIATE_OPONENT = 'INITIATE_OPONENT',
   INITIATE = 'INITIATE',
-  CHECKIN_OPONENT = 'CHECKIN_OPONENT',
   CHECKIN = 'CHECKIN',
-  PLACING_OPONENT = 'PLACING_OPONENT',
   PLACING = 'PLACING',
-  LINEUP_OPONENT = 'LINEUP_OPONENT',
   LINEUP = 'LINEUP',
+  LOCKED = 'LOCKED',
 }
 
 export interface IActionBox {

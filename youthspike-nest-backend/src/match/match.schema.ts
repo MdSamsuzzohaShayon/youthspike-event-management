@@ -17,13 +17,16 @@ import { Team } from 'src/team/team.schema';
 @Schema({ timestamps: true })
 export class Match extends AppDocument {
 
+  
+  @Field((type) => String)
+  @Prop({ required: true })
+  date: string;
+
+
+  // Relations
   @Field((type) => Event, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
   event: string | Event;
-
-  @Field((type) => DateScalar)
-  @Prop({ required: true })
-  date: Date;
 
   @Field((type) => [Net], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
@@ -44,10 +47,6 @@ export class Match extends AppDocument {
   @Field((type) => Room, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Room' })
   room?: Room | string;
-
-  @Field((type) => Int)
-  @Prop({ required: true })
-  netRange: number;
 
   // @Field((type) => Int, { nullable: true })
   // @Prop({ required: false })
