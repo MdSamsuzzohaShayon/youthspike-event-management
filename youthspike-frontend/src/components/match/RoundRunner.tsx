@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setActionBox } from '@/redux/slices/roundSlice';
 import { IActionBox } from '@/types';
 import { UserRole } from '@/types/user';
-import { EActionProcess } from '@/types/elements';
+import { EActionProcess, IError } from '@/types/elements';
 import { ETeam, ITeam } from '@/types/team';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -15,10 +15,11 @@ interface IRoundRunnerProps {
   team: ITeam | null | undefined;
   teamE: ETeam;
   handleAction: (e: React.SyntheticEvent, team: string | null | undefined, process: string) => void;
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
 
-function RoundRunner({ onTop, team, teamE, handleAction }: IRoundRunnerProps) {
+function RoundRunner({ onTop, team, teamE, handleAction, setActErr }: IRoundRunnerProps) {
   /**
    * Step-1: Both team check in -> If a team checked in show your team checked in
    * Step-2: If both team checked in start placing players to the net
@@ -33,7 +34,8 @@ function RoundRunner({ onTop, team, teamE, handleAction }: IRoundRunnerProps) {
   // Redux State
   const currentRound = useAppSelector((state) => state.rounds.current);
   const currentRoom = useAppSelector((state) => state.rooms.current);
-  const {myTeam, opTeam, opTeamE, myTeamE, myTeamProcess, opTeamProcess} = useAppSelector((state)=>state.matches);
+  const currentRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
+  const { myTeam, opTeam, opTeamE, myTeamE, myTeamProcess, opTeamProcess } = useAppSelector((state) => state.matches);
 
   // Local State 
   const [checkedIn, setCheckedIn] = useState<boolean>(false);
@@ -49,6 +51,19 @@ function RoundRunner({ onTop, team, teamE, handleAction }: IRoundRunnerProps) {
   }
 
   const handleSubmitLineup = (e: React.SyntheticEvent) => {
+    // Check all players are assigned or not
+    let isValid = true;
+    if (teamE === ETeam.teamA) {
+      for (const net of currentRoundNets) {
+        if (!net.teamAPlayerA || !net.teamAPlayerB) isValid = false;
+      }
+    } else {
+      for (const net of currentRoundNets) {
+        if (!net.teamBPlayerA || !net.teamBPlayerB) isValid = false;
+      }
+    }
+    if (!isValid) return setActErr({ name: 'Incomplete nets', message: "Please select players for all nets and submit again!" });
+
     handleAction(e, team?._id, EActionProcess.LINEUP);
     setSubmittedLineup((prevState) => !prevState);
   }
@@ -89,15 +104,18 @@ function RoundRunner({ onTop, team, teamE, handleAction }: IRoundRunnerProps) {
     return (
       <React.Fragment key="match-check-in-opponent">
         <h3>Submit Lineup</h3>
-        <p>Your squad is placing players first. Choose 2 players for each and and click submit.</p>
-        <p>Your squad is current waiting for the other squad to place their players.</p>
+
         {onTop ? (
-          <p>{team?.name} {currentRoom && currentRoom.teamAProcess === EActionProcess.CHECKIN ? 'has' : 'is going to'} submit lineup.</p>
+          <p>{team?.name} {currentRoom && opTeamProcess === EActionProcess.LINEUP ? 'has submitted' : 'is going to submit'} lineup.</p>
         ) : (
           <React.Fragment>
-            {!submittedLineup && hasAction && <p>Ensure you have all your players and are ready to play, then check in!</p>}
+            {!submittedLineup && (
+              teamE === ETeam.teamA
+                ? (currentRoom?.teamAProcess === EActionProcess.CHECKIN ? <p>Your squad is placing players first. Choose 2 players for each and and click submit.</p> : <p>Your squad is current waiting for the other squad to place their players.</p>)
+                : <p>Your squad is current waiting for the other squad to place their players.</p>
+            )}
             {!hasAction && (
-              <p>{team?.name} {teamE === ETeam.teamA && currentRoom && currentRoom.teamBProcess === EActionProcess.CHECKIN ? 'has' : 'is going to'} check in.</p>
+              <p>{team?.name} {teamE === ETeam.teamA && currentRoom && currentRoom.teamBProcess === EActionProcess.CHECKIN ? 'has submitted' : 'is going to submit their'} lineup.</p>
             )}
             {hasAction && (
               submittedLineup ? (
@@ -106,6 +124,28 @@ function RoundRunner({ onTop, team, teamE, handleAction }: IRoundRunnerProps) {
                 <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>
               )
             )}
+          </React.Fragment>
+        )}
+      </React.Fragment>
+    );
+  };
+
+  const renderMatchLocked = (hasAction: boolean): React.ReactNode => {
+    /**
+     * First of all, team A is going to submit their players
+     * Check if team a has submitted their players or not
+     */
+    return (
+      <React.Fragment key="match-check-in-opponent">
+        <h3>Locked nets</h3>
+
+        {onTop ? (
+          <p>{team?.name} has submitted all of their players on the nets for this round.</p>
+        ) : (
+          <React.Fragment>
+            {hasAction
+              ? <p>You have submitted all of the players to nets for this round, you can not change any players!</p>
+              : <p>{team?.name} submitted all of the players to nets for this round, they can not change any players!</p>}
           </React.Fragment>
         )}
       </React.Fragment>
@@ -134,12 +174,12 @@ function RoundRunner({ onTop, team, teamE, handleAction }: IRoundRunnerProps) {
           break;
 
         case currentRoom.teamAProcess === EActionProcess.LINEUP || currentRoom.teamBProcess === EActionProcess.LINEUP:
-          console.log("Submit -> and do something -> refetch data");
+          console.log("Submit -> and do something -> refetch data, lock data, they can no longer change their players!");
           // @ts-ignore
           break;
 
         case currentRoom.teamAProcess === EActionProcess.LOCKED || currentRoom.teamBProcess === EActionProcess.LOCKED:
-          console.log("Will add more logic");
+          comps.push(renderMatchLocked(hasAction));
           break;
 
         default:

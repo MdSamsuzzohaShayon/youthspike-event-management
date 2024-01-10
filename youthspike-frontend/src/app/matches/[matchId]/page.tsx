@@ -101,19 +101,14 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   }
 
 
-  
+
   const handleActionRunner = (event: React.SyntheticEvent, team: string | null | undefined, process: string) => {
     event.preventDefault();
     if (!currentRoom || !currentRound) return;
-    
+
     const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
     const updateRoomProcess = (teamProcess: EActionProcess) => {
       return isTeamACaptain ? { teamAProcess: teamProcess } : { teamBProcess: teamProcess };
-    };
-    const updateTeamProcess = () => {
-      return isTeamACaptain
-        ? { myTeamProcess: process, opTeamProcess }
-        : { myTeamProcess, opTeamProcess: process };
     };
 
     let actionData = {};
@@ -133,6 +128,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         socket.emit('check-in-from-client', actionData);
         break;
       case EActionProcess.LINEUP:
+        // Validate submission
+        // Not net can not be vacent in the place of placing players
         const roundNetAssign: INetAssign[] = currRoundNets.map((net) => ({
           _id: net._id,
           teamAPlayerA: net.teamAPlayerA,
@@ -156,7 +153,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
 
     // @ts-ignore
-    dispatch(setTeamProcess(updateTeamProcess()));
+    dispatch(setTeamProcess({ myTeamProcess: process, opTeamProcess }));
     dispatch(setCurrentRoom({ ...currentRoom, ...updateRoomProcess(process) }));
   };
 
@@ -405,29 +402,20 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   // Renders
   const renderTeams = (): React.ReactNode => {
-    // let abo = actionBoxOponent, currORoundProcess = currentRoom?.teamAProcess, teamOEnum = ETeam.teamA, teamOPlayers = teamAPlayers, opTeam = teamA; // Oponent
-    // let ab = actionBox, currRoundProcess = currentRoom?.teamBProcess, teamEnum = ETeam.teamB, teamPlayers = teamBPlayers, myTeam = teamB; // Mine
-
-    // // Check Director
-    // if (user.info && user.info.captainplayer === teamA?.captain?._id) {
-
-    //   // Oponent team B, therefore them B will be at the top
-    //   currORoundProcess = currentRoom?.teamBProcess, teamOEnum = ETeam.teamB, teamOPlayers = teamBPlayers, opTeam = teamB;
-    //   currRoundProcess = currentRoom?.teamAProcess, teamEnum = ETeam.teamA, teamPlayers = teamAPlayers, myTeam = teamA;
-    // }
-
     return (<>
       <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-      {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} />}
+      {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />}
       {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
-      {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={myTeamE} />}
-      <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
-        <h3>Sponsors</h3>
-        <div className="flex items-center justify-between flex-wrap w-full">
-          {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
+      {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={myTeamE} setActErr={setActErr} />}
+      {eventSponsors.length > 0 && (
+        <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
+          <h3>Sponsors</h3>
+          <div className="flex items-center justify-between flex-wrap w-full">
+            {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
+          </div>
         </div>
-      </div>
+      )}
       <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
     </>);
   }
@@ -444,6 +432,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <Suspense fallback={<Loader />}>
         <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
           {error && <Message error={error} />}
+          {actErr && <Message error={actErr} />}
           {user && user.info ? (<>
             {renderTeams()}
             <div className="controls px-4 flex justify-center">
@@ -453,12 +442,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             {/* Public Version Start ============================================> */}
             <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
             {/* Oponent Round Runner  */}
-            {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} />}
+            {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />}
 
             {/* Net  */}
             {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
-            {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={opTeamE} />}
+            {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={opTeamE} setActErr={setActErr} />}
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>
               <div className="flex items-center justify-between flex-wrap w-full">

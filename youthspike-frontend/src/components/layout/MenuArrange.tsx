@@ -2,7 +2,7 @@ import { IMenuArrangeProps, IMenuItem, IUser, IUserContext } from '@/types';
 import React from 'react';
 
 
-const MenuArrange = ({ eventId, closeMenuHandler, renderMenuItems, userMenuList, user }: IMenuArrangeProps) => {
+const MenuArrange = ({ eventId, closeMenuHandler, renderMenuItems, userMenuList, user, handleLogout }: IMenuArrangeProps) => {
     return (
         <div className='md:flex md:justify-between md:items-center md:h-20'>
             <div className="w-full flex md:hidden justify-end items-center">
