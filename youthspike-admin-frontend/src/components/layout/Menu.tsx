@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import MenuItem from './MenuItem';
-import { IUser, UserRole } from '@/types/user';
+import { IUser, IUserContext, UserRole } from '@/types/user';
 import { IMenuItem } from '@/types';
 import { gql, useApolloClient, useLazyQuery, useReadQuery } from '@apollo/client';
 import { GET_LDO } from '@/graphql/director';
@@ -12,6 +12,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Link from 'next/link';
 import { getCookie, removeCookie } from '@/utils/cookie';
+import { isValidObjectId } from '@/utils/helper';
 
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
@@ -119,11 +120,12 @@ function Menu() {
     /**
      * Mount hooks
      */
-    useEffect(() => {
+    const hasValidUser = (): IUserContext => {
         const instantToken = getCookie('token'); // Fetch again
         const instantInfo = getCookie('user');
+
         if (instantInfo && instantToken) {
-            setIsAuthenticated(true);
+            if (!isAuthenticated) setIsAuthenticated(true); // 
             if (instantToken) {
                 setUser((prevState) => ({ ...prevState, token: instantToken }))
             }
@@ -132,39 +134,46 @@ function Menu() {
             }
             fetchLDO();
         }
-    }, []);
+        return {
+            info: instantInfo ? JSON.parse(instantInfo) : null,
+            token: instantToken ? instantToken : null
+        }
+    }
 
     // console.log({data});
 
 
     useEffect(() => {
+        // Effect
+        const userDetail = hasValidUser();
+
+        // Check path has event Id or not
         const pathList = pathname.split('/');
         let eventPath = pathList.length > 0 ? pathList[1] : null;
-        if (eventPath && eventPath.length < 5) eventPath = null;
-        if (eventPath && eventPaths.includes(eventPath)) eventPath = null;
+        let isValidId = eventPath ? isValidObjectId(eventPath) : false;
+        if (eventPath && eventPaths.includes(eventPath)) isValidId = false;
 
-        if (!eventPath || eventPath === '') {
+        if (!eventPath || !isValidId) {
             setEventId(null);
-
-            if (user.info?.role === UserRole.admin) {
+            if (userDetail.info?.role === UserRole.admin) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
-            } else if (user.info?.role === UserRole.captain) {
+            } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
             }
         } else {
             setEventId(eventPath);
-            if (user.info?.role === UserRole.director) {
+            if (userDetail.info?.role === UserRole.director) {
                 setUserMenuList((prevState) => [...prevState.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
-            } else if (user.info?.role === UserRole.captain) {
+            } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList(initialUserMenuList);
             }
         }
 
-    }, [user, router, pathname]);
+    }, [router, pathname]);
 
     /**
      * Renders sub components
@@ -185,15 +194,14 @@ function Menu() {
     return (
         <div className='container px-2 mx-auto'>
             {isAuthenticated && (
-                <button onClick={openMenuHandler} className='menu-button block md:hidden'>
+                <button onClick={openMenuHandler} className='menu-button'>
                     <img src='/icons/menu.svg' className='w-10 mt-4 svg-white' alt='menu' />
                 </button>
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-700 w-5/6 absolute h-full top-0 left-0 z-20 p-4">
+                <div className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4">
                     <div className="w-full flex justify-end items-center">
-
                         {user && user.info && (
                             <button onClick={closeMenuHandler} className='close-button'>
                                 <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />

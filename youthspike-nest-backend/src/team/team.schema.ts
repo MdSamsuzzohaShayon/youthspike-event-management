@@ -24,6 +24,13 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   active: boolean;
 
+  @Field({nullable: false})
+  @Prop({required: true})
+  division: string;
+
+  /**
+   * Relations
+   */
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   @Field((type) => Player, { nullable: true })
   captain?: Player | string; // Make the captain field nullable

@@ -7,9 +7,10 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamList from '@/components/teams/TeamList';
 import { isValidObjectId } from '@/utils/helper';
-import { IError } from '@/types';
+import { IError, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
+import SelectInput from '../elements/forms/SelectInput';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -23,11 +24,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [showFilter, setShowFilter] = useState<boolean>(false);
     const [showImporter, setShowImporter] = useState<boolean>(false);
     const [actErr, setActErr] = useState<IError | null>(null);
+    const [teamList, setTeamList] = useState<ITeam[]>([]);
+    const [divisions, setDivisions] = useState<string>('');
 
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
      */
-    const [gerEvent, { data: eventData, loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
+    const [getEvent, { data: eventData, loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
 
 
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -35,6 +38,8 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         /**
          * Filter items
          */
+        const inputEl = e.target as HTMLInputElement;
+        console.log(inputEl.value);
 
     }
 
@@ -57,11 +62,20 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         e.preventDefault();
     }
 
+    const fetchEvent = async () => {
+        const eventResponse = await getEvent({ variables: { eventId: eventId } });
+
+        const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+        setTeamList(newTeamList);
+        const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
+        setDivisions(divisions);
+    }
+
     // Do this for all event pages
     useEffect(() => {
         if (eventId) {
             if (isValidObjectId(eventId)) {
-                gerEvent({ variables: { eventId: eventId } });
+                fetchEvent();
             } else {
                 setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
             }
@@ -71,7 +85,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
 
     if (loading) return <Loader />;
-    const teamList = eventData?.getEvent?.data?.teams ? eventData.getEvent.data.teams : [];
+
 
 
     return (
@@ -81,10 +95,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 <h3>New Event</h3>
                 {/* <TeamAdd handleClose={handleClose} /> */}
             </dialog>
-            {/* <dialog ref={filterListEl}>
-                <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-                {itemList.map((item) => <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)} >{item.text}</p>)}
-                </dialog> */}
             <dialog ref={importerEl}>
                 <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
                 <MultiPlayerAdd eventId={eventId} />
@@ -101,19 +111,12 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 <p className="date flex mt-2"><span><img src="/icons/location.svg" alt="location" className='w-6 svg-white mr-2' /></span> Orlando, Florida</p>
             </div>
             <div className="mb-4 division-selection w-full">
-                <select name="division" id="division" defaultValue='null' className="py-3 px-2 w-full bg-gray-100 text-gray-900 outline-none rounded-full overlofw-hidden" onChange={handleDivisionSelection} >
-                    <option className='w-full' value="null" disabled >Division Selection</option>
-                    <option className='w-full' value="division-1" >Division 1</option>
-                    <option className='w-full' value="division-2" >Division 2</option>
-                    <option className='w-full' value="division-3" >Division 3</option>
-                </select>
+                {divisions && divisions.length > 0 && <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={[...divisions.split(',').map((d: string) => ({ text: d, value: d }))]} lw='w-5/12' rw='w-5/12' />}
             </div>
             <div className="mb-8 make-team flex w-full justify-between">
                 <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>
                     <span><img src="/icons/plus.svg" alt="plus" className='w-6 svg-white' /></span>Add New Team
                 </Link>
-                {/* <button onClick={handleOpenAdd} className="bg-yellow-500 text-gray-900 px-4 py-3 rounded-full flex justify-between gap-2 font-bold">
-                </button> */}
                 <button onClick={(e) => { if (importerEl.current) importerEl.current.showModal() }} className="btn-info flex justify-between items-center gap-2"><span><img src="/icons/import.svg" alt="import" className='w-6 svg-white' /></span>Import File</button>
             </div>
             <div className="list-with-filter w-full relative">

@@ -46,7 +46,7 @@ function EventCard({ event, copyEvent }: IEventCardProps) {
                     <h3 className='text-lg font-bold mb-0'>{event.name}</h3>
                     <p style={{ fontSize: '0.7rem' }} >
                         {`${monthNames[new Date(event.startDate).getMonth()]} ${new Date(event.startDate).getDate()}, ${new Date(event.startDate).getFullYear()} `} - {`${monthNames[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}</p>
-                    <p>Idaho, Fall, ID</p>
+                    <p>{event.location}</p>
                 </div>
             </Link>
         </div>

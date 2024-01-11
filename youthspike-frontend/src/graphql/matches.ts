@@ -14,7 +14,6 @@ query GetMatch($matchId: String!) {
       divisions
       homeTeam
       location
-      netRange
       netVariance
       numberOfNets
       numberOfRounds

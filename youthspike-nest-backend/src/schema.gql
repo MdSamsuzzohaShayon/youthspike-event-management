@@ -35,12 +35,15 @@ enum EActionProcess {
   CHECKIN
   PLACING
   LINEUP
+  LOCKED
+  COMPLETE
 }
 
 type Team {
   _id: String
   name: String!
   active: Boolean!
+  division: String!
   captain: Player
   match: Match
   event: Event!
@@ -74,14 +77,13 @@ type Room {
 
 type Match {
   _id: String
+  date: String!
   event: Event!
-  date: Date!
   nets: [Net!]!
   rounds: [Round!]!
   teamA: Team
   teamB: Team
   room: Room
-  netRange: Int!
   divisions: String!
   numberOfNets: Int!
   numberOfRounds: Int!
@@ -250,7 +252,7 @@ type GetMatchResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: Match!
+  data: Match
 }
 
 type CreateOrUpdateRoundResponse {
@@ -350,8 +352,8 @@ type Mutation {
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
   create(match: String!, locked: Boolean, id: String): GetRoundResponse!
   updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
-  createNet(input: CreateNetInput!): GetNetResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
+  updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!
@@ -416,6 +418,7 @@ input UpdateEventInput {
 input CreateTeamInput {
   name: String!
   active: Boolean!
+  division: String!
   captain: String!
   event: String!
   players: [ID!]
@@ -424,6 +427,7 @@ input CreateTeamInput {
 input UpdateTeamInput {
   name: String
   active: Boolean
+  division: String
   captain: String
   event: String
   players: [ID!]
@@ -431,8 +435,7 @@ input UpdateTeamInput {
 
 input CreateMatchInput {
   event: String!
-  date: DateTime!
-  netRange: Float!
+  date: String!
   teamA: String
   teamB: String
   divisions: String
@@ -449,15 +452,9 @@ input CreateMatchInput {
   location: String!
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 input UpdateMatchInput {
   event: String
-  date: DateTime
-  netRange: Float
+  date: String
   teamA: String
   teamB: String
   divisions: String
@@ -474,16 +471,23 @@ input UpdateMatchInput {
   location: String
 }
 
-input CreateNetInput {
-  match: String!
-}
-
 input UpdateNetInput {
   match: String
   teamAPlayerA: String
   teamAPlayerB: String
   teamBPlayerA: String
   teamBPlayerB: String
+}
+
+input UpdateMultipleNetInput {
+  match: String
+  _id: String!
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  teamAScore: Int
+  teamBScore: Int
 }
 
 input CreateDirectorArgs {

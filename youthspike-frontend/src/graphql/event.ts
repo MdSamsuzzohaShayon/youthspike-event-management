@@ -39,6 +39,7 @@ matches {
       _id
       firstName
       lastName
+      email
     }
   }
   teamB {
@@ -49,6 +50,7 @@ matches {
       _id
       firstName
       lastName
+      email
     }
   }
   location
@@ -80,7 +82,7 @@ teams {
  * =========================================================================================================================================
  */
 
-const GET_A_EVENT = gql`
+const GET_AN_EVENT = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
@@ -93,4 +95,4 @@ query GetEvent($eventId: String!) {
 }`;
 
 
-export { GET_A_EVENT };
+export { GET_AN_EVENT };

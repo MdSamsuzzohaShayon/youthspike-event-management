@@ -9,6 +9,10 @@
         {
             "value": "first",
             "text": "First roster submit"
+        },
+        {
+            "value": "date",
+            "text": "Pick A Date"
         }
     ],
     "assignLogicList": [

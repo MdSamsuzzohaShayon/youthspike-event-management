@@ -13,6 +13,7 @@ import { IError } from '@/types';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
 
@@ -25,19 +26,26 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       }
     }
   }, [params.eventId]);
-  
+
   if (loading || isLoading) return <Loader />;
-  
-  
+
+
   const players = data?.getEvent?.data?.players ? data.getEvent.data.players : [];
 
   return (
-    <div className='contaimer mx-auto px-2'>
-      <h1>Player Add</h1>
+    <div className='container mx-auto px-2 min-h-screen'>
+      <h1 className='mt-4 text-center'>Players</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update={false} />
-      <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} />
+      {addPlayer ? (<>
+        <h3 className='mt-4'>Player Add</h3>
+        <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
+        <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update={false} setAddPlayer={setAddPlayer} />
+      </>) : (<>
+        <h3 className='mt-4' >Player List</h3>
+        <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
+        <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} setAddPlayer={setAddPlayer} />
+      </>)}
     </div>
   )
 }

@@ -31,23 +31,24 @@ const itemList: IItem[] = [
 
 function EventsPage() {
 
+  // Hooks
   const user = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Local States
   const [filteredItems, setFilteredItems] = useState<IItem[]>([]);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [eventList, setEventList] = useState<IEvent[]>([])
-
-  const filterListEl = useRef<HTMLDialogElement | null>(null);
-
   const [ldoId, setLdoId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
+  const filterListEl = useRef<HTMLDialogElement | null>(null);
 
-  // const [fetchEvents, { loading, error, data: eventsData }] = useLazyQuery(GET_EVENTS);
+  // GraphQL Queries
   const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO);
   const [cloneEvent] = useMutation(CLONE_EVENT);
 
+  // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!filterListEl.current) return;
@@ -107,18 +108,18 @@ function EventsPage() {
   }, [router, user]);
 
 
-  if (ldoLoading) return <Loader />;
+  // if (ldoLoading) return <Loader />;
 
   const newLdoData = ldoData?.getEventDirector?.data;
   const eventLogo = newLdoData ? cld.image(newLdoData?.logo) : null;
 
   return (
-    <div className="container px-2 mx-auto">
+    <div className="container px-2 mx-auto min-h-screen">
       <dialog ref={filterListEl}>
         <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
         {itemList.map((item) => <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)} >{item.text}</p>)}
       </dialog>
-      <h1 className='mb-4 text-2xl font-bold pt-6 text-center'>Events Director</h1>
+      <h1 className='my-4 text-center'>Events Director</h1>
       {/* {error && <Message error={error} />} */}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">

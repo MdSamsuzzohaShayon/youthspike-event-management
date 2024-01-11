@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Round } from 'src/round/round.schema';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class RoundService {
     return newRounds;
   }
 
-  async update(round: Partial<Round>, id: string) {
+  async update(round: UpdateQuery<Round>, id: string) {
     return this.roundModel.findOneAndUpdate(
       {
         _id: id,

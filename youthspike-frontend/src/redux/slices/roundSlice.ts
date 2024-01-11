@@ -1,28 +1,15 @@
 /* eslint-disable no-param-reassign */
-import { IActionBox, IRoundRelatives } from '@/types';
-import { EActionProcess } from '@/types/elements';
+import { IRoundRelatives } from '@/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface RoundState {
   roundList: IRoundRelatives[];
   current: IRoundRelatives | null;
-  actionBoxOponent: IActionBox;
-  actionBox: IActionBox;
-};
-
-
-const initialAction = {
-  title: '',
-  roundNum: 1,
-  text: '',
-  process: EActionProcess.INITIATE,
 };
 
 const initialState: RoundState = {
   roundList: [],
   current: null,
-  actionBoxOponent: initialAction,
-  actionBox: initialAction,
 };
 const roundSlice = createSlice({
   name: 'round',
@@ -34,14 +21,8 @@ const roundSlice = createSlice({
     setRoundList: (state, action: PayloadAction<IRoundRelatives[]>) => {
       state.roundList = action.payload;
     },
-    setActionBox: (state, action: PayloadAction<IActionBox>) => {
-      state.actionBox = action.payload;
-    },
-    setActionBoxOponent: (state, action: PayloadAction<IActionBox>) =>{
-      state.actionBoxOponent = action.payload;
-    }
   },
 });
 
-export const { setRoundList, setCurrentRound, setActionBox } = roundSlice.actions;
+export const { setRoundList, setCurrentRound } = roundSlice.actions;
 export default roundSlice.reducer;

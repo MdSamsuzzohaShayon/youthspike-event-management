@@ -2,7 +2,7 @@ import React from 'react'
 
 function NetsPage() {
   return (
-    <div>NetsPage</div>
+    <div className='container mx-auto px-2 min-h-screen'>NetsPage</div>
   )
 }
 

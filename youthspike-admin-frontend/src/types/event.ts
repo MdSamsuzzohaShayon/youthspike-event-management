@@ -1,7 +1,7 @@
 import React from "react";
-import { IError, ITeam } from ".";
+import { IError, IPlayer, ITeam } from ".";
 import { IDocument } from "./document";
-import { IDefaultMatch } from "./match";
+import { IDefaultMatch, IMatch } from "./match";
 
 export interface IEventSponsor{
   _id: string;
@@ -29,6 +29,12 @@ export interface IEvent extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   sponsors: string[];
+}
+
+export interface IEventExpRel extends IEvent {
+  matches: IMatch[],
+  players: IPlayer[],
+  teams: ITeam[],
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

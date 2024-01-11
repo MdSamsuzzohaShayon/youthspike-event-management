@@ -80,7 +80,8 @@ export class UserResolver {
       return {
         code: 202,
         success: true,
-        data: {token, user: userObj}
+        data: {token, user: userObj},
+
         // data: user && user.length > 0 ? user[0] : null,
       };
     } catch (err) {

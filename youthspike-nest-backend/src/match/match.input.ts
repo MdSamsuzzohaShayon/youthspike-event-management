@@ -6,10 +6,7 @@ export class CreateMatchInput {
   event: string;
 
   @Field({ nullable: false })
-  date: Date;
-
-  @Field({ nullable: false })
-  netRange: number;
+  date: string;
   
   
   @Field({ nullable: true })

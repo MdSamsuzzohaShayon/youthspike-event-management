@@ -22,13 +22,14 @@ import { IEventAddProps, IEventAdd, IOption, IEventSponsorAdd } from '@/types';
 import { UserRole } from '@/types/user';
 
 import staticData from '../../lib/data.json';
+import DateInput from '../elements/forms/DateInput';
 
 
 // Select Input Options
 const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
 
 const initialEvent = {
-    name: 'N-2',
+    name: 'Event 1',
     // startDate, endDate, playerLimit
     divisions: 'division 1, division 2,',
     nets: 3,
@@ -40,7 +41,6 @@ const initialEvent = {
     rosterLock: rosterLockList[0].value,
     startDate: new Date().toISOString(),
     endDate: new Date().toISOString(),
-    // ldo: new Date().toISOString(),
     playerLimit: 10,
     active: true,
     timeout: 3,
@@ -83,6 +83,8 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         let newEventId = null;
         const inputData = update ? { ...updateEvent } : { ...eventState };
         inputData.ldo = directorId ? directorId : 'auto_detect_from_server';
+        if(inputData.startDate)inputData.startDate = new Date(inputData.startDate).toISOString()
+        if(inputData.endDate)inputData.endDate = new Date(inputData.endDate).toISOString()
 
         const mutationVariables = {
             sponsorsInput: [],
@@ -107,9 +109,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                     query: update ? UPDATE_EVENT_RAW : ADD_EVENT_RAW,
                     variables: mutationVariables,
                 }));
-                // formdata.append("map", "{\n  \"0\": [\"variables.sponsorsInput.0.logo\"],\n  \"1\": [\"variables.sponsorsInput.1.logo\"]\n}");
-                // formdata.append("0", fileInput.files[0], "pexels-harpreet-grewal-19576544.jpg");
-                // formdata.append("1", fileInput.files[0], "pexels-simone-cisale-19580730.jpg");
 
                 const mapObj: any = {};
                 for (let i = 0; i < sponsorImgList.length; i += 1) {
@@ -350,6 +349,10 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     return (
         <form onSubmit={handleEventAdd} className='flex flex-col gap-2'>
             <TextInput required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt='Name' name='name' lw='w-2/6' rw='w-4/6' />
+            
+            <DateInput required={!update} defaultValue={eventState.startDate} handleInputChange={handleInputChange} lblTxt='Start Date' name='startDate' lw='w-2/6' rw='w-4/6' />
+            <DateInput required={!update} defaultValue={eventState.endDate} handleInputChange={handleInputChange} lblTxt='End Date' name='endDate' lw='w-2/6' rw='w-4/6' />
+
             <TextInput required={!update} defaultValue={eventState.divisions} handleInputChange={handleInputChange} lblTxt='DIVISIONS' name='divisions' lw='w-2/6' rw='w-4/6' />
             {renderDivisions(eventState.divisions)}
             {/* Default setting  */}
@@ -359,34 +362,15 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <NumberInput defaultValue={eventState.rounds} handleInputChange={handleInputChange} lblTxt='Number of rounds' name='rounds' required={!update} />
             <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleInputChange} lblTxt='Net Variance' name='netVariance' required={!update} />
 
-            <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} />
+            <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={eventState.autoAssign}
                 name="autoAssign" />
             <SelectInput defaultValue={eventState.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
-            {/* 
-            <div className="input-group w-full flex flex-col">
-                <label htmlFor="name">Name</label>
-                <input className='border border-gray-300 p-1' type="text" defaultValue={name} required={!update} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="input-group w-full flex flex-col">
-                <label htmlFor="startDate">Start</label>
-                <input className='border border-gray-300 p-1' type="datetime-local" defaultValue={startDate} required={!update} onChange={(e) => setStartDate(e.target.value)} />
-            </div>
-            <div className="input-group w-full flex flex-col">
-                <label htmlFor="endDate">End</label>
-                <input className='border border-gray-300 p-1' type="datetime-local" defaultValue={endDate} required={!update} onChange={(e) => setEndDate(e.target.value)} />
-            </div>
-            <div className="input-group w-full flex flex-col">
-                <label htmlFor="playerLimit">Player Limit</label>
-                <input className='border border-gray-300 p-1' type="number" required={!update} onChange={(e) => setPlayerLimit(parseInt(e.target.value, 10))} />
-            </div>
-            <div className="input-group w-full">
-                <button className='border border-gray-300 bg-gray-900 text-gray-300 p-2' type='submit'>Create</button>
-            </div> */}
-            <NumberInput required lblTxt='Timeout' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
-            <TextInput handleInputChange={handleInputChange} name='coachPassword' required defaultValue={eventState.coachPassword} />
-            <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} />
+            <NumberInput required lblTxt='Sub Clock' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
+            
+            <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required defaultValue={eventState.coachPassword} rw='w-3/6' lw='w-3/6'  />
+            <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} rw='w-3/6' lw='w-3/6'  />
 
             {/* File upload start  */}
             <dialog ref={addSponsorDialogEl} className='w-4/6 bg-gray-800 h-2/6 p-2' >

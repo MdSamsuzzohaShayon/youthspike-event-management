@@ -9,7 +9,7 @@ import React from 'react';
 const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
 
     return (
-        <tr >
+        <tr className='border-b border-gray-700 hover:bg-gray-800 hover:bg-gray-700' >
             <td className="py-2 px-4 capitalize" >{ldo.name}</td>
             <td className="py-2 px-4 capitalize" >
                 {ldo?.logo ? <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> : ''}

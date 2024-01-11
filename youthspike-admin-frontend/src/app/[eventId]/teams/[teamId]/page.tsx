@@ -35,7 +35,7 @@ function TeamSingle({ params }: TeamSingleProps) {
   const teamData = data?.getTeam?.data;
 
   return (
-    <div className='container mx-auto px-2'>
+    <div className='container mx-auto px-2 min-h-screen'>
       <h1 className='uppercase text-center'>Teams/roster</h1>
       <p>Need to test drag and drop with mobile (important)</p>
       <a target='_blink' href="https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1">Figma Link (Page 6)</a>

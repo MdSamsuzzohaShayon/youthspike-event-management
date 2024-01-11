@@ -28,9 +28,8 @@ export interface IDateinputProps {
   lblTxt?: string;
   name: string;
   required: boolean;
-  defaultValue: Date;
+  defaultValue: string;
   handleInputChange: (e: React.SyntheticEvent) => void;
-  datetime?: boolean;
 }
 
 export interface IFileFileProps {

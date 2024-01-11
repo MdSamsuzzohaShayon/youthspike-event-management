@@ -28,18 +28,18 @@ function LoginPage() {
         password,
       },
     });
-    if(email === '' || password === '') return setActionsErrors({name: "Invalid Credentials", message: "Set correct email and password!"});
+    if (email === '' || password === '') return setActionsErrors({ name: "Invalid Credentials", message: "Set correct email and password!" });
     if (resultData?.login?.code === 202) {
       setCookie('token', resultData.login.data.token, 7);
       setCookie('user', JSON.stringify(resultData.login.data.user), 7);
       console.log(resultData.login.data.user.role);
       if (resultData?.login?.data?.user?.role === UserRole.admin) {
         router.push('/admin/directors');
-      }else if (resultData?.login?.data?.user?.role === UserRole.captain) {
+      } else if (resultData?.login?.data?.user?.role === UserRole.captain) {
         const eventIdOfPlayer = resultData.login.data.user?.event;
-        if(eventIdOfPlayer){
+        if (eventIdOfPlayer) {
           router.push(`/${eventIdOfPlayer}/matches`);
-        }else{
+        } else {
           router.push('/');
         }
       } else {
@@ -64,12 +64,12 @@ function LoginPage() {
         <title>Login | Spikeball Game</title>
       </Head>
 
-      <main className='flex flex-col w-full justify-center items-center' style={{ minHeight: '80vh' }} >
+      <main >
         {error && <Message error={error} />}
-        <div className="container mx-auto px-2">
+        <div className="container mx-auto px-2 min-h-screen flex flex-col w-full justify-center items-center">
           {actionsErrors && <Message error={actionsErrors} />}
+          <Login handleLogin={handleLogin} email={email} setEmail={setEmail} password={password} setPassword={setPassword} />
         </div>
-        <Login handleLogin={handleLogin} email={email} setEmail={setEmail} password={password} setPassword={setPassword} />
       </main>
     </>
   )

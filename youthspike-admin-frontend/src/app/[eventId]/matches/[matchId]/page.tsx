@@ -39,15 +39,11 @@ function MatchSingle({ params }: MatchSingleProps) {
 
 
     return (
-        <div className='container mx-auto px-2'>
+        <div className='container mx-auto px-2 min-h-screen'>
             <h1 className='uppercase text-center'>Match</h1>
 
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
-
-            <p>Teams with captain</p>
-            <p>Rounds</p>
-            <p>Nets</p>
 
             <h1>Update Match</h1>
             <MatchAdd matchData={toMatchDefaultData(matchData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />

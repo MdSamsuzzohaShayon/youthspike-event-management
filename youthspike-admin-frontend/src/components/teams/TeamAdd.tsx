@@ -13,17 +13,19 @@ interface ITeamAddProps {
     availablePlayers: IPlayer[],
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: (state: boolean) => void;
+    divisions: string
 }
 
 const initialTeamState = {
     active: true,
     name: '',
     event: '',
+    division: '',
     players: [],
     captain: ''
 };
 
-function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeamAddProps) {
+function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions }: ITeamAddProps) {
     const [teamState, setTeamState] = useState<ITeamAdd>(initialTeamState);
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
 
@@ -31,6 +33,9 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeam
     const [addTeam, { data, loading, error, reset }] = useMutation(ADD_A_TEAM); // Do caching
 
 
+    console.log({divisions});
+    
+    // Handle events
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         try {
@@ -85,12 +90,18 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeam
         }
     }
 
+    const handleSelect = (e: React.SyntheticEvent) => {
+        const selectInputEl = e.target as HTMLSelectElement;
+        setTeamState((prevState) => ({ ...prevState, [selectInputEl.name]: selectInputEl.value.toLowerCase() }));
+    }
+
     useEffect(() => {
         if (availablePlayers && availablePlayers.length > 0) {
             setTeamState((prevState) => ({ ...prevState, captain: availablePlayers[0]._id }));
         }
     }, []);
 
+    // Renders
     const selectedPlayers = (ap: IPlayer[], pil: string[]): IOption[] => {
         const newAp = ap.filter(p => pil.includes(p._id));
         const options = makeOptionList(newAp);
@@ -104,6 +115,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers }: ITeam
             </div>
 
             <TextInput name='name' required vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
+            <SelectInput name='division' optionList={[...divisions.split(',').map((d: string) => ({ text: d, value: d }))]} handleSelect={handleSelect} lw='w-5/12' rw='w-5/12' />
             <div className='input-group w-full flex flex-col'>
                 <label htmlFor="players">Select Players. <Link href={`/${eventId}/players`} className='underline underline-offset-1' >Create New Player!</Link></label>
                 <ul className='flex flex-wrap items-center gap-2'>

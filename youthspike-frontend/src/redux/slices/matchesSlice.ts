@@ -1,12 +1,20 @@
 /* eslint-disable no-param-reassign */
-import { IMatchRelatives, ICaptainSide } from '@/types';
+import { IMatchRelatives, ICaptainSide, ITeam, IPlayer } from '@/types';
+import { EActionProcess } from '@/types/elements';
+import { ETeam } from '@/types/team';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 interface MatchesState {
   match: IMatchRelatives,
-  myDetail: ICaptainSide,
-  oponentDetail: ICaptainSide
+  myTeam: null | ITeam;
+  opTeam: null | ITeam;
+  myPlayers: IPlayer[];
+  opPlayers: IPlayer[];
+  myTeamE: ETeam;
+  opTeamE: ETeam;
+  myTeamProcess: EActionProcess;
+  opTeamProcess: EActionProcess;
 }
 
 const initialState: MatchesState = {
@@ -19,7 +27,6 @@ const initialState: MatchesState = {
     location: '',
     numberOfNets: 0,
     numberOfRounds: 0,
-    netRange: 0,
     divisions: '',
     netVariance: 0,
     homeTeam: '',
@@ -30,16 +37,15 @@ const initialState: MatchesState = {
     coachPassword: '',
     rounds: [],
   },
-  myDetail: {
-    matchId: null,
-    captainId: null,
-    teamId: null,
-  },
-  oponentDetail: {
-    matchId: null,
-    captainId: null,
-    teamId: null,
-  },
+
+  myTeam: null,
+  opTeam: null,
+  myPlayers: [],
+  opPlayers: [],
+  myTeamE: ETeam.teamB,
+  opTeamE: ETeam.teamA,
+  myTeamProcess: EActionProcess.INITIATE,
+  opTeamProcess: EActionProcess.INITIATE,
 };
 
 export const matchesSlice = createSlice({
@@ -49,16 +55,30 @@ export const matchesSlice = createSlice({
     setMatchInfo: (state, action: PayloadAction<IMatchRelatives>) => {
       state.match = action.payload;
     },
-    setMyDetail: (state, action: PayloadAction<ICaptainSide>) => {
-      state.myDetail = action.payload;
+    setMyTeam:(state, action: PayloadAction<ITeam | null>)=>{
+      if(action.payload) state.myTeam = action.payload;
     },
-    setOponentDetail: (state, action: PayloadAction<ICaptainSide>) => {
-      state.oponentDetail = action.payload;
+    setOpTeam:(state, action: PayloadAction<ITeam | null>)=>{
+      if(action.payload) state.opTeam = action.payload;
     },
+    setMyPlayers:(state, action: PayloadAction<IPlayer[]>)=>{
+      state.myPlayers = action.payload;
+    },
+    setOpPlayers:(state, action: PayloadAction<IPlayer[]>)=>{
+      state.opPlayers = action.payload;
+    },
+    setTeamE: (state, action: PayloadAction<{myTeamE: ETeam, opTeamE: ETeam}>)=>{
+      state.myTeamE = action.payload.myTeamE;
+      state.opTeamE = action.payload.opTeamE;
+    },
+    setTeamProcess: (state, action: PayloadAction<{myTeamProcess: EActionProcess, opTeamProcess: EActionProcess}>)=>{
+      state.myTeamProcess = action.payload.myTeamProcess;
+      state.opTeamProcess = action.payload.opTeamProcess;
+    }
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setMatchInfo, setMyDetail, setOponentDetail } = matchesSlice.actions;
+export const { setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

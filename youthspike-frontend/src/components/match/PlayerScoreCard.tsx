@@ -11,7 +11,7 @@ interface IPalyerScoreCard {
   player: IPlayer | null;
   teamPlayer: number;
   evacuatePlayer?: (teamPlayer: number, playerId: string) => void;
-  dropdownPlayer?: (teamPlayer: number) => void;
+  dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: number) => void;
   dark: boolean;
 }
 
@@ -21,7 +21,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
 
   const handleDropDown = (e: React.SyntheticEvent) => {
     // Show drop down box
-    if (dropdownPlayer) dropdownPlayer(teamPlayer);
+    if (dropdownPlayer) dropdownPlayer(e, teamPlayer);
   };
 
   const handleEvacuatePlayer = (e: React.SyntheticEvent, playerId: string) => {

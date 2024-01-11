@@ -30,7 +30,7 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
   const ldo = data?.getEventDirector?.data;
 
   return (
-    <div className='container mx-auto px-2' ref={mainEl}>
+    <div className='container mx-auto px-2 min-h-screen' ref={mainEl}>
       {error && <Message error={error} />}
       {ldo && <DirectorDetail ldo={ldo} />}
       <br />

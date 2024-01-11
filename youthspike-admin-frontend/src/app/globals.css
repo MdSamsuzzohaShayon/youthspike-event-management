@@ -42,14 +42,39 @@ label {
   @apply text-lg font-normal;
 }
 
+/* Chrome, Safari, and newer Opera */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: white;
+  /* White text color */
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  /* Transparent background */
+  transition: background-color 5000s ease-in-out 0s;
+  /* Transition for the color change */
+}
+
+/* Firefox */
+/* Firefox doesn't support changing the background color of autofill via CSS */
+
+/* Microsoft Edge */
+input:-ms-autofill,
+input:-ms-autofill:hover,
+input:-ms-autofill:focus {
+  -webkit-text-fill-color: white;
+  /* White text color for Edge */
+  background-color: transparent;
+  /* Transparent background color */
+}
+
 dialog {}
 
 dialog::backdrop {
   background-image: linear-gradient(45deg,
-      magenta,
-      rebeccapurple,
-      dodgerblue,
-      green);
+      rgb(34, 34, 34),
+      rgb(34, 34, 34),
+      rgb(34, 34, 34),
+      rgb(34, 34, 34));
   opacity: 0.75;
 }
 
@@ -94,7 +119,27 @@ dialog::backdrop {
 /* Button style end  */
 
 .form-control {
-  @apply border border-gray-300 bg-transparent outline-none px-2 rounded-full h-10 text-center;
+  @apply border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center;
+}
+
+/* Default styles for the input */
+.datetime-input {
+  /* Add any other styles you want for the input */
+}
+
+/* Change the color of the calendar icon inside the input */
+.datetime-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Change the color of the clock icon inside the input (for Firefox) */
+.datetime-input::-moz-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Change the color of the clock icon inside the input (for Edge) */
+.datetime-input::-ms-clear {
+  filter: invert(1);
 }
 
 /* Loading animation  */
