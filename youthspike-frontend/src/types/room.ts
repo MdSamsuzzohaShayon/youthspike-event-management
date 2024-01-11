@@ -4,6 +4,7 @@ export enum EActionProcess {
     PLACING = 'PLACING',
     LINEUP = 'LINEUP',
     LOCKED = 'LOCKED',
+    COMPLETED = 'COMPLETED',
 };
 
 export interface IRoom {

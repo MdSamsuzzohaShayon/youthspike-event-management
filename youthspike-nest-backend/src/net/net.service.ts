@@ -46,6 +46,11 @@ export class NetService {
     return this.netModel.findById(id);
   }
 
+  async findNetsWithMatches(netIds: string[]){
+    return this.netModel.find({_id: {$in: netIds}}).populate('match');
+  }
+
+
   async delete(filter: FilterQuery<Net>) {
     return this.netModel.deleteMany(filter);
   }

@@ -8,9 +8,12 @@ import { RoundService } from 'src/round/round.service';
 import { Team } from 'src/team/team.schema';
 import { User, UserRole } from 'src/user/user.schema';
 import { Net } from './net.schema';
-import { CreateNetInput, UpdateNetInput } from './input.args';
+import { CreateNetInput, UpdateMultipleNetInput, UpdateNetInput } from './input.args';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
+import { HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
 
 @ObjectType()
 class GetNetsResponse extends AppResponse<Net[]> {
@@ -24,27 +27,12 @@ class GetNetResponse extends AppResponse<Net> {
   data?: Net;
 }
 
+
 @Resolver((of) => Net)
 export class NetResolver {
   constructor(private roundService: RoundService, private netService: NetService, private teamService: TeamService) { }
 
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
-  @Mutation((returns) => GetNetResponse)
-  async createNet(@Args('input') input: CreateNetInput): Promise<GetNetResponse> {
-    try {
-      /**
-       * TODO:
-       */
-      return {
-        data: null,
-        success: true,
-        code: 201,
-      };
-    } catch (err) {
-      return AppResponse.getError(err);
-    }
-  }
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain)
   @Mutation((returns) => GetNetResponse)
   async updateNet(@Args('input') input: UpdateNetInput, @Args('netId') netId: string): Promise<GetNetResponse> {
@@ -53,7 +41,7 @@ export class NetResolver {
        * TODO:
        *  Set players for team A and team B
       */
-      const findNetPromise: any = (await this.netService.findOne({_id: netId})).populate('match');
+      const findNetPromise: any = (await this.netService.findOne({ _id: netId })).populate('match');
       const findNet = await findNetPromise;
       const teamIds = [];
       if (findNet.match?.teamA) teamIds.push(findNet.match.teamA);
@@ -71,7 +59,53 @@ export class NetResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Mutation((returns) => GetNetsResponse)
+  async updateNets(@Args('input', { type: () => [UpdateMultipleNetInput] }) netsInput: UpdateMultipleNetInput[]): Promise<GetNetsResponse> {
+      try {
+          const netIds = netsInput.map(net => net._id);
+          const netsToUpdate = netsInput.map(({ _id, ...updateData }) => ({
+              updateData,
+              _id,
+          }));
+  
+          const updatedNets = await this.bulkUpdateNets(netsToUpdate);
+          await this.updateRelatedTeams(netIds);
+  
+          return {
+              data: updatedNets,
+              success: true,
+              code: HttpStatus.ACCEPTED,
+          };
+      } catch (err) {
+          throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+  }
+  
+  private async bulkUpdateNets(netsToUpdate: { updateData: any, _id: string }[]): Promise<any[]> {
+      const updatePromises = netsToUpdate.map(({ updateData, _id }) => 
+          this.netService.update(updateData, _id)
+      );
+  
+      return await Promise.all(updatePromises);
+  }
+  
+  private async updateRelatedTeams(netIds: string[]): Promise<void> {
+      const netsWithMatches = await this.netService.findNetsWithMatches(netIds);
+  
+      const teamUpdates = netsWithMatches.flatMap(net => {
+          const teamIds = [];
+          const netMatch: any = net?.match;
+          if (netMatch?.teamA) teamIds.push(netMatch?.teamA);
+          if (netMatch?.teamB) teamIds.push(netMatch?.teamB);
+          return teamIds.map(teamId => this.teamService.update({ $push: { nets: net._id } }, { _id: teamId }));
+      });
+  
+      await Promise.all(teamUpdates);
+  }
+
   @Query((returns) => GetNetsResponse)
   async getNets(@Args('roundId') roundId: string) {
     try {
@@ -85,7 +119,6 @@ export class NetResolver {
     }
   }
 
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
   @Query((returns) => GetNetResponse)
   async getNet(@Args('netId') netId: string) {
     try {

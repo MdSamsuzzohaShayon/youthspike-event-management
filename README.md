@@ -40,8 +40,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Make player leave of or inavtive in the match day
- - Work with action boxes
+ - To go to the next rounds make sure to complete current round
+ - Show available players id properly / logically
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*

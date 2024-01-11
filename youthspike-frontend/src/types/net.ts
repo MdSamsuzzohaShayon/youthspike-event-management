@@ -21,14 +21,16 @@ interface INetRelatives extends INetBase {
     teamBPlayerB?: string | null;
 }
 
-interface INetPlayers {
+interface INetUpdate {
     _id: string;
     teamAPlayerA?: string | null;
     teamAPlayerB?: string | null;
     teamBPlayerA?: string | null;
     teamBPlayerB?: string | null;
+    teamAScore?: number;
+    teamBScore?: number;
 }
 
 
 
-export type { INetBase, INetRelatives, INetPlayers };
+export type { INetBase, INetRelatives, INetUpdate };

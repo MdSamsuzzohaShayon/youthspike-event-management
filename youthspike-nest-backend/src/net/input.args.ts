@@ -1,4 +1,4 @@
-import { Field, InputType, PartialType } from '@nestjs/graphql';
+import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateNetInput {
@@ -20,4 +20,29 @@ export class UpdateNetInput extends PartialType(CreateNetInput) {
 
   @Field({ nullable: true })
   teamBPlayerB?: string | null;
+}
+
+@InputType()
+export class UpdateMultipleNetInput extends PartialType(CreateNetInput) {
+
+  @Field({ nullable: false })
+  _id: string;
+
+  @Field({ nullable: true })
+  teamAPlayerA?: string | null;
+
+  @Field({ nullable: true })
+  teamAPlayerB?: string | null;
+
+  @Field({ nullable: true })
+  teamBPlayerA?: string | null;
+
+  @Field({ nullable: true })
+  teamBPlayerB?: string | null;
+
+  @Field((type) => Int, { nullable: true })
+  teamAScore?: number;
+
+  @Field((type) => Int, { nullable: true })
+  teamBScore?: number;
 }

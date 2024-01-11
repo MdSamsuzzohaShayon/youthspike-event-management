@@ -36,6 +36,7 @@ enum EActionProcess {
   PLACING
   LINEUP
   LOCKED
+  COMPLETE
 }
 
 type Team {
@@ -351,8 +352,8 @@ type Mutation {
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
   create(match: String!, locked: Boolean, id: String): GetRoundResponse!
   updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
-  createNet(input: CreateNetInput!): GetNetResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
+  updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
   updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!
@@ -470,16 +471,23 @@ input UpdateMatchInput {
   location: String
 }
 
-input CreateNetInput {
-  match: String!
-}
-
 input UpdateNetInput {
   match: String
   teamAPlayerA: String
   teamAPlayerB: String
   teamBPlayerA: String
   teamBPlayerB: String
+}
+
+input UpdateMultipleNetInput {
+  match: String
+  _id: String!
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  teamAScore: Int
+  teamBScore: Int
 }
 
 input CreateDirectorArgs {

@@ -121,10 +121,3 @@ export enum EActionProcess {
   LINEUP = 'LINEUP',
   LOCKED = 'LOCKED',
 }
-
-export interface IActionBox {
-  title: string;
-  roundNum: number;
-  text: string;
-  process: string;
-}

@@ -16,17 +16,17 @@ import Loader from '@/components/elements/Loader';
 // GraphQL
 import { useLazyQuery, useMutation } from '@apollo/client';
 import { GET_MATCH_DETAIL } from '@/graphql/matches';
-import { UPDATE_NET_PLAYERS } from '@/graphql/net';
+import { UPDATE_NETS } from '@/graphql/net';
 
 // Redux
 import { setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE, setTeamProcess } from '@/redux/slices/matchesSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
-import { setActionBox, setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setScreenSize } from '@/redux/slices/elementSlice';
+import { setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
 
 // Utils
 import { screen } from '@/utils/constant';
@@ -44,7 +44,7 @@ import { useSocket } from '@/lib/SocketProvider';
 import { ETeam } from '@/types/team';
 import { EActionProcess, IError } from '@/types/elements';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
-import { isValidObjectId } from '@/utils/helper';
+import { handleError, isValidObjectId } from '@/utils/helper';
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
@@ -58,17 +58,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const socket = useSocket();
 
   // Redux States
-  const teamAPlayers = useAppSelector((state) => state.players.teamAPlayers);
-  const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
-  const teamA = useAppSelector((state) => state.teams.teamA);
-  const teamB = useAppSelector((state) => state.teams.teamB);
+  const { teamA, teamB } = useAppSelector((state) => state.teams);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
-  const currentRound = useAppSelector((state) => state.rounds.current);
-  const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
-  const teamUpdate = useAppSelector((state) => state.nets.updateTeam);
-  const actionBox = useAppSelector((state) => state.rounds.actionBox);
-  const actionBoxOponent = useAppSelector((state) => state.rounds.actionBoxOponent);
+  const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
+  const { currentRoundNets: currRoundNets, updateNets } = useAppSelector((state) => state.nets);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, myTeamProcess, opTeamProcess } = useAppSelector((state) => state.matches);
 
@@ -77,27 +71,53 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   // GraphAL
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
-  const [mutateNet, { data: mData, error: mErr }] = useMutation(UPDATE_NET_PLAYERS);
+  const [mutateNet, { data: mData, error: mErr }] = useMutation(UPDATE_NETS);
 
   /**
    * Event handlers
    */
-  const handleNetPlayers = async (e: React.SyntheticEvent) => {
+  const handleNetUpdate = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     try {
-      if (!teamUpdate._id || teamUpdate._id === '') return;
-      const updateNetObj: any = { ...teamUpdate };
-      const netId = teamUpdate._id;
-      const findNet = currRoundNets.find((crn) => crn._id === netId);
-
-      delete updateNetObj._id;
-      if (findNet && findNet.teamAScore && findNet.teamAScore !== 0) updateNetObj.teamAScore = findNet?.teamAScore;
-      if (findNet && findNet.teamBScore && findNet.teamBScore !== 0) updateNetObj.teamBScore = findNet?.teamBScore;
-      const updateRes = await mutateNet({ variables: { input: updateNetObj, netId: netId } });
-      console.log(updateRes);
+      if (updateNets.length === 0) return;
+      dispatch(setIsLoading(true));
+      const updateRes = await mutateNet({ variables: { input: updateNets } });
+      await refetch();
     } catch (error) {
       console.log(error);
+      const formattedError = handleError(error);
+      setActErr(formattedError[0]);
+    } finally {
+      dispatch(setIsLoading(false));
     }
+  }
+
+  const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
+    e.preventDefault();
+    /**
+     * Before completing current round someone can not go to the next round
+     * Round must have team a score and team b score to proceed
+     * Change current round nets
+     */
+    if(next){
+      let canGoNext = true;
+      for (const currNet of currRoundNets) {
+        if(!currNet.teamAPlayerA || !currNet.teamAPlayerB || !currNet.teamBPlayerA || !currNet.teamBPlayerB || !currNet.teamAScore || currNet.teamAScore === 0 || !currNet.teamBScore || currNet.teamBScore === 0){
+          canGoNext = false;
+        }
+      }
+      if(!canGoNext){
+        return setActErr({name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points."})
+      }
+      const findRoundIndex = roundList.findIndex((r) => r._id === currentRound?._id);
+      if (!findRoundIndex) return;
+      if ((!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBcore || currentRound?.teamBcore === 0)) return;
+    }
+    // dispatch(setCurrentRound());
+
+
+    // const filteredNets = formattedNets.filter((net) => net.round === formattedRounds[0]._id);
+    // dispatch(setCurrentRoundNets(filteredNets));
   }
 
 
@@ -435,8 +455,19 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           {actErr && <Message error={actErr} />}
           {user && user.info ? (<>
             {renderTeams()}
-            <div className="controls px-4 flex justify-center">
-              <button className='btn-primary mt-4' type="button" onClick={handleNetPlayers}>Update</button>
+            <div className='controls px-4 flex justify-center mt-4 w-full'>
+              <button className='btn-secondary capitalize' type="button" onClick={handleNetUpdate}>Update</button>
+            </div>
+            <div className="controls px-4 flex justify-center mt-4 gap-2">
+              <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, false)}>
+                <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" style={{ transform: 'scaleX(-1)' }} />
+                Prev round
+              </button>
+              {!(!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBcore || currentRound?.teamBcore === 0) && (
+                <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, true)}>Next round
+                  <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" />
+                </button>
+              )}
             </div>
           </>) : (<>
             {/* Public Version Start ============================================> */}

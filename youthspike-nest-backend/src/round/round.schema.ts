@@ -13,6 +13,7 @@ export enum EActionProcess {
   PLACING = 'PLACING',
   LINEUP = 'LINEUP',
   LOCKED = 'LOCKED',
+  COMPLETE = 'COMPLETE',
 };
 
 registerEnumType(EActionProcess, {

@@ -1,24 +1,22 @@
 import { gql } from "@apollo/client";
 
-const UPDATE_NET_PLAYERS = gql`
-mutation UpdateNet($input: UpdateNetInput!, $netId: String!) {
-    updateNet(input: $input, netId: $netId) {
-      code
-      message
-      success
-      data {
-        _id
-        teamAPlayerA
-        teamAPlayerB
-        teamBPlayerA
-        teamBPlayerB
-        num
-        pairRange
-        teamAScore
-        teamBScore
-      }
+const UPDATE_NETS = gql`
+mutation UpdateNets($input: [UpdateMultipleNetInput!]!) {
+  updateNets(input: $input) {
+    code
+    data {
+      _id
+      num
+      pairRange
+      teamAPlayerA
+      teamAPlayerB
+      teamAScore
+      teamBPlayerA
+      teamBPlayerB
+      teamBScore
     }
   }
+}
 `;
 
-export {UPDATE_NET_PLAYERS};
+export {UPDATE_NETS};
