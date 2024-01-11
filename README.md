@@ -42,6 +42,7 @@ ___
 ### Running
  - To go to the next rounds make sure to complete current round
  - Show available players id properly / logically
+ - Add players and score through gateway
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*
