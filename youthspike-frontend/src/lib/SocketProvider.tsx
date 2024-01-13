@@ -18,7 +18,7 @@ function SocketProvider({ children }: React.PropsWithChildren) {
   const [socket, setSocket] = React.useState<any | null>(null);
   
   React.useEffect(() => {    
-    setSocket(io(SOCKET_URL));
+    setSocket(io("ws://localhost:4000/websocket"));
   }, []);
 
   return <ThemeContext.Provider value={socket}>{children}</ThemeContext.Provider>;

@@ -363,7 +363,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     } else {
       return;
     }
-
+    console.log({ match: params.matchId, team: userTeamId, round: currentRound._id });
+    
     // @ts-ignore
     socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId, round: currentRound._id });
 
