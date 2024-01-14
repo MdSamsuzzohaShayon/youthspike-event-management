@@ -1,10 +1,18 @@
 import { CREATE_MULTIPLE_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/players';
+import { IError } from '@/types';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import { useMutation } from '@apollo/client';
+import { redirect } from 'next/navigation';
 import React, { useRef } from 'react';
 
-function MultiPlayerAdd({ eventId }: { eventId: string }) {
+interface IMultiPlayerAddProps {
+    eventId: string;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    closeDialog: () => void;
+}
+
+function MultiPlayerAdd({ eventId, setIsLoading, closeDialog}: IMultiPlayerAddProps) {
     const uploadFileEl = useRef<HTMLInputElement | null>(null);
 
     const handleInputChange = (e: React.SyntheticEvent) => {
@@ -29,25 +37,30 @@ function MultiPlayerAdd({ eventId }: { eventId: string }) {
 
     const handleUploadMultiPlayers = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        // Add logic for handling the upload
-        console.log(uploadFileEl?.current);
-        if (!uploadFileEl.current || !uploadFileEl.current.files) return;
+        try {
+            setIsLoading(true);
+            // Add logic for handling the upload
+            if (!uploadFileEl.current || !uploadFileEl.current.files) return;
+            const formData = new FormData();
+            formData.set('operations', JSON.stringify({
+                query: CREATE_MULTIPLE_PLAYERS_RAW,
+                variables: { event: eventId, uploadedFile: null },
+            }));
 
-        console.log(uploadFileEl.current.files[0]);
-        const formData = new FormData();
-        formData.set('operations', JSON.stringify({
-            query: CREATE_MULTIPLE_PLAYERS_RAW,
-            variables: { event: eventId, uploadedFile: null },
-        }));
-
-        formData.set('map', JSON.stringify({ '0': ['variables.uploadedFile'] }));
-        formData.set('0', uploadFileEl.current.files[0]);
-        const token = getCookie('token');
-        const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
-        const jsonRes = await response.json();
-        console.log(jsonRes);
-        // Redirect to players page
-        
+            formData.set('map', JSON.stringify({ '0': ['variables.uploadedFile'] }));
+            formData.set('0', uploadFileEl.current.files[0]);
+            const token = getCookie('token');
+            const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
+            const jsonRes = await response.json();
+            // Redirect to players page
+            closeDialog();
+            redirect(`/${eventId}/players`);
+        } catch (error) {
+            closeDialog();
+            console.log(error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

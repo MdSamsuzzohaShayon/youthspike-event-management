@@ -344,7 +344,7 @@ type Mutation {
   login(email: String!, password: String!): LoginResponse!
   changePassword(id: String!, oldPassword: String, newPassword: String): ChangePWDDataRes!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
-  updateEvent(sponsors: [Upload!]!, input: UpdateEventInput!, eventId: String!): CreateOrUpdateEventResponse!
+  updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   createTeam(input: CreateTeamInput!): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!): CreateOrUpdateTeamResponse!

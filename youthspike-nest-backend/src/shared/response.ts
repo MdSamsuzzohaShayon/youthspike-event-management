@@ -39,6 +39,10 @@ export class AppResponse<Type = null> {
     return new AppResponse(406, false, `Invalid credentials!`);
   }
 
+  static invalidFile(msg: string = '') {
+    return new AppResponse(406, false, `Invalid file type! ${msg}`);
+  }
+
   static unauthorized() {
     return new AppResponse(403, false, `You are not authorized to perform such an action!`);
   }

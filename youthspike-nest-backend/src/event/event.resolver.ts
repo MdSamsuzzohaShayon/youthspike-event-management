@@ -161,7 +161,7 @@ export class EventResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateEventResponse)
   async updateEvent(
-    @Args({ name: 'sponsors', type: () => [GraphQLUpload] }) sponsors: Upload[],
+    @Args({ name: 'sponsorsInput', type: () => [GraphQLUpload] }) sponsorsInput: Upload[],
     @Args('input') args: UpdateEventInput,
     @Args('eventId') eventId: string,
     @Context() context: any,
@@ -196,15 +196,17 @@ export class EventResolver {
 
       // Upload file to cloudinary
       const uploadPromises = [];
-      for (let i = 0; i < sponsors.length; i++) {
-        if (typeof sponsors[i] !== 'string') uploadPromises.push(this.cloudinaryService.uploadFiles(sponsors[i]));
+      for (let i = 0; i < sponsorsInput.length; i++) {
+        if (typeof sponsorsInput[i] !== 'string') uploadPromises.push(this.cloudinaryService.uploadFiles(sponsorsInput[i]));
       }
       const cloudinaryUrls: string[] = await Promise.all(uploadPromises);
+
+      const findLdo = await this.ldoService.findByDirectorId(directorId);
 
       // Arrange data and save to database
       const eventData = {
         ...args,
-        directorId: directorId,
+        // ldo: findLdo._id,
         sponsors: cloudinaryUrls,
       };
 

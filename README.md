@@ -25,6 +25,19 @@ ___
  
  - [Net veriance explanation](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), captain and coach are same, player list(team) means roster, league and event act as same with little bit of diffrence
 
+ - **Testing**
+ - [Edit event and navigation and moving a squad list](https://www.loom.com/share/5a4ca5cb6afe4351a2c06e4707d1b8f6)
+ - [Location on the event settings. Consistency on the name of the event.](https://www.loom.com/share/d023edb6e8e04348a4770dfbd9267919)
+ - [Changing captain. And updating rankings and refresh when you make a player inactive.](https://www.loom.com/share/fa723bb6904a4592b1e4833bdc95b124)
+ - [Creating matches](https://www.loom.com/share/33de4bdff99740019875d7b4625be2d1)
+ - [Player images from players tab to team tab area](https://www.loom.com/share/e89820eb179e4e2f88bd06ccaaa9a533)
+ - [LDO profile and main screen](https://www.loom.com/share/05f3416d3c5f4c8ea46267a85ed8775e)
+ - [Captains login.](https://www.loom.com/share/3682d0d55358406b9ecb265646107a37)
+
+
+
+
+
 ### Learn
  - Next.js GraphQL - https://www.youtube.com/watch?v=XzE-PzALyDc
  - MERN GraphQL - https://www.youtube.com/watch?v=XzE-PzALyDc
@@ -36,13 +49,15 @@ ___
  - Learn GraphQL Apollo client data caching
  - Learn Next.js 13/14 updated
 
+
+
 ### Style
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - To go to the next rounds make sure to complete current round
- - Show available players id properly / logically
- - Add players and score through gateway
+ - Update eventy and show navigation properly
+ - No time for event, only date
+ - Division for team and event
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*
@@ -123,12 +138,15 @@ ___
  - ✅✅ Getting error with updating event
  - ✅✅ Add Name of the sponsors
  - Add location, date, and logo properly
+ - Update event properly
 
  - **Match**
  - ✅✅ For a new match there will be whole new setup  (rounds, nets, etc)
  - ✅✅ Database modeling *round, match, and net* make relationship properly
  - ✅✅ Get all the defaults values from the event in order to create a new match
  - ✅✅ Update match
+ - Show available players id properly / logically
+ - Add players and score through gateway
  - Instead of timeout call it sub clock from match setting [13:20](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
  - Coach password and Location should not be in the match setting
  - Currently captain is able to create a match that should not be -> only LDO can create a match
@@ -249,9 +267,7 @@ ___
 
 
 ### Ask
- 1. If anyone put the score they can put whatever they want, this should not be the case. In my opinion, either team director should put the score in or they validate score of both team given by captains are correct.
- 2. There is another issue with putting score and  doing any actions on that screen, it is better to add a update button after selecting players for the new captain should click on that update in that way the program will run little bit faster. 
- 3. Last question was a bit incorrect. The question is when I login as captain of my team and you login as captain of your team, we both will see our team at the bottom of the screen on 2 different mobile screen. In that case, oponent team will be presented at the top side there for who logged in as captain will not see any buttons or controls of another team that is placed at the top side.
+ 1. I have a confusion regarding assigning players to nets. You said before assigning players to all the nets of current round some can't go further in the next round. I made a validation, both captains need to assign players to all nets of current round and input score for all nets in order to go to the next round. But an exception here, if there are 3 nets in current round and 5 players in each team. There will be one net where only one player will be assigned. Can it be a case? what should we do with that?
 
 
  curl -i -N  \

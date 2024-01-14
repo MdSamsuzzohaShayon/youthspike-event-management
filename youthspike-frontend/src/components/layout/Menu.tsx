@@ -173,7 +173,7 @@ function Menu() {
                     </div>
                     {eventId && (
                         <div className="league mb-8 w-full">
-                            <h2 className='text-xl'>League Name</h2>
+                            <Link href="/" className='text-2xl'>Event</Link>
                         </div>
                     )}
                     <ul className='menu-list flex justify-start flex-col gap-8'>

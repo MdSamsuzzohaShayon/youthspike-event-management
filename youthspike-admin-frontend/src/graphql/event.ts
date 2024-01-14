@@ -80,8 +80,8 @@ mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventI
 const ADD_EVENT = gql`${ADD_EVENT_RAW}`;
 
 const UPDATE_EVENT_RAW = `
-mutation UpdateEvent($sponsors: [Upload!]!, $input: UpdateEventInput!, $eventId: String!) {
-  updateEvent(sponsors: $sponsors, input: $input, eventId: $eventId) {
+mutation UpdateEvent($sponsorsInput: [Upload!]!, $input: UpdateEventInput!, $eventId: String!) {
+  updateEvent(sponsorsInput: $sponsorsInput, input: $input, eventId: $eventId) {
     code
     message
     success

@@ -10,10 +10,11 @@ import Link from 'next/link';
 
 interface ITeamAddProps {
     eventId: string;
-    availablePlayers: IPlayer[],
+    availablePlayers: IPlayer[];
+    setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>> ;
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: (state: boolean) => void;
-    divisions: string
+    divisions: string;
 }
 
 const initialTeamState = {
@@ -25,15 +26,12 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions }: ITeamAddProps) {
+function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions, setAvailablePlayers }: ITeamAddProps) {
     const [teamState, setTeamState] = useState<ITeamAdd>(initialTeamState);
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
 
     // GraphQL
     const [addTeam, { data, loading, error, reset }] = useMutation(ADD_A_TEAM); // Do caching
-
-
-    console.log({divisions});
     
     // Handle events
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
@@ -44,12 +42,14 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             const teamRes = await addTeam({
                 variables: { input: teamObj }
             });
-            console.log(teamRes);
+            setAvailablePlayers((prevState)=> [...prevState.filter((p)=> !playerIdList.includes(p._id))]);
+            setPlayerIdList([]);
 
         } catch (error) {
             console.log(error);
         } finally {
             setIsLoading(false);
+            
         }
 
         // console.log({ resultData });

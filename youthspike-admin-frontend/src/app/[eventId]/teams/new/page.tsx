@@ -17,7 +17,7 @@ interface ITeamsPageProps {
 function TeamsPage({ params }: ITeamsPageProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
-  const [fetchPlayers, { loading, data, error }] = useLazyQuery(GET_EVENT_WITH_PLAYERS);
+  const [fetchPlayers, { loading, data, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [divisions, setDivisions] = useState<string>('');
 
@@ -54,7 +54,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
       <h1 className='mt-4 text-center'>Teams</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} divisions={divisions} />
+      <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} divisions={divisions} setAvailablePlayers={setAvailablePlayers} />
     </div>
   )
 }
