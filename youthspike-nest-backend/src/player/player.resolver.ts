@@ -146,7 +146,7 @@ export class PlayerResolver {
       const fileExtension = uploadedFile.filename.split('.').pop().toLowerCase();
 
       if (!allowedFileTypes.includes(fileExtension)) {
-        throw new BadRequestException('Invalid file type. Please upload a CSV or XLSX file.');
+        return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }
       const playersObjList = await this.playerService.arrangeFromCSV(uploadedFile, event);
       const playerList = await this.playerService.createMany(playersObjList);
@@ -161,13 +161,7 @@ export class PlayerResolver {
     } catch (error) {
       console.error('Error in createMultiPlayers:', error);
       // Customize the error response based on the type of error
-      if (error instanceof BadRequestException) {
-        // Return a more specific error response for BadRequestException
-        throw new BadRequestException('Invalid file: ' + error.message);
-      } else {
-        // For other types of errors, return a generic error response
-        throw new Error('An unexpected error occurred. Please try again.');
-      }
+      return AppResponse.handleError(error);
     }
   }
 

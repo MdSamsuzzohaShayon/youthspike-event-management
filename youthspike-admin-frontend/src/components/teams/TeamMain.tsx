@@ -22,7 +22,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const teamAddEl = useRef<HTMLDialogElement | null>(null);
     const importerEl = useRef<HTMLDialogElement | null>(null);
     const [showFilter, setShowFilter] = useState<boolean>(false);
-    const [showImporter, setShowImporter] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [actErr, setActErr] = useState<IError | null>(null);
     const [teamList, setTeamList] = useState<ITeam[]>([]);
     const [divisions, setDivisions] = useState<string>('');
@@ -43,19 +43,15 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
     }
 
-    const handleOpenAdd = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        if (teamAddEl.current) teamAddEl.current.showModal();
-    }
 
-    const handleOpenImporter = () => {
-        if (importerEl.current) importerEl.current.showModal();
+    const closeDialog=()=>{
+        if (teamAddEl.current) teamAddEl.current.close();
+        if (importerEl.current) importerEl.current.close();
     }
 
     const handleClose = (e: React.SyntheticEvent) => {
         e.preventDefault();
-        if (teamAddEl.current) teamAddEl.current.close();
-        if (importerEl.current) importerEl.current.close()
+        closeDialog();
     }
 
     const handleFilter = (e: React.SyntheticEvent, filteredItemId: number) => {
@@ -84,7 +80,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }, [eventId]);
 
 
-    if (loading) return <Loader />;
+    if (loading || isLoading) return <Loader />;
 
 
 
@@ -97,7 +93,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             </dialog>
             <dialog ref={importerEl}>
                 <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-                <MultiPlayerAdd eventId={eventId} />
+                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} />
             </dialog>
             <h1 className='mb-4 text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
             {error && <Message error={error} />}

@@ -155,7 +155,7 @@ function Menu() {
 
         if (!eventPath || !isValidId) {
             setEventId(null);
-            if (userDetail.info?.role === UserRole.admin) {
+            if (userDetail.info?.role === UserRole.admin) {                
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
@@ -165,7 +165,8 @@ function Menu() {
         } else {
             setEventId(eventPath);
             if (userDetail.info?.role === UserRole.director) {
-                setUserMenuList((prevState) => [...prevState.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
+                console.log(initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7));
+                setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
@@ -218,7 +219,7 @@ function Menu() {
                     </div>
                     {eventId && (
                         <div className="league mb-8 w-full">
-                            <h2 className='text-xl'>League Name</h2>
+                            <Link href="/" className='text-2xl font-bold'>Event </Link>
                         </div>
                     )}
                     <ul className='menu-list flex justify-start flex-col gap-8'>
