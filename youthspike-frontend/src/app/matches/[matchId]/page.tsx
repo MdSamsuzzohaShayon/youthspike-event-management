@@ -24,7 +24,7 @@ import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setNets, updateMultiNetsPlayers } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
 
@@ -34,7 +34,7 @@ import { getCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
-import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup } from '@/types';
+import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup, IRoomNets } from '@/types';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
 import { UserRole } from '@/types/user';
 import { INetRelatives } from '@/types/net';
@@ -45,6 +45,11 @@ import { ETeam } from '@/types/team';
 import { EActionProcess, IError } from '@/types/elements';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { handleError, isValidObjectId } from '@/utils/helper';
+
+/**
+ * Team A captain eepp@ucsb.edu
+ * Team B captain braedanthomas15@gmail.com
+ */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
@@ -163,6 +168,17 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           ...updateRoomProcess(EActionProcess.LOCKED),
           nets: roundNetAssign
         };
+        const cr = {...currentRoom};
+        // // @ts-ignore
+        // if(actionData.teamAProcess) cr.teamAProcess = actionData.teamAProcess;
+        // // @ts-ignore
+        // if(actionData.teamBProcess) cr.teamBProcess = actionData.teamBProcess;
+        
+        // if(currentRoom.teamAProcess === EActionProcess.LINEUP || currentRoom.teamBProcess === EActionProcess.LINEUP ){
+        //   cr.teamAProcess = EActionProcess.LOCKED;
+        //   cr.teamBProcess = EActionProcess.LOCKED;
+        // }
+        // dispatch(setCurrentRoom(cr))
         // @ts-ignore
         socket.emit('submit-lineup-from-client', actionData);
         break;
@@ -354,16 +370,21 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Socket real time connection
      * After joining to the room action button will be visiable
      */
-    if (!socket || !user || !user.token || !user.info || !user.info.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
+    const userInfo = getCookie("user");
+    const userToken = getCookie("token");
+
+    if (!socket || !userInfo || !userToken) return;
+    const parsedUser = JSON.parse(userInfo);
+    if( !parsedUser.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
+
     let userTeamId = null, myTeamProcess = EActionProcess.INITIATE, opTeamProcess: EActionProcess.INITIATE;
-    if (user.info.captainplayer === teamA.captain._id) {
+    if (parsedUser.captainplayer === teamA.captain._id) {
       userTeamId = teamA._id;
-    } else if (user.info.captainplayer === teamB.captain._id) {
+    } else if (parsedUser.captainplayer === teamB.captain._id) {
       userTeamId = teamB._id;
     } else {
       return;
     }
-    console.log({ match: params.matchId, team: userTeamId, round: currentRound._id });
     
     // @ts-ignore
     socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId, round: currentRound._id });
@@ -397,7 +418,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     });
 
     // @ts-ignore
-    socket.on('submit-lineup-response', (data: IRoom) => {
+    socket.on('submit-lineup-response', (data: IRoomNets) => {
       if (user?.info?.captainplayer === teamA?.captain?._id) {
         // @ts-ignore 
         myTeamProcess = data.teamAProcess; opTeamProcess = data.teamBProcess;
@@ -405,6 +426,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         // @ts-ignore
         myTeamProcess = data.teamBProcess; opTeamProcess = data.teamAProcess;
       }
+      // Set current nets of the rounds 
+      dispatch(updateMultiNetsPlayers(data.nets));
       // @ts-ignore
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       dispatch(setCurrentRoom(data));

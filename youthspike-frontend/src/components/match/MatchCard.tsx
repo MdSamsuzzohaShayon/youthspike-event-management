@@ -18,25 +18,33 @@ interface MatchCardProps {
 function MatchCard({ match }: MatchCardProps) {
 
     return (
-        <li className='w-full bg-gray-700 py-2 flex justify-between items-center rounded-lg mb-2' style={{ minHeight: '6rem' }}>
-            <Link href={`/matches/${match._id}`} className="w-full flex justify-between items-center" >
-                <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
-                    <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full ml-2" />
-                    <div className="match-name flex flex-col w-full">
-                        <h3>{match?.teamA?.name}</h3>
-                        <p>Captain: {match?.teamA?.captain?.firstName + ' ' + match?.teamA?.captain?.lastName}</p>
-                    </div>
+        <div className='w-full bg-gray-700 py-2' style={{ minHeight: '6rem' }}>
+            <Link href={`/matches/${match._id}`} className="w-full flex flex-col justify-center items-center" >
+                <div className="content w-full px-2 text-center border-b border-gray-900">
+                    <h3>ID: {match._id}</h3>
+                    <p>Location: {match.location}</p>
+                    <p>Divisons: {match.divisions}</p>
                 </div>
-                <div className="w-2/10 text-center"><p className='w-10 h-10 rounded-full bg-yellow-500 text-gray-100 flex items-center justify-center'>VS</p></div>
-                <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
-                    <div className="match-name flex flex-col w-full">
-                        <h3>{match?.teamB?.name}</h3>
-                        <p>Captain: {match?.teamB?.captain?.firstName + ' ' + match?.teamB?.captain?.lastName}</p>
+                <div className="w-full match-teams text-center  flex justify-between items-center">
+
+                    <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
+                        <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full ml-2" />
+                        <div className="match-name flex flex-col w-full">
+                            <h3>{match?.teamA?.name}</h3>
+                            <p>Captain: {match?.teamA?.captain?.firstName + ' ' + match?.teamA?.captain?.lastName}</p>
+                        </div>
                     </div>
-                    <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full mr-2" />
+                    <div className="w-2/10 text-center"><p className='w-10 h-10 rounded-full bg-yellow-500 text-gray-100 flex items-center justify-center'>VS</p></div>
+                    <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
+                        <div className="match-name flex flex-col w-full">
+                            <h3>{match?.teamB?.name}</h3>
+                            <p>Captain: {match?.teamB?.captain?.firstName + ' ' + match?.teamB?.captain?.lastName}</p>
+                        </div>
+                        <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full mr-2" />
+                    </div>
                 </div>
             </Link>
-        </li>
+        </div>
     )
 }
 

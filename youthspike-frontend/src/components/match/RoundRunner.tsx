@@ -100,7 +100,7 @@ function RoundRunner({ onTop, team, teamE, handleAction, setActErr }: IRoundRunn
      * Check if team a has submitted their players or not
      */
     return (
-      <React.Fragment key="match-check-in-opponent">
+      <React.Fragment key="match-lineup-opponent">
         <h3>Submit Lineup</h3>
 
         {onTop ? (
@@ -109,17 +109,22 @@ function RoundRunner({ onTop, team, teamE, handleAction, setActErr }: IRoundRunn
           <React.Fragment>
             {!submittedLineup && (
               teamE === ETeam.teamA
-                ? (currentRoom?.teamAProcess === EActionProcess.CHECKIN ? <p>Your squad is placing players first. Choose 2 players for each and and click submit.</p> : <p>Your squad is current waiting for the other squad to place their players.</p>)
-                : <p>Your squad is current waiting for the other squad to place their players.</p>
+                ? (currentRoom?.teamAProcess === EActionProcess.CHECKIN 
+                    ? <p>Your squad is placing players first. Choose 2 players for each and and click submit.</p> 
+                    : <p>Your squad is currently waiting for the other squad to place their players.</p>)
+                : <p>The other team have submitted their players, now it's your turn.</p>
             )}
             {!hasAction && (
               <p>{team?.name} {teamE === ETeam.teamA && currentRoom && currentRoom.teamBProcess === EActionProcess.CHECKIN ? 'has submitted' : 'is going to submit their'} lineup.</p>
             )}
+
             {hasAction && (
               submittedLineup ? (
                 <p>You have submitted your squad successfully, now the other team needs to submit their players!</p>
               ) : (
-                <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>
+                teamE === ETeam.teamA
+                  ? <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>
+                  : currentRoom?.teamAProcess === EActionProcess.LINEUP && <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>
               )
             )}
           </React.Fragment>
@@ -134,7 +139,7 @@ function RoundRunner({ onTop, team, teamE, handleAction, setActErr }: IRoundRunn
      * Check if team a has submitted their players or not
      */
     return (
-      <React.Fragment key="match-check-in-opponent">
+      <React.Fragment key="match-locked-opponent">
         <h3>Locked nets</h3>
 
         {onTop ? (
@@ -189,10 +194,23 @@ function RoundRunner({ onTop, team, teamE, handleAction, setActErr }: IRoundRunn
   };
 
   useEffect(() => {
-    if (currentRound && currentRound._id && currentRound._id !== '') {
-      // dispatch(setActionBox({ title: '', text: '', roundNum: currentRound.num, process }));
+    if (currentRound && currentRound._id && currentRound._id !== '' && currentRoom) {
+      if(teamE === ETeam.teamA){
+        if (currentRoom.teamAProcess === EActionProcess.CHECKIN){
+          setCheckedIn(true);
+        }else if(currentRoom.teamAProcess === EActionProcess.LINEUP){
+          setSubmittedLineup(true);
+        }
+      }else{
+        if (currentRoom.teamBProcess === EActionProcess.CHECKIN){
+          setCheckedIn(true);
+        }else if(currentRoom.teamBProcess === EActionProcess.LINEUP){
+          setSubmittedLineup(true);
+        }
+      }
+      // Set submit line up or vhrvk up button action
     }
-  }, [currentRound]);
+  }, [currentRound, teamE]);
 
   return (
     <div className="w-full">

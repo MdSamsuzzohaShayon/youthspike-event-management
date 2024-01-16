@@ -17,9 +17,10 @@ interface PlayerCardProps {
   touchDragEnter: (index: number) => void;
   touchDragEnd: (index: number, playerId: string) => void;
   touchMove: (e: TouchEvent) => void;
+  showRank?: boolean;
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -155,7 +156,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         </div>
       </div>
 
-      {player?.rank && (
+      {showRank && player?.rank && (
         <div className="rank-box h-10 w-1/12 flex flex-col">
           <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
             {player?.rank}

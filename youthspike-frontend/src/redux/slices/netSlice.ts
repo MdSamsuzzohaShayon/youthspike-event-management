@@ -1,8 +1,10 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { INetBase, INetUpdate } from '@/types';
+import { INetBase, INetUpdate, INetPlayers } from '@/types';
 import { INetRelatives } from '@/types/net';
 import { ETeam } from '@/types/team';
+
+
 
 interface INetState {
   nets: INetRelatives[];
@@ -39,6 +41,23 @@ const netSlice = createSlice({
     setCurrNetNum: (state, action: PayloadAction<number>) => {
       state.currNetNum = action.payload;
     },
+    updateMultiNetsPlayers: (state, action: PayloadAction<INetPlayers[]>) => {
+      const clonedNets = [...state.currentRoundNets];
+      const newNets = [];
+      for (const net of clonedNets) {
+        const findNet = action.payload.find((n) => n._id === net._id);
+        if (findNet) {
+          newNets.push({
+            ...net,
+            teamAPlayerA: findNet.teamAPlayerA,
+            teamAPlayerB: findNet.teamAPlayerB,
+            teamBPlayerA: findNet.teamBPlayerA,
+            teamBPlayerB: findNet.teamBPlayerB,
+          })
+        }
+      }
+      state.currentRoundNets = newNets;
+    },
     updateNetPlayer: (state, action: PayloadAction<INetUpdate>) => {
       const prevNPI = state.currentRoundNets.findIndex((np) => np._id === action.payload._id);
       const prevANPI = state.nets.findIndex((np) => np._id === action.payload._id);
@@ -62,27 +81,27 @@ const netSlice = createSlice({
     },
 
     setUpdateNets: (state, action: PayloadAction<INetUpdate>) => {
-      const findPrev = state.updateNets.find((net)=> net._id === action.payload._id);
-      if(findPrev){
-        state.updateNets = [action.payload, ...state.updateNets.filter((net)=> net._id !== action.payload._id)];
-      }else{
+      const findPrev = state.updateNets.find((net) => net._id === action.payload._id);
+      if (findPrev) {
+        state.updateNets = [action.payload, ...state.updateNets.filter((net) => net._id !== action.payload._id)];
+      } else {
         state.updateNets = [action.payload, ...state.updateNets];
       }
 
-      const findRNIndex = state.currentRoundNets.findIndex((crn)=> crn._id === action.payload._id);
-      if(findRNIndex !== -1){
-        const updatedNetObj = {...state.currentRoundNets[findRNIndex], ...action.payload};
+      const findRNIndex = state.currentRoundNets.findIndex((crn) => crn._id === action.payload._id);
+      if (findRNIndex !== -1) {
+        const updatedNetObj = { ...state.currentRoundNets[findRNIndex], ...action.payload };
         state.currentRoundNets[findRNIndex] = updatedNetObj;
       }
 
-      const findNIndex = state.nets.findIndex((n)=> n._id === action.payload._id);
-      if(findNIndex !== -1){
-        const updatedNetObj = {...state.nets[findRNIndex], ...action.payload};
+      const findNIndex = state.nets.findIndex((n) => n._id === action.payload._id);
+      if (findNIndex !== -1) {
+        const updatedNetObj = { ...state.nets[findRNIndex], ...action.payload };
         state.nets[findRNIndex] = updatedNetObj;
       }
     }
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets } = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers} = netSlice.actions;
 export default netSlice.reducer;

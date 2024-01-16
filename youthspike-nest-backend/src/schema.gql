@@ -290,6 +290,14 @@ type GetNetResponse {
   data: Net!
 }
 
+type NetAssign {
+  _id: String!
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+}
+
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!

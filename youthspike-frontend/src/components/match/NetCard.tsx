@@ -96,6 +96,7 @@ function NetCard({ net }: INetProps) {
      * team a player 1 = 1, team a player 2 = 2, team b player 1 = 3, team b player 2 = 4
      */
     if (!net || !net._id || !net.round || tpNum <= 0 || tpNum > 4) return;
+
     let netPlayerObj: INetUpdate = {
       _id: net._id,
       teamAPlayerA: net.teamAPlayerA ? net.teamAPlayerA : null,
@@ -119,15 +120,18 @@ function NetCard({ net }: INetProps) {
 
   const handleDropdownPlayer = (e: React.SyntheticEvent, teamPlayer: number) => {
     e.preventDefault();
-    if (!user.token || !user.info) return;
+    if (!user.token || !user.info || teamPlayer === 1 || teamPlayer === 2) return;
 
-    if (teamPlayer === 1 || teamPlayer === 2) return;
-    // Check process is locked or not
-    if (myTeamE === ETeam.teamA) {
-      if (currentRoom?.teamAProcess === EActionProcess.LOCKED) return;
-    } else {
-      if (currentRoom?.teamBProcess === EActionProcess.LOCKED) return;
+    const isTeamAProcessValid = myTeamE === ETeam.teamA && currentRoom?.teamAProcess === EActionProcess.CHECKIN && (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP);
+    const isTeamBProcessValid = myTeamE === ETeam.teamB && currentRoom?.teamBProcess === EActionProcess.CHECKIN && (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP);
+
+    if (!(isTeamAProcessValid || isTeamBProcessValid)) {
+      return;
     }
+
+    // At first team A will submit their players 
+    if(myTeamE === ETeam.teamA && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
+    if(myTeamE === ETeam.teamB && currentRoom.teamAProcess !== EActionProcess.LINEUP) return;
 
     setDropDown(true);
     setTeamPlayerNum(teamPlayer);
@@ -181,8 +185,8 @@ function NetCard({ net }: INetProps) {
   };
   const handleSelectPlayer = (e: React.SyntheticEvent, teamPlayerId: string) => {
     e.preventDefault();
-    if (!user || !user.token || !user.info) return;
     setDropDown(false);
+    if (!user || !user.token || !user.info) return;
 
     if (!net || !isValidNet(net, teamPlayerNum)) return;
 

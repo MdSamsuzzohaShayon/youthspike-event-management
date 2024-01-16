@@ -9,6 +9,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import staticData from '../../lib/data.json';
 import ToggleInput from '../elements/forms/ToggleInput';
 import { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, UPDATE_MATCH } from '@/graphql/matches';
+import { divisionsToOptionList } from '@/utils/helper';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -45,10 +46,12 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
     // Local State
     const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
     const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
+    const [availableTeams, setAvailableTeams] = useState<ITeam[]>([]);
+    const [divisions, setDivisions] = useState<IOption[]>([]);
 
     // GraphQL
-    const [createMatch, {client}] = useMutation(CREATE_MATCH);
-    const [mutateMatch, {client: updateClient}] = useMutation(UPDATE_MATCH)
+    const [createMatch, { client }] = useMutation(CREATE_MATCH);
+    const [mutateMatch, { client: updateClient }] = useMutation(UPDATE_MATCH)
 
     /**
      * Input change
@@ -111,15 +114,16 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
                 // @ts-ignore
                 if (updateMatchObj.teams) delete updateMatchObj.teams;
                 matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
-                await updateClient.refetchQueries({include: [GET_EVENT_WITH_MATCHES_TEAMS]});
+                await updateClient.refetchQueries({ include: [GET_EVENT_WITH_MATCHES_TEAMS] });
             } else {
                 const addMatchObj = { ...addMatch, event: eventId };
                 addMatchObj.date = new Date(addMatchObj.date).toISOString();
                 if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ name: 'Invalid Teams', message: 'Teams can not be empty to unselected!' })
+                if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ name: 'Invalid Teams', message: 'Both teams are same!' })
                 // @ts-ignore
                 if (addMatchObj.teams) delete addMatchObj.teams;
                 matchRes = await createMatch({ variables: { input: addMatchObj } });
-                await client.refetchQueries({include: [GET_EVENT_WITH_MATCHES_TEAMS]});
+                await client.refetchQueries({ include: [GET_EVENT_WITH_MATCHES_TEAMS] });
             }
             if (showAddMatch) showAddMatch(false);
         } catch (error) {
@@ -146,7 +150,9 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
         const options = [];
         const divList = divs.split(',')
         for (let i = 0; i < divList.length; i++) {
-            options.push({ value: divList[i].toLowerCase(), text: divList[i] });
+            if (divList[i].toLowerCase().trim() !== "") {
+                options.push({ value: divList[i].toLowerCase(), text: divList[i] });
+            }
         }
         return options;
     }
@@ -157,22 +163,26 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
                 ...prevState,
                 ...matchData,
             }));
+
+            setAvailableTeams([...matchData.teams]);
+
+            // Set options
+            const optionsList = divisionsToOptionList(matchData.divisions);
+            setDivisions(optionsList);
         }
     }, [matchData]);
-
-    const teams = matchData?.teams;
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
             <DateInput handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
 
             {!update && (<>
-                <SelectInput name='teamA' optionList={showTeamList(teams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
-                <SelectInput name='teamB' optionList={showTeamList(teams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
+                <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(availableTeams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
+                <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(availableTeams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
             </>)}
 
             <h3 className='w-full'>Default settings</h3>
-            <SelectInput name='divisions' optionList={showDivisionList(addMatch.divisions)} handleSelect={handleSelectChange} defaultValue={addMatch.divisions} vertical extraCls='md:w-5/12' />
+            <SelectInput name='divisions' optionList={divisions} handleSelect={handleSelectChange} defaultValue={addMatch.divisions} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />

@@ -17,9 +17,9 @@ import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
 import { IPlayer } from "./player";
 import { ITeam } from "./team";
 import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from "./match";
-import { INetBase, INetRelatives, INetUpdate } from "./net";
+import { INetBase, INetRelatives, INetUpdate, INetPlayers } from "./net";
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from "./round";
-import { IRoom, ICheckIn, ISubmitLineup, INetAssign } from "./room";
+import { IRoom, ICheckIn, ISubmitLineup, INetAssign, IRoomNets} from "./room";
 
 export type {
   // Elements
@@ -69,6 +69,8 @@ export type {
   INetBase,
   INetRelatives,
   INetUpdate,
+  INetPlayers,
+  INetAssign,
 
   // Round
   IRoundBase,
@@ -79,5 +81,5 @@ export type {
   IRoom,
   ICheckIn,
   ISubmitLineup,
-  INetAssign
+  IRoomNets
 };

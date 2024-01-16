@@ -6,8 +6,8 @@ import { GET_EVENT_WITH_TEAMS, GET_TEAMS_BY_EVENT } from '@/graphql/teams';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamList from '@/components/teams/TeamList';
-import { isValidObjectId } from '@/utils/helper';
-import { IError, ITeam } from '@/types';
+import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
+import { IError, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import SelectInput from '../elements/forms/SelectInput';
@@ -25,7 +25,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [actErr, setActErr] = useState<IError | null>(null);
     const [teamList, setTeamList] = useState<ITeam[]>([]);
-    const [divisions, setDivisions] = useState<string>('');
+    const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
@@ -63,8 +63,11 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
         const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         setTeamList(newTeamList);
+
+        // Making divisions list
         const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
-        setDivisions(divisions);
+        const divs  = divisionsToOptionList(divisions);
+        setDivisionList(divs);
     }
 
     // Do this for all event pages
@@ -107,7 +110,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 <p className="date flex mt-2"><span><img src="/icons/location.svg" alt="location" className='w-6 svg-white mr-2' /></span> Orlando, Florida</p>
             </div>
             <div className="mb-4 division-selection w-full">
-                {divisions && divisions.length > 0 && <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={[...divisions.split(',').map((d: string) => ({ text: d, value: d }))]} lw='w-5/12' rw='w-5/12' />}
+            <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
             </div>
             <div className="mb-8 make-team flex w-full justify-between">
                 <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>

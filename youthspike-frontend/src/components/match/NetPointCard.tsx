@@ -19,7 +19,7 @@ interface INetPointCard {
 function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
-    const currRound = useAppSelector((state)=> state.rounds.current);
+    const currRoom = useAppSelector((state)=> state.rooms.current);
 
 
     const handlePointChange = (e: React.SyntheticEvent, netId: string | undefined, teamAorB: string) => {
@@ -51,10 +51,10 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
     
         if (teamE === ETeam.teamA) {
             // @ts-ignore
-            return isUserAuthorized && currRound?.teamAProcess !== EActionProcess.LOCKED;
+            return isUserAuthorized && currRoom?.teamAProcess === EActionProcess.LOCKED;
         } else {
             // @ts-ignore
-            return isUserAuthorized && currRound?.teamBProcess !== EActionProcess.LOCKED;
+            return isUserAuthorized && currRoom?.teamBProcess === EActionProcess.LOCKED;
         }
     };
     

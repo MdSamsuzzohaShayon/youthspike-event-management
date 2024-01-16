@@ -55,9 +55,9 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Update eventy and show navigation properly
- - No time for event, only date
- - Division for team and event
+ - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
+ - Division for team and event (Filter team and event)
+ - Change round
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*
@@ -72,6 +72,7 @@ ___
  - **Admin**
  - ✅✅ Get ldos with _id in the directors page (work on the backend)
  - Admin, captain and director can change ranking of players, drag and drop feature
+ - Need to work with ranking to make it smooth
  - Admin can import rosters and click a button for any or one of them to be a captain/
  - ✅✅ User role 1) admin 2) League Director 3) Captain
     - Admins are I, Alex, and Keleb
@@ -88,7 +89,7 @@ ___
  - Inactive player will have no rank -> Ranking system won't work on inactive players
  - If there is a team of player create the team for him as well on the import of players file
  - [Exports players](https://www.loom.com/share/835208d304cf48ec9f951e42f198d10e) from __manager.leagueapps.com__ and import that into this program
- - ✅✅ *All players will be in the event. Moreover, any team can assign any player. Or director will assign players to a team*
+ - Assign players to a net will be drop down and move both event
  - Make player leave of or inavtive in the match day
  - Move team, or players to different event
  - ✅✅ League director can create captain
@@ -147,6 +148,8 @@ ___
  - ✅✅ Update match
  - Show available players id properly / logically
  - Add players and score through gateway
+ - There will be usually 7 or 8 players in each team and 3 nets in each round where 6 players wiull be assigned in 3 nets and 1 or 2 players out of 7 or 8 players will be sub
+ - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
  - Instead of timeout call it sub clock from match setting [13:20](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
  - Coach password and Location should not be in the match setting
  - Currently captain is able to create a match that should not be -> only LDO can create a match
@@ -241,7 +244,7 @@ ___
  - [Secure Apache with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-22-04)
  - Cinfigure firewall
  - Create reverse proxies (For nest-backend, admin-frontend, frontend, websocket)
- - 
+ - Nginx GraphQL load balancing
  - Setup docker
 
 

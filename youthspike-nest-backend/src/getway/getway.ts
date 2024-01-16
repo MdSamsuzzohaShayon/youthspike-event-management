@@ -2,7 +2,7 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
-import { CheckInInput, JoinRoomInput, SubmitLineupInput, } from './gateway.input';
+import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign} from './gateway.input';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
@@ -42,6 +42,15 @@ class RoomLocal {
 
   @Field({ nullable: true })
   teamBProcess: null | EActionProcess;
+
+}
+
+
+@ObjectType()
+class RoomLocalWithNets {
+  @Field(type => [NetAssign], { nullable: false })
+  nets: NetAssign[]
+
 }
 
 @WebSocketGateway({ cors: true, namespace: "websocket" })
@@ -129,14 +138,15 @@ export class MyGatWay implements OnModuleInit {
       if (joinData.team === roomExist.teamA.toString()) {
         roomData.teamA = roomExist.teamA.toString();
         roomData.teamAClient = client.id;
+        roomData.teamBClient = prevRoom.teamBClient;
       } else if (joinData.team === roomExist.teamB.toString()) {
         roomData.teamB = roomExist.teamB.toString();
         roomData.teamBClient = client.id;
+        roomData.teamAClient = prevRoom.teamAClient;
       }
       this.roomsLocal.set(roomExist._id.toString(), roomData)
     }
 
-    console.log(this.roomsLocal);
     client.emit('join-room-response', roomData);
     // client.to(roomExist._id.toString()).emit('join-room-response', roomData);
   }
@@ -149,9 +159,8 @@ export class MyGatWay implements OnModuleInit {
      * Update process
      */
     const prevRoom = this.roomsLocal.get(checkIn.room);
-    if (!prevRoom) return;
+    if (!prevRoom || !prevRoom.teamAClient || !prevRoom.teamBClient) return;
     let roomData = { ...prevRoom };
-    console.log({ ta: prevRoom.teamAClient === client.id, tb: prevRoom.teamBClient === client.id });
 
     if (prevRoom.teamAClient === client.id) {
       roomData.teamAProcess = EActionProcess.CHECKIN;
@@ -183,7 +192,12 @@ export class MyGatWay implements OnModuleInit {
     const updatePromises = [];
     if (roomData.teamAProcess === EActionProcess.LINEUP && roomData.teamBProcess === EActionProcess.LINEUP) {
       updatePromises.push(this.roundService.update({ teamAProcess: EActionProcess.LOCKED, teamBProcess: EActionProcess.LOCKED }, submitLineup.round));
+      roomData.teamAProcess = EActionProcess.LOCKED;
+      roomData.teamBProcess = EActionProcess.LOCKED;
+
     }
+    
+    
     for (const n of submitLineup.nets) {
       updatePromises.push(this.netService.update({
         teamAPlayerA: n.teamAPlayerA,
@@ -192,11 +206,18 @@ export class MyGatWay implements OnModuleInit {
         teamBPlayerB: n.teamBPlayerB,
       }, n._id));
     }
-    // await Promise.all(updatePromises);
-    console.log("Submit lineup ->", submitLineup);
-
+    await Promise.all(updatePromises);
+    
+    const roomDataWithNets: RoomLocalWithNets = {...roomData, nets: submitLineup.nets}
+    
+    // roomData.nets = submitLineup.nets;
     this.roomsLocal.set(submitLineup.room, roomData);
-    client.to(prevRoom._id).emit('submit-lineup-response', roomData);
+    if(roomData.teamAProcess === EActionProcess.LOCKED && roomData.teamBProcess === EActionProcess.LOCKED){
+      client.emit('submit-lineup-response', roomDataWithNets);
+      client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+    }else {
+      client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+    }
   }
 
 

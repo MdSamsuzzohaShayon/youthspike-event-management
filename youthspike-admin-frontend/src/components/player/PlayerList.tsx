@@ -11,6 +11,7 @@ interface IPlayerListProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   rankControls?: boolean;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
+  showRank?: boolean;
 }
 
 interface IPlayerRank {
@@ -18,7 +19,7 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading }] = useMutation(UPDATE_PLAYERS);
 
