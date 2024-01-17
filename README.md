@@ -56,7 +56,7 @@ ___
 
 ### Running
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
- - Division for team and event (Filter team and event)
+ - If a player plays with someone in the round 1 he can not play with with in round 2 or three
  - Change round
 
 ### Requirements
@@ -121,7 +121,7 @@ ___
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
  - Select division properly - teams are assigned by divisions
  - Division on a match [12:12](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
- - Net range is same as net variance, therefore, delete one of them
+ - Net range is same as net variance, therefore, delete one of them [assign player with net variance 10:50](https://www.loom.com/share/01cf8693859b474981b4a51660444e4e)
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
 
  - **Captain**
@@ -162,12 +162,18 @@ ___
  - **Match**
  - First team will assign players (and click on submit lineup)
  - Captain will not see other team's action box but he can see rosters of other team
+ - In order to create matches show only those team that are in the selected division
+ - Add Rank or a player A with  rank of the player B in the same net and that will be pair score
+ - Show  submit line up button only when all the players are assigned
+ - If all nets has score it will allow to go to the next round
+ - Changing round whern click on round 1 button (RD1)
 
 ___
  - **Single Match (public)**
  - Create a setting option
  - Create swap net on touch event -> Need to work properly
  - Players need to be assign within 3 minutes or less
+ - Show  ranking in select dropdown player for assigning player to a net
  - Work with user authentication - https://www.apollographql.com/docs/react/networking/authentication/#header
  - On click of empty player (player placeholder) a list of players will appear, (name, record). On the second box only appear those players who can pair up with the first.
  - Add an action button in the place of submit lineup. Are all of your players there **check in**. Both caption will have this option [action box sequences T-14:00](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)

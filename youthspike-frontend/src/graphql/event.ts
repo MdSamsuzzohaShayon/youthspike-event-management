@@ -35,6 +35,7 @@ matches {
     _id
     name
     active
+    division
     captain {
       _id
       firstName
@@ -46,6 +47,7 @@ matches {
     _id
     name
     active
+    division
     captain {
       _id
       firstName
@@ -67,6 +69,7 @@ players {
 teams {
   _id
   name
+  division
   captain {
     _id
     firstName

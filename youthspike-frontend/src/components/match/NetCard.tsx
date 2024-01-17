@@ -20,6 +20,7 @@ import { IPlayer, INetRelatives, INetUpdate, ITeam } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import NetPointCard from './NetPointCard';
+import { calcPairScore } from '@/utils/helper';
 
 interface INetProps {
   net?: INetRelatives | null | undefined;
@@ -130,8 +131,8 @@ function NetCard({ net }: INetProps) {
     }
 
     // At first team A will submit their players 
-    if(myTeamE === ETeam.teamA && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
-    if(myTeamE === ETeam.teamB && currentRoom.teamAProcess !== EActionProcess.LINEUP) return;
+    if (myTeamE === ETeam.teamA && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
+    if (myTeamE === ETeam.teamB && currentRoom.teamAProcess !== EActionProcess.LINEUP) return;
 
     setDropDown(true);
     setTeamPlayerNum(teamPlayer);
@@ -283,6 +284,36 @@ function NetCard({ net }: INetProps) {
     return <>{playerListEl}</>;
   };
 
+  const renderTeamSection = (TPA: number, TPB: number, onTop: boolean): React.ReactNode => {
+
+    const playerA = matchTPlayer(TPA);
+    const playerB = matchTPlayer(TPB);
+    const playerARank = playerA?.rank, playerBRank = playerB?.rank;
+    const pairScore = calcPairScore(playerARank, playerBRank);
+    return (<div className={`net-top h-60 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} items-center justify-start`}>
+      {/* <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p> */}
+      {!onTop && (<div className="h-6 w-6 border-0 rounded-full bg-yellow-500 text-gray-100 relative">
+        <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
+        {openPasControl && (
+          <ul className="player-select-strategy bg-gray-800 w-24 absolute bottom-6 inset-x-0" style={{ left: '50%', transform: 'translate(-50%)' }} >
+            {playerAssignStrategies.map((pas) => (
+              <li className='p-2 border-b border-yellow-500 capitalize' key={pas} role="presentation" onClick={e => handlePASSelect(e, pas)} >{pas}</li>
+            ))}
+          </ul>
+        )}
+      </div>)}
+      <div className="player-pair flex justify-between w-full">
+        <div className="player-card team-a-player-1 w-16">
+          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer}  />
+        </div>
+        <div className="player-card team-a-player-2 w-16">
+          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
+        </div>
+      </div>
+      <h3>Pair Score {pairScore}</h3>
+    </div>);
+  }
+
   return (
     <div className="net-detail w-3/6 relative" style={{ height: '30rem' }} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className={`drop-down-select h-full w-full overflow-y-scroll absolute top-0 left-0 text-gray-900 bg-gray-100 z-20 ${drapDown ? '' : 'hidden'}`}>
@@ -290,25 +321,14 @@ function NetCard({ net }: INetProps) {
         {renderAvailablePlayers()}
       </div>
       {/* Net top section start  */}
-      <div className="net-top h-60 w-full bg-gray-900 text-gray-100 px-2 text-center flex flex-col items-center justify-start">
-        {/* <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p> */}
-        <div className="player-pair flex justify-between w-full">
-          <div className="player-card team-a-player-1 w-16">
-            <PlayerScoreCard dark teamPlayer={TAPA} player={matchTPlayer(TAPA)} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
-          </div>
-          <div className="player-card team-a-player-2 w-16">
-            <PlayerScoreCard dark teamPlayer={TAPB} player={matchTPlayer(TAPB)} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
-          </div>
-        </div>
-        <h3>Pair Score 5</h3>
-      </div>
+      {renderTeamSection(TAPA, TAPB, true)}
       {/* Net top section end  */}
 
       <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} />
 
       {/* Net bottom section start  */}
-      <div className="net-bottom h-60 w-full border border-gray-900 px-2 text-center flex flex-col items-center justify-end">
-        <h3>Pair Score 5</h3>
+      {/* <div className="net-bottom h-60 w-full border border-gray-900 px-2 text-center flex flex-col items-center justify-end">
+        <h3>Pair Score {calcPairScore(matchTPlayer(TBPA)?.rank, matchTPlayer(TBPB)?.rank)}</h3>
         <div className="player-pair flex justify-between w-full">
           <div className="player-card w-16">
             <PlayerScoreCard dark={false} teamPlayer={TBPA} player={matchTPlayer(TBPA)} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
@@ -327,7 +347,8 @@ function NetCard({ net }: INetProps) {
             </ul>
           )}
         </div>
-      </div>
+      </div> */}
+      {renderTeamSection(TBPA, TBPB, false)}
       {/* Net bottom section end */}
     </div>
   );

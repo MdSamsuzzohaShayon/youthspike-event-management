@@ -47,6 +47,7 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
     const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
     const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
     const [availableTeams, setAvailableTeams] = useState<ITeam[]>([]);
+    const [filteredTeams, setFilteredTeams] = useState<ITeam[]>([]);
     const [divisions, setDivisions] = useState<IOption[]>([]);
 
     // GraphQL
@@ -84,6 +85,14 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
         } else {
             setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
         }
+    }
+
+    const handleDivisionChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const inputEl = e.target as HTMLSelectElement;
+        // Just for filtering teams 
+        const newList = availableTeams.filter((at)=> at.division && at.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+        setFilteredTeams([...newList]);
     }
 
     const handleToggleInput = (e: React.SyntheticEvent, stateName: string) => {
@@ -145,17 +154,6 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
         return options;
     }
 
-    const showDivisionList = (divs: string | null | undefined): IOption[] => {
-        if (!divs) return [];
-        const options = [];
-        const divList = divs.split(',')
-        for (let i = 0; i < divList.length; i++) {
-            if (divList[i].toLowerCase().trim() !== "") {
-                options.push({ value: divList[i].toLowerCase(), text: divList[i] });
-            }
-        }
-        return options;
-    }
 
     useEffect(() => {
         if (matchData) {
@@ -165,6 +163,7 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
             }));
 
             setAvailableTeams([...matchData.teams]);
+            setFilteredTeams([...matchData.teams]);
 
             // Set options
             const optionsList = divisionsToOptionList(matchData.divisions);
@@ -177,12 +176,12 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
             <DateInput handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
 
             {!update && (<>
-                <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(availableTeams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
-                <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(availableTeams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
+                <SelectInput name='divisions' optionList={divisions} handleSelect={handleDivisionChange} vertical extraCls='md:w-5/12' />
+                <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(filteredTeams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
+                <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(filteredTeams)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
             </>)}
 
             <h3 className='w-full'>Default settings</h3>
-            <SelectInput name='divisions' optionList={divisions} handleSelect={handleSelectChange} defaultValue={addMatch.divisions} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />

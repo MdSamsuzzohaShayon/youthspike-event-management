@@ -4,6 +4,7 @@ export interface ITeam {
   _id: string;
   active: boolean;
   name: string;
+  division: string;
   event: IEvent;
   players: IPlayer[];
   captain: IPlayer | null;

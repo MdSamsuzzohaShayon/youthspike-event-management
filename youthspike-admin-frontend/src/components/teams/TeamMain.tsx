@@ -25,6 +25,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [actErr, setActErr] = useState<IError | null>(null);
     const [teamList, setTeamList] = useState<ITeam[]>([]);
+    const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
     const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
     /**
@@ -39,8 +40,9 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
          * Filter items
          */
         const inputEl = e.target as HTMLInputElement;
-        console.log(inputEl.value);
-
+        const newList = teamList.filter((t)=> t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+        // console.log({inputted: inputEl.value, filtered: newList});
+        setFilteredlist([...newList]);
     }
 
 
@@ -63,6 +65,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
         const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         setTeamList(newTeamList);
+        setFilteredlist(newTeamList);
 
         // Making divisions list
         const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
@@ -101,14 +104,14 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             <h1 className='mb-4 text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
-            <div className="w-full flex justify-between items-center flex-col mb-4">
+            {/* <div className="w-full flex justify-between items-center flex-col mb-4">
                 <div className="logo w-20">
                     <img src="/free-logo.svg" alt="program-playoffs" className='w-full' />
                 </div>
                 <h3 className='text-2xl'>Program Playoffs</h3>
                 <p className="date flex mt-2"><span><img src="/icons/clock.svg" alt="clock" className='w-6 svg-white mr-2' /></span> Apr 5, 2024 - Apr 5, 2024</p>
                 <p className="date flex mt-2"><span><img src="/icons/location.svg" alt="location" className='w-6 svg-white mr-2' /></span> Orlando, Florida</p>
-            </div>
+            </div> */}
             <div className="mb-4 division-selection w-full">
             <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
             </div>
@@ -134,7 +137,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {teamList.length > 0 && <TeamList eventId={eventId} teamList={teamList} />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} />}
             </div>
         </div>
     )

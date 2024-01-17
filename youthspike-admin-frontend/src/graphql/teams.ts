@@ -4,6 +4,7 @@ const teamResponse = `
     _id
     active
     name
+    division
     players {
       _id
       firstName
