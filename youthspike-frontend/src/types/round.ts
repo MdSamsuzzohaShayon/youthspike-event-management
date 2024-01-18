@@ -12,7 +12,7 @@ interface IRoundBase {
     _id: string;
     num: number;
     teamAScore?: number;
-    teamBcore?: number;
+    teamBScore?: number;
     teamAProcess: string; // Oponent Team
     teamBProcess: string; // My Team
 }

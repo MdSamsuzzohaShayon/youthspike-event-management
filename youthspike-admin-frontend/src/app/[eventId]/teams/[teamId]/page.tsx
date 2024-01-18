@@ -69,7 +69,7 @@ function TeamSingle({ params }: TeamSingleProps) {
 
       <div className="bulk-operations-players mt-8">
         <p>Make Inactive / Re-rank / A-Z</p>
-        <PlayerList eventId={params.eventId} playerList={teamData ? teamData.players : []} teamId={params.teamId} setIsLoading={setIsLoading} rankControls />
+        <PlayerList eventId={params.eventId} playerList={teamData ? teamData.players : []} teamId={params.teamId} setIsLoading={setIsLoading} rankControls showRank />
       </div>
     </div>
   )

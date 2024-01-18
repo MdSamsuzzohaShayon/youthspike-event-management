@@ -6,8 +6,8 @@ import { GET_EVENT_WITH_TEAMS, GET_TEAMS_BY_EVENT } from '@/graphql/teams';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamList from '@/components/teams/TeamList';
-import { isValidObjectId } from '@/utils/helper';
-import { IError, ITeam } from '@/types';
+import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
+import { IError, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import SelectInput from '../elements/forms/SelectInput';
@@ -25,7 +25,8 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [actErr, setActErr] = useState<IError | null>(null);
     const [teamList, setTeamList] = useState<ITeam[]>([]);
-    const [divisions, setDivisions] = useState<string>('');
+    const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
+    const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
@@ -39,12 +40,17 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
          * Filter items
          */
         const inputEl = e.target as HTMLInputElement;
-        console.log(inputEl.value);
-
+        if (inputEl.value === '') {
+            setFilteredlist([...teamList]);
+        }else{
+            const newList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+            // console.log({inputted: inputEl.value, filtered: newList});
+            setFilteredlist([...newList]);
+        }
     }
 
 
-    const closeDialog=()=>{
+    const closeDialog = () => {
         if (teamAddEl.current) teamAddEl.current.close();
         if (importerEl.current) importerEl.current.close();
     }
@@ -63,8 +69,12 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
         const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         setTeamList(newTeamList);
+        setFilteredlist(newTeamList);
+
+        // Making divisions list
         const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
-        setDivisions(divisions);
+        const divs = divisionsToOptionList(divisions);
+        setDivisionList(divs);
     }
 
     // Do this for all event pages
@@ -93,21 +103,21 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             </dialog>
             <dialog ref={importerEl}>
                 <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} />
+                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} />
             </dialog>
             <h1 className='mb-4 text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
-            <div className="w-full flex justify-between items-center flex-col mb-4">
+            {/* <div className="w-full flex justify-between items-center flex-col mb-4">
                 <div className="logo w-20">
                     <img src="/free-logo.svg" alt="program-playoffs" className='w-full' />
                 </div>
                 <h3 className='text-2xl'>Program Playoffs</h3>
                 <p className="date flex mt-2"><span><img src="/icons/clock.svg" alt="clock" className='w-6 svg-white mr-2' /></span> Apr 5, 2024 - Apr 5, 2024</p>
                 <p className="date flex mt-2"><span><img src="/icons/location.svg" alt="location" className='w-6 svg-white mr-2' /></span> Orlando, Florida</p>
-            </div>
+            </div> */}
             <div className="mb-4 division-selection w-full">
-                {divisions && divisions.length > 0 && <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={[...divisions.split(',').map((d: string) => ({ text: d, value: d }))]} lw='w-5/12' rw='w-5/12' />}
+                <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
             </div>
             <div className="mb-8 make-team flex w-full justify-between">
                 <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>
@@ -131,7 +141,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {teamList.length > 0 && <TeamList eventId={eventId} teamList={teamList} />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} />}
             </div>
         </div>
     )

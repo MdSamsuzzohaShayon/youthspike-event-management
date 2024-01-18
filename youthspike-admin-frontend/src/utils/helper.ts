@@ -1,4 +1,4 @@
-import { IDefaultEventMatch, IDefaultMatchProps, ITeam } from "@/types";
+import { IDefaultEventMatch, IDefaultMatchProps, IOption, ITeam } from "@/types";
 
 export function isValidObjectId(docId: string): boolean {
   // Pattern to match a valid ObjectId
@@ -20,7 +20,7 @@ interface IMatchTeams extends IDefaultMatchProps {
 
 export const toMatchDefaultData = (eData: IEventMatchTeams): IMatchTeams | null => {
   if (!eData) return null;
-  const defaultProps =  {
+  const defaultProps = {
     divisions: eData.divisions,
     numberOfNets: eData.nets ? eData.nets : eData.numberOfNets, // Changes
     numberOfRounds: eData.rounds ? eData.rounds : eData.numberOfRounds, // Changes
@@ -35,6 +35,19 @@ export const toMatchDefaultData = (eData: IEventMatchTeams): IMatchTeams | null 
     teams: eData.teams
   }
   return defaultProps;
+}
+
+export const divisionsToOptionList = (divisions: string) => {
+  const divs: IOption[] = [];
+  if (divisions && divisions.trim() !== '') {
+    const dl = divisions.split(',');
+    for (let i = 0; i < dl.length; i++) {
+      if (dl[i].trim() !== "") {
+        divs.push({ text: dl[i], value: dl[i].toLowerCase() });
+      }
+    }
+  }
+  return divs;
 }
 
 // {

@@ -184,6 +184,7 @@ export class EventResolver {
       // If the user is admin we must need ldoId otherwise get id from token
       let directorId = null;
       if (loggedUser.role === UserRole.director) {
+        delete args.ldo;
         directorId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin) {
         if (!args.ldo)
@@ -206,7 +207,7 @@ export class EventResolver {
       // Arrange data and save to database
       const eventData = {
         ...args,
-        // ldo: findLdo._id,
+        ldo: findLdo._id,
         sponsors: cloudinaryUrls,
       };
 

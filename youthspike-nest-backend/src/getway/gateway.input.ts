@@ -33,12 +33,27 @@ export class CheckInInput {
 
 
 @ObjectType()
-class NetAssign {
+export class NetAssign {
+  @Field({ nullable: false })
   _id: string;
+  @Field({ nullable: true })
   teamAPlayerA: string | null | undefined;
+  @Field({ nullable: true })
   teamAPlayerB: string | null | undefined;
+  @Field({ nullable: true })
   teamBPlayerA: string | null | undefined;
+  @Field({ nullable: true })
   teamBPlayerB: string | null | undefined;
+}
+
+@ObjectType()
+export class NetPointsInput {
+  @Field({ nullable: false })
+  _id: string;
+  @Field({ nullable: true })
+  teamAScore: number;
+  @Field({ nullable: true })
+  teamBScore: number;
 }
 
 @InputType()

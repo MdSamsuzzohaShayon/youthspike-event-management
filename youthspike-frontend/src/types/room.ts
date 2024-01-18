@@ -1,3 +1,5 @@
+import { INetPlayers } from ".";
+
 export enum EActionProcess {
     INITIATE = 'INITIATE',
     CHECKIN = 'CHECKIN',
@@ -17,6 +19,10 @@ export interface IRoom {
     teamB: null | string;
     teamBClient: null | string;
     teamBProcess: null | EActionProcess;
+}
+
+export interface IRoomNets extends IRoom {
+    nets: INetPlayers[]
 }
 
 export interface ICheckIn {

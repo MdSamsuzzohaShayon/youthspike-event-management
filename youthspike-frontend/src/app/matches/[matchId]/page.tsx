@@ -24,7 +24,7 @@ import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setNets, updateMultiNetsPlayers, updateNetScore } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
 
@@ -34,9 +34,9 @@ import { getCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
-import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup } from '@/types';
+import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup, IRoomNets, INetScoreUpdate } from '@/types';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
-import { UserRole } from '@/types/user';
+import { IUser, IUserContext, UserRole } from '@/types/user';
 import { INetRelatives } from '@/types/net';
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
@@ -45,6 +45,11 @@ import { ETeam } from '@/types/team';
 import { EActionProcess, IError } from '@/types/elements';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { handleError, isValidObjectId } from '@/utils/helper';
+
+/**
+ * Team A captain eepp@ucsb.edu
+ * Team B captain braedanthomas15@gmail.com
+ */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
@@ -76,21 +81,36 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
    * Event handlers
    */
-  const handleNetUpdate = async (e: React.SyntheticEvent) => {
+  const handleUpdatePoints=(e: React.SyntheticEvent)=>{
     e.preventDefault();
-    try {
-      if (updateNets.length === 0) return;
-      dispatch(setIsLoading(true));
-      const updateRes = await mutateNet({ variables: { input: updateNets } });
-      await refetch();
-    } catch (error) {
-      console.log(error);
-      const formattedError = handleError(error);
-      setActErr(formattedError[0]);
-    } finally {
-      dispatch(setIsLoading(false));
+    const netPointsList = [];
+    for (const n of updateNets) {
+      const nObj = {
+        _id: n._id,
+        teamAScore: n.teamAScore ? n.teamAScore : 0,
+        teamBScore: n.teamBScore ? n.teamBScore : 0,
+      };
+      netPointsList.push(nObj);
     }
+    // @ts-ignore
+    socket.emit("update-points-from-client", netPointsList);
+    
   }
+  // const handleNetUpdate = async (e: React.SyntheticEvent) => {
+  //   e.preventDefault();
+  //   try {
+  //     if (updateNets.length === 0) return;
+  //     dispatch(setIsLoading(true));
+  //     const updateRes = await mutateNet({ variables: { input: updateNets } });
+  //     await refetch();
+  //   } catch (error) {
+  //     console.log(error);
+  //     const formattedError = handleError(error);
+  //     setActErr(formattedError[0]);
+  //   } finally {
+  //     dispatch(setIsLoading(false));
+  //   }
+  // }
 
   const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
     e.preventDefault();
@@ -99,6 +119,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Round must have team a score and team b score to proceed
      * Change current round nets
      */
+    const findRoundIndex = roundList.findIndex((r) => r._id === currentRound?._id);
     if(next){
       let canGoNext = true;
       for (const currNet of currRoundNets) {
@@ -109,9 +130,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       if(!canGoNext){
         return setActErr({name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points."})
       }
-      const findRoundIndex = roundList.findIndex((r) => r._id === currentRound?._id);
       if (!findRoundIndex) return;
-      if ((!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBcore || currentRound?.teamBcore === 0)) return;
+      if ((!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBScore || currentRound?.teamBScore === 0)) return;
+
+      if(roundList[findRoundIndex + 1]){
+        dispatch(setCurrentRound(roundList[findRoundIndex + 1]));
+      }
+    }else{
+      if(findRoundIndex !==0){
+        dispatch(setCurrentRound(roundList[findRoundIndex - 1]));
+      }
     }
     // dispatch(setCurrentRound());
 
@@ -180,7 +208,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
    * Set initial state for current match
    */
-  const setStateGetMatchData = (matchData: IMatchExpRel) => {
+  const setStateGetMatchData = (matchData: IMatchExpRel, token:string | null, userInfo: IUser | null) => {
     /**
      * Setting data as state of redux that is fetched from backend using GraphAL
      * Set action box values
@@ -255,7 +283,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     for (const round of rounds) {
       const playerIds = round.players ? round.players.map((r) => r._id) : [];
       const subIds = round.subs ? round.subs.map((r) => r._id) : [];
-      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: params.matchId, teamAProcess: round.teamAProcess, teamBProcess: round.teamBProcess };
+      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: params.matchId, teamAProcess: round.teamAProcess, teamAScore: round.teamAScore, teamBProcess: round.teamBProcess, teamBScore: round.teamBScore };
 
       // Setting Nets of a round
       if (round.nets && round.nets.length > 0) {
@@ -283,6 +311,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       dispatch(setCurrentRoundNets(filteredNets));
     }
 
+    // Setting room
+    if(!token || !userInfo ){
+      // @ts-ignore
+      dispatch(setCurrentRoom({_id: matchData.room._id , match: _id, round: formattedRounds[0]._id, teamA: teamA?._id ? teamA._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamB?._id ? teamB?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
+    }
+
     // Setting Match
     dispatch(
       setMatchInfo({
@@ -298,15 +332,20 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       }),
     );
 
-    if (user?.info?.captainplayer === teamAF?.captain?._id) {
+    if (userInfo && userInfo.captainplayer === teamAF?.captain?._id) {
       dispatch(setMyTeam(teamAF));
       dispatch(setOpTeam(teamBF));
       dispatch(setMyPlayers(reformatAPlayers));
       dispatch(setOpPlayers(reformatBPlayers));
       dispatch(setTeamE({ myTeamE: ETeam.teamA, opTeamE: ETeam.teamB }));
       if (rounds && rounds.length > 0) {
+        let myTeamProcess = rounds[0].teamAProcess;
+        let opTeamProcess = rounds[0].teamBProcess;
+        if(opTeamProcess === EActionProcess.LINEUP){
+          myTeamProcess = EActionProcess.CHECKIN;
+        }
         // @ts-ignore
-        dispatch(setTeamProcess({ myTeamProcess: rounds[0].teamBProcess, opTeamProcess: rounds[0].teamAProcess }));
+        dispatch(setTeamProcess({ myTeamProcess , opTeamProcess }));
       }
     } else {
       dispatch(setMyTeam(teamBF));
@@ -314,22 +353,28 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       dispatch(setMyPlayers(reformatBPlayers));
       dispatch(setOpPlayers(reformatAPlayers));
       if (rounds && rounds.length > 0) {
+        let myTeamProcess = rounds[0].teamBProcess;
+        let opTeamProcess = rounds[0].teamAProcess;
+        if(opTeamProcess === EActionProcess.LINEUP){
+          myTeamProcess = EActionProcess.CHECKIN;
+        }
         // @ts-ignore
-        dispatch(setTeamProcess({ myTeamProcess: rounds[0].teamAProcess, opTeamProcess: rounds[0].teamBProcess }));
+        dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       }
     }
   };
 
   useEffect(() => {
     // Get user info here
-    const token = getCookie('token');
-    const userInfo = getCookie('user');
+    const token = !getCookie('token') || getCookie('token')?.trim() === ''? null : getCookie('token') ;
+    const findUser= getCookie('user');
+    const userInfo = findUser && findUser.trim() !== '' ? JSON.parse(findUser): null;
 
     if (isValidObjectId(params.matchId)) {
       (async () => {
         const result = await fetchMatch({ variables: { matchId: params.matchId } });
         if (result?.data?.getMatch?.data) {
-          setStateGetMatchData(result.data.getMatch.data);
+          setStateGetMatchData(result.data.getMatch.data, token, userInfo);
         } else {
           setActErr({ name: "Invalid Id", message: "No data found with given ID!" })
         }
@@ -342,7 +387,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       (async () => {
         const result = await fetchMatch({ variables: { matchId: params.matchId } });
         if (result?.data?.getMatch?.data) {
-          setStateGetMatchData(result.data.getMatch.data);
+          setStateGetMatchData(result.data.getMatch.data, token, userInfo);
         }
       })();
     }
@@ -354,33 +399,53 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Socket real time connection
      * After joining to the room action button will be visiable
      */
-    if (!socket || !user || !user.token || !user.info || !user.info.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
+    const userInfo = getCookie("user");
+    const userToken = getCookie("token");
+
+    if (!socket || !userInfo || !userToken) return;
+    const parsedUser = JSON.parse(userInfo);
+    if( !parsedUser.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
+
     let userTeamId = null, myTeamProcess = EActionProcess.INITIATE, opTeamProcess: EActionProcess.INITIATE;
-    if (user.info.captainplayer === teamA.captain._id) {
+    if (parsedUser.captainplayer === teamA.captain._id) {
       userTeamId = teamA._id;
-    } else if (user.info.captainplayer === teamB.captain._id) {
+    } else if (parsedUser.captainplayer === teamB.captain._id) {
       userTeamId = teamB._id;
     } else {
       return;
     }
-    console.log({ match: params.matchId, team: userTeamId, round: currentRound._id });
     
     // @ts-ignore
     socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId, round: currentRound._id });
+    
+    // @ts-ignore 
+    socket.on("leave-room-from-server", (data: IRoom)=>{
+      setCurrentRoom(data);
+    });
 
     // Listen to events
     // @ts-ignore
     socket.on('join-room-response', (data: IRoom) => {
-      if (user?.info?.captainplayer === teamA?.captain?._id) {
+      const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+      const extranctedData = {...data};
+      if (isTeamACaptain) {
         // @ts-ignore 
-        myTeamProcess = data.teamAProcess; opTeamProcess = data.teamBProcess;
+        myTeamProcess = extranctedData.teamAProcess; opTeamProcess = extranctedData.teamBProcess;
       } else {
         // @ts-ignore
-        myTeamProcess = data.teamBProcess; opTeamProcess = data.teamAProcess;
+        myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
+      }
+      if(opTeamProcess === EActionProcess.LINEUP.toString()){
+        if(isTeamACaptain) {
+          extranctedData.teamAProcess = EActionProcess.CHECKIN
+        }else{
+          extranctedData.teamBProcess = EActionProcess.CHECKIN
+        }
+        
       }
       // @ts-ignore
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
-      dispatch(setCurrentRoom(data));
+      dispatch(setCurrentRoom(extranctedData));
     });
     // @ts-ignore
     socket.on('check-in-response', (data: IRoom) => {
@@ -397,7 +462,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     });
 
     // @ts-ignore
-    socket.on('submit-lineup-response', (data: IRoom) => {
+    socket.on('submit-lineup-response', (data: IRoomNets) => {
       if (user?.info?.captainplayer === teamA?.captain?._id) {
         // @ts-ignore 
         myTeamProcess = data.teamAProcess; opTeamProcess = data.teamBProcess;
@@ -405,9 +470,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         // @ts-ignore
         myTeamProcess = data.teamBProcess; opTeamProcess = data.teamAProcess;
       }
+      // Set current nets of the rounds 
+      dispatch(updateMultiNetsPlayers(data.nets));
       // @ts-ignore
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       dispatch(setCurrentRoom(data));
+    });
+    
+    // @ts-ignore
+    socket.on("update-points-response", (data: INetScoreUpdate[])=>{
+      dispatch(updateNetScore(data));
     });
 
   }, [socket, user, teamA, teamB]);
@@ -425,10 +497,10 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const renderTeams = (): React.ReactNode => {
     return (<>
       <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-      {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />}
+      {/* {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />} */}
       {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
-      {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={myTeamE} setActErr={setActErr} />}
+      {opTeamProcess && <RoundRunner handleAction={handleActionRunner} team={myTeam} teamE={myTeamE} setActErr={setActErr} updatePoints={handleUpdatePoints} />}
       {eventSponsors.length > 0 && (
         <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
           <h3>Sponsors</h3>
@@ -440,6 +512,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
     </>);
   }
+  
 
 
   return (
@@ -456,15 +529,15 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           {actErr && <Message error={actErr} />}
           {user && user.info ? (<>
             {renderTeams()}
-            <div className='controls px-4 flex justify-center mt-4 w-full'>
+            {/* <div className='controls px-4 flex justify-center mt-4 w-full'>
               <button className='btn-secondary capitalize' type="button" onClick={handleNetUpdate}>Update</button>
-            </div>
+            </div> */}
             <div className="controls px-4 flex justify-center mt-4 gap-2">
               <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, false)}>
                 <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" style={{ transform: 'scaleX(-1)' }} />
                 Prev round
               </button>
-              {!(!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBcore || currentRound?.teamBcore === 0) && (
+              {(!currentRound?.teamAScore && currentRound?.teamAScore !== 0 && currentRound?.teamBScore && currentRound?.teamBScore !== 0) && (
                 <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, true)}>Next round
                   <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" />
                 </button>
@@ -474,12 +547,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             {/* Public Version Start ============================================> */}
             <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
             {/* Oponent Round Runner  */}
-            {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />}
+            {/* {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />} */}
 
             {/* Net  */}
             {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
-            {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop={false} team={myTeam} teamE={opTeamE} setActErr={setActErr} />}
+            {myTeamProcess && <RoundRunner handleAction={handleActionRunner} team={myTeam} teamE={opTeamE} setActErr={setActErr} updatePoints={handleUpdatePoints} />}
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>
               <div className="flex items-center justify-between flex-wrap w-full">

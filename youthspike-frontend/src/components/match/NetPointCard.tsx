@@ -19,7 +19,7 @@ interface INetPointCard {
 function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
-    const currRound = useAppSelector((state)=> state.rounds.current);
+    const currRoom = useAppSelector((state)=> state.rooms.current);
 
 
     const handlePointChange = (e: React.SyntheticEvent, netId: string | undefined, teamAorB: string) => {
@@ -45,17 +45,13 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
     const inputReadonly = (teamAorB: ITeam | null | undefined, teamE: ETeam): boolean => {
         const isUserAuthorized = user && (
             user.info?.role === UserRole.admin ||
-            user.info?.role === UserRole.director ||
-            (user.info?.captainplayer && user.info.captainplayer === teamAorB?.captain?._id)
+            user.info?.role === UserRole.director 
+            // || 
+            // || (user.info?.captainplayer && user.info.captainplayer === teamAorB?.captain?._id)
         );
     
-        if (teamE === ETeam.teamA) {
-            // @ts-ignore
-            return isUserAuthorized && currRound?.teamAProcess !== EActionProcess.LOCKED;
-        } else {
-            // @ts-ignore
-            return isUserAuthorized && currRound?.teamBProcess !== EActionProcess.LOCKED;
-        }
+        // @ts-ignore
+        return isUserAuthorized && currRoom?.teamBProcess === EActionProcess.LOCKED && currRoom?.teamAProcess === EActionProcess.LOCKED;
     };
     
 
@@ -64,7 +60,7 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
         <div className={`absolute z-10 h-28 w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center 
           ${user && user.info?.captainplayer === teamA?.captain?._id ? "flex-col" : "flex-col-reverse"}`} style={{ top: '39%' }}>
             <div className="score-card-in-net w-full text-center">
-                <input type="number" value={net?.teamAScore ?? '0'}
+                <input type="number" name='teamAScore' value={net?.teamAScore ?? '0'}
                     readOnly={inputReadonly(teamA, ETeam.teamA)}
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamA)}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' />
@@ -75,7 +71,7 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
                 <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 h-4 svg-white" />
             </div>
             <div className="score-card-in-net w-full text-center">
-                <input type="number" value={net?.teamBScore ?? '0'}
+                <input type="number" name='teamBScore' value={net?.teamBScore ?? '0'}
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamB)}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' readOnly={inputReadonly(teamB, ETeam.teamB)} />
             </div>

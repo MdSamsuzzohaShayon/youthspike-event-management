@@ -19,6 +19,9 @@ query GetMatch($matchId: String!) {
       numberOfRounds
       rosterLock
       timeout
+      room {
+        _id
+      }
       event {
         _id
         sponsors{
@@ -31,7 +34,9 @@ query GetMatch($matchId: String!) {
         _id
         num
         teamAProcess
+        teamAScore
         teamBProcess
+        teamBScore
         players {
           _id
           email

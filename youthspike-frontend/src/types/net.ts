@@ -31,6 +31,20 @@ interface INetUpdate {
     teamBScore?: number;
 }
 
+interface INetScoreUpdate{
+    _id: string; 
+    teamAScore: number; 
+    teamBScore: number
+}
+
+interface INetPlayers {
+    _id: string;
+    teamAPlayerA: string;
+    teamAPlayerB: string;
+    teamBPlayerA: string;
+    teamBPlayerB: string;
+  }
 
 
-export type { INetBase, INetRelatives, INetUpdate };
+
+export type { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate};

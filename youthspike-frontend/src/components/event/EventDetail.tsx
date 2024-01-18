@@ -39,9 +39,9 @@ function EventDetail({ event }: { event: IEventRelatives }) {
             case EItem.PLAYER:
                 return <PlayerList playerList={event.players} />;
             case EItem.TEAM:
-                return <TeamList teamList={event.teams} />;
+                return <TeamList teamList={event.teams} divisions={event.divisions} />;
             case EItem.MATCH:
-                return <MatchList matchList={event.matches} />;
+                return <MatchList matchList={event.matches} divisions={event.divisions}  />;
             default:
                 return null;
         }

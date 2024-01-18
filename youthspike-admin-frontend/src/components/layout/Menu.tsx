@@ -165,7 +165,7 @@ function Menu() {
         } else {
             setEventId(eventPath);
             if (userDetail.info?.role === UserRole.director) {
-                console.log(initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7));
+                // console.log(initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7));
                 setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain

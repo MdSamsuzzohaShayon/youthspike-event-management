@@ -57,7 +57,7 @@ function TeamCard({ team, eventId }: TeamCardProps) {
                     <Link href={`/${eventId}/teams/${team._id}`}>
                         <div className="brand flex gap-1 items-center">
                             <img src="/free-logo.svg" alt="free-logo" className="w-12" />
-                            <h3 className='leading-none text-lg font-bold'>{team.name}</h3>
+                            <h3 className='leading-none text-lg font-bold capitalize'>{team.name}</h3>
                         </div>
                         <p>2-1 Record</p>
                     </Link>

@@ -2,7 +2,7 @@ import { useMutation } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 import Loader from '../elements/Loader';
 import Message from '../elements/Message';
-import { IOption, IPlayer, ITeam, ITeamAdd } from '@/types';
+import { IError, IOption, IPlayer, ITeam, ITeamAdd } from '@/types';
 import { ADD_A_TEAM } from '@/graphql/teams';
 import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -15,6 +15,7 @@ interface ITeamAddProps {
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: (state: boolean) => void;
     divisions: string;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
 const initialTeamState = {
@@ -26,7 +27,7 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions, setAvailablePlayers }: ITeamAddProps) {
+function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions, setAvailablePlayers, setActErr }: ITeamAddProps) {
     const [teamState, setTeamState] = useState<ITeamAdd>(initialTeamState);
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
 
@@ -37,6 +38,10 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         try {
+            // Validation
+            if(!teamState.captain || teamState.captain === '' || !teamState.division || teamState.division === ''){
+                return setActErr({name: "Invalid team!", message: "You must select a division and a captain"})
+            }
             setIsLoading(true);
             const teamObj = { ...teamState, players: playerIdList, event: eventId };
             const teamRes = await addTeam({
@@ -44,6 +49,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             });
             setAvailablePlayers((prevState)=> [...prevState.filter((p)=> !playerIdList.includes(p._id))]);
             setPlayerIdList([]);
+            setActErr(null);
 
         } catch (error) {
             console.log(error);
