@@ -55,9 +55,10 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Change round
+ - Show only matches of captain after login as captain
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
  - If a player plays with someone in the round 1 he can not play with with in round 2 or three
- - Change round
 
 ### Requirements
  - Make domain __admin.aslsquads.com__ for *admin*
@@ -70,20 +71,13 @@ ___
 
 ___
  - **Admin**
- - ✅✅ Get ldos with _id in the directors page (work on the backend)
  - Admin, captain and director can change ranking of players, drag and drop feature
  - Need to work with ranking to make it smooth
  - Admin can import rosters and click a button for any or one of them to be a captain/
- - ✅✅ User role 1) admin 2) League Director 3) Captain
     - Admins are I, Alex, and Keleb
- - ✅✅ Shows all the events, add new event
- - ✅✅ Create seperate model for event and league(ldo)
  - Director, admin, and captain can change password
 
  - **Players**
- - ✅✅ Player will be seperate from user
- - ✅✅ A captain can be a player and user so that he can login
- - ✅✅ Import players from excel file
  - Import players from excel file should have a confirmation message
  - Player edit -> team needs to be edited properly
  - Inactive player will have no rank -> Ranking system won't work on inactive players
@@ -92,21 +86,14 @@ ___
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inavtive in the match day
  - Move team, or players to different event
- - ✅✅ League director can create captain
 
  - **Dashboard**
  - [Explanation video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82)
- - ✅✅ Change name of league to event from the database / 
- - ✅✅ Make relationship with events and ldo
- - ✅✅ A event is either tournament or league
+ - A event is either tournament or league
     - Tournament (1 or 2 days duration)
     - League (8 or 8 weeks) also called league
  - Dashboard menu -> when a director comes to the dashboard first time he will see only account (setting option) -> If the user goes into the event then he will see some specific menu items such as players, teams, matches, settings -> event name will be shown to the top
  - Click on the logo to return to leagues (Event name and logo)
- - ✅✅ Create league director organization(LDO) from admin, Assign a league director to a league so he can organize his own league, A director can have a name, profile picture, and logo
- - ✅✅ Focus on league director and captain for now. 
- - ✅✅ League director can add an event, copy and edit event
- - ✅✅ In order to create an event, select a home team
  - Copy Events properly (Do something for players)
  - If date is pass the status of league will be past, add past events in  the filter, 
  - On click setting button, a setting screen will appear
@@ -115,8 +102,6 @@ ___
  - Show sponsers only on the public view (Not in admin project)
  - Add text field for sponsors name and image url
  - Make sure of Test Driven Development (Unit testing, End To End Testing)
- - ✅✅ On Click team, it will redirect to roster
- - ✅✅ Upload sponsors logo and all images to Cloudinary
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
  - Select division properly - teams are assigned by divisions
@@ -125,27 +110,16 @@ ___
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
 
  - **Captain**
- - ✅✅ Coach/Captain can login and change profile picture
- - ✅✅ Captain setting
  - Coach/Captain can change 4 digit passcode
- - ✅✅  When someone login as captain he can only see teams and matches of different events since a player can be in diffrent event
  - Set default password for all captains and they can change their password later on
  - Send welcome email to all of our captains
- - ✅✅ From a single match -> login as captain
- - But coach/captain can change only his team
+ - But coach/captain can change only his team but points can be changed by any captain of any team
  
  - **Event**
- - ✅✅ League director can change anything in his event
- - ✅✅ Getting error with updating event
- - ✅✅ Add Name of the sponsors
- - Add location, date, and logo properly
- - Update event properly
+ - ✅✅ Add location, date, and logo properly
+ - ✅✅ Update event properly
 
  - **Match**
- - ✅✅ For a new match there will be whole new setup  (rounds, nets, etc)
- - ✅✅ Database modeling *round, match, and net* make relationship properly
- - ✅✅ Get all the defaults values from the event in order to create a new match
- - ✅✅ Update match
  - Show available players id properly / logically
  - Add players and score through gateway
  - There will be usually 7 or 8 players in each team and 3 nets in each round where 6 players wiull be assigned in 3 nets and 1 or 2 players out of 7 or 8 players will be sub

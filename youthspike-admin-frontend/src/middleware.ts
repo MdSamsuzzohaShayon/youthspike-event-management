@@ -6,7 +6,7 @@ import { UserRole } from './types/user';
 
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new"];
+const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new", '/account'];
 const captainAuthPages = ['/players', "/matches", "/settings"];
 const adminPages = ['/admin', '/directors'];
 

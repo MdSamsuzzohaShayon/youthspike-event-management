@@ -54,8 +54,9 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
           </>
         )}
       </> : <>
-        <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>
-        {eventData?.matches && eventData?.matches.length > 0 ? <MatchList eventId={params.eventId} matches={eventData.matches} /> : <p>No match created yet!</p>}
+        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
+
+        {eventData?.matches && eventData?.matches.length > 0 ? <MatchList eventId={params.eventId} divisions={eventData.divisions} matchList={eventData.matches} /> : <p>No match created yet!</p>}
       </>}
       <br />
     </div>

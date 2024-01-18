@@ -10,9 +10,10 @@ interface IMultiPlayerAddProps {
     eventId: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     closeDialog: () => void;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
-function MultiPlayerAdd({ eventId, setIsLoading, closeDialog}: IMultiPlayerAddProps) {
+function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr}: IMultiPlayerAddProps) {
     const uploadFileEl = useRef<HTMLInputElement | null>(null);
 
     const handleInputChange = (e: React.SyntheticEvent) => {
@@ -52,9 +53,12 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog}: IMultiPlayerAddPr
             const token = getCookie('token');
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
             const jsonRes = await response.json();
+            if(jsonRes?.data?.createMultiPlayers?.code !== 201){
+                setActErr({name: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!"});
+            }
             // Redirect to players page
             closeDialog();
-            redirect(`/${eventId}/players`);
+            // redirect(`/${eventId}/players`);
         } catch (error) {
             closeDialog();
             console.log(error);

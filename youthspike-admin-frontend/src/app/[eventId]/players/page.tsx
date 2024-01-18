@@ -10,8 +10,13 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import { isValidObjectId } from '@/utils/helper';
 import { IError } from '@/types';
+import { UserRole } from '@/types/user';
+import { useUser } from '@/lib/UserProvider';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
+
+  const user = useUser();
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
@@ -43,7 +48,9 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update={false} setAddPlayer={setAddPlayer} />
       </>) : (<>
         <h3 className='mt-4' >Player List</h3>
+        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
+        )}
         <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} setAddPlayer={setAddPlayer} />
       </>)}
     </div>

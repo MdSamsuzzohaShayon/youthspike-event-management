@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { IMatchRelatives, ICaptainSide, ITeam, IPlayer } from '@/types';
+import { IMatchRelatives, ITeam, IPlayer } from '@/types';
 import { EActionProcess } from '@/types/elements';
 import { ETeam } from '@/types/team';
 import { createSlice } from '@reduxjs/toolkit';

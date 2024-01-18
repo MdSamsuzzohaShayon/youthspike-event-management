@@ -2,7 +2,7 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
-import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign} from './gateway.input';
+import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, NetPointsInput} from './gateway.input';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
@@ -81,11 +81,13 @@ export class MyGatWay implements OnModuleInit {
         roomData.teamA = null;
         roomData.teamAClient = null;
         this.roomsLocal.set(rk, roomData);
+        client.emit('leave-room-from-server', roomData);
       }
       if (roomData.teamBClient === client.id) {
         roomData.teamB = null;
         roomData.teamBClient = null;
         this.roomsLocal.set(rk, roomData);
+        client.emit('leave-room-from-server', roomData);
       }
     }
   }
@@ -109,16 +111,38 @@ export class MyGatWay implements OnModuleInit {
     if (!roomExist || !roundExist) return;
 
     client.join(roomExist._id.toString());
+    // // Check all nets
+    const findNets = await this.netService.query({round: roundExist._id});
+
+    let teamASubmitted = false; 
+    let teamBSubmitted = false;
+    for (let i = 0; i < findNets.length; i++) {
+      if(findNets[i].teamAPlayerA) teamASubmitted = true;
+      if(findNets[i].teamBPlayerA) teamBSubmitted = true;
+    }
+
+    let teamAProcess = roundExist.teamAProcess;
+    let teamBProcess = roundExist.teamBProcess;
+
+    if(teamASubmitted){
+      teamAProcess = EActionProcess.LINEUP;
+    }
+
+    if(teamBSubmitted){
+      teamBProcess = EActionProcess.LINEUP;
+    }
+
+
     let roomData = {
       _id: roomExist._id.toString(),
       match: roomExist.match.toString(),
       round: joinData.round,
       teamA: roomExist.teamA.toString(),
       teamAClient: null,
-      teamAProcess: roundExist.teamAProcess,
+      teamAProcess: teamAProcess,
       teamB: roomExist.teamB.toString(),
       teamBClient: null,
-      teamBProcess: roundExist.teamBProcess,
+      teamBProcess: teamBProcess,
     };
 
     // Set room data initially
@@ -127,6 +151,7 @@ export class MyGatWay implements OnModuleInit {
     } else if (joinData.team === roomExist.teamB.toString()) {
       roomData = { ...roomData, teamB: roomExist.teamB.toString(), teamBClient: client.id };
     }
+
 
     if (!this.roomsLocal.has(roomExist._id.toString())) {
       // Create new room
@@ -194,7 +219,8 @@ export class MyGatWay implements OnModuleInit {
       updatePromises.push(this.roundService.update({ teamAProcess: EActionProcess.LOCKED, teamBProcess: EActionProcess.LOCKED }, submitLineup.round));
       roomData.teamAProcess = EActionProcess.LOCKED;
       roomData.teamBProcess = EActionProcess.LOCKED;
-
+    }else{
+      updatePromises.push(this.roundService.update({ teamAProcess:roomData.teamAProcess, teamBProcess: roomData.teamBProcess }, submitLineup.round));
     }
     
     
@@ -218,6 +244,19 @@ export class MyGatWay implements OnModuleInit {
     }else {
       client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
     }
+  }
+
+  @SubscribeMessage('update-points-from-client')
+  async onPointsUpdate(client, netsPoints: NetPointsInput[]) {
+    const updatePromises = [];
+    for (const n of netsPoints) {
+      updatePromises.push(this.netService.update({
+        teamAScore: n.teamAScore,
+        teamBScore: n.teamBScore,
+      }, n._id));
+    }
+    await Promise.all(updatePromises);
+    client.emit('update-points-response', netsPoints);
   }
 
 

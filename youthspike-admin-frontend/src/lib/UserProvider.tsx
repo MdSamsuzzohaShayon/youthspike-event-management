@@ -22,7 +22,7 @@ function UserProvider({ children }: React.PropsWithChildren) {
         // console.log({token: findToken, findUser});
         // Can not set info or token if that is already exist
         if (findToken && findToken !== '' && findToken !== null && (!token || token === '')) setToken(findToken);
-        if (findUser && findToken !== '' && findToken !== null && (!token || token === '')) setInfo(JSON.parse(findUser));
+        if (findUser && findUser !== '' && findUser!== null && (!info)) setInfo(JSON.parse(findUser));
     }, [pathname, searchParams, token, info]);
     return (
         <UserContext.Provider value={{ info, token }}>

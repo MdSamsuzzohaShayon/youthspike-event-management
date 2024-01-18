@@ -54,7 +54,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
       <h1 className='mt-4 text-center'>Teams</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} divisions={divisions} setAvailablePlayers={setAvailablePlayers} />
+      <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} divisions={divisions} setAvailablePlayers={setAvailablePlayers} setActErr={setActErr} />
     </div>
   )
 }

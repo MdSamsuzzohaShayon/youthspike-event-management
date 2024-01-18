@@ -1,4 +1,4 @@
-import { IEvent, IRoundExpRel, ITeam } from ".";
+import { IEvent, IRoom, IRoundExpRel, ITeam } from ".";
 
 export interface IDefaultMatch{
   divisions: string;
@@ -42,4 +42,5 @@ export interface IMatchExpRel extends IMatchBase{
   teamA: ITeam;
   teamB: ITeam;
   rounds: IRoundExpRel[];
+  room: IRoom;
 }

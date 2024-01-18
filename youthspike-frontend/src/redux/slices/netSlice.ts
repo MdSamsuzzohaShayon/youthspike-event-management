@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { INetBase, INetUpdate, INetPlayers } from '@/types';
-import { INetRelatives } from '@/types/net';
+import { INetRelatives, INetScoreUpdate } from '@/types/net';
 import { ETeam } from '@/types/team';
 
 
@@ -80,20 +80,40 @@ const netSlice = createSlice({
       }
     },
 
+    updateNetScore: (state, action: PayloadAction<INetScoreUpdate[]>) => {
+      const roundNets = [...state.currentRoundNets];
+      const allNets = [...state.nets];
+      for (const n of action.payload) {
+        const allNetIndex = allNets.findIndex((an) => an._id === n._id);
+        if (allNetIndex !== -1) {
+          allNets[allNetIndex] = { ...allNets[allNetIndex], teamAScore: n.teamAScore, teamBScore: n.teamBScore };
+        }
+
+        const roundNetIndex = roundNets.findIndex((an) => an._id === n._id);
+        if (roundNetIndex !== -1) {
+          roundNets[roundNetIndex] = { ...roundNets[roundNetIndex], teamAScore: n.teamAScore, teamBScore: n.teamBScore };
+        }
+      }
+    },
+
     setUpdateNets: (state, action: PayloadAction<INetUpdate>) => {
+      // Update Net
       const findPrev = state.updateNets.find((net) => net._id === action.payload._id);
       if (findPrev) {
-        state.updateNets = [action.payload, ...state.updateNets.filter((net) => net._id !== action.payload._id)];
+        const updateAObj = { ...findPrev, ...action.payload };
+        state.updateNets = [updateAObj, ...state.updateNets.filter((net) => net._id !== action.payload._id)];
       } else {
         state.updateNets = [action.payload, ...state.updateNets];
       }
 
+      // Current round net
       const findRNIndex = state.currentRoundNets.findIndex((crn) => crn._id === action.payload._id);
       if (findRNIndex !== -1) {
         const updatedNetObj = { ...state.currentRoundNets[findRNIndex], ...action.payload };
         state.currentRoundNets[findRNIndex] = updatedNetObj;
       }
 
+      // All Nets
       const findNIndex = state.nets.findIndex((n) => n._id === action.payload._id);
       if (findNIndex !== -1) {
         const updatedNetObj = { ...state.nets[findRNIndex], ...action.payload };
@@ -103,5 +123,5 @@ const netSlice = createSlice({
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers} = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers, updateNetScore } = netSlice.actions;
 export default netSlice.reducer;

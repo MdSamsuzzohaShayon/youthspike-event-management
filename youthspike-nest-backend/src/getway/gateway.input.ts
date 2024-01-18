@@ -46,6 +46,16 @@ export class NetAssign {
   teamBPlayerB: string | null | undefined;
 }
 
+@ObjectType()
+export class NetPointsInput {
+  @Field({ nullable: false })
+  _id: string;
+  @Field({ nullable: true })
+  teamAScore: number;
+  @Field({ nullable: true })
+  teamBScore: number;
+}
+
 @InputType()
 export class SubmitLineupInput {
 

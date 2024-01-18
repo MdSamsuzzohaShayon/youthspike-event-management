@@ -88,7 +88,7 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
     }
 
     const handleDivisionChange = (e: React.SyntheticEvent) => {
-        e.preventDefault();
+        handleSelectChange(e);
         const inputEl = e.target as HTMLSelectElement;
         // Just for filtering teams 
         const newList = availableTeams.filter((at)=> at.division && at.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());

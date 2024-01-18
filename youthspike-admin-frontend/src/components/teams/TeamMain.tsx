@@ -40,13 +40,17 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
          * Filter items
          */
         const inputEl = e.target as HTMLInputElement;
-        const newList = teamList.filter((t)=> t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-        // console.log({inputted: inputEl.value, filtered: newList});
-        setFilteredlist([...newList]);
+        if (inputEl.value === '') {
+            setFilteredlist([...teamList]);
+        }else{
+            const newList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+            // console.log({inputted: inputEl.value, filtered: newList});
+            setFilteredlist([...newList]);
+        }
     }
 
 
-    const closeDialog=()=>{
+    const closeDialog = () => {
         if (teamAddEl.current) teamAddEl.current.close();
         if (importerEl.current) importerEl.current.close();
     }
@@ -69,7 +73,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
         // Making divisions list
         const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
-        const divs  = divisionsToOptionList(divisions);
+        const divs = divisionsToOptionList(divisions);
         setDivisionList(divs);
     }
 
@@ -99,7 +103,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             </dialog>
             <dialog ref={importerEl}>
                 <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} />
+                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} />
             </dialog>
             <h1 className='mb-4 text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
             {error && <Message error={error} />}
@@ -113,7 +117,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 <p className="date flex mt-2"><span><img src="/icons/location.svg" alt="location" className='w-6 svg-white mr-2' /></span> Orlando, Florida</p>
             </div> */}
             <div className="mb-4 division-selection w-full">
-            <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
+                <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
             </div>
             <div className="mb-8 make-team flex w-full justify-between">
                 <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>

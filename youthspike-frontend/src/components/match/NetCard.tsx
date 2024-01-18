@@ -271,17 +271,46 @@ function NetCard({ net }: INetProps) {
     for (let i = 0; i < teamPlayerList.length; i += 1) {
       if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
-          <div key={i} className="p-2 border-b border-gray-500 flex justify-between items-center w-full gap-1" role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
+          <div key={i} className="p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer" role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
+            <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center">{teamPlayerList[i].rank}</p>
             {teamPlayerList[i].profile ? <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-10 h-10 rounded-full border-2 border-gray-900" /> : <img src='/icons/sports-man.svg' className='svg-black w-10 h-10 rounded-full p-2 border-2 border-gray-900' />}
-            <p className='words-break capitalize'>
+            <p className=' w-7/12 words-break capitalize'>
               {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
             </p>
           </div>
         );
       }
     }
+
+
+    let opNetPlayerA = null, opNetPlayerB = null;
+    if (myTeamE === ETeam.teamA) {
+      if (net?.teamBPlayerA) opNetPlayerA = opPlayers.find((p) => p._id === net.teamBPlayerA);
+      if (net?.teamBPlayerB) opNetPlayerB = opPlayers.find((p) => p._id === net.teamBPlayerB);
+    } else {
+      if (net?.teamAPlayerA) opNetPlayerA = opPlayers.find((p) => p._id === net.teamAPlayerA);
+      if (net?.teamAPlayerB) opNetPlayerB = opPlayers.find((p) => p._id === net.teamAPlayerB);
+    }
+
     // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{playerListEl}</>;
+    return <div className='player-list mt-8'>
+      {/* {selectedOpTeam.} */}
+      {opNetPlayerA && opNetPlayerB && (<div className='w-full border border-gray-300'>
+        <h4>Oponent</h4>
+        <div className="op-net w-full flex justify-between items-center">
+          <div className="op-player-a w-3/6">
+            <p className='w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center'>{opNetPlayerA.rank}</p>
+            <p>{opNetPlayerA.firstName + " " + opNetPlayerA.lastName}</p>
+          </div>
+          <div className="op-player-b w-3/6">
+            <p className='w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center'>{opNetPlayerB.rank}</p>
+            <p>{opNetPlayerB.firstName + " " + opNetPlayerB.lastName}</p>
+          </div>
+        </div>
+      </div>
+      )}
+      {playerListEl}
+    </div>;
   };
 
   const renderTeamSection = (TPA: number, TPB: number, onTop: boolean): React.ReactNode => {
@@ -303,10 +332,10 @@ function NetCard({ net }: INetProps) {
         )}
       </div>)}
       <div className="player-pair flex justify-between w-full">
-        <div className="player-card team-a-player-1 w-16">
-          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer}  />
+        <div className={`player-card team-a-player-1 w-16 ${!onTop && "border border-gray-300"}`}>
+          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
         </div>
-        <div className="player-card team-a-player-2 w-16">
+        <div className={`player-card team-a-player-2 w-16 ${!onTop && "border border-gray-300"}`}>
           <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
         </div>
       </div>
