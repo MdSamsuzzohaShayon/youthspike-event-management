@@ -131,7 +131,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         return setActErr({name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points."})
       }
       if (!findRoundIndex) return;
-      if ((!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBcore || currentRound?.teamBcore === 0)) return;
+      if ((!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBScore || currentRound?.teamBScore === 0)) return;
 
       if(roundList[findRoundIndex + 1]){
         dispatch(setCurrentRound(roundList[findRoundIndex + 1]));
