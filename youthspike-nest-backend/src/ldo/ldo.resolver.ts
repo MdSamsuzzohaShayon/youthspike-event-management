@@ -179,10 +179,11 @@ export class LdoResolver {
     try {
       // If the user is admin we must need ldoId otherwise get id from token
       if (dId) {
+        const findDirector = await this.ldoService.findByDirectorId(dId);
         return {
           code: 200,
           success: true,
-          data: await this.ldoService.findByDirectorId(dId),
+          data: findDirector,
         };
       }
       const secret = this.configService.get<string>('JWT_SECRET');

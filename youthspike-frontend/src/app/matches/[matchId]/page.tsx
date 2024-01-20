@@ -19,17 +19,16 @@ import { GET_MATCH_DETAIL } from '@/graphql/matches';
 import { UPDATE_NETS } from '@/graphql/net';
 
 // Redux
-import { setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE, setTeamProcess } from '@/redux/slices/matchesSlice';
+import { setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setSubmittedLineup, setTeamE, setTeamProcess } from '@/redux/slices/matchesSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setCurrentRoundNets, setNets, updateMultiNetsPlayers, updateNetScore } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setNets, updateMultiNetsPlayers } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
 
 // Utils
-import { screen } from '@/utils/constant';
 import { getCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
@@ -37,7 +36,7 @@ import cld from '@/config/cloudinary.config';
 import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup, IRoomNets, INetScoreUpdate } from '@/types';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
 import { IUser, IUserContext, UserRole } from '@/types/user';
-import { INetRelatives } from '@/types/net';
+import { INetRelatives, IUpdateScoreResponse } from '@/types/net';
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
@@ -47,8 +46,9 @@ import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { handleError, isValidObjectId } from '@/utils/helper';
 
 /**
- * Team A captain eepp@ucsb.edu
- * Team B captain braedanthomas15@gmail.com
+ * Test Match
+ * jane.smith@yp.com
+ * daniel.brown@yp.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -67,11 +67,10 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
-  const { currentRoundNets: currRoundNets, updateNets } = useAppSelector((state) => state.nets);
+  const { currentRoundNets: currRoundNets, updateNets, nets: allNets } = useAppSelector((state) => state.nets);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, myTeamProcess, opTeamProcess } = useAppSelector((state) => state.matches);
 
-  // const [myTeam, setMyTeam] = useState<ETeam>(ETeam.teamB);
   const [actErr, setActErr] = useState<IError | null>(null);
 
   // GraphAL
@@ -81,7 +80,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
    * Event handlers
    */
-  const handleUpdatePoints=(e: React.SyntheticEvent)=>{
+  const handleUpdatePoints = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const netPointsList = [];
     for (const n of updateNets) {
@@ -93,24 +92,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       netPointsList.push(nObj);
     }
     // @ts-ignore
-    socket.emit("update-points-from-client", netPointsList);
-    
+    socket.emit("update-points-from-client", { nets: netPointsList, room: currentRoom?._id, round: currentRound?._id });
+
   }
-  // const handleNetUpdate = async (e: React.SyntheticEvent) => {
-  //   e.preventDefault();
-  //   try {
-  //     if (updateNets.length === 0) return;
-  //     dispatch(setIsLoading(true));
-  //     const updateRes = await mutateNet({ variables: { input: updateNets } });
-  //     await refetch();
-  //   } catch (error) {
-  //     console.log(error);
-  //     const formattedError = handleError(error);
-  //     setActErr(formattedError[0]);
-  //   } finally {
-  //     dispatch(setIsLoading(false));
-  //   }
-  // }
 
   const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
     e.preventDefault();
@@ -120,35 +104,49 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Change current round nets
      */
     const findRoundIndex = roundList.findIndex((r) => r._id === currentRound?._id);
-    if(next){
+    if (findRoundIndex === -1) return;
+    let newRoundIndex = 0;
+    if (next) {
       let canGoNext = true;
       for (const currNet of currRoundNets) {
-        if(!currNet.teamAPlayerA || !currNet.teamAPlayerB || !currNet.teamBPlayerA || !currNet.teamBPlayerB || !currNet.teamAScore || currNet.teamAScore === 0 || !currNet.teamBScore || currNet.teamBScore === 0){
+        if (!currNet.teamAPlayerA || !currNet.teamAPlayerB || !currNet.teamBPlayerA || !currNet.teamBPlayerB || !currNet.teamAScore || currNet.teamAScore === 0 || !currNet.teamBScore || currNet.teamBScore === 0) {
           canGoNext = false;
         }
       }
-      if(!canGoNext){
-        return setActErr({name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points."})
+      if (!canGoNext) {
+        return setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." })
       }
-      if (!findRoundIndex) return;
       if ((!currentRound?.teamAScore || currentRound?.teamAScore === 0 || !currentRound?.teamBScore || currentRound?.teamBScore === 0)) return;
 
-      if(roundList[findRoundIndex + 1]){
-        dispatch(setCurrentRound(roundList[findRoundIndex + 1]));
+      if (roundList[findRoundIndex + 1]) {
+        newRoundIndex = findRoundIndex + 1;
       }
-    }else{
-      if(findRoundIndex !==0){
-        dispatch(setCurrentRound(roundList[findRoundIndex - 1]));
+    } else {
+      if (findRoundIndex !== 0) {
+        newRoundIndex = findRoundIndex - 1;
       }
     }
-    // dispatch(setCurrentRound());
+    const crObj = roundList[newRoundIndex];
+    dispatch(setCurrentRound(crObj));
+    const filteredNets = allNets.filter((net) => net.round === crObj._id);
+    dispatch(setCurrentRoundNets(filteredNets));
 
 
-    // const filteredNets = formattedNets.filter((net) => net.round === formattedRounds[0]._id);
-    // dispatch(setCurrentRoundNets(filteredNets));
+    const rcd = { room: currentRoom?._id, round: currentRound?._id, nextRound: roundList[newRoundIndex]._id };
+    if (currentRoom) {
+      const newCurrRoom = { ...currentRoom, round: roundList[newRoundIndex]._id };
+      if (myTeamE === ETeam.teamA) {
+        newCurrRoom.teamAProcess = EActionProcess.LINEUP;
+      } else {
+        newCurrRoom.teamBProcess = EActionProcess.LINEUP;
+      }
+      dispatch(setCurrentRoom(newCurrRoom));
+      dispatch(setTeamProcess({ myTeamProcess: EActionProcess.LINEUP, opTeamProcess }));
+      dispatch(setSubmittedLineup(false));
+    }
+    // @ts-ignore
+    if (socket) socket.emit("round-change-from-client", rcd);
   }
-
-
 
   const handleActionRunner = (event: React.SyntheticEvent, team: string | null | undefined, process: string) => {
     event.preventDefault();
@@ -208,7 +206,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
    * Set initial state for current match
    */
-  const setStateGetMatchData = (matchData: IMatchExpRel, token:string | null, userInfo: IUser | null) => {
+  const setStateGetMatchData = (matchData: IMatchExpRel, token: string | null, userInfo: IUser | null) => {
     /**
      * Setting data as state of redux that is fetched from backend using GraphAL
      * Set action box values
@@ -312,9 +310,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
 
     // Setting room
-    if(!token || !userInfo ){
+    if (!token || !userInfo) {
       // @ts-ignore
-      dispatch(setCurrentRoom({_id: matchData.room._id , match: _id, round: formattedRounds[0]._id, teamA: teamA?._id ? teamA._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamB?._id ? teamB?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
+      dispatch(setCurrentRoom({ _id: matchData.room._id, match: _id, round: formattedRounds[0]._id, teamA: teamA?._id ? teamA._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamB?._id ? teamB?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
     }
 
     // Setting Match
@@ -341,11 +339,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       if (rounds && rounds.length > 0) {
         let myTeamProcess = rounds[0].teamAProcess;
         let opTeamProcess = rounds[0].teamBProcess;
-        if(opTeamProcess === EActionProcess.LINEUP){
+        if (opTeamProcess === EActionProcess.LINEUP) {
           myTeamProcess = EActionProcess.CHECKIN;
         }
         // @ts-ignore
-        dispatch(setTeamProcess({ myTeamProcess , opTeamProcess }));
+        dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       }
     } else {
       dispatch(setMyTeam(teamBF));
@@ -355,7 +353,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       if (rounds && rounds.length > 0) {
         let myTeamProcess = rounds[0].teamBProcess;
         let opTeamProcess = rounds[0].teamAProcess;
-        if(opTeamProcess === EActionProcess.LINEUP){
+        if (opTeamProcess === EActionProcess.LINEUP) {
           myTeamProcess = EActionProcess.CHECKIN;
         }
         // @ts-ignore
@@ -366,9 +364,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   useEffect(() => {
     // Get user info here
-    const token = !getCookie('token') || getCookie('token')?.trim() === ''? null : getCookie('token') ;
-    const findUser= getCookie('user');
-    const userInfo = findUser && findUser.trim() !== '' ? JSON.parse(findUser): null;
+    const token = !getCookie('token') || getCookie('token')?.trim() === '' ? null : getCookie('token');
+    const findUser = getCookie('user');
+    const userInfo = findUser && findUser.trim() !== '' ? JSON.parse(findUser) : null;
 
     if (isValidObjectId(params.matchId)) {
       (async () => {
@@ -404,7 +402,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
     if (!socket || !userInfo || !userToken) return;
     const parsedUser = JSON.parse(userInfo);
-    if( !parsedUser.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
+    if (!parsedUser.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
 
     let userTeamId = null, myTeamProcess = EActionProcess.INITIATE, opTeamProcess: EActionProcess.INITIATE;
     if (parsedUser.captainplayer === teamA.captain._id) {
@@ -414,20 +412,25 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     } else {
       return;
     }
-    
+
     // @ts-ignore
     socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId, round: currentRound._id });
-    
+
     // @ts-ignore 
-    socket.on("leave-room-from-server", (data: IRoom)=>{
-      setCurrentRoom(data);
+    socket.on("leave-room-from-server", (data: IRoom) => {
+      dispatch(setCurrentRoom(data));
+    });
+
+    // @ts-ignore 
+    socket.on("round-change-accept-response", (data: IRoom) => {
+      dispatch(setCurrentRoom(data));
     });
 
     // Listen to events
     // @ts-ignore
     socket.on('join-room-response', (data: IRoom) => {
       const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-      const extranctedData = {...data};
+      const extranctedData = { ...data };
       if (isTeamACaptain) {
         // @ts-ignore 
         myTeamProcess = extranctedData.teamAProcess; opTeamProcess = extranctedData.teamBProcess;
@@ -435,13 +438,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         // @ts-ignore
         myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
       }
-      if(opTeamProcess === EActionProcess.LINEUP.toString()){
-        if(isTeamACaptain) {
+      if (opTeamProcess === EActionProcess.LINEUP.toString()) {
+        if (isTeamACaptain) {
           extranctedData.teamAProcess = EActionProcess.CHECKIN
-        }else{
+        } else {
           extranctedData.teamBProcess = EActionProcess.CHECKIN
         }
-        
+
       }
       // @ts-ignore
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
@@ -476,13 +479,80 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       dispatch(setCurrentRoom(data));
     });
-    
+
     // @ts-ignore
-    socket.on("update-points-response", (data: INetScoreUpdate[])=>{
-      dispatch(updateNetScore(data));
+    socket.on("update-points-response", (data: IUpdateScoreResponse) => {
+      // Set nets
+      // set current round nets
+      const netsOfRound = [...currRoundNets];
+      const newAllNets = [...allNets];
+
+      for (let i = 0; i < data.nets.length; i += 1) {
+        const findNetIndex = allNets.findIndex((n) => n._id === data.nets[i]._id);
+        const findRoundNetIndex = netsOfRound.findIndex((n) => n._id === data.nets[i]._id);
+
+        if (findNetIndex !== -1) {
+          newAllNets[findNetIndex] = { ...newAllNets[findNetIndex], teamAScore: data.nets[i].teamAScore, teamBScore: data.nets[i].teamBScore };
+        }
+
+        if (findRoundNetIndex !== -1) {
+          netsOfRound[findRoundNetIndex] = { ...netsOfRound[findRoundNetIndex], teamAScore: data.nets[i].teamAScore, teamBScore: data.nets[i].teamBScore }
+        }
+      }
+
+      dispatch(setNets(newAllNets));
+      dispatch(setCurrentRoundNets(netsOfRound));
+      // update round
+      const findRound = roundList.find((r) => r._id === data.round._id);
+      if (findRound) {
+        const updatedRound = { ...findRound, teamAScore: data.round.teamAScore, teamBScore: data.round.teamBScore };
+        const newRoundList = [updatedRound, ...roundList.filter(r => r._id !== data.round._id)];
+        dispatch(setRoundList(newRoundList));
+        if (findRound._id === currentRound._id) {
+          dispatch(setCurrentRound(updatedRound));
+        }
+      }
+    });
+
+
+    // @ts-ignore
+    socket.on('round-change-response', (data: IRoom) => {
+      const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+      const extranctedData = { ...data };
+      if (isTeamACaptain) {
+        // @ts-ignore 
+        myTeamProcess = extranctedData.teamAProcess; opTeamProcess = extranctedData.teamBProcess;
+      } else {
+        // @ts-ignore
+        myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
+      }
+      dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
+      dispatch(setSubmittedLineup(false));
+      dispatch(setCurrentRoom(extranctedData));
+    });
+
+    // @ts-ignore 
+    socket.on("round-change-accept-response", (data: IRoom) => {
+      // Check submitted all users or not
+
+      let submitted = true;
+      let i = 0;
+      while (i < currRoundNets.length) {
+        if (myTeamE === ETeam.teamA) {
+          if (!currRoundNets[i].teamAPlayerA) submitted = false;
+          if (!currRoundNets[i].teamAPlayerB) submitted = false;
+        } else {
+          if (!currRoundNets[i].teamBPlayerA) submitted = false;
+          if (!currRoundNets[i].teamBPlayerB) submitted = false;
+        }
+        i += 1;
+      }
+      dispatch(setSubmittedLineup(submitted));
+      dispatch(setCurrentRoom(data));
     });
 
   }, [socket, user, teamA, teamB]);
+
 
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
     dispatch(setScreenSize(entry.contentRect.width));
@@ -497,7 +567,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const renderTeams = (): React.ReactNode => {
     return (<>
       <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-      {/* {myTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />} */}
       {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
       {opTeamProcess && <RoundRunner handleAction={handleActionRunner} team={myTeam} teamE={myTeamE} setActErr={setActErr} updatePoints={handleUpdatePoints} />}
@@ -512,7 +581,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
     </>);
   }
-  
+
 
 
   return (
@@ -537,7 +606,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                 <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" style={{ transform: 'scaleX(-1)' }} />
                 Prev round
               </button>
-              {(!currentRound?.teamAScore && currentRound?.teamAScore !== 0 && currentRound?.teamBScore && currentRound?.teamBScore !== 0) && (
+              {(currentRound?.teamAScore && currentRound.teamAScore !== 0 && currentRound?.teamBScore && currentRound?.teamBScore !== 0) && (
                 <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, true)}>Next round
                   <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" />
                 </button>
@@ -546,8 +615,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           </>) : (<>
             {/* Public Version Start ============================================> */}
             <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-            {/* Oponent Round Runner  */}
-            {/* {opTeamProcess && <RoundRunner handleAction={handleActionRunner} onTop team={opTeam} teamE={opTeamE} setActErr={setActErr} />} */}
 
             {/* Net  */}
             {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}

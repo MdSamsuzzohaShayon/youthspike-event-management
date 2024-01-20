@@ -10,7 +10,7 @@ import { RoundService } from 'src/round/round.service';
 import { TeamService } from 'src/team/team.service';
 import { UserRole } from 'src/user/user.schema';
 import { Match } from './match.schema';
-import { CreateMatchInput, UpdateMatchInput } from './match.input';
+import { CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
 
 @ObjectType()
@@ -151,13 +151,13 @@ export class MatchResolver {
   }
 
   @Query((returns) => GetMatchesResponse)
-  async getMatches(@Args('eventId', { nullable: true }) eventId?: string | null) {
+  async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     try {
-      const query: { eventId?: null | string } = {};
-      if (eventId) query.eventId = eventId;
+      // const query: { eventId?: null | string } = {};
+      // if (eventId) query.eventId = eventId;
 
       // Assuming matchService is injected in your class
-      const matches = await this.matchService.query(query);
+      const matches = await this.matchService.query(filter);
 
       return {
         code: 200,

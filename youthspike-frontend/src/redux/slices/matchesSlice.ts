@@ -15,6 +15,8 @@ interface MatchesState {
   opTeamE: ETeam;
   myTeamProcess: EActionProcess;
   opTeamProcess: EActionProcess;
+  checkedIn: boolean;
+  submittedLineup: boolean;
 }
 
 const initialState: MatchesState = {
@@ -46,6 +48,10 @@ const initialState: MatchesState = {
   opTeamE: ETeam.teamA,
   myTeamProcess: EActionProcess.INITIATE,
   opTeamProcess: EActionProcess.INITIATE,
+
+  // Button axtions
+  checkedIn: false,
+  submittedLineup: false,
 };
 
 export const matchesSlice = createSlice({
@@ -55,23 +61,29 @@ export const matchesSlice = createSlice({
     setMatchInfo: (state, action: PayloadAction<IMatchRelatives>) => {
       state.match = action.payload;
     },
-    setMyTeam:(state, action: PayloadAction<ITeam | null>)=>{
-      if(action.payload) state.myTeam = action.payload;
+    setCheckedIn: (state, action: PayloadAction<boolean>) => {
+      state.checkedIn = action.payload;
     },
-    setOpTeam:(state, action: PayloadAction<ITeam | null>)=>{
-      if(action.payload) state.opTeam = action.payload;
+    setSubmittedLineup: (state, action: PayloadAction<boolean>) => {
+      state.submittedLineup = action.payload;
     },
-    setMyPlayers:(state, action: PayloadAction<IPlayer[]>)=>{
+    setMyTeam: (state, action: PayloadAction<ITeam | null>) => {
+      if (action.payload) state.myTeam = action.payload;
+    },
+    setOpTeam: (state, action: PayloadAction<ITeam | null>) => {
+      if (action.payload) state.opTeam = action.payload;
+    },
+    setMyPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.myPlayers = action.payload;
     },
-    setOpPlayers:(state, action: PayloadAction<IPlayer[]>)=>{
+    setOpPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.opPlayers = action.payload;
     },
-    setTeamE: (state, action: PayloadAction<{myTeamE: ETeam, opTeamE: ETeam}>)=>{
+    setTeamE: (state, action: PayloadAction<{ myTeamE: ETeam, opTeamE: ETeam }>) => {
       state.myTeamE = action.payload.myTeamE;
       state.opTeamE = action.payload.opTeamE;
     },
-    setTeamProcess: (state, action: PayloadAction<{myTeamProcess: EActionProcess, opTeamProcess: EActionProcess}>)=>{
+    setTeamProcess: (state, action: PayloadAction<{ myTeamProcess: EActionProcess, opTeamProcess: EActionProcess }>) => {
       state.myTeamProcess = action.payload.myTeamProcess;
       state.opTeamProcess = action.payload.opTeamProcess;
     }
@@ -79,6 +91,6 @@ export const matchesSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess } = matchesSlice.actions;
+export const { setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess, setCheckedIn, setSubmittedLineup } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

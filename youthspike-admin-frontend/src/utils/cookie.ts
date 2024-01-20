@@ -30,8 +30,20 @@ function setCookie(name: string, value: string, days: number): void {
   }
 }
 
-function removeCookie(name: string): void {
-  document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/;`;
+// function removeCookie(name: string): void {
+//   document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/;`;
+// }
+
+function removeCookie(name: string ): void {
+  // Set the expiration date in the past to delete the cookie
+  const expiredDate = new Date(0);
+
+  if (NODE_ENV === "production") {
+    const allSubDomains = FRONTEND_URL.split('//')[1];
+    document.cookie = `${name}=; expires=${expiredDate.toUTCString()}; Domain=${allSubDomains}; path=/`;
+  } else {
+    document.cookie = `${name}=; expires=${expiredDate.toUTCString()}; path=/`;
+  }
 }
 
 export { getCookie, setCookie, removeCookie };

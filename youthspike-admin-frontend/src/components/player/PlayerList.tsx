@@ -89,12 +89,12 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     <div className='mt-2'>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} />)}
       </ul>
       <button className="btn-secondary mt-4" type='button' onClick={handleUpdate}>Update</button>
     </div>

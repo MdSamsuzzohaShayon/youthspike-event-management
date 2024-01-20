@@ -137,6 +137,7 @@ type Player {
   status: PlayerStatus!
   rank: Int
   profile: String
+  phone: String
   events: [Event!]
   teams: [Team!]
   captainofteams: [Team!]
@@ -190,6 +191,13 @@ type LoginResponse {
   success: Boolean!
   message: String
   data: LoginResponseData
+}
+
+type UserResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: User
 }
 
 type ChangePWDDataRes {
@@ -298,6 +306,18 @@ type NetAssign {
   teamBPlayerB: String
 }
 
+type NetPointsAssign {
+  _id: String!
+  teamAScore: Float
+  teamBScore: Float
+}
+
+type RoundResoponse {
+  _id: String!
+  teamAScore: Float
+  teamBScore: Float
+}
+
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
@@ -331,12 +351,13 @@ scalar Date
 
 type Query {
   getAbout: AppAbout!
+  getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
   getEvent(eventId: String!): GetEventResponse!
   getEventByName(name: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
-  getMatches(eventId: String): GetMatchesResponse!
+  getMatches(filter: FilterQueryInput): GetMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
   getRound(roundId: String!): GetRoundResponse!
@@ -348,8 +369,27 @@ type Query {
   getPlayers(eventId: String!): PlayersResponse!
 }
 
+input FilterQueryInput {
+  _id: String
+  event: String
+  teamA: String
+  teamB: String
+  divisions: String
+  numberOfNets: Float
+  numberOfRounds: Float
+  playerLimit: Int
+  netVariance: Int
+  homeTeam: String
+  autoAssign: Boolean
+  autoAssignLogic: String
+  rosterLock: String
+  timeout: Int
+  location: String
+}
+
 type Mutation {
   login(email: String!, password: String!): LoginResponse!
+  updateUser(userId: String!, updateInput: UpdateUserArgs!, profile: Upload): UserResponse!
   changePassword(id: String!, oldPassword: String, newPassword: String): ChangePWDDataRes!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
   updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!): CreateOrUpdateEventResponse!
@@ -371,13 +411,22 @@ type Mutation {
   createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
 }
 
-input EventSponsorInput {
-  company: String!
-  logo: Upload!
+input UpdateUserArgs {
+  firstName: String
+  lastName: String
+  email: String
+  password: String
+  name: String
+  oldPassword: String
 }
 
 """The `Upload` scalar type represents a file upload."""
 scalar Upload
+
+input EventSponsorInput {
+  company: String!
+  logo: Upload!
+}
 
 input CreateEventInput {
   name: String!

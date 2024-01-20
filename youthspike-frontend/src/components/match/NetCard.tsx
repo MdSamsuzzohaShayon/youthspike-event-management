@@ -39,8 +39,8 @@ function NetCard({ net }: INetProps) {
   const user = useUser();
 
   // Redux State
-  const currNetNum = useAppSelector((state) => state.nets.currNetNum);
-  const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
+  const { currNetNum, currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
+  const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const teamAPlayers = useAppSelector((state) => state.players.teamAPlayers);
   const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
   const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
@@ -53,10 +53,13 @@ function NetCard({ net }: INetProps) {
   const [teamPlayerNum, setTeamPlayerNum] = useState<number>(0);
   const [drapDown, setDropDown] = useState<boolean>(false);
   const [availablePlayerIds, setAvailablePlayerIds] = useState<string[]>([]);
+  const [disabledPlayerIds, setDisabledPlayerIds] = useState<string[]>([]);
   const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
   const [myPlayers, setMyPlayers] = useState<IPlayer[]>([]);
   const [opPlayers, setOpPlayers] = useState<IPlayer[]>([]); // Op = oponent
   const [myTeamE, setMyTeamE] = useState<ETeam>(ETeam.teamB);
+
+  const [prevRoundNets, setPrevRoundNets] = useState<INetRelatives[]>([]);
 
   /**
    * Handle events
@@ -164,6 +167,34 @@ function NetCard({ net }: INetProps) {
       }
     }
     setAvailablePlayerIds(playerIds);
+    // Disabled players
+    const dpList: string[] = [];
+    let prevPartnerId = null;
+    if (myTeamE === ETeam.teamA) {
+      if (net?.teamAPlayerA) {
+        const prevNet = prevRoundNets.find((n) => n.teamAPlayerA === net?.teamAPlayerA || net?.teamAPlayerA === net.teamAPlayerA);
+        if (prevNet) {
+          if (prevNet.teamAPlayerA === net.teamAPlayerA) {
+            prevPartnerId = prevNet.teamAPlayerB;
+          } else if (prevNet.teamAPlayerB === net.teamAPlayerB) {
+            prevPartnerId = prevNet.teamAPlayerA;
+          }
+        }
+      } else if (net?.teamAPlayerB) {
+        const prevNet = prevRoundNets.find((n) => n.teamAPlayerB === net?.teamAPlayerB || net?.teamAPlayerB === net.teamAPlayerB);
+        if (prevNet) {
+          if (prevNet.teamAPlayerB === net.teamAPlayerB) {
+            prevPartnerId = prevNet.teamAPlayerA;
+          } else if (prevNet.teamAPlayerA === net.teamAPlayerA) {
+            prevPartnerId = prevNet.teamAPlayerB;
+          }
+        }
+      }
+    }
+    if (prevPartnerId) {
+      dpList.push(prevPartnerId);
+    }
+    setDisabledPlayerIds(dpList);
   };
 
   const isValidNet = (net: INetRelatives, teamPlayerNum: number) => net && net._id && net.round && teamPlayerNum > 0 && teamPlayerNum <= 4;
@@ -186,6 +217,9 @@ function NetCard({ net }: INetProps) {
   };
   const handleSelectPlayer = (e: React.SyntheticEvent, teamPlayerId: string) => {
     e.preventDefault();
+
+    const dtp = disabledPlayerIds.includes(teamPlayerId) ? true : false; // dtp = disabled this player
+    if (dtp) return;
     setDropDown(false);
     if (!user || !user.token || !user.info) return;
 
@@ -225,6 +259,22 @@ function NetCard({ net }: INetProps) {
       setOpPlayers([...teamAPlayers]);
     }
   }, [teamAPlayers, teamBPlayers, user]);
+
+  useEffect(() => {
+    // Setting previous round nets
+    if (currRound) {
+      const cri = roundList.findIndex((r) => r._id === currRound._id); // cri = current round index
+      if (cri > 0) {
+        const pr = roundList[cri - 1]; // pr previous round
+        if (pr) {
+          const findPRN = allNets.filter((n) => n.round === pr._id); // prn == previous round nets
+          if (findPRN && findPRN.length > 0) {
+            setPrevRoundNets(prevRoundNets);
+          }
+        }
+      }
+    }
+  }, [currRoundNets, currRound, roundList]);
 
   /**
    * Renders logically
@@ -269,9 +319,22 @@ function NetCard({ net }: INetProps) {
     }
 
     for (let i = 0; i < teamPlayerList.length; i += 1) {
+      /*
+      // Check prelyer A or player B is selected for the net
+      let playerMatch = true;
+      if(teamPlayerNum == 3){ // My player A
+        // Check previous nets
+        if(net?.teamBPlayerA){
+
+        }
+      } else if(teamPlayerNum == 4){ // My player B
+
+      }
+      */
+      const dtp = disabledPlayerIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
       if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
-          <div key={i} className="p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer" role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
+          <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-200" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
             <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center">{teamPlayerList[i].rank}</p>
             {teamPlayerList[i].profile ? <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-10 h-10 rounded-full border-2 border-gray-900" /> : <img src='/icons/sports-man.svg' className='svg-black w-10 h-10 rounded-full p-2 border-2 border-gray-900' />}
             <p className=' w-7/12 words-break capitalize'>
@@ -319,7 +382,7 @@ function NetCard({ net }: INetProps) {
     const playerB = matchTPlayer(TPB);
     const playerARank = playerA?.rank, playerBRank = playerB?.rank;
     const pairScore = calcPairScore(playerARank, playerBRank);
-    return (<div className={`net-top h-60 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} items-center justify-start`}>
+    return (<div className={`net-top h-60 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} border border-gray-900 items-center justify-start`}>
       {/* <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p> */}
       {!onTop && (<div className="h-6 w-6 border-0 rounded-full bg-yellow-500 text-gray-100 relative">
         <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
@@ -333,10 +396,10 @@ function NetCard({ net }: INetProps) {
       </div>)}
       <div className="player-pair flex justify-between w-full">
         <div className={`player-card team-a-player-1 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
+          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} currentRoom={currentRoom} />
         </div>
         <div className={`player-card team-a-player-2 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
+          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} currentRoom={currentRoom} />
         </div>
       </div>
       <h3>Pair Score {pairScore}</h3>

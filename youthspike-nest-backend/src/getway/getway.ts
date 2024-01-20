@@ -2,7 +2,7 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
-import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, NetPointsInput} from './gateway.input';
+import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, UpdatePointsInput, RoundUpdatedResponse, RoundChangeInput } from './gateway.input';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
@@ -90,6 +90,9 @@ export class MyGatWay implements OnModuleInit {
         client.emit('leave-room-from-server', roomData);
       }
     }
+
+    console.log("After disconnection - ", this.roomsLocal);
+
   }
 
   // @SubscribeMessage('createRoom')
@@ -105,30 +108,33 @@ export class MyGatWay implements OnModuleInit {
      * If room not found return
      * Update room socket ID if necessary
      */
-    const roomExist = await this.roomService.findOne({ match: joinData.match, $or: [{ teamA: joinData.team }, { teamB: joinData.team },] });
-    const roundExist = await this.roundService.findById(joinData.round);
-    
+    const roomPromise = this.roomService.findOne({ match: joinData.match });
+    const roundPromise = this.roundService.findById(joinData.round);
+
+    const [roomExist, roundExist] = await Promise.all([roomPromise, roundPromise]);
+
     if (!roomExist || !roundExist) return;
+
 
     client.join(roomExist._id.toString());
     // // Check all nets
-    const findNets = await this.netService.query({round: roundExist._id});
+    const findNets = await this.netService.query({ round: roundExist._id });
 
-    let teamASubmitted = false; 
+    let teamASubmitted = false;
     let teamBSubmitted = false;
     for (let i = 0; i < findNets.length; i++) {
-      if(findNets[i].teamAPlayerA) teamASubmitted = true;
-      if(findNets[i].teamBPlayerA) teamBSubmitted = true;
+      if (findNets[i].teamAPlayerA) teamASubmitted = true;
+      if (findNets[i].teamBPlayerA) teamBSubmitted = true;
     }
 
     let teamAProcess = roundExist.teamAProcess;
     let teamBProcess = roundExist.teamBProcess;
 
-    if(teamASubmitted){
+    if (teamASubmitted && roundExist.teamAProcess !== EActionProcess.LOCKED) {
       teamAProcess = EActionProcess.LINEUP;
     }
 
-    if(teamBSubmitted){
+    if (teamBSubmitted && roundExist.teamBProcess !== EActionProcess.LOCKED) {
       teamBProcess = EActionProcess.LINEUP;
     }
 
@@ -219,11 +225,11 @@ export class MyGatWay implements OnModuleInit {
       updatePromises.push(this.roundService.update({ teamAProcess: EActionProcess.LOCKED, teamBProcess: EActionProcess.LOCKED }, submitLineup.round));
       roomData.teamAProcess = EActionProcess.LOCKED;
       roomData.teamBProcess = EActionProcess.LOCKED;
-    }else{
-      updatePromises.push(this.roundService.update({ teamAProcess:roomData.teamAProcess, teamBProcess: roomData.teamBProcess }, submitLineup.round));
+    } else {
+      updatePromises.push(this.roundService.update({ teamAProcess: roomData.teamAProcess, teamBProcess: roomData.teamBProcess }, submitLineup.round));
     }
-    
-    
+
+
     for (const n of submitLineup.nets) {
       updatePromises.push(this.netService.update({
         teamAPlayerA: n.teamAPlayerA,
@@ -233,49 +239,113 @@ export class MyGatWay implements OnModuleInit {
       }, n._id));
     }
     await Promise.all(updatePromises);
-    
-    const roomDataWithNets: RoomLocalWithNets = {...roomData, nets: submitLineup.nets}
-    
+
+    const roomDataWithNets: RoomLocalWithNets = { ...roomData, nets: submitLineup.nets }
+
     // roomData.nets = submitLineup.nets;
     this.roomsLocal.set(submitLineup.room, roomData);
-    if(roomData.teamAProcess === EActionProcess.LOCKED && roomData.teamBProcess === EActionProcess.LOCKED){
+    if (roomData.teamAProcess === EActionProcess.LOCKED && roomData.teamBProcess === EActionProcess.LOCKED) {
       client.emit('submit-lineup-response', roomDataWithNets);
       client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
-    }else {
+    } else {
       client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
     }
   }
 
   @SubscribeMessage('update-points-from-client')
-  async onPointsUpdate(client, netsPoints: NetPointsInput[]) {
+  async onPointsUpdate(client, updatePointsInput: UpdatePointsInput) {
+
+    const prevRoom = this.roomsLocal.get(updatePointsInput.room);
+    if (!prevRoom) return;
+
+    // Update round score
     const updatePromises = [];
-    for (const n of netsPoints) {
+    for (const n of updatePointsInput.nets) {
       updatePromises.push(this.netService.update({
         teamAScore: n.teamAScore,
         teamBScore: n.teamBScore,
       }, n._id));
     }
     await Promise.all(updatePromises);
-    client.emit('update-points-response', netsPoints);
+
+    const findNets = await this.netService.query({ round: updatePointsInput.round });
+    let teamAScore = 0;
+    let teamBScore = 0;
+    let i = 0;
+    while (i < findNets.length) {
+      if (findNets[i].teamAScore) teamAScore += findNets[i].teamAScore;
+      if (findNets[i].teamBScore) teamBScore += findNets[i].teamBScore;
+      i += 1;
+    }
+
+    await this.roundService.update({ teamAScore, teamBScore }, updatePointsInput.round);
+
+    const pointsResponse: RoundUpdatedResponse = {
+      nets: updatePointsInput.nets,
+      room: updatePointsInput.room,
+      round: { _id: updatePointsInput.round, teamAScore, teamBScore }
+    }
+    client.emit('update-points-response', pointsResponse);
+    client.to(prevRoom._id).emit('update-points-response', pointsResponse);
   }
 
+  @SubscribeMessage("round-change-from-client")
+  async onRoundChange(client, roundChangeInput: RoundChangeInput) {
+    /**
+     * Change process for a team
+     * Make submit process for the team who changes the  round
+     * Invite other team to be in the same round as current team is in
+     * Check current round is not locked, if it is locked let it be
+     */
+    const [currRoundExist, nextRoundExist] = await Promise.all([
+      this.roundService.findById(roundChangeInput.round),
+      this.roundService.findById(roundChangeInput.nextRound),
+    ]);
 
-  @SubscribeMessage('updateMatch')
-  onNewMessage(@MessageBody() body: any) {
-    this.server.emit('onMatchUpdate', {
-      msg: 'new message',
-      content: body,
-    });
+    if (!currRoundExist || !nextRoundExist) return;
+
+    const prevRoom = this.roomsLocal.get(roundChangeInput.room);
+    if (!prevRoom || !prevRoom.teamAClient || !prevRoom.teamBClient) return;
+    let roomData = { ...prevRoom, round: nextRoundExist._id.toString() };
+
+    if (prevRoom.teamAClient === client.id) {
+      if (nextRoundExist.teamAProcess === EActionProcess.INITIATE) {
+        roomData.teamAProcess = EActionProcess.LINEUP;
+      } else {
+        roomData.teamAProcess = nextRoundExist.teamAProcess;
+      }
+      // if(roomData.teamBClient !== EActionProcess.LINEUP){
+
+      // }
+    } else if (prevRoom.teamBClient === client.id) {
+      if (nextRoundExist.teamBProcess === EActionProcess.INITIATE) {
+        roomData.teamBProcess = EActionProcess.LINEUP;
+      } else {
+        roomData.teamBProcess = nextRoundExist.teamBProcess;
+      }
+      // roomData.teamBProcess = EActionProcess.LINEUP;
+    }
+
+    client.to(prevRoom._id).emit("round-change-response", roomData);
+  }
+
+  @SubscribeMessage("round-change-accept-from-client")
+  async onAcceptRoundChange(client, acceptRoom: RoomLocal) {
+    /**
+     * Change process for a team
+     * Make submit process for the team who changes the  round
+     * Invite other team to be in the same round as current team is in
+     * Check current round is not locked, if it is locked let it be
+     */
+    const targetRound = await this.roundService.findById(acceptRoom.round);
+    if (!targetRound) return;
+    const prevRoom = this.roomsLocal.get(acceptRoom._id);
+    if (!prevRoom || !prevRoom.teamAClient || !prevRoom.teamBClient) return;
+    let roomData = { ...prevRoom, 
+      teamAProcess: targetRound.teamAProcess !== EActionProcess.INITIATE ? targetRound.teamAProcess:  EActionProcess.CHECKIN, 
+      teamBProcess: targetRound.teamBProcess !== EActionProcess.INITIATE ?targetRound.teamBProcess :  EActionProcess.CHECKIN, 
+      round: acceptRoom.round };
+    this.roomsLocal.set(acceptRoom.round, roomData)
+    client.to(prevRoom._id).emit("round-change-accept-response", roomData);
   }
 }
-
-
-
-// const userId = this.rooms.get(client.id);
-// const messages = room.messages.slice(limit * -1);
-
-// await this.userService.updateUserRoom(userId, room);
-// Store room Id, teamA or teamB
-// client.to(roomExist._id).emit('message', 'Joined room');
-// const roomExistLocal = this.roomsLocal.get(client.id);
-// this.roomsLocal.set(client.id);

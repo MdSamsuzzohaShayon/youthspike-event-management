@@ -13,7 +13,6 @@ import {
   ILoginProps,
   IDateinputProps,
 } from "./elements";
-import { UserRole } from "./user";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
 import { IPlayer } from "./player";
@@ -48,7 +47,6 @@ export type {
 
 
   // User
-  UserRole,
   IUser,
   IDirector,
   IDirectorItem,

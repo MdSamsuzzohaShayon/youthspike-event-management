@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setNetsByRoundId, setCurrNetNum } from '@/redux/slices/netSlice';
+import { setNetsByRoundId, setCurrNetNum, setCurrentRoundNets } from '@/redux/slices/netSlice';
 
 // Utils
 import { screen } from '@/utils/constant';
@@ -14,27 +14,25 @@ import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
 import { ITeam } from '@/types';
 import { useUser } from '@/lib/UserProvider';
+import { setCurrentRound } from '@/redux/slices/roundSlice';
+import { useSocket } from '@/lib/SocketProvider';
 
 
-function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
+function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   /**
    * Display specific selected net in mobile screen
    * Display multiple nets with slider
    */
-  // Hooks
-  const user = useUser();
 
+  const socket = useSocket();
   // Redux
   const dispatch = useAppDispatch();
 
-  const allNets = useAppSelector((state) => state.nets.nets);
-  const currRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
-  const currNetNum = useAppSelector((state) => state.nets.currNetNum);
-  const roundList = useAppSelector((state) => state.rounds.roundList);
-  const teamA = useAppSelector((state) => state.teams.teamA);
-  const teamB = useAppSelector((state) => state.teams.teamB);
-  const {myTeam, opTeam} = useAppSelector((state) => state.matches);
+  const { currNetNum, currentRoundNets, nets } = useAppSelector((state) => state.nets);
+  const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
+  const { myTeam, opTeam } = useAppSelector((state) => state.matches);
+  const currentRoom = useAppSelector((state) => state.rooms.current);
 
   // Local State
   const dialogSettingEl = useRef<HTMLDialogElement | null>(null);
@@ -51,25 +49,57 @@ function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
     dialogSettingEl.current.close();
   };
 
+  const handleRoundChange = (e: React.SyntheticEvent, roundId: string) => {
+    e.preventDefault();
+    // Make a dispatch to change current round, current round num and more related to this
+    const findNextRound = roundList.find((r) => r._id === roundId);
+    if (findNextRound?.num && currentRound?.num && currentRound?.num < findNextRound?.num) {
+      // Must have score for current round for both teams
+      if (!currentRound.teamAScore || !currentRound.teamBScore || currentRound.teamAScore === 0 || currentRound.teamBScore === 0) return;
+      let validChange = true;
+
+      // Check points in all nets
+      let i = 0;
+      while (i < currentRoundNets.length) {
+        if (!currentRoundNets[i].teamAScore || !currentRoundNets[i].teamBScore) {
+          validChange = false;
+        }
+        i += 1;
+      }
+
+      if (!validChange) return;
+
+
+      const rcd = { room: currentRoom?._id, round: currentRound._id, nextRound: findNextRound._id }; // round change data is rcd
+      // @ts-ignore
+      if (socket) socket.emit("round-change-from-client", rcd);
+    }
+    if (findNextRound) {
+      dispatch(setCurrentRound(findNextRound));
+      const findNets = nets.filter((n) => n.round === findNextRound._id);
+      dispatch(setCurrentRoundNets(findNets))
+    }
+  }
+
 
   useEffect(() => {
-    if (currRoundNets && currRoundNets.length > 0) {
-      dispatch(setCurrNetNum(currRoundNets[0].num));
+    if (currentRoundNets && currentRoundNets.length > 0) {
+      dispatch(setCurrNetNum(currentRoundNets[0].num));
     }
   }, []);
 
   return (
-    <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative">
+    <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
       {/* Left side round detail start  */}
       <div className="round-detail w-3/6" style={{ height: '30rem' }}>
         <div className="round-top h-3/6 w-full bg-gray-900 text-gray-100 px-2 flex flex-col items-center justify-around">
           <LogoMatchScore dark team={opTeam} />
 
-          <div className="round-nums mt-4 flex w-full justify-between items-center">
+          <div className="round-nums mt-4 flex w-full justify-start gap-1 items-center">
             {roundList.map((round) => (
-              <p className="single-r bg-gray-100 text-gray-900 p-1 text-center" key={round._id}>
+              <button className={`single-r w-8 ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer`} type="button" onClick={(e) => handleRoundChange(e, round._id)} key={round._id}>
                 RD{round.num}
-              </p>
+              </button>
             ))}
           </div>
           <PointsByRound roundList={roundList} dark />
@@ -88,13 +118,13 @@ function NetScoreOfRound({currRoundId}: {currRoundId: string}) {
           <img src="/icons/close.svg" alt="cross" className="w-full" />
         </div>
       </dialog>
-      <div className="img-holder p-2 w-8 absolute left-1 border-3 bg-gray-100 rounded-full cursor-pointer" style={{ top: '47%' }} role="presentation" onClick={handleSettingOpen} onKeyDown={(e) => {}}>
+      <div className="img-holder p-2 w-8 absolute left-1 border-3 bg-gray-100 rounded-full cursor-pointer" style={{ top: '47%' }} role="presentation" onClick={handleSettingOpen} onKeyDown={(e) => { }}>
         <img src="/icons/setting.svg" alt="setting" className="w-full" />
       </div>
       {/* Setting end  */}
-      
+
       {/* Right side net detail start */}
-      {screenWidth > screen.xs ? currRoundNets.map((net) => <NetCard key={net._id} net={net} />) : <NetCard net={currRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} />}
+      {screenWidth > screen.xs ? currentRoundNets.map((net) => <NetCard key={net._id} net={net} />) : <NetCard net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} />}
       {/* Right side net detail end */}
     </div>
   );
