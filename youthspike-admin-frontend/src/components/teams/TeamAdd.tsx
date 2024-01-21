@@ -7,11 +7,12 @@ import { ADD_A_TEAM } from '@/graphql/teams';
 import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
 import Link from 'next/link';
+import { divisionsToOptionList } from '@/utils/helper';
 
 interface ITeamAddProps {
     eventId: string;
     availablePlayers: IPlayer[];
-    setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>> ;
+    setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: (state: boolean) => void;
     divisions: string;
@@ -30,24 +31,28 @@ const initialTeamState = {
 function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions, setAvailablePlayers, setActErr }: ITeamAddProps) {
     const [teamState, setTeamState] = useState<ITeamAdd>(initialTeamState);
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
+    const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
     // GraphQL
     const [addTeam, { data, loading, error, reset }] = useMutation(ADD_A_TEAM); // Do caching
-    
+
     // Handle events
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         try {
             // Validation
-            if(!teamState.captain || teamState.captain === '' || !teamState.division || teamState.division === ''){
-                return setActErr({name: "Invalid team!", message: "You must select a division and a captain"})
+            if ( !teamState.division || teamState.division === '') {
+                return setActErr({ name: "Invalid team!", message: "You must select a division and a captain" })
             }
+            // else if(!teamState.captain || teamState.captain === ''){
+            //     return setActErr({ name: "Invalid team!", message: "No captain has been selected!" })
+            // }
             setIsLoading(true);
             const teamObj = { ...teamState, players: playerIdList, event: eventId };
             const teamRes = await addTeam({
                 variables: { input: teamObj }
             });
-            setAvailablePlayers((prevState)=> [...prevState.filter((p)=> !playerIdList.includes(p._id))]);
+            setAvailablePlayers((prevState) => [...prevState.filter((p) => !playerIdList.includes(p._id))]);
             setPlayerIdList([]);
             setActErr(null);
 
@@ -55,7 +60,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             console.log(error);
         } finally {
             setIsLoading(false);
-            
+
         }
 
         // console.log({ resultData });
@@ -64,11 +69,6 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
         handleClose(e);
     }
 
-    useEffect(() => {
-        return () => {
-            reset();
-        }
-    }, []);
 
     const handleInputChange = (e: React.SyntheticEvent) => {
         const inputEl = e.target as HTMLInputElement | HTMLSelectElement;
@@ -105,7 +105,10 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
         if (availablePlayers && availablePlayers.length > 0) {
             setTeamState((prevState) => ({ ...prevState, captain: availablePlayers[0]._id }));
         }
-    }, []);
+
+        const divs = divisionsToOptionList(divisions);
+        setDivisionList(divs);
+    }, [divisions, availablePlayers]);
 
     // Renders
     const selectedPlayers = (ap: IPlayer[], pil: string[]): IOption[] => {
@@ -121,7 +124,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             </div>
 
             <TextInput name='name' required vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
-            <SelectInput name='division' optionList={[...divisions.split(',').map((d: string) => ({ text: d, value: d }))]} handleSelect={handleSelect} lw='w-5/12' rw='w-5/12' />
+            <SelectInput name='division' optionList={divisionList} handleSelect={handleSelect} lw='w-5/12' rw='w-5/12' />
             <div className='input-group w-full flex flex-col'>
                 <label htmlFor="players">Select Players. <Link href={`/${eventId}/players`} className='underline underline-offset-1' >Create New Player!</Link></label>
                 <ul className='flex flex-wrap items-center gap-2'>

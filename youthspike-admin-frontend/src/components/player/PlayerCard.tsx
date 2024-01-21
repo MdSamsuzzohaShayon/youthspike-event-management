@@ -47,7 +47,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
     setActionOpen(prevState => !prevState);
-    console.log(`Make captain player of the current player that he is on or select team if the player does not have a team`, { playerId, teamId });
     try {
       setIsLoading(true);
       const changeCaptainRes = await mutateTeam({ variables: { input: { captain: playerId }, teamId } });

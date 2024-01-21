@@ -45,6 +45,7 @@ type Team {
   active: Boolean!
   division: String!
   captain: Player
+  cocaptain: Player
   match: Match
   event: Event!
   players: [Player!]!
@@ -141,7 +142,9 @@ type Player {
   events: [Event!]
   teams: [Team!]
   captainofteams: [Team!]
+  cocaptainofteams: [Team!]
   captainuser: User
+  cocaptainuser: User
 }
 
 enum PlayerStatus {
@@ -155,6 +158,7 @@ type User {
   lastName: String!
   role: UserRole!
   captainplayer: Player
+  cocaptainplayer: Player
   email: String!
   active: Boolean!
   password: String!
@@ -172,6 +176,7 @@ type LoginUser {
   lastName: String!
   role: UserRole!
   captainplayer: String
+  cocaptainplayer: Player
   email: String!
   active: Boolean!
   event: String
@@ -409,7 +414,7 @@ type Mutation {
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
-  createMultiPlayers(uploadedFile: Upload!, event: String!): PlayersResponse!
+  createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
 }
 
 input UpdateUserArgs {

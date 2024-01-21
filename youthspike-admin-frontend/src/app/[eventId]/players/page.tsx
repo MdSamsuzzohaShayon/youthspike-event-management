@@ -9,9 +9,10 @@ import React, { useState, useEffect } from 'react';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import { isValidObjectId } from '@/utils/helper';
-import { IError } from '@/types';
+import { IError, IEventExpRel } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
+import CurrentEvent from '@/components/event/CurrentEvent';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
 
@@ -20,6 +21,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
+  const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
 
   useEffect(() => {
@@ -39,7 +41,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
-      <h1 className='mt-4 text-center'>Players</h1>
+      <h1 className='mb-8 text-center'>Players</h1>
+      {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {addPlayer ? (<>
@@ -49,7 +52,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       </>) : (<>
         <h3 className='mt-4' >Player List</h3>
         {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-        <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
+          <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
         <PlayerList playerList={players} eventId={params.eventId} teamId={null} setIsLoading={setIsLoading} setAddPlayer={setAddPlayer} />
       </>)}

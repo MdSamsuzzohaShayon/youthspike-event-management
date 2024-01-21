@@ -11,6 +11,7 @@ const teamResponse = `
       lastName
       rank
       email
+      profile
       status
       captainofteams {
         _id
@@ -28,6 +29,7 @@ const teamResponse = `
       firstName
       lastName
       rank
+      profile
       captainofteams {
         _id
         name

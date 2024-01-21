@@ -55,14 +55,7 @@ function TeamSingle({ params }: TeamSingleProps) {
 
       {/* Division section  */}
       <div className="division-section mt-8 w-full flex justify-between items-center">
-        <div className="w-7/12">
-          <button className="w-full btn-primary flex justify-between items-center">
-            Division Selection <img src="/icons/dropdown.svg" className='svg-white w-6' alt="arrow" />
-          </button>
-        </div>
-        <div className="w-4/12">
-          <button className="w-full btn-info flex justify-between items-center">Add New<img src="/icons/plus.svg" className='svg-white w-6' alt="plus" /></button>
-        </div>
+        <button className="w-full btn-info flex justify-between items-center">Add New<img src="/icons/plus.svg" className='svg-white w-6' alt="plus" /></button>
       </div>
 
       {/* Show captain  */}

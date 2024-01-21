@@ -35,6 +35,10 @@ export class Team extends AppDocument {
   @Field((type) => Player, { nullable: true })
   captain?: Player | string; // Make the captain field nullable
 
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
+  @Field((type) => Player, { nullable: true })
+  cocaptain?: Player | string; // Make the captain field nullable
+
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
   @Field((type) => Match, { nullable: true })
   match?: Match | string; // Make the captain field nullable

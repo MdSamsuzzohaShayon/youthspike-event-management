@@ -135,9 +135,9 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer }: 
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
       <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
       <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical  extraCls='md:w-5/12' />
-      <Link className='underline underline-offset-8 w-full mt-4' href={`/${eventId}/teams/new`}>Create Team!</Link>
+      {/* <Link className='underline underline-offset-8 w-full mt-4' href={`/${eventId}/teams/new`}>Create Team!</Link> */}
       <div className="input-group w-full">
-        <button type="submit" className='btn-secondary mt-8'>Submit</button>
+        <button type="submit" className='btn-secondary mt-8'>{update ? "Save" : "Submit"}</button>
       </div>
     </form>
   )

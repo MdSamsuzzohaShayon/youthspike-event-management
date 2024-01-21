@@ -18,6 +18,12 @@ const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'accoun
 
 const initialUserMenuList: IMenuItem[] = [
     {
+        id: 8,
+        imgName: 'home',
+        text: 'Home',
+        link: '/'
+    },
+    {
         id: 1,
         imgName: 'setting',
         text: 'Settings',
@@ -160,7 +166,7 @@ function Menu() {
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5 || menuItem.id === 8)]); // 5 = account
             }
         } else {
             setEventId(eventPath);

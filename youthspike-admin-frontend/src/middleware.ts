@@ -8,7 +8,7 @@ import { UserRole } from './types/user';
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
 const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new", '/account'];
 const captainAuthPages = ['/players', "/matches", "/settings"];
-const adminPages = ['/admin', '/directors'];
+const adminPages = ['/','/admin', '/directors'];
 
 /**
  * Configuration for the Next.js middleware

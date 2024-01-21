@@ -93,7 +93,7 @@ export class TeamResolver {
           password: rawPassword,
         });
         promiseOperations.push(
-          this.playerService.update({ captainofteams: [newTeam._id], captainuser: captainUser._id }, input.captain),
+          this.playerService.update({ captainofteam: newTeam._id, captainuser: captainUser._id }, input.captain),
         );
       }
       await Promise.all(promiseOperations);
@@ -121,30 +121,39 @@ export class TeamResolver {
      *  Step-3: Create user if there are no user found
      *  Step-4: Update captain, captainuser
      */
-    const findTeam = await this.teamService.findById(teamId);
+    const teamExist = await this.teamService.findById(teamId);
+    if (!teamExist) return AppResponse.exists("Team");
+    
     const updatePromises = [];
 
     // Update captain
     if (input.captain) {
-      const findPlayer = await this.playerService.findById(input.captain.toString());
+      const playerExist = await this.playerService.findById(input.captain.toString());
 
-      if (findPlayer && findTeam.captain && findTeam.captain.toString() !== input.captain.toString()) {
-        const prevCaptain = await this.playerService.findById(findTeam.captain.toString());
-        updatePromises.push(this.playerService.update({ captainofteam: null, captainuser: null }, findTeam.captain.toString()));
-        const prevCaptainuser = await this.userService.findOne({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }] });
-        if (prevCaptainuser) {
-          updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: prevCaptainuser._id }, input.captain.toString()));
-          updatePromises.push(this.userService.createOrUpdate({ email: findPlayer.email, captainplayer: findPlayer._id }, prevCaptainuser._id.toString()));
-        } else {
+      if (playerExist && teamExist.captain) {
+        const prevCaptain = await this.playerService.findById(teamExist.captain.toString());
+        // Make prevCaptain null
+        if(input.captain !== teamExist.captain.toString()){
+          updatePromises.push(this.playerService.update({ captainofteam: null, captainuser: null }, teamExist.captain.toString()));
+          updatePromises.push(this.userService.delete({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }]}));
+
+          // Create new user
+          const playerUserExist = await this.userService.findOne({email: playerExist.email});
           const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
           const hashedPassword = await bcrypt.hash(rawPassword, 10);
-          const newUser = await this.userService.create({
-            email: findPlayer.email, password: hashedPassword,
-            firstName: findPlayer.firstName, lastName: findPlayer.lastName, role: UserRole.captain, captainplayer: findPlayer._id, active: true
-          });
-          updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: newUser._id }, input.captain.toString()));
+          const userObj = {
+            email: playerExist.email, password: hashedPassword,
+            firstName: playerExist.firstName, lastName: playerExist.lastName, role: UserRole.captain, captainplayer: playerExist._id, active: true
+          }
+          let newCaptainUser = null;
+          if(playerUserExist){
+            newCaptainUser = await this.userService.createOrUpdate(userObj, playerUserExist._id)
+          }else{
+            newCaptainUser = await this.userService.create(userObj);
+          }
+          updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: newCaptainUser._id }, input.captain.toString()));
         }
-        updatePromises.push(this.teamService.update({ captain: findPlayer._id }, { _id: teamId }));
+        updatePromises.push(this.teamService.update({ captain: playerExist._id }, { _id: teamId }));
       }
     }
     await Promise.all(updatePromises);
@@ -152,7 +161,7 @@ export class TeamResolver {
       return {
         code: 200,
         success: true,
-        data: findTeam,
+        data: teamExist,
       };
     } catch (err) {
       return AppResponse.getError(err);

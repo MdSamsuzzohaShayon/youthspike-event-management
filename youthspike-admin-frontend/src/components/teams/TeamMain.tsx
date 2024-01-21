@@ -6,12 +6,15 @@ import { GET_EVENT_WITH_TEAMS, GET_TEAMS_BY_EVENT } from '@/graphql/teams';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamList from '@/components/teams/TeamList';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IError, IOption, ITeam } from '@/types';
+import { ISOToReadableDate, divisionsToOptionList, isValidObjectId } from '@/utils/helper';
+import { IError, IEvent, IEventExpRel, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import SelectInput from '../elements/forms/SelectInput';
 import { GET_LDO } from '@/graphql/director';
+import { AdvancedImage } from '@cloudinary/react';
+import cld from '@/config/cloudinary.config';
+import CurrentEvent from '../event/CurrentEvent';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -28,12 +31,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [teamList, setTeamList] = useState<ITeam[]>([]);
     const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
     const [divisionList, setDivisionList] = useState<IOption[]>([]);
+    const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
 
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
      */
     const [getEvent, { data: eventData, loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
-    const {data: ldoData, loading: ldoLoading} = useQuery(GET_LDO);
+    const { data: ldoData, loading: ldoLoading } = useQuery(GET_LDO);
 
 
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -44,7 +48,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         const inputEl = e.target as HTMLInputElement;
         if (inputEl.value === '') {
             setFilteredlist([...teamList]);
-        }else{
+        } else {
             const newList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
             // console.log({inputted: inputEl.value, filtered: newList});
             setFilteredlist([...newList]);
@@ -70,6 +74,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         const eventResponse = await getEvent({ variables: { eventId: eventId } });
 
         const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+        if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
         setTeamList(newTeamList);
         setFilteredlist(newTeamList);
 
@@ -94,7 +99,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
     if (loading || isLoading || ldoLoading) return <Loader />;
     const eventList = ldoData?.getEventDirector?.data?.events;
-    
+
 
 
     return (
@@ -108,7 +113,8 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
                 <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} />
             </dialog>
-            <h1 className='mb-4 text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
+            <h1 className='text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
+            {currEvent && (<CurrentEvent currEvent={currEvent} />)}
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
             {/* <div className="w-full flex justify-between items-center flex-col mb-4">
