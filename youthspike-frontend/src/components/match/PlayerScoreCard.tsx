@@ -2,7 +2,8 @@
 /* eslint-disable @next/next/no-img-element */
 import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
-import { IPlayer } from '@/types';
+import { IPlayer, IRoom } from '@/types';
+import { EActionProcess } from '@/types/room';
 import { AdvancedImage } from '@cloudinary/react';
 import { profile } from 'console';
 import React from 'react';
@@ -13,9 +14,10 @@ interface IPalyerScoreCard {
   evacuatePlayer?: (teamPlayer: number, playerId: string) => void;
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: number) => void;
   dark: boolean;
+  currentRoom: IRoom | null
 }
 
-function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer }: IPalyerScoreCard) {
+function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, currentRoom }: IPalyerScoreCard) {
   const user = useUser();
   const [blackCard, setBlankCard] = React.useState<boolean>(!!player);
 
@@ -30,7 +32,12 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
   return (
     <>
       <div className="p-img-wrap relative w-full h-24">
-        {player && user.token && evacuatePlayer && <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full"> <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} /> </div>}
+
+        {player && user.token && evacuatePlayer && currentRoom
+          && (currentRoom.teamAProcess === EActionProcess.LINEUP || currentRoom.teamBProcess === EActionProcess.LINEUP || currentRoom.teamAProcess === EActionProcess.CHECKIN || currentRoom.teamBProcess === EActionProcess.CHECKIN)
+          && <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full"> <img src="/icons/close.svg"
+            className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} /> </div>}
+
         {player?.profile ? <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} /> : (<img
           src="/empty-img.jpg"
           alt="random-img"

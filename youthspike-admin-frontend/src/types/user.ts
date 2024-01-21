@@ -26,6 +26,7 @@ export interface IUser extends IDocument {
   role: UserRole;
   active: boolean;
   login: ILogin;
+  captainplayer?: string | null;
 }
 
 /**

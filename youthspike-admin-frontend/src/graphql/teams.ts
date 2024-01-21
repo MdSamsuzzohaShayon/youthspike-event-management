@@ -153,4 +153,21 @@ const UPDATE_TEAM = gql`
   }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM };
+
+const MOVE_TEAM = gql`
+  mutation MoveTeam($eventId: String!, $teamId: String!, $division: String!) {
+    moveTeam(eventId: $eventId, teamId: $teamId, division: $division) {
+      code
+      message
+      success
+      data {
+        _id
+        active
+        division
+        name
+      }
+    }
+  }
+`;
+
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM, MOVE_TEAM };

@@ -22,4 +22,10 @@ export class CreateDirectorArgs {
 
 
 @InputType()
-export class UpdateDirectorArgs extends PartialType(CreateDirectorArgs){}
+export class UpdateDirectorArgs extends PartialType(CreateDirectorArgs) { }
+
+@InputType()
+export class UpdateUserArgs extends PartialType(CreateDirectorArgs) {
+  @Field({ nullable: true })
+  oldPassword: string;
+}

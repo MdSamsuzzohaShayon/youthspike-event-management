@@ -31,6 +31,27 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
   const dragOverPI = useRef<number>(0);
 
   /**
+   * Handle events
+   */
+  const handleUpdate = async (upr: IPlayerRank[]) => { // upr = update player ranking
+    if (!rankControls) return;
+    if (upr.length > 0) {
+      try {
+        console.log("Update ranks");
+        
+        setIsLoading(true)
+        // Submit to the server
+        await rankPlayers({ variables: { input: upr } });
+        if (setAddPlayer) setAddPlayer(false);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }
+
+  /**
    * Drag or touch event for players rankings
    */
   const handleDragStart = (index: number) => {
@@ -41,10 +62,9 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     if (!rankControls) return;
     dragOverPI.current = index;
   };
-  const handleDragEnd = (index: number, playerId: string) => {
+  const handleDragEnd = async (index: number, playerId: string) => {
     if (!rankControls) return;
     // Create a new list to submit
-    console.log(`Drag start index: ${dragPI.current}, drag over index: ${dragOverPI.current}`);
     let activeList = [...playerActiveClone];
     const draggedPlayer = activeList.splice(dragPI.current, 1);
     if (draggedPlayer && draggedPlayer.length > 0) {
@@ -52,31 +72,16 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     } else {
       activeList = [...playerActiveClone];
     }
-    setPlayerRanking(activeList.map((p, i) => ({ rank: i += 1, _id: p._id })));
+    const updatedRanking = activeList.map((p, i) => ({ rank: i += 1, _id: p._id }));
+    setPlayerRanking(updatedRanking);
     setPlayerActiveClone(activeList);
+    await handleUpdate(updatedRanking)
   };
   const handleTouchMove = (e: TouchEvent) => {
     if (!rankControls) return;
     e.preventDefault(); // Prevent scrolling
   }
 
-  const handleUpdate = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (!rankControls) return;
-    if (playerRanking.length > 0) {
-      try {
-        setIsLoading(true)
-        // Submit to the server
-        await rankPlayers({ variables: { input: playerRanking } });
-        if (setAddPlayer) setAddPlayer(false);
-      } catch (error) {
-        console.log(error);
-
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  }
 
   useEffect(() => {
     if (playerList && playerList.length > 0) {
@@ -89,14 +94,13 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     <div className='mt-2'>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
       </ul>
-      <button className="btn-secondary mt-4" type='button' onClick={handleUpdate}>Update</button>
     </div>
   )
 }

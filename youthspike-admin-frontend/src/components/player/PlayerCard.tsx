@@ -18,9 +18,10 @@ interface PlayerCardProps {
   touchDragEnd: (index: number, playerId: string) => void;
   touchMove: (e: TouchEvent) => void;
   showRank?: boolean;
+  rankControls?: boolean;
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -134,7 +135,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }, []);
 
   return (
-    <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable style={{ minHeight: '6rem' }}
+    <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable={rankControls ?? false} style={{ minHeight: '6rem' }}
       onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter} >
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
         <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
@@ -157,7 +158,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       </div>
 
       {showRank && player?.rank && (
-        <div className="rank-box h-10 w-1/12 flex flex-col">
+        <div className="rank-box h-6 w-6 flex flex-col">
           <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
             {player?.rank}
           </h3>
@@ -167,8 +168,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
       <div className="text-box w-5/12">
         <div className="w-full">
-          <p className='break-words' >7676-783-8263</p>
-          <p className='break-words' >E: {player.email}</p>
+          <p className='break-words' >{player.phone ? player.phone:  'Phone: N/A'}</p>
+          <p className='break-words' >{player.email}</p>
           <p className='break-words' >2-3 / +3 games</p>
         </div>
       </div>

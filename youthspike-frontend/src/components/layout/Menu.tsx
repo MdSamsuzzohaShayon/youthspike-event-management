@@ -9,6 +9,7 @@ import { IMenuItem } from '@/types';
 import { gql, useApolloClient, useLazyQuery, useReadQuery } from '@apollo/client';
 import Link from 'next/link';
 import { removeCookie, getCookie } from '@/utils/cookie';
+import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
@@ -24,6 +25,12 @@ const initialUserMenuList: IMenuItem[] = [
         imgName: 'teams',
         text: 'Events',
         link: '/events'
+    },
+    {
+        id: 3,
+        imgName: 'setting',
+        text: 'Dashboard',
+        link: '/dashboard'
     },
 ];
 
@@ -132,12 +139,12 @@ function Menu() {
     /**
      * Renders sub components
      */
-    const renderMenuItems = (eId: string | null, uml: IMenuItem[]) => {
+    const renderMenuItems = (eId: string | null, uml: IMenuItem[]) => { // uml = user menu list
         const menuItems: React.ReactNode[] = [];
         for (let i = 0; i < uml.length; i++) {
             let newLink: string = '';
             if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) newLink = '/' + eId;
-            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={`${newLink}${uml[i].link}`} />);
+            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={ uml[i].id === 3 ? ADMIN_FRONTEND_URL : `${newLink}${uml[i].link}`} />);
         }
 
         return <>{menuItems}</>;

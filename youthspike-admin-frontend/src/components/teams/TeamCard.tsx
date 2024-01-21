@@ -1,16 +1,63 @@
-import { ITeam } from '@/types';
+import { useUser } from '@/lib/UserProvider';
+import { IEvent, IOption, ITeam } from '@/types';
+import { UserRole } from '@/types/user';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import SelectInput from '../elements/forms/SelectInput';
+import { useMutation } from '@apollo/client';
+import { MOVE_TEAM } from '@/graphql/teams';
 
 interface TeamCardProps {
     eventId: string;
     team: ITeam;
+    eventList: IEvent[];
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function TeamCard({ team, eventId }: TeamCardProps) {
+interface ITeamMove {
+    event: string;
+    division: string;
+}
+
+function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
+    const user = useUser();
     const [actionOpen, setActionOpen] = useState<boolean>(false);
     const [openMoveTeam, setOpenMoveTeam] = useState<boolean>(false);
+    const [eventOptions, setEventOptions] = useState<IOption[]>([]);
+    const [divisionOptions, setDivisionOptions] = useState<IOption[]>([]);
 
+    const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
+    const [moveTeamMutation, { loading, data }] = useMutation(MOVE_TEAM);
+
+
+    /**
+     * Handle Events
+     */
+    const selectEventInputChange = (e: React.SyntheticEvent) => {
+        const inputEl = e.target as HTMLSelectElement;
+        setMoveTeam((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        if (inputEl.value === '') {
+            setDivisionOptions([]);
+        } else {
+            const findEvent = eventList.find((e) => e._id === inputEl.value);
+            if (findEvent) {
+                console.log(findEvent);
+                const divs = findEvent.divisions.split(',');
+                const dl: IOption[] = [];
+                for (let i = 0; i < divs.length; i++) {
+                    if (divs[i].trim().toLowerCase() !== '') {
+                        dl.push({ text: divs[i].trim().toLowerCase(), value: divs[i].trim() })
+                    }
+                }
+                setDivisionOptions(dl);
+            }
+        }
+    }
+
+    const selectInputChange = (e: React.SyntheticEvent) => {
+        const inputEl = e.target as HTMLSelectElement;
+        setMoveTeam((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    }
 
     const handleOpenAction = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -20,6 +67,7 @@ function TeamCard({ team, eventId }: TeamCardProps) {
     const handleOpenMoveTeam = (e: React.SyntheticEvent, teamId: string) => {
         e.preventDefault();
         // Fetch team by team Id
+        setActionOpen((prevState) => !prevState);
         setOpenMoveTeam(prevState => !prevState);
     }
 
@@ -37,13 +85,41 @@ function TeamCard({ team, eventId }: TeamCardProps) {
         // Fetch team by team Id
         setOpenMoveTeam(prevState => !prevState);
     }
-    
+
+    const handleMoveTeam = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        try {
+            setIsLoading(true);
+            if (moveTeam.event === '' || moveTeam.division === '') {
+                console.log(moveTeam);
+            } else {
+                const moveTeamRes = await moveTeamMutation({ variables: { eventId: moveTeam.event, division: moveTeam.division, teamId: team._id } });
+                console.log(moveTeamRes);
+
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+
+    useEffect(() => {
+        if (eventList && eventList.length > 0) {
+            const newEventList = eventList
+                .filter(e => e._id !== eventId)
+                .map(e => ({ text: e.name, value: e._id }));
+            setEventOptions(newEventList);
+        }
+    }, [eventList]);
+
 
 
 
     return (
-        <>
-            <div className="team-card w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between relative">
+        <div className="team-card w-full rounded-lg">
+            <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative">
                 <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
                     <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} >Edit</li>
                     <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}>Move Team</li>
@@ -79,12 +155,17 @@ function TeamCard({ team, eventId }: TeamCardProps) {
                     <img src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation" onClick={handleOpenAction} className="w-6 svg-white" />
                 </div>
             </div>
-            {openMoveTeam && (
-                <div className="move-team w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between relative">
-                    Move Team
+            {openMoveTeam && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+                <div className="move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
+                    <button className="close" onClick={(e) => setOpenMoveTeam(false)}><img src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" /></button>
+                    <form className="w-full" onSubmit={handleMoveTeam}>
+                        <SelectInput handleSelect={selectEventInputChange} vertical name='event' optionList={eventOptions} />
+                        <SelectInput handleSelect={selectInputChange} vertical name='division' optionList={divisionOptions} />
+                        <button className="btn-info mt-4" type='submit'>Move</button>
+                    </form>
                 </div>
             )}
-        </>
+        </div>
     )
 }
 

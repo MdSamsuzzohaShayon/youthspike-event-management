@@ -159,6 +159,47 @@ export class TeamResolver {
     }
   }
 
+  @Mutation((resolves) => GetTeamResponse)
+  async moveTeam(@Args("eventId") eventId: string, @Args("teamId") teamId: string, @Args("division") division: string) {
+    /**
+     * Step-1: find team
+     * Step-2: 
+     */
+    try {
+      const [eventExist, teamExist] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.teamService.findById(teamId)
+      ]);
+      if (!teamExist || !eventExist) return AppResponse.exists('team or event');
+
+      const teamObj: any = teamExist.toJSON();
+      delete teamObj._id;
+      teamObj.event = eventId;
+      teamObj.division = division;
+
+
+      const newTeam = await this.teamService.create(teamObj);
+      const teamPlayersIds = teamExist.players.map((p) => p.toString());
+      const eventUpdateObj = { $push: { players: teamPlayersIds, teams: [newTeam._id] }, divisions: eventExist.divisions };
+      if (!eventExist.divisions.includes(division)) {
+        eventUpdateObj.divisions = eventExist.divisions + ", " + division;
+      }
+      await Promise.all([
+        this.playerService.updateMany({ _id: { $in: teamPlayersIds } }, { $push: { events: eventId } }),
+        this.eventService.update(eventUpdateObj, eventId)
+      ]);
+
+      return {
+        code: 201,
+        success: true,
+        data: newTeam,
+      };
+    } catch (error) {
+      AppResponse.handleError(error);
+    }
+
+  }
+
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {

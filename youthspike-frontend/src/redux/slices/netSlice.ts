@@ -80,21 +80,6 @@ const netSlice = createSlice({
       }
     },
 
-    updateNetScore: (state, action: PayloadAction<INetScoreUpdate[]>) => {
-      const roundNets = [...state.currentRoundNets];
-      const allNets = [...state.nets];
-      for (const n of action.payload) {
-        const allNetIndex = allNets.findIndex((an) => an._id === n._id);
-        if (allNetIndex !== -1) {
-          allNets[allNetIndex] = { ...allNets[allNetIndex], teamAScore: n.teamAScore, teamBScore: n.teamBScore };
-        }
-
-        const roundNetIndex = roundNets.findIndex((an) => an._id === n._id);
-        if (roundNetIndex !== -1) {
-          roundNets[roundNetIndex] = { ...roundNets[roundNetIndex], teamAScore: n.teamAScore, teamBScore: n.teamBScore };
-        }
-      }
-    },
 
     setUpdateNets: (state, action: PayloadAction<INetUpdate>) => {
       // Update Net
@@ -123,5 +108,5 @@ const netSlice = createSlice({
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers, updateNetScore } = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers } = netSlice.actions;
 export default netSlice.reducer;

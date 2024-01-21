@@ -43,6 +43,10 @@ export class Player extends AppDocument {
   @Field({ nullable: true })
   profile?: string;
 
+  @Prop({ required: false })
+  @Field({ nullable: true })
+  phone?: string;
+
   /**
    * Relatives
    */

@@ -31,6 +31,19 @@ export class CheckInInput {
   teamBProcess: string;
 }
 
+@InputType()
+export class RoundChangeInput {
+
+  @Field({ nullable: false })
+  room: string;
+
+  @Field({ nullable: false })
+  round: string;
+
+  @Field({ nullable: false })
+  nextRound: string;
+}
+
 
 @ObjectType()
 export class NetAssign {
@@ -47,7 +60,7 @@ export class NetAssign {
 }
 
 @ObjectType()
-export class NetPointsInput {
+export class NetPointsAssign {
   @Field({ nullable: false })
   _id: string;
   @Field({ nullable: true })
@@ -55,6 +68,46 @@ export class NetPointsInput {
   @Field({ nullable: true })
   teamBScore: number;
 }
+
+
+@ObjectType()
+export class UpdatePointsInput {
+  @Field({ nullable: false })
+  round: string;
+
+  @Field(() => [NetPointsAssign], { nullable: false })
+  nets: NetPointsAssign[]
+
+  @Field({ nullable: false })
+  room: string;
+}
+
+@ObjectType()
+export class RoundResoponse {
+  @Field({ nullable: false })
+  _id: string;
+
+  @Field({ nullable: true })
+  teamAScore: number;
+  @Field({ nullable: true })
+  teamBScore: number;
+}
+
+@ObjectType()
+export class RoundUpdatedResponse {
+
+  @Field({ nullable: false })
+  round: RoundResoponse;
+
+  @Field(() => [NetPointsAssign], { nullable: false })
+  nets: NetPointsAssign[]
+
+  @Field({ nullable: false })
+  room: string;
+}
+
+
+
 
 @InputType()
 export class SubmitLineupInput {

@@ -63,7 +63,7 @@ export class PlayerResolver {
       delete playerObj.event;
       if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
       const newPlayer = await this.playerService.create(playerObj);
-      const updateEvent = await this.eventService.update(
+      await this.eventService.update(
         { players: [newPlayer._id.toString()] },
         input.event.toString(),
       );

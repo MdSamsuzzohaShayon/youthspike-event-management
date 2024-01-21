@@ -19,7 +19,7 @@ interface INetPointCard {
 function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
-    const currRoom = useAppSelector((state)=> state.rooms.current);
+    const currRoom = useAppSelector((state) => state.rooms.current);
 
 
     const handlePointChange = (e: React.SyntheticEvent, netId: string | undefined, teamAorB: string) => {
@@ -30,11 +30,12 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
         if (!netId) return;
 
         const inputEl = e.target as HTMLInputElement;
+        if (inputEl.value === '') return;
         const teamScore = parseInt(inputEl.value, 10);
         const updateObj = {};
         // @ts-ignore
-        teamAorB === ETeam.teamA ? updateObj.teamAScore = teamScore: updateObj.teamBScore = teamScore;
-        dispatch(setUpdateNets({_id: netId, ...updateObj}));
+        teamAorB === ETeam.teamA ? updateObj.teamAScore = teamScore : updateObj.teamBScore = teamScore;
+        dispatch(setUpdateNets({ _id: netId, ...updateObj }));
 
     }
 
@@ -42,18 +43,19 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
         e.preventDefault();
     };
 
-    const inputReadonly = (teamAorB: ITeam | null | undefined, teamE: ETeam): boolean => {
+    const inputReadonly = (): boolean => {
         const isUserAuthorized = user && (
             user.info?.role === UserRole.admin ||
-            user.info?.role === UserRole.director 
+            user.info?.role === UserRole.director ||
+            user.info?.role === UserRole.captain
             // || 
             // || (user.info?.captainplayer && user.info.captainplayer === teamAorB?.captain?._id)
         );
-    
-        // @ts-ignore
-        return isUserAuthorized && currRoom?.teamBProcess === EActionProcess.LOCKED && currRoom?.teamAProcess === EActionProcess.LOCKED;
+
+
+        return !isUserAuthorized || (currRoom?.teamBProcess !== EActionProcess.LOCKED || currRoom?.teamAProcess !== EActionProcess.LOCKED);
     };
-    
+
 
 
     return (
@@ -61,7 +63,7 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
           ${user && user.info?.captainplayer === teamA?.captain?._id ? "flex-col" : "flex-col-reverse"}`} style={{ top: '39%' }}>
             <div className="score-card-in-net w-full text-center">
                 <input type="number" name='teamAScore' value={net?.teamAScore ?? '0'}
-                    readOnly={inputReadonly(teamA, ETeam.teamA)}
+                    readOnly={inputReadonly()}
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamA)}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' />
             </div>
@@ -73,7 +75,7 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
             <div className="score-card-in-net w-full text-center">
                 <input type="number" name='teamBScore' value={net?.teamBScore ?? '0'}
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamB)}
-                    className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' readOnly={inputReadonly(teamB, ETeam.teamB)} />
+                    className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' readOnly={inputReadonly()} />
             </div>
         </div>
     )

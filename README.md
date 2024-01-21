@@ -55,8 +55,10 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Change round
- - Show only matches of captain after login as captain
+ - Move team
+ - Ranking properly
+ - Change round validation (Make 0 a valid number in a net to go to the next round)
+ - Track user properly they leave or join in the room
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
  - If a player plays with someone in the round 1 he can not play with with in round 2 or three
 
@@ -72,16 +74,16 @@ ___
 ___
  - **Admin**
  - Admin, captain and director can change ranking of players, drag and drop feature
- - Need to work with ranking to make it smooth
- - Admin can import rosters and click a button for any or one of them to be a captain/
+ - ✅✅ Admin can import rosters and click a button for any or one of them to be a captain/
     - Admins are I, Alex, and Keleb
- - Director, admin, and captain can change password
+ - ✅✅ Director, admin, and captain can change password
 
  - **Players**
  - Import players from excel file should have a confirmation message
  - Player edit -> team needs to be edited properly
  - Inactive player will have no rank -> Ranking system won't work on inactive players
- - If there is a team of player create the team for him as well on the import of players file
+ - Need to work with ranking to make it smooth
+ - If there is a team of player, create the team for him as well on the import of players file
  - [Exports players](https://www.loom.com/share/835208d304cf48ec9f951e42f198d10e) from __manager.leagueapps.com__ and import that into this program
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inavtive in the match day

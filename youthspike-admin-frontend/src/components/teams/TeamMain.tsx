@@ -11,6 +11,7 @@ import { IError, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import SelectInput from '../elements/forms/SelectInput';
+import { GET_LDO } from '@/graphql/director';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -32,6 +33,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
      * Fetch all teams, players, matches of this event from GraphQL Server
      */
     const [getEvent, { data: eventData, loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
+    const {data: ldoData, loading: ldoLoading} = useQuery(GET_LDO);
 
 
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -90,8 +92,9 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }, [eventId]);
 
 
-    if (loading || isLoading) return <Loader />;
-
+    if (loading || isLoading || ldoLoading) return <Loader />;
+    const eventList = ldoData?.getEventDirector?.data?.events;
+    
 
 
     return (
@@ -141,7 +144,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} />}
             </div>
         </div>
     )

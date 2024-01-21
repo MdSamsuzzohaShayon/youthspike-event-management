@@ -12,6 +12,9 @@ import { ADMIN_URL, BACKEND_URL } from '@/utils/keys';
 import { UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW } from '@/graphql/director';
 import Message from '../elements/Message';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
+import { UPDATE_CAPTAIN } from '@/graphql/captain';
 
 interface DirectorAddProps {
     update: boolean;
@@ -40,7 +43,7 @@ const initialDirector = {
 function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector }: DirectorAddProps) {
 
     // Hooks
-    const router = useRouter();
+    const user = useUser();
 
     // Local State
     const [directorState, setDirectorState] = useState<IDirector>(prevLdo && prevLdo.director ? prevLdo.director : initialDirector);
@@ -52,6 +55,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
     // Graphql
     const [registerDirector, { loading, error, client }] = useMutation(ADD_DIRECTOR);
     const [updateDirector, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_DIRECTOR);
+    const [mutateUser, { loading: capLoading, error: capErr }] = useMutation(UPDATE_CAPTAIN);
 
     /**
      * Change input on cange event
@@ -99,8 +103,8 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
                 }
             } else {
                 delete directorUpdateObj.password;
-                delete directorUpdateObj.confirmPassword;
             }
+            delete directorUpdateObj.confirmPassword;
         } else {
             if (directorState.password !== directorState.confirmPassword) {
                 return setActErr({ name: "Invalid Password", message: "Password did not match" });
@@ -140,7 +144,11 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
             } else {
                 // Conditionally call updateDirector or registerDirector based on the existence of uploadedLogo.current
                 if (update) {
-                    await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdateObj } } });
+                    if (user.info?.role === UserRole.captain) {
+                        await mutateUser({ variables: { userId: user.info._id, updateInput: directorUpdateObj } })
+                    } else {
+                        await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdateObj } } });
+                    }
                 } else {
                     await registerDirector({ variables: { args: inputArgs, logo: null } });
                     // Reset form and state
@@ -185,32 +193,38 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
         }
     }, [error, updateError]);
 
-    if (loading) return <Loader />;
+    if (loading || capLoading) return <Loader />;
 
     return (
-        <div>
-            {!update ? <h2>Add Director</h2> : <h2>Update Director</h2>}
-            <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
+        <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
+            {user.info?.role !== UserRole.captain && (<React.Fragment>
                 <FileInput defaultValue='' handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12' />
                 <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
                     defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
-                <TextInput vertical name='firstName' required={!update} lblTxt='First Name'
-                    defaultValue={directorState.firstName} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-                <TextInput vertical name='lastName' required={!update} lblTxt='Last Name'
-                    defaultValue={directorState.lastName} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            </React.Fragment>)}
+
+            <TextInput vertical defaultValue={directorState.firstName} name='firstName' required={!update} lblTxt='First Name'
+                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            <TextInput vertical defaultValue={directorState.lastName} name='lastName' required={!update} lblTxt='Last Name'
+                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            {user.info?.role !== UserRole.captain && (
                 <EmailInput vertical name='email' required={!update} lblTxt='Email'
                     defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-                <PasswordInput vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
-                    defaultValue={directorState.password} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-                <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
-                    defaultValue={directorState.confirmPassword} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-                <div className="input-group w-full mt-4">
-                    <button className="btn-info" type="submit">
-                        {update ? 'Update' : 'Register'}
-                    </button>
-                </div>
-            </form>
-        </div>
+            )}
+            {user.info?.role === UserRole.captain && update && (
+                <PasswordInput vertical name='oldPassword' required={!update} lblTxt="Old Password"
+                    handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            )}
+            <PasswordInput vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
+                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
+                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            <div className="input-group w-full mt-4">
+                <button className="btn-info" type="submit">
+                    {update ? 'Update' : 'Register'}
+                </button>
+            </div>
+        </form>
     );
 };
 
