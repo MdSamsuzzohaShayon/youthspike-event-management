@@ -102,6 +102,10 @@ const GET_LDO = gql`
   }
 `;
 
+/**
+ * Mutations
+ * ==========================================================================================================
+ */
 const ADD_DIRECTOR_RAW = `
 mutation CreateDirector($args: CreateDirectorArgs!, $logo: Upload) {
   createDirector(args: $args, logo: $logo) {

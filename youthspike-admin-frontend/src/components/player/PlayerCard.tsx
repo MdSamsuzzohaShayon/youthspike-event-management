@@ -158,7 +158,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       </div>
 
       {showRank && player?.rank && (
-        <div className="rank-box h-10 w-1/12 flex flex-col">
+        <div className="rank-box h-6 w-6 flex flex-col">
           <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
             {player?.rank}
           </h3>
@@ -168,8 +168,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
       <div className="text-box w-5/12">
         <div className="w-full">
-          <p className='break-words' >{player.phone ?? 'N/A'}</p>
-          <p className='break-words' >E: {player.email}</p>
+          <p className='break-words' >{player.phone ? player.phone:  'Phone: N/A'}</p>
+          <p className='break-words' >{player.email}</p>
           <p className='break-words' >2-3 / +3 games</p>
         </div>
       </div>

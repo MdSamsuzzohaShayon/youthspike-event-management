@@ -1,18 +1,18 @@
 import React from 'react';
 import TeamCard from './TeamCard';
-import { ITeam } from '@/types';
+import { IEvent, ITeam } from '@/types';
 
-interface TeamListProps{
+interface TeamListProps {
     eventId: string;
     teamList: ITeam[];
+    eventList?: IEvent[];
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function TeamList({teamList, eventId}: TeamListProps) {
-
-    
+function TeamList({ teamList, eventId, eventList, setIsLoading }: TeamListProps) {
     return (
         <div className="team-list flex flex-col justify-between items-center gap-3">
-            {teamList.map((team)=> <TeamCard key={team._id} team={team} eventId={eventId} /> )}
+            {teamList.map((team) => <TeamCard key={team._id} team={team} eventId={eventId} eventList={eventList ? eventList : []} setIsLoading={setIsLoading} />)}
         </div>
     )
 }

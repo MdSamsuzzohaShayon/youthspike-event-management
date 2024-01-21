@@ -55,6 +55,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Move team
+ - Ranking properly
  - Change round validation (Make 0 a valid number in a net to go to the next round)
  - Track user properly they leave or join in the room
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
