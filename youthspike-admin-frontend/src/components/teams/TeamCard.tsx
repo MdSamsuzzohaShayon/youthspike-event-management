@@ -140,13 +140,15 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
                 </div>
                 <div className="w-5/12">
                     <Link href={`/${eventId}/teams/${team._id}`}>
-                        <div className="brand flex gap-1">
-                            <img src="/free-logo.svg" alt="free-logo" className="w-12 h-12 rounded-full border-2 border-yellow-500" />
-                            <div className="caption flex flex-col">
-                                <p className='uppercase text-xs'>Captain</p>
-                                <h3 className='leading-none text-lg font-bold'>{team.captain?.firstName + " " + team.captain?.lastName}</h3>
+                        {team.captain && (
+                            <div className="brand flex gap-1">
+                                <img src="/free-logo.svg" alt="free-logo" className="w-12 h-12 rounded-full border-2 border-yellow-500" />
+                                <div className="caption flex flex-col">
+                                    <p className='uppercase text-xs'>Captain</p>
+                                    <h3 className='leading-none text-lg font-bold'>{team.captain?.firstName + " " + team.captain?.lastName}</h3>
+                                </div>
                             </div>
-                        </div>
+                        )}
                         <p className='flex'><span><img src="/icons/telephone.svg" alt="telephone" className='w-6 svg-white' /></span>222-222-2222</p>
                         <p className='flex gap-1'>Active players <span className='flex items-center justify-center w-6 h-6 rounded-full bg-gray-900'>{team?.players?.length}</span></p>
                     </Link>

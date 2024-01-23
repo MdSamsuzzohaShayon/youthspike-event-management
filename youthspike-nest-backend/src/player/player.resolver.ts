@@ -16,6 +16,7 @@ import { UserService } from 'src/user/user.service';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
+import { UpdateQuery } from 'mongoose';
 
 @ObjectType()
 class PlayerResponse extends AppResponse<Player> {
@@ -56,17 +57,27 @@ export class PlayerResolver {
     try {
       // Upload image to cloudinary
       let profileUrl: string | null = null;
+      const ensurePromises = [];
       if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
+
       const playerObj = { ...input, profile: profileUrl, events: [input.event], teams: [] };
       if (input.team) playerObj.teams = [input.team];
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;
+
       if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
       const newPlayer = await this.playerService.create(playerObj);
-      await this.eventService.update(
-        { players: [newPlayer._id.toString()] },
+
+
+      if (input.team) {
+        ensurePromises.push(this.teamService.update({ $push: { players: newPlayer._id } }, { _id: input.team }))
+      }
+      ensurePromises.push(this.eventService.update(
+        { $push: { players: newPlayer._id.toString() } },
         input.event.toString(),
-      );
+      ));
+      await Promise.all(ensurePromises);
+
       return {
         success: true,
         code: 201,
@@ -84,11 +95,12 @@ export class PlayerResolver {
   profile?: Upload,): Promise<PlayerResponse> {
     try {
       // Upload image to cloudinary
-      const playerObj: any = { ...input };
+      const playerObj: UpdateQuery<Player> = { ...input };
       if (profile) {
         const profileUrl = await this.cloudinaryService.uploadFiles(profile);
         playerObj.profile = profileUrl
       };
+
       const updatedPlayer = await this.playerService.update(playerObj, playerId);
       return {
         success: true,

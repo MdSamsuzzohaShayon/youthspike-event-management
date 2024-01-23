@@ -75,6 +75,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
         const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
+        
         setTeamList(newTeamList);
         setFilteredlist(newTeamList);
 
@@ -111,7 +112,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             </dialog>
             <dialog ref={importerEl}>
                 <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} />
+                <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} divisionList={divisionList} />
             </dialog>
             <h1 className='text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
             {currEvent && (<CurrentEvent currEvent={currEvent} />)}

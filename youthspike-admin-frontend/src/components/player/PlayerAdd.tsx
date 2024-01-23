@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import TextInput from '../elements/forms/TextInput';
 import { IPlayer, IPlayerAdd } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IError, IOption } from '@/types';
+import { IError, IOption, ITeam } from '@/types';
 import { gql, useMutation } from '@apollo/client';
 import { CREATE_PLAYER, GET_PLAYERS, CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW, UPDATE_PLAYER, GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import EmailInput from '../elements/forms/EmailInput';
@@ -17,6 +17,8 @@ interface IPlayerAddProps {
   prevPlayer?: IPlayer | null;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
+  divisionList: IOption[];
+  teamList: ITeam[]
 }
 
 const initialPlayerAdd = {
@@ -27,14 +29,14 @@ const initialPlayerAdd = {
   // team: '',
   rank: "0"
 };
-const eventOption: IOption[] = [{ text: 'Team 1', value: 't1' }, { text: 'Team 2', value: 't2' }];
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer }: IPlayerAddProps) {
+function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, divisionList, teamList }: IPlayerAddProps) {
   const [actErr, setActErr] = useState<IError | null>(null);
   const [playerAdd, setPlayerAdd] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
   const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
+  const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
 
   const uploadedProfile = useRef<File | null>(null);
 
@@ -59,7 +61,27 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer }: 
     }
   }
 
-  const handleSelect = (e: React.SyntheticEvent) => { }
+  const handleSelect = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    if (update) {
+      setPlayerUpdate(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    } else {
+      setPlayerAdd(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    }
+  };
+
+  const handleDivisionChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    const dl: IOption[] = [];
+    for (let i = 0; i < teamList.length; i += 1) {
+      if (teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
+        dl.push({ text: teamList[i].name, value: teamList[i]._id });
+      }
+    }
+    setTeamOptions(dl);
+  }
 
   /**
    * Create or update player
@@ -131,10 +153,11 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer }: 
   return (
     <form onSubmit={handleAddPlayer} className='flex justify-between items-center flex-wrap'>
       <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
-      <TextInput name='firstName' lblTxt='First Name' defaultValue={prevPlayer?.firstName} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
-      <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
-      <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical  extraCls='md:w-5/12' />
-      <SelectInput name='team' optionList={eventOption} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical  extraCls='md:w-5/12' />
+      <TextInput name='firstName' lblTxt='First Name' defaultValue={prevPlayer?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
+      <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
+      <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
+      <SelectInput name='division' optionList={divisionList} handleSelect={handleDivisionChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+      <SelectInput name='team' optionList={teamOptions} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
       {/* <Link className='underline underline-offset-8 w-full mt-4' href={`/${eventId}/teams/new`}>Create Team!</Link> */}
       <div className="input-group w-full">
         <button type="submit" className='btn-secondary mt-8'>{update ? "Save" : "Submit"}</button>

@@ -3,6 +3,7 @@
 import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 import { IPlayer, IRoom } from '@/types';
+import { ETeamPlayer } from '@/types/net';
 import { EActionProcess } from '@/types/room';
 import { AdvancedImage } from '@cloudinary/react';
 import { profile } from 'console';
@@ -10,9 +11,9 @@ import React from 'react';
 
 interface IPalyerScoreCard {
   player: IPlayer | null;
-  teamPlayer: number;
-  evacuatePlayer?: (teamPlayer: number, playerId: string) => void;
-  dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: number) => void;
+  teamPlayer: ETeamPlayer;
+  evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
+  dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
   dark: boolean;
   currentRoom: IRoom | null
 }

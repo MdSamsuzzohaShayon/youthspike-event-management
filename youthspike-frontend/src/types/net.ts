@@ -51,6 +51,13 @@ interface INetPlayers {
     teamBPlayerB: string;
 }
 
+export enum ETeamPlayer {
+    TA_PA = "teamAPlayerA",
+    TA_PB = "teamAPlayerB",
+    TB_PA = "teamBPlayerA",
+    TB_PB = "teamBPlayerB",
+};
+
 
 
 export type { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse };

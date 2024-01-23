@@ -10,6 +10,19 @@ import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { User } from 'src/user/user.schema';
 
+
+@ObjectType()
+@Schema()
+export class PlayerRanking {
+  @Field({ nullable: true })
+  @Prop({ required: false, default: null })
+  rank?: number | null;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  player: string;
+}
+
 /**
  * Event
  */
@@ -24,9 +37,13 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   active: boolean;
 
-  @Field({nullable: false})
-  @Prop({required: true})
+  @Field({ nullable: false })
+  @Prop({ required: true })
   division: string;
+
+  // @Field(() => [PlayerRanking], { nullable: false })
+  // @Prop({ required: true, type: [{type: PlayerRanking}]})
+  // ranking: PlayerRanking[];
 
   /**
    * Relations

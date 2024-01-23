@@ -8,6 +8,7 @@ import { GET_A_TEAM } from '@/graphql/teams';
 import { IError } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 
 interface TeamSingleProps {
@@ -55,7 +56,7 @@ function TeamSingle({ params }: TeamSingleProps) {
 
       {/* Division section  */}
       <div className="division-section mt-8 w-full flex justify-between items-center">
-        <button className="w-full btn-info flex justify-between items-center">Add New<img src="/icons/plus.svg" className='svg-white w-6' alt="plus" /></button>
+        <Link className="btn-info flex justify-between items-center" href={`/${params.eventId}/teams/new`}>Add New<img src="/icons/plus.svg" className='svg-white w-6' alt="plus" /></Link>
       </div>
 
       {/* Show captain  */}
