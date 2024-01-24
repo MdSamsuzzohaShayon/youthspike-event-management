@@ -283,7 +283,6 @@ function NetCard({ net }: INetCardProps) {
     const playerARank = playerA?.rank, playerBRank = playerB?.rank;
     const pairScore = calcPairScore(playerARank, playerBRank);
     return (<div className={`net-top h-60 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} border border-gray-300 items-center justify-start`}>
-      {/* <p className="h-6 w-6 border-0 rounded-full bg-yellow-500">A</p> */}
       {!onTop && (<div className="h-6 w-6 border-0 rounded-full bg-yellow-500 text-gray-100 relative">
         <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
         {openPasControl && (
@@ -296,10 +295,10 @@ function NetCard({ net }: INetCardProps) {
       </div>)}
       <div className="player-pair flex justify-between w-full">
         <div className={`player-card team-a-player-1 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} currentRoom={currentRoom} />
+          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer}/>
         </div>
         <div className={`player-card team-a-player-2 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} currentRoom={currentRoom} />
+          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer}/>
         </div>
       </div>
       <h3>Pair Score {pairScore}</h3>

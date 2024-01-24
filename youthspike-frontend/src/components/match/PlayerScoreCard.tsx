@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
+import { useAppSelector } from '@/redux/hooks';
 import { IPlayer, IRoom } from '@/types';
 import { ETeamPlayer } from '@/types/net';
 import { EActionProcess } from '@/types/room';
@@ -15,12 +16,12 @@ interface IPalyerScoreCard {
   evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
   dark: boolean;
-  currentRoom: IRoom | null
 }
 
-function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, currentRoom }: IPalyerScoreCard) {
+function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer }: IPalyerScoreCard) {
   const user = useUser();
-  const [blackCard, setBlankCard] = React.useState<boolean>(!!player);
+
+  const currentRoom = useAppSelector((state) => state.rooms.current);
 
   const handleDropDown = (e: React.SyntheticEvent) => {
     // Show drop down box

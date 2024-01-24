@@ -4,8 +4,8 @@ interface INetBase {
     _id: string;
     num: number;
     points: number;
-    teamAScore: number;
-    teamBScore: number;
+    teamAScore: number | null;
+    teamBScore: number | null;
     pairRange?: number;
 }
 
@@ -27,8 +27,8 @@ interface INetUpdate {
     teamAPlayerB?: string | null;
     teamBPlayerA?: string | null;
     teamBPlayerB?: string | null;
-    teamAScore?: number;
-    teamBScore?: number;
+    teamAScore?: number | null;
+    teamBScore?: number | null;
 }
 
 interface INetScoreUpdate {

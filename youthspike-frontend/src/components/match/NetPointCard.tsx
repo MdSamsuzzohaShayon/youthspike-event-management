@@ -1,7 +1,7 @@
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setUpdateNets } from '@/redux/slices/netSlice';
-import { INetBase, INetRelatives, ITeam } from '@/types';
+import { INetBase, INetRelatives, INetUpdate, ITeam } from '@/types';
 import { EActionProcess } from '@/types/elements';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
@@ -16,10 +16,11 @@ interface INetPointCard {
     handleLeftShift: () => void;
 }
 
-function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: INetPointCard) {
+function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
     const currRoom = useAppSelector((state) => state.rooms.current);
+    const teamA = useAppSelector((state) => state.teams.teamA);
 
 
     const handlePointChange = (e: React.SyntheticEvent, netId: string | undefined, teamAorB: string) => {
@@ -32,9 +33,14 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
         const inputEl = e.target as HTMLInputElement;
         if (inputEl.value === '') return;
         const teamScore = parseInt(inputEl.value, 10);
-        const updateObj = {};
-        // @ts-ignore
-        teamAorB === ETeam.teamA ? updateObj.teamAScore = teamScore : updateObj.teamBScore = teamScore;
+        const updateObj: { teamAScore: null | number, teamBScore: null | number } = { teamAScore: null, teamBScore: null };
+        if (teamAorB === ETeam.teamA) {
+            updateObj.teamAScore = teamScore;
+            updateObj.teamBScore = net?.teamBScore ? net?.teamBScore : null;
+        } else {
+            updateObj.teamBScore = teamScore;
+            updateObj.teamAScore = net?.teamAScore ? net?.teamAScore : null;
+        }
         dispatch(setUpdateNets({ _id: netId, ...updateObj }));
 
     }
@@ -62,9 +68,10 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
         <div className={`absolute z-10 h-28 w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center 
           ${user && user.info?.captainplayer === teamA?.captain?._id ? "flex-col" : "flex-col-reverse"}`} style={{ top: '39%' }}>
             <div className="score-card-in-net w-full text-center">
-                <input type="number" name='teamAScore' value={net?.teamAScore ?? '0'}
+                <input type="number" name='teamAScore'
                     readOnly={inputReadonly()}
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamA)}
+                    value={net?.teamAScore || ''}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' />
             </div>
             <div className="net-card flex justify-around w-full">
@@ -73,8 +80,9 @@ function NetPointCard({ teamA, teamB, net, handleRightShift, handleLeftShift }: 
                 <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 h-4 svg-white" />
             </div>
             <div className="score-card-in-net w-full text-center">
-                <input type="number" name='teamBScore' value={net?.teamBScore ?? '0'}
+                <input type="number" name='teamBScore'
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamB)}
+                    value={net?.teamBScore || ''}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' readOnly={inputReadonly()} />
             </div>
         </div>

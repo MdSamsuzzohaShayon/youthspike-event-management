@@ -187,7 +187,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <div className='player-list mt-8'>
       {/* {selectedOpTeam.} */}
-      {opNetPlayerA && opNetPlayerB && (<div className='w-full border border-gray-300'>
+      {/* {opNetPlayerA && opNetPlayerB && (<div className='w-full border border-gray-300'>
         <h4>Oponent</h4>
         <div className="op-net w-full flex justify-between items-center">
           <div className="op-player-a w-3/6">
@@ -200,7 +200,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           </div>
         </div>
       </div>
-      )}
+      )} */}
       {playerListEl}
     </div>;
   };
@@ -231,7 +231,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           <img src='/icons/close.svg' className='svg-black right-2 top-2' role='presentation' onClick={(e) => dispatch(setShowTeamPlayers(false))} />
           {renderAvailablePlayers()}
         </div>)}
-
 
       {/* Left side round detail end  */}
 

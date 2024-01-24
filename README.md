@@ -55,6 +55,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Pair Score validation
+ - Check In process
  - Move team - when moving team to another event current event should not have that team
  - Change round validation (Make 0 a valid number in a net to go to the next round)
  - Track user properly they leave or join in the room

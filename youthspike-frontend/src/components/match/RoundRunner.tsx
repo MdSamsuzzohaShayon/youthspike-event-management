@@ -38,21 +38,21 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
-  const { myTeam, opTeam, opTeamE, myTeamE, myTeamProcess, opTeamProcess, checkedIn, submittedLineup } = useAppSelector((state) => state.matches);
+  const { myTeamProcess, opTeamProcess, checkedIn, submittedLineup } = useAppSelector((state) => state.matches);
 
 
   const handleInvitedRound = () => {
     const targetRound = roundList.find((r) => r._id === currentRoom?.round);
     if (targetRound && currentRoom) {
       dispatch(setCurrentRound(targetRound));
-      const cr = { ...currentRoom, teamAProcess: EActionProcess.CHECKIN, teamBProcess: EActionProcess.CHECKIN };
+      const cr = { ...currentRoom, teamAProcess: EActionProcess.LINEUP, teamBProcess: EActionProcess.LINEUP };
       dispatch(setCurrentRoom(cr));
       const filteredNets = allNets.filter((crn) => crn.round === currentRoom?.round)
       if (filteredNets && filteredNets.length > 0) {
         dispatch(setCurrentRoundNets(filteredNets));
       }
-      dispatch(setTeamProcess({ myTeamProcess: EActionProcess.LINEUP, opTeamProcess }));
-
+      dispatch(setTeamProcess({ myTeamProcess: EActionProcess.CHECKIN, opTeamProcess }));
+      dispatch(setSubmittedLineup(false));
 
       // @ts-ignore
       if (socket) socket.emit("round-change-accept-from-client", cr);
@@ -97,7 +97,7 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
         )}
         {hasAction && (
           checkedIn ? (
-            <p>You have checked in successfully, now the other team needs to check in!</p>
+            opTeamProcess === EActionProcess.LOCKED ? <p>You have changed the round, now the other team need to change the round too, in order to submit lineup and start this round.</p> : <p>You have checked in successfully, now the other team needs to check in!</p>
           ) : (
             <button className='uppercase btn-info' type="button" onClick={handleCheckIn}>Check-in</button>
           )
@@ -123,7 +123,7 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
     if (teamE === ETeam.teamA) {
       if (currentRoom?.teamBProcess === EActionProcess.LOCKED) {
         text = "You have changed the round, now the other team need to change the round too, in order to submit lineup and start this round."
-      } else if (currentRoom?.teamBProcess === EActionProcess.CHECKIN) {
+      } else if (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP) {
         text = !submittedLineup ? "Your squad is placing players first. Choose 2 players for each and and click submit." : "You have submitted your squad successfully, now the other team needs to submit their players!";
       } else {
         text = "The other team have submitted their line up, now it's your turn!";
@@ -208,7 +208,7 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
             break;
 
           case EActionProcess.CHECKIN:
-            if (opTeamProcess === EActionProcess.CHECKIN || opTeamProcess === EActionProcess.LINEUP) {
+            if (opTeamProcess === EActionProcess.CHECKIN || opTeamProcess === EActionProcess.LOCKED) {
               comps.push(renderMatchLineup(hasAction));
             } else {
               comps.push(renderMatchCheckIn(hasAction));
@@ -244,12 +244,13 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
         if (currentRoom.teamBProcess === EActionProcess.CHECKIN) {
           dispatch(setCheckedIn(true));
         } else if (currentRoom.teamBProcess === EActionProcess.LINEUP) {
-          dispatch(setSubmittedLineup(true));
+          dispatch(setSubmittedLineup(true)); // No a problem
         }
       }
       // Set submit line up or vhrvk up button action
     }
   }, [currentRoom]);
+  
 
   return (
     <div className="w-full">

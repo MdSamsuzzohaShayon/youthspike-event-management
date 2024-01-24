@@ -109,7 +109,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     if (next) {
       let canGoNext = true;
       for (const currNet of currRoundNets) {
-        if (!currNet.teamAPlayerA || !currNet.teamAPlayerB || !currNet.teamBPlayerA || !currNet.teamBPlayerB || !currNet.teamAScore || currNet.teamAScore === 0 || !currNet.teamBScore || currNet.teamBScore === 0) {
+        if (!currNet.teamAPlayerA || !currNet.teamAPlayerB || !currNet.teamBPlayerA || !currNet.teamBPlayerB || !currNet.teamAScore || !currNet.teamBScore) {
           canGoNext = false;
         }
       }
@@ -136,12 +136,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     if (currentRoom) {
       const newCurrRoom = { ...currentRoom, round: roundList[newRoundIndex]._id };
       if (myTeamE === ETeam.teamA) {
-        newCurrRoom.teamAProcess = EActionProcess.LINEUP;
+        newCurrRoom.teamAProcess = EActionProcess.CHECKIN;
       } else {
-        newCurrRoom.teamBProcess = EActionProcess.LINEUP;
+        newCurrRoom.teamBProcess = EActionProcess.CHECKIN;
       }
       dispatch(setCurrentRoom(newCurrRoom));
-      dispatch(setTeamProcess({ myTeamProcess: EActionProcess.LINEUP, opTeamProcess }));
+      dispatch(setTeamProcess({ myTeamProcess: EActionProcess.CHECKIN, opTeamProcess }));
       dispatch(setSubmittedLineup(false));
     }
     // @ts-ignore
@@ -547,7 +547,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         }
         i += 1;
       }
-      dispatch(setSubmittedLineup(submitted));
+      // dispatch(setSubmittedLineup(submitted));
       dispatch(setCurrentRoom(data));
     });
 
@@ -570,7 +570,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
       {opTeamProcess && <RoundRunner handleAction={handleActionRunner} team={myTeam} teamE={myTeamE} setActErr={setActErr} updatePoints={handleUpdatePoints} />}
-      {eventSponsors.length > 0 && (
+      {eventSponsors.length > 0 && !user && (
         <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
           <h3>Sponsors</h3>
           <div className="flex items-center justify-between flex-wrap w-full">
@@ -602,11 +602,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
               <button className='btn-secondary capitalize' type="button" onClick={handleNetUpdate}>Update</button>
             </div> */}
             <div className="controls px-4 flex justify-center mt-4 gap-2">
-              <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, false)}>
-                <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" style={{ transform: 'scaleX(-1)' }} />
-                Prev round
-              </button>
-              {(currentRound?.teamAScore && currentRound.teamAScore !== 0 && currentRound?.teamBScore && currentRound?.teamBScore !== 0) && (
+              {currentRound?.num !== 1 && (
+                <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, false)}>
+                  <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" style={{ transform: 'scaleX(-1)' }} />
+                  Prev round
+                </button>
+              )}
+              {(currentRound?.teamAScore && currentRound.teamAScore !== 0 && currentRound?.teamBScore && currentRound?.teamBScore !== 0) && currentRound.num < roundList.length && (
                 <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, true)}>Next round
                   <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" />
                 </button>
