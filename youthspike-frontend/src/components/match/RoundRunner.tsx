@@ -38,21 +38,39 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
-  const { myTeamProcess, opTeamProcess, checkedIn, submittedLineup } = useAppSelector((state) => state.matches);
+  const { myTeamProcess, opTeamProcess, checkedIn, submittedLineup, myTeamE } = useAppSelector((state) => state.matches);
 
 
   const handleInvitedRound = () => {
     const targetRound = roundList.find((r) => r._id === currentRoom?.round);
     if (targetRound && currentRoom) {
       dispatch(setCurrentRound(targetRound));
-      const cr = { ...currentRoom, teamAProcess: EActionProcess.LINEUP, teamBProcess: EActionProcess.LINEUP };
-      dispatch(setCurrentRoom(cr));
       const filteredNets = allNets.filter((crn) => crn.round === currentRoom?.round)
       if (filteredNets && filteredNets.length > 0) {
         dispatch(setCurrentRoundNets(filteredNets));
       }
-      dispatch(setTeamProcess({ myTeamProcess: EActionProcess.CHECKIN, opTeamProcess }));
+
+      // Check lineup is submitted or not
+      const cr = { ...currentRoom, teamAProcess: EActionProcess.CHECKIN, teamBProcess: EActionProcess.CHECKIN };
+      let teamALocked = true, teamBLocked = true;
+      for (let i = 0; i < filteredNets.length; i += 1) {
+        if (!filteredNets[i].teamAPlayerA || !filteredNets[i].teamAPlayerA) teamALocked = false;
+        if (!filteredNets[i].teamBPlayerA || !filteredNets[i].teamBPlayerA) teamBLocked = false;
+      }
+      if (teamALocked) {
+        cr.teamAProcess = EActionProcess.LOCKED;
+        cr.teamBProcess = EActionProcess.LINEUP;
+      };
+      if (teamBLocked) {
+        cr.teamBProcess = EActionProcess.LOCKED;
+        cr.teamBProcess = EActionProcess.LINEUP;
+      }
+      dispatch(setCurrentRoom(cr));
+      const tp = { myTeamProcess: myTeamE === ETeam.teamA ? cr.teamAProcess : cr.teamBProcess, opTeamProcess: myTeamE === ETeam.teamA ? cr.teamBProcess : cr.teamAProcess };
+      // @ts-ignore
+      dispatch(setTeamProcess(tp));
       dispatch(setSubmittedLineup(false));
+
 
       // @ts-ignore
       if (socket) socket.emit("round-change-accept-from-client", cr);
@@ -119,31 +137,44 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
     //   }
     // }
     let text = '';
+    const tObj = {
+      fps: "Your squad is placing players first. Choose 2 players for each and and click submit.", // fps - first placing squads
+      sq: "You have submitted your squad successfully, now the other team needs to submit their players!", // sq = submitted squads
+      smp: "The other team have submitted their line up, now it's your turn!", // smp = squads match up
+
+    };
     // Check my team has submitted or not by checking all the players is been submitted or not
     if (teamE === ETeam.teamA) {
       if (currentRoom?.teamBProcess === EActionProcess.LOCKED) {
-        text = "You have changed the round, now the other team need to change the round too, in order to submit lineup and start this round."
+        text = tObj.sq;
       } else if (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP) {
-        text = !submittedLineup ? "Your squad is placing players first. Choose 2 players for each and and click submit." : "You have submitted your squad successfully, now the other team needs to submit their players!";
+        text = !submittedLineup ? tObj.fps : tObj.sq;
       } else {
-        text = "The other team have submitted their line up, now it's your turn!";
+        text = tObj.smp;
       }
     } else {
       if (currentRoom?.teamAProcess === EActionProcess.LOCKED) {
-        text = "You have changed the round, now the other team need to change the round too, in order to submit lineup and start this round."
+        text = currentRoom.teamBProcess === EActionProcess.LINEUP ? tObj.smp : tObj.sq;
       } else if (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP) {
-        text = !submittedLineup ? "The other team have submitted their line up, now it's your turn!" : "You have submitted your squad successfully, now the other team needs to submit their players!";
+        if (currentRoom?.teamAProcess === EActionProcess.CHECKIN) {
+          text = tObj.fps;
+        } else {
+          text = !submittedLineup ? tObj.smp : tObj.sq;
+        }
       } else {
-        text = "The other team have submitted their line up, now it's your turn!";
+        text = tObj.smp;
       }
     }
+
     return (
       <React.Fragment key="match-lineup-opponent">
         <h3>Submit Lineup</h3>
         {text}
-        {hasAction && !submittedLineup && (teamE === ETeam.teamA
-          ? <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>
-          : currentRoom?.teamAProcess === EActionProcess.LINEUP && currentRoom?.teamBProcess !== EActionProcess.LOCKED && <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>)}
+        {hasAction
+          && (teamE === ETeam.teamA
+            ? (!submittedLineup && <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>)
+            : (currentRoom?.teamAProcess === EActionProcess.LINEUP || currentRoom?.teamAProcess === EActionProcess.LOCKED) && !submittedLineup && <button className='uppercase btn-info' type="button" onClick={handleSubmitLineup}>Submit Lineup</button>)
+        }
       </React.Fragment>
     );
   };
@@ -166,19 +197,33 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
     );
   };
 
-  const renderRoomChange = (hasAction: boolean, newRoundId: string): React.ReactNode => {
-    /**
-     * First of all, team A is going to submit their players
-     * Check if team a has submitted their players or not
-     */
+  const renderRoomChange = (hasAction: boolean): React.ReactNode => {
+    const isTeamARoundChange = teamE === ETeam.teamA;
+    const isTeamALocked = currentRoom?.teamAProcess === EActionProcess.LOCKED;
+    const isTeamBLocked = currentRoom?.teamBProcess === EActionProcess.LOCKED;
+
+    const roundChangeContent = hasAction ? (
+      isTeamARoundChange ? (
+        <p>
+          You have changed the round, now the other team needs to change the round too in order to submit lineup and start this round.
+        </p>
+      ) : (
+        <p>Your opponent has moved to another round and is waiting for you to submit your lineup!</p>
+      )
+    ) : (
+      <p>{team?.name} has submitted all players to the nets for this round; they cannot change any players!</p>
+    );
+
     return (
       <React.Fragment key="match-locked-opponent">
         <h3>Round Change</h3>
-        {hasAction
-          ? <p>Your oponent has moved to another round and waiting for you to submit your lineup!</p>
-          : <p>{team?.name} submitted all of the players to nets for this round, they can not change any players!</p>}
+        {roundChangeContent}
         {hasAction && (
-          <button className='uppercase btn-info' type="button" onClick={handleInvitedRound}>Change Round</button>
+          (isTeamARoundChange && isTeamALocked) || (!isTeamARoundChange && isTeamBLocked) ? (
+            <button className='uppercase btn-info' type="button" onClick={handleInvitedRound}>
+              Change Round
+            </button>
+          ) : null
         )}
       </React.Fragment>
     );
@@ -199,7 +244,7 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
       // console.log({ myTeamRoomProcess: myTeamE === ETeam.teamA ? currentRoom.teamAProcess : currentRoom.teamBProcess, myTeamProcess });
       if (currentRoom.round !== currentRound?._id) {
         console.log("Round did not match!", { roomRound: currentRoom.round, currentRound: currentRound?._id });
-        comps.push(renderRoomChange(hasAction, currentRoom.round));
+        comps.push(renderRoomChange(hasAction));
 
       } else {
         switch (myTeamProcess) {
@@ -208,19 +253,31 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
             break;
 
           case EActionProcess.CHECKIN:
-            if (opTeamProcess === EActionProcess.CHECKIN || opTeamProcess === EActionProcess.LOCKED) {
+            if (opTeamProcess === EActionProcess.CHECKIN) {
               comps.push(renderMatchLineup(hasAction));
+            } else if (opTeamProcess === EActionProcess.LOCKED) {
+              comps.push(renderRoomChange(hasAction,));
+            } else if (opTeamProcess === EActionProcess.LINEUP) {
+              comps.push(renderMatchLineup(hasAction,));
             } else {
               comps.push(renderMatchCheckIn(hasAction));
             }
             break;
 
           case EActionProcess.LINEUP:
-            comps.push(renderMatchLineup(hasAction));
+            if (opTeamProcess === EActionProcess.LOCKED || opTeamProcess === EActionProcess.CHECKIN) {
+              comps.push(renderMatchLineup(hasAction));
+            } else {
+              comps.push(renderMatchCheckIn(hasAction));
+            }
             break;
 
           case EActionProcess.LOCKED:
-            comps.push(renderMatchLocked(hasAction));
+            if (opTeamProcess !== EActionProcess.LOCKED) {
+              comps.push(renderMatchLineup(hasAction));
+            } else {
+              comps.push(renderMatchLocked(hasAction));
+            }
             break;
 
           default:
@@ -238,19 +295,17 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
         if (currentRoom.teamAProcess === EActionProcess.CHECKIN) {
           dispatch(setCheckedIn(true));
         } else if (currentRoom.teamAProcess === EActionProcess.LINEUP) {
-          dispatch(setSubmittedLineup(true));
+          // dispatch(setSubmittedLineup(true));
         }
       } else {
         if (currentRoom.teamBProcess === EActionProcess.CHECKIN) {
           dispatch(setCheckedIn(true));
-        } else if (currentRoom.teamBProcess === EActionProcess.LINEUP) {
-          dispatch(setSubmittedLineup(true)); // No a problem
-        }
+        } 
       }
       // Set submit line up or vhrvk up button action
     }
   }, [currentRoom]);
-  
+
 
   return (
     <div className="w-full">

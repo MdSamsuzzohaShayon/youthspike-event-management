@@ -142,8 +142,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       }
       dispatch(setCurrentRoom(newCurrRoom));
       dispatch(setTeamProcess({ myTeamProcess: EActionProcess.CHECKIN, opTeamProcess }));
-      dispatch(setSubmittedLineup(false));
     }
+    dispatch(setSubmittedLineup(false));
     // @ts-ignore
     if (socket) socket.emit("round-change-from-client", rcd);
   }
@@ -362,6 +362,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   };
 
+  /**
+   * Fetch data
+   */
   useEffect(() => {
     // Get user info here
     const token = !getCookie('token') || getCookie('token')?.trim() === '' ? null : getCookie('token');
@@ -392,6 +395,10 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, fetchMatch, params.matchId]); // props, client
 
+
+  /**
+   * Web socket real time connection
+   */
   useEffect(() => {
     /**
      * Socket real time connection
@@ -547,7 +554,19 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         }
         i += 1;
       }
+
+      const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+      const extranctedData = { ...data };
+      if (isTeamACaptain) {
+        // @ts-ignore 
+        myTeamProcess = extranctedData.teamAProcess; opTeamProcess = extranctedData.teamBProcess;
+      } else {
+        // @ts-ignore
+        myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
+      }
+
       // dispatch(setSubmittedLineup(submitted));
+      dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       dispatch(setCurrentRoom(data));
     });
 

@@ -126,20 +126,27 @@ function NetCard({ net }: INetCardProps) {
     e.preventDefault();
     if (!user.token || !user.info) return;
 
-    const isTeamAProcessValid = myTeamE === ETeam.teamA && currentRoom?.teamAProcess === EActionProcess.CHECKIN && (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP);
-    const isTeamBProcessValid = myTeamE === ETeam.teamB && currentRoom?.teamBProcess === EActionProcess.CHECKIN && (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP);
-
-    if (!(isTeamAProcessValid || isTeamBProcessValid)) {
-      return;
+    let isTeamProcessValid = false;
+    if(myTeamE === ETeam.teamA ){
+      if(currentRoom?.teamAProcess === EActionProcess.CHECKIN 
+        && (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP || currentRoom?.teamBProcess === EActionProcess.LOCKED)){
+          isTeamProcessValid = true;
+      }
+    }else{
+      if(currentRoom?.teamBProcess === EActionProcess.CHECKIN 
+        && (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP || currentRoom?.teamAProcess === EActionProcess.LOCKED)){
+          isTeamProcessValid = true;
+      }
     }
+    if (!isTeamProcessValid)return;
 
     // At first team A will submit their players 
-    if (myTeamE === ETeam.teamA && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
-    if (myTeamE === ETeam.teamB && currentRoom.teamAProcess !== EActionProcess.LINEUP) return;
+    if (myTeamE === ETeam.teamA && currentRoom && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
+    if (myTeamE === ETeam.teamB && currentRoom && currentRoom.teamAProcess !== EActionProcess.LINEUP) return;
 
     dispatch(setShowTeamPlayers(true))
     dispatch(setPlayerSpot(playerSpot));
-    if(net)dispatch(setSelectedNet(net))
+    if (net) dispatch(setSelectedNet(net))
     /**
      * Show list of available player
      * Remove players from subs of the rounds
@@ -147,7 +154,7 @@ function NetCard({ net }: INetCardProps) {
      * Remove players who had been palyed with same player in the previous round
      */
 
-    let playerIds: string[] =  myPlayers.map((p) => p._id);
+    let playerIds: string[] = myPlayers.map((p) => p._id);
 
     for (const currNet of currRoundNets) {
       if (currNet.teamAPlayerA && playerIds.includes(currNet.teamAPlayerA)) {
@@ -295,10 +302,10 @@ function NetCard({ net }: INetCardProps) {
       </div>)}
       <div className="player-pair flex justify-between w-full">
         <div className={`player-card team-a-player-1 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer}/>
+          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
         </div>
         <div className={`player-card team-a-player-2 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer}/>
+          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
         </div>
       </div>
       <h3>Pair Score {pairScore}</h3>
