@@ -9,9 +9,12 @@ import { AppDocument } from 'src/shared/schema/document.schema';
 
 export enum EActionProcess {
   INITIATE = 'INITIATE',
+
   CHECKIN = 'CHECKIN',
-  PLACING = 'PLACING',
+
   LINEUP = 'LINEUP',
+  LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
+  
   LOCKED = 'LOCKED',
   COMPLETE = 'COMPLETE',
 };

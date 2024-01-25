@@ -57,6 +57,7 @@ ___
 ### Running
  - Pair Score validation
  - Check In process
+ - Check everytime, my round and oponent's round should be same!
  - To go to the next round, chect the next round is newly explored or not
  - Move team - when moving team to another event current event should not have that team
  - Change round validation (Make 0 a valid number in a net to go to the next round)

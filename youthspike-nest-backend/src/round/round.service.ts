@@ -27,6 +27,10 @@ export class RoundService {
     );
   }
 
+  async updateOne(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>){
+    return this.roundModel.updateOne(filter, updateData);
+  }
+
   async countDocuments(query: FilterQuery<Round>) {
     return this.roundModel.countDocuments(query);
   }

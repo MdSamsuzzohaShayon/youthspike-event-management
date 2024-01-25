@@ -59,7 +59,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard)
         );
 
 
-        return !isUserAuthorized || (currRoom?.teamBProcess !== EActionProcess.LOCKED || currRoom?.teamAProcess !== EActionProcess.LOCKED);
+        return !isUserAuthorized || (currRoom?.teamBProcess !== EActionProcess.LINEUP || currRoom?.teamAProcess !== EActionProcess.LINEUP);
     };
 
 

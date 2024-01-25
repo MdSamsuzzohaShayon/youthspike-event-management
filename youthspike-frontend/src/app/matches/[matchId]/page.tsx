@@ -423,16 +423,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // @ts-ignore
     socket.emit('join-room-from-client', { match: params.matchId, team: userTeamId, round: currentRound._id });
 
-    // @ts-ignore 
-    socket.on("leave-room-from-server", (data: IRoom) => {
-      dispatch(setCurrentRoom(data));
-    });
-
-    // @ts-ignore 
-    socket.on("round-change-accept-response", (data: IRoom) => {
-      dispatch(setCurrentRoom(data));
-    });
-
     // Listen to events
     // @ts-ignore
     socket.on('join-room-response', (data: IRoom) => {
@@ -445,14 +435,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         // @ts-ignore
         myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
       }
-      if (opTeamProcess === EActionProcess.LINEUP.toString()) {
-        if (isTeamACaptain) {
-          extranctedData.teamAProcess = EActionProcess.CHECKIN
-        } else {
-          extranctedData.teamBProcess = EActionProcess.CHECKIN
-        }
-
-      }
+      
       // @ts-ignore
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
       dispatch(setCurrentRoom(extranctedData));
