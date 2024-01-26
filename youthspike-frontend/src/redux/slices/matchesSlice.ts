@@ -20,8 +20,6 @@ interface MatchesState {
   opTeamE: ETeam;
   myTeamProcess: EActionProcess;
   opTeamProcess: EActionProcess;
-  checkedIn: boolean;
-  submittedLineup: boolean;
 
   // For drop down selections
   showTeamPlayers: boolean;
@@ -62,10 +60,6 @@ const initialState: MatchesState = {
   myTeamProcess: EActionProcess.INITIATE,
   opTeamProcess: EActionProcess.INITIATE,
 
-  // Button axtions
-  checkedIn: false,
-  submittedLineup: false,
-
   // Submitline up
   showTeamPlayers: false,
   netTeamPlayer: null,
@@ -81,12 +75,6 @@ export const matchesSlice = createSlice({
   reducers: {
     setMatchInfo: (state, action: PayloadAction<IMatchRelatives>) => {
       state.match = action.payload;
-    },
-    setCheckedIn: (state, action: PayloadAction<boolean>) => {
-      state.checkedIn = action.payload;
-    },
-    setSubmittedLineup: (state, action: PayloadAction<boolean>) => {
-      state.submittedLineup = action.payload;
     },
     setMyTeam: (state, action: PayloadAction<ITeam | null>) => {
       if (action.payload) state.myTeam = action.payload;
@@ -142,7 +130,7 @@ export const matchesSlice = createSlice({
 
 // Action creators are generated for each case reducer function
 export const {
-  setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess, setCheckedIn, setSubmittedLineup,
+  setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess,
   setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet
 } = matchesSlice.actions;
 

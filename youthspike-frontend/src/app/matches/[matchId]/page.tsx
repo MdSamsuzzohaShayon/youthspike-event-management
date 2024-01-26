@@ -19,10 +19,6 @@ import { GET_MATCH_DETAIL } from '@/graphql/matches';
 import { UPDATE_NETS } from '@/graphql/net';
 
 // Redux
-import { setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setSubmittedLineup, setTeamE, setTeamProcess } from '@/redux/slices/matchesSlice';
-import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
-import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
-import { setCurrentEventInfo, setEventSponsors } from '@/redux/slices/eventSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { setCurrentRoundNets, setNets, updateMultiNetsPlayers } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -33,9 +29,6 @@ import { getCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
-import { ITeam, IMatchExpRel, IPlayer, IEvent, INetBase, IRoom, ICheckIn, INetAssign, ISubmitLineup, IRoomNets, INetScoreUpdate } from '@/types';
-import { IRoundBase, IRoundExpRel, IRoundRelatives } from '@/types/round';
-import { IUser, IUserContext, UserRole } from '@/types/user';
 import { INetRelatives, IUpdateScoreResponse } from '@/types/net';
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
@@ -44,6 +37,8 @@ import { ETeam } from '@/types/team';
 import { EActionProcess, IError } from '@/types/elements';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { handleError, isValidObjectId } from '@/utils/helper';
+import organizeFetchedData from '@/utils/organizeFetchedData';
+import { setTeamProcess } from '@/redux/slices/matchesSlice';
 
 /**
  * Test Match
@@ -109,9 +104,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     if (next) {
       let canGoNext = true;
       for (const currNet of currRoundNets) {
-        if (!currNet.teamAPlayerA || !currNet.teamAPlayerB || !currNet.teamBPlayerA || !currNet.teamBPlayerB || !currNet.teamAScore || !currNet.teamBScore) {
-          canGoNext = false;
-        }
+        if (!currNet.teamAScore || !currNet.teamBScore)canGoNext = false;
       }
       if (!canGoNext) {
         return setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." })
@@ -126,241 +119,30 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         newRoundIndex = findRoundIndex - 1;
       }
     }
+
     const crObj = roundList[newRoundIndex];
     dispatch(setCurrentRound(crObj));
     const filteredNets = allNets.filter((net) => net.round === crObj._id);
     dispatch(setCurrentRoundNets(filteredNets));
 
 
-    const rcd = { room: currentRoom?._id, round: currentRound?._id, nextRound: roundList[newRoundIndex]._id };
+    const nextRound =  roundList[newRoundIndex]._id;
+    const rcd = { room: currentRoom?._id, round: currentRound?._id, nextRound };
     if (currentRoom) {
       const newCurrRoom = { ...currentRoom, round: roundList[newRoundIndex]._id };
       if (myTeamE === ETeam.teamA) {
         newCurrRoom.teamAProcess = EActionProcess.CHECKIN;
+        newCurrRoom.teamARound = nextRound;
       } else {
         newCurrRoom.teamBProcess = EActionProcess.CHECKIN;
+        newCurrRoom.teamBRound = nextRound;
       }
       dispatch(setCurrentRoom(newCurrRoom));
       dispatch(setTeamProcess({ myTeamProcess: EActionProcess.CHECKIN, opTeamProcess }));
     }
-    dispatch(setSubmittedLineup(false));
     // @ts-ignore
     if (socket) socket.emit("round-change-from-client", rcd);
   }
-
-  const handleActionRunner = (event: React.SyntheticEvent, team: string | null | undefined, process: string) => {
-    event.preventDefault();
-    if (!currentRoom || !currentRound) return;
-
-    const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-    const updateRoomProcess = (teamProcess: EActionProcess) => {
-      return isTeamACaptain ? { teamAProcess: teamProcess } : { teamBProcess: teamProcess };
-    };
-
-    let actionData = {};
-
-    switch (process) {
-      case EActionProcess.INITIATE:
-        // @ts-ignore
-        socket.emit('join-room-from-client', { match: params.matchId, team });
-        break;
-      case EActionProcess.CHECKIN:
-        actionData = {
-          room: currentRoom._id,
-          round: currentRound._id,
-          ...updateRoomProcess(EActionProcess.CHECKIN)
-        };
-        // @ts-ignore
-        socket.emit('check-in-from-client', actionData);
-        break;
-      case EActionProcess.LINEUP:
-        // Validate submission
-        // Not net can not be vacent in the place of placing players
-        const roundNetAssign: INetAssign[] = currRoundNets.map((net) => ({
-          _id: net._id,
-          teamAPlayerA: net.teamAPlayerA,
-          teamAPlayerB: net.teamAPlayerB,
-          teamBPlayerA: net.teamBPlayerA,
-          teamBPlayerB: net.teamBPlayerB,
-        }));
-        actionData = {
-          room: currentRoom._id,
-          round: currentRound._id,
-          ...updateRoomProcess(EActionProcess.LOCKED),
-          nets: roundNetAssign
-        };
-        // @ts-ignore
-        socket.emit('submit-lineup-from-client', actionData);
-        break;
-      default:
-        // Handle unknown process
-        console.error('Unknown process:', process);
-        return;
-    }
-
-    // @ts-ignore
-    dispatch(setTeamProcess({ myTeamProcess: process, opTeamProcess }));
-    dispatch(setCurrentRoom({ ...currentRoom, ...updateRoomProcess(process) }));
-  };
-
-  /**
-   * Set initial state for current match
-   */
-  const setStateGetMatchData = (matchData: IMatchExpRel, token: string | null, userInfo: IUser | null) => {
-    /**
-     * Setting data as state of redux that is fetched from backend using GraphAL
-     * Set action box values
-     */
-
-    const { _id, location, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event } = matchData;
-
-    // Setting teams
-    dispatch(setTeamA({ ...teamAF }));
-    dispatch(setTeamB({ ...teamBF }));
-
-    // Setting players
-    let reformatAPlayers: IPlayer[] = [], reformatBPlayers: IPlayer[] = [];
-    if (teamAF.players) {
-      reformatAPlayers = teamAF.players.map((player: IPlayer) => {
-        const newPlayer: IPlayer = {
-          _id: player._id,
-          status: player.status,
-          firstName: player.firstName,
-          lastName: player.lastName,
-          email: player.email,
-          rank: player.rank,
-          team: teamAF._id,
-          event: event._id,
-          captainofteam: player.captainofteam,
-          profile: player.profile
-        };
-        return newPlayer;
-      });
-      dispatch(setTeamAPlayers(reformatAPlayers));
-    }
-    if (teamBF.players) {
-      reformatBPlayers = teamBF.players.map((player: IPlayer) => {
-        const newPlayer: IPlayer = {
-          _id: player._id,
-          status: player.status,
-          firstName: player.firstName,
-          lastName: player.lastName,
-          email: player.email,
-          rank: player.rank,
-          team: teamBF._id,
-          event: event._id,
-          captainofteam: player.captainofteam,
-          profile: player.profile
-        };
-        return newPlayer;
-      });
-      dispatch(setTeamBPlayers(reformatBPlayers));
-    }
-
-    // Setting event
-    /*
-    if(event){
-      dispatch(setCurrentEventInfo({
-        _id: event._id,
-        name: event.normalize,
-        startDate: string;
-        endDate: string;
-        playerLimit: number;
-        active: boolean;
-        sponsors: string[];
-      }));
-    }
-    */
-
-    // Event Sponsors
-    dispatch(setEventSponsors(event.sponsors));
-
-    // Setting Rounds
-    const formattedRounds: IRoundRelatives[] = [];
-    const formattedNets: INetRelatives[] = [];
-    for (const round of rounds) {
-      const playerIds = round.players ? round.players.map((r) => r._id) : [];
-      const subIds = round.subs ? round.subs.map((r) => r._id) : [];
-      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: params.matchId, teamAProcess: round.teamAProcess, teamAScore: round.teamAScore, teamBProcess: round.teamBProcess, teamBScore: round.teamBScore };
-
-      // Setting Nets of a round
-      if (round.nets && round.nets.length > 0) {
-        const netIds: string[] = [];
-        for (const n of round.nets) {
-          netIds.push(n._id);
-          formattedNets.push({
-            _id: n._id, num: n.num, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id,
-            teamAPlayerA: n.teamAPlayerA, teamAPlayerB: n.teamAPlayerB, teamBPlayerA: n.teamBPlayerA, teamBPlayerB: n.teamBPlayerB
-          });
-        }
-        roundObj.nets = netIds;
-      }
-      formattedRounds.push(roundObj);
-    }
-
-    dispatch(setNets(formattedNets));
-    dispatch(setRoundList(formattedRounds));
-    if (formattedRounds.length > 0) {
-      dispatch(setCurrentRound(formattedRounds[0]));
-    }
-
-    if (formattedNets.length > 0 && formattedRounds.length > 0) {
-      const filteredNets = formattedNets.filter((net) => net.round === formattedRounds[0]._id);
-      dispatch(setCurrentRoundNets(filteredNets));
-    }
-
-    // Setting room
-    if (!token || !userInfo) {
-      // @ts-ignore
-      dispatch(setCurrentRoom({ _id: matchData.room._id, match: _id, round: formattedRounds[0]._id, teamA: teamA?._id ? teamA._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamB?._id ? teamB?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
-    }
-
-    // Setting Match
-    dispatch(
-      setMatchInfo({
-        _id,
-        date,
-        location,
-        numberOfNets,
-        numberOfRounds,
-        teamA: teamAF._id,
-        teamB: teamBF._id,
-        event: event._id,
-        rounds: [...rounds.map(r => r._id)]
-      }),
-    );
-
-    if (userInfo && userInfo.captainplayer === teamAF?.captain?._id) {
-      dispatch(setMyTeam(teamAF));
-      dispatch(setOpTeam(teamBF));
-      dispatch(setMyPlayers(reformatAPlayers));
-      dispatch(setOpPlayers(reformatBPlayers));
-      dispatch(setTeamE({ myTeamE: ETeam.teamA, opTeamE: ETeam.teamB }));
-      if (rounds && rounds.length > 0) {
-        let myTeamProcess = rounds[0].teamAProcess;
-        let opTeamProcess = rounds[0].teamBProcess;
-        if (opTeamProcess === EActionProcess.LINEUP) {
-          myTeamProcess = EActionProcess.CHECKIN;
-        }
-        // @ts-ignore
-        dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
-      }
-    } else {
-      dispatch(setMyTeam(teamBF));
-      dispatch(setOpTeam(teamAF));
-      dispatch(setMyPlayers(reformatBPlayers));
-      dispatch(setOpPlayers(reformatAPlayers));
-      if (rounds && rounds.length > 0) {
-        let myTeamProcess = rounds[0].teamBProcess;
-        let opTeamProcess = rounds[0].teamAProcess;
-        if (opTeamProcess === EActionProcess.LINEUP) {
-          myTeamProcess = EActionProcess.CHECKIN;
-        }
-        // @ts-ignore
-        dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
-      }
-    }
-  };
 
   /**
    * Fetch data
@@ -375,7 +157,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       (async () => {
         const result = await fetchMatch({ variables: { matchId: params.matchId } });
         if (result?.data?.getMatch?.data) {
-          setStateGetMatchData(result.data.getMatch.data, token, userInfo);
+          organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
         } else {
           setActErr({ name: "Invalid Id", message: "No data found with given ID!" })
         }
@@ -384,14 +166,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
     }
 
-    if (params.matchId) {
-      (async () => {
-        const result = await fetchMatch({ variables: { matchId: params.matchId } });
-        if (result?.data?.getMatch?.data) {
-          setStateGetMatchData(result.data.getMatch.data, token, userInfo);
-        }
-      })();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, fetchMatch, params.matchId]); // props, client
 
@@ -407,6 +181,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     const userInfo = getCookie("user");
     const userToken = getCookie("token");
 
+    
     if (!socket || !userInfo || !userToken) return;
     const parsedUser = JSON.parse(userInfo);
     if (!parsedUser.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currentRound) return;
@@ -517,26 +292,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
       }
       dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
-      dispatch(setSubmittedLineup(false));
       dispatch(setCurrentRoom(extranctedData));
     });
 
     // @ts-ignore 
     socket.on("round-change-accept-response", (data: IRoom) => {
       // Check submitted all users or not
-
-      let submitted = true;
-      let i = 0;
-      while (i < currRoundNets.length) {
-        if (myTeamE === ETeam.teamA) {
-          if (!currRoundNets[i].teamAPlayerA) submitted = false;
-          if (!currRoundNets[i].teamAPlayerB) submitted = false;
-        } else {
-          if (!currRoundNets[i].teamBPlayerA) submitted = false;
-          if (!currRoundNets[i].teamBPlayerB) submitted = false;
-        }
-        i += 1;
-      }
 
       const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
       const extranctedData = { ...data };
@@ -571,7 +332,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
       {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
-      {opTeamProcess && <RoundRunner handleAction={handleActionRunner} team={myTeam} teamE={myTeamE} setActErr={setActErr} updatePoints={handleUpdatePoints} />}
+      {opTeamProcess && <RoundRunner />}
       {eventSponsors.length > 0 && !user && (
         <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
           <h3>Sponsors</h3>
@@ -583,9 +344,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
     </>);
   }
-
-
-
+  
   return (
     <>
       <Head>
@@ -623,7 +382,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             {/* Net  */}
             {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
 
-            {myTeamProcess && <RoundRunner handleAction={handleActionRunner} team={myTeam} teamE={opTeamE} setActErr={setActErr} updatePoints={handleUpdatePoints} />}
+            {myTeamProcess && <RoundRunner />}
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>
               <div className="flex items-center justify-between flex-wrap w-full">

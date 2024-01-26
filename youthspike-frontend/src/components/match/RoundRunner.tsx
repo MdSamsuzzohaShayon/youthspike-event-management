@@ -13,21 +13,11 @@ import { setCurrentRoundNets } from '@/redux/slices/netSlice';
 import CheckInBox from '../ActionBoxes/CheckInBox';
 import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
-import LineupSubmittedBox from '../ActionBoxes/LineupSubmittedBox';
-import LockedBox from '../ActionBoxes/LockedBox';
 import RoundChangeBox from '../ActionBoxes/RoundChangeBox';
 
 
-interface IRoundRunnerProps {
-  team: ITeam | null | undefined;
-  teamE: ETeam;
-  handleAction: (e: React.SyntheticEvent, team: string | null | undefined, process: string) => void;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-  updatePoints: (e: React.SyntheticEvent) => void;
-}
 
-
-function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRoundRunnerProps) {
+function RoundRunner() {
   /**
    * Step-1: Both team check in -> If a team checked in show your team checked in
    * Step-2: If both team checked in start placing players to the net
@@ -54,8 +44,8 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
       hasAction = true;
     }
 
-    if (currentRoom && currentRoom.round !== currentRound?._id) {
-      return <RoundChangeBox />
+    if (currentRoom && currentRoom.teamARound !== currentRoom.teamBRound) {
+      return <RoundChangeBox currRoom={currentRoom} socket={socket} user={user} />
 
     } else {
       switch (myTeamProcess) {
@@ -67,12 +57,6 @@ function RoundRunner({ team, teamE, handleAction, setActErr, updatePoints }: IRo
 
         case EActionProcess.LINEUP:
           return <LineupBox currRoom={currentRoom} user={user} socket={socket} />
-
-        case EActionProcess.LINEUP_SUBMITTED:
-          return <LineupSubmittedBox />
-
-        case EActionProcess.LOCKED:
-          return <LockedBox />
 
         default:
           break;

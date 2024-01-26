@@ -36,7 +36,7 @@ function CheckInBox({ currRoom, user, socket }: IBoxProps) {
     if (isTeamACaptain) {
       actionData.teamAProcess = EActionProcess.LINEUP
     } else {
-      actionData.teamAProcess = EActionProcess.LINEUP
+      actionData.teamBProcess = EActionProcess.LINEUP
     }
 
     const roundNetAssign: INetAssign[] = currentRoundNets.map((net) => ({

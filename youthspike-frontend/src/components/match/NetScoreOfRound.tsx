@@ -16,7 +16,7 @@ import { INetRelatives, IPlayer, ITeam } from '@/types';
 import { useUser } from '@/lib/UserProvider';
 import { setCurrentRound } from '@/redux/slices/roundSlice';
 import { useSocket } from '@/lib/SocketProvider';
-import { setShowTeamPlayers } from '@/redux/slices/matchesSlice';
+import { setDisabledPlayerIds, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import { ETeamPlayer, INetUpdate } from '@/types/net';
@@ -128,6 +128,12 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     // Update players of the net
     dispatch(updateNetPlayer(netPlayerObj));
     dispatch(setUpdateNets(netPlayerObj));
+
+    // Duisablee players after selecting them
+    // @ts-ignore
+    const dpi = [teamPlayerId, ...disabledPlayerIds]; // dpi = disabled players ids
+    console.log({ disabledPlayerIds});
+    dispatch(setDisabledPlayerIds(dpi));
   };
 
 
@@ -161,9 +167,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       }
       */
       const dtp = disabledPlayerIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
+
       if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
-          <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-200" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
+          <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-400" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
             <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center">{teamPlayerList[i].rank}</p>
             {teamPlayerList[i].profile ? <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-10 h-10 rounded-full border-2 border-gray-900" /> : <img src='/icons/sports-man.svg' className='svg-black w-10 h-10 rounded-full p-2 border-2 border-gray-900' />}
             <p className=' w-7/12 words-break capitalize'>
@@ -215,7 +222,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
             <div className="round-nums mt-4 flex w-full justify-start gap-1 items-center">
               {roundList.map((round) => (
-                <button className={`single-r w-8 ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer`} type="button" onClick={(e) => handleRoundChange(e, round._id)} key={round._id}>
+                <button className={`single-r w-8 ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer`} type="button" 
+                onClick={(e) => handleRoundChange(e, round._id)} // Currently disabled
+                key={round._id}>
                   RD{round.num}
                 </button>
               ))}

@@ -25,6 +25,12 @@ class RoomLocal {
   @Field({ nullable: false })
   round: string;
 
+  @Field({ nullable: false })
+  teamARound: string;
+
+  @Field({ nullable: false })
+  teamBRound: string;
+
   @Field({ nullable: true })
   teamA: null | string;
 
@@ -118,6 +124,8 @@ export class MyGatWay implements OnModuleInit {
       _id: roomExist._id.toString(),
       match: roomExist.match.toString(),
       round: joinData.round,
+      teamARound: joinData.round,
+      teamBRound: joinData.round,
       teamA: roomExist.teamA.toString(),
       teamAClient: null,
       teamAProcess: roundExist.teamAProcess,
@@ -208,7 +216,7 @@ export class MyGatWay implements OnModuleInit {
         teamBPlayerB: n.teamBPlayerB,
       }, n._id));
     }
-    
+
     await Promise.all(updatePromises);
     this.roomsLocal.set(submitLineup.room, roomData);
 
@@ -283,25 +291,27 @@ export class MyGatWay implements OnModuleInit {
     if (!prevRoom.teamAClient || !prevRoom.teamBClient) return;
 
     if (prevRoom.teamAClient === client.id) {
-      if (nextRoundExist.teamAProcess === EActionProcess.INITIATE) {
+      roomData.teamARound = roundChangeInput.nextRound;
+      if (nextRoundExist.teamAProcess === EActionProcess.INITIATE || nextRoundExist.teamAProcess === EActionProcess.CHECKIN) {
         roomData.teamAProcess = EActionProcess.CHECKIN;
       } else {
         roomData.teamAProcess = nextRoundExist.teamAProcess;
-        roomData.teamBProcess = nextRoundExist.teamBProcess;
       }
-      // if(roomData.teamBClient !== EActionProcess.LINEUP){
+      roomData.teamBProcess = nextRoundExist.teamBProcess;
 
-      // }
     } else if (prevRoom.teamBClient === client.id) {
+      roomData.teamBRound = roundChangeInput.nextRound;
       if (nextRoundExist.teamBProcess === EActionProcess.INITIATE) {
         roomData.teamBProcess = EActionProcess.CHECKIN;
       } else {
         roomData.teamBProcess = nextRoundExist.teamBProcess;
-        roomData.teamAProcess = nextRoundExist.teamAProcess;
       }
+      roomData.teamAProcess = nextRoundExist.teamAProcess;
       // roomData.teamBProcess = EActionProcess.LINEUP;
     }
 
+    // await this.roundService.updateOne({ _id: roundChangeInput.nextRound }, { teamAProcess: roomData.teamAProcess, teamBProcess: roomData.teamBProcess });
+    this.roomsLocal.set(prevRoom._id, roomData);
     client.to(prevRoom._id).emit("round-change-response", roomData);
   }
 
@@ -321,7 +331,9 @@ export class MyGatWay implements OnModuleInit {
       ...prevRoom,
       teamAProcess: EActionProcess.CHECKIN,
       teamBProcess: EActionProcess.CHECKIN,
-      round: acceptRoom.round
+      round: acceptRoom.round,
+      teamARound: acceptRoom.round,
+      teamBRound: acceptRoom.round,
     };
     if (targetRound.teamAProcess === EActionProcess.INITIATE && targetRound.teamAProcess === EActionProcess.INITIATE) {
       roomData.teamAProcess = EActionProcess.CHECKIN;
@@ -330,7 +342,8 @@ export class MyGatWay implements OnModuleInit {
       roomData.teamAProcess = targetRound.teamAProcess;
       roomData.teamBProcess = targetRound.teamBProcess;
     }
-    this.roomsLocal.set(acceptRoom.round, roomData)
+    this.roomsLocal.set(prevRoom._id, roomData);
+    await this.roundService.updateOne({ _id: acceptRoom.round }, { teamAProcess: roomData.teamAProcess, teamBProcess: roomData.teamBProcess });
     client.to(prevRoom._id).emit("round-change-accept-response", roomData);
   }
 

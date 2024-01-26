@@ -15,6 +15,8 @@ export enum EActionProcess {
 export interface IRoom {
     _id: string;
     round: string;
+    teamARound: string;
+    teamBRound: string;
     teamA: null | string;
     teamAClient: null | string;
     teamAProcess: null | EActionProcess;

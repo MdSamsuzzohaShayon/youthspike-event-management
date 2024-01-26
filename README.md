@@ -55,6 +55,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Do not care about which captain is in which round, make both captain freely go to the next round after completing their current round (make sure that captain a change change only his progress)
+ - Properly change round status
  - Pair Score validation
  - Check In process
  - Check everytime, my round and oponent's round should be same!
@@ -255,10 +257,9 @@ ___
 
 
 ### Ask
- - Whatch the shole video, it took me 2 hours to whatch it and undersatand everything you have explained 😀. But that is perfectly explained.
- 1. Currently you need to put more than 0 point in every nets to got to the next round which I will fix.
- - There are plenty of features this software should have but Currently our priority should be running a match smoothly, ranking players properly, import players with team associated with it and the other tiny stuffs that are essential. Once I run a match successfully then we should test with real players.
- - It was very to put team A on the top and team b on the bottom contantly, It did not take much effeort that I spent, you said who login their team will alwasy be in the bottom. However, don't worry, on the public view they can see contant - team A on the top and team B on the bottom.
+ - Currently the main problem I am facing is with changing the round.
+ - If you want to run the match both team need to check and both team need to be in the same round to so if one team submit their lineup for a specific round the other team can see that on real time, if the other is in another round it will be complicated for them both
+ - Currently if you face any issues please reload the page and try again
 
 
  curl -i -N  \

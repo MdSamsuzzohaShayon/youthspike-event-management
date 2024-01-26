@@ -39,22 +39,20 @@ function NetCard({ net }: INetCardProps) {
   // Redux State
   const { currNetNum, currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
-  const teamAPlayers = useAppSelector((state) => state.players.teamAPlayers);
-  const teamBPlayers = useAppSelector((state) => state.players.teamBPlayers);
+  const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
   const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
   const currentRoom = useAppSelector((state) => state.rooms.current);
-  const teamA = useAppSelector((state) => state.teams.teamA);
-  const teamB = useAppSelector((state) => state.teams.teamB);
+  const { teamA, teamB } = useAppSelector((state) => state.teams);
+  const { disabledPlayerIds } = useAppSelector((state) => state.matches);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
-
   const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
   const [myPlayers, setMyPlayers] = useState<IPlayer[]>([]);
   const [opPlayers, setOpPlayers] = useState<IPlayer[]>([]); // Op = oponent
   const [myTeamE, setMyTeamE] = useState<ETeam>(ETeam.teamB);
 
-  const [prevRoundNets, setPrevRoundNets] = useState<INetRelatives[]>([]);
+  // const [prevRoundNets, setPrevRoundNets] = useState<INetRelatives[]>([]);
 
   /**
    * Handle events
@@ -127,18 +125,18 @@ function NetCard({ net }: INetCardProps) {
     if (!user.token || !user.info) return;
 
     let isTeamProcessValid = false;
-    if(myTeamE === ETeam.teamA ){
-      if(currentRoom?.teamAProcess === EActionProcess.CHECKIN 
-        && (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP || currentRoom?.teamBProcess === EActionProcess.LOCKED)){
-          isTeamProcessValid = true;
+    if (myTeamE === ETeam.teamA) {
+      if (currentRoom?.teamAProcess === EActionProcess.CHECKIN
+        && (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP)) {
+        isTeamProcessValid = true;
       }
-    }else{
-      if(currentRoom?.teamBProcess === EActionProcess.CHECKIN 
-        && (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP || currentRoom?.teamAProcess === EActionProcess.LOCKED)){
-          isTeamProcessValid = true;
+    } else {
+      if (currentRoom?.teamBProcess === EActionProcess.CHECKIN
+        && (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP)) {
+        isTeamProcessValid = true;
       }
     }
-    if (!isTeamProcessValid)return;
+    if (!isTeamProcessValid) return;
 
     // At first team A will submit their players 
     if (myTeamE === ETeam.teamA && currentRoom && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
@@ -154,51 +152,65 @@ function NetCard({ net }: INetCardProps) {
      * Remove players who had been palyed with same player in the previous round
      */
 
+    /*
     let playerIds: string[] = myPlayers.map((p) => p._id);
+    const playersIdsToDisable: string[] = [];
 
     for (const currNet of currRoundNets) {
       if (currNet.teamAPlayerA && playerIds.includes(currNet.teamAPlayerA)) {
-        playerIds = playerIds.filter((pi) => pi !== currNet.teamAPlayerA);
+        // playerIds = playerIds.filter((pi) => pi !== currNet.teamAPlayerA);
+        playersIdsToDisable.push(currNet.teamAPlayerA);
       }
       if (currNet.teamAPlayerB && playerIds.includes(currNet.teamAPlayerB)) {
-        playerIds = playerIds.filter((pi) => pi !== currNet.teamAPlayerB);
+        // playerIds = playerIds.filter((pi) => pi !== currNet.teamAPlayerB);
+        playersIdsToDisable.push(currNet.teamAPlayerB);
       }
       if (currNet.teamBPlayerA && playerIds.includes(currNet.teamBPlayerA)) {
-        playerIds = playerIds.filter((pi) => pi !== currNet.teamBPlayerA);
+        // playerIds = playerIds.filter((pi) => pi !== currNet.teamBPlayerA);
+        playersIdsToDisable.push(currNet.teamBPlayerA);
       }
       if (currNet.teamBPlayerB && playerIds.includes(currNet.teamBPlayerB)) {
-        playerIds = playerIds.filter((pi) => pi !== currNet.teamBPlayerB);
+        // playerIds = playerIds.filter((pi) => pi !== currNet.teamBPlayerB);
+        playersIdsToDisable.push(currNet.teamBPlayerB);
       }
     }
-    dispatch(setAvailablePlayers(playerIds))
-    // Disabled players
-    const dpList: string[] = [];
+    // dispatch(setAvailablePlayers(playerIds));
+    */
+
+
+    // Disabled players who played with him in previous round
     let prevPartnerId = null;
-    if (myTeamE === ETeam.teamA) {
-      if (net?.teamAPlayerA) {
-        const prevNet = prevRoundNets.find((n) => n.teamAPlayerA === net?.teamAPlayerA || net?.teamAPlayerA === net.teamAPlayerA);
-        if (prevNet) {
-          if (prevNet.teamAPlayerA === net.teamAPlayerA) {
-            prevPartnerId = prevNet.teamAPlayerB;
-          } else if (prevNet.teamAPlayerB === net.teamAPlayerB) {
-            prevPartnerId = prevNet.teamAPlayerA;
+    const pri = roundList.findIndex((rl) => rl._id === currRound?._id); // pri = previous round index
+    if (pri !== -1 && roundList[pri - 1]) {
+      const prevRound = roundList[pri - 1];
+      const prevRoundNets = allNets.filter((n) => n.round === prevRound._id);
+
+      if (myTeamE === ETeam.teamA) {
+        if (net?.teamAPlayerA) {
+          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamAPlayerA === net.teamAPlayerA || prn.teamAPlayerA === net.teamAPlayerA);
+          if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerA) {
+            prevPartnerId = prevPlayedNet.teamAPlayerB;
+          } else if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerB) {
+            prevPartnerId = prevPlayedNet.teamAPlayerA;
           }
         }
-      } else if (net?.teamAPlayerB) {
-        const prevNet = prevRoundNets.find((n) => n.teamAPlayerB === net?.teamAPlayerB || net?.teamAPlayerB === net.teamAPlayerB);
-        if (prevNet) {
-          if (prevNet.teamAPlayerB === net.teamAPlayerB) {
-            prevPartnerId = prevNet.teamAPlayerA;
-          } else if (prevNet.teamAPlayerA === net.teamAPlayerA) {
-            prevPartnerId = prevNet.teamAPlayerB;
+      }else{
+        if (net?.teamBPlayerA) {
+          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamBPlayerA === net.teamBPlayerA || prn.teamBPlayerA === net.teamBPlayerA);
+          if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerA) {
+            prevPartnerId = prevPlayedNet.teamBPlayerB;
+          } else if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerB) {
+            prevPartnerId = prevPlayedNet.teamBPlayerA;
           }
         }
       }
+
+      if(prevPartnerId){
+        // @ts-ignore
+        const dpi = [...new Set([prevPartnerId, ...disabledPlayerIds])];
+        dispatch(setDisabledPlayerIds(dpi));
+      }
     }
-    if (prevPartnerId) {
-      dpList.push(prevPartnerId);
-    }
-    dispatch(setDisabledPlayerIds(dpList));
   };
 
 
@@ -240,7 +252,7 @@ function NetCard({ net }: INetCardProps) {
         if (pr) {
           const findPRN = allNets.filter((n) => n.round === pr._id); // prn == previous round nets
           if (findPRN && findPRN.length > 0) {
-            setPrevRoundNets(prevRoundNets);
+            // setPrevRoundNets(prevRoundNets);
           }
         }
       }

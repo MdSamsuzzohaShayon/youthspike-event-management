@@ -24,7 +24,7 @@ function LineupBox({ currRoom, user, socket }: IBoxProps) {
       };
       netPointsList.push(nObj);
     }
-    if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRoom?._id });
+    if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRoom?.round });
   }
   return (
     <div>
