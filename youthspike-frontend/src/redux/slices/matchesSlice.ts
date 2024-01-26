@@ -1,9 +1,14 @@
 /* eslint-disable no-param-reassign */
 import { IMatchRelatives, ITeam, IPlayer } from '@/types';
 import { EActionProcess } from '@/types/elements';
+import { ETeamPlayer, INetRelatives } from '@/types/net';
 import { ETeam } from '@/types/team';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
+
+interface INetProps {
+  net?: INetRelatives | null | undefined;
+}
 
 interface MatchesState {
   match: IMatchRelatives,
@@ -15,8 +20,14 @@ interface MatchesState {
   opTeamE: ETeam;
   myTeamProcess: EActionProcess;
   opTeamProcess: EActionProcess;
-  checkedIn: boolean;
-  submittedLineup: boolean;
+
+  // For drop down selections
+  showTeamPlayers: boolean;
+  netTeamPlayer: ETeamPlayer | null;
+  availablePlayerIds: string[],
+  disabledPlayerIds: string[],
+  selectedPlayerSpot: ETeamPlayer | null,
+  selectedNet: INetRelatives | null,
 }
 
 const initialState: MatchesState = {
@@ -49,9 +60,13 @@ const initialState: MatchesState = {
   myTeamProcess: EActionProcess.INITIATE,
   opTeamProcess: EActionProcess.INITIATE,
 
-  // Button axtions
-  checkedIn: false,
-  submittedLineup: false,
+  // Submitline up
+  showTeamPlayers: false,
+  netTeamPlayer: null,
+  availablePlayerIds: [],
+  disabledPlayerIds: [],
+  selectedPlayerSpot: null,
+  selectedNet: null,
 };
 
 export const matchesSlice = createSlice({
@@ -60,12 +75,6 @@ export const matchesSlice = createSlice({
   reducers: {
     setMatchInfo: (state, action: PayloadAction<IMatchRelatives>) => {
       state.match = action.payload;
-    },
-    setCheckedIn: (state, action: PayloadAction<boolean>) => {
-      state.checkedIn = action.payload;
-    },
-    setSubmittedLineup: (state, action: PayloadAction<boolean>) => {
-      state.submittedLineup = action.payload;
     },
     setMyTeam: (state, action: PayloadAction<ITeam | null>) => {
       if (action.payload) state.myTeam = action.payload;
@@ -86,11 +95,43 @@ export const matchesSlice = createSlice({
     setTeamProcess: (state, action: PayloadAction<{ myTeamProcess: EActionProcess, opTeamProcess: EActionProcess }>) => {
       state.myTeamProcess = action.payload.myTeamProcess;
       state.opTeamProcess = action.payload.opTeamProcess;
-    }
+    },
+
+
+    // Match Submit Lineup
+    setShowTeamPlayers: (state, action: PayloadAction<boolean>) => {
+      state.showTeamPlayers = action.payload;
+      // if (action.payload === false) {
+      //   state.selectedTeamPlayer = null;
+      //   state.selectedNet = null;
+      // }
+    },
+
+    setNetTeamPlayers: (state, action: PayloadAction<ETeamPlayer>) => {
+      state.netTeamPlayer = action.payload;
+    },
+
+    setAvailablePlayers: (state, action: PayloadAction<string[]>) => {
+      state.availablePlayerIds = action.payload;
+    },
+    setDisabledPlayerIds: (state, action: PayloadAction<string[]>) => {
+      state.disabledPlayerIds = action.payload;
+    },
+
+    setPlayerSpot: (state, action: PayloadAction<ETeamPlayer>) => {
+      state.selectedPlayerSpot = action.payload;
+    },
+    setSelectedNet: (state, action: PayloadAction<INetRelatives | null>) => {
+      state.selectedNet = action.payload;
+    },
+
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess, setCheckedIn, setSubmittedLineup } = matchesSlice.actions;
+export const {
+  setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess,
+  setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet
+} = matchesSlice.actions;
 
 export default matchesSlice.reducer;

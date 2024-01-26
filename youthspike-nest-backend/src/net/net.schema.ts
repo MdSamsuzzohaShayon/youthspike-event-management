@@ -69,11 +69,11 @@ export class Net extends AppDocument {
   points: number;
 
   @Field((type) => Int, { nullable: true })
-  @Prop({ required: true, min: 0, default: 0 })
+  @Prop({ required: true, min: 0, default: null })
   teamAScore: number;
 
   @Field((type) => Int, { nullable: true })
-  @Prop({ required: true, min: 0, default: 0 })
+  @Prop({ required: true, min: 0, default: null })
   teamBScore: number;
 
   @Field((type) => Int)

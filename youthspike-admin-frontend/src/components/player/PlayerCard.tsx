@@ -1,14 +1,14 @@
 import cld from '@/config/cloudinary.config';
 import { UPDATE_PLAYER } from '@/graphql/players';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { IPlayer, PlayerStatus } from '@/types/player';
+import { IPlayer, IPlayerExpRel, PlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface PlayerCardProps {
-  player: IPlayer;
+  player: IPlayerExpRel;
   index: number;
   teamId: string | null;
   eventId: string,
@@ -19,9 +19,10 @@ interface PlayerCardProps {
   touchMove: (e: TouchEvent) => void;
   showRank?: boolean;
   rankControls?: boolean;
+  isAssigned?: boolean;
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls, isAssigned }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -47,7 +48,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
     setActionOpen(prevState => !prevState);
-    console.log(`Make captain player of the current player that he is on or select team if the player does not have a team`, { playerId, teamId });
     try {
       setIsLoading(true);
       const changeCaptainRes = await mutateTeam({ variables: { input: { captain: playerId }, teamId } });
@@ -135,12 +135,14 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }, []);
 
   return (
-    <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable={rankControls ?? false} style={{ minHeight: '6rem' }}
+    <li ref={playerLiEl} className={`w-full ${isAssigned ? "bg-gray-500": "bg-gray-700 "} py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable={rankControls ?? false} style={{ minHeight: '6rem' }}
       onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter} >
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
         <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
-        <li role="presentation" onClick={(e) => handleMakeCaptain(e, player._id)} > Make Captain</li>
-        <li role="presentation" onClick={(e) => handleMakeCoCaptain(e, player._id)} > Make Co-captain</li>
+        {rankControls && (<React.Fragment>
+          <li role="presentation" onClick={(e) => handleMakeCaptain(e, player._id)} > Make Captain</li>
+          <li role="presentation" onClick={(e) => handleMakeCoCaptain(e, player._id)} > Make Co-captain</li>
+        </React.Fragment>)}
         <li role="presentation" onClick={(e) => handleMovePlayer(e, player._id)} > Move Player</li>
         {player.status === PlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, PlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, PlayerStatus.ACTIVE, player._id)} > Make Active</li>)}
         <li role="presentation" onClick={(e) => handleDelete(e, player._id)} >Delete</li>
@@ -168,7 +170,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
       <div className="text-box w-5/12">
         <div className="w-full">
-          <p className='break-words' >{player.phone ? player.phone:  'Phone: N/A'}</p>
+          <p className='break-words' >{player.phone ? player.phone : 'Phone: N/A'}</p>
           <p className='break-words' >{player.email}</p>
           <p className='break-words' >2-3 / +3 games</p>
         </div>

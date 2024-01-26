@@ -1,17 +1,20 @@
 import React, { Touch, useEffect, useRef, useState } from 'react';
 import PlayerCard from './PlayerCard';
-import { IPlayer, PlayerStatus } from '@/types/player';
+import { IPlayer, IPlayerExpRel, PlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { UPDATE_PLAYERS } from '@/graphql/players';
+import { GET_A_TEAM } from '@/graphql/teams';
+import { ITeam } from '@/types';
 
 interface IPlayerListProps {
-  playerList: IPlayer[];
+  playerList: IPlayerExpRel[];
   eventId: string;
   teamId: string | null;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   rankControls?: boolean;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
+  teamIds?: string[];
 }
 
 interface IPlayerRank {
@@ -19,12 +22,12 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds }: IPlayerListProps) {
 
-  const [rankPlayers, { data, error, loading }] = useMutation(UPDATE_PLAYERS);
+  const [rankPlayers, { data, error, loading, client }] = useMutation(UPDATE_PLAYERS);
 
-  const [playerActiveClone, setPlayerActiveClone] = useState<IPlayer[]>([]);
-  const [playerInactiveClone, setPlayerInactiveClone] = useState<IPlayer[]>([]);
+  const [playerActiveClone, setPlayerActiveClone] = useState<IPlayerExpRel[]>([]);
+  const [playerInactiveClone, setPlayerInactiveClone] = useState<IPlayerExpRel[]>([]);
   const [playerRanking, setPlayerRanking] = useState<IPlayerRank[]>([]);
 
   const dragPI = useRef<number>(0);
@@ -38,10 +41,11 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     if (upr.length > 0) {
       try {
         console.log("Update ranks");
-        
+
         setIsLoading(true)
         // Submit to the server
         await rankPlayers({ variables: { input: upr } });
+        client.refetchQueries({ include: [GET_A_TEAM] })
         if (setAddPlayer) setAddPlayer(false);
       } catch (error) {
         console.log(error);
@@ -64,6 +68,7 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
   };
   const handleDragEnd = async (index: number, playerId: string) => {
     if (!rankControls) return;
+
     // Create a new list to submit
     let activeList = [...playerActiveClone];
     const draggedPlayer = activeList.splice(dragPI.current, 1);
@@ -73,13 +78,24 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
       activeList = [...playerActiveClone];
     }
     const updatedRanking = activeList.map((p, i) => ({ rank: i += 1, _id: p._id }));
-    setPlayerRanking(updatedRanking);
-    setPlayerActiveClone(activeList);
-    await handleUpdate(updatedRanking)
+    // setPlayerRanking(updatedRanking);
+    // setPlayerActiveClone(activeList);
+    await handleUpdate(updatedRanking);
   };
   const handleTouchMove = (e: TouchEvent) => {
     if (!rankControls) return;
     e.preventDefault(); // Prevent scrolling
+  }
+
+  const checkAssignments = (pt?: ITeam[]): boolean => {
+    let assigned = false;
+    if (pt) {
+      const teamsOfPlayer = pt.map((t) => t._id);      
+      for (let i = 0; i < teamsOfPlayer.length; i += 1) {
+        if (teamIds?.includes(teamsOfPlayer[i])) assigned = true;
+      }
+    }  
+    return assigned;
   }
 
 
@@ -93,13 +109,15 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
   return (
     <div className='mt-2'>
       <ul className='flex flex-wrap items-center gap-2'>
-        {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
+        {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
+          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
-        {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayer, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
+        {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
+          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
       </ul>
     </div>
   )

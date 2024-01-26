@@ -31,7 +31,7 @@ const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
 const initialEvent = {
     name: 'Event 1',
     // startDate, endDate, playerLimit
-    divisions: 'division 1, division 2,',
+    divisions: 'Premier, Contender,',
     nets: 3,
     rounds: 2,
     netVariance: 3,
@@ -373,10 +373,11 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} rw='w-3/6' lw='w-3/6'  />
 
             {/* File upload start  */}
-            <dialog ref={addSponsorDialogEl} className='w-4/6 bg-gray-800 h-2/6 p-2' >
+            <dialog ref={addSponsorDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2' >
                 <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white mt-2' />
                 <div className='flex items-center justify-center'>
-                    <TextInput handleInputChange={handleFileNameChange} name='company' required={false} defaultValue={currSponsor.company} />
+                {/* defaultValue={currSponsor.company} */}
+                    <TextInput vertical handleInputChange={handleFileNameChange} name='company' required={false} />
                     <img src='/icons/plus.svg' role="presentation" onClick={handleOpenImg} className='svg-white w-20 h-20' />
                     <input type="file" name="sponsor" id="sponsor" className='hidden' ref={sponsorInputEl} onChange={handleFileChange} />
                 </div>

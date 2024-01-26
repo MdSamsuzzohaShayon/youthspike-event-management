@@ -4,8 +4,8 @@ interface INetBase {
     _id: string;
     num: number;
     points: number;
-    teamAScore: number;
-    teamBScore: number;
+    teamAScore: number | null;
+    teamBScore: number | null;
     pairRange?: number;
 }
 
@@ -27,8 +27,8 @@ interface INetUpdate {
     teamAPlayerB?: string | null;
     teamBPlayerA?: string | null;
     teamBPlayerB?: string | null;
-    teamAScore?: number;
-    teamBScore?: number;
+    teamAScore?: number | null;
+    teamBScore?: number | null;
 }
 
 interface INetScoreUpdate {
@@ -50,6 +50,13 @@ interface INetPlayers {
     teamBPlayerA: string;
     teamBPlayerB: string;
 }
+
+export enum ETeamPlayer {
+    TA_PA = "teamAPlayerA",
+    TA_PB = "teamAPlayerB",
+    TB_PA = "teamBPlayerA",
+    TB_PB = "teamBPlayerB",
+};
 
 
 

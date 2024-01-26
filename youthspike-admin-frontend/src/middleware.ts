@@ -6,9 +6,9 @@ import { UserRole } from './types/user';
 
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new", '/account'];
+const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new", '/account', '/newevent'];
 const captainAuthPages = ['/players', "/matches", "/settings"];
-const adminPages = ['/admin', '/directors'];
+const adminPages = ['/','/admin', '/directors'];
 
 /**
  * Configuration for the Next.js middleware

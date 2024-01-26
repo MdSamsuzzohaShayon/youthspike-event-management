@@ -63,7 +63,8 @@ function MatchList({ matchList, divisions, eventId }: IMatchListProps) {
 
   return (
     <div className='matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap'>
-      <SelectInput handleSelect={handleDivisionChange} name='division' optionList={divisionList} lblTxt='Division' rw='w-3/6 md:w-5/12' extraCls='mb-4' />
+      {user?.info?.role !== UserRole.captain && <SelectInput handleSelect={handleDivisionChange} name='division' optionList={divisionList} lblTxt='Division' rw='w-3/6 md:w-5/12' extraCls='mb-4' />}
+      
 
       {filteredMatchList.length > 0 && filteredMatchList.map((match: IMatch, i) => <MatchCard eventId={eventId} key={match._id} match={match} sl={i + 1} />)}
     </div>

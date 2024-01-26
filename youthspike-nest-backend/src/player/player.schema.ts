@@ -63,10 +63,18 @@ export class Player extends AppDocument {
   @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
   captainofteams?: Team[] | string[];
 
+  @Field((_type) => [Team], { nullable: true })
+  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
+  cocaptainofteams?: Team[] | string[];
+
   // User to login as captain
   @Field((_type) => User, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   captainuser?: User | string;
+
+  @Field((_type) => User, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  cocaptainuser?: User | string;
 }
 
 export const PlayerSchema = SchemaFactory.createForClass(Player);

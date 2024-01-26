@@ -2,16 +2,21 @@ import { INetPlayers } from ".";
 
 export enum EActionProcess {
     INITIATE = 'INITIATE',
+  
     CHECKIN = 'CHECKIN',
-    PLACING = 'PLACING',
+  
     LINEUP = 'LINEUP',
+    LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
+    
     LOCKED = 'LOCKED',
-    COMPLETED = 'COMPLETED',
-};
+    COMPLETE = 'COMPLETE',
+  };
 
 export interface IRoom {
     _id: string;
     round: string;
+    teamARound: string;
+    teamBRound: string;
     teamA: null | string;
     teamAClient: null | string;
     teamAProcess: null | EActionProcess;

@@ -42,6 +42,10 @@ export class RoundChangeInput {
 
   @Field({ nullable: false })
   nextRound: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  team: string;
 }
 
 

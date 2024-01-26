@@ -36,11 +36,11 @@ const FileInput = (props: IFileFileProps) => {
             if (props.defaultValue && typeof props.defaultValue === 'string') {
                 console.log(props.defaultValue);
                 
-                imgEl = <AdvancedImage className='w-3/6' cldImg={cld.image(props.defaultValue)} />
+                imgEl = <AdvancedImage className='w-3/6 h-32 object-cover object-center' cldImg={cld.image(props.defaultValue)} />
             }
         } else {
             if (fileUrl && fileUrl !== '') {
-                imgEl = <img src={fileUrl} alt='file-upload' className='w-3/6' />;
+                imgEl = <img src={fileUrl} alt='file-upload' className='w-3/6 h-32 object-cover object-center' />;
             }
         }
         return imgEl;

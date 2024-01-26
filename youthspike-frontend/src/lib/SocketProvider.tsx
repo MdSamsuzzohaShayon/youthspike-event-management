@@ -1,24 +1,28 @@
-'use client'
+"use client"
 
-import { SOCKET_URL } from '@/utils/keys';
-import React, { useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { SOCKET_URL } from '@/utils/keys';
 
-
-export const ThemeContext = React.createContext(null);
+export const ThemeContext = createContext<Socket | null>(null);
 
 // Hook
 export function useSocket() {
   return useContext(ThemeContext);
 }
 
-
 // Provider
-function SocketProvider({ children }: React.PropsWithChildren) {
-  const [socket, setSocket] = React.useState<any | null>(null);
-  
-  React.useEffect(() => {    
-    setSocket(io(SOCKET_URL));
+function SocketProvider({ children }: React.PropsWithChildren<{}>) {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const newSocket = io(SOCKET_URL);
+    setSocket(newSocket);
+
+    return () => {
+      // Cleanup on component unmount
+      newSocket.disconnect();
+    };
   }, []);
 
   return <ThemeContext.Provider value={socket}>{children}</ThemeContext.Provider>;

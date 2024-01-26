@@ -16,6 +16,7 @@ import { UserService } from 'src/user/user.service';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
+import { UpdateQuery } from 'mongoose';
 
 @ObjectType()
 class PlayerResponse extends AppResponse<Player> {
@@ -56,17 +57,27 @@ export class PlayerResolver {
     try {
       // Upload image to cloudinary
       let profileUrl: string | null = null;
+      const ensurePromises = [];
       if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
+
       const playerObj = { ...input, profile: profileUrl, events: [input.event], teams: [] };
       if (input.team) playerObj.teams = [input.team];
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;
+
       if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
       const newPlayer = await this.playerService.create(playerObj);
-      await this.eventService.update(
-        { players: [newPlayer._id.toString()] },
+
+
+      if (input.team) {
+        ensurePromises.push(this.teamService.update({ $push: { players: newPlayer._id } }, { _id: input.team }))
+      }
+      ensurePromises.push(this.eventService.update(
+        { $push: { players: newPlayer._id.toString() } },
         input.event.toString(),
-      );
+      ));
+      await Promise.all(ensurePromises);
+
       return {
         success: true,
         code: 201,
@@ -84,11 +95,12 @@ export class PlayerResolver {
   profile?: Upload,): Promise<PlayerResponse> {
     try {
       // Upload image to cloudinary
-      const playerObj: any = { ...input };
+      const playerObj: UpdateQuery<Player> = { ...input };
       if (profile) {
         const profileUrl = await this.cloudinaryService.uploadFiles(profile);
         playerObj.profile = profileUrl
       };
+
       const updatedPlayer = await this.playerService.update(playerObj, playerId);
       return {
         success: true,
@@ -128,18 +140,20 @@ export class PlayerResolver {
   }
 
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(
     @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Upload,
-    @Args('event') event: string,
+    @Args('eventId') eventId: string,
+    @Args('division') division: string
   ) {
     /**
      * TODO:
      *    Step-1: Check file type (Validation)
      *    Step-2: Convert it to array of object
      *    Step-3: Create multiple record at once and return
+     *    Step-4: Add team if a team is associated with it
      */
     try {
       const allowedFileTypes = ['csv', 'xlsx']; // Add the allowed file types
@@ -148,15 +162,36 @@ export class PlayerResolver {
       if (!allowedFileTypes.includes(fileExtension)) {
         return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }
-      const playersObjList = await this.playerService.arrangeFromCSV(uploadedFile, event);
-      const playerList = await this.playerService.createMany(playersObjList);
-      const playerIdList = playerList.map((p) => p._id);
-      await this.eventService.update({ players: playerIdList }, event);
+      const { teams, unassignedPlayers }: any = await this.playerService.arrangeFromCSV(uploadedFile, eventId, division);
+      const playerIds = [];
+      const teamIds = [];
+      const updatePlayers = [];
+      for (let i = 0; i < teams.length; i += 1) {
+        try {
+          const teamObj = { ...teams[i] };
+          const teamPlayers = [...teams[i].players];
+          const playerList = await this.playerService.createMany(teamPlayers);
+          const teamPlayerIds = playerList.map((p) => p._id);
+          playerIds.push(...teamPlayerIds);
+          teamObj.players = teamPlayerIds;
+          // teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null; // 
+          const createTeam = await this.teamService.create(teamObj);
+          teamIds.push(createTeam._id);
+          updatePlayers.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $push: { teams: createTeam._id } }))
+        } catch (dErrs) {
+          // console.log(dErrs);
+        }
+      }
+      const allPlayers = await this.playerService.createMany(unassignedPlayers);
+      await Promise.all(updatePlayers);
+      const unassignedPlayerIds = allPlayers.map((p) => p._id);
+      playerIds.push(...unassignedPlayerIds);
+      await this.eventService.update({ $push: { teams: { $each: teamIds }, players: { $each: playerIds } } }, eventId);
 
       return {
         success: true,
         code: 201,
-        data: playerList,
+        data: allPlayers,
       };
     } catch (error) {
       console.error('Error in createMultiPlayers:', error);

@@ -43,6 +43,10 @@ export class UserBase extends AppDocument{
   @Field((type) => Player, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   captainplayer?: Player | string;
+
+  @Field((type) => Player, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
+  cocaptainplayer?: Player | string;
   
   @Field({nullable: false})
   @Prop({ required: true })

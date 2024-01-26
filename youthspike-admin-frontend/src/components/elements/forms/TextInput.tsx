@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ITextInputProps } from '@/types';
 
 const TextInput = (props: ITextInputProps) => {
-    let dv = '';
-    if (props.defaultValue && props.defaultValue !== '') dv = props.defaultValue;
+    let dv = '';    
+    if (props.defaultValue && props.defaultValue !== '') dv = props.defaultValue;;
+
     return (
         <div className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : ''} items-center ${props.extraCls}`}>
             <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw ? props.lw : ''}`}>{props.lblTxt ? props.lblTxt : props.name}</label>

@@ -3,6 +3,7 @@
 import React from 'react';
 import { IPlayer } from '@/types';
 import PlayerScoreCard from './PlayerScoreCard';
+import { ETeamPlayer } from '@/types/net';
 
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[]; team: string;
@@ -85,18 +86,18 @@ function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
   return (
     <div className="bg-gray-900 text-gray-100 py-4">
       <div className="container px-4 mx-auto">
-        <div className="player-list flex justify-between items-center">
+        <div className="player-list flex  overflow-x-scroll justify-between items-center">
           <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftLeft}>
-            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-4" style={{ transform: 'scaleX(-1)' }} />
+            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" style={{ transform: 'scaleX(-1)' }} />
           </button>
           {trimPlayers && trimPlayers.map((player) => (
             // @ts-ignore
             <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-              <PlayerScoreCard player={player} dark teamPlayer={1} />
+              <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} />
             </div>
           ))}
           <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftRight}>
-            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-4" />
+            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" />
           </button>
         </div>
       </div>

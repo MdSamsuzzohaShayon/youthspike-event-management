@@ -15,7 +15,7 @@ import {
 } from "./elements";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
-import { IPlayer } from "./player";
+import { IPlayer, IPlayerExpRel} from "./player";
 import { ITeam, ITeamAdd } from "./team";
 import { IAddMatch, IMatch, IDefaultMatchProps } from "./match";
 import { IRoundBase, IRoundRelatives } from "./round";
@@ -62,6 +62,7 @@ export type {
 
   // Player
   IPlayer,
+  IPlayerExpRel,
 
 
   // Team

@@ -1,20 +1,29 @@
 import { CREATE_MULTIPLE_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/players';
-import { IError } from '@/types';
+import { IError, IOption } from '@/types';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import { useMutation } from '@apollo/client';
 import { redirect } from 'next/navigation';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import SelectInput from '../elements/forms/SelectInput';
 
 interface IMultiPlayerAddProps {
     eventId: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     closeDialog: () => void;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    divisionList: IOption[]
 }
 
-function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr}: IMultiPlayerAddProps) {
+function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisionList}: IMultiPlayerAddProps) {
     const uploadFileEl = useRef<HTMLInputElement | null>(null);
+    const [selectedDivision, setSelectedDivision] = useState<string>('');
+
+    const handleDivisionInput=(e: React.SyntheticEvent)=>{
+        e.preventDefault();
+        const inputEl = e.target as HTMLInputElement;
+        setSelectedDivision(inputEl.value);
+    }
 
     const handleInputChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -40,12 +49,13 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr}: IMulti
         e.preventDefault();
         try {
             setIsLoading(true);
+            if(selectedDivision === '') return;
             // Add logic for handling the upload
             if (!uploadFileEl.current || !uploadFileEl.current.files) return;
             const formData = new FormData();
             formData.set('operations', JSON.stringify({
                 query: CREATE_MULTIPLE_PLAYERS_RAW,
-                variables: { event: eventId, uploadedFile: null },
+                variables: { eventId: eventId, uploadedFile: null, division: selectedDivision },
             }));
 
             formData.set('map', JSON.stringify({ '0': ['variables.uploadedFile'] }));
@@ -73,6 +83,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr}: IMulti
                 <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
                 <input type="file" ref={uploadFileEl} className='form-control' onChange={handleInputChange} />
             </div>
+            <SelectInput vertical handleSelect={handleDivisionInput} name='division' optionList={divisionList} defaultValue="" />
             <div className="input-group">
                 <button type="submit" className="btn-secondary">Upload</button>
             </div>

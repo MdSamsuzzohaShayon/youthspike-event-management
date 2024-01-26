@@ -2,6 +2,7 @@
 
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
+import CurrentEvent from '@/components/event/CurrentEvent';
 import MatchAdd from '@/components/match/MatchAdd';
 import MatchList from '@/components/match/MatchList';
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
@@ -47,7 +48,8 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      <h1 className='my-4 text-center'>Matches</h1>
+      <h1 className='mb-8 text-center'>Matches</h1>
+      {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {addMatch ? <>
@@ -60,7 +62,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         )}
       </> : <>
         {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
-
+        <br />
         {eventData?.matches && eventData?.matches.length > 0 ? <MatchList eventId={params.eventId} divisions={eventData.divisions} matchList={eventData.matches} /> : <p>No match created yet!</p>}
       </>}
       <br />

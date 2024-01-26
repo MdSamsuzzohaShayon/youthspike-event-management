@@ -113,11 +113,18 @@ export interface ILoginProps {
   setPassword: (state: string) => void;
 }
 
-
 export enum EActionProcess {
   INITIATE = 'INITIATE',
+
   CHECKIN = 'CHECKIN',
-  PLACING = 'PLACING',
+
   LINEUP = 'LINEUP',
+  LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
+  
   LOCKED = 'LOCKED',
+  COMPLETE = 'COMPLETE',
+};
+
+export enum EActionTexts{
+  INITIALIZE = ''
 }

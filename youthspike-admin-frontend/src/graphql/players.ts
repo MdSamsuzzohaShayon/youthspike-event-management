@@ -76,6 +76,11 @@ query GetEvent($eventId: String!) {
         players {
           ${playerResponse}
         }
+        teams{
+          _id
+          name
+          division
+        }
         ldo {
           _id
           name
@@ -91,16 +96,14 @@ query GetEvent($eventId: String!) {
  * =======================================================================================
  */
 const CREATE_MULTIPLE_PLAYERS_RAW = `
-  mutation CreateMultiPlayers($uploadedFile: Upload!, $event: String!) {
-    createMultiPlayers(uploadedFile: $uploadedFile, event: $event) {
-      code
-      message
-      success
-      data {
-        ${playerResponse}
-      }
+mutation CreateMultiPlayers($uploadedFile: Upload!, $eventId: String!, $division: String!) {
+  createMultiPlayers(uploadedFile: $uploadedFile, eventId: $eventId, division: $division) {
+    code
+    data {
+      ${playerResponse}
     }
   }
+}
 `;
 
 const CREATE_MULTIPLE_PLAYERS = gql`${CREATE_MULTIPLE_PLAYERS_RAW}`;

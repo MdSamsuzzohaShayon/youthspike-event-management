@@ -50,33 +50,14 @@ export const divisionsToOptionList = (divisions: string) => {
   return divs;
 }
 
-// {
-//   "__typename": "Match",
-//   "_id": "6574936dc132cfaf60297bd0",
-//   "numberOfNets": 3,
-//   "numberOfRounds": 2,
-//   "location": "USA",
-//   "netRange": 5,
-//   "teamA": {
-//       "__typename": "Team",
-//       "_id": "6571e9e42c2699c67ee73cd2",
-//       "name": "Team 2",
-//       "captain": {
-//           "__typename": "Player",
-//           "_id": "6571e9772c2699c67ee73c8f",
-//           "firstName": "Jared",
-//           "lastName": "Gunn"
-//       }
-//   },
-//   "teamB": {
-//       "__typename": "Team",
-//       "_id": "6571e9cb2c2699c67ee73cb8",
-//       "name": "Team 1",
-//       "captain": {
-//           "__typename": "Player",
-//           "_id": "6571e9772c2699c67ee73c8a",
-//           "firstName": "Izayah",
-//           "lastName": "Gibson"
-//       }
-//   }
-// }
+export const ISOToReadableDate = (isoString: string) => {
+  const dateObj = new Date(isoString);
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  };
+
+  const formattedDate = new Intl.DateTimeFormat('en-US', options).format(dateObj);
+  return formattedDate;
+}

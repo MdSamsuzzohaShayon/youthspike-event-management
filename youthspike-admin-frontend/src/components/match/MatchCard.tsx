@@ -1,5 +1,7 @@
 import cld from '@/config/cloudinary.config';
+import { useUser } from '@/lib/UserProvider';
 import { IMatch } from '@/types/match';
+import { UserRole } from '@/types/user';
 import { FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
@@ -14,6 +16,7 @@ interface MatchCardProps {
 function MatchCard({ match, sl, eventId }: MatchCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
+  const user = useUser();
 
   const handleOpenAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -24,14 +27,15 @@ function MatchCard({ match, sl, eventId }: MatchCardProps) {
   return (
     <li className='w-full md:w-5/12 bg-gray-700 py-2 flex justify-between items-center relative rounded-lg' style={{ minHeight: '6rem' }}>
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-26 right-6 md:right-16 z-10 rounded-lg`}>
-        <li className='cursor-pointer'> <Link href={`/${eventId}/matches/${match._id}`} >Edit</Link></li>
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (<li className='cursor-pointer'> <Link href={`/${eventId}/matches/${match._id}`} >Edit</Link></li>)}
+        
         <li><Link href={`${FRONTEND_URL}/matches/${match._id}`}>View          </Link>        </li>
       </ul>
 
       <input type="checkbox" name="match-select" id="option" className='w-1/12' />
       <div className="w-10/12">
         <div className="content w-full text-center mb-4 border-b border-gray-900 py-2">
-          <p className="capitalize">ID: {match._id}</p>
+          {/* <p className="capitalize">ID: {match._id}</p> */}
           <p className="capitalize">Location: {match.location}</p>
           <p className="capitalize">Divison: {match.divisions}</p>
         </div>

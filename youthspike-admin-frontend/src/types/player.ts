@@ -1,3 +1,4 @@
+import { IEvent, ITeam } from ".";
 import { IDocument } from "./document";
 
 /**
@@ -33,4 +34,17 @@ export interface IPlayer extends IDocument {
     _id: string;
     name: string;
   }[] | null;
+}
+
+export interface IPlayerExpRel extends IDocument {
+  firstName: string;
+  lastName: string;
+  profile: string | null;
+  phone?: string;
+  email: string;
+  rank: number | null;
+  status: PlayerStatus,
+  events?: IEvent[];
+  teams?: ITeam[];
+  captainofteams: ITeam[] | null;
 }

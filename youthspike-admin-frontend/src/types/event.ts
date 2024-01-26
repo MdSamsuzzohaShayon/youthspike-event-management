@@ -1,5 +1,5 @@
 import React from "react";
-import { IError, IPlayer, ITeam } from ".";
+import { IError, ILDO, IPlayer, ITeam } from ".";
 import { IDocument } from "./document";
 import { IDefaultMatch, IMatch } from "./match";
 
@@ -35,6 +35,7 @@ export interface IEventExpRel extends IEvent {
   matches: IMatch[],
   players: IPlayer[],
   teams: ITeam[],
+  ldo: ILDO
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

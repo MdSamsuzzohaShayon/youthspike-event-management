@@ -51,7 +51,7 @@ export class PlayerService {
   }
 
   async query(filter: FilterQuery<Player>) {
-    return this.playerModel.find(filter).sort({rank: 1});
+    return this.playerModel.find(filter).sort({ rank: 1 });
   }
 
   async findById(playerId: string) {
@@ -66,32 +66,59 @@ export class PlayerService {
     return this.playerModel.updateMany(filter, player);
   }
 
-  async arrangeFromCSV(uploadedFile: Upload, event: string) {
+  async arrangeFromCSV(uploadedFile: Upload, event: string, division: string) {
     const { createReadStream, filename, mimetype, encoding } = await uploadedFile;
     return new Promise((resolve, reject) => {
-      const data = [];
+      const teams = [];
+      const unassignedPlayers = [];
       createReadStream()
         .pipe(Papa.parse(Papa.NODE_STREAM_INPUT, { header: true }))
         .on('data', (row: Player) => {
-          const matchingFN = Object.entries(row).find(([k, v]) => new RegExp(/first?\s+name/, 'gi').test(k));
-          const matchingLN = Object.entries(row).find(([k, v]) => new RegExp(/last?\s+name/, 'gi').test(k));
-          const matchingEmail = Object.entries(row).find(([k, v]) => new RegExp(/email/, 'gi').test(k));
-          if (matchingFN && matchingLN && matchingEmail) {
-            const [fnk, fnv] = matchingFN;
-            const [lnk, lnv] = matchingLN;
-            const [ek, ev] = matchingEmail;
-            data.push({
+          const matchTeam = Object.entries(row).find(([k, v]) => new RegExp(/team/, 'gi').test(k));
+          const matchFN = Object.entries(row).find(([k, v]) => new RegExp(/first?\s+name/, 'gi').test(k));
+          const matchLN = Object.entries(row).find(([k, v]) => new RegExp(/last?\s+name/, 'gi').test(k));
+          const matchEmail = Object.entries(row).find(([k, v]) => new RegExp(/email/, 'gi').test(k));
+
+          let playerObj = null;
+          if (matchFN && matchLN && matchEmail) {
+            const [fnk, fnv] = matchFN;
+            const [lnk, lnv] = matchLN;
+            const [ek, ev] = matchEmail;
+            playerObj = {
               firstName: fnv,
               lastName: lnv,
-              // rank: Math.floor(Math.random() * 99 + 1),
+              rank: null,
               email: ev,
               events: [event],
               teams: []
-            });
+            };
+          }
+
+          const [tk, tv] = matchTeam;
+          if (tv && tv !== '') {
+            const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
+            if (findTeamI !== -1) {
+              const newPlayers = [...teams[findTeamI].players];
+              if (playerObj && playerObj.email) newPlayers.push(playerObj);
+              teams[findTeamI] = { ...teams[findTeamI], players: [...teams[findTeamI].players,] };
+            } else {
+              const teamObj = {
+                name: tv,
+                active: true,
+                players: playerObj && playerObj.email ? [playerObj] : [],
+                division: division,
+                captain: null,
+                cocaptain: null,
+                event: event,
+              };
+              teams.push(teamObj);
+            }
+          } else {
+            if (playerObj && playerObj.email) unassignedPlayers.push(playerObj);
           }
         })
         .on('end', () => {
-          resolve(data);
+          resolve({ teams, unassignedPlayers });
         })
         .on('error', (error) => {
           reject(error);
