@@ -21,6 +21,7 @@ function CheckInBox({ currRoom, user, socket }: IBoxProps) {
   const { teamA } = useAppSelector((state) => state.teams);
   const { myTeamE, opTeamProcess } = useAppSelector((state) => state.matches);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
+  const { current: currRound } = useAppSelector((state)=> state.rounds);
 
 
   const checkInToLineup = (e: React.SyntheticEvent) => {
@@ -61,7 +62,7 @@ function CheckInBox({ currRoom, user, socket }: IBoxProps) {
     <div>
       {currRoom?.teamAProcess === EActionProcess.CHECKIN && currRoom.teamBProcess === EActionProcess.CHECKIN
         ? (<div>
-          {myTeamE === ETeam.teamA ? <React.Fragment>
+          {myTeamE === currRound?.firstPlacing ? <React.Fragment>
             <p>You are placing first, Select 2 players for each net and submit line up!</p>
             <button className="btn-primary" type='button' onClick={checkInToLineup} >Submit Lineup</button>
           </React.Fragment> : <p>Wait for another team to submit their lineup, you are going to match up with their line up!</p>}

@@ -58,8 +58,8 @@ export class PlayerService {
     return this.playerModel.findById(playerId);
   }
 
-  async update(player: UpdateQuery<Player>, playerId: string) {
-    return this.playerModel.findOneAndUpdate({ _id: playerId }, { ...player });
+  async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>, ) {
+    return this.playerModel.updateOne(filter, player);
   }
 
   async updateMany(filter: FilterQuery<Player>, player: UpdateQuery<Player>) {
@@ -93,7 +93,7 @@ export class PlayerService {
               teams: []
             };
           }
-
+          
           const [tk, tv] = matchTeam;
           if (tv && tv !== '') {
             const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());

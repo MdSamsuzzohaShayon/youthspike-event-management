@@ -6,7 +6,7 @@ import { ETeam, ITeam } from '@/types/team';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSocket } from '@/lib/SocketProvider';
-import { setCheckedIn, setSubmittedLineup, setTeamProcess } from '@/redux/slices/matchesSlice';
+import {setTeamProcess } from '@/redux/slices/matchesSlice';
 import { setCurrentRound } from '@/redux/slices/roundSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRoundNets } from '@/redux/slices/netSlice';

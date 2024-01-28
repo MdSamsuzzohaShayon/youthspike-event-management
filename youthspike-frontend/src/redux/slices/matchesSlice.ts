@@ -28,6 +28,8 @@ interface MatchesState {
   disabledPlayerIds: string[],
   selectedPlayerSpot: ETeamPlayer | null,
   selectedNet: INetRelatives | null,
+  prevPartner: null | string;
+  outOfRange: string[];
 }
 
 const initialState: MatchesState = {
@@ -63,10 +65,14 @@ const initialState: MatchesState = {
   // Submitline up
   showTeamPlayers: false,
   netTeamPlayer: null,
-  availablePlayerIds: [],
-  disabledPlayerIds: [],
   selectedPlayerSpot: null,
   selectedNet: null,
+
+
+  availablePlayerIds: [],
+  disabledPlayerIds: [],
+  prevPartner: null,
+  outOfRange: [], // Net Variance
 };
 
 export const matchesSlice = createSlice({
@@ -124,6 +130,13 @@ export const matchesSlice = createSlice({
     setSelectedNet: (state, action: PayloadAction<INetRelatives | null>) => {
       state.selectedNet = action.payload;
     },
+    setPrevPartner:(state, action: PayloadAction<string | null>)=>{
+      state.prevPartner = action.payload;
+    },
+
+    setOutOfRange: (state, action: PayloadAction<string[]>)=>{
+      state.outOfRange = action.payload;
+    }
 
   },
 });
@@ -131,7 +144,8 @@ export const matchesSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const {
   setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess,
-  setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet
+  setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet,
+  setPrevPartner, setOutOfRange
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

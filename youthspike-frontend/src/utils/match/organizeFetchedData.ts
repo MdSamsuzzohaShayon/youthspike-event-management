@@ -2,6 +2,7 @@ import { setEventSponsors } from "@/redux/slices/eventSlice";
 import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE, setTeamProcess } from "@/redux/slices/matchesSlice";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setTeamAPlayers, setTeamBPlayers } from "@/redux/slices/playerSlice";
+import { setCurrentRoom } from "@/redux/slices/roomSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { setTeamA, setTeamB } from "@/redux/slices/teamSlice";
 import { store } from "@/redux/store";
@@ -87,7 +88,10 @@ import { ETeam } from "@/types/team";
     for (const round of rounds) {
       const playerIds = round.players ? round.players.map((r) => r._id) : [];
       const subIds = round.subs ? round.subs.map((r) => r._id) : [];
-      const roundObj: IRoundRelatives = { _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, match: matchId, teamAProcess: round.teamAProcess, teamAScore: round.teamAScore, teamBProcess: round.teamBProcess, teamBScore: round.teamBScore };
+      const roundObj: IRoundRelatives = { 
+        _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds, 
+        match: matchId, teamAProcess: round.teamAProcess, teamAScore: round.teamAScore, 
+        teamBProcess: round.teamBProcess, teamBScore: round.teamBScore, firstPlacing: round.firstPlacing };
 
       // Setting Nets of a round
       if (round.nets && round.nets.length > 0) {
@@ -96,7 +100,7 @@ import { ETeam } from "@/types/team";
           netIds.push(n._id);
           formattedNets.push({
             _id: n._id, num: n.num, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id,
-            teamAPlayerA: n.teamAPlayerA, teamAPlayerB: n.teamAPlayerB, teamBPlayerA: n.teamBPlayerA, teamBPlayerB: n.teamBPlayerB
+            teamAPlayerA: n.teamAPlayerA, teamAPlayerB: n.teamAPlayerB, teamBPlayerA: n.teamBPlayerA, teamBPlayerB: n.teamBPlayerB, 
           });
         }
         roundObj.nets = netIds;
@@ -118,7 +122,7 @@ import { ETeam } from "@/types/team";
     // Setting room
     if (!token || !userInfo) {
       // @ts-ignore
-     dispatch(setCurrentRoom({ _id: matchData.room._id, match: _id, round: formattedRounds[0]._id, teamA: teamA?._id ? teamA._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamB?._id ? teamB?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
+     dispatch(setCurrentRoom({ _id: matchData.room._id, match: _id, round: formattedRounds[0]._id, teamA: teamAF?._id ? teamAF._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamBF?._id ? teamBF?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
     }
 
     // Setting Match
@@ -132,7 +136,8 @@ import { ETeam } from "@/types/team";
         teamA: teamAF._id,
         teamB: teamBF._id,
         event: event._id,
-        rounds: [...rounds.map(r => r._id)]
+        rounds: [...rounds.map(r => r._id)],
+        netVariance: matchData.netVariance
       }),
     );
 

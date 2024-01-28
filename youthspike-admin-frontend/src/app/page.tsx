@@ -123,7 +123,7 @@ function EventsPage() {
       {/* {error && <Message error={error} />} */}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
-        {eventLogo ? <AdvancedImage className="w-12" cldImg={eventLogo} /> : <img src="/free-logo.svg" alt="free-logo" className="w-12" />}
+        {eventLogo ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={eventLogo} /> : <img src="/free-logo.svg" alt="free-logo" className="w-28 h-28 rounded-full object-cover object-fill" />}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
         <h2 >Events</h2>

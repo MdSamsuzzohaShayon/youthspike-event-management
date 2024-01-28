@@ -1,4 +1,5 @@
 import { IMatchExpRel, IMatchRelatives, INetBase, INetRelatives, IPlayer } from ".";
+import { ETeam } from "./team";
 
 export enum EActionProcess {
     INITIATE,
@@ -11,6 +12,7 @@ export enum EActionProcess {
 interface IRoundBase {
     _id: string;
     num: number;
+    firstPlacing: ETeam;
     teamAScore?: number;
     teamBScore?: number;
     teamAProcess: string; // Oponent Team

@@ -1,6 +1,6 @@
 import cld from '@/config/cloudinary.config';
 import { UPDATE_PLAYER } from '@/graphql/players';
-import { UPDATE_TEAM } from '@/graphql/teams';
+import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayer, IPlayerExpRel, PlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
@@ -27,7 +27,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [mutateTeam] = useMutation(UPDATE_TEAM);
-  const [mutatePlayer] = useMutation(UPDATE_PLAYER);
+  const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
 
   const playerLiEl = useRef<HTMLLIElement | null>(null);
 
@@ -50,9 +50,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     setActionOpen(prevState => !prevState);
     try {
       setIsLoading(true);
-      const changeCaptainRes = await mutateTeam({ variables: { input: { captain: playerId }, teamId } });
-      console.log(changeCaptainRes);
-
+      await mutateTeam({ variables: { input: { captain: playerId }, teamId } });
+      await client.refetchQueries({include: [GET_A_TEAM]});
     } catch (error) {
       console.log(error);
     } finally {
@@ -72,19 +71,19 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: PlayerStatus, playerId: string) => {
     e.preventDefault();
+    
     setActionOpen(prevState => !prevState);
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       await mutatePlayer({
         variables: {
           input: { status: newStatus },
           playerId
         }
       });
+      await client.refetchQueries({ include: [GET_A_TEAM] });
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
     }
 
   }
@@ -135,7 +134,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }, []);
 
   return (
-    <li ref={playerLiEl} className={`w-full ${isAssigned ? "bg-gray-500": "bg-gray-700 "} py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable={rankControls ?? false} style={{ minHeight: '6rem' }}
+    <li ref={playerLiEl} className={`w-full ${isAssigned ? "bg-gray-500" : "bg-gray-700 "} py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable={rankControls ?? false} style={{ minHeight: '6rem' }}
       onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter} >
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
         <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>

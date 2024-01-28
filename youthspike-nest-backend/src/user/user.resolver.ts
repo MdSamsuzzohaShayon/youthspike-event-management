@@ -148,7 +148,7 @@ export class UserResolver {
         delete newUserObj.password;
       }
       if (profileUrl && userExist.captainplayer) {
-        await this.playerService.update({ profile: profileUrl }, userExist.captainplayer.toString());
+        await this.playerService.updateOne({_id: userExist.captainplayer.toString()}, { profile: profileUrl });
       }
       if (newUserObj.email) delete newUserObj.email;
       const director = await this.userService.createOrUpdate(newUserObj, userId);

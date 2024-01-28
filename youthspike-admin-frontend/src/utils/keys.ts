@@ -1,5 +1,5 @@
-// const NODE_ENV: string  = "development";
-const NODE_ENV: string  = "production";
+const NODE_ENV: string  = "development";
+// const NODE_ENV: string  = "production";
 
 let BACKEND_URL: string = 'http://localhost:4000/graphql';
 let ADMIN_URL: string = 'http://localhost:3000';

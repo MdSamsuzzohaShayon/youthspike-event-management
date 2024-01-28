@@ -21,8 +21,10 @@ import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import NetPointCard from './NetPointCard';
 import { calcPairScore } from '@/utils/helper';
-import { setAvailablePlayers, setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
+import { setAvailablePlayers, setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers, setPrevPartner, setOutOfRange } from '@/redux/slices/matchesSlice';
 import { ETeamPlayer } from '@/types/net';
+import findOutOfRange from '@/utils/match/findOutOfRange';
+import findPrevPartner from '@/utils/match/findPrevPartner';
 
 interface INetCardProps {
   net?: INetRelatives | null | undefined;
@@ -43,7 +45,7 @@ function NetCard({ net }: INetCardProps) {
   const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { teamA, teamB } = useAppSelector((state) => state.teams);
-  const { disabledPlayerIds } = useAppSelector((state) => state.matches);
+  const { disabledPlayerIds, match: currMatch } = useAppSelector((state) => state.matches);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
@@ -93,6 +95,7 @@ function NetCard({ net }: INetCardProps) {
      * team a player 1 = 1, team a player 2 = 2, team b player 1 = 3, team b player 2 = 4
      */
     if (!net || !net._id || !net.round) return;
+    let evacuatedPlayerId: string | null | undefined = null;
 
     let netPlayerObj: INetUpdate = {
       _id: net._id,
@@ -104,25 +107,31 @@ function NetCard({ net }: INetCardProps) {
 
     if (playerSpot === ETeamPlayer.TA_PA || playerSpot === ETeamPlayer.TB_PA) {
       if (myTeamE === ETeam.teamA) {
+        evacuatedPlayerId = netPlayerObj.teamAPlayerA;
         netPlayerObj.teamAPlayerA = null;
       } else {
+        evacuatedPlayerId = netPlayerObj.teamBPlayerA;
         netPlayerObj.teamBPlayerA = null;
       }
     } else if (playerSpot === ETeamPlayer.TA_PB || playerSpot === ETeamPlayer.TB_PB) {
       if (myTeamE === ETeam.teamA) {
+        evacuatedPlayerId = netPlayerObj.teamAPlayerB;
         netPlayerObj.teamAPlayerB = null;
       } else {
+        evacuatedPlayerId = netPlayerObj.teamBPlayerB;
         netPlayerObj.teamBPlayerB = null;
       }
     }
 
     dispatch(updateNetPlayer(netPlayerObj));
     dispatch(setUpdateNets(netPlayerObj));
+    dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp === evacuatedPlayerId)]))
   };
 
   const handleDropdownPlayer = (e: React.SyntheticEvent, playerSpot: ETeamPlayer) => {
     e.preventDefault();
     if (!user.token || !user.info) return;
+    
 
     let isTeamProcessValid = false;
     if (myTeamE === ETeam.teamA) {
@@ -152,65 +161,17 @@ function NetCard({ net }: INetCardProps) {
      * Remove players who had been palyed with same player in the previous round
      */
 
-    /*
-    let playerIds: string[] = myPlayers.map((p) => p._id);
-    const playersIdsToDisable: string[] = [];
-
-    for (const currNet of currRoundNets) {
-      if (currNet.teamAPlayerA && playerIds.includes(currNet.teamAPlayerA)) {
-        // playerIds = playerIds.filter((pi) => pi !== currNet.teamAPlayerA);
-        playersIdsToDisable.push(currNet.teamAPlayerA);
-      }
-      if (currNet.teamAPlayerB && playerIds.includes(currNet.teamAPlayerB)) {
-        // playerIds = playerIds.filter((pi) => pi !== currNet.teamAPlayerB);
-        playersIdsToDisable.push(currNet.teamAPlayerB);
-      }
-      if (currNet.teamBPlayerA && playerIds.includes(currNet.teamBPlayerA)) {
-        // playerIds = playerIds.filter((pi) => pi !== currNet.teamBPlayerA);
-        playersIdsToDisable.push(currNet.teamBPlayerA);
-      }
-      if (currNet.teamBPlayerB && playerIds.includes(currNet.teamBPlayerB)) {
-        // playerIds = playerIds.filter((pi) => pi !== currNet.teamBPlayerB);
-        playersIdsToDisable.push(currNet.teamBPlayerB);
-      }
-    }
-    // dispatch(setAvailablePlayers(playerIds));
-    */
 
 
     // Disabled players who played with him in previous round
-    let prevPartnerId = null;
-    const pri = roundList.findIndex((rl) => rl._id === currRound?._id); // pri = previous round index
-    if (pri !== -1 && roundList[pri - 1]) {
-      const prevRound = roundList[pri - 1];
-      const prevRoundNets = allNets.filter((n) => n.round === prevRound._id);
+    const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net });
+    prevPartnerId ? dispatch(setPrevPartner(prevPartnerId)) : dispatch(setPrevPartner(null));
 
-      if (myTeamE === ETeam.teamA) {
-        if (net?.teamAPlayerA) {
-          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamAPlayerA === net.teamAPlayerA || prn.teamAPlayerA === net.teamAPlayerA);
-          if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerA) {
-            prevPartnerId = prevPlayedNet.teamAPlayerB;
-          } else if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerB) {
-            prevPartnerId = prevPlayedNet.teamAPlayerA;
-          }
-        }
-      }else{
-        if (net?.teamBPlayerA) {
-          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamBPlayerA === net.teamBPlayerA || prn.teamBPlayerA === net.teamBPlayerA);
-          if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerA) {
-            prevPartnerId = prevPlayedNet.teamBPlayerB;
-          } else if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerB) {
-            prevPartnerId = prevPlayedNet.teamBPlayerA;
-          }
-        }
-      }
+    // Disable players according to met variance
+    const inavalidPlayerIds = findOutOfRange({ currMatch, net, myPlayers, myTeamE, opPlayers, playerSpot });
+    if (inavalidPlayerIds.length > 0) dispatch(setOutOfRange(inavalidPlayerIds));
 
-      if(prevPartnerId){
-        // @ts-ignore
-        const dpi = [...new Set([prevPartnerId, ...disabledPlayerIds])];
-        dispatch(setDisabledPlayerIds(dpi));
-      }
-    }
+
   };
 
 
@@ -220,16 +181,6 @@ function NetCard({ net }: INetCardProps) {
     setOpenPasControl((prevState) => !prevState);
   }
 
-
-  useEffect(() => {
-    /**
-     * Check my players, scores and others players score
-     * If both teams locked then captain can input score
-    */
-    if (currentRoom && currentRoom.teamAProcess === EActionProcess.LOCKED && currentRoom.teamBProcess === EActionProcess.LOCKED) {
-
-    }
-  }, [currentRoom, user]);
 
   useEffect(() => {
     if (!teamAPlayers || !teamBPlayers || !user) return;

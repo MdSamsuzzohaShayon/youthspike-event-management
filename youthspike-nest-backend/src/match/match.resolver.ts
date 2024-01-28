@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Args, Field, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { EActionProcess, Round } from 'src/round/round.schema';
+import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
@@ -77,6 +77,7 @@ export class MatchResolver {
 
       const promisesAll = [];
 
+      let firstPlacing = ETeam.teamA;
       // Create Round and nets inside a round
       for (let i = 0; i < input.numberOfRounds; i += 1) {
         const netObjs = [];
@@ -87,9 +88,11 @@ export class MatchResolver {
           players: playerIds,
           teamAProcess: EActionProcess.INITIATE,
           teamBProcess: EActionProcess.INITIATE,
-          subs: []
+          subs: [],
+          firstPlacing
         };
         const round = await this.roundService.create(newRound);
+        firstPlacing = firstPlacing === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
         roundIds.push(round._id);
 
         // Create net
@@ -177,7 +180,7 @@ export class MatchResolver {
       return {
         code: 200,
         success: true,
-        data: findMatch ,
+        data: findMatch,
       };
     } catch (err) {
       return AppResponse.getError(err);

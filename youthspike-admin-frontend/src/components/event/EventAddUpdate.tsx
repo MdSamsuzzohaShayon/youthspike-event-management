@@ -31,7 +31,7 @@ const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
 const initialEvent = {
     name: 'Event 1',
     // startDate, endDate, playerLimit
-    divisions: 'Premier, Contender,',
+    divisions: 'Premier, Contender, Womans',
     nets: 3,
     rounds: 2,
     netVariance: 3,
