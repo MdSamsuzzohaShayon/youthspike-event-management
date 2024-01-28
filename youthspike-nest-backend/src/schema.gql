@@ -329,6 +329,12 @@ type RoundResoponse {
   teamBScore: Float
 }
 
+type RoomRoundProcess {
+  _id: String!
+  teamAProcess: String!
+  teamBProcess: String!
+}
+
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
