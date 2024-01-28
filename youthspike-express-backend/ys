@@ -1,0 +1,11 @@
+[0;1;31m●[0m ysl.service - youthspikersleague
+     Loaded: loaded (/etc/systemd/system/ysl.service; enabled; vendor preset: enabled)
+     Active: [0;1;31mfailed[0m (Result: exit-code) since Tue 2022-09-13 21:04:30 UTC; 8min ago
+    Process: 8664 ExecStart=/usr/bin/node /root/server/app.js [0;1;31m(code=exited, status=1/FAILURE)[0m
+   Main PID: 8664 (code=exited, status=1/FAILURE)
+
+Sep 13 21:04:30 your-vps.react systemd[1]: ysl.service: Scheduled restart job, restart counter is at 5.
+Sep 13 21:04:30 your-vps.react systemd[1]: Stopped youthspikersleague.
+Sep 13 21:04:30 your-vps.react systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mysl.service: Start request repeated too quickly.[0m
+Sep 13 21:04:30 your-vps.react systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mysl.service: Failed with result 'exit-code'.[0m
+Sep 13 21:04:30 your-vps.react systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start youthspikersleague.[0m

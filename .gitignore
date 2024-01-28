@@ -1,0 +1,13 @@
+/res
+/node_modules
+
+/youthspike-nest-backend/dist
+/youthspike-nest-backend/.env
+/youthspike-nest-backend/node_modules
+
+/youthspike-frontend/.env
+/youthspike-frontend/node_modules
+
+/youthspike-express-backend/node_modules 
+/youthspike-express-backend/.env
+

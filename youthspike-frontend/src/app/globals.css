@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Typography start  */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+}
+h1 {
+  @apply text-3xl font-bold;
+}
+h2 {
+  @apply text-2xl font-bold;
+}
+h3 {
+  @apply text-xl font-semibold;
+}
+h4 {
+  @apply text-lg font-medium;
+}
+h5 {
+  @apply text-base font-light;
+}
+h6 {
+  @apply text-sm font-light;
+}
+p {
+  @apply text-sm;
+}
+label {
+  @apply text-lg font-normal;
+}
+
+/* Remove arrow (spinner) from number input */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Typography End  */
+
+/* SVG Style start  */
+.svg-white {
+  filter: grayscale(100%) brightness(0) invert(100%);
+}
+.svg-black {
+  filter: grayscale(100%) brightness(0);
+}
+
+.svg-yellow {
+  filter: grayscale(100%) sepia(100%) brightness(1.5) saturate(5) hue-rotate(60deg);
+}
+
+.svg-red {
+  filter: grayscale(100%) brightness(0);
+}
+/* SVG Style end  */
+
+/* Button style start  */
+.btn-primary {
+  @apply px-3 py-2 bg-gray-500 text-gray-100 rounded-md hover:bg-gray-700 font-bold text-xl;
+}
+
+.btn-secondary {
+  @apply px-3 py-2 bg-gray-800 text-gray-100 rounded-md hover:bg-gray-700 font-bold text-xl;
+}
+
+.btn-info {
+  @apply px-3 py-2 bg-yellow-500 text-yellow-100 rounded-md hover:bg-yellow-700 font-bold text-xl;
+}
+
+.btn-danger {
+  @apply px-3 py-2 bg-red-500 text-red-100 rounded-md hover:bg-red-700 font-bold text-xl;
+}
+
+/* Button style end  */
+
+.form-control {
+  @apply border border-gray-300 bg-transparent outline-none px-2 rounded-full h-10 text-center;
+}
+
+/* Loading animation  */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  /* border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #3498db; */
+}
