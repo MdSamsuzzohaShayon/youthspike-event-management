@@ -1,11 +1,9 @@
 import { setCurrentRoundNets } from "@/redux/slices/netSlice";
-import { setCurrentRoom } from "@/redux/slices/roomSlice";
-import { setCurrentRound } from "@/redux/slices/roundSlice";
+import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { INetRelatives, IRoom, IRoundRelatives } from "@/types";
 import { IError } from "@/types/elements";
 import { EActionProcess } from "@/types/room";
 import { ETeam } from "@/types/team";
-import { ReducerAction } from "react";
 import { Socket } from "socket.io-client";
 
 interface ICommonProps {
@@ -21,7 +19,6 @@ interface INextRoundProps extends ICommonProps {
     currRoom: IRoom | null;
     newRoundIndex: number;
     myTeamE: ETeam;
-    opTeamProcess: EActionProcess
 }
 
 interface iCanGoProps extends ICommonProps {
@@ -56,38 +53,26 @@ function canGoNextOrPrevRound({ currRound, roundList, next, currRoundNets, setAc
     return newRoundIndex;
 }
 
-function changeTheRound({ socket, roundList, currRound, dispatch, allNets, currRoom, newRoundIndex, myTeamE }: INextRoundProps): boolean {
+function changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex, myTeamE, currRound }: INextRoundProps): boolean {
 
 
-    // // Set Round and nets
-    // const newRoundObj = roundList[newRoundIndex];
-    // dispatch(setCurrentRound(newRoundObj));
-    // const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
-    // dispatch(setCurrentRoundNets(filteredNets));
+    // Current round, current round nets and round list properly
+    const newRoundObj = roundList[newRoundIndex];
+    const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
+    dispatch(setCurrentRoundNets(filteredNets));
 
+    
+    if(myTeamE === ETeam.teamA){
+        newRoundObj.teamAProcess = newRoundObj.teamAProcess && newRoundObj.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamAProcess;
+    }else{
+        newRoundObj.teamBProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
+    }
+    
+    dispatch(setCurrentRound(newRoundObj));
+    dispatch(setRoundList([...roundList.filter((r)=> r._id !== newRoundObj._id, newRoundObj)]))
 
-    // // Set Room and Process for Team A and team B
-    // const nextRound = roundList[newRoundIndex]._id;
-    // const rcd = { room: currRoom?._id, round: currRound?._id, nextRound };
-    // if (currRoom) {
-    //     const newCurrRoom = { ...currRoom, round: roundList[newRoundIndex]._id };
-    //     newCurrRoom.teamAProcess = newRoundObj.teamAProcess && newRoundObj.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamAProcess;
-    //     newCurrRoom.teamBProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
-    //     let myTeamProcess = EActionProcess.CHECKIN, opTeamProcess = EActionProcess.CHECKIN;
-    //     if (myTeamE === ETeam.teamA) {
-    //         newCurrRoom.teamARound = nextRound;
-    //         myTeamProcess = newRoundObj.teamAProcess && newRoundObj.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamAProcess;
-    //         opTeamProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
-    //     } else {
-    //         newCurrRoom.teamBRound = nextRound;
-    //         myTeamProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
-    //         opTeamProcess = newRoundObj.teamAProcess && newRoundObj.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamAProcess;
-    //     }
-    //     dispatch(setCurrentRoom(newCurrRoom));
-    //     dispatch(setTeamProcess({ myTeamProcess, opTeamProcess }));
-    // }
-    // // @ts-ignore
-    // if (socket) socket.emit("round-change-from-client", rcd);
+    
+    if (socket) socket.emit("round-change-from-client", {room: currRoom?._id, round: currRound?._id, nextRound: newRoundObj._id});
     return true;
 }
 

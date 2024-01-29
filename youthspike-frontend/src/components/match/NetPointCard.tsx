@@ -20,6 +20,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard)
     const user = useUser();
     const dispatch = useAppDispatch();
     const currRoom = useAppSelector((state) => state.rooms.current);
+    const {current: currRound} = useAppSelector((state)=> state.rounds);
     const teamA = useAppSelector((state) => state.teams.teamA);
 
 
@@ -59,7 +60,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard)
         );
 
 
-        return !isUserAuthorized || (currRoom?.teamBProcess !== EActionProcess.LINEUP || currRoom?.teamAProcess !== EActionProcess.LINEUP);
+        return !isUserAuthorized || (currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP);
     };
 
 

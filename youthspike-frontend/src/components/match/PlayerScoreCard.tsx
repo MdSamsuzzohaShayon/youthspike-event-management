@@ -22,6 +22,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
   const user = useUser();
 
   const currentRoom = useAppSelector((state) => state.rooms.current);
+  const {current: currentRound} = useAppSelector((state)=> state.rounds);
 
   const handleDropDown = (e: React.SyntheticEvent) => {
     // Show drop down box
@@ -35,8 +36,8 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
     <>
       <div className="p-img-wrap relative w-full h-24">
 
-        {player && user.token && evacuatePlayer && currentRoom
-          && (currentRoom.teamAProcess === EActionProcess.LINEUP || currentRoom.teamBProcess === EActionProcess.LINEUP || currentRoom.teamAProcess === EActionProcess.CHECKIN || currentRoom.teamBProcess === EActionProcess.CHECKIN)
+        {player && user.token && evacuatePlayer && currentRoom && currentRound
+          && (currentRound.teamAProcess === EActionProcess.LINEUP || currentRound.teamBProcess === EActionProcess.LINEUP || currentRound.teamAProcess === EActionProcess.CHECKIN || currentRound.teamBProcess === EActionProcess.CHECKIN)
           && <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full"> <img src="/icons/close.svg"
             className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} /> </div>}
 

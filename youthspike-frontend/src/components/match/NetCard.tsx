@@ -135,21 +135,21 @@ function NetCard({ net }: INetCardProps) {
 
     let isTeamProcessValid = false;
     if (myTeamE === ETeam.teamA) {
-      if (currentRoom?.teamAProcess === EActionProcess.CHECKIN
-        && (currentRoom?.teamBProcess === EActionProcess.CHECKIN || currentRoom?.teamBProcess === EActionProcess.LINEUP)) {
+      if (currRound?.teamAProcess === EActionProcess.CHECKIN
+        && (currRound?.teamBProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.LINEUP)) {
         isTeamProcessValid = true;
       }
     } else {
-      if (currentRoom?.teamBProcess === EActionProcess.CHECKIN
-        && (currentRoom?.teamAProcess === EActionProcess.CHECKIN || currentRoom?.teamAProcess === EActionProcess.LINEUP)) {
+      if (currRound?.teamBProcess === EActionProcess.CHECKIN
+        && (currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamAProcess === EActionProcess.LINEUP)) {
         isTeamProcessValid = true;
       }
     }
     if (!isTeamProcessValid) return;
 
     // At first team A will submit their players 
-    if (myTeamE === ETeam.teamA && currentRoom && currentRoom.teamAProcess === EActionProcess.LINEUP) return;
-    if (myTeamE === ETeam.teamB && currentRoom && currentRoom.teamAProcess !== EActionProcess.LINEUP) return;
+    if (myTeamE === ETeam.teamA && currRound && currRound.teamAProcess === EActionProcess.LINEUP) return;
+    if (myTeamE === ETeam.teamB && currRound && currRound.teamAProcess !== EActionProcess.LINEUP) return;
 
     dispatch(setShowTeamPlayers(true))
     dispatch(setPlayerSpot(playerSpot));

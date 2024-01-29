@@ -284,61 +284,45 @@ export class MyGatWay implements OnModuleInit {
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
   }
 
-  // @SubscribeMessage("round-change-from-client")
-  // async onRoundChange(client, roundChangeInput: RoundChangeInput) {
-  //   /**
-  //    * Change process for a team
-  //    * Make submit process for the team who changes the  round
-  //    * Invite other team to be in the same round as current team is in
-  //    * Check current round is not locked, if it is locked let it be
-  //    */
-  //   const [currRoundExist, nextRoundExist] = await Promise.all([
-  //     this.roundService.findById(roundChangeInput.round),
-  //     this.roundService.findById(roundChangeInput.nextRound)
-  //   ]);
+  @SubscribeMessage("round-change-from-client")
+  async onRoundChange(client, roundChangeInput: RoundChangeInput) {
+    /**
+     * Change process for a team
+     * Make submit process for the team who changes the  round
+     * Invite other team to be in the same round as current team is in
+     * Check current round is not locked, if it is locked let it be
+     */
+    const [currRoundExist, nextRoundExist] = await Promise.all([
+      this.roundService.findById(roundChangeInput.round),
+      this.roundService.findById(roundChangeInput.nextRound)
+    ]);
 
-  //   if (!currRoundExist || !nextRoundExist) return;
+    if (!currRoundExist || !nextRoundExist) return;
+    const prevRoom = this.roomsLocal.get(roundChangeInput.room);
+    if (!prevRoom) return;
 
-  //   const prevRoom = this.roomsLocal.get(roundChangeInput.room);
-
-  //   // Set room data initially
-  //   let roomData = { ...prevRoom, round: nextRoundExist._id.toString() };
-  //   if (!prevRoom) return;
+    // Set room data initially
+    let roomData = structuredClone(prevRoom);;
 
 
-  //   if (!prevRoom.teamAClient || !prevRoom.teamBClient) return;
 
-  //   if (prevRoom.teamAClient === client.id) {
-  //     roomData.teamARound = roundChangeInput.nextRound;
-  //     if (nextRoundExist.teamAProcess === EActionProcess.INITIATE) {
-  //       nextRoundExist.teamAProcess = EActionProcess.CHECKIN;
-  //       roomData.teamAProcess = EActionProcess.CHECKIN;
-  //     } else {
-  //       nextRoundExist.teamAProcess = nextRoundExist.teamAProcess;
-  //       roomData.teamAProcess = nextRoundExist.teamAProcess;
-  //     }
+    const roundUpdateObj = {
+      teamAProcess: nextRoundExist.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamAProcess,
+      teamBProcess: nextRoundExist.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamBProcess
+    };
 
-  //   } else if (prevRoom.teamBClient === client.id) {
-  //     roomData.teamBRound = roundChangeInput.nextRound;
-  //     if (nextRoundExist.teamBProcess === EActionProcess.INITIATE) {
-  //       nextRoundExist.teamBProcess = EActionProcess.CHECKIN;
-  //       roomData.teamBProcess = EActionProcess.CHECKIN;
-  //     } else {
-  //       nextRoundExist.teamBProcess = nextRoundExist.teamBProcess;
-  //       roomData.teamBProcess = EActionProcess.CHECKIN;
-  //     }
-  //   }
+    let roomRounds = [...prevRoom.rounds];
+    const localRoundIndex = roomRounds.findIndex((r)=> r._id === roundChangeInput.nextRound);
+    if(localRoundIndex !== -1){
+      roomRounds[localRoundIndex] = {...roomRounds[localRoundIndex], ...roundUpdateObj};
+      roomData.rounds = roomRounds;
+    }
+    await this.roundService.updateOne({ _id: roundChangeInput.nextRound }, roundUpdateObj);
+    this.roomsLocal.set(prevRoom._id, roomData);
 
-  //   const roundUpdateObj = {
-  //     teamAProcess: nextRoundExist.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamAProcess,
-  //     teamBProcess: nextRoundExist.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamBProcess
-  //   };
-  //   await this.roundService.updateOne({ _id: roundChangeInput.nextRound }, roundUpdateObj);
-  //   this.roomsLocal.set(prevRoom._id, roomData);
-
-  //   // set oponent specific round and current round
-  //   client.to(prevRoom._id).emit("round-change-response", roomData);
-  // }
+    // set oponent specific round and current round
+    client.to(prevRoom._id).emit("round-change-response", roomData);
+  }
 
   // @SubscribeMessage("round-change-accept-from-client")
   // async onAcceptRoundChange(client, acceptRoom: RoomLocal) {

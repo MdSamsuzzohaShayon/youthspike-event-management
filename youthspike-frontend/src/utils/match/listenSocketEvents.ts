@@ -55,6 +55,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
       dispatch(setRoundList(updatedRoundList));
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
+
   });
 
   socket.on('submit-lineup-response', (data: IRoomNets) => {
@@ -121,18 +122,32 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
   });
 
 
-  // // @ts-ignore
-  // socket.on('round-change-response', (data: IRoom) => {
-  //   const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-  //   const extranctedData = { ...data };
-  //   let myTeamProcess = null, opTeamProcess = null;
-  //   if (isTeamACaptain) {
-  //     myTeamProcess = extranctedData.teamAProcess; opTeamProcess = extranctedData.teamBProcess;
-  //   } else {
-  //     myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
-  //   }
-  //   dispatch(setCurrentRoom(extranctedData));
-  // });
+  if (socket) socket.on('round-change-response', (data: IRoom) => {
+    // Set current round and round list
+    const updatedRoundList: IRoundRelatives[] = [];
+    let currRoundObj: null | IRoundRelatives = null;
+    const roomRounds: IRoomRoundProcess[] = [...data.rounds];
+    if (roomRounds.length > 0) {
+      for (let i = 0; i < roomRounds.length; i++) {
+        if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
+          const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
+          const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
+          if (roundObj) {
+            // @ts-ignore
+            updatedRoundList.push({ ...roundObj, ...teamProcessObj });
+            if (roomRounds[i]._id === currentRound?._id) {
+              // @ts-ignore
+              currRoundObj = { ...roundObj, ...teamProcessObj };
+            }
+          }
+        }
+      }
+
+      dispatch(setRoundList(updatedRoundList));
+      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+    }
+
+  });
 
   // // @ts-ignore 
   // socket.on("round-change-accept-response", (data: IRoom) => {

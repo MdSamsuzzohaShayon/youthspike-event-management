@@ -19,7 +19,7 @@ const roundSlice = createSlice({
       state.current = action.payload;
     },
     setRoundList: (state, action: PayloadAction<IRoundRelatives[]>) => {
-      state.roundList = action.payload;
+      state.roundList = action.payload.sort((a, b) => a.num - b.num);;
     },
   },
 });
