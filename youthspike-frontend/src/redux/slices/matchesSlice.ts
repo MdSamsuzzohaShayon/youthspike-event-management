@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { IMatchRelatives, ITeam, IPlayer } from '@/types';
-import { EActionProcess } from '@/types/elements';
 import { ETeamPlayer, INetRelatives } from '@/types/net';
+import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
@@ -18,8 +18,6 @@ interface MatchesState {
   opPlayers: IPlayer[];
   myTeamE: ETeam;
   opTeamE: ETeam;
-  myTeamProcess: EActionProcess;
-  opTeamProcess: EActionProcess;
 
   // For drop down selections
   showTeamPlayers: boolean;
@@ -28,6 +26,8 @@ interface MatchesState {
   disabledPlayerIds: string[],
   selectedPlayerSpot: ETeamPlayer | null,
   selectedNet: INetRelatives | null,
+  prevPartner: null | string;
+  outOfRange: string[];
 }
 
 const initialState: MatchesState = {
@@ -57,16 +57,18 @@ const initialState: MatchesState = {
   opPlayers: [],
   myTeamE: ETeam.teamB,
   opTeamE: ETeam.teamA,
-  myTeamProcess: EActionProcess.INITIATE,
-  opTeamProcess: EActionProcess.INITIATE,
 
   // Submitline up
   showTeamPlayers: false,
   netTeamPlayer: null,
-  availablePlayerIds: [],
-  disabledPlayerIds: [],
   selectedPlayerSpot: null,
   selectedNet: null,
+
+
+  availablePlayerIds: [],
+  disabledPlayerIds: [],
+  prevPartner: null,
+  outOfRange: [], // Net Variance
 };
 
 export const matchesSlice = createSlice({
@@ -91,10 +93,6 @@ export const matchesSlice = createSlice({
     setTeamE: (state, action: PayloadAction<{ myTeamE: ETeam, opTeamE: ETeam }>) => {
       state.myTeamE = action.payload.myTeamE;
       state.opTeamE = action.payload.opTeamE;
-    },
-    setTeamProcess: (state, action: PayloadAction<{ myTeamProcess: EActionProcess, opTeamProcess: EActionProcess }>) => {
-      state.myTeamProcess = action.payload.myTeamProcess;
-      state.opTeamProcess = action.payload.opTeamProcess;
     },
 
 
@@ -124,14 +122,22 @@ export const matchesSlice = createSlice({
     setSelectedNet: (state, action: PayloadAction<INetRelatives | null>) => {
       state.selectedNet = action.payload;
     },
+    setPrevPartner:(state, action: PayloadAction<string | null>)=>{
+      state.prevPartner = action.payload;
+    },
+
+    setOutOfRange: (state, action: PayloadAction<string[]>)=>{
+      state.outOfRange = action.payload;
+    }
 
   },
 });
 
 // Action creators are generated for each case reducer function
 export const {
-  setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE, setTeamProcess,
-  setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet
+  setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE,
+  setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet,
+  setPrevPartner, setOutOfRange
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

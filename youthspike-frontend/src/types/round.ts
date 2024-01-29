@@ -1,20 +1,23 @@
 import { IMatchExpRel, IMatchRelatives, INetBase, INetRelatives, IPlayer } from ".";
+import { EActionProcess } from "./room";
+import { ETeam } from "./team";
 
-export enum EActionProcess {
-    INITIATE,
-    CHECKIN,
-    PLACING,
-    LINEUP,
-};
+// export enum EActionProcess {
+//     INITIATE ="INITIATE",
+//     CHECKIN = "CHECKIN",
+//     PLACING="PLACING",
+//     LINEUP,
+// };
 
 
 interface IRoundBase {
     _id: string;
     num: number;
+    firstPlacing: ETeam;
     teamAScore?: number;
     teamBScore?: number;
-    teamAProcess: string; // Oponent Team
-    teamBProcess: string; // My Team
+    teamAProcess: EActionProcess; // Oponent Team
+    teamBProcess: EActionProcess; // My Team
 }
 
 interface IRoundRelatives extends IRoundBase {

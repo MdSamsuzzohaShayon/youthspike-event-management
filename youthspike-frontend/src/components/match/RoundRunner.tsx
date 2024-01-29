@@ -1,19 +1,13 @@
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { UserRole } from '@/types/user';
-import { EActionProcess, IError } from '@/types/elements';
-import { ETeam, ITeam } from '@/types/team';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useSocket } from '@/lib/SocketProvider';
-import { setCheckedIn, setSubmittedLineup, setTeamProcess } from '@/redux/slices/matchesSlice';
-import { setCurrentRound } from '@/redux/slices/roundSlice';
-import { setCurrentRoom } from '@/redux/slices/roomSlice';
-import { setCurrentRoundNets } from '@/redux/slices/netSlice';
 import CheckInBox from '../ActionBoxes/CheckInBox';
 import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
 import RoundChangeBox from '../ActionBoxes/RoundChangeBox';
+import { EActionProcess } from '@/types/room';
 
 
 
@@ -26,14 +20,17 @@ function RoundRunner() {
    * Step-5: make submit line up from the next round and showing a prompt to oponent that "Your oponent is waiting for you in the next round to submit your lineup" - Change process from the server
    */
   // Hooks
-  const dispatch = useAppDispatch();
   const user = useUser();
   const socket = useSocket();
 
   // Redux State
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const currentRoom = useAppSelector((state) => state.rooms.current);
-  const { myTeamProcess } = useAppSelector((state) => state.matches);
+  const { teamA } = useAppSelector((state)=> state.teams)
+
+  // Local State
+  const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
+  const [otp, setOtp] = useState<EActionProcess>(EActionProcess.INITIATE); // otp = Oponent team process
 
 
   const renderActionBoxes = (): React.ReactNode => {
@@ -44,25 +41,30 @@ function RoundRunner() {
       hasAction = true;
     }
 
-    if (currentRoom && currentRoom.teamARound !== currentRoom.teamBRound) {
-      return <RoundChangeBox currRoom={currentRoom} socket={socket} user={user} />
+    switch (mtp) {
+      case EActionProcess.INITIATE:
+        return <InitializeBox currRoom={currentRoom} socket={socket} user={user} currRound={currentRound} roundList={roundList} mtp={mtp} otp={otp} />
 
-    } else {
-      switch (myTeamProcess) {
-        case EActionProcess.INITIATE:
-          return <InitializeBox currRoom={currentRoom} socket={socket} user={user} />
+      case EActionProcess.CHECKIN:
+        return <CheckInBox currRoom={currentRoom} user={user} socket={socket} roundList={roundList} mtp={mtp} otp={otp} />
 
-        case EActionProcess.CHECKIN:
-          return <CheckInBox currRoom={currentRoom} user={user} socket={socket} />
+      case EActionProcess.LINEUP:
+        return <LineupBox currRoom={currentRoom} user={user} socket={socket} mtp={mtp} otp={otp} />
 
-        case EActionProcess.LINEUP:
-          return <LineupBox currRoom={currentRoom} user={user} socket={socket} />
-
-        default:
-          break;
-      }
+      default:
+        break;
     }
   };
+
+  useEffect(()=>{
+    if(user && user.info && user.info.captainplayer === teamA?.captain?._id){
+      if(currentRound?.teamAProcess)setMtp(currentRound.teamAProcess);
+      if(currentRound?.teamBProcess)setOtp(currentRound.teamBProcess);
+    }else{
+      if(currentRound?.teamBProcess)setMtp(currentRound.teamBProcess);
+      if(currentRound?.teamAProcess)setOtp(currentRound.teamAProcess);
+    }
+  }, [currentRound, user, teamA]);
 
 
   return (

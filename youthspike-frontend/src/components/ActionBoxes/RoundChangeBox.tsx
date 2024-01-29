@@ -4,7 +4,7 @@ import { setCurrentRoundNets } from '@/redux/slices/netSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound } from '@/redux/slices/roundSlice';
 import { IRoom, IUserContext } from '@/types';
-import { EActionProcess } from '@/types/elements';
+import { EActionProcess } from '@/types/room';
 import React from 'react'
 import { Socket } from 'socket.io-client';
 

@@ -19,8 +19,17 @@ export enum EActionProcess {
   COMPLETE = 'COMPLETE',
 };
 
+export enum ETeam{
+  teamA = "teamA",
+  teamB = "teamB",
+}
+
 registerEnumType(EActionProcess, {
   name: 'EActionProcess',
+});
+
+registerEnumType(ETeam, {
+  name: 'ETeam',
 });
 
 /**
@@ -67,6 +76,11 @@ export class Round extends AppDocument {
   @Field((type) => EActionProcess, { nullable: false })
   @Prop({ required: true, type: String, default: EActionProcess.INITIATE, enum: EActionProcess })
   teamBProcess: EActionProcess;
+
+
+  @Field((type) => ETeam, { nullable: false })
+  @Prop({ required: true, type: String, enum: ETeam })
+  firstPlacing: ETeam;
 }
 
 export const RoundSchema = SchemaFactory.createForClass(Round);

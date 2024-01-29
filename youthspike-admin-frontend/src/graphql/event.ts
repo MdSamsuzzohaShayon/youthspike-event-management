@@ -27,6 +27,11 @@ sponsors {
   company
   logo
 }
+teams {
+  _id
+  name
+  division
+}
 `;
 
 /**

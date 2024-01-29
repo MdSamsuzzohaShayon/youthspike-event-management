@@ -37,6 +37,7 @@ query GetMatch($matchId: String!) {
         teamAScore
         teamBProcess
         teamBScore
+        firstPlacing
         players {
           _id
           email

@@ -101,11 +101,14 @@ export class PlayerResolver {
         playerObj.profile = profileUrl
       };
 
-      const updatedPlayer = await this.playerService.update(playerObj, playerId);
+      const [updatedPlayer, playerExist]=await Promise.all([
+        this.playerService.updateOne({_id: playerId}, playerObj),
+        this.playerService.findById(playerId)
+      ])
       return {
         success: true,
         code: 202,
-        data: updatedPlayer,
+        data: playerExist,
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -125,7 +128,7 @@ export class PlayerResolver {
           const playerId = input[i]._id;
           const playerObj = { ...input[i] };
           if (playerObj._id) delete playerObj._id;
-          updatePromises.push(this.playerService.update(playerObj, playerId));
+          updatePromises.push(this.playerService.updateOne({_id: playerId}, playerObj));
         }
         players = await Promise.all(updatePromises);
       }

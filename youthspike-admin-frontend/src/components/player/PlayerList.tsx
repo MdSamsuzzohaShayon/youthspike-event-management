@@ -40,8 +40,6 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     if (!rankControls) return;
     if (upr.length > 0) {
       try {
-        console.log("Update ranks");
-
         setIsLoading(true)
         // Submit to the server
         await rankPlayers({ variables: { input: upr } });
@@ -117,7 +115,7 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
       <ul className='flex flex-wrap items-center gap-2'>
         {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
-          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
+          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
       </ul>
     </div>
   )

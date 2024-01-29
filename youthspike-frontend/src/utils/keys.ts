@@ -1,5 +1,5 @@
 const NODE_ENV: string = 'development';
-// const NODE_ENV = 'production';
+// const NODE_ENV: string = 'production';
 
 let FRONTEND_URL = "http://localhost:3001";
 let ADMIN_FRONTEND_URL = "http://localhost:3000";

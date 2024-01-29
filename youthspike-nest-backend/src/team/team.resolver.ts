@@ -76,7 +76,7 @@ export class TeamResolver {
       const promiseOperations = [];
       promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
       for (let i = 0; i < players.length; i += 1) {
-        promiseOperations.push(this.playerService.update({ $push: { teams: newTeam._id }, rank: i + 1 }, players[i]));
+        promiseOperations.push(this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id }, rank: i + 1 }));
       }
       if (input.captain) {
         // Create new user for captain
@@ -93,7 +93,7 @@ export class TeamResolver {
           password: rawPassword,
         });
         promiseOperations.push(
-          this.playerService.update({ captainofteam: newTeam._id, captainuser: captainUser._id }, input.captain),
+          this.playerService.updateOne({ _id: input.captain }, { captainofteam: newTeam._id, captainuser: captainUser._id },),
         );
       }
       await Promise.all(promiseOperations);
@@ -123,7 +123,7 @@ export class TeamResolver {
      */
     const teamExist = await this.teamService.findById(teamId);
     if (!teamExist) return AppResponse.exists("Team");
-    
+
     const updatePromises = [];
 
     // Update captain
@@ -133,12 +133,12 @@ export class TeamResolver {
       if (playerExist && teamExist.captain) {
         const prevCaptain = await this.playerService.findById(teamExist.captain.toString());
         // Make prevCaptain null
-        if(input.captain !== teamExist.captain.toString()){
-          updatePromises.push(this.playerService.update({ captainofteam: null, captainuser: null }, teamExist.captain.toString()));
-          updatePromises.push(this.userService.delete({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }]}));
+        if (input.captain !== teamExist.captain.toString()) {
+          updatePromises.push(this.playerService.updateOne({ _id: teamExist.captain.toString() }, { $pull: { captainofteams: teamExist._id.toString() }, captainuser: null }));
+          updatePromises.push(this.userService.delete({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }] }));
 
           // Create new user
-          const playerUserExist = await this.userService.findOne({email: playerExist.email});
+          const playerUserExist = await this.userService.findOne({ email: playerExist.email });
           const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
           const hashedPassword = await bcrypt.hash(rawPassword, 10);
           const userObj = {
@@ -146,12 +146,15 @@ export class TeamResolver {
             firstName: playerExist.firstName, lastName: playerExist.lastName, role: UserRole.captain, captainplayer: playerExist._id, active: true
           }
           let newCaptainUser = null;
-          if(playerUserExist){
-            newCaptainUser = await this.userService.createOrUpdate(userObj, playerUserExist._id)
-          }else{
+          let newCaptainUserId = null;
+          if (playerUserExist) {
+            newCaptainUser = await this.userService.updateOne({ _id: playerUserExist._id }, userObj);
+            newCaptainUserId = playerUserExist._id;
+          } else {
             newCaptainUser = await this.userService.create(userObj);
+            newCaptainUserId = newCaptainUser._id;
           }
-          updatePromises.push(this.playerService.update({ captainofteam: teamId, captainuser: newCaptainUser._id }, input.captain.toString()));
+          updatePromises.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $push: { captainofteams: teamId }, captainuser: newCaptainUserId },));
         }
         updatePromises.push(this.teamService.update({ captain: playerExist._id }, { _id: teamId }));
       }

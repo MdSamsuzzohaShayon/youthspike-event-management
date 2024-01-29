@@ -47,6 +47,10 @@ export class Player extends AppDocument {
   @Field({ nullable: true })
   phone?: string;
 
+  // @Prop({ required: false })
+  // @Field({ nullable: true })
+  // division?: string;
+
   /**
    * Relatives
    */

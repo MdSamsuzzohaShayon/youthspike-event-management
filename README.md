@@ -23,7 +23,7 @@ ___
  - [Explaning score](https://www.loom.com/share/2a6cd800d8414f06993896bf185e0dcb)
  - [Previous League App Dashboard](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
  
- - [Net veriance explanation](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), captain and coach are same, player list(team) means roster, league and event act as same with little bit of diffrence
+ - [Net variance explanation](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), captain and coach are same, player list(team) means roster, league and event act as same with little bit of diffrence
 
  - **Testing**
  - [Edit event and navigation and moving a squad list](https://www.loom.com/share/5a4ca5cb6afe4351a2c06e4707d1b8f6)
@@ -55,10 +55,13 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Player need to deselect when evacuating from the net
+ - If team A check in place their player at the first round, In the next round team B will be placing playters first
  - Do not care about which captain is in which round, make both captain freely go to the next round after completing their current round (make sure that captain a change change only his progress)
  - Properly change round status
  - Pair Score validation
  - Check In process
+ - Player will have division, and A player can be moved to another division
  - Check everytime, my round and oponent's round should be same!
  - To go to the next round, chect the next round is newly explored or not
  - Move team - when moving team to another event current event should not have that team
@@ -257,9 +260,10 @@ ___
 
 
 ### Ask
+ - I have updated the server please try it out.
  - Currently the main problem I am facing is with changing the round.
- - If you want to run the match both team need to check and both team need to be in the same round to so if one team submit their lineup for a specific round the other team can see that on real time, if the other is in another round it will be complicated for them both
- - Currently if you face any issues please reload the page and try again
+ - If you want to run the match both team need to check and both team need to be in the same round to so if one team submit their lineup for a specific round the other team can see that on real time, if the other is in another round it will be complicated for them both. However, I have got some idea to solve this. I will work with it now. 
+ - Currently if you face any issues please reload the page and try again. Login as captain to run the match
 
 
  curl -i -N  \

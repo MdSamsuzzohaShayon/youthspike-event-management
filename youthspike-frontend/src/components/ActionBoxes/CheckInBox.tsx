@@ -1,8 +1,8 @@
 import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setTeamProcess } from '@/redux/slices/matchesSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
-import { IRoom, IUserContext } from '@/types';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { IRoom, IRoundRelatives, IUserContext } from '@/types';
 import { EActionProcess, INetAssign } from '@/types/room';
 import { ETeam } from '@/types/team';
 import React from 'react'
@@ -12,15 +12,19 @@ interface IBoxProps {
   currRoom: IRoom | null;
   user: null | IUserContext;
   socket: null | Socket;
+  roundList: IRoundRelatives[];
+  otp: EActionProcess;
+  mtp: EActionProcess;
 }
 
-function CheckInBox({ currRoom, user, socket }: IBoxProps) {
+function CheckInBox({ currRoom, user, socket, roundList, mtp, otp}: IBoxProps) {
 
   const dispatch = useAppDispatch();
 
   const { teamA } = useAppSelector((state) => state.teams);
-  const { myTeamE, opTeamProcess } = useAppSelector((state) => state.matches);
+  const { myTeamE } = useAppSelector((state) => state.matches);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
+  const { current: currRound } = useAppSelector((state)=> state.rounds);
 
 
   const checkInToLineup = (e: React.SyntheticEvent) => {
@@ -28,9 +32,9 @@ function CheckInBox({ currRoom, user, socket }: IBoxProps) {
     const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
     const actionData: any = {
       room: currRoom._id,
-      round: currRoom.round,
-      teamAProcess: currRoom.teamAProcess,
-      teamBProcess: currRoom.teamBProcess,
+      round: currRound?._id,
+      teamAProcess: currRound?.teamAProcess,
+      teamBProcess: currRound?.teamBProcess,
       nets: []
     };
     if (isTeamACaptain) {
@@ -48,25 +52,26 @@ function CheckInBox({ currRoom, user, socket }: IBoxProps) {
     }));
     actionData.nets = roundNetAssign;
 
-    // @ts-ignore
-    const currRoomObj = { ...currRoom, teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess }
-
-    dispatch(setCurrentRoom(currRoomObj));
-    dispatch(setTeamProcess({ myTeamProcess: EActionProcess.LINEUP, opTeamProcess }));
+    // Reset current round, and round list
+    const cri = roundList.findIndex((r)=> r._id === currRound?._id) // vri = current round index
+    if(cri === -1) return;
+    const roundObj = {...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess};
+    dispatch(setRoundList([...roundList.filter((r)=> r._id !== currRound?._id), roundObj]));
+    dispatch(setCurrentRound(roundObj));
 
     // @ts-ignore
     socket.emit('submit-lineup-from-client', actionData);
   }
   return (
     <div>
-      {currRoom?.teamAProcess === EActionProcess.CHECKIN && currRoom.teamBProcess === EActionProcess.CHECKIN
+      {currRound?.teamAProcess === EActionProcess.CHECKIN && currRound?.teamBProcess === EActionProcess.CHECKIN
         ? (<div>
-          {myTeamE === ETeam.teamA ? <React.Fragment>
+          {myTeamE === currRound?.firstPlacing ? <React.Fragment>
             <p>You are placing first, Select 2 players for each net and submit line up!</p>
             <button className="btn-primary" type='button' onClick={checkInToLineup} >Submit Lineup</button>
           </React.Fragment> : <p>Wait for another team to submit their lineup, you are going to match up with their line up!</p>}
         </div>)
-        : (opTeamProcess === EActionProcess.LINEUP ? <div>
+        : (otp === EActionProcess.LINEUP ? <div>
           <p>The Other team have submitted their lineup now, it's your turn</p>
           <button className="btn-primary" type='button' onClick={checkInToLineup} >Submit Lineup</button>
         </div> : <p>You have checked in successfully, now the other team need to be checked in!</p>)}

@@ -2,7 +2,7 @@ import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setUpdateNets } from '@/redux/slices/netSlice';
 import { INetBase, INetRelatives, INetUpdate, ITeam } from '@/types';
-import { EActionProcess } from '@/types/elements';
+import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
 import React, { useEffect, useState } from 'react';
@@ -20,6 +20,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard)
     const user = useUser();
     const dispatch = useAppDispatch();
     const currRoom = useAppSelector((state) => state.rooms.current);
+    const {current: currRound} = useAppSelector((state)=> state.rounds);
     const teamA = useAppSelector((state) => state.teams.teamA);
 
 
@@ -59,7 +60,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard)
         );
 
 
-        return !isUserAuthorized || (currRoom?.teamBProcess !== EActionProcess.LINEUP || currRoom?.teamAProcess !== EActionProcess.LINEUP);
+        return !isUserAuthorized || (currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP);
     };
 
 

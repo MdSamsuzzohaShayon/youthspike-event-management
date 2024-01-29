@@ -35,6 +35,8 @@ function MatchSingle({ params }: MatchSingleProps) {
 
     const matchData = data?.getMatch?.data;
     const roundList = data?.getMatch?.data?.rounds;
+    const defaultMatch = toMatchDefaultData({...matchData, teams: []});
+    
     
 
 
@@ -46,7 +48,7 @@ function MatchSingle({ params }: MatchSingleProps) {
             {actErr && <Message error={actErr} />}
 
             <h1>Update Match</h1>
-            <MatchAdd matchData={toMatchDefaultData(matchData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />
+            <MatchAdd matchData={defaultMatch} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />
 
             <h3>Rounds</h3>
             <RoundList roundList={roundList} eventId={params.eventId} />

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { FilterQuery, Model, ObjectId } from 'mongoose';
+import { FilterQuery, Model, ObjectId, UpdateQuery } from 'mongoose';
 import { AppResponse } from 'src/shared/response';
 import { User, UserDocument, UserRole } from './user.schema';
 import { PlayerService } from 'src/player/player.service';
@@ -83,6 +83,10 @@ export class UserService {
       ...user,
       active: true,
     });
+  }
+
+  async updateOne(filter: FilterQuery<User>, updateData: UpdateQuery<User>){
+    return this.userModel.updateOne(filter, updateData);
   }
 
   async createOrUpdateAdmin(user: User) {

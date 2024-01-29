@@ -37,7 +37,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets } = useAppSelector((state) => state.nets);
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { myTeam, opTeam, showTeamPlayers, myPlayers, opPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE } = useAppSelector((state) => state.matches);
+  const { myTeam, opTeam, showTeamPlayers, myPlayers, opPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, prevPartner, outOfRange } = useAppSelector((state) => state.matches);
   const currentRoom = useAppSelector((state) => state.rooms.current);
 
   // Local State
@@ -132,7 +132,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     // Duisablee players after selecting them
     // @ts-ignore
     const dpi = [teamPlayerId, ...disabledPlayerIds]; // dpi = disabled players ids
-    console.log({ disabledPlayerIds});
+    console.log({ disabledPlayerIds });
     dispatch(setDisabledPlayerIds(dpi));
   };
 
@@ -151,7 +151,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
      * Which player to show that can be founded in Available Ids
      */
     const playerListEl: React.ReactNode[] = [];
-    let teamPlayerList: IPlayer[] = myPlayers.slice();;
+    let teamPlayerList: IPlayer[] = myPlayers.slice();
 
     for (let i = 0; i < teamPlayerList.length; i += 1) {
       /*
@@ -166,7 +166,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
       }
       */
-      const dtp = disabledPlayerIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
+      const dpIds = [...disabledPlayerIds];
+      if (prevPartner) dpIds.push(prevPartner);
+      if(outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
+      const dtp = dpIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
 
       if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
@@ -222,9 +225,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
             <div className="round-nums mt-4 flex w-full justify-start gap-1 items-center">
               {roundList.map((round) => (
-                <button className={`single-r w-8 ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer`} type="button" 
-                onClick={(e) => handleRoundChange(e, round._id)} // Currently disabled
-                key={round._id}>
+                <button className={`single-r w-8 ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer`} type="button"
+                  onClick={(e) => handleRoundChange(e, round._id)} // Currently disabled
+                  key={round._id}>
                   RD{round.num}
                 </button>
               ))}

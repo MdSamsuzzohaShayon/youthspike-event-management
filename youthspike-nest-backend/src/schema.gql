@@ -28,6 +28,7 @@ type Round {
   teamBScore: Int
   teamAProcess: EActionProcess!
   teamBProcess: EActionProcess!
+  firstPlacing: ETeam!
 }
 
 enum EActionProcess {
@@ -37,6 +38,11 @@ enum EActionProcess {
   LINEUP_SUBMITTED
   LOCKED
   COMPLETE
+}
+
+enum ETeam {
+  teamA
+  teamB
 }
 
 type Team {
@@ -321,6 +327,12 @@ type RoundResoponse {
   _id: String!
   teamAScore: Float
   teamBScore: Float
+}
+
+type RoomRoundProcess {
+  _id: String!
+  teamAProcess: String!
+  teamBProcess: String!
 }
 
 type GetDirectorLDOResponse {

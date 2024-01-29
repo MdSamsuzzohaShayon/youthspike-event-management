@@ -2,27 +2,30 @@ import { INetPlayers } from ".";
 
 export enum EActionProcess {
     INITIATE = 'INITIATE',
-  
+
     CHECKIN = 'CHECKIN',
-  
+
     LINEUP = 'LINEUP',
     LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
-    
+
     LOCKED = 'LOCKED',
     COMPLETE = 'COMPLETE',
-  };
+};
+
+export interface IRoomRoundProcess {
+    _id: string;
+    teamAProcess: null | EActionProcess;
+    teamBProcess: null | EActionProcess;
+}
 
 export interface IRoom {
     _id: string;
-    round: string;
-    teamARound: string;
-    teamBRound: string;
+    match: string;
     teamA: null | string;
     teamAClient: null | string;
-    teamAProcess: null | EActionProcess;
     teamB: null | string;
     teamBClient: null | string;
-    teamBProcess: null | EActionProcess;
+    rounds: IRoomRoundProcess[];
 }
 
 export interface IRoomNets extends IRoom {
@@ -40,7 +43,7 @@ export interface INetAssign {
     _id: string;
     teamAPlayerA: string | null | undefined;
     teamAPlayerB: string | null | undefined;
-    teamBPlayerA:string | null | undefined;
+    teamBPlayerA: string | null | undefined;
     teamBPlayerB: string | null | undefined;
 }
 

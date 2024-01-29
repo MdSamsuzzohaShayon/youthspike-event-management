@@ -59,6 +59,11 @@ const eventResponse = `
     rosterLock
     timeout
     startDate
+    teams{
+      _id
+      name
+      division
+    }
 `;
 
 /**
@@ -73,6 +78,9 @@ const GET_A_TEAM = gql`
       success
       data {
       ${teamResponse}
+      event{
+        ${eventResponse}
+      }
       }
     }
   }
