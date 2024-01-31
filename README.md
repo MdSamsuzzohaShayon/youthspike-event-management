@@ -55,33 +55,22 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Player need to deselect when evacuating from the net
- - If team A check in place their player at the first round, In the next round team B will be placing playters first
- - Do not care about which captain is in which round, make both captain freely go to the next round after completing their current round (make sure that captain a change change only his progress)
- - Properly change round status
- - Pair Score validation
- - Check In process
- - Player will have division, and A player can be moved to another division
- - Check everytime, my round and oponent's round should be same!
- - To go to the next round, chect the next round is newly explored or not
+ - Back to previous round
  - Move team - when moving team to another event current event should not have that team
- - Change round validation (Make 0 a valid number in a net to go to the next round)
- - Track user properly they leave or join in the room
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
  - If a player plays with someone in the round 1 he can not play with with in round 2 or three
+ - Match up is not working properly
+
+### Issues
+ - Edit player from team page
 
 ### Requirements
- - Make domain __admin.aslsquads.com__ for *admin*
  - Next js testing with react testing library
  - Handling error properly
- - Make only logical comments and make sure clean coding
- - Make the program responsive
- - One league director will have multiple events
  - Handle error just like uploading multiple player file error handling
 
  - **Match**
  - After creating a match with premier division(division 1) -> go to match list and by default item will be selected (division 1)
- - On the round 1 there will not be any previous round
  - Captain need to change their picture
  - If anyone login as captain on the admin panel it should show the team that he is captain of, and the event [31:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
  - Get a sound notification on an socket event
@@ -115,6 +104,7 @@ ___
  - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
  - Check player who are unassigned -> from /teams/{teamId} add new will show all the unassigned players [12:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
  - Co-captain will have same previllages and access as captain
+ - Player will have division, and A player can be moved to another division
 
 
 ___

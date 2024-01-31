@@ -19,28 +19,21 @@ import { GET_MATCH_DETAIL } from '@/graphql/matches';
 import { UPDATE_NETS } from '@/graphql/net';
 
 // Redux
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setCurrentRoundNets, setNets, updateMultiNetsPlayers } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
+import { setActErr, setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
 
 // Utils
 import { getCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
-import { INetRelatives, IUpdateScoreResponse } from '@/types/net';
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
-import { ETeam } from '@/types/team';
-import {  IError } from '@/types/elements';
-import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { handleError, isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import listenSocketEvents from '@/utils/match/listenSocketEvents';
-import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/roundChange';
-import { joinTheRoom } from '@/utils/match/emitSocketEvents';
+import { canGoNextOrPrevRound, joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 
 /**
@@ -63,36 +56,15 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   // Redux States
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
-  const screenWidth = useAppSelector((state) => state.elements.screenWidth);
+  const {screenWidth, actErr} = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, updateNets, nets: allNets } = useAppSelector((state) => state.nets);
-  const currentRoom = useAppSelector((state) => state.rooms.current);
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam } = useAppSelector((state) => state.matches);
 
-  const [actErr, setActErr] = useState<IError | null>(null);
 
   // GraphAL
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
-  const [mutateNet, { data: mData, error: mErr }] = useMutation(UPDATE_NETS);
 
-  /**
-   * Event handlers
-   */
-  const handleUpdatePoints = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const netPointsList = [];
-    for (const n of updateNets) {
-      const nObj = {
-        _id: n._id,
-        teamAScore: n.teamAScore ? n.teamAScore : 0,
-        teamBScore: n.teamBScore ? n.teamBScore : 0,
-      };
-      netPointsList.push(nObj);
-    }
-    // @ts-ignore
-    socket.emit("update-points-from-client", { nets: netPointsList, room: currentRoom?._id, round: currentRound?._id });
-
-  }
 
   const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
     e.preventDefault();
@@ -101,7 +73,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Round must have team a score and team b score to proceed
      * Change current round nets
      */
-    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, setActErr });
+    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch});
     if(newRoundIndex !== -1){
       // changeTheRound({ socket, roundList, currRound: currentRound, dispatch, allNets, currRoom: currentRoom, newRoundIndex, myTeamE, opTeamProcess })
     }
@@ -122,11 +94,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         if (result?.data?.getMatch?.data) {
           organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
         } else {
-          setActErr({ name: "Invalid Id", message: "No data found with given ID!" })
+          dispatch(setActErr({ name: "Invalid Id", message: "No data found with given ID!" }));
         }
       })();
     } else {
-      setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+      dispatch(setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" }));
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -136,9 +108,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
    * Web socket real time connection
    */
-  useEffect(() => {
-    console.log("Render use effect ------------");
-    
+  useEffect(() => {    
     if (socket && roundList && roundList.length > 0) {
       const userInfo = getCookie("user");
       const userToken = getCookie("token");
@@ -191,9 +161,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           {actErr && <Message error={actErr} />}
           {user && user.info ? (<>
             {renderTeams()}
-            {/* <div className='controls px-4 flex justify-center mt-4 w-full'>
-              <button className='btn-secondary capitalize' type="button" onClick={handleNetUpdate}>Update</button>
-            </div> */}
             <div className="controls px-4 flex justify-center mt-4 gap-2">
               {currentRound?.num !== 1 && (
                 <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, false)}>
@@ -212,7 +179,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
 
             {/* Net  */}
-            {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+            {currentRound && <NetScoreOfRound currRoundId={currentRound._id}/>}
 
             {eventSponsors && eventSponsors.length > 0 && (
               <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">

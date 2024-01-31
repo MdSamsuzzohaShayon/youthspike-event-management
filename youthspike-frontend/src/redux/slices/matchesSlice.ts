@@ -84,6 +84,7 @@ export const matchesSlice = createSlice({
     setOpTeam: (state, action: PayloadAction<ITeam | null>) => {
       if (action.payload) state.opTeam = action.payload;
     },
+
     setMyPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.myPlayers = action.payload;
     },

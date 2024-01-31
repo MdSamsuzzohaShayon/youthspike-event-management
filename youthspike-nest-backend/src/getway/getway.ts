@@ -178,7 +178,7 @@ export class MyGatWay implements OnModuleInit {
 
     // Validate and organize room data
     const prevRoom = this.roomsLocal.get(checkIn.room);
-    if (!prevRoom || !prevRoom.teamAClient || !prevRoom.teamBClient) return;
+    if (!prevRoom) return;
     const roomData = { ...prevRoom };
     let roundList = [...roomData.rounds];
     const roundI = roundList.findIndex((r)=> r._id === checkIn.round)
@@ -188,8 +188,10 @@ export class MyGatWay implements OnModuleInit {
     const currRoundObj = {...roundList[roundI]}
     if (prevRoom.teamAClient === client.id) {
       currRoundObj.teamAProcess = EActionProcess.CHECKIN;
-    } else {
+    }else if (prevRoom.teamBClient === client.id){
       currRoundObj.teamBProcess = EActionProcess.CHECKIN;
+    } else {
+      return;
     }
     await this.roundService.updateOne({ _id: checkIn.round }, { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess });
     roundList = [...roundList.filter((r)=> r._id !== checkIn.round), currRoundObj];
@@ -323,39 +325,6 @@ export class MyGatWay implements OnModuleInit {
     // set oponent specific round and current round
     client.to(prevRoom._id).emit("round-change-response", roomData);
   }
-
-  // @SubscribeMessage("round-change-accept-from-client")
-  // async onAcceptRoundChange(client, acceptRoom: RoomLocal) {
-  //   /**
-  //    * Change process for a team
-  //    * Make submit process for the team who changes the  round
-  //    * Invite other team to be in the same round as current team is in
-  //    * Check current round is not locked, if it is locked let it be
-  //    */
-  //   const targetRound = await this.roundService.findById(acceptRoom.round);
-  //   if (!targetRound) return;
-  //   const prevRoom = this.roomsLocal.get(acceptRoom._id);
-  //   if (!prevRoom || !prevRoom.teamAClient || !prevRoom.teamBClient) return;
-  //   let roomData = {
-  //     ...prevRoom,
-  //     teamAProcess: EActionProcess.CHECKIN,
-  //     teamBProcess: EActionProcess.CHECKIN,
-  //     round: acceptRoom.round,
-  //     teamARound: acceptRoom.round,
-  //     teamBRound: acceptRoom.round,
-  //   };
-  //   if (targetRound.teamAProcess === EActionProcess.INITIATE && targetRound.teamAProcess === EActionProcess.INITIATE) {
-  //     roomData.teamAProcess = EActionProcess.CHECKIN;
-  //     roomData.teamBProcess = EActionProcess.CHECKIN;
-  //   } else {
-  //     roomData.teamAProcess = targetRound.teamAProcess;
-  //     roomData.teamBProcess = targetRound.teamBProcess;
-  //   }
-  //   this.roomsLocal.set(prevRoom._id, roomData);
-  //   await this.roundService.updateOne({ _id: acceptRoom.round }, { teamAProcess: roomData.teamAProcess, teamBProcess: roomData.teamBProcess });
-  //   client.to(prevRoom._id).emit("round-change-accept-response", roomData);
-  // }
-
 
   @SubscribeMessage("room-detail-client")
   async onRoomCheck(client, { roomId }: { roomId: string }) {

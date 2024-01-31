@@ -33,11 +33,6 @@ const netSlice = createSlice({
     setCurrentRoundNets: (state, action: PayloadAction<INetRelatives[]>) => {
       state.currentRoundNets = action.payload;
     },
-    // Unused
-    setNetsByRoundId: (state, action: PayloadAction<string>) => {
-      const newCurrNets: INetRelatives[] = state.nets.filter((net) => net.round === action.payload);
-      state.currentRoundNets = newCurrNets;
-    },
     setCurrNetNum: (state, action: PayloadAction<number>) => {
       state.currNetNum = action.payload;
     },
@@ -88,7 +83,7 @@ const netSlice = createSlice({
         const updateAObj = { ...findPrev, ...action.payload };
         state.updateNets = [updateAObj, ...state.updateNets.filter((net) => net._id !== action.payload._id)];
       } else {
-        state.updateNets = [action.payload, ...state.updateNets];
+        state.updateNets = [...state.updateNets, action.payload];
       }
 
       // Current round net
@@ -101,12 +96,12 @@ const netSlice = createSlice({
       // All Nets
       const findNIndex = state.nets.findIndex((n) => n._id === action.payload._id);
       if (findNIndex !== -1) {
-        const updatedNetObj = { ...state.nets[findRNIndex], ...action.payload };
-        state.nets[findRNIndex] = updatedNetObj;
+        const updatedNetObj = { ...state.nets[findNIndex], ...action.payload };
+        state.nets[findNIndex] = updatedNetObj;
       }
     }
   },
 });
 
-export const { setNets, setCurrentRoundNets, setNetsByRoundId, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers } = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer, setUpdateNets, updateMultiNetsPlayers } = netSlice.actions;
 export default netSlice.reducer;

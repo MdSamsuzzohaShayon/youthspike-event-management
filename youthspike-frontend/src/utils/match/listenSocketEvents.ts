@@ -1,4 +1,4 @@
-import { INetRelatives, IRoundExpRel, IRoundRelatives, ITeam, IUser, IUserContext } from "@/types";
+import { IListenSocketProps, INetRelatives, IRoundExpRel, IRoundRelatives, ITeam, IUser, IUserContext } from "@/types";
 import { Socket } from "socket.io-client";
 import { getCookie } from "../cookie";
 import { setCurrentRoom } from "@/redux/slices/roomSlice";
@@ -8,16 +8,7 @@ import { EActionProcess, IRoom, IRoomNets, IRoomRoundProcess } from "@/types/roo
 import { joinTheRoom } from "./emitSocketEvents";
 
 
-interface IListenSocketProps {
-  socket: Socket;
-  user: IUserContext;
-  teamA?: ITeam | null;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
-  currentRound: IRoundRelatives | null;
-  currRoundNets: INetRelatives[];
-  allNets: INetRelatives[];
-  roundList: IRoundRelatives[]
-}
+
 const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList }: IListenSocketProps) => {
   /**
    * Socket real time connection
@@ -149,22 +140,6 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
 
   });
 
-  // // @ts-ignore 
-  // socket.on("round-change-accept-response", (data: IRoom) => {
-  //   // Check submitted all users or not
-
-  //   const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-  //   const extranctedData = { ...data };
-  //   if (isTeamACaptain) {
-
-  //     myTeamProcess = extranctedData.teamAProcess; opTeamProcess = extranctedData.teamBProcess;
-  //   } else {
-  //     // @ts-ignore
-  //     myTeamProcess = extranctedData.teamBProcess; opTeamProcess = extranctedData.teamAProcess;
-  //   }
-
-  //   dispatch(setCurrentRoom(data));
-  // });
 };
 
 export default listenSocketEvents;

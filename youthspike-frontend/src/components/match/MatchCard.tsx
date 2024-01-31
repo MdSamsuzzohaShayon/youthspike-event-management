@@ -21,7 +21,7 @@ function MatchCard({ match }: MatchCardProps) {
         <div className='w-full bg-gray-700 py-2' style={{ minHeight: '6rem' }}>
             <Link href={`/matches/${match._id}`} className="w-full flex flex-col justify-center items-center" >
                 <div className="content w-full px-2 text-center border-b border-gray-900">
-                    <h3>ID: {match._id}</h3>
+                    {/* <h3>ID: {match._id}</h3> */}
                     <p>Location: {match.location}</p>
                     <p>Divisons: {match.divisions}</p>
                 </div>

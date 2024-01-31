@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { IRoom, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/roundChange';
+import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/emitSocketEvents';
 import React, { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client';
 
@@ -24,6 +24,7 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
 
   const lineUpToUpdatePoints = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    // Update round and nets
 
     const netPointsList = [];
     for (const n of currRoundNets) {
@@ -44,7 +45,7 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
      * Round must have team a score and team b score to proceed
      * Change current round nets
      */
-    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets });
+    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch });
     if (newRoundIndex !== -1) {
       changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex, myTeamE, currRound: currentRound });
     }
@@ -75,4 +76,4 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
   )
 }
 
-export default LineupBox
+export default LineupBox;
