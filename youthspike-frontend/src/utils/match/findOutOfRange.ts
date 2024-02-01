@@ -47,15 +47,22 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
 
         let partnerPlayer = null;
         let partnerRank = 0;
-        if (playerSpot == ETeamPlayer.TA_PA && net?.teamAPlayerB) {
-            partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerB);
-        } else if (playerSpot == ETeamPlayer.TA_PB && net?.teamAPlayerA) {
-            partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerA);
-        } else if (playerSpot == ETeamPlayer.TB_PA && net?.teamBPlayerB) {
-            partnerPlayer = myPlayers.find((p) => p._id === net.teamBPlayerB);
-        } else if (playerSpot == ETeamPlayer.TB_PB && net?.teamBPlayerA) {
-            partnerPlayer = myPlayers.find((p) => p._id === net.teamBPlayerA);
+
+        if (myTeamE === ETeam.teamA) {
+            if ((playerSpot == ETeamPlayer.TA_PA || playerSpot == ETeamPlayer.TB_PA) && net?.teamAPlayerB) {
+                partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerB);
+            } else if ((playerSpot == ETeamPlayer.TA_PB || playerSpot == ETeamPlayer.TB_PB) && net?.teamAPlayerA) {
+                partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerA);
+            }
+        } else {
+            if ((playerSpot == ETeamPlayer.TB_PA || playerSpot == ETeamPlayer.TA_PA) && net?.teamBPlayerB) {
+                partnerPlayer = myPlayers.find((p) => p._id === net.teamBPlayerB);
+            } else if ((playerSpot == ETeamPlayer.TB_PB || playerSpot == ETeamPlayer.TA_PB) && net?.teamBPlayerA) {
+                partnerPlayer = myPlayers.find((p) => p._id === net.teamBPlayerA);
+            }
         }
+
+
         if (partnerPlayer && partnerPlayer.rank) {
             partnerRank += partnerPlayer.rank;
         }

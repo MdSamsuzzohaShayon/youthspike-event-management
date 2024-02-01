@@ -19,7 +19,7 @@ function findPrevPartner({roundList, currRound, allNets, myTeamE, net}: IPrevPar
 
       if (myTeamE === ETeam.teamA) {
         if (net?.teamAPlayerA) {
-          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamAPlayerA === net.teamAPlayerA || prn.teamAPlayerA === net.teamAPlayerA);
+          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamAPlayerA === net.teamAPlayerA || prn.teamAPlayerB === net.teamAPlayerA);
           if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerA) {
             prevPartnerId = prevPlayedNet.teamAPlayerB;
           } else if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerB) {
@@ -28,10 +28,10 @@ function findPrevPartner({roundList, currRound, allNets, myTeamE, net}: IPrevPar
         }
       } else {
         if (net?.teamBPlayerA) {
-          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamBPlayerA === net.teamBPlayerA || prn.teamBPlayerA === net.teamBPlayerA);
+          const prevPlayedNet = prevRoundNets.find((prn) => prn.teamBPlayerA === net.teamBPlayerA || prn.teamBPlayerB === net.teamBPlayerA);
           if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerA) {
             prevPartnerId = prevPlayedNet.teamBPlayerB;
-          } else if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerB) {
+          } else if (prevPlayedNet && prevPlayedNet.teamBPlayerB === net?.teamBPlayerA) {
             prevPartnerId = prevPlayedNet.teamBPlayerA;
           }
         }

@@ -3,6 +3,7 @@ import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IRoom, IRoundRelatives, IUser, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
+import { initToCheckIn } from '@/utils/match/emitSocketEvents';
 import React from 'react';
 import { Socket } from 'socket.io-client';
 
@@ -22,35 +23,14 @@ function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp, otp 
     const { teamA } = useAppSelector((state) => state.teams);
 
 
-    const initToCheckIn = (e: React.SyntheticEvent) => {
+    const handleInitToCheckIn = (e: React.SyntheticEvent) => {
         e.preventDefault();
-        if (!currRoom) return;
-        const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-        const actionData: any = {
-            room: currRoom._id,
-            round: currRound?._id,
-            teamAProcess: currRound?.teamAProcess,
-            teamBProcess: currRound?.teamBProcess,
-        };
-        if (isTeamACaptain) {
-            actionData.teamAProcess = EActionProcess.CHECKIN
-        } else {
-            actionData.teamBProcess = EActionProcess.CHECKIN
-        }
-
-        // Reset current round, and round list
-        const cri = roundList.findIndex((r) => r._id === currRound?._id) // vri = current round index
-        if (cri === -1) return;
-        const roundObj = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess };
-        dispatch(setRoundList([...roundList.filter((r) => r._id !== currRound?._id), roundObj]));
-        dispatch(setCurrentRound(roundObj));
-
-        if (socket) socket.emit('check-in-from-client', actionData);
+        initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch });
     }
     return (
         <div className='flex py-2 w-full flex-col justify-center items-center gap-1'>
             <p>Ensure you have all your players and are ready to play, then check in!</p>
-            {mtp === EActionProcess.INITIATE && <button className="btn-primary" type='button' onClick={initToCheckIn} >Check In</button>}
+            {mtp === EActionProcess.INITIATE && <button className="btn-primary" type='button' onClick={handleInitToCheckIn} >Check In</button>}
         </div>
     )
 }

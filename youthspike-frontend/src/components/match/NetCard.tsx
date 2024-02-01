@@ -125,14 +125,22 @@ function NetCard({ net }: INetCardProps) {
 
     dispatch(updateNetPlayer(netPlayerObj));
     dispatch(setUpdateNets(netPlayerObj));
-    dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp === evacuatedPlayerId)]))
+    dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp !== evacuatedPlayerId)]))
   };
 
   const handleDropdownPlayer = (e: React.SyntheticEvent, playerSpot: ETeamPlayer) => {
+    /**
+     * Show list of available player
+     * Remove players from subs of the rounds
+     * Remove players who is already selected on another net
+     * Remove players who had been palyed with same player in the previous round
+     */
     e.preventDefault();
-    if (!user.token || !user.info) return;
-    
+    if (!user.token || !user.info || !currRound) return;
 
+
+
+    // Process for the round must be checkin or lineup 
     let isTeamProcessValid = false;
     if (myTeamE === ETeam.teamA) {
       if (currRound?.teamAProcess === EActionProcess.CHECKIN
@@ -147,19 +155,24 @@ function NetCard({ net }: INetCardProps) {
     }
     if (!isTeamProcessValid) return;
 
-    // At first team A will submit their players 
-    if (myTeamE === ETeam.teamA && currRound && currRound.teamAProcess === EActionProcess.LINEUP) return;
-    if (myTeamE === ETeam.teamB && currRound && currRound.teamAProcess !== EActionProcess.LINEUP) return;
+    // At first first placing their player first will submit their players 
+    if (myTeamE === currRound?.firstPlacing) {
+      if (myTeamE === ETeam.teamA) {
+        if (currRound.teamAProcess === EActionProcess.LINEUP) return;
+      } else {
+        if (currRound.teamBProcess === EActionProcess.LINEUP) return;
+      }
+    } else {
+      if (myTeamE === ETeam.teamA) {
+        if (currRound.teamBProcess !== EActionProcess.LINEUP) return;
+      } else {
+        if (currRound.teamAProcess !== EActionProcess.LINEUP) return;
+      }
+    }
 
     dispatch(setShowTeamPlayers(true))
     dispatch(setPlayerSpot(playerSpot));
     if (net) dispatch(setSelectedNet(net))
-    /**
-     * Show list of available player
-     * Remove players from subs of the rounds
-     * Remove players who is already selected on another net
-     * Remove players who had been palyed with same player in the previous round
-     */
 
 
 
@@ -194,21 +207,7 @@ function NetCard({ net }: INetCardProps) {
     }
   }, [teamAPlayers, teamBPlayers, user]);
 
-  useEffect(() => {
-    // Setting previous round nets
-    if (currRound) {
-      const cri = roundList.findIndex((r) => r._id === currRound._id); // cri = current round index
-      if (cri > 0) {
-        const pr = roundList[cri - 1]; // pr previous round
-        if (pr) {
-          const findPRN = allNets.filter((n) => n.round === pr._id); // prn == previous round nets
-          if (findPRN && findPRN.length > 0) {
-            // setPrevRoundNets(prevRoundNets);
-          }
-        }
-      }
-    }
-  }, [currRoundNets, currRound, roundList]);
+
 
   /**
    * Renders logically

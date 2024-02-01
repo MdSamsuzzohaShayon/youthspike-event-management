@@ -39,7 +39,7 @@ export interface ICheckIn {
     teamBProcess: string | null;
 }
 
-export interface INetAssign {
+export interface IRoomNetAssign {
     _id: string;
     teamAPlayerA: string | null | undefined;
     teamAPlayerB: string | null | undefined;
@@ -47,10 +47,18 @@ export interface INetAssign {
     teamBPlayerB: string | null | undefined;
 }
 
+export interface ICheckInAction {
+    room: string | null;
+    round: string | null;
+    teamAProcess: string | null;
+    teamBProcess: string | null;
+    nets: IRoomNetAssign[];
+}
+
 export interface ISubmitLineup {
     room: string;
     round: string;
     teamAProcess: string | null;
     teamBProcess: string | null;
-    nets: INetAssign[]
+    nets: IRoomNetAssign[]
 }

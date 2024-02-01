@@ -1,8 +1,9 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { IRoom, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/roundChange';
+import { canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
 import React, { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client';
 
@@ -22,19 +23,10 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currentRound, roundList, } = useAppSelector((state) => state.rounds);
 
-  const lineUpToUpdatePoints = (e: React.SyntheticEvent) => {
+  const handleUpdatePoints = (e: React.SyntheticEvent) => {
     e.preventDefault();
-
-    const netPointsList = [];
-    for (const n of currRoundNets) {
-      const nObj = {
-        _id: n._id,
-        teamAScore: n.teamAScore ? n.teamAScore : 0,
-        teamBScore: n.teamBScore ? n.teamBScore : 0,
-      };
-      netPointsList.push(nObj);
-    }
-    if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currentRound?._id });
+    // Update round and nets
+    lineupToUpdatePoints({allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch});
   }
 
   const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
@@ -44,7 +36,7 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
      * Round must have team a score and team b score to proceed
      * Change current round nets
      */
-    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets });
+    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch });
     if (newRoundIndex !== -1) {
       changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex, myTeamE, currRound: currentRound });
     }
@@ -66,7 +58,7 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
       {otp === EActionProcess.LINEUP ? <div>
         <p>Both team have submitted their lineup, now this round is locked, no one change their players in the net!</p>
         <div className="buttons flex w-full justify-center items-center gap-x-2">
-          <button className="btn-primary" type='button' onClick={lineUpToUpdatePoints}>Update Points</button>
+          <button className="btn-primary" type='button' onClick={handleUpdatePoints}>Update Points</button>
           {currentRound?.teamAScore && currentRound.teamBScore && (<button className="btn-primary" type='button' onClick={(e) => handleChangeRound(e, true)}>Next Round</button>)}
 
         </div>
@@ -75,4 +67,4 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
   )
 }
 
-export default LineupBox
+export default LineupBox;

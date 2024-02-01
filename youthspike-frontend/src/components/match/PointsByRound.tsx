@@ -8,39 +8,39 @@ interface IPointsByRoundProps {
   roundList: IRoundRelatives[];
 }
 
-function calculateScores(findNets: any[], round: IRoundRelatives, dark: boolean) {
-  const myTeamE = useAppSelector((state) => state.matches.myTeamE);
-  let score = 0;
-  let plusMinusScore = 0;
-
-  findNets.forEach((net) => {
-    const teamAScore = net.teamAScore || 0;
-    const teamBScore = net.teamBScore || 0;
-
-    if (dark) {
-      if (myTeamE === ETeam.teamA && teamAScore > teamBScore) {
-        score += 1;
-      } else if (myTeamE === ETeam.teamB && teamBScore > teamAScore) {
-        score += 1;
-      }
-    } else {
-      if (myTeamE === ETeam.teamA && teamBScore > teamAScore) {
-        score += 1;
-      } else if (myTeamE === ETeam.teamB && teamAScore > teamBScore) {
-        score += 1;
-      }
-    }
-  });
-
-  const fullPoints = dark ? round.teamBScore || 0 : round.teamAScore || 0;
-  plusMinusScore = fullPoints - (dark ? round.teamAScore || 0 : round.teamBScore || 0);
-
-  return { score, plusMinusScore };
-}
-
 function PointsByRound({ dark, roundList }: IPointsByRoundProps) {
   const { myTeamE } = useAppSelector((state) => state.matches);
   const allNets = useAppSelector((state) => state.nets.nets);
+
+  const calculateScores = (findNets: any[], round: IRoundRelatives, dark: boolean) => {
+    // Remove the myTeamE declaration here
+    let score = 0;
+    let plusMinusScore = 0;
+
+    findNets.forEach((net) => {
+      const teamAScore = net.teamAScore || 0;
+      const teamBScore = net.teamBScore || 0;
+
+      if (dark) {
+        if (myTeamE === ETeam.teamA && teamAScore > teamBScore) {
+          score += 1;
+        } else if (myTeamE === ETeam.teamB && teamBScore > teamAScore) {
+          score += 1;
+        }
+      } else {
+        if (myTeamE === ETeam.teamA && teamBScore > teamAScore) {
+          score += 1;
+        } else if (myTeamE === ETeam.teamB && teamAScore > teamBScore) {
+          score += 1;
+        }
+      }
+    });
+
+    const fullPoints = dark ? round.teamBScore || 0 : round.teamAScore || 0;
+    plusMinusScore = fullPoints - (dark ? round.teamAScore || 0 : round.teamBScore || 0);
+
+    return { score, plusMinusScore };
+  }
 
   const calcScore = (round: IRoundRelatives): React.ReactNode => {
     const { score, plusMinusScore } = calculateScores(allNets.filter((n) => n.round === round._id), round, dark);
