@@ -55,11 +55,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Back to previous round
  - Move team - when moving team to another event current event should not have that team
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
- - If a player plays with someone in the round 1 he can not play with with in round 2 or three
- - Match up is not working properly
 
 ### Issues
  - Edit player from team page

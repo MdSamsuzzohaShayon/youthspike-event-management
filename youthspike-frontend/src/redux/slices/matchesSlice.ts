@@ -28,6 +28,7 @@ interface MatchesState {
   selectedNet: INetRelatives | null,
   prevPartner: null | string;
   outOfRange: string[];
+  verifyLineup: boolean; // Temporary
 }
 
 const initialState: MatchesState = {
@@ -63,6 +64,7 @@ const initialState: MatchesState = {
   netTeamPlayer: null,
   selectedPlayerSpot: null,
   selectedNet: null,
+  verifyLineup: false,
 
 
   availablePlayerIds: [],
@@ -100,10 +102,9 @@ export const matchesSlice = createSlice({
     // Match Submit Lineup
     setShowTeamPlayers: (state, action: PayloadAction<boolean>) => {
       state.showTeamPlayers = action.payload;
-      // if (action.payload === false) {
-      //   state.selectedTeamPlayer = null;
-      //   state.selectedNet = null;
-      // }
+    },
+    setVerifyLineup:(state, action: PayloadAction<boolean>)=>{
+      state.verifyLineup = action.payload;
     },
 
     setNetTeamPlayers: (state, action: PayloadAction<ETeamPlayer>) => {
@@ -138,7 +139,7 @@ export const matchesSlice = createSlice({
 export const {
   setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE,
   setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet,
-  setPrevPartner, setOutOfRange
+  setPrevPartner, setOutOfRange, setVerifyLineup
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

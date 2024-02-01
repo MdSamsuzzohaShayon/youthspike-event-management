@@ -55,6 +55,16 @@ export interface INextRoundProps extends ICommonProps {
     myTeamE: ETeam;
 }
 
+
+export interface ISubmitUpdatePointsdProps {
+    socket: Socket | null;
+    dispatch: React.Dispatch<React.ReducerAction<any>>;
+    allNets: INetRelatives[];
+    currRoom: IRoom | null;
+    currRound: IRoundRelatives | null;
+    currRoundNets: INetRelatives[];
+}
+
 export interface ICanGoProps extends ICommonProps {
     next: boolean;
     currRoundNets: INetRelatives[];

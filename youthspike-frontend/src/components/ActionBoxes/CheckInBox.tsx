@@ -2,12 +2,14 @@ import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IRoom, IRoundRelatives, IUserContext,IRoomNetAssign } from '@/types';
+import { IRoom, IRoundRelatives, IUserContext, IRoomNetAssign } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { checkInToLineup } from '@/utils/match/emitSocketEvents';
 import React from 'react'
 import { Socket } from 'socket.io-client';
+import VerifyLineup from './VerifyLineup';
+import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 
 interface IBoxProps {
   currRoom: IRoom | null;
@@ -23,7 +25,7 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
   const dispatch = useAppDispatch();
 
   const { teamA } = useAppSelector((state) => state.teams);
-  const { myTeamE } = useAppSelector((state) => state.matches);
+  const { myTeamE, verifyLineup } = useAppSelector((state) => state.matches);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
   const { current: currRound } = useAppSelector((state) => state.rounds);
 
@@ -31,10 +33,15 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
   const handleCheckInToLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!currRoom) return;
-    checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNets: currentRoundNets, roundList, dispatch, myTeamE });
+    dispatch(setVerifyLineup(true));
+    // checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNets: currentRoundNets, roundList, dispatch, myTeamE });
   }
   return (
     <div>
+      {
+        /* Temporary  */
+        verifyLineup && <VerifyLineup />}
+
       {currRound?.teamAProcess === EActionProcess.CHECKIN && currRound?.teamBProcess === EActionProcess.CHECKIN
         ? (<div>
           {myTeamE === currRound?.firstPlacing ? <React.Fragment>

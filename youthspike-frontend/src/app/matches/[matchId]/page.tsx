@@ -56,7 +56,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   // Redux States
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
-  const {screenWidth, actErr} = useAppSelector((state) => state.elements);
+  const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, updateNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam } = useAppSelector((state) => state.matches);
@@ -73,8 +73,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
      * Round must have team a score and team b score to proceed
      * Change current round nets
      */
-    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch});
-    if(newRoundIndex !== -1){
+    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch });
+    if (newRoundIndex !== -1) {
       // changeTheRound({ socket, roundList, currRound: currentRound, dispatch, allNets, currRoom: currentRoom, newRoundIndex, myTeamE, opTeamProcess })
     }
   }
@@ -108,16 +108,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   /**
    * Web socket real time connection
    */
-  useEffect(() => {    
+  useEffect(() => {
     if (socket && roundList && roundList.length > 0) {
       const userInfo = getCookie("user");
       const userToken = getCookie("token");
-    
-      joinTheRoom({socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId})
+
+      joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId })
       listenSocketEvents({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList });
     }
 
-  }, [socket, user, teamA, teamB, roundList ]);
+  }, [socket, user, teamA, teamB, roundList]);
 
 
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
@@ -127,25 +127,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const mainEl = useResizeObserver(onResize);
 
   if (loading) return <Loader />;
-
-
-  // Renders
-  const renderTeams = (): React.ReactNode => {
-    return (<>
-      <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-      {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-      {user && user.info && user.info.role === UserRole.captain && <RoundRunner />}
-      {eventSponsors.length > 0 && !user && (
-        <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
-          <h3>Sponsors</h3>
-          <div className="flex items-center justify-between flex-wrap w-full">
-            {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
-          </div>
-        </div>
-      )}
-      <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
-    </>);
-  }
 
   return (
     <>
@@ -159,29 +140,10 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
-          {user && user.info ? (<>
-            {renderTeams()}
-            <div className="controls px-4 flex justify-center mt-4 gap-2">
-              {currentRound?.num !== 1 && (
-                <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, false)}>
-                  <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" style={{ transform: 'scaleX(-1)' }} />
-                  Prev round
-                </button>
-              )}
-              {(currentRound?.teamAScore && currentRound.teamAScore !== 0 && currentRound?.teamBScore && currentRound?.teamBScore !== 0) && currentRound.num < roundList.length && (
-                <button className='btn-secondary capitalize flex justify-between items-center' type="button" onClick={(e) => handleChangeRound(e, true)}>Next round
-                  <img src="/icons/right-arrow.svg" alt="" className="w-6 h-6 object-center object-cover svg-white" />
-                </button>
-              )}
-            </div>
-          </>) : (<>
-            {/* Public Version Start ============================================> */}
             <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-
-            {/* Net  */}
-            {currentRound && <NetScoreOfRound currRoundId={currentRound._id}/>}
-
-            {eventSponsors && eventSponsors.length > 0 && (
+            {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+            {user && user.info && user.info.role === UserRole.captain && <RoundRunner />}
+            {eventSponsors.length > 0 && !user && (
               <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
                 <h3>Sponsors</h3>
                 <div className="flex items-center justify-between flex-wrap w-full">
@@ -191,8 +153,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             )}
             {/* My Players  */}
             <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
-            {/* Public Version End ============================================> */}
-          </>)}
         </div>
       </Suspense>
     </>

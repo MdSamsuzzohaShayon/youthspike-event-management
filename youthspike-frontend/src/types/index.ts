@@ -93,5 +93,5 @@ export type {
   // socket
   IListenSocketProps,
   IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps,
-  ICheckInToLineupProps,
+  ICheckInToLineupProps, 
 };
