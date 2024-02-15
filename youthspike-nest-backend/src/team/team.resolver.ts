@@ -93,7 +93,7 @@ export class TeamResolver {
           password: rawPassword,
         });
         promiseOperations.push(
-          this.playerService.updateOne({ _id: input.captain }, { captainofteam: newTeam._id, captainuser: captainUser._id },),
+          this.playerService.updateOne({ _id: input.captain }, { captainofteams: newTeam._id, captainuser: captainUser._id },),
         );
       }
       await Promise.all(promiseOperations);

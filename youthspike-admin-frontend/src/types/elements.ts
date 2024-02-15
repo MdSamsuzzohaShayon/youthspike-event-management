@@ -17,6 +17,7 @@ export interface ITextInputProps {
   name: string;
   required: boolean;
   defaultValue?: string | null | undefined;
+  readOnly?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
 

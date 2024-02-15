@@ -1,7 +1,7 @@
 'use client'
 
 /* eslint-disable @next/next/no-img-element */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import MenuItem from './MenuItem';
 import { IUser, IUserContext, UserRole } from '@/types/user';
@@ -88,6 +88,7 @@ function Menu() {
     const router = useRouter();
     const pathname = usePathname();
     const client = useApolloClient();
+    const menuEl = useRef<HTMLDivElement | null>(null);
 
     const [openMenu, setOpenMenu] = useState<boolean>(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -121,6 +122,25 @@ function Menu() {
      */
 
 
+    /**
+     * Handle clicking outinde
+     */
+    const handleBodyClick = (e: MouseEvent) => {
+        if (!menuEl || !menuEl.current) return;
+        const menuDimentions = menuEl.current.getBoundingClientRect();
+
+        // If i click outside of these dimensions
+        if (
+            e.clientX < menuDimentions.left ||
+            e.clientX > menuDimentions.right ||
+            e.clientY < menuDimentions.top ||
+            e.clientY > menuDimentions.bottom
+        ) {
+            setOpenMenu(false);
+        }
+    }
+
+
 
 
     /**
@@ -146,8 +166,6 @@ function Menu() {
         }
     }
 
-    // console.log({data});
-
 
     useEffect(() => {
         // Effect
@@ -161,7 +179,7 @@ function Menu() {
 
         if (!eventPath || !isValidId) {
             setEventId(null);
-            if (userDetail.info?.role === UserRole.admin) {                
+            if (userDetail.info?.role === UserRole.admin) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
@@ -181,6 +199,21 @@ function Menu() {
         }
 
     }, [router, pathname]);
+
+
+
+
+
+    useEffect(() => {
+        const bodyEl = document.getElementsByTagName('body');
+        if (bodyEl && bodyEl.length > 0) {
+            const bodyFEl = bodyEl[0];
+            bodyFEl.addEventListener('click', handleBodyClick, { passive: false });
+            return () => {
+                bodyFEl.removeEventListener("click", handleBodyClick);
+            }
+        }
+    }, []);
 
     /**
      * Renders sub components
@@ -207,7 +240,7 @@ function Menu() {
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4">
+                <div className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4" ref={menuEl}>
                     <div className="w-full flex justify-end items-center">
                         {user && user.info && (
                             <button onClick={closeMenuHandler} className='close-button'>

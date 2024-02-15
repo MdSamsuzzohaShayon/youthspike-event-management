@@ -43,7 +43,7 @@ rounds {
 
 const matchResponse = `
     _id
-
+    date
     divisions
     numberOfNets
     numberOfRounds

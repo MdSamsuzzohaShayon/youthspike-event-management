@@ -6,6 +6,7 @@ import { FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { readDatetime, validateMatchDatetime } from '@/utils/datetime';
 
 interface MatchCardProps {
   match: IMatch;
@@ -28,12 +29,18 @@ function MatchCard({ match, sl, eventId }: MatchCardProps) {
     <li className='w-full md:w-5/12 bg-gray-700 py-2 flex justify-between items-center relative rounded-lg' style={{ minHeight: '6rem' }}>
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-26 right-6 md:right-16 z-10 rounded-lg`}>
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (<li className='cursor-pointer'> <Link href={`/${eventId}/matches/${match._id}`} >Edit</Link></li>)}
-        
-        <li><Link href={`${FRONTEND_URL}/matches/${match._id}`}>View          </Link>        </li>
+
+        <li><Link href={`${FRONTEND_URL}/matches/${match._id}`}>View</Link> </li>
       </ul>
 
       <input type="checkbox" name="match-select" id="option" className='w-1/12' />
       <div className="w-10/12">
+        <div className="w-full flex justify-center items-center">
+          <p className="p-2 bg-yellow-500 text-gray-100 w-fit rounded-lg flex flex-col flex-center items-center">
+            <span className='uppercase font-bold'> {validateMatchDatetime(match.date)}</span>
+            <span>Date: {readDatetime(match.date)}</span>
+          </p>
+        </div>
         <div className="content w-full text-center mb-4 border-b border-gray-900 py-2">
           {/* <p className="capitalize">ID: {match._id}</p> */}
           <p className="capitalize">Location: {match.location}</p>

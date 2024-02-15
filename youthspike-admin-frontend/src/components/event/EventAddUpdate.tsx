@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW } from '@/graphql/event';
+import { ADD_EVENT, ADD_EVENT_RAW, GET_A_EVENT, UPDATE_EVENT, UPDATE_EVENT_RAW } from '@/graphql/event';
 import { AdvancedImage } from '@cloudinary/react';
-import { useMutation } from '@apollo/client';
+import { useApolloClient, useMutation } from '@apollo/client';
 
 
 // Components
@@ -23,6 +23,7 @@ import { UserRole } from '@/types/user';
 
 import staticData from '../../lib/data.json';
 import DateInput from '../elements/forms/DateInput';
+import ShowDivisions from './ShowDivisions';
 
 
 // Select Input Options
@@ -31,7 +32,8 @@ const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
 const initialEvent = {
     name: 'Event 1',
     // startDate, endDate, playerLimit
-    divisions: 'Premier, Contender, Womans',
+    // divisions: 'Premier, Contender, Womans',
+    divisions: '',
     nets: 3,
     rounds: 2,
     netVariance: 3,
@@ -83,8 +85,8 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         let newEventId = null;
         const inputData = update ? { ...updateEvent } : { ...eventState };
         inputData.ldo = directorId ? directorId : 'auto_detect_from_server';
-        if(inputData.startDate)inputData.startDate = new Date(inputData.startDate).toISOString()
-        if(inputData.endDate)inputData.endDate = new Date(inputData.endDate).toISOString()
+        if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString()
+        if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString()
 
         const mutationVariables = {
             sponsorsInput: [],
@@ -100,7 +102,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
 
                 const sponsorsInputList = [];
                 for (let i = 0; i < sponsorImgList.length; i += 1) {
-                    sponsorsInputList.push({company: sponsorImgList[i].company, logo: null});
+                    sponsorsInputList.push({ company: sponsorImgList[i].company, logo: null });
                 }
                 // @ts-ignore
                 mutationVariables.sponsorsInput = sponsorsInputList;
@@ -153,6 +155,10 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                 } else {
                     eventRes = await eventAdd({ variables: mutationVariables });
                 }
+                // Define the variables you want to use
+                // const variables = { eventId: params.eventId };
+
+
                 eventRes = update ? eventRes.data?.updateEvent : eventRes.data?.createEvent;
                 if (eventRes?.code !== 201 && eventRes?.code !== 202) {
                     setActErr({ name: eventRes.code, message: eventRes.message })
@@ -195,6 +201,16 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             setUpdateEvent((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
         }
     }
+
+    const handleDivisionInputChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const inputEl = e.target as HTMLInputElement;
+        setEventState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        if (update && prevEvent?.divisions) {
+            setUpdateEvent((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        }
+    }
+
 
     const handleToggleInput = (e: React.SyntheticEvent, stateName: string) => {
         e.preventDefault();
@@ -297,17 +313,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     /**
      * Renders
      */
-    const renderDivisions = (dStr: string) => {
-        if (!dStr.includes(',')) return <ul>{dStr}</ul>;
-        const dList: string[] = dStr.split(',');
-        const listEl: React.ReactNode[] = [];
-        for (let i = 0; i < dList.length; i += 1) {
-            if (dList[i].trim() !== '') {
-                listEl.push(<li className='px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between' key={dList[i] + '-' + i}>{dList[i]}</li>);
-            }
-        }
-        return <ul className='flex gap-1'>{listEl}</ul>
-    }
 
     const renderSponsorImg = (fileList: IEventSponsorAdd[]) => {
         const imgElList: React.ReactNode[] = []
@@ -349,12 +354,17 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     return (
         <form onSubmit={handleEventAdd} className='flex flex-col gap-2'>
             <TextInput required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt='Name' name='name' lw='w-2/6' rw='w-4/6' />
-            
+
             <DateInput required={!update} defaultValue={eventState.startDate} handleInputChange={handleInputChange} lblTxt='Start Date' name='startDate' lw='w-2/6' rw='w-4/6' />
             <DateInput required={!update} defaultValue={eventState.endDate} handleInputChange={handleInputChange} lblTxt='End Date' name='endDate' lw='w-2/6' rw='w-4/6' />
 
-            <TextInput required={!update} defaultValue={eventState.divisions} handleInputChange={handleInputChange} lblTxt='DIVISIONS' name='divisions' lw='w-2/6' rw='w-4/6' />
-            {renderDivisions(eventState.divisions)}
+            {!update ? (
+                <TextInput required={!update} defaultValue={eventState.divisions} handleInputChange={handleDivisionInputChange} readOnly={update} lblTxt='DIVISIONS' name='divisions' lw='w-2/6' rw='w-4/6' />
+            ) : <h4>Divisions</h4>}
+
+            <ShowDivisions update={update} dStr={eventState.divisions}
+                prevDivisions={prevEvent && prevEvent.divisions ? prevEvent.divisions : ''}
+                setEventState={setEventState} setUpdateEvent={setUpdateEvent} eventId={eventId} updateEvent={updateEvent} />
             {/* Default setting  */}
             <h3 className='text-2xl capitalize mt-4'>Default setting</h3>
 
@@ -368,15 +378,15 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <SelectInput defaultValue={eventState.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <NumberInput required lblTxt='Sub Clock' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
-            
-            <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required defaultValue={eventState.coachPassword} rw='w-3/6' lw='w-3/6'  />
-            <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} rw='w-3/6' lw='w-3/6'  />
+
+            <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required defaultValue={eventState.coachPassword} rw='w-3/6' lw='w-3/6' />
+            <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} rw='w-3/6' lw='w-3/6' />
 
             {/* File upload start  */}
             <dialog ref={addSponsorDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2' >
                 <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white mt-2' />
                 <div className='flex items-center justify-center'>
-                {/* defaultValue={currSponsor.company} */}
+                    {/* defaultValue={currSponsor.company} */}
                     <TextInput vertical handleInputChange={handleFileNameChange} name='company' required={false} />
                     <img src='/icons/plus.svg' role="presentation" onClick={handleOpenImg} className='svg-white w-20 h-20' />
                     <input type="file" name="sponsor" id="sponsor" className='hidden' ref={sponsorInputEl} onChange={handleFileChange} />

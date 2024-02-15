@@ -173,13 +173,15 @@ export class EventResolver {
        *  Step-2: Check files are updated or not
        *  Step-3: If files are updated then Upload file to cloudinary and save url to the database
        *  Step-4: Check director is updating his own event
+       *  Step-5: Check division update and all other module that assigned the same division update that
        */
       const secret = this.configService.get<string>('JWT_SECRET');
       const userId = tokenToUser(context, secret);
 
       // Get user
-      const loggedUser = await this.userService.findById(userId);
+      const [loggedUser, eventExist] = await Promise.all([this.userService.findById(userId), this.eventService.findById(eventId)]);
       if (!loggedUser) return AppResponse.unauthorized();
+      if (!eventExist) return AppResponse.exists("Event");
 
       // If the user is admin we must need ldoId otherwise get id from token
       let directorId = null;
@@ -209,7 +211,47 @@ export class EventResolver {
         ...args,
         ldo: findLdo._id,
         sponsors: cloudinaryUrls,
+        divisions: eventExist.divisions
       };
+
+      // Update divisions
+      if (args.divisions && args.divisions !== "" && eventExist.divisions !== args.divisions) {
+        // Check which item has been updated
+        // Check previous division name
+        const prevDivList = eventExist.divisions.split(',');
+        const currDivList = args.divisions.split(',');
+
+        const divisionPromises = [];
+
+
+        // Check deleted item
+        for (let i = 0; i < prevDivList.length; i++) {
+          const findItemIndex = currDivList.findIndex((d) => d.includes("_") || d.trim().toLowerCase() === prevDivList[i].trim().toLowerCase());
+          if (findItemIndex === -1) {
+            // Create a regular expression for case-insensitive and trimmed search
+            const regex = new RegExp(`^${prevDivList[i].trim()}$`, 'i');
+            divisionPromises.push(this.teamService.update({ division: '' }, { division: { $regex: regex } }));
+          }
+        }
+
+        // Check updated Item
+        for (let i = 0; i < currDivList.length; i++) {
+          if (currDivList[i].includes("_")) {
+            const fl = currDivList[i].split("_");
+            if (fl.length > 0 && fl[fl.length - 1] === "u") {
+              let oe = fl[0], ne = fl[1];
+              currDivList[i] = ne;
+
+              // Create a regular expression for case-insensitive and trimmed search
+              const regex = new RegExp(`^${oe.trim()}$`, 'i');
+              divisionPromises.push(this.teamService.update({ division: ne }, { division: { $regex: regex } }));
+            }
+          }
+        }
+
+        await Promise.all(divisionPromises);
+        eventData.divisions = currDivList.join(', ');
+      }
 
       const updatedEvent = await this.eventService.update(eventData, eventId);
       // const updateLdo = await this.ldoService.update({ events: [updatedEvent._id] }, findLdo._id);
