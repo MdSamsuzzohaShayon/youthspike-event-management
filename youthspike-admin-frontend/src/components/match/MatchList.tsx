@@ -47,10 +47,10 @@ function MatchList({ matchList, divisions, eventId }: IMatchListProps) {
     if (matchList && matchList.length > 0) {
       const isCaptain = user.info?.captainplayer
       if (user.info?.captainplayer) {
-        setFilteredMatchList([...matchList.filter((ml) => ml.teamA.captain._id === user.info?.captainplayer || ml.teamB.captain._id === user.info?.captainplayer)]);
+        setFilteredMatchList([...matchList.filter((ml) => ml.teamA?.captain?._id === user.info?.captainplayer || ml.teamB?.captain?._id === user.info?.captainplayer)]);
       } else {
-        setFilteredMatchList([...matchList]);
       }
+      setFilteredMatchList([...matchList]);
     }
 
 

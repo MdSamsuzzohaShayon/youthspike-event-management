@@ -15,6 +15,7 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { ConfigService } from '@nestjs/config';
+import { Event } from 'src/event/event.schema';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -43,6 +44,29 @@ export class TeamResolver {
     private userService: UserService,
     private configService: ConfigService
   ) { }
+
+  // General Function
+  async createOrUpdateUser(playerExist: Player, playerUserExist: User, eventExist: Event, role: UserRole) {
+    const userObj = {
+      email: playerExist.email, password: eventExist.coachPassword,
+      firstName: playerExist.firstName, lastName: playerExist.lastName, role,
+      captainplayer: null, cocaptainplayer: null,
+      active: true
+    }
+    let newCaptainUser = null;
+    if (playerUserExist) {
+      userObj.captainplayer = role === UserRole.captain ? playerExist._id : playerUserExist.captainplayer;
+      userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : playerUserExist.cocaptainplayer;
+      const hashedPassword = await bcrypt.hash(eventExist.coachPassword, 10);
+      userObj.password = hashedPassword;
+      newCaptainUser = await this.userService.updateOne({ _id: playerUserExist._id }, userObj);
+    } else {
+      userObj.captainplayer = role === UserRole.captain ? playerExist._id : null;
+      userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : null;
+      newCaptainUser = await this.userService.create(userObj);
+    }
+    return newCaptainUser;
+  }
 
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -81,7 +105,6 @@ export class TeamResolver {
       if (input.captain) {
         // Create new user for captain
         const findPlayer = await this.playerService.findById(input.captain.toString());
-        // const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
         const rawPassword = findEvent.coachPassword;
         const captainUser = await this.userService.create({
           firstName: findPlayer.firstName,
@@ -113,6 +136,7 @@ export class TeamResolver {
   async updateTeam(
     @Args('input') input: UpdateTeamInput,
     @Args('teamId') teamId: string,
+    @Args('eventId') eventId: string,
   ): Promise<CreateOrUpdateTeamResponse> {
     /**
      * TODO:
@@ -121,44 +145,67 @@ export class TeamResolver {
      *  Step-3: Create user if there are no user found
      *  Step-4: Update captain, captainuser
      */
-    const teamExist = await this.teamService.findById(teamId);
+    const [teamExist, eventExist] = await Promise.all([this.teamService.findById(teamId), this.eventService.findById(eventId)]);
     if (!teamExist) return AppResponse.exists("Team");
+    if (!eventExist) return AppResponse.exists("Event");
 
     const updatePromises = [];
 
-    // Update captain
+    /**
+     * Update Captain
+     */
     if (input.captain) {
       const playerExist = await this.playerService.findById(input.captain.toString());
 
-      if (playerExist && teamExist.captain) {
-        const prevCaptain = await this.playerService.findById(teamExist.captain.toString());
-        // Make prevCaptain null
-        if (input.captain !== teamExist.captain.toString()) {
-          updatePromises.push(this.playerService.updateOne({ _id: teamExist.captain.toString() }, { $pull: { captainofteams: teamExist._id.toString() }, captainuser: null }));
-          updatePromises.push(this.userService.delete({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }] }));
+      if (playerExist) {
+        const playerUserExist = await this.userService.findOne({ email: playerExist.email });
+        const createOrUpdatePlayer = await this.createOrUpdateUser(playerExist, playerUserExist, eventExist, UserRole.captain);
+        let newCaptainUserId = createOrUpdatePlayer._id;
 
-          // Create new user
-          const playerUserExist = await this.userService.findOne({ email: playerExist.email });
-          const rawPassword = this.configService.get<string>('PLAYER_PASSWORD');
-          const hashedPassword = await bcrypt.hash(rawPassword, 10);
-          const userObj = {
-            email: playerExist.email, password: hashedPassword,
-            firstName: playerExist.firstName, lastName: playerExist.lastName, role: UserRole.captain, captainplayer: playerExist._id, active: true
+        if (teamExist.captain) {
+          // Make prevCaptain null
+          const prevCaptain = await this.playerService.findById(teamExist.captain.toString());
+          if (input.captain !== teamExist.captain.toString()) {
+            updatePromises.push(this.playerService.updateOne({ _id: teamExist.captain.toString() }, { $pull: { captainofteams: teamExist._id.toString() }, captainuser: null }));
+            updatePromises.push(this.userService.delete({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }] }));
+            updatePromises.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $push: { captainofteams: teamId }, captainuser: newCaptainUserId },));
           }
-          let newCaptainUser = null;
-          let newCaptainUserId = null;
-          if (playerUserExist) {
-            newCaptainUser = await this.userService.updateOne({ _id: playerUserExist._id }, userObj);
-            newCaptainUserId = playerUserExist._id;
-          } else {
-            newCaptainUser = await this.userService.create(userObj);
-            newCaptainUserId = newCaptainUser._id;
-          }
+          updatePromises.push(this.teamService.update({ captain: playerExist._id }, { _id: teamId }));
+        } else {
           updatePromises.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $push: { captainofteams: teamId }, captainuser: newCaptainUserId },));
+          updatePromises.push(this.teamService.update({ captain: playerExist._id }, { _id: teamId }));
         }
-        updatePromises.push(this.teamService.update({ captain: playerExist._id }, { _id: teamId }));
       }
     }
+
+
+    /**
+     * Update Co-captain
+     */
+    if (input.cocaptain) {
+      const playerExist = await this.playerService.findById(input.cocaptain.toString());
+      if (playerExist) {
+        const playerUserExist = await this.userService.findOne({ email: playerExist.email });
+        const createOrUpdatePlayer = await this.createOrUpdateUser(playerExist, playerUserExist, eventExist, UserRole.co_captain);
+        let newCaptainUserId = createOrUpdatePlayer._id;
+
+        if (teamExist.cocaptain) {
+          // Make prevCaptain null
+          const prevCaptain = await this.playerService.findById(teamExist.cocaptain.toString());
+          if (input.cocaptain !== teamExist.cocaptain.toString()) {
+            updatePromises.push(this.playerService.updateOne({ _id: teamExist.cocaptain.toString() }, { $pull: { cocaptainofteams: teamExist._id.toString() }, cocaptainuser: null }));
+            updatePromises.push(this.userService.delete({ $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }] }));
+            updatePromises.push(this.playerService.updateOne({ _id: input.cocaptain.toString() }, { $push: { cocaptainofteams: teamId }, cocaptainuser: newCaptainUserId },));
+          }
+          updatePromises.push(this.teamService.update({ cocaptain: playerExist._id }, { _id: teamId }));
+        } else {
+          updatePromises.push(this.playerService.updateOne({ _id: input.cocaptain.toString() }, { $push: { cocaptainofteams: teamId }, cocaptainuser: newCaptainUserId },));
+          updatePromises.push(this.teamService.update({ cocaptain: playerExist._id }, { _id: teamId }));
+        }
+
+      }
+    }
+
     await Promise.all(updatePromises);
     try {
       return {
@@ -266,6 +313,24 @@ export class TeamResolver {
       return null;
     }
   }
+
+  @ResolveField(() => Player, { nullable: true })
+  async cocaptain(@Parent() team: Team) {
+    try {
+      if (team.cocaptain) {
+        const cocaptain = await this.playerService.findById(team.cocaptain.toString());
+        return cocaptain || null; // Return null if cocaptain is not found
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  
+
 
   @ResolveField()
   async event(@Parent() team: Team) {

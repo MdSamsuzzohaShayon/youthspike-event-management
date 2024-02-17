@@ -74,11 +74,14 @@ export class PlayerService {
       createReadStream()
         .pipe(Papa.parse(Papa.NODE_STREAM_INPUT, { header: true }))
         .on('data', (row: Player) => {
+
+          // Organize Entries
           const matchTeam = Object.entries(row).find(([k, v]) => new RegExp(/team/, 'gi').test(k));
           const matchFN = Object.entries(row).find(([k, v]) => new RegExp(/first?\s+name/, 'gi').test(k));
           const matchLN = Object.entries(row).find(([k, v]) => new RegExp(/last?\s+name/, 'gi').test(k));
           const matchEmail = Object.entries(row).find(([k, v]) => new RegExp(/email/, 'gi').test(k));
 
+          // Organize player
           let playerObj = null;
           if (matchFN && matchLN && matchEmail) {
             const [fnk, fnv] = matchFN;
@@ -94,13 +97,14 @@ export class PlayerService {
             };
           }
           
+          // Organize team
           const [tk, tv] = matchTeam;
           if (tv && tv !== '') {
             const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
             if (findTeamI !== -1) {
               const newPlayers = [...teams[findTeamI].players];
               if (playerObj && playerObj.email) newPlayers.push(playerObj);
-              teams[findTeamI] = { ...teams[findTeamI], players: [...teams[findTeamI].players,] };
+              teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
             } else {
               const teamObj = {
                 name: tv,
@@ -117,7 +121,9 @@ export class PlayerService {
             if (playerObj && playerObj.email) unassignedPlayers.push(playerObj);
           }
         })
+
         .on('end', () => {
+          // return
           resolve({ teams, unassignedPlayers });
         })
         .on('error', (error) => {

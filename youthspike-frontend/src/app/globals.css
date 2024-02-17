@@ -48,6 +48,17 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
+dialog {}
+
+dialog::backdrop {
+  background-image: linear-gradient(45deg,
+      rgb(34, 34, 34),
+      rgb(34, 34, 34),
+      rgb(34, 34, 34),
+      rgb(34, 34, 34));
+  opacity: 0.75;
+}
+
 /* Typography End  */
 
 /* SVG Style start  */

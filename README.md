@@ -55,6 +55,9 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Login detail in sidebar with photo
+ - Slide rosters at the bottom properly (slide properly)
+ - Co-captain will have same previllages and access as captain
  - Move team - when moving team to another event current event should not have that team
  - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
  - Match need to organize in order - current, upcoming, and past
@@ -127,7 +130,6 @@ ___
  - In the player list show all players in an event
  - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
  - Check player who are unassigned -> from /teams/{teamId} add new will show all the unassigned players [12:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - Co-captain will have same previllages and access as captain
  - Player will have division, and A player can be moved to another division
 
 

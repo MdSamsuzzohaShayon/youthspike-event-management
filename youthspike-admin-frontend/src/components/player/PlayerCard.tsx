@@ -45,24 +45,26 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     setActionOpen(prevState => !prevState);
     console.log(`Edit player: ${playerId}`);
   }
-  const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
+
+  const makeCaptainOrCoCaptain = async (input: { captain?: string, cocaptain?: string }) => {
     setActionOpen(prevState => !prevState);
     try {
       setIsLoading(true);
-      await mutateTeam({ variables: { input: { captain: playerId }, teamId } });
-      await client.refetchQueries({include: [GET_A_TEAM]});
+      await mutateTeam({ variables: { input, teamId, eventId } });
+      await client.refetchQueries({ include: [GET_A_TEAM] });
     } catch (error) {
       console.log(error);
     } finally {
       setIsLoading(false);
     }
   }
+  const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
+    e.preventDefault();
+    makeCaptainOrCoCaptain({ captain: playerId });
+  }
   const handleMakeCoCaptain = (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
-    setActionOpen(prevState => !prevState);
-    console.log(`Make co-captain player: ${playerId}`);
-
+    makeCaptainOrCoCaptain({ cocaptain: playerId });
   }
   const handleMovePlayer = (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
@@ -71,7 +73,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: PlayerStatus, playerId: string) => {
     e.preventDefault();
-    
+
     setActionOpen(prevState => !prevState);
     try {
       // setIsLoading(true);
@@ -155,11 +157,12 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         <div className="player-name flex flex-col w-full">
           <h3 className='break-words capitalize'>{player.firstName + ' ' + player.lastName}</h3>
           {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
+          {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
         </div>
       </div>
 
       {showRank && player?.rank && (
-        <div className="rank-box h-6 w-6 flex flex-col">
+        <div className="rank-box h-6 w-6 flex flex-col items-center">
           <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
             {player?.rank}
           </h3>
@@ -168,7 +171,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       )}
 
       <div className="text-box w-5/12">
-        <div className="w-full">
+        <div className="w-full flex flex-col justify-center items-end">
           <p className='break-words' >{player.phone ? player.phone : 'Phone: N/A'}</p>
           <p className='break-words' >{player.email}</p>
           <p className='break-words' >2-3 / +3 games</p>

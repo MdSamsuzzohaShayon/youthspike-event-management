@@ -132,10 +132,11 @@ export class PlayerResolver {
         }
         players = await Promise.all(updatePromises);
       }
+      const findPlayers = await this.playerService.query({_id: {$in: input.map((i)=> i._id)}});
       return {
         success: true,
         code: 202,
-        data: players,
+        data: findPlayers,
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -161,10 +162,10 @@ export class PlayerResolver {
     try {
       const allowedFileTypes = ['csv', 'xlsx']; // Add the allowed file types
       const fileExtension = uploadedFile.filename.split('.').pop().toLowerCase();
-
       if (!allowedFileTypes.includes(fileExtension)) {
         return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }
+      
       const { teams, unassignedPlayers }: any = await this.playerService.arrangeFromCSV(uploadedFile, eventId, division);
       const playerIds = [];
       const teamIds = [];
@@ -177,14 +178,15 @@ export class PlayerResolver {
           const teamPlayerIds = playerList.map((p) => p._id);
           playerIds.push(...teamPlayerIds);
           teamObj.players = teamPlayerIds;
-          // teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null; // 
+          teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null; // 
           const createTeam = await this.teamService.create(teamObj);
           teamIds.push(createTeam._id);
           updatePlayers.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $push: { teams: createTeam._id } }))
         } catch (dErrs) {
-          // console.log(dErrs);
+          console.log(dErrs);
         }
       }
+
       const allPlayers = await this.playerService.createMany(unassignedPlayers);
       await Promise.all(updatePlayers);
       const unassignedPlayerIds = allPlayers.map((p) => p._id);
@@ -194,7 +196,7 @@ export class PlayerResolver {
       return {
         success: true,
         code: 201,
-        data: allPlayers,
+        data: [], // allPlayers
       };
     } catch (error) {
       console.error('Error in createMultiPlayers:', error);
@@ -263,6 +265,17 @@ export class PlayerResolver {
     try {
       if (!player.captainofteams) return null;
       const findTeams = await this.teamService.query({ _id: { $in: player.captainofteams } });
+      return findTeams;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  @ResolveField(() => Team, { nullable: true })
+  async cocaptainofteams(@Parent() player: Player): Promise<Team[]> {
+    try {
+      if (!player.cocaptainofteams) return null;
+      const findTeams = await this.teamService.query({ _id: { $in: player.cocaptainofteams } });
       return findTeams;
     } catch (error) {
       return null;

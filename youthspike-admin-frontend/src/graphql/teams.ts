@@ -17,6 +17,10 @@ const teamResponse = `
         _id
         name
       }
+      cocaptainofteams {
+        _id
+        name
+      }
       captainuser {
         _id
         firstName
@@ -139,8 +143,8 @@ const ADD_A_TEAM = gql`
 `;
 
 const UPDATE_TEAM = gql`
-  mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!) {
-    updateTeam(input: $input, teamId: $teamId) {
+  mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!, $eventId: String!) {
+    updateTeam(input: $input, teamId: $teamId, eventId: $eventId) {
       code
       data {
         _id
@@ -157,6 +161,12 @@ const UPDATE_TEAM = gql`
             lastName
             email
           }
+        }
+        cocaptain {
+          _id
+          email
+          firstName
+          lastName
         }
       }
     }

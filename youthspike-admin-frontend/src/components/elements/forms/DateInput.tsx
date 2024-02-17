@@ -4,6 +4,7 @@ import { defaultInputValue } from '@/utils/datetime';
 
 const DateInput = (props: IDateinputProps) => {
     
+    
     return (
         <div className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : ''} justify-between items-center ${props.extraCls}`}>
             <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{props.lblTxt ? props.lblTxt : props.name}</label>

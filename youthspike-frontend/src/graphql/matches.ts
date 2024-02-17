@@ -1,5 +1,27 @@
 import { gql } from '@apollo/client';
 
+const teamResponse = `
+_id
+active
+name
+players {
+  _id
+  firstName
+  lastName
+  profile
+  email
+  rank
+}
+captain {
+  _id
+  firstName
+  lastName
+  profile
+  email
+  rank
+}
+        `;
+
 const GET_MATCH_DETAIL = gql`
 query GetMatch($matchId: String!) {
   getMatch(matchId: $matchId) {
@@ -27,6 +49,11 @@ query GetMatch($matchId: String!) {
         sponsors{
           _id
           company
+          logo
+        }
+        ldo {
+          _id
+          name
           logo
         }
       }
@@ -60,46 +87,10 @@ query GetMatch($matchId: String!) {
         }
       }
       teamA {
-        _id
-        active
-        name
-        players {
-          _id
-          firstName
-          lastName
-          profile
-          email
-          rank
-        }
-        captain {
-          _id
-          firstName
-          lastName
-          profile
-          email
-          rank
-        }
+        ${teamResponse}
       }
       teamB {
-        _id
-        active
-        name
-        players {
-          _id
-          firstName
-          lastName
-          profile
-          email
-          rank
-        }
-        captain {
-          _id
-          firstName
-          lastName
-          profile
-          email
-          rank
-        }
+        ${teamResponse}
       }
     }
   }

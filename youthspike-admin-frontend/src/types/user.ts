@@ -5,10 +5,9 @@ import { IDocument } from "./document";
  */
 export enum UserRole {
   "admin" = "admin",
-  "coach" = "coach",
   "captain" = "captain",
+  "co_captain" = "co_captain",
   "director" = "director",
-  "manager" = "manager",
   "player" = "player",
 }
 

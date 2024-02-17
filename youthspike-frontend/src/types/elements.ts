@@ -8,6 +8,19 @@ export interface IMenuItem {
   link: string;
 }
 
+export enum MenuTitle{
+  FWANGO = "FWANGO",
+  EDIT_MATCH = "EDIT MATCH",
+  EDIT_ROSTER = "EDIT ROSTER",
+  DASHBOARD = "DASHBOARD",
+  FIND_MATCHES = "FIND MATCHES",
+}
+
+export interface IColMenu {
+  id: number;
+  title: MenuTitle;
+}
+
 export interface ITextInputProps {
   lw?: string;
   rw?: string;

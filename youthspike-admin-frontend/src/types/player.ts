@@ -34,6 +34,10 @@ export interface IPlayer extends IDocument {
     _id: string;
     name: string;
   }[] | null;
+  cocaptainofteams: {
+    _id: string;
+    name: string;
+  }[] | null;
 }
 
 export interface IPlayerExpRel extends IDocument {
@@ -47,4 +51,5 @@ export interface IPlayerExpRel extends IDocument {
   events?: IEvent[];
   teams?: ITeam[];
   captainofteams: ITeam[] | null;
+  cocaptainofteams: ITeam[] | null;
 }

@@ -1,18 +1,34 @@
-import { ITeam } from '@/types/team';
+import { IRoundRelatives } from '@/types';
+import { ETeam, ITeam } from '@/types/team';
 
 interface ILogoMatchScoreProps {
   dark: boolean;
   team?: ITeam | null;
+  roundList: IRoundRelatives[];
+  teamE: ETeam
 }
 
-function LogoMatchScore({ dark, team }: ILogoMatchScoreProps) {
+function LogoMatchScore({ dark, team, roundList, teamE }: ILogoMatchScoreProps) {
+  const calcTeamScore = ()=>{
+    let totalScore = 0;
+    for (let i = 0; i < roundList.length; i+=1) {
+      // @ts-ignore
+      if(teamE === ETeam.teamA && roundList[i] && roundList[i].teamAScore && roundList[i].teamBScore && roundList[i].teamAScore > roundList[i].teamBScore){
+        totalScore += 1;
+        // @ts-ignore
+      }else if(teamE === ETeam.teamB && roundList[i] && roundList[i].teamAScore && roundList[i].teamBScore && roundList[i].teamAScore < roundList[i].teamBScore){
+        totalScore += 1;
+      }
+    }
+    return totalScore;
+  }
   return (
     <div className={`logo-match-score w-full ${dark ? "text-gray-100" : "text-gray-900"}`}>
       <div className="flex justify-between items-center pt-4 gap-1">
         <img src="/next.svg" alt="next" className="w-2/6" />
         <h3 className="leading-4 w-2/6">Match Score</h3>
         <div className={`score-box w-2/6 border ${dark ? 'border-gray-100' : ' border-gray-900'} p-2 flex justify-center items-center text-center flex-col`}>
-          <p>2</p>
+          <p>{calcTeamScore()}</p>
           <p className="text-green-600">+8</p>
         </div>
       </div>
