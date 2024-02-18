@@ -55,17 +55,15 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Login detail in sidebar with photo
- - Slide rosters at the bottom properly (slide properly)
+ - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
+ - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
+ - Captain need to change their picture
+ - All pop-up menus need to close if someone click outside of that menu
+ - Admin should be able to edit organization and events detail
  - Co-captain will have same previllages and access as captain
  - Move team - when moving team to another event current event should not have that team
- - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
- - Match need to organize in order - current, upcoming, and past
- - Update division need to work properly
- - Admin should be able to edit organization and events detail
  - Work with bulk actions
- - Buttons - Create team and add another team, create and save
- - Captain is not creating by default - when creating a team
+ - If coach password changes from an event update that password to every captain of the event
  - If there are no two players assigned in a new there should not be any pair score
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
@@ -77,13 +75,13 @@ ___
  - Work with bulk actions
 
  - **Divisions**
- - Update division need to work properly
- - Select division properly - teams are assigned by divisions
+ - ✅✅ Update division need to work properly
+ - ✅✅ Select division properly - teams are assigned by divisions
  - Division on a match [12:12](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
 
  - **Admin**
  - Admin, captain and director can change ranking of players, drag and drop feature
- - Admin should be able to edit organization and events detail
+ - ✅✅ Admin should be able to edit organization and events detail
 
 
  - Next js testing with react testing library
@@ -91,7 +89,7 @@ ___
  - Handle error just like uploading multiple player file error handling
 
  - **Match**
- - Match need to organize in order - current, upcoming, and past
+ - ✅✅ Match need to organize in order - current, upcoming, and past
  - After creating a match with premier division(division 1) -> go to match list and by default item will be selected (division 1)
  - Captain need to change their picture
  - If anyone login as captain on the admin panel it should show the team that he is captain of, and the event [31:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
@@ -144,6 +142,7 @@ ___
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inavtive in the match day
  - Move team, or players to different event
+ - If coach password changes from an event update that password to every captain of the event
 
  - **Dashboard**
  - [Explanation video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82)

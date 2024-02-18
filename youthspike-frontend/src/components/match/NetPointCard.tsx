@@ -5,6 +5,8 @@ import { INetBase, INetRelatives, INetUpdate, ITeam } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
+import { netSize, screen } from '@/utils/constant';
+import { fsToggle } from '@/utils/helper';
 import React, { useEffect, useState } from 'react';
 
 
@@ -14,9 +16,10 @@ interface INetPointCard {
     net: INetRelatives | null | undefined;
     handleRightShift: () => void;
     handleLeftShift: () => void;
+    screenWidth: number;
 }
 
-function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard) {
+function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
     const currRoom = useAppSelector((state) => state.rooms.current);
@@ -66,24 +69,26 @@ function NetPointCard({ net, handleRightShift, handleLeftShift }: INetPointCard)
 
 
     return (
-        <div className={`absolute z-10 h-28 w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center 
+        <div className={`absolute z-10 ${ screenWidth > screen.xs ? "h-20" : "28"} w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center p-1 
           ${user && user.info?.captainplayer === teamA?.captain?._id ? "flex-col" : "flex-col-reverse"}`} style={{ top: '39%' }}>
             <div className="score-card-in-net w-full text-center">
                 <input type="number" name='teamAScore'
                     readOnly={inputReadonly()}
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamA)}
                     value={net?.teamAScore || ''}
+                    style={fsToggle(screenWidth)}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' />
             </div>
-            <div className="net-card flex justify-around w-full">
-                <img src="/icons/right-arrow.svg" alt="right-arrow" onKeyUp={handleKeyUp} onClick={handleRightShift} role="presentation" className="w-4 h-4 svg-white" style={{ transform: 'scaleX(-1)' }} />
-                <h3>Net {net?.num}</h3>
-                <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 h-4 svg-white" />
+            <div className="net-card flex justify-around items-center w-full">
+                <img src="/icons/right-arrow.svg" alt="right-arrow" onKeyUp={handleKeyUp} onClick={handleRightShift} role="presentation" className="w-4 svg-white" style={{ transform: 'scaleX(-1)' }} />
+                <h3 style={fsToggle(screenWidth)} className='leading-3'>Net {net?.num}</h3>
+                <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4  svg-white" />
             </div>
             <div className="score-card-in-net w-full text-center">
                 <input type="number" name='teamBScore'
                     onChange={(e) => handlePointChange(e, net?._id, ETeam.teamB)}
                     value={net?.teamBScore || ''}
+                    style={fsToggle(screenWidth)}
                     className='w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none' readOnly={inputReadonly()} />
             </div>
         </div>

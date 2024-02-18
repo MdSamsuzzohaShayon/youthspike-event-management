@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import MenuItem from './MenuItem';
 import { IUser, IUserContext, UserRole } from '@/types/user';
 import { IMenuItem } from '@/types';
@@ -87,12 +87,14 @@ function Menu() {
      */
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const client = useApolloClient();
     const menuEl = useRef<HTMLDivElement | null>(null);
 
     const [openMenu, setOpenMenu] = useState<boolean>(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [eventId, setEventId] = useState<string | null>(null);
+    const [directorId, setDirectorId] = useState<string | null>(null);
     const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
     const [user, setUser] = useState<ICookieUser>(initialUser);
 
@@ -180,6 +182,8 @@ function Menu() {
         if (!eventPath || !isValidId) {
             setEventId(null);
             if (userDetail.info?.role === UserRole.admin) {
+                const newDirectorId = searchParams.get("directorId");
+                if (newDirectorId) setDirectorId(newDirectorId);
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
@@ -191,6 +195,7 @@ function Menu() {
             if (userDetail.info?.role === UserRole.director) {
                 // console.log(initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7));
                 setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
+                setDirectorId(userDetail.info._id);
             } else if (userDetail.info?.role === UserRole.captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1)]); // captain
             } else {
@@ -200,6 +205,12 @@ function Menu() {
 
     }, [router, pathname]);
 
+
+    const makeMenuLink=(url: string)=>{
+        let baseUrl = url;
+        if(user.info?.role === UserRole.admin && directorId) `${baseUrl}/?directorId=${directorId}`;
+        return baseUrl;
+    }
 
 
 
@@ -223,7 +234,7 @@ function Menu() {
         for (let i = 0; i < uml.length; i++) {
             let newLink: string = '';
             if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) newLink = '/' + eId;
-            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={`${newLink}${uml[i].link}`} />);
+            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={makeMenuLink(`${newLink}${uml[i].link}`)} />);
         }
 
         return <>{menuItems}</>;
@@ -242,20 +253,23 @@ function Menu() {
             {openMenu && (
                 <div className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4" ref={menuEl}>
                     <div className="w-full flex justify-end items-center">
-                        {user && user.info && (
-                            <button onClick={closeMenuHandler} className='close-button'>
-                                <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />
-                            </button>
-                        )}
+                        <button onClick={closeMenuHandler} className='close-button'>
+                            <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />
+                        </button>
                     </div>
-                    <div className="league-director w-full flex justify-between items-center mb-8">
+                    <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
+                        <h1 className='capitalize'>{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
+                        <p className='uppercase text-yellow-500 mt-1'>{user.info?.role}</p>
+                        <br />
+                    </div>
+                    {/* <div className="league-director w-full flex justify-between items-center mb-8">
                         {user && user.info && user.info.role === UserRole.admin ? (<h1 className='text-2xl'>Admin</h1>) : (<>
                             <Link role="presentation" onClick={closeMenuHandler} href="/">
-                                {/* {ldoData?.logo ? <AdvancedImage className="w-2/6" cldImg={cld.image(ldoData?.logo)} /> : <img src="/free-logo.svg" alt="spikeball-logo" className="w-2/6" />} */}
+                                {ldoData?.logo ? <AdvancedImage className="w-2/6" cldImg={cld.image(ldoData?.logo)} /> : <img src="/free-logo.svg" alt="spikeball-logo" className="w-2/6" />}
                             </Link>
-                            {/* <h1 className='text-2xl'>{ldoData ? ldoData.name : ''}</h1> */}
+                            <h1 className='text-2xl'>{ldoData ? ldoData.name : ''}</h1>
                         </>)}
-                    </div>
+                    </div> */}
                     {eventId && (
                         <div className="league mb-8 w-full">
                             <Link href="/" className='text-2xl font-bold'>Event </Link>

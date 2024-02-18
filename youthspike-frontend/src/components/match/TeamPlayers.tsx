@@ -4,17 +4,20 @@ import React from 'react';
 import { IPlayer } from '@/types';
 import PlayerScoreCard from './PlayerScoreCard';
 import { ETeamPlayer } from '@/types/net';
+import { screen } from '@/utils/constant';
 
 interface ITeamPlayersProps {
-  teamPlayers: IPlayer[]; team: string;
+  teamPlayers: IPlayer[];
+  team: string;
+  screenWidth: number;
 }
 
 // Static variables
 const playersLimit: number = 5;
 const touchThreshold: number = 50;
-const initialStartTrim: number = 1;
+const initialStartTrim: number = 0;
 
-function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
+function TeamPlayers({ teamPlayers, team, screenWidth }: ITeamPlayersProps) {
 
   // Local State
   const [cloneTeamPlayers, setCloneTeamPlayers] = React.useState<IPlayer[]>([]);
@@ -22,33 +25,11 @@ function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
   const [trimPlayers, setTrimPlayers] = React.useState<IPlayer[]>([]);
   const [startPosX, setStartPosX] = React.useState<number>(0);
 
-  /*
-  // Dummy Data
-  const makeDummyPlayerCards = () => {
-    const playerCardList = [];
-    for (let i = 0; i < 10; i += 1) {
-      const dummyPlayer = {
-        player: { rank: i + 1 },
-        firstName: `Fn-${i + 1}`,
-        lastName: `Fn-${i + 1}`,
-      };
-      // @ts-ignore
-      playerCardList.push(dummyPlayer);
-    }
-    // @ts-ignore
-    setCloneTeamPlayers(playerCardList);
-    return playerCardList;
-  };
-  */
 
   React.useEffect(() => {
-    // const playerList = makeDummyPlayerCards();
-    // // @ts-ignore
-    // if (playerList.length > 0) setTrimPlayers(playerList.slice(initialStartTrim - 1, playersLimit));
-
     if (teamPlayers.length > 0) {
       setCloneTeamPlayers(teamPlayers.slice());
-      setTrimPlayers(teamPlayers.slice(initialStartTrim - 1, playersLimit));
+      setTrimPlayers(teamPlayers.slice(initialStartTrim, playersLimit));
     };
   }, [teamPlayers]);
 
@@ -58,15 +39,17 @@ function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
    * On desktop there will be a arrow button that will swip player
    */
   const shiftRight = (): void => {
-    if (startTrim - 1 <= cloneTeamPlayers.length - playersLimit) {
-      setTrimPlayers(cloneTeamPlayers.slice(startTrim - 1, startTrim - 1 + playersLimit));
-      setStartTrim((prevState) => prevState + 1);
+    if (startTrim <= cloneTeamPlayers.length - playersLimit) {
+      const newTrimStart = startTrim + 1;
+      setTrimPlayers(cloneTeamPlayers.slice(newTrimStart, playersLimit + newTrimStart));
+      setStartTrim(newTrimStart);
     }
   };
   const shiftLeft = (): void => {
-    if (startTrim - 2 >= 0) {
-      setTrimPlayers(cloneTeamPlayers.slice(startTrim - 2, startTrim - 2 + playersLimit));
-      setStartTrim((prevState) => prevState - 1);
+    if (startTrim - 1 >= 0) {
+      const newTrimStart = startTrim - 1;
+      setTrimPlayers(cloneTeamPlayers.slice(newTrimStart, newTrimStart + playersLimit));
+      setStartTrim(newTrimStart);
     }
   };
   const touchStartHandler = (e: React.TouchEvent) => {
@@ -86,19 +69,21 @@ function TeamPlayers({ teamPlayers, team }: ITeamPlayersProps) {
   return (
     <div className="bg-gray-900 text-gray-100 py-4">
       <div className="container px-4 mx-auto">
-        <div className="player-list flex  overflow-x-scroll justify-between items-center">
-          <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftLeft}>
+        <div className="player-list flex justify-between items-center">
+          {screenWidth > screen.xs && (<button type="button" className="bg-transparent border-o h-full" onClick={shiftLeft}>
             <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" style={{ transform: 'scaleX(-1)' }} />
-          </button>
+          </button>)}
+
           {trimPlayers && trimPlayers.map((player) => (
             // @ts-ignore
             <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-              <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} />
+              <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} />
             </div>
           ))}
-          <button type="button" className="hidden md:block bg-transparent border-o h-full" onClick={shiftRight}>
+          {screenWidth > screen.xs && (<button type="button" className="bg-transparent border-o h-full" onClick={shiftRight}>
             <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" />
-          </button>
+          </button>)}
+
         </div>
       </div>
     </div>

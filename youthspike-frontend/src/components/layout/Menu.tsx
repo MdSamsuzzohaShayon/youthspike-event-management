@@ -144,7 +144,7 @@ function Menu() {
         for (let i = 0; i < uml.length; i++) {
             let newLink: string = '';
             if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) newLink = '/' + eId;
-            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={ uml[i].id === 3 ? ADMIN_FRONTEND_URL : `${newLink}${uml[i].link}`} />);
+            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={uml[i].id === 3 ? ADMIN_FRONTEND_URL : `${newLink}${uml[i].link}`} />);
         }
 
         return <>{menuItems}</>;
@@ -163,15 +163,17 @@ function Menu() {
             {openMenu && (
                 <div className="menu-content bg-gray-950 text-gray-100 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4">
                     <div className="w-full flex justify-end items-center">
+                        <button onClick={closeMenuHandler} className='close-button'>
+                            <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />
+                        </button>
+                    </div>
 
-                        {user && user.info && (
-                            <button onClick={closeMenuHandler} className='close-button'>
-                                <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />
-                            </button>
-                        )}
+                    <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
+                        <h1>{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
+                        <p className='uppercase text-yellow-500 mt-1'>{user.info?.role}</p>
                     </div>
                     <div className="league-director w-full flex justify-between items-center mb-8">
-                        {user && user.info && user.info.role === UserRole.admin ? (<h1 className='text-2xl'>Admin</h1>) : (<>
+                        {user?.info?.role === UserRole.admin ? (<h1 className='text-2xl'>Admin</h1>) : (<>
                             <Link role="presentation" onClick={closeMenuHandler} href="/">
                                 {/* {ldoData?.logo ? <AdvancedImage className="w-2/6" cldImg={cld.image(ldoData?.logo)} /> : <img src="/free-logo.svg" alt="spikeball-logo" className="w-2/6" />} */}
                             </Link>

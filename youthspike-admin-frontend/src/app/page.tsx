@@ -96,6 +96,7 @@ function EventsPage() {
         const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match        
         const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
         setDirectorId(newDirectorId);
+        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
         // const eventsRes = await fetchEvents({ variables: { directorId: newDirectorId } });
         // console.log({ eventsRes, newDirectorId, ldoId: newLdoId });
       } else {
@@ -135,8 +136,8 @@ function EventsPage() {
       <div className="filtered-elements flex flex-wrap gap-2 mb-4">
         {filteredItems.map((item) => <p key={item.id} className='px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between'>{item.text} <span onClick={(e) => handleRemoveFilter(e, item.id)}><img src='/icons/close.svg' className='svg-white w-6 ml-2 p-0 m-0' alt='close' /></span></p>)}
       </div>
-      <div className="events-add-new flex flex-wrap gap-2 justify-between">
-        <div style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-yellow-500">
+      <div className="events flex flex-wrap gap-2 justify-between">
+        <div style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-yellow-500 rounded-lg">
           <Link href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?directorId=${directorId}` : `/newevent`} className='h-full w-full flex justify-center items-center flex-col gap-2 rounded-md'>
             <img src="/icons/plus.svg" alt="plus" className="w-12 svg-white" />
             <p>Add New</p>
@@ -144,7 +145,7 @@ function EventsPage() {
         </div>
 
         {eventList && eventList.length > 0 && eventList.map((event: IEvent) => (
-          <EventCard key={event._id} copyEvent={handleCopyEvent} event={event} />
+          <EventCard key={event._id} copyEvent={handleCopyEvent} event={event} directorId={directorId} user={user} />
         ))}
       </div>
     </div>

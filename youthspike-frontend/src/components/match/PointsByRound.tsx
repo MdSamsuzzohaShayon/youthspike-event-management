@@ -2,13 +2,16 @@ import React from 'react';
 import { useAppSelector } from '@/redux/hooks';
 import { IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
+import { screen } from '@/utils/constant';
+import { border } from '@/utils/styles';
 
 interface IPointsByRoundProps {
   dark: boolean;
   roundList: IRoundRelatives[];
+  screenWidth: number;
 }
 
-function PointsByRound({ dark, roundList }: IPointsByRoundProps) {
+function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
   const { myTeamE } = useAppSelector((state) => state.matches);
   const allNets = useAppSelector((state) => state.nets.nets);
 
@@ -50,7 +53,7 @@ function PointsByRound({ dark, roundList }: IPointsByRoundProps) {
         <p className={`plus-minus ${plusMinusScore >= 0 ? 'text-green-600' : 'text-red-600'} w-full text-center h-6`}>
           {plusMinusScore > 0 ? `+${plusMinusScore}` : plusMinusScore}
         </p>
-        <p className={`base-point w-full border ${dark ? 'border-gray-100' : 'border-gray-900'} p-1 text-center`}>{score}</p>
+        <p className={`base-point w-full ${dark ? border.dark : border.light} text-center`}>{score}</p>
       </React.Fragment>
     );
   };
@@ -58,7 +61,7 @@ function PointsByRound({ dark, roundList }: IPointsByRoundProps) {
   return (
     <div className={`points-by-round flex justify-start items-center w-full ${dark ? 'text-gray-100' : 'text-gray-900'} gap-1`}>
       {roundList.map((round, i) => (
-        <div className="r-box w-8" key={i}>
+        <div className={`r-box ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"}`} key={i}>
           {calcScore(round)}
         </div>
       ))}

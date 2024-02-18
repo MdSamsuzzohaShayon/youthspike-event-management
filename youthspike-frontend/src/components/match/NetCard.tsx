@@ -20,20 +20,23 @@ import { IPlayer, INetRelatives, INetUpdate, ITeam } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import NetPointCard from './NetPointCard';
-import { calcPairScore } from '@/utils/helper';
+import { calcPairScore, fsToggle } from '@/utils/helper';
 import { setAvailablePlayers, setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers, setPrevPartner, setOutOfRange } from '@/redux/slices/matchesSlice';
 import { ETeamPlayer } from '@/types/net';
 import findOutOfRange from '@/utils/match/findOutOfRange';
 import findPrevPartner from '@/utils/match/findPrevPartner';
+import { screen } from '@/utils/constant';
+import { border } from '@/utils/styles';
 
 interface INetCardProps {
   net?: INetRelatives | null | undefined;
+  screenWidth: number;
 }
 
 // Constant
 const touchThreshold: number = 50;
 
-function NetCard({ net }: INetCardProps) {
+function NetCard({ net, screenWidth }: INetCardProps) {
   // Hook
   const dispatch = useAppDispatch();
   const user = useUser();
@@ -42,14 +45,12 @@ function NetCard({ net }: INetCardProps) {
   const { currNetNum, currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
-  const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const { disabledPlayerIds, match: currMatch } = useAppSelector((state) => state.matches);
 
   // Local State
-  const [startPosX, setStartPosX] = useState<number>(0);
-  const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
+  const [startPosX, setStartPosX] = useState<number>(0)
   const [myPlayers, setMyPlayers] = useState<IPlayer[]>([]);
   const [opPlayers, setOpPlayers] = useState<IPlayer[]>([]); // Op = oponent
   const [myTeamE, setMyTeamE] = useState<ETeam>(ETeam.teamB);
@@ -189,11 +190,6 @@ function NetCard({ net }: INetCardProps) {
 
 
 
-  const handlePASSelect = (e: React.SyntheticEvent, pas: string) => { // PAS = Player Assign Strategies
-    e.preventDefault();
-    setOpenPasControl((prevState) => !prevState);
-  }
-
 
   useEffect(() => {
     if (!teamAPlayers || !teamBPlayers || !user) return;
@@ -251,36 +247,26 @@ function NetCard({ net }: INetCardProps) {
     const playerB = matchTPlayer(TPB);
     const playerARank = playerA?.rank, playerBRank = playerB?.rank;
     const pairScore = calcPairScore(playerARank, playerBRank);
-    return (<div className={`net-top h-60 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} border border-gray-300 items-center justify-start`}>
-      {!onTop && (<div className="h-6 w-6 border-0 rounded-full bg-yellow-500 text-gray-100 relative">
-        <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
-        {openPasControl && (
-          <ul className="player-select-strategy bg-gray-800 w-24 absolute bottom-6 inset-x-0" style={{ left: '50%', transform: 'translate(-50%)' }} >
-            {playerAssignStrategies.map((pas) => (
-              <li className='p-2 border-b border-yellow-500 capitalize' key={pas} role="presentation" onClick={e => handlePASSelect(e, pas)} >{pas}</li>
-            ))}
-          </ul>
-        )}
-      </div>)}
+    return (<div className={`net-top h-3/6 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} ${border.light} items-center justify-start`}>
       <div className="player-pair flex justify-between w-full">
-        <div className={`player-card team-a-player-1 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
+        <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? "w-12" : "w-16"} ${!onTop && border.light}`}>
+          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
         </div>
-        <div className={`player-card team-a-player-2 w-16 ${!onTop && "border border-gray-300"}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} />
+        <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? "w-12" : "w-16"} ${!onTop && border.light}`}>
+          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
         </div>
       </div>
-      <h3>Pair Score {pairScore}</h3>
+      <h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>
     </div>);
   }
 
   return (
-    <div className="net-detail w-3/6 relative" style={{ height: '30rem' }} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="net-detail w-full h-full relative flex justify-between flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Net top section start  */}
       {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true)}
       {/* Net top section end  */}
 
-      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} />
+      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} />
 
       {/* Net bottom section start  */}
       {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false)}

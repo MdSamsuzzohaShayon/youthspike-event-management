@@ -58,7 +58,7 @@ export class PlayerService {
     return this.playerModel.findById(playerId);
   }
 
-  async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>, ) {
+  async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>,) {
     return this.playerModel.updateOne(filter, player);
   }
 
@@ -96,13 +96,14 @@ export class PlayerService {
               teams: []
             };
           }
-          
+
           // Organize team
           const [tk, tv] = matchTeam;
           if (tv && tv !== '') {
             const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
             if (findTeamI !== -1) {
               const newPlayers = [...teams[findTeamI].players];
+              playerObj.rank = newPlayers.length + 1;
               if (playerObj && playerObj.email) newPlayers.push(playerObj);
               teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
             } else {
