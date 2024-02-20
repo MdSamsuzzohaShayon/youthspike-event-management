@@ -16,6 +16,7 @@ const LOGIN_USER = gql`
           email
           event
           captainplayer
+          cocaptainplayer
         }
       }
     }

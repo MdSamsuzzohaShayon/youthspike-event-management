@@ -1,27 +1,27 @@
 /* eslint-disable no-param-reassign */
 import { IColMenu, IError } from '@/types';
-import { MenuTitle } from '@/types/elements';
+import { EAssignStrategies, EMenuTitle } from '@/types/elements';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 
 export interface ElementState {
   screenWidth: number;
-  playerAssignStrategy: string[];
+  playerAssignStrategy: EAssignStrategies[];
   isLoading: boolean;
   actErr: IError | null;
   colMenus: IColMenu[];
-  selectedColItem: MenuTitle | null;
+  selectedColItem: EMenuTitle | null;
 }
 
-const initialStrategyList = ["high", "random"];
+const initialStrategyList = [EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAssignStrategies.ANCHORING];
 
 const initialColMenu = [
-  {id: 1, title: MenuTitle.FWANGO},
-  {id: 2, title: MenuTitle.EDIT_MATCH},
-  {id: 3, title: MenuTitle.EDIT_ROSTER},
-  {id: 4, title: MenuTitle.DASHBOARD},
-  {id: 5, title: MenuTitle.FIND_MATCHES},
+  {id: 1, title: EMenuTitle.FWANGO},
+  {id: 2, title: EMenuTitle.EDIT_MATCH},
+  {id: 3, title: EMenuTitle.EDIT_ROSTER},
+  {id: 4, title: EMenuTitle.DASHBOARD},
+  {id: 5, title: EMenuTitle.FIND_MATCHES},
 ];
 
 const initialState: ElementState = {
@@ -47,7 +47,7 @@ export const elementSlice = createSlice({
     setActErr: (state, action: PayloadAction<IError | null>) => {
       state.actErr = action.payload;
     },
-    setSelectedColItem: (state, action: PayloadAction<MenuTitle | null>) => {
+    setSelectedColItem: (state, action: PayloadAction<EMenuTitle | null>) => {
       state.selectedColItem = action.payload;
     },
   },

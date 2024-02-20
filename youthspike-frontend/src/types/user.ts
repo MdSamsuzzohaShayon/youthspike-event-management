@@ -6,6 +6,7 @@ import { IDocument } from "./document";
 export enum UserRole {
   "admin" = "admin",
   "captain" = "captain",
+  "co_captain" = "co_captain",
   "director" = "director",
   "player" = "player",
 }
@@ -25,6 +26,7 @@ export interface IUser extends IDocument {
   active: boolean;
   login: ILogin;
   captainplayer: string | null;
+  cocaptainplayer: string | null;
 }
 
 /**

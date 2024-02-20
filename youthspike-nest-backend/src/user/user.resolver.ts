@@ -26,6 +26,9 @@ class LoginUser extends UserBase {
 
   @Field((type) => String, { nullable: true })
   captainplayer?: string;
+
+  @Field((type) => String, { nullable: true })
+  cocaptainplayer?: string;
 }
 
 @ObjectType()
@@ -84,6 +87,13 @@ export class UserResolver {
         }
       }
 
+      if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
+        const teamWithCaptain = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer.toString() });
+        if (teamWithCaptain) {
+          userObj.event = teamWithCaptain.event;
+        }
+      }
+
       const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
       return {
         code: 202,
@@ -117,7 +127,7 @@ export class UserResolver {
 
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((returns) => UserResponse)
   async updateUser(
     @Args({ name: 'userId', type: () => String, nullable: false }) userId: string,
@@ -150,6 +160,10 @@ export class UserResolver {
       if (profileUrl && userExist.captainplayer) {
         await this.playerService.updateOne({_id: userExist.captainplayer.toString()}, { profile: profileUrl });
       }
+      if (profileUrl && userExist.cocaptainplayer) {
+        await this.playerService.updateOne({_id: userExist.cocaptainplayer.toString()}, { profile: profileUrl });
+      }
+
       if (newUserObj.email) delete newUserObj.email;
       const director = await this.userService.createOrUpdate(newUserObj, userId);
       return {
@@ -193,6 +207,21 @@ export class UserResolver {
       if (user.captainplayer) {
         const captain = await this.playerService.findById(user.captainplayer.toString());
         return captain || null;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  @ResolveField(() => Player, { nullable: true })
+  async cocaptainplayer(@Parent() user: User) {
+    try {
+      if (user.cocaptainplayer) {
+        const cocaptain = await this.playerService.findById(user.cocaptainplayer.toString());
+        return cocaptain || null;
       } else {
         return null;
       }

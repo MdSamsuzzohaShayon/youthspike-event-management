@@ -103,7 +103,7 @@ export class PlayerService {
             const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
             if (findTeamI !== -1) {
               const newPlayers = [...teams[findTeamI].players];
-              playerObj.rank = newPlayers.length + 1;
+              playerObj.rank = newPlayers.length === 0 ? 1 : newPlayers.length + 1;
               if (playerObj && playerObj.email) newPlayers.push(playerObj);
               teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
             } else {

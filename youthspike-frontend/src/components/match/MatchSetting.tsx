@@ -5,7 +5,7 @@ import { readDate } from '@/utils/datetime';
 import { AdvancedImage } from '@cloudinary/react';
 import React, { useRef } from 'react'
 import TeamInMatch from '../team/TeamInMatch';
-import { MenuTitle } from '@/types/elements';
+import { EMenuTitle } from '@/types/elements';
 import { setSelectedColItem } from '@/redux/slices/elementSlice';
 import CollapseContent from './CollapseContent';
 
@@ -35,7 +35,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
         dialogSettingEl.current.close();
     };
 
-    const handleMenuItem = (e: React.SyntheticEvent, menuItem: MenuTitle) => {
+    const handleMenuItem = (e: React.SyntheticEvent, menuItem: EMenuTitle) => {
         e.preventDefault();
         dispatch(setSelectedColItem(menuItem));
     };

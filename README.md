@@ -58,6 +58,7 @@ ___
  - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
  - Captain need to change their picture
+ - Add image logo to a team
  - All pop-up menus need to close if someone click outside of that menu
  - Admin should be able to edit organization and events detail
  - Co-captain will have same previllages and access as captain

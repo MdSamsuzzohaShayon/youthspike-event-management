@@ -8,7 +8,13 @@ export interface IMenuItem {
   link: string;
 }
 
-export enum MenuTitle{
+export enum EAssignStrategies{
+  RANDOM = "RANDOM",
+  AUTO = "AUTO",
+  ANCHORING = "ANCHORING",
+}
+
+export enum EMenuTitle{
   FWANGO = "FWANGO",
   EDIT_MATCH = "EDIT MATCH",
   EDIT_ROSTER = "EDIT ROSTER",
@@ -18,7 +24,7 @@ export enum MenuTitle{
 
 export interface IColMenu {
   id: number;
-  title: MenuTitle;
+  title: EMenuTitle;
 }
 
 export interface ITextInputProps {

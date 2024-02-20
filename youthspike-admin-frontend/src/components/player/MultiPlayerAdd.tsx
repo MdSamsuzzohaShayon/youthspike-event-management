@@ -79,13 +79,13 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
 
     return (
         <form onSubmit={handleUploadMultiPlayers}>
-            <div className="input-group">
+            <div className="input-group w-full">
                 <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
-                <input type="file" ref={uploadFileEl} className='form-control' onChange={handleInputChange} />
+                <input type="file" ref={uploadFileEl} className='form-control w-full' onChange={handleInputChange} />
             </div>
             <SelectInput vertical handleSelect={handleDivisionInput} name='division' optionList={divisionList} defaultValue="" />
-            <div className="input-group">
-                <button type="submit" className="btn-secondary">Upload</button>
+            <div className="input-group mt-4">
+                <button type="submit" className="btn-info">Upload</button>
             </div>
         </form>
     );

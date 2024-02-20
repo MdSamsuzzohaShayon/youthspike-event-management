@@ -25,10 +25,13 @@ import staticData from '../../lib/data.json';
 import DateInput from '../elements/forms/DateInput';
 import ShowDivisions from './ShowDivisions';
 import ShowSponsors from './ShowSponsors';
+import { assignStrategies } from '@/utils/staticData';
+import useClickOutside from '../../../hooks/useClickOutside';
+import AnyFileInput from '../elements/forms/AnyFileInput';
 
 
 // Select Input Options
-const { homeTeamStrategy, rosterLockList, assignLogicList } = staticData;
+const { homeTeamStrategy, rosterLockList } = staticData;
 
 const initialEvent = {
     name: 'Event 1',
@@ -40,7 +43,7 @@ const initialEvent = {
     netVariance: 3,
     homeTeam: homeTeamStrategy[0].value,
     autoAssign: false,
-    autoAssignLogic: assignLogicList[1].value,
+    autoAssignLogic: assignStrategies[0],
     rosterLock: rosterLockList[0].value,
     startDate: new Date().toISOString(),
     endDate: new Date().toISOString(),
@@ -75,6 +78,8 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     // GraphQL
     const [eventAdd, { error: eaErr, loading: eaLoading, data: eaData }] = useMutation(ADD_EVENT);
     const [eventUpdate, { error: euErr, loading: euLoading, data: euData }] = useMutation(UPDATE_EVENT);
+
+    useClickOutside(addSponsorDialogEl, () => { closeModal(); });
 
     /**
      * Add event mutation
@@ -242,14 +247,24 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         if (addSponsorDialogEl.current) {
             setCurrSponsor(initialCurrSponsor);
             addSponsorDialogEl.current.showModal();
+
+            // Reset Input
+            let companyInput = document.getElementById('company');
+            if (companyInput) {
+                // @ts-ignore
+                companyInput.value = "";
+            };
         }
     }
 
-    const handleCloseModal = (e: React.SyntheticEvent) => {
-        e.preventDefault();
+    const closeModal = () => {
         if (addSponsorDialogEl.current) {
             addSponsorDialogEl.current.close();
         }
+    }
+    const handleCloseModal = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        closeModal();
     }
 
     const handleFileNameChange = (e: React.SyntheticEvent) => {
@@ -262,16 +277,11 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         }
     }
 
-    const handleOpenImg = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        if (!sponsorInputEl.current) return;
-        sponsorInputEl.current.click();
-    }
-
     const handleFileChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const fileInputEl = e.target as HTMLInputElement;
         if (!fileInputEl.files || fileInputEl.files.length === 0) return;
+
         if (currSponsor.company && currSponsor.company !== '') {
             const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
             let sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: fileInputEl.files[0] };
@@ -279,9 +289,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
             // @ts-ignore
             setCurrSponsor((prevState) => ({ ...prevState, logo: fileInputEl.files[0] }));
-            if (addSponsorDialogEl.current) {
-                addSponsorDialogEl.current.close();
-            }
         } else {
             // @ts-ignore
             setCurrSponsor((prevState) => ({ ...prevState, logo: fileInputEl.files[0] }));
@@ -335,7 +342,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={eventState.autoAssign}
                 name="autoAssign" />
-            <SelectInput defaultValue={eventState.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
+            <SelectInput defaultValue={eventState.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <NumberInput required lblTxt='Sub Clock' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
 
@@ -343,13 +350,17 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} rw='w-3/6' lw='w-3/6' />
 
             {/* File upload start  */}
-            <dialog ref={addSponsorDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2' >
-                <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white mt-2' />
-                <div className='flex items-center justify-center'>
+            <dialog ref={addSponsorDialogEl} >
+                <div className="close-wrapper w-full flex justify-end items-center">
+                    <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white w-6' />
+                </div>
+                <div className='flex items-center justify-center flex-col'>
                     {/* defaultValue={currSponsor.company} */}
                     <TextInput vertical handleInputChange={handleFileNameChange} name='company' required={false} />
-                    <img src='/icons/plus.svg' role="presentation" onClick={handleOpenImg} className='svg-white w-20 h-20' />
-                    <input type="file" name="sponsor" id="sponsor" className='hidden' ref={sponsorInputEl} onChange={handleFileChange} />
+                    <AnyFileInput handleFileChange={handleFileChange} name='logo' vertical lblTxt='Sponsor Logo' />
+                    <div className="input-group mt-4">
+                        <button className="btn-info" onClick={closeModal}>Ok</button>
+                    </div>
                 </div>
             </dialog>
             <div className="sponsors-heading flex justify-between w-full mt-4 items-center">

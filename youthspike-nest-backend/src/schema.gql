@@ -183,7 +183,7 @@ type LoginUser {
   lastName: String!
   role: UserRole!
   captainplayer: String
-  cocaptainplayer: Player
+  cocaptainplayer: String
   email: String!
   active: Boolean!
   event: String

@@ -71,9 +71,9 @@ export function middleware(request: NextRequest) {
     if (userObj && userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
       // Redirect if the user is not a director
       return NextResponse.next();
-    } else if (userObj && userObj.role === UserRole.captain && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+    } else if (userObj && (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
       return NextResponse.next();
-    } else if (userObj && userObj.role === UserRole.captain && userObj.event) {
+    } else if (userObj && (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) && userObj.event) {
       // If captain has an event id he will be redirected to /eventId/players page
       return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url));
     }

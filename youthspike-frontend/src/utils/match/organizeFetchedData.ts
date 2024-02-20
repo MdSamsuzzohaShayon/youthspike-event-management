@@ -136,10 +136,9 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
       netVariance: matchData.netVariance
     }),
   );
-
-
+  
   // Setting variables for team A and team B
-  if (userInfo && userInfo.captainplayer === teamAF?.captain?._id) {
+  if (userInfo && (userInfo.captainplayer === teamAF?.captain?._id || userInfo.cocaptainplayer === teamAF?.cocaptain?._id)) {
     dispatch(setMyTeam(teamAF));
     dispatch(setOpTeam(teamBF));
     dispatch(setMyPlayers(reformatAPlayers));

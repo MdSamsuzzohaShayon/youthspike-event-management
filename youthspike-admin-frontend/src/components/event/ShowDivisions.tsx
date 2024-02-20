@@ -1,8 +1,10 @@
 import { IEventAdd } from '@/types';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TextInput from '../elements/forms/TextInput';
 import { ApolloClient, useApolloClient, useMutation } from '@apollo/client';
 import { GET_A_EVENT, UPDATE_EVENT } from '@/graphql/event';
+import { clickedInside } from '@/utils/helper';
+import useClickOutside from '../../../hooks/useClickOutside';
 
 
 interface IShowDivisionsProps {
@@ -23,6 +25,14 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
     const [updatedDivisions, setUpdatedDivisions] = useState(prevDivisions);
     const [originalItem, setOriginalItem] = useState<string | null>(null);
     const [addNew, setAddNew] = useState<boolean>(false);
+
+
+    useClickOutside(addDivisionDialogEl, () => {
+        if (addDivisionDialogEl.current) {
+            addDivisionDialogEl.current.close();
+        }
+        setOriginalItem(null);
+    });
 
     const refreshServer = async (newDivisions: string) => {
         const inputData = { ...updateEvent, divisions: newDivisions };
@@ -71,9 +81,9 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
             const prevDivList = prevDivisions.split(',');
             const updateDivList = [...prevDivList];
             const prevItemIndex = prevDivList.findIndex((d) => d.trim().toLowerCase().includes(originalItem.trim().toLowerCase()));
-            if(prevItemIndex !== -1){
+            if (prevItemIndex !== -1) {
                 let os = prevDivList[prevItemIndex].trim(), ns = inputEl.value.trim();
-                if(prevDivList[prevItemIndex].includes('_')){
+                if (prevDivList[prevItemIndex].includes('_')) {
                     os = prevDivList[prevItemIndex].split('_')[0].trim();
                 }
                 const formattedStr = `${os}_${ns}_u`;
@@ -166,6 +176,7 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
     }
 
 
+
     return <ul className='flex gap-1 flex-wrap'>
         {/* New division add start  */}
         <dialog ref={addDivisionDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2' >
@@ -178,9 +189,9 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
         {listEl}
 
         {update && (
-            <li className='px-4 py-2 rounded-full bg-yellow-500 flex items-center justify-between' role="presentation" >
+            <li className='px-4 py-2 rounded-full bg-yellow-500 flex items-center justify-between' role="presentation" onClick={handleShowAddDivision} >
                 Add New
-                <img className='w-4 h-4 svg-white ml-2' src='/icons/plus.svg' role="presentation" onClick={handleShowAddDivision} />
+                <img className='w-4 h-4 svg-white ml-2' src='/icons/plus.svg' />
             </li>
         )}
     </ul>

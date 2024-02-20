@@ -38,9 +38,15 @@ import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 
 /**
- * Test Match - http://localhost:3001/matches/65d089a108a8e0c8db7d2489
+ * Test Match
+ * 
+ * Captain
  * ayyy.spence@gmail.com
- * konnorcordingley@gmail.com
+ * braden.peterson8@gmail.com
+ * 
+ * Co-captains
+ * bowenmaynard.24@shelleyschools.org
+ * jarenhaggard2010@gmail.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -128,6 +134,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const mainEl = useResizeObserver(onResize);
 
   if (loading) return <Loader />;
+  
 
   return (
     <>
@@ -144,9 +151,10 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           <TeamPlayers teamPlayers={opPlayers} team={opTeamE} screenWidth={screenWidth} />
 
           {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-          <LineupStrategy myTeamE={myTeamE} currRound={currentRound} />
+          <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets}  roundList={roundList}/>
 
-          {user && user.info && user.info.role === UserRole.captain && <RoundRunner />}
+
+          {user && user.info && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
           {eventSponsors.length > 0 && !user && (
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>

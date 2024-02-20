@@ -20,6 +20,14 @@ captain {
   email
   rank
 }
+cocaptain {
+  _id
+  firstName
+  lastName
+  profile
+  email
+  rank
+}
         `;
 
 const GET_MATCH_DETAIL = gql`

@@ -20,13 +20,14 @@ import { IPlayer, INetRelatives, INetUpdate, ITeam } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import NetPointCard from './NetPointCard';
-import { calcPairScore, fsToggle } from '@/utils/helper';
+import { fsToggle } from '@/utils/helper';
 import { setAvailablePlayers, setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers, setPrevPartner, setOutOfRange } from '@/redux/slices/matchesSlice';
 import { ETeamPlayer } from '@/types/net';
 import findOutOfRange from '@/utils/match/findOutOfRange';
 import findPrevPartner from '@/utils/match/findPrevPartner';
 import { screen } from '@/utils/constant';
 import { border } from '@/utils/styles';
+import { calcPairScore } from '@/utils/scoreCalc';
 
 interface INetCardProps {
   net?: INetRelatives | null | undefined;
@@ -193,7 +194,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
 
   useEffect(() => {
     if (!teamAPlayers || !teamBPlayers || !user) return;
-    if (user.info && user.info.captainplayer === teamA?.captain?._id) {
+    if (user.info && (user.info.captainplayer === teamA?.captain?._id || user.info.cocaptainplayer === teamA?.cocaptain?._id)) {
       setMyPlayers([...teamAPlayers]);
       setOpPlayers([...teamBPlayers]);
       setMyTeamE(ETeam.teamA);

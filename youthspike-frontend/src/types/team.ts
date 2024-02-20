@@ -8,6 +8,7 @@ export interface ITeam {
   event: IEvent;
   players: IPlayer[];
   captain: IPlayer | null;
+  cocaptain: IPlayer | null;
 }
 
 export interface ITeamAdd {
@@ -16,6 +17,7 @@ export interface ITeamAdd {
   event: string;
   players: string[];
   captain: string | null;
+  cocaptain?: string | null;
 }
 
 export enum ETeam{

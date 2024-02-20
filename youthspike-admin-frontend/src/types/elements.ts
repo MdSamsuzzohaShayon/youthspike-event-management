@@ -1,6 +1,12 @@
 import React from "react";
 import { IUserContext } from ".";
 
+export enum EAssignStrategies{
+  RANDOM = "RANDOM",
+  AUTO = "AUTO",
+  ANCHORING = "ANCHORING",
+}
+
 export interface IMenuItem {
   id: number;
   imgName: string;
@@ -42,6 +48,16 @@ export interface IFileFileProps {
   name: string;
   defaultValue?: string | undefined | null;
   handleFileChange: (e: React.SyntheticEvent) => void;
+}
+
+export interface IAnyFileFileProps {
+  name: string;
+  handleFileChange: (e: React.SyntheticEvent) => void;
+  lw?: string;
+  rw?: string;
+  vertical?: boolean;
+  extraCls?: string;
+  lblTxt?: string;
 }
 
 export interface INumberInputProps {

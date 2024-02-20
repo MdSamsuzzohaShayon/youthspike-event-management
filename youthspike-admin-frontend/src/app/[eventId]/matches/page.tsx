@@ -14,12 +14,6 @@ import { useLazyQuery, useQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 
 
-/**
- * Test Match
- * alex.cooper@youthspike.com
- * lily.ward@youthspike.com
- */
-
 function MatchesPage({ params }: { params: { eventId: string } }) {
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -52,19 +46,22 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {addMatch ? <>
-        {/* Only director and admin can create match  */}
-        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-          <>
-            <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(false)}>Match List</button>
-            <MatchAdd matchData={toMatchDefaultData(eventData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} />
-          </>
-        )}
-      </> : <>
-        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
-        <br />
-        {eventData?.matches && eventData?.matches.length > 0 ? <MatchList eventId={params.eventId} divisions={eventData.divisions} matchList={eventData.matches} /> : <p>No match created yet!</p>}
-      </>}
+      
+      <div className="mt-4">
+        {addMatch ? <>
+          {/* Only director and admin can create match  */}
+          {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+            <>
+              <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(false)}>Match List</button>
+              <MatchAdd matchData={toMatchDefaultData(eventData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} />
+            </>
+          )}
+        </> : <>
+          {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
+          <br />
+          {eventData?.matches && eventData?.matches.length > 0 ? <MatchList eventId={params.eventId} divisions={eventData.divisions} matchList={eventData.matches} /> : <p>No match created yet!</p>}
+        </>}
+      </div>
       <br />
     </div>
   )

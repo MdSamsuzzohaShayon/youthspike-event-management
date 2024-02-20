@@ -10,6 +10,8 @@ import staticData from '../../lib/data.json';
 import ToggleInput from '../elements/forms/ToggleInput';
 import { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, UPDATE_MATCH } from '@/graphql/matches';
 import { divisionsToOptionList } from '@/utils/helper';
+import { assignStrategies } from '@/utils/staticData';
+import { EAssignStrategies } from '@/types/elements';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -34,7 +36,7 @@ const initialAddMatch = {
     numberOfRounds: 0,
     teamA: "",
     teamB: "",
-
+    autoAssignLogic: EAssignStrategies.AUTO,
     // Default settings
     autoAssign: false,
 }
@@ -186,9 +188,10 @@ function MatchAdd({ matchData, eventId, setActErr, setIsLoading, update, matchId
             <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
+            
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
                 name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
-            <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignLogicList} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as)=> ({value: as, text: as}))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
             <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required={!update} defaultValue={addMatch.coachPassword} vertical extraCls='md:w-5/12' />

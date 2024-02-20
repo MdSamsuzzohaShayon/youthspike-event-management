@@ -1,26 +1,26 @@
-import { MenuTitle } from '@/types/elements';
+import { EMenuTitle } from '@/types/elements';
 import React from 'react';
 
-function CollapseContent({ title }: { title: MenuTitle | null }) {
+function CollapseContent({ title }: { title: EMenuTitle | null }) {
 
     switch (title) {
-        case MenuTitle.FWANGO:
+        case EMenuTitle.FWANGO:
             return (<p className="capitalize">
                 FWANGO Content
             </p>);
-        case MenuTitle.EDIT_MATCH:
+        case EMenuTitle.EDIT_MATCH:
             return (<p className="capitalize">
                 .EDIT_MATCH Content
             </p>);
-        case MenuTitle.EDIT_ROSTER:
+        case EMenuTitle.EDIT_ROSTER:
             return (<p className="capitalize">
                 EDIT_ROSTER Content
             </p>);
-        case MenuTitle.DASHBOARD:
+        case EMenuTitle.DASHBOARD:
             return (<p className="capitalize">
                 .DASHBOARD Content
             </p>);
-        case MenuTitle.FIND_MATCHES:
+        case EMenuTitle.FIND_MATCHES:
             return (<p className="capitalize">
                 .FIND_MATCHES Content
             </p>);

@@ -12,12 +12,12 @@ import { ETeam } from "@/types/team";
 function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
     if (!socket || !userInfo || !userToken) return;
     const parsedUser = JSON.parse(userInfo);
-    if (!parsedUser.captainplayer || !teamA || !teamA.captain || !teamB || !teamB.captain || !currRound) return;
+    if ((!parsedUser.captainplayer && !parsedUser.cocaptainplayer) || !teamA || !teamB  || (!teamA.captain  && !teamA.cocaptain ) || (!teamB.captain && !teamB.cocaptain) || !currRound) return;
 
     let userTeamId = null;
-    if (parsedUser.captainplayer === teamA.captain._id) {
+    if ((teamA.captain && parsedUser.captainplayer === teamA.captain._id) || ( teamA.cocaptain && parsedUser.cocaptainplayer === teamA.cocaptain._id)) {
         userTeamId = teamA._id;
-    } else if (parsedUser.captainplayer === teamB.captain._id) {
+    } else if ((teamB.captain && parsedUser.captainplayer === teamB.captain._id) || ( teamB.cocaptain && parsedUser.cocaptainplayer === teamB.cocaptain._id)) {
         userTeamId = teamB._id;
     } else {
         return;
@@ -29,13 +29,14 @@ function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, mat
 function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch }: IStatusChange) {
     if (!currRoom) return;
     const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+    const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
     const actionData: any = {
         room: currRoom._id,
         round: currRound?._id,
         teamAProcess: currRound?.teamAProcess,
         teamBProcess: currRound?.teamBProcess,
     };
-    if (isTeamACaptain) {
+    if (isTeamACaptain || isTeamACoCaptain) {
         actionData.teamAProcess = EActionProcess.CHECKIN;
     } else {
         actionData.teamBProcess = EActionProcess.CHECKIN;
@@ -55,6 +56,7 @@ function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, di
 
 function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNets, roundList, dispatch, myTeamE }: ICheckInToLineupProps) {
     const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+    const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
     const actionData: ICheckInAction = {
         room: currRoom?._id ? currRoom?._id : null,
         round: currRound?._id ? currRound?._id : null,
@@ -62,7 +64,7 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
         teamBProcess: currRound?.teamBProcess ? currRound?.teamBProcess : null,
         nets: []
     };
-    if (isTeamACaptain) {
+    if (isTeamACaptain || isTeamACoCaptain) {
         actionData.teamAProcess = EActionProcess.LINEUP;
     } else {
         actionData.teamBProcess = EActionProcess.LINEUP;

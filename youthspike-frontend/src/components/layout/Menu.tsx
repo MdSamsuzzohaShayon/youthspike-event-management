@@ -161,7 +161,7 @@ function Menu() {
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-950 text-gray-100 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4">
+                <div className="menu-content bg-gray-950 text-gray-100 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-30 p-4">
                     <div className="w-full flex justify-end items-center">
                         <button onClick={closeMenuHandler} className='close-button'>
                             <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />

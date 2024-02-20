@@ -185,7 +185,7 @@ function Menu() {
                 const newDirectorId = searchParams.get("directorId");
                 if (newDirectorId) setDirectorId(newDirectorId);
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
-            } else if (userDetail.info?.role === UserRole.captain) {
+            } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5 || menuItem.id === 8)]); // 5 = account
@@ -196,7 +196,7 @@ function Menu() {
                 // console.log(initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7));
                 setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
                 setDirectorId(userDetail.info._id);
-            } else if (userDetail.info?.role === UserRole.captain) {
+            } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1)]); // captain
             } else {
                 setUserMenuList(initialUserMenuList);

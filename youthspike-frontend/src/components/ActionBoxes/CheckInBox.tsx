@@ -62,6 +62,15 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
     setFillNet(filled);
   }, [currentRoundNets]);
 
+  const placingFirstElement = () => {
+    return (<div>
+      {myTeamE === currRound?.firstPlacing ? <React.Fragment>
+        <p>You are placing first, Select 2 players for each net and submit line up!</p>
+        <button className={fillNet ? "btn-info" : "btn-primary"} type='button' onClick={handleCheckInToLineup} >Submit Lineup</button>
+      </React.Fragment> : <p>Wait for another team to submit their lineup, you are going to match up with their line up!</p>}
+    </div>);
+  }
+
   return (
     <div>
       {
@@ -69,16 +78,13 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
         verifyLineup && <VerifyLineup />}
 
       {currRound?.teamAProcess === EActionProcess.CHECKIN && currRound?.teamBProcess === EActionProcess.CHECKIN
-        ? (<div>
-          {myTeamE === currRound?.firstPlacing ? <React.Fragment>
-            <p>You are placing first, Select 2 players for each net and submit line up!</p>
-            <button className={fillNet ? "btn-info" : "btn-primary"} type='button' onClick={handleCheckInToLineup} >Submit Lineup</button>
-          </React.Fragment> : <p>Wait for another team to submit their lineup, you are going to match up with their line up!</p>}
-        </div>)
+        ? placingFirstElement()
         : (otp === EActionProcess.LINEUP ? <div>
           <p>The Other team have submitted their lineup now, it's your turn</p>
           <button className={fillNet ? "btn-info" : "btn-primary"} type='button' onClick={handleCheckInToLineup} >Submit Lineup</button>
-        </div> : <p>You have checked in successfully, now the other team need to be checked in!</p>)}
+        </div> : (currRound?.num === 1
+          ? <p>You have checked in successfully, now the other team need to be checked in!</p>
+          : placingFirstElement()))}
     </div>
   )
 }
