@@ -55,18 +55,43 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
+ - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
+ - Refetch teams is not working when uploading multiple players
+ - Captain need to change their picture
+ - Add image logo to a team
+ - All pop-up menus need to close if someone click outside of that menu
+ - Admin should be able to edit organization and events detail
+ - Co-captain will have same previllages and access as captain
  - Move team - when moving team to another event current event should not have that team
- - Submit players of the net properly, use web socket - Start over after a captain rejoin  (If he leave and rejoin again)
+ - Work with bulk actions
+ - If coach password changes from an event update that password to every captain of the event
+ - If there are no two players assigned in a new there should not be any pair score
+ - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
 ### Issues
  - Edit player from team page
 
 ### Requirements
+
+ - Work with bulk actions
+
+ - **Divisions**
+ - ✅✅ Update division need to work properly
+ - ✅✅ Select division properly - teams are assigned by divisions
+ - Division on a match [12:12](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
+
+ - **Admin**
+ - Admin, captain and director can change ranking of players, drag and drop feature
+ - ✅✅ Admin should be able to edit organization and events detail
+
+
  - Next js testing with react testing library
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
  - **Match**
+ - ✅✅ Match need to organize in order - current, upcoming, and past
  - After creating a match with premier division(division 1) -> go to match list and by default item will be selected (division 1)
  - Captain need to change their picture
  - If anyone login as captain on the admin panel it should show the team that he is captain of, and the event [31:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
@@ -77,12 +102,16 @@ ___
  - on the setting dialog, show pair score, net variance, captain name
  - Click on the box and it will hilight some points (1 to 15) on the update score
  - On the round score, if if team a won in a net they will have 1 point [45:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
+ - If there are no two players assigned in a new there should not be any pair score
+ - Work with match total score
+ - 
 
  - **Team**
+ - Buttons - Create team and add another team, create and save
+ - Captain is not creating by defailt - when creating a team
  - If there is a team of player, create the team for him as well on the import of players file[14:40](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa), If a player unassigned they will be at the event as unassigned players
  - After assigning players to a team they are showing up again
  - After importing a file need to ask what division to import that file
- - Update division need to work properly
  - Touch name / search name to assign player in the time of creating team
  - Show event detail and tyeam on the /teams/{teamId} page
  - Co-captain will have same previllages and access as captain
@@ -98,18 +127,13 @@ ___
 
  - **Players**
  - Move players to different team
+ - In the player list show all players in an event
  - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
  - Check player who are unassigned -> from /teams/{teamId} add new will show all the unassigned players [12:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - Co-captain will have same previllages and access as captain
  - Player will have division, and A player can be moved to another division
 
 
 ___
- - **Admin**
- - Admin, captain and director can change ranking of players, drag and drop feature
- - ✅✅ Admin can import rosters and click a button for any or one of them to be a captain/
-    - Admins are I, Alex, and Keleb
- - ✅✅ Director, admin, and captain can change password
 
  - **Players**
  - Import players from excel file should have a confirmation message
@@ -120,6 +144,7 @@ ___
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inavtive in the match day
  - Move team, or players to different event
+ - If coach password changes from an event update that password to every captain of the event
 
  - **Dashboard**
  - [Explanation video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82)
@@ -139,8 +164,6 @@ ___
  - Make sure of Test Driven Development (Unit testing, End To End Testing)
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
  - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
- - Select division properly - teams are assigned by divisions
- - Division on a match [12:12](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
  - Net range is same as net variance, therefore, delete one of them [assign player with net variance 10:50](https://www.loom.com/share/01cf8693859b474981b4a51660444e4e)
  - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
 
@@ -247,10 +270,8 @@ ___
 
 
 ### Ask
- - I have updated the server please try it out.
- - Currently the main problem I am facing is with changing the round.
- - If you want to run the match both team need to check and both team need to be in the same round to so if one team submit their lineup for a specific round the other team can see that on real time, if the other is in another round it will be complicated for them both. However, I have got some idea to solve this. I will work with it now. 
- - Currently if you face any issues please reload the page and try again. Login as captain to run the match
+ - Can you plaese give me the excel file which you want to import? I have a file where in excel sheet a player has a team, but no team have multiple players(if there are multiple players in the same team, we need to make sure their team name in specific column are same).
+ - To login as captain make sure use capital S for password "Spikeball", it is case sensative
 
 
  curl -i -N  \

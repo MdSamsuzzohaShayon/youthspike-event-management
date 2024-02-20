@@ -1,5 +1,5 @@
 import React from "react";
-import { IError, ITeam } from ".";
+import { IError, ILDO, ITeam } from ".";
 import { IDocument } from "./document";
 import { IDefaultMatch } from "./match";
 
@@ -22,6 +22,7 @@ export interface IEvent extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   sponsors: IEventSponsor[];
+  ldo?: ILDO;
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

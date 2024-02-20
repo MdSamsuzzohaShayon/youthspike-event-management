@@ -8,6 +8,25 @@ export interface IMenuItem {
   link: string;
 }
 
+export enum EAssignStrategies{
+  RANDOM = "RANDOM",
+  AUTO = "AUTO",
+  ANCHORING = "ANCHORING",
+}
+
+export enum EMenuTitle{
+  FWANGO = "FWANGO",
+  EDIT_MATCH = "EDIT MATCH",
+  EDIT_ROSTER = "EDIT ROSTER",
+  DASHBOARD = "DASHBOARD",
+  FIND_MATCHES = "FIND MATCHES",
+}
+
+export interface IColMenu {
+  id: number;
+  title: EMenuTitle;
+}
+
 export interface ITextInputProps {
   lw?: string;
   rw?: string;

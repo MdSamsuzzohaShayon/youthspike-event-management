@@ -61,3 +61,9 @@ export const ISOToReadableDate = (isoString: string) => {
   const formattedDate = new Intl.DateTimeFormat('en-US', options).format(dateObj);
   return formattedDate;
 }
+
+
+export const clickedInside = (e: Event, targetElement: HTMLElement): boolean => {
+  const withinBoundaries = e.composedPath().includes(targetElement)
+  return withinBoundaries;
+}

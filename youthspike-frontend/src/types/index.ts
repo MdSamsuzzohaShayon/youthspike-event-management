@@ -11,6 +11,7 @@ import {
   IMenuArrangeProps,
   IFileFileProps,
   ILoginProps,
+  IColMenu,
 } from "./elements";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
@@ -31,6 +32,7 @@ export type {
   IButtonProps,
   IMenuArrangeProps,
   ILoginProps,
+  IColMenu,
 
   // Event
   IEvent,

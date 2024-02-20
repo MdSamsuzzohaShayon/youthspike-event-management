@@ -22,20 +22,19 @@ function LoginPage() {
   const [actionsErrors, setActionsErrors] = useState<IError>();
 
   const handleLogin = async (e: React.SyntheticEvent) => {
+    if (email === '' || password === '') return setActionsErrors({ name: "Invalid Credentials", message: "Set correct email and password!" });
     const { data: resultData } = await loginFunction({
       variables: {
         email,
         password,
       },
     });
-    if (email === '' || password === '') return setActionsErrors({ name: "Invalid Credentials", message: "Set correct email and password!" });
     if (resultData?.login?.code === 202) {
       setCookie('token', resultData.login.data.token, 7);
       setCookie('user', JSON.stringify(resultData.login.data.user), 7);
-      console.log(resultData.login.data.user.role);
       if (resultData?.login?.data?.user?.role === UserRole.admin) {
         router.push('/admin/directors');
-      } else if (resultData?.login?.data?.user?.role === UserRole.captain) {
+      } else if (resultData?.login?.data?.user?.role === UserRole.captain || resultData?.login?.data?.user?.role === UserRole.co_captain) {
         const eventIdOfPlayer = resultData.login.data.user?.event;
         if (eventIdOfPlayer) {
           router.push(`/${eventIdOfPlayer}/matches`);

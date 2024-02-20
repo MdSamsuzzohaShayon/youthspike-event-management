@@ -1,6 +1,7 @@
 import { IOption } from "@/types";
 import { GraphQLErrors } from "@apollo/client/errors";
 import { GraphQLError } from "graphql";
+import { netSize, screen } from "./constant";
 
 export function isValidObjectId(docId: string) {
     // Pattern to match a valid ObjectId
@@ -54,24 +55,26 @@ export function handleError(error: any) {
     }
 }
 
-export const calcPairScore=(playerA: number | null | undefined, playerB: number | null | undefined): number=>{
-    let ps = 0;
-    if(playerA) ps += playerA;
-    if(playerB) ps += playerB;
-    return ps;
-  }
 
-
-  export const divisionsToOptionList = (divisions: string) => {
+export const divisionsToOptionList = (divisions: string) => {
     const divs: IOption[] = [];
     if (divisions && divisions.trim() !== '') {
-      const dl = divisions.split(',');
-      for (let i = 0; i < dl.length; i++) {
-        if (dl[i].trim() !== "") {
-          divs.push({ text: dl[i], value: dl[i].toLowerCase() });
+        const dl = divisions.split(',');
+        for (let i = 0; i < dl.length; i++) {
+            if (dl[i].trim() !== "") {
+                divs.push({ text: dl[i], value: dl[i].toLowerCase() });
+            }
         }
-      }
     }
     return divs;
-  }
-  
+}
+
+export const fsToggle = (screenWidth: number) => {
+    const fontStyle = { fontSize: screenWidth > screen.xs ? `${netSize.fsl}rem` : `${netSize.fsm}rem` };
+    return fontStyle;
+}
+
+export const setNetH = (screenWidth: number) => {
+    const hStyle = { height: screenWidth > screen.xs ? `${netSize.mhl}rem` : `${netSize.mhm}rem` };
+    return hStyle;
+}

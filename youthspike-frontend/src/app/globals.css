@@ -48,6 +48,17 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
+dialog {}
+
+dialog::backdrop {
+  background-image: linear-gradient(45deg,
+      rgb(34, 34, 34),
+      rgb(34, 34, 34),
+      rgb(34, 34, 34),
+      rgb(34, 34, 34));
+  opacity: 0.75;
+}
+
 /* Typography End  */
 
 /* SVG Style start  */
@@ -72,11 +83,16 @@ input[type=number] {
   @apply px-3 py-2 bg-gray-500 text-gray-100 rounded-md hover:bg-gray-700 font-bold text-xl;
 }
 
+.btn-info {
+  @apply px-3 py-2 bg-yellow-500 text-yellow-100 rounded-md hover:bg-yellow-700 font-bold text-xl;
+}
+
+
 .btn-secondary {
   @apply px-3 py-2 bg-gray-800 text-gray-100 rounded-md hover:bg-gray-700 font-bold text-xl;
 }
 
-.btn-info {
+.s {
   @apply px-3 py-2 bg-yellow-500 text-yellow-100 rounded-md hover:bg-yellow-700 font-bold text-xl;
 }
 

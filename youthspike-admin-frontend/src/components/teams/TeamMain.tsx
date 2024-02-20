@@ -15,6 +15,7 @@ import { GET_LDO } from '@/graphql/director';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import CurrentEvent from '../event/CurrentEvent';
+import useClickOutside from '../../../hooks/useClickOutside';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -22,8 +23,6 @@ interface ITeamsOfEventPage {
 
 function TeamMain({ eventId }: ITeamsOfEventPage) {
 
-    const client = useApolloClient();
-    const teamAddEl = useRef<HTMLDialogElement | null>(null);
     const importerEl = useRef<HTMLDialogElement | null>(null);
     const [showFilter, setShowFilter] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -36,8 +35,10 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
      */
-    const [getEvent, { data: eventData, loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
+    const [getEvent, { data: eventData, loading, error, refetch}] = useLazyQuery(GET_EVENT_WITH_TEAMS);
     const { data: ldoData, loading: ldoLoading } = useQuery(GET_LDO);
+
+    useClickOutside(importerEl, () => { closeDialog() });
 
 
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -57,7 +58,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
 
     const closeDialog = () => {
-        if (teamAddEl.current) teamAddEl.current.close();
         if (importerEl.current) importerEl.current.close();
     }
 
@@ -75,7 +75,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
         const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
-        
+
         setTeamList(newTeamList);
         setFilteredlist(newTeamList);
 
@@ -105,13 +105,10 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
     return (
         <div className="TeamMain">
-            <dialog ref={teamAddEl} >
-                <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-                <h3>New Event</h3>
-                {/* <TeamAdd handleClose={handleClose} /> */}
-            </dialog>
             <dialog ref={importerEl}>
-                <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
+                <div className="w-full flex justify-end items-center">
+                    <img src="/icons/close.svg" alt="close" className="w-6 svg-white" role="presentation" onClick={handleClose} />
+                </div>
                 <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} divisionList={divisionList} />
             </dialog>
             <h1 className='text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>

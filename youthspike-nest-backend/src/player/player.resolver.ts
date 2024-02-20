@@ -89,7 +89,7 @@ export class PlayerResolver {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((returns) => PlayerResponse)
   async updatePlayer(@Args('input') input: UpdatePlayerInput, @Args("playerId") playerId: string, @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true })
   profile?: Upload,): Promise<PlayerResponse> {
@@ -101,8 +101,8 @@ export class PlayerResolver {
         playerObj.profile = profileUrl
       };
 
-      const [updatedPlayer, playerExist]=await Promise.all([
-        this.playerService.updateOne({_id: playerId}, playerObj),
+      const [updatedPlayer, playerExist] = await Promise.all([
+        this.playerService.updateOne({ _id: playerId }, playerObj),
         this.playerService.findById(playerId)
       ])
       return {
@@ -117,7 +117,7 @@ export class PlayerResolver {
 
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((_returns) => PlayersResponse)
   async updatePlayers(@Args('input', { type: () => [UpdatePlayersInput] }) input: UpdatePlayersInput[]): Promise<PlayersResponse> {
     try {
@@ -128,14 +128,15 @@ export class PlayerResolver {
           const playerId = input[i]._id;
           const playerObj = { ...input[i] };
           if (playerObj._id) delete playerObj._id;
-          updatePromises.push(this.playerService.updateOne({_id: playerId}, playerObj));
+          updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));
         }
         players = await Promise.all(updatePromises);
       }
+      const findPlayers = await this.playerService.query({ _id: { $in: input.map((i) => i._id) } });
       return {
         success: true,
         code: 202,
-        data: players,
+        data: findPlayers,
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -161,10 +162,10 @@ export class PlayerResolver {
     try {
       const allowedFileTypes = ['csv', 'xlsx']; // Add the allowed file types
       const fileExtension = uploadedFile.filename.split('.').pop().toLowerCase();
-
       if (!allowedFileTypes.includes(fileExtension)) {
         return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }
+
       const { teams, unassignedPlayers }: any = await this.playerService.arrangeFromCSV(uploadedFile, eventId, division);
       const playerIds = [];
       const teamIds = [];
@@ -177,14 +178,18 @@ export class PlayerResolver {
           const teamPlayerIds = playerList.map((p) => p._id);
           playerIds.push(...teamPlayerIds);
           teamObj.players = teamPlayerIds;
-          // teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null; // 
+          teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null; // 
           const createTeam = await this.teamService.create(teamObj);
           teamIds.push(createTeam._id);
-          updatePlayers.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $push: { teams: createTeam._id } }))
+          updatePlayers.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $push: { teams: createTeam._id } }));
+          if (teamObj.captain) {
+            updatePlayers.push(this.playerService.updateOne({ _id: teamObj.captain }, { $push: { captainofteams: createTeam._id } }));
+          }
         } catch (dErrs) {
-          // console.log(dErrs);
+          console.log(dErrs);
         }
       }
+
       const allPlayers = await this.playerService.createMany(unassignedPlayers);
       await Promise.all(updatePlayers);
       const unassignedPlayerIds = allPlayers.map((p) => p._id);
@@ -194,7 +199,7 @@ export class PlayerResolver {
       return {
         success: true,
         code: 201,
-        data: allPlayers,
+        data: [], // allPlayers
       };
     } catch (error) {
       console.error('Error in createMultiPlayers:', error);
@@ -269,11 +274,33 @@ export class PlayerResolver {
     }
   }
 
+  @ResolveField(() => Team, { nullable: true })
+  async cocaptainofteams(@Parent() player: Player): Promise<Team[]> {
+    try {
+      if (!player.cocaptainofteams) return null;
+      const findTeams = await this.teamService.query({ _id: { $in: player.cocaptainofteams } });
+      return findTeams;
+    } catch (error) {
+      return null;
+    }
+  }
+
   @ResolveField(() => User, { nullable: true })
   async captainuser(@Parent() player: Player): Promise<User | null> {
     try {
       if (!player.captainuser) return null;
       const findUser = await this.userService.findById(player.captainuser.toString());
+      return findUser;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  @ResolveField(() => User, { nullable: true })
+  async cocaptainuser(@Parent() player: Player): Promise<User | null> {
+    try {
+      if (!player.cocaptainuser) return null;
+      const findUser = await this.userService.findById(player.cocaptainuser.toString());
       return findUser;
     } catch (error) {
       return null;

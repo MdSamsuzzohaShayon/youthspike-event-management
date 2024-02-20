@@ -64,7 +64,10 @@ input:-ms-autofill:focus {
   /* Transparent background color */
 }
 
-dialog {}
+/* New  */
+dialog {
+  @apply bg-gray-800 text-gray-100 p-2 rounded-lg;
+}
 
 dialog::backdrop {
   background-image: linear-gradient(45deg,
@@ -138,6 +141,8 @@ dialog::backdrop {
 .datetime-input::-ms-clear {
   filter: invert(1);
 }
+
+
 
 /* Loading animation  */
 @keyframes spin {

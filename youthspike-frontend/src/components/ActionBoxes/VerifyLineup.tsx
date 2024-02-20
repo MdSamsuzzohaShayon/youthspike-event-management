@@ -40,15 +40,15 @@ function VerifyLineup() {
             <img src='/icons/close.svg' className='svg-black w-8 h-8 mb-4' role="presentation" onClick={handleCloseLineup} />
             <h3 className='mb-4'>Assigned Nets</h3>
             {currentRoundNets && currentRoundNets.length > 0 && currentRoundNets.map((crn) => (myTeamE === ETeam.teamA
-                ? (<div className="net-box mb-4">
+                ? (<div className="net-box mb-4" key={crn._id}>
                     <h4>Net {crn.num}</h4>
                     <p>{IdToPlayer(crn.teamAPlayerA, teamAPlayers)}</p>
                     <p>{IdToPlayer(crn.teamAPlayerB, teamAPlayers)}</p>
                 </div>)
-                : (<div className="net-box mb-4">
+                : (<div className="net-box mb-4" key={crn._id} >
                     <h4>Net {crn.num}</h4>
-                    <p>{IdToPlayer(crn.teamBPlayerA, teamAPlayers)}</p>
-                    <p>{IdToPlayer(crn.teamBPlayerB, teamAPlayers)}</p>
+                    <p>{IdToPlayer(crn.teamBPlayerA, teamBPlayers)}</p>
+                    <p>{IdToPlayer(crn.teamBPlayerB, teamBPlayers)}</p>
                 </div>)
             ))}
 

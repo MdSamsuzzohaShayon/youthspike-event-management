@@ -2,24 +2,31 @@ import { CREATE_MULTIPLE_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/
 import { IError, IOption } from '@/types';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
-import { useMutation } from '@apollo/client';
-import { redirect } from 'next/navigation';
+import { ApolloClient, ApolloClientOptions, RefetchQueriesFunction, useMutation } from '@apollo/client';
+import { redirect, useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
+import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
+
+type ApolloClientType = import('@apollo/client').ApolloClient<any>; // Replace 'any' with your specific schema types
 
 interface IMultiPlayerAddProps {
     eventId: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     closeDialog: () => void;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-    divisionList: IOption[]
+    divisionList: IOption[];
 }
 
-function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisionList}: IMultiPlayerAddProps) {
+// Define the type for the Apollo Client instance
+
+function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisionList }: IMultiPlayerAddProps) {
+
     const uploadFileEl = useRef<HTMLInputElement | null>(null);
     const [selectedDivision, setSelectedDivision] = useState<string>('');
+    const router = useRouter();
 
-    const handleDivisionInput=(e: React.SyntheticEvent)=>{
+    const handleDivisionInput = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
         setSelectedDivision(inputEl.value);
@@ -49,7 +56,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
         e.preventDefault();
         try {
             setIsLoading(true);
-            if(selectedDivision === '') return;
+            if (selectedDivision === '') return;
             // Add logic for handling the upload
             if (!uploadFileEl.current || !uploadFileEl.current.files) return;
             const formData = new FormData();
@@ -63,9 +70,11 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
             const token = getCookie('token');
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
             const jsonRes = await response.json();
-            if(jsonRes?.data?.createMultiPlayers?.code !== 201){
-                setActErr({name: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!"});
+            await router.push(`/${eventId}/teams`);
+            if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
+                setActErr({ name: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
             }
+            window.location.reload();
             // Redirect to players page
             closeDialog();
             // redirect(`/${eventId}/players`);
@@ -79,13 +88,13 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
 
     return (
         <form onSubmit={handleUploadMultiPlayers}>
-            <div className="input-group">
+            <div className="input-group w-full">
                 <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
-                <input type="file" ref={uploadFileEl} className='form-control' onChange={handleInputChange} />
+                <input type="file" ref={uploadFileEl} className='form-control w-full' onChange={handleInputChange} />
             </div>
             <SelectInput vertical handleSelect={handleDivisionInput} name='division' optionList={divisionList} defaultValue="" />
-            <div className="input-group">
-                <button type="submit" className="btn-secondary">Upload</button>
+            <div className="input-group mt-4">
+                <button type="submit" className="btn-info">Upload</button>
             </div>
         </form>
     );

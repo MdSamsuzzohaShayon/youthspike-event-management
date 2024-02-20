@@ -58,7 +58,6 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       confirmPassword: "",
     }
   };
-  console.log(precisedCaptain, captainData);
 
 
   // Fetch previous player

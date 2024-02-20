@@ -2,6 +2,7 @@ import React from "react";
 import { IError, ILDO, IPlayer, ITeam } from ".";
 import { IDocument } from "./document";
 import { IDefaultMatch, IMatch } from "./match";
+import { EAssignStrategies } from "./elements";
 
 export interface IEventSponsor{
   _id: string;
@@ -29,6 +30,7 @@ export interface IEvent extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   sponsors: string[];
+  autoAssignLogic: EAssignStrategies;
 }
 
 export interface IEventExpRel extends IEvent {

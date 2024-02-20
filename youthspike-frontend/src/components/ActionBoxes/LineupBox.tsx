@@ -52,6 +52,7 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
       }
     }
   }, [currentRound]);
+  
 
   return (
     <div>

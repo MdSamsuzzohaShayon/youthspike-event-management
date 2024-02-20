@@ -26,7 +26,7 @@ function RoundRunner() {
   // Redux State
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const currentRoom = useAppSelector((state) => state.rooms.current);
-  const { teamA } = useAppSelector((state)=> state.teams)
+  const { teamA } = useAppSelector((state) => state.teams)
 
   // Local State
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
@@ -37,9 +37,10 @@ function RoundRunner() {
     let hasAction: boolean = false;
 
     // Check if user has action
-    if (user && user?.token && user.info?.role === UserRole.captain) {
+    if (user && user?.token && (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain)) {
       hasAction = true;
     }
+
 
     switch (mtp) {
       case EActionProcess.INITIATE:
@@ -56,16 +57,22 @@ function RoundRunner() {
     }
   };
 
-  useEffect(()=>{
-    if(user && user.info && user.info.captainplayer === teamA?.captain?._id){
-      if(currentRound?.teamAProcess)setMtp(currentRound.teamAProcess);
-      if(currentRound?.teamBProcess)setOtp(currentRound.teamBProcess);
-    }else{
-      if(currentRound?.teamBProcess)setMtp(currentRound.teamBProcess);
-      if(currentRound?.teamAProcess)setOtp(currentRound.teamAProcess);
+
+  useEffect(() => {
+    const teamACapOrCoCap = user.info?.captainplayer === teamA?.captain?._id || user.info?.cocaptainplayer === teamA?.cocaptain?._id
+    if (user && user.info && teamACapOrCoCap) {
+      if (currentRound?.teamAProcess) setMtp(currentRound.teamAProcess);
+      if (currentRound?.teamBProcess) setOtp(currentRound.teamBProcess);
+    } else {
+      if (currentRound?.teamBProcess) setMtp(currentRound.teamBProcess);
+      if (currentRound?.teamAProcess) setOtp(currentRound.teamAProcess);
     }
   }, [currentRound, user, teamA]);
 
+  console.log(user.info?.role);
+
+
+  console.log({ mtp, currentRoom });
 
   return (
     <div className="w-full">

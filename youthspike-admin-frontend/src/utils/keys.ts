@@ -10,7 +10,7 @@ if (NODE_ENV === 'production') {
     BACKEND_URL = 'https://aslsquads.com/graphql';
     ADMIN_URL = 'https://admin.aslsquads.com';
     FRONTEND_URL = 'https://aslsquads.com';
-}
+};
 
 
 export { NODE_ENV, BACKEND_URL, ADMIN_URL, FRONTEND_URL };

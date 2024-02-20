@@ -29,7 +29,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
 
-  const playerLiEl = useRef<HTMLLIElement | null>(null);
+  const playerLiEl = useRef<HTMLDivElement | null>(null);
 
 
   /**
@@ -45,24 +45,26 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     setActionOpen(prevState => !prevState);
     console.log(`Edit player: ${playerId}`);
   }
-  const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
+
+  const makeCaptainOrCoCaptain = async (input: { captain?: string, cocaptain?: string }) => {
     setActionOpen(prevState => !prevState);
     try {
       setIsLoading(true);
-      await mutateTeam({ variables: { input: { captain: playerId }, teamId } });
-      await client.refetchQueries({include: [GET_A_TEAM]});
+      await mutateTeam({ variables: { input, teamId, eventId } });
+      await client.refetchQueries({ include: [GET_A_TEAM] });
     } catch (error) {
       console.log(error);
     } finally {
       setIsLoading(false);
     }
   }
+  const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
+    e.preventDefault();
+    makeCaptainOrCoCaptain({ captain: playerId });
+  }
   const handleMakeCoCaptain = (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
-    setActionOpen(prevState => !prevState);
-    console.log(`Make co-captain player: ${playerId}`);
-
+    makeCaptainOrCoCaptain({ cocaptain: playerId });
   }
   const handleMovePlayer = (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
@@ -71,7 +73,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: PlayerStatus, playerId: string) => {
     e.preventDefault();
-    
+
     setActionOpen(prevState => !prevState);
     try {
       // setIsLoading(true);
@@ -96,14 +98,14 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   /**
    * Drag or touch event for players rankings
    */
-  const handleDragStart = (e: React.DragEvent<HTMLLIElement>) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     setIsDragging(true);
     touchDragStart(index,);
   };
-  const handleDragEnter = (e: React.DragEvent<HTMLLIElement>) => {
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     touchDragEnter(index);
   };
-  const handleDragEnd = (e: React.DragEvent<HTMLLIElement>) => {
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     setIsDragging(false);
     touchDragEnd(index, player._id);
   };
@@ -134,8 +136,43 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }, []);
 
   return (
-    <li ref={playerLiEl} className={`w-full ${isAssigned ? "bg-gray-500" : "bg-gray-700 "} py-2 flex justify-between items-center gap-1 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} draggable={rankControls ?? false} style={{ minHeight: '6rem' }}
-      onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter} >
+    <li className={`w-full flex justify-between items-center ${isAssigned ? "bg-gray-500" : "bg-gray-700 "} py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
+
+
+      {/* Draggable element start  */}
+      <div ref={playerLiEl} className="draggable-element w-11/12 flex justify-between items-center gap-1" draggable={rankControls ?? false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter}  >
+        <input type="checkbox" name="player-select" id="option" className='w-1/12' />
+
+        <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
+          {/* <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> */}
+          {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
+          <div className="player-name flex flex-col w-full">
+            <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
+            {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
+            {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
+          </div>
+        </div>
+
+        {showRank && player?.rank && (
+          <div className="rank-box h-6 w-6 flex flex-col items-center">
+            <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
+              {player?.rank}
+            </h3>
+            <p>Rank</p>
+          </div>
+        )}
+
+        <div className="text-box w-5/12">
+          <div className="w-full flex flex-col justify-center items-end">
+            <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
+            <p className='break-words w-full text-end' >{player.email}</p>
+            <p className='break-words w-full text-end' >2-3 / +3 games</p>
+          </div>
+        </div>
+      </div>
+      {/* Draggable element End  */}
+
+      {/* Operation menu start  */}
       <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
         <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
         {rankControls && (<React.Fragment>
@@ -146,36 +183,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         {player.status === PlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, PlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, PlayerStatus.ACTIVE, player._id)} > Make Active</li>)}
         <li role="presentation" onClick={(e) => handleDelete(e, player._id)} >Delete</li>
       </ul>
-
-      <input type="checkbox" name="player-select" id="option" className='w-1/12' />
-
-      <div className="img-wrapper h-full w-4/12 flex justify-between items-center gap-1">
-        {/* <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> */}
-        {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
-        <div className="player-name flex flex-col w-full">
-          <h3 className='break-words capitalize'>{player.firstName + ' ' + player.lastName}</h3>
-          {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
-        </div>
-      </div>
-
-      {showRank && player?.rank && (
-        <div className="rank-box h-6 w-6 flex flex-col">
-          <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
-            {player?.rank}
-          </h3>
-          <p>Rank</p>
-        </div>
-      )}
-
-      <div className="text-box w-5/12">
-        <div className="w-full">
-          <p className='break-words' >{player.phone ? player.phone : 'Phone: N/A'}</p>
-          <p className='break-words' >{player.email}</p>
-          <p className='break-words' >2-3 / +3 games</p>
-        </div>
-      </div>
-
       <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 svg-white' role="presentation" onClick={handleOpenAction} />
+      {/* Operation menu ende  */}
     </li>
   )
 }

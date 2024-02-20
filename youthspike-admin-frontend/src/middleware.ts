@@ -8,7 +8,7 @@ import { UserRole } from './types/user';
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
 const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new", '/account', '/newevent'];
 const captainAuthPages = ['/players', "/matches", "/settings"];
-const adminPages = ['/','/admin', '/directors'];
+const adminPages = ['/','/admin', '/directors',  "/settings"];
 
 /**
  * Configuration for the Next.js middleware
@@ -66,16 +66,14 @@ export function middleware(request: NextRequest) {
   // @ts-ignore
   const directorAndCaptainPages = [...new Set([...directorAuthPages, ...captainAuthPages])];
   const isAuthenticatedPage = directorAndCaptainPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
-  if (isAuthenticatedPage) {
+  if (isAuthenticatedPage && userObj.role !== UserRole.admin) {
     // If admin try get to the home page he will be redirected to /admin page
-    if (userObj && userObj.role === UserRole.admin) {
-      return NextResponse.redirect(new URL(`/admin`, request.url));
-    } else if (userObj && userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+    if (userObj && userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
       // Redirect if the user is not a director
       return NextResponse.next();
-    } else if (userObj && userObj.role === UserRole.captain && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+    } else if (userObj && (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
       return NextResponse.next();
-    } else if (userObj && userObj.role === UserRole.captain && userObj.event) {
+    } else if (userObj && (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) && userObj.event) {
       // If captain has an event id he will be redirected to /eventId/players page
       return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url));
     }
@@ -86,7 +84,13 @@ export function middleware(request: NextRequest) {
   const isAdminPage = adminPages.includes(pathname) || adminPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
   if (isAdminPage) {
     // Redirect if the user is not an admin
-    if (userObj && userObj.role === UserRole.admin) return NextResponse.next();
+    if (userObj && userObj.role === UserRole.admin) {
+      const endsWithSettings = /\/settings$/.test(pathname);
+      // if(endsWithSettings){
+      //   return NextResponse.redirect(new URL('/', request.url));
+      // }
+      return NextResponse.next()
+    };
     return NextResponse.redirect(new URL('/', request.url));
   }
 }

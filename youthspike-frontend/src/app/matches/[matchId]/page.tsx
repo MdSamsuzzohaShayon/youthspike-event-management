@@ -35,11 +35,18 @@ import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import listenSocketEvents from '@/utils/match/listenSocketEvents';
 import { canGoNextOrPrevRound, joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
+import LineupStrategy from '@/components/match/LineupStrategy';
 
 /**
  * Test Match
- * christopher.hall@yp.com
- * jane.smith@yp.com
+ * 
+ * Captain
+ * ayyy.spence@gmail.com
+ * braden.peterson8@gmail.com
+ * 
+ * Co-captains
+ * bowenmaynard.24@shelleyschools.org
+ * jarenhaggard2010@gmail.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -127,6 +134,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const mainEl = useResizeObserver(onResize);
 
   if (loading) return <Loader />;
+  
 
   return (
     <>
@@ -140,19 +148,23 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
-            <TeamPlayers teamPlayers={opPlayers} team={opTeamE} />
-            {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-            {user && user.info && user.info.role === UserRole.captain && <RoundRunner />}
-            {eventSponsors.length > 0 && !user && (
-              <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
-                <h3>Sponsors</h3>
-                <div className="flex items-center justify-between flex-wrap w-full">
-                  {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
-                </div>
+          <TeamPlayers teamPlayers={opPlayers} team={opTeamE} screenWidth={screenWidth} />
+
+          {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+          <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets}  roundList={roundList}/>
+
+
+          {user && user.info && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
+          {eventSponsors.length > 0 && !user && (
+            <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
+              <h3>Sponsors</h3>
+              <div className="flex items-center justify-between flex-wrap w-full">
+                {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
               </div>
-            )}
-            {/* My Players  */}
-            <TeamPlayers teamPlayers={myPlayers} team={myTeamE} />
+            </div>
+          )}
+          {/* My Players  */}
+          <TeamPlayers teamPlayers={myPlayers} team={myTeamE} screenWidth={screenWidth} />
         </div>
       </Suspense>
     </>

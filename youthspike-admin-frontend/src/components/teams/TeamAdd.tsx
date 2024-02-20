@@ -8,6 +8,7 @@ import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
 import Link from 'next/link';
 import { divisionsToOptionList } from '@/utils/helper';
+import { redirect, useRouter } from 'next/navigation';
 
 interface ITeamAddProps {
     eventId: string;
@@ -29,6 +30,8 @@ const initialTeamState = {
 };
 
 function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions, setAvailablePlayers, setActErr }: ITeamAddProps) {
+
+    const router = useRouter();
     const [teamState, setTeamState] = useState<ITeamAdd>(initialTeamState);
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
     const [divisionList, setDivisionList] = useState<IOption[]>([]);
@@ -36,12 +39,11 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
     // GraphQL
     const [addTeam, { data, loading, error, reset }] = useMutation(ADD_A_TEAM); // Do caching
 
-    // Handle events
-    const handleTeamAdd = async (e: React.SyntheticEvent) => {
-        e.preventDefault();
+
+    const addTeamRequest=async ()=>{
         try {
             // Validation
-            if ( !teamState.division || teamState.division === '') {
+            if (!teamState.division || teamState.division === '') {
                 return setActErr({ name: "Invalid team!", message: "You must select a division and a captain" })
             }
             // else if(!teamState.captain || teamState.captain === ''){
@@ -62,11 +64,22 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             setIsLoading(false);
 
         }
+    }
+    // Handle events
+    const handleTeamAdd = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        await addTeamRequest();
 
         // console.log({ resultData });
         const formEl = e.target as HTMLFormElement;
         formEl.reset();
         handleClose(e);
+        router.push(`/${eventId}/teams`);
+    }
+
+    const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        await addTeamRequest();
     }
 
 
@@ -139,7 +152,8 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             )}
 
             <div className="input-group w-full">
-                <button className='btn-primary' type='submit'>Create</button>
+                <button className='btn-primary mr-2' type='submit'>Save</button>
+                <button className='btn-primary' type='button' onClick={handleSaveAndCreate}>Save & Create Another</button>
             </div>
         </form>
     )
