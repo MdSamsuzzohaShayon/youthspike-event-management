@@ -112,7 +112,6 @@ function EventsPage() {
   // if (ldoLoading) return <Loader />;
 
   const newLdoData = ldoData?.getEventDirector?.data;
-  const eventLogo = newLdoData ? cld.image(newLdoData?.logo) : null;
 
   return (
     <div className="container px-2 mx-auto min-h-screen">
@@ -124,7 +123,7 @@ function EventsPage() {
       {/* {error && <Message error={error} />} */}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
-        {eventLogo ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={eventLogo} /> : <img src="/free-logo.svg" alt="free-logo" className="w-28 h-28 rounded-full object-cover object-fill" />}
+        {newLdoData?.logo ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} /> : <img src="/free-logo.svg" alt="free-logo" className="w-28 h-28 rounded-full object-cover object-fill" />}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
         <h2 >Events</h2>

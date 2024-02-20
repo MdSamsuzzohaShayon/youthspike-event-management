@@ -23,7 +23,6 @@ interface ITeamsOfEventPage {
 
 function TeamMain({ eventId }: ITeamsOfEventPage) {
 
-    const client = useApolloClient();
     const importerEl = useRef<HTMLDialogElement | null>(null);
     const [showFilter, setShowFilter] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -36,7 +35,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
      */
-    const [getEvent, { data: eventData, loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
+    const [getEvent, { data: eventData, loading, error, refetch}] = useLazyQuery(GET_EVENT_WITH_TEAMS);
     const { data: ldoData, loading: ldoLoading } = useQuery(GET_LDO);
 
     useClickOutside(importerEl, () => { closeDialog() });

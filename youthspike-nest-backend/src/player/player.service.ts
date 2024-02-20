@@ -107,6 +107,7 @@ export class PlayerService {
               if (playerObj && playerObj.email) newPlayers.push(playerObj);
               teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
             } else {
+              playerObj.rank = 1;
               const teamObj = {
                 name: tv,
                 active: true,

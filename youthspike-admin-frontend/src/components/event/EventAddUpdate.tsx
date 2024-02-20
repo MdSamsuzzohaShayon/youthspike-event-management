@@ -267,6 +267,11 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         closeModal();
     }
 
+    const handleOk=(e: React.SyntheticEvent)=>{
+        e.preventDefault();
+        closeModal();
+    }
+
     const handleFileNameChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
@@ -359,7 +364,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                     <TextInput vertical handleInputChange={handleFileNameChange} name='company' required={false} />
                     <AnyFileInput handleFileChange={handleFileChange} name='logo' vertical lblTxt='Sponsor Logo' />
                     <div className="input-group mt-4">
-                        <button className="btn-info" onClick={closeModal}>Ok</button>
+                        <button className="btn-info" onClick={handleOk}>Ok</button>
                     </div>
                 </div>
             </dialog>
