@@ -22,8 +22,8 @@ function Login({ handleLogin, email, setEmail, password, setPassword }: ILoginPr
 
     return (
         <div className='h-screen w-full flex'>
-            <div className="w-full md:w-3/6">
-                <div className='container mx-auto px-2 w-full h-full flex justify-center items-center flex-col gap-2'>
+            <div className="w-full md:w-3/6 flex justify-center items-center">
+                <div className="w-full px-2 md:w-4/6 md:px-0">
                     <h1 className="text-3xl text-center font-bold p-2">Login</h1>
                     <form onSubmit={handleLoginLocal} className='w-full flex flex-col justify-center items-center gap-4 text-center'>
                         <EmailInput name='email' vertical defaultValue={email} lblTxt='Email Address' handleInputChange={handleSetEmail} required />

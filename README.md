@@ -57,17 +57,22 @@ ___
 ### Running
  - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
- - Refetch teams is not working when uploading multiple players
  - Captain need to change their picture
- - Add image logo to a team
- - All pop-up menus need to close if someone click outside of that menu
+ - Add image logo to a team, event
  - Admin should be able to edit organization and events detail
- - Co-captain will have same previllages and access as captain
  - Move team - when moving team to another event current event should not have that team
  - Work with bulk actions
  - If coach password changes from an event update that password to every captain of the event
  - If there are no two players assigned in a new there should not be any pair score
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
+
+ - Every Event need to have a logo and should be able to change that
+ - Update director informations as admin (Not worki8ng properly)
+ - After creating event refetch data
+ - Move player to diffrent divisions and team
+ - Email for a player is optional field, only if we want to add that player to captain we will need email
+ - When we edit a player we should not see division and team, when we move the player they should appear
+ - Till 15:00
 
 ### Issues
  - Edit player from team page
@@ -131,6 +136,7 @@ ___
  - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
  - Check player who are unassigned -> from /teams/{teamId} add new will show all the unassigned players [12:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
  - Player will have division, and A player can be moved to another division
+ - Email for a player is optional field, only if we want to add that player to captain we will need email
 
 
 ___
@@ -144,7 +150,9 @@ ___
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inavtive in the match day
  - Move team, or players to different event
+ - Move player to diffrent divisions and team
  - If coach password changes from an event update that password to every captain of the event
+ - When we edit a player we should not see division and team, when we move the player they should appear
 
  - **Dashboard**
  - [Explanation video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82)
@@ -176,6 +184,7 @@ ___
  - **Event**
  - ✅✅ Add location, date, and logo properly
  - ✅✅ Update event properly
+ - Every Event need to have a logo and should be able to change that
 
  - **Match**
  - Show available players id properly / logically
@@ -270,8 +279,17 @@ ___
 
 
 ### Ask
- - Can you plaese give me the excel file which you want to import? I have a file where in excel sheet a player has a team, but no team have multiple players(if there are multiple players in the same team, we need to make sure their team name in specific column are same).
- - To login as captain make sure use capital S for password "Spikeball", it is case sensative
+ - I have added and updated more freatures, just because of that refresh issues you missed that. So I will fix that refresh issue first. I have added co-captain logic
+
+ - Importing only one team from spradesheet because of some players already had been imported to another event since the email associated with the player can not be duplicate. Nevertheless, you have tried to upload that same spradesheet previously, therefore, it is not working as expected.
+
+ - Editing player's image (crop) could take a log of time, (that will be needing an external library to install, if it is not too urgent I will do it later)
+
+ - Please, Give me your logo
+
+ - So when you import a team should not there be a captain by default?
+
+ - I did not wotch full video. I am working on sojme of the issues you found afterward, I will watch full video and ask you more questions ASAP.
 
 
  curl -i -N  \

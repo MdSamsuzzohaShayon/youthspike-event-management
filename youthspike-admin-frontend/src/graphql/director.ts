@@ -3,6 +3,7 @@ import { gql } from "@apollo/client";
 const eventResponse = `
   _id
   name
+  logo
   startDate
   endDate
   active
@@ -123,8 +124,8 @@ const ADD_DIRECTOR = gql`
 `;
 
 const UPDATE_DIRECTOR_RAW = `
-mutation UpdateDirector($args: UpdateDirectorArgs!, $logo: Upload) {
-  updateDirector(args: $args, logo: $logo) {
+mutation UpdateDirector($args: UpdateDirectorArgs!, $dId: String, $logo: Upload) {
+  updateDirector(args: $args, logo: $logo, dId: $dId) {
     code
     message
     success

@@ -49,6 +49,8 @@ const teamResponse = `
 
 const eventResponse = `
     _id
+    name
+    logo
     active
     autoAssign
     autoAssignLogic
@@ -57,7 +59,6 @@ const eventResponse = `
     endDate
     homeTeam
     location
-    name
     netVariance
     playerLimit
     rosterLock

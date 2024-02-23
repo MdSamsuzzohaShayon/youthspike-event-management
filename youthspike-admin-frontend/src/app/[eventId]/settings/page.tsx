@@ -24,7 +24,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   /**
    * Read query from cache or fetch data from server
    */
-  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
+  const [fetchEvent, { data, loading, error, client }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
   const [fetchCaptain, { data: captainData, error: captainErr, loading: captainLoading }] = useLazyQuery(GET_CAPTAIN);
 
   useEffect(() => {
@@ -67,7 +67,9 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       <h1 className='capitalize'>{user.info?.role === UserRole.captain ? "Update captain" : "Update Event"}</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {user.info?.role === UserRole.captain ? (captainData && <DirectorAdd update setIsLoading={setIsLoading} prevLdo={precisedCaptain} setActErr={setActErr} />) : (<EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />)}
+      {user.info?.role === UserRole.captain 
+      ? (captainData && <DirectorAdd update setIsLoading={setIsLoading} prevLdo={precisedCaptain} setActErr={setActErr} />) 
+      : (prevEvent && <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} client={client} />)}
 
     </div>
   )

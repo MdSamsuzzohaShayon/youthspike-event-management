@@ -144,8 +144,8 @@ export class PlayerResolver {
   }
 
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.admin, UserRole.director)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(
     @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Upload,
@@ -178,13 +178,25 @@ export class PlayerResolver {
           const teamPlayerIds = playerList.map((p) => p._id);
           playerIds.push(...teamPlayerIds);
           teamObj.players = teamPlayerIds;
-          teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null; // 
-          const createTeam = await this.teamService.create(teamObj);
+          // teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null;
+          const [createTeam, eventExist] = await Promise.all([this.teamService.create(teamObj), this.eventService.findById(eventId)]);
           teamIds.push(createTeam._id);
           updatePlayers.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $push: { teams: createTeam._id } }));
+
+          /*
+          const playerPush: any = { captainofteams: createTeam._id };
           if (teamObj.captain) {
-            updatePlayers.push(this.playerService.updateOne({ _id: teamObj.captain }, { $push: { captainofteams: createTeam._id } }));
+            // Create captain player user
+            const captainExist = playerList.find((p) => p._id === teamObj.captain);
+            if (captainExist) {
+              const createUser = await this.userService.createCapUser(captainExist, null, eventExist, UserRole.captain);
+              if (createUser) {
+                playerPush.captainuser = createUser._id
+              }
+            }
+            updatePlayers.push(this.playerService.updateOne({ _id: teamObj.captain }, { $push: playerPush }));
           }
+          */
         } catch (dErrs) {
           console.log(dErrs);
         }

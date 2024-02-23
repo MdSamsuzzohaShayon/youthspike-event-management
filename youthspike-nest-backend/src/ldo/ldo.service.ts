@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LDO } from 'src/ldo/ldo.schema';
 import { AppResponse } from '../shared/response';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 interface LDOEvents extends LDO {
@@ -50,6 +50,10 @@ export class LdoService {
     return this.ldoModel.findOne({
       $or: [{ director: dId.toString() }, { _id: dId.toString() }],
     });
+  }
+
+  async findOne(filter: FilterQuery<LDO>){
+    return this.ldoModel.findOne(filter);
   }
 
   async query(filter: FilterQuery<LDO>) {

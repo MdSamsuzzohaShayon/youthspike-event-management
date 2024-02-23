@@ -10,6 +10,7 @@ import Link from 'next/link';
 import FileInput from '../elements/forms/FileInput';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
+import { useRouter } from 'next/navigation';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -31,6 +32,9 @@ const initialPlayerAdd = {
 };
 
 function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, divisionList, teamList }: IPlayerAddProps) {
+
+  const router = useRouter();
+
   const [actErr, setActErr] = useState<IError | null>(null);
   const [playerAdd, setPlayerAdd] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
@@ -145,6 +149,9 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
       console.log(error);
     } finally {
       setIsLoading(false);
+      if(update){
+        router.push(`/${eventId}/players/${prevPlayer?._id}`)
+      }
     }
 
   }

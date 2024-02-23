@@ -1,6 +1,8 @@
+import cld from '@/config/cloudinary.config';
 import { IUser, IUserContext } from '@/types';
 import { IEvent } from '@/types/event';
 import { UserRole } from '@/types/user';
+import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useState } from 'react';
 
@@ -50,7 +52,7 @@ function EventCard({ event, copyEvent, user, directorId }: IEventCardProps) {
             </div>
             <Link href={`/${event._id}`}>
                 <div className="img-wrapper w-full flex justify-center items-center">
-                    <img src="/free-logo.svg" alt="plus" className="w-12" />
+                    {event.logo ? <AdvancedImage cldImg={cld.image(event.logo)} alt="logo" className="w-12" /> : <img src="/free-logo.svg" alt="logo" className="w-12" />}
                 </div>
                 <div className="text-box text-center">
                     <h3 className='text-lg font-bold mb-0'>{event.name}</h3>

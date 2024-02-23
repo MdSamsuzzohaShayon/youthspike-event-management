@@ -130,7 +130,11 @@ export class LdoResolver {
       if (loggedUser.role === UserRole.director) {
         updateUserId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin && dId && dId !== '') {
-        updateUserId = dId;
+        const ldo = await this.ldoService.findOne({
+          $or: [{ director: dId.toString() }, { _id: dId.toString() }],
+        });
+        if(!ldo) return AppResponse.exists("LDO");
+        updateUserId = ldo.director.toString();
       }
 
       // Upload image to cloudinary
@@ -155,11 +159,13 @@ export class LdoResolver {
 
       const director = await this.userService.createOrUpdate(newUserObj, updateUserId);
       if (director && director._id) {
-        updateUserId = director._id;
+        updateUserId = director._id.toString();
       }
 
       // Update user -> set user id inside ldo
-      const ldo = await this.ldoService.update({ name: args.name, logo: logoUrl }, updateUserId);
+      const updateObj: any = { name: args.name };
+      if(logoUrl) updateObj.logo = logoUrl;
+      const ldo = await this.ldoService.update(updateObj, updateUserId);
 
       return {
         code: 201,

@@ -3,6 +3,7 @@ import { gql } from "@apollo/client";
 const eventResponse = `
 _id
 name
+logo
 startDate
 endDate
 active
@@ -70,8 +71,8 @@ query GetEvent($eventId: String!) {
  * =========================================================================================================================================
  */
 const ADD_EVENT_RAW = `
-mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventInput!) {
-  createEvent(sponsorsInput: $sponsorsInput, input: $input) {
+mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventInput!, $logo: Upload) {
+  createEvent(sponsorsInput: $sponsorsInput, input: $input, logo: $logo) {
     code
     message
     success
@@ -85,8 +86,8 @@ mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventI
 const ADD_EVENT = gql`${ADD_EVENT_RAW}`;
 
 const UPDATE_EVENT_RAW = `
-mutation UpdateEvent($sponsorsInput: [Upload!]!, $input: UpdateEventInput!, $eventId: String!) {
-  updateEvent(sponsorsInput: $sponsorsInput, input: $input, eventId: $eventId) {
+mutation UpdateEvent($sponsorsInput: [Upload!]!, $input: UpdateEventInput!, $eventId: String!, $logo: Upload) {
+  updateEvent(sponsorsInput: $sponsorsInput, input: $input, eventId: $eventId, logo: $logo) {
     code
     message
     success

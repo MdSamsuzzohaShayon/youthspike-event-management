@@ -45,6 +45,7 @@ export class TeamResolver {
     private configService: ConfigService
   ) { }
 
+  /*
   // General Function
   async createOrUpdateUser(playerExist: Player, playerUserExist: User, eventExist: Event, role: UserRole) {
     const userObj = {
@@ -67,6 +68,7 @@ export class TeamResolver {
     }
     return newCaptainUser;
   }
+  */
 
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -159,7 +161,7 @@ export class TeamResolver {
 
       if (playerExist) {
         const playerUserExist = await this.userService.findOne({ email: playerExist.email });
-        const createOrUpdatePlayer = await this.createOrUpdateUser(playerExist, playerUserExist, eventExist, UserRole.captain);
+        const createOrUpdatePlayer = await this.userService.createCapUser(playerExist, playerUserExist, eventExist, UserRole.captain);
         let newCaptainUserId = createOrUpdatePlayer._id;
 
         if (teamExist.captain) {
@@ -186,7 +188,7 @@ export class TeamResolver {
       const playerExist = await this.playerService.findById(input.cocaptain.toString());
       if (playerExist) {
         const playerUserExist = await this.userService.findOne({ email: playerExist.email });
-        const createOrUpdatePlayer = await this.createOrUpdateUser(playerExist, playerUserExist, eventExist, UserRole.co_captain);
+        const createOrUpdatePlayer = await this.userService.createCapUser(playerExist, playerUserExist, eventExist, UserRole.co_captain);
         let newCaptainUserId = createOrUpdatePlayer._id;
 
         if (teamExist.cocaptain) {

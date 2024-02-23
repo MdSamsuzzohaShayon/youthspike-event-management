@@ -19,6 +19,7 @@ import { UPDATE_CAPTAIN } from '@/graphql/captain';
 interface DirectorAddProps {
     update: boolean;
     prevLdo?: null | ILDO | undefined;
+    ldoId?: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -40,7 +41,7 @@ const initialDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector }: DirectorAddProps) {
+function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector, ldoId }: DirectorAddProps) {
 
     // Hooks
     const user = useUser();
@@ -113,13 +114,22 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
 
         const formData = new FormData();
         const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, email: directorState.email, password: directorState.password };
+        const updateArgs = { ...ldoUpdate, ...directorUpdateObj };
+        
+        const updateVar = {args: updateArgs};
+        // @ts-ignore
+        if(user.info?.role === UserRole.admin) updateVar.dId = ldoId;
+        
 
 
         const addFileToFormData = () => {
             if (uploadedLogo.current) {
+                const variables =  { args: update ? updateArgs : inputArgs, logo: null };
+                // @ts-ignore
+                if(update && user.info?.role === UserRole.admin) variables.dId = ldoId;
                 formData.set('operations', JSON.stringify({
                     query: update ? UPDATE_DIRECTOR_RAW : ADD_DIRECTOR_RAW,
-                    variables: { args: update ? { ...ldoUpdate, ...directorUpdateObj } : inputArgs, logo: null },
+                    variables,
                 }));
 
                 formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
@@ -147,7 +157,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
                     if (user.info?.role === UserRole.captain) {
                         await mutateUser({ variables: { userId: user.info._id, updateInput: directorUpdateObj } })
                     } else {
-                        await updateDirector({ variables: { args: { ...ldoUpdate, ...directorUpdateObj } } });
+                        await updateDirector({ variables: updateVar });
                     }
                 } else {
                     await registerDirector({ variables: { args: inputArgs, logo: null } });
@@ -198,7 +208,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
     return (
         <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
             {user.info?.role !== UserRole.captain && (<React.Fragment>
-                <FileInput defaultValue='' handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12' />
+                <FileInput defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12' />
                 <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
                     defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
             </React.Fragment>)}

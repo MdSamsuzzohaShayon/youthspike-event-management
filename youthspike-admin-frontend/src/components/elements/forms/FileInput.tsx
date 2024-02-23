@@ -28,14 +28,12 @@ const FileInput = (props: IFileFileProps) => {
         props.handleFileChange(e);
 
     }
-
+    
     // Check default value 
     const renderImage = () => {
         let imgEl: null | HTMLImageElement | React.ReactNode = null;
         if (!fileName || fileName === '') {
             if (props.defaultValue && typeof props.defaultValue === 'string') {
-                console.log(props.defaultValue);
-                
                 imgEl = <AdvancedImage className='w-3/6 h-32 object-cover object-center' cldImg={cld.image(props.defaultValue)} />
             }
         } else {
@@ -49,7 +47,7 @@ const FileInput = (props: IFileFileProps) => {
 
     return (
         <div className={`w-full ${props.extraCls}`}>
-            <h4 className="capitalize w-full mt-4 text-md" >{props.lblTxt ? props.lblTxt : props.name}</h4>
+            <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw ? props.lw : ''}`}>{props.lblTxt ? props.lblTxt : props.name}</label>
             <div className={`input-group w-full flex ${props.vertical ? 'flex-col' : ''} justify-between items-center flex-wrap`}>
                 {/* <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{fileName ? fileName : props.name}</label> */}
                 <div className="w-full flex justify-between gap-2">

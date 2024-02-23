@@ -20,7 +20,7 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
     <div className='container mx-auto px-2 min-h-screen'>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={prevLdo} setActErr={setActErr} />
+      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={prevLdo} setActErr={setActErr} ldoId={params.ldoId} />
     </div>
   )
 }

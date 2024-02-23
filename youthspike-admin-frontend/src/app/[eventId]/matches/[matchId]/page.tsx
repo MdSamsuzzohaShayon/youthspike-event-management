@@ -10,6 +10,18 @@ import { isValidObjectId, toMatchDefaultData } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 
+/**
+ * Test Match
+ * 
+ * Captain
+ * ayyy.spence@gmail.com
+ * braden.peterson8@gmail.com
+ * 
+ * Co-captains
+ * bowenmaynard.24@shelleyschools.org
+ * jarenhaggard2010@gmail.com
+ */
+
 interface MatchSingleProps {
     params: { eventId: string; matchId: string };
 }
