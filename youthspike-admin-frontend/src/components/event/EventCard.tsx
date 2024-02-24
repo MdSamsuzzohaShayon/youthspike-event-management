@@ -4,7 +4,8 @@ import { IEvent } from '@/types/event';
 import { UserRole } from '@/types/user';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import useClickOutside from '../../../hooks/useClickOutside';
 
 interface IEventCardProps {
     event: IEvent;
@@ -23,6 +24,11 @@ const monthNames: string[] = [
 function EventCard({ event, copyEvent, user, directorId }: IEventCardProps) {
 
     const [actionOpen, setActionOpen] = useState<boolean>(false);
+    const ulEl = useRef<HTMLUListElement | null>(null);
+
+    useClickOutside(ulEl, ()=>{
+        setActionOpen(false);
+    });
 
     const handleCopyEvent = (e: React.SyntheticEvent, eventId: string) => {
         e.preventDefault();
@@ -43,7 +49,7 @@ function EventCard({ event, copyEvent, user, directorId }: IEventCardProps) {
 
     return (
         <div key={event._id} style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md relative">
-            <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
+            <ul ref={ulEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
                 <li role="presentation" onClick={(e) => handleCopyEvent(e, event._id)}>Copy</li>
                 <li> <Link href={makeSettingUrl()}>Edit</Link></li>
             </ul>

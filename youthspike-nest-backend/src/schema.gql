@@ -142,7 +142,7 @@ type Player {
   firstName: String!
   lastName: String!
   email: String!
-  status: PlayerStatus!
+  status: EPlayerStatus!
   rank: Int
   profile: String
   phone: String
@@ -154,7 +154,7 @@ type Player {
   cocaptainuser: User
 }
 
-enum PlayerStatus {
+enum EPlayerStatus {
   ACTIVE
   INACTIVE
 }
@@ -601,6 +601,7 @@ input UpdatePlayerInput {
   rank: Float
   team: String
   status: String
+  playerTeamId: String
 }
 
 input UpdatePlayersInput {

@@ -4,7 +4,7 @@ import { IPlayer, IPlayerExpRel, PlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { UPDATE_PLAYERS } from '@/graphql/players';
 import { GET_A_TEAM } from '@/graphql/teams';
-import { ITeam } from '@/types';
+import { IOption, ITeam } from '@/types';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -15,6 +15,8 @@ interface IPlayerListProps {
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
   teamIds?: string[];
+  divisionList?: IOption[];
+  teamList?: ITeam[];
 }
 
 interface IPlayerRank {
@@ -22,7 +24,7 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds, divisionList, teamList }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading, client }] = useMutation(UPDATE_PLAYERS);
 
@@ -109,13 +111,13 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
       <ul className='flex flex-wrap items-center gap-2'>
         {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
-          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} />)}
+          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} divisionList={divisionList} teamList={teamList} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
-          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} />)}
+          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} divisionList={divisionList} teamList={teamList} />)}
       </ul>
     </div>
   )

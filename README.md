@@ -59,17 +59,17 @@ ___
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
  - Captain need to change their picture
  - Add image logo to a team, event
- - Admin should be able to edit organization and events detail
- - Move team - when moving team to another event current event should not have that team
  - Work with bulk actions
  - If coach password changes from an event update that password to every captain of the event
  - If there are no two players assigned in a new there should not be any pair score
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
- - Every Event need to have a logo and should be able to change that
- - Update director informations as admin (Not worki8ng properly)
- - After creating event refetch data
+ - Move team - when moving team to another event current event should not have that team
  - Move player to diffrent divisions and team
+ - When make player inactive the rank should be update and 
+ - When Moving player rank them properly
+
+ - Update director informations as admin (Not working properly)
  - Email for a player is optional field, only if we want to add that player to captain we will need email
  - When we edit a player we should not see division and team, when we move the player they should appear
  - Till 15:00
@@ -279,17 +279,7 @@ ___
 
 
 ### Ask
- - I have added and updated more freatures, just because of that refresh issues you missed that. So I will fix that refresh issue first. I have added co-captain logic
-
- - Importing only one team from spradesheet because of some players already had been imported to another event since the email associated with the player can not be duplicate. Nevertheless, you have tried to upload that same spradesheet previously, therefore, it is not working as expected.
-
- - Editing player's image (crop) could take a log of time, (that will be needing an external library to install, if it is not too urgent I will do it later)
-
- - Please, Give me your logo
-
- - So when you import a team should not there be a captain by default?
-
- - I did not wotch full video. I am working on sojme of the issues you found afterward, I will watch full video and ask you more questions ASAP.
+ - If player return, will he return to same event or can return to different event
 
 
  curl -i -N  \

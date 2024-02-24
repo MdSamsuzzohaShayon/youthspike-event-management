@@ -7,13 +7,13 @@ import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
 
 
-export enum PlayerStatus{
+export enum EPlayerStatus{
   'ACTIVE' = 'ACTIVE',
   'INACTIVE' = 'INACTIVE',
 }
 
-registerEnumType(PlayerStatus, {
-  name: "PlayerStatus"
+registerEnumType(EPlayerStatus, {
+  name: "EPlayerStatus"
 })
 
 @Schema()
@@ -31,9 +31,9 @@ export class Player extends AppDocument {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Field((_types)=> PlayerStatus, {nullable: false})
-  @Prop({required: true, enum: PlayerStatus, default: PlayerStatus.ACTIVE})
-  status: PlayerStatus
+  @Field((_types)=> EPlayerStatus, {nullable: false})
+  @Prop({required: true, enum: EPlayerStatus, default: EPlayerStatus.ACTIVE})
+  status: EPlayerStatus
 
   @Field((_type) => Int, { nullable: true })
   @Prop({ required: false })

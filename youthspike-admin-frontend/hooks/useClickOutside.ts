@@ -19,6 +19,8 @@ const useClickOutside = (elRef: RefObject<HTMLElement>, handleClose: () => void)
 
 
     useEffect(() => {
+        console.log("Rerender");
+        
         document.body.addEventListener('click', handleClickOutside);
         return () => {
             document.body.removeEventListener('click', handleClickOutside);

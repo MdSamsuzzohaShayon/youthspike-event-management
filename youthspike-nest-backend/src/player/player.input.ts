@@ -1,5 +1,5 @@
 import { Field, InputType, PartialType } from '@nestjs/graphql';
-import { PlayerStatus } from './player.schema';
+import { EPlayerStatus } from './player.schema';
 
 @InputType()
 export class CreatePlayerInput {
@@ -25,7 +25,10 @@ export class CreatePlayerInput {
 @InputType()
 export class UpdatePlayerInput extends PartialType(CreatePlayerInput) {
   @Field({ nullable: true })
-  status?: PlayerStatus;
+  status?: EPlayerStatus;
+
+  @Field({ nullable: true })
+  playerTeamId: string;
 }
 
 @InputType()

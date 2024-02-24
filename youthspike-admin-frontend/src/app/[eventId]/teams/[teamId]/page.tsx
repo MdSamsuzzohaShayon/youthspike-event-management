@@ -79,7 +79,7 @@ function TeamSingle({ params }: TeamSingleProps) {
             <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add Player</button>
           </div>
           <p>Make Inactive / Re-rank / A-Z</p>
-          <PlayerList eventId={params.eventId} playerList={teamData ? teamData.players : []} teamId={params.teamId} setIsLoading={setIsLoading} rankControls showRank />
+          <PlayerList eventId={params.eventId} playerList={teamData ? teamData.players : []} teamId={params.teamId} setIsLoading={setIsLoading} rankControls showRank divisionList={divisionList} teamList={teamList} />
         </div>
       )}
 
