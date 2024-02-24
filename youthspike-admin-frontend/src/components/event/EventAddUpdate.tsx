@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ADD_EVENT, ADD_EVENT_RAW, GET_A_EVENT, UPDATE_EVENT, UPDATE_EVENT_RAW } from '@/graphql/event';
-import { AdvancedImage } from '@cloudinary/react';
 import { useApolloClient, useMutation } from '@apollo/client';
 
 
@@ -12,9 +11,6 @@ import TextInput from '../elements/forms/TextInput';
 import NumberInput from '../elements/forms/NumberInput';
 
 // Utils/Config
-import { getCookie } from '@/utils/cookie';
-import { BACKEND_URL } from '@/utils/keys';
-import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 
 // TypeScript
@@ -28,6 +24,8 @@ import ShowSponsors from './ShowSponsors';
 import { assignStrategies } from '@/utils/staticData';
 import useClickOutside from '../../../hooks/useClickOutside';
 import AnyFileInput from '../elements/forms/AnyFileInput';
+import FileInput from '../elements/forms/FileInput';
+import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
 
 
 // Select Input Options
@@ -35,8 +33,7 @@ const { homeTeamStrategy, rosterLockList } = staticData;
 
 const initialEvent = {
     name: 'Event 1',
-    // startDate, endDate, playerLimit
-    // divisions: 'Premier, Contender, Womans',
+    logo: null,
     divisions: '',
     nets: 3,
     rounds: 2,
@@ -56,7 +53,7 @@ const initialEvent = {
 
 const initialCurrSponsor = { logo: null, company: '' };
 
-function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAddProps) {
+function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading, client }: IEventAddProps) {
     // Hooks
     const router = useRouter();
     const user = useUser();
@@ -64,6 +61,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     const pName = usePathname();
 
     // Local State
+    const eventLogo = useRef<null | File>(null);
     const sponsorInputEl = useRef<HTMLInputElement>(null);
     const addSponsorDialogEl = useRef<HTMLDialogElement | null>(null);
     const [currSponsor, setCurrSponsor] = useState<IEventSponsorAdd>(initialCurrSponsor);
@@ -86,113 +84,14 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
      */
     const handleEventAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
+        await addOrUpdateEvent({
+            e, update, eventId, directorId, setEventState, setIsLoading, eventState,
+            updateEvent, sponsorImgList, sponsorInputEl, eventLogo, setActErr, eventUpdate,
+            eventAdd, user, router, initialEvent
+        });
 
-        setIsLoading(true);
-        let newEventId = null;
-        const inputData = update ? { ...updateEvent } : { ...eventState };
-        inputData.ldo = directorId ? directorId : 'auto_detect_from_server';
-        if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString()
-        if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString()
-
-        const mutationVariables = {
-            sponsorsInput: [],
-            input: inputData,
-        };
-        // @ts-ignore
-        if (update && eventId) mutationVariables.eventId = eventId;
-
-        try {
-            if (sponsorImgList.length > 0 && sponsorInputEl.current && sponsorInputEl.current.value && sponsorInputEl.current?.value !== '') {
-                // Use FormData with fetch if there is a file to upload on the server
-                const formData = new FormData();
-
-                const sponsorsInputList = [];
-                for (let i = 0; i < sponsorImgList.length; i += 1) {
-                    sponsorsInputList.push({ company: sponsorImgList[i].company, logo: null });
-                }
-                // @ts-ignore
-                mutationVariables.sponsorsInput = sponsorsInputList;
-
-                formData.set('operations', JSON.stringify({
-                    query: update ? UPDATE_EVENT_RAW : ADD_EVENT_RAW,
-                    variables: mutationVariables,
-                }));
-
-                const mapObj: any = {};
-                for (let i = 0; i < sponsorImgList.length; i += 1) {
-                    mapObj[i.toString()] = [`variables.sponsorsInput.${i}.logo`];
-                }
-                formData.set("map", JSON.stringify(mapObj));
-                for (let i = 0; i < sponsorImgList.length; i += 1) {
-                    if (sponsorImgList[i].logo && sponsorImgList[i].logo instanceof File && sponsorImgList[i].company && sponsorImgList[i].company !== "") {
-                        const uploadedFile = sponsorImgList[i].logo as File;
-                        formData.set(`${i}`, uploadedFile);
-                    }
-                }
-
-                const token = getCookie('token');
-                const response = await fetch(BACKEND_URL, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Authorization': `Bearer ${token}` },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                const responseData = await response.json();
-                const eventRes = update ? responseData?.data?.updateEvent : responseData?.data?.createEvent;
-                if (eventRes?.code !== 201 && eventRes?.code !== 202) {
-                    setActErr({
-                        name: eventRes?.code,
-                        message: eventRes?.message,
-                        main: responseData.data,
-                    });
-                } else {
-                    newEventId = eventRes?.data?._id;
-                }
-            } else {
-                // Use Apollo Client mutation
-                if (!mutationVariables.sponsorsInput) mutationVariables.sponsorsInput = [];
-                let eventRes = null;
-                if (update) {
-                    eventRes = await eventUpdate({ variables: mutationVariables });
-                } else {
-                    eventRes = await eventAdd({ variables: mutationVariables });
-                }
-                // Define the variables you want to use
-                // const variables = { eventId: params.eventId };
-
-
-                eventRes = update ? eventRes.data?.updateEvent : eventRes.data?.createEvent;
-                if (eventRes?.code !== 201 && eventRes?.code !== 202) {
-                    setActErr({ name: eventRes.code, message: eventRes.message })
-                } else {
-                    newEventId = eventRes.data._id
-                }
-
-            }
-
-
-            // Reset form and navigate
-            setEventState(initialEvent);
-            const formEl = e.target as HTMLFormElement;
-            formEl.reset();
-
-            if (newEventId) {
-                let redirectUrl = `/${newEventId}`;
-                if (user.info?.role === UserRole.admin) {
-                    redirectUrl += `/?directorId=${directorId}`;
-                }
-                router.push(redirectUrl);
-            };
-        } catch (error) {
-            // @ts-ignore
-            setActErr({ name: 'Invalid Mutation', message: error.message || '', main: error });
-        } finally {
-            setIsLoading(false);
-        }
+        // Refetch
+        client.refetchQueries({ include: [GET_A_EVENT] })
     };
 
     /**
@@ -267,7 +166,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         closeModal();
     }
 
-    const handleOk=(e: React.SyntheticEvent)=>{
+    const handleOk = (e: React.SyntheticEvent) => {
         e.preventDefault();
         closeModal();
     }
@@ -302,6 +201,14 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         }
     }
 
+    const handleLogoChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const fileInputEl = e.target as HTMLInputElement;
+        if (fileInputEl && fileInputEl.files && fileInputEl.files.length > 0) {
+            eventLogo.current = fileInputEl.files[0];
+        }
+    }
+
     /**
      * Lifecycle hooks
      */
@@ -326,6 +233,8 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     return (
         <form onSubmit={handleEventAdd} className='flex flex-col gap-2'>
             <TextInput required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt='Name' name='name' lw='w-2/6' rw='w-4/6' />
+
+            <FileInput defaultValue={eventState.logo} handleFileChange={handleLogoChange} name='logo' extraCls='md:w-5/12' />
 
             <DateInput required={!update} defaultValue={eventState.startDate} handleInputChange={handleInputChange} lblTxt='Start Date' name='startDate' lw='w-2/6' rw='w-4/6' />
             <DateInput required={!update} defaultValue={eventState.endDate} handleInputChange={handleInputChange} lblTxt='End Date' name='endDate' lw='w-2/6' rw='w-4/6' />

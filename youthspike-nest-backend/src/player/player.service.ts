@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Player } from './player.schema';
+import { EPlayerStatus, Player } from './player.schema';
 import { FilterQuery, Model, ObjectId, Query, UpdateQuery } from 'mongoose';
 import { UserDocument } from 'src/user/user.schema';
 import { CreatePlayerInput } from './player.input';
@@ -15,7 +15,7 @@ type OptionalProps<T> = {
 
 @Injectable()
 export class PlayerService {
-  constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>) { }
+  constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>,) { }
 
   async create(input: CreatePlayerInput) {
     const inputObj = rmInvalidProps(input);
@@ -137,4 +137,5 @@ export class PlayerService {
   async delete(filter: FilterQuery<Player>) {
     return this.playerModel.deleteMany(filter);
   }
-}
+
+  }

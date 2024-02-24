@@ -25,6 +25,7 @@ git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 echo "Installing dependencies for youthspike-nest-backend"
 cd /home/shayon/youthspike-event-management/youthspike-nest-backend
 npm install
+echo "# NestJS Backend" > .env
 nano .env
 npm run build
 pm2 start ecosystem.config.js

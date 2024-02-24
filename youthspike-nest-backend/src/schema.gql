@@ -114,6 +114,7 @@ type Sponsor {
 type Event {
   _id: String
   name: String!
+  logo: String!
   startDate: Date!
   endDate: Date!
   active: Boolean!
@@ -141,7 +142,7 @@ type Player {
   firstName: String!
   lastName: String!
   email: String!
-  status: PlayerStatus!
+  status: EPlayerStatus!
   rank: Int
   profile: String
   phone: String
@@ -153,7 +154,7 @@ type Player {
   cocaptainuser: User
 }
 
-enum PlayerStatus {
+enum EPlayerStatus {
   ACTIVE
   INACTIVE
 }
@@ -409,8 +410,8 @@ type Mutation {
   login(email: String!, password: String!): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUserArgs!, profile: Upload): UserResponse!
   changePassword(id: String!, oldPassword: String, newPassword: String): ChangePWDDataRes!
-  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!): CreateOrUpdateEventResponse!
-  updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!): CreateOrUpdateEventResponse!
+  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
+  updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!, logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   createTeam(input: CreateTeamInput!): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!): CreateOrUpdateTeamResponse!
@@ -600,6 +601,7 @@ input UpdatePlayerInput {
   rank: Float
   team: String
   status: String
+  playerTeamId: String
 }
 
 input UpdatePlayersInput {

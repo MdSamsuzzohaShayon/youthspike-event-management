@@ -75,10 +75,10 @@ export class EventResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateEventResponse)
   async createEvent(
-    // @Args({ name: 'sponsors', type: () => [GraphQLUpload] }) sponsors: Upload[],
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') args: CreateEventInput,
     @Context() context: any,
+    @Args("logo", { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -117,7 +117,7 @@ export class EventResolver {
           message: 'User need to be in league director organization in order to create an Event!',
         });
 
-      // Upload file to cloudinary
+      // Upload sponsors file to cloudinary
       const uploadPromises = [];
       for (let i = 0; i < sponsorsInput.length; i++) {
         uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
@@ -125,15 +125,20 @@ export class EventResolver {
       const sponsorsFileList = await Promise.all(uploadPromises);
 
       let sponsorsIds = [];
-      if (sponsorsFileList) {
+      if (sponsorsFileList && sponsorsFileList.length > 0) {
         const sponsors = await this.sponsorService.insertMany(sponsorsFileList);
         sponsorsIds = sponsors.map((s) => s._id);
       }
+
+      // Upload image to cloudinary
+      let logoUrl: string | null = null;
+      if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
       // Arrange data and save to database
       const eventData = {
         ...args,
         ldo: findLdo._id,
+        logo: logoUrl,
         sponsors: sponsorsIds,
         players: [],
         teams: [],
@@ -165,6 +170,7 @@ export class EventResolver {
     @Args('input') args: UpdateEventInput,
     @Args('eventId') eventId: string,
     @Context() context: any,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -207,12 +213,19 @@ export class EventResolver {
       const findLdo = await this.ldoService.findByDirectorId(directorId);
 
       // Arrange data and save to database
-      const eventData = {
+      const eventData: any = {
         ...args,
         ldo: findLdo._id,
         sponsors: cloudinaryUrls,
         divisions: eventExist.divisions
       };
+
+      if(logo){
+        const logoUrl = await this.cloudinaryService.uploadFiles(logo);
+        if(logoUrl){
+          eventData.logo = logoUrl;
+        }
+      }
 
       // Update divisions
       if (args.divisions && args.divisions !== "" && eventExist.divisions !== args.divisions) {

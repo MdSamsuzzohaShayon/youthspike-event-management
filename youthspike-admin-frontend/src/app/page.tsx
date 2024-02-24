@@ -16,6 +16,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import { IError } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
+import useClickOutside from '../../hooks/useClickOutside';
 
 interface IItem {
   id: number;

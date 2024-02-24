@@ -10,6 +10,7 @@ import Link from 'next/link';
 import FileInput from '../elements/forms/FileInput';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
+import { useRouter } from 'next/navigation';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -31,6 +32,9 @@ const initialPlayerAdd = {
 };
 
 function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, divisionList, teamList }: IPlayerAddProps) {
+
+  const router = useRouter();
+
   const [actErr, setActErr] = useState<IError | null>(null);
   const [playerAdd, setPlayerAdd] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
@@ -145,6 +149,9 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
       console.log(error);
     } finally {
       setIsLoading(false);
+      if (update) {
+        router.push(`/${eventId}/players/${prevPlayer?._id}`)
+      }
     }
 
   }
@@ -156,8 +163,10 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
       <TextInput name='firstName' lblTxt='First Name' defaultValue={prevPlayer?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
-      <SelectInput name='division' optionList={divisionList} handleSelect={handleDivisionChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
-      <SelectInput name='team' optionList={teamOptions} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+      {!update && (<React.Fragment>
+        <SelectInput name='division' optionList={divisionList} handleSelect={handleDivisionChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+        <SelectInput name='team' optionList={teamOptions} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+      </React.Fragment>)}
       {/* <Link className='underline underline-offset-8 w-full mt-4' href={`/${eventId}/teams/new`}>Create Team!</Link> */}
       <div className="input-group w-full">
         <button type="submit" className='btn-secondary mt-8'>{update ? "Save" : "Submit"}</button>

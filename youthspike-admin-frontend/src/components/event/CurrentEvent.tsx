@@ -11,9 +11,9 @@ interface ICurrentEventProps {
 function CurrentEvent({ currEvent }: ICurrentEventProps) {
     return (
         <div className='event-detail w-full flex flex-col justify-center items-center gap-2'>
-            {currEvent.ldo.logo
-                ? <AdvancedImage cldImg={cld.image(currEvent.ldo.logo)} className="w-32 h-32 rounded-full object-center object-cover" />
-                : <img className="w-32 h-32 rounded-full object-center object-cover" alt={currEvent?.ldo?.name} src='/free-logo.svg' />}
+            {currEvent.logo
+                ? <AdvancedImage cldImg={cld.image(currEvent.logo)} className="w-32 h-32 rounded-full object-center object-cover" alt="event-logo" />
+                : <img className="w-32 h-32 rounded-full object-center object-cover" alt="event-logo" src='/free-logo.svg' />}
             <div className="location flex justify-start items-center gap-2">
                 <img src="/icons/location.svg" alt="location" className="icon svg-white w-8 h-8" />
                 <p>{currEvent.location}</p>

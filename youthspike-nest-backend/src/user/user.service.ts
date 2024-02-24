@@ -8,13 +8,19 @@ import { User, UserDocument, UserRole } from './user.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { ResolveField } from '@nestjs/graphql';
+import { Player } from 'src/player/player.schema';
+import { Event } from 'src/event/event.schema';
 
 @Injectable()
 export class UserService {
   private readonly notFound = AppResponse.notFound('user');
   private readonly invalidCredentials = AppResponse.invalidCredentials();
 
-  constructor(@InjectModel(User.name) private userModel: Model<User>, private readonly jwtService: JwtService, private readonly teamService: TeamService, private readonly playerService: PlayerService) { }
+  constructor(@InjectModel(User.name) 
+  private userModel: Model<User>, 
+  private readonly jwtService: JwtService, 
+  private readonly teamService: TeamService, 
+  private readonly playerService: PlayerService) { }
 
   async create(user: User) {
     const userObj = { ...user };
@@ -25,6 +31,33 @@ export class UserService {
 
     if (existing) throw AppResponse.exists('user');
     return this.userModel.create({ ...userObj });
+  }
+
+  // Create user for captain and co captain
+  async createCapUser(playerExist: Player, playerUserExist: User | null, eventExist: Event, role: UserRole): Promise<User> {
+    const userObj = {
+      email: playerExist.email, 
+      password: eventExist.coachPassword,
+      firstName: playerExist.firstName, 
+      lastName: playerExist.lastName, 
+      role,
+      captainplayer: null, 
+      cocaptainplayer: null,
+      active: true
+    }
+    let newCaptainUser = null;
+    if (playerUserExist) {
+      userObj.captainplayer = role === UserRole.captain ? playerExist._id : playerUserExist.captainplayer;
+      userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : playerUserExist.cocaptainplayer;
+      const hashedPassword = await bcrypt.hash(eventExist.coachPassword, 10);
+      userObj.password = hashedPassword;
+      newCaptainUser = await this.updateOne({ _id: playerUserExist._id }, userObj);
+    } else {
+      userObj.captainplayer = role === UserRole.captain ? playerExist._id : null;
+      userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : null;
+      newCaptainUser = await this.create(userObj);
+    }
+    return newCaptainUser;
   }
 
   async findById(id: string) {

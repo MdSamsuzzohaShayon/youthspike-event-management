@@ -3,6 +3,7 @@ import { IError, ILDO, IPlayer, ITeam } from ".";
 import { IDocument } from "./document";
 import { IDefaultMatch, IMatch } from "./match";
 import { EAssignStrategies } from "./elements";
+import { ApolloClient } from "@apollo/client";
 
 export interface IEventSponsor{
   _id: string;
@@ -25,6 +26,7 @@ export interface IDefaultEventMatch extends IDefaultMatch {
 export interface IEvent extends IDefaultEventMatch {
   _id: string;
   name: string;
+  logo: null | string;
   startDate: string;
   endDate: string;
   playerLimit: number;
@@ -42,6 +44,7 @@ export interface IEventExpRel extends IEvent {
 
 export interface IEventAdd extends IDefaultEventMatch {
   name: string;
+  logo: null | string;
   startDate: string;
   endDate: string;
   playerLimit: number;
@@ -55,4 +58,5 @@ export interface IEventAddProps {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
+  client: ApolloClient<any>
 }
