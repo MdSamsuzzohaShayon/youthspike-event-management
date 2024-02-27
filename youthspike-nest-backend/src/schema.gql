@@ -48,6 +48,7 @@ enum ETeam {
 type Team {
   _id: String
   name: String!
+  logo: String
   active: Boolean!
   division: String!
   captain: Player
@@ -114,7 +115,7 @@ type Sponsor {
 type Event {
   _id: String
   name: String!
-  logo: String!
+  logo: String
   startDate: Date!
   endDate: Date!
   active: Boolean!
@@ -413,8 +414,8 @@ type Mutation {
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
   updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!, logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
-  createTeam(input: CreateTeamInput!): CreateOrUpdateTeamResponse!
-  updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!): CreateOrUpdateTeamResponse!
+  createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
+  updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   moveTeam(eventId: String!, teamId: String!, division: String!): GetTeamResponse!
   createMatch(input: CreateMatchInput!): GetMatchResponse!
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!

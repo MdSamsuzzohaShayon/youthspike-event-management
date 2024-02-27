@@ -74,8 +74,8 @@ const ADD_EVENT_RAW = `
 mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventInput!, $logo: Upload) {
   createEvent(sponsorsInput: $sponsorsInput, input: $input, logo: $logo) {
     code
-    message
     success
+    message
     data {
       ${eventResponse}
     }

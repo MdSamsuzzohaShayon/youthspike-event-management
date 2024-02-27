@@ -44,7 +44,7 @@ export interface IEventExpRel extends IEvent {
 
 export interface IEventAdd extends IDefaultEventMatch {
   name: string;
-  logo: null | string;
+  logo?: null | string;
   startDate: string;
   endDate: string;
   playerLimit: number;
@@ -58,5 +58,4 @@ export interface IEventAddProps {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
-  client: ApolloClient<any>
 }

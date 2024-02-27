@@ -4,6 +4,7 @@ const teamResponse = `
     _id
     active
     name
+    logo
     division
     players {
       _id
@@ -130,9 +131,9 @@ query GetEvent($eventId: String!) {
  * =========================================================================================================================================
  */
 
-const ADD_A_TEAM = gql`
-  mutation CreateTeam($input: CreateTeamInput!) {
-    createTeam(input: $input) {
+const ADD_TEAM_RAW = `
+  mutation CreateTeam($input: CreateTeamInput!, $logo: Upload) {
+    createTeam(input: $input, logo: $logo) {
       code
       message
       success
@@ -143,14 +144,17 @@ const ADD_A_TEAM = gql`
   }
 `;
 
-const UPDATE_TEAM = gql`
-  mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!, $eventId: String!) {
-    updateTeam(input: $input, teamId: $teamId, eventId: $eventId) {
+const ADD_A_TEAM = gql`${ADD_TEAM_RAW}`;
+
+const UPDATE_TEAM_RAW = `
+  mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!, $eventId: String!, $logo: Upload) {
+    updateTeam(input: $input, teamId: $teamId, eventId: $eventId, logo: $logo) {
       code
       data {
         _id
         active
         name
+        logo
         captain {
           _id
           email
@@ -174,6 +178,8 @@ const UPDATE_TEAM = gql`
   }
 `;
 
+const UPDATE_TEAM = gql`${UPDATE_TEAM_RAW}`;
+
 
 const MOVE_TEAM = gql`
   mutation MoveTeam($eventId: String!, $teamId: String!, $division: String!) {
@@ -191,4 +197,4 @@ const MOVE_TEAM = gql`
   }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM, MOVE_TEAM };
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, MOVE_TEAM };

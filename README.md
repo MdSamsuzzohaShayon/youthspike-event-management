@@ -57,7 +57,6 @@ ___
 ### Running
  - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
- - Captain need to change their picture
  - Add image logo to a team, event
  - Work with bulk actions
  - If coach password changes from an event update that password to every captain of the event
@@ -72,7 +71,19 @@ ___
  - Update director informations as admin (Not working properly)
  - Email for a player is optional field, only if we want to add that player to captain we will need email
  - When we edit a player we should not see division and team, when we move the player they should appear
+ - When updating points, there should not be a button for updating points instead, when input change it will be updated
  - Till 15:00
+ 
+ 
+ - Create team and add another team, create and save
+ - Team logo need to be muteable
+ - Whatever division we are on that will be always on the top and that division will be selected for the rest of the event
+ - Before submitting lineup, in the validate content, players will have their ranking and team will have pair score
+ - When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+ - Player sub, a player can be off for a round and can get back in the next round
+ - When clicking on empty player card that net name should be shown on the player list on the left
+ - Updaing round creating some issues (Log in as admin)
+
 
 ### Issues
  - Edit player from team page
@@ -185,6 +196,9 @@ ___
  - ✅✅ Add location, date, and logo properly
  - ✅✅ Update event properly
  - Every Event need to have a logo and should be able to change that
+ - Whatever division we are on that will be always on the top and that division will be selected for the rest of the event
+ - Updaing round creating some issues (Log in as admin)
+
 
  - **Match**
  - Show available players id properly / logically
@@ -208,6 +222,11 @@ ___
  - Show  submit line up button only when all the players are assigned
  - If all nets has score it will allow to go to the next round
  - Changing round whern click on round 1 button (RD1)
+ - Before submitting lineup, in the validate content, players will have their ranking and team will have pair score
+ - When updating points, there should not be a button for updating points instead, when input change it will be updated
+ - When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+ - Player sub, a player can be off for a round and can get back in the next round
+ - When clicking on empty player card that net name should be shown on the player list on the left
 
 
 ___
@@ -280,6 +299,7 @@ ___
 
 ### Ask
  - If player return, will he return to same event or can return to different event
+ - I have updated auto assign logic for random assign, you did not notice the button below the net
 
 
  curl -i -N  \

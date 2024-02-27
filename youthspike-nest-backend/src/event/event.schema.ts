@@ -25,8 +25,8 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   name: string;
 
-  @Field()
-  @Prop({ required: false })
+  @Field({nullable: true })
+  @Prop({ required: false})
   logo?: string;
 
   @Field((type) => DateScalar)

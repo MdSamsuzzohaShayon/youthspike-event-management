@@ -3,19 +3,28 @@ import { ISelectInputProps } from '@/types';
 
 const SelectInput = (props: ISelectInputProps) => {
     const selectStyle: React.CSSProperties = {};
-    const [defaultSelected, setDefaultSelected] = useState<string>(props.optionList.length > 0 ? props.optionList[0].value : '');
+    const [selectedValue, setSelectedValue] = useState<string>(props.defaultValue?.toString() || '');
 
-    // useEffect(()=>{
-
-    // }, []);
+    useEffect(() => {
+        if (props.defaultValue) {
+            setSelectedValue(props.defaultValue.toString());
+        }
+    }, [props]);
 
     if (!props.rw) selectStyle.width = '19%';
+
     return (
         <div className={`input-group mt-4 w-full flex ${props.vertical ? "flex-col" : "flex-row"} justify-between items-center ${props.extraCls}`}>
             <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{props.lblTxt ? props.lblTxt : props.name}</label>
-            <select onChange={props.handleSelect} name={props.name} id={props.name}
-                className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw} max-w-full`} style={!props.vertical ? selectStyle : {}} >
-                <option value="" defaultChecked >
+            <select
+                onChange={props.handleSelect}
+                name={props.name}
+                id={props.name}
+                className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw} max-w-full`}
+                style={!props.vertical ? selectStyle : {}}
+                defaultValue={selectedValue}
+            >
+                <option value="" disabled>
                     Select an option
                 </option>
                 {props.optionList.map((o, i) => (
@@ -23,7 +32,7 @@ const SelectInput = (props: ISelectInputProps) => {
                 ))}
             </select>
         </div>
-    )
-}
+    );
+};
 
 export default SelectInput;

@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
+import addOrUpdateDirector from '@/utils/requestHandlers/addOrUpdateDirector';
 
 interface DirectorAddProps {
     update: boolean;
@@ -95,99 +96,9 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
      */
     const handleDirectorSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        const directorUpdateObj = { ...directorUpdate };
-        if (update) {
-            if (directorUpdateObj.password && directorUpdateObj.password !== '') {
-                if (directorUpdateObj.confirmPassword !== directorUpdateObj.password) {
-                    return setActErr({ name: "Invalid Password", message: "Password did not match" });
-                }
-            } else {
-                delete directorUpdateObj.password;
-            }
-            delete directorUpdateObj.confirmPassword;
-        } else {
-            if (directorState.password !== directorState.confirmPassword) {
-                return setActErr({ name: "Invalid Password", message: "Password did not match" });
-            }
-        }
-
-        const formData = new FormData();
-        const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, email: directorState.email, password: directorState.password };
-        const updateArgs = { ...ldoUpdate, ...directorUpdateObj };
-        
-        const updateVar = {args: updateArgs};
-        // @ts-ignore
-        if(user.info?.role === UserRole.admin) updateVar.dId = ldoId;
-        
-
-
-        const addFileToFormData = () => {
-            if (uploadedLogo.current) {
-                const variables =  { args: update ? updateArgs : inputArgs, logo: null };
-                // @ts-ignore
-                if(update && user.info?.role === UserRole.admin) variables.dId = ldoId;
-                formData.set('operations', JSON.stringify({
-                    query: update ? UPDATE_DIRECTOR_RAW : ADD_DIRECTOR_RAW,
-                    variables,
-                }));
-
-                formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
-                formData.set('0', uploadedLogo.current);
-            }
-        };
-
-        try {
-            addFileToFormData();
-            setIsLoading(true);
-            if (uploadedLogo.current) {
-                // Conditionally call updateDirector if uploadedLogo.current exists
-                const token = getCookie('token');
-                const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-
-                const responseData = await response.json();
-
-            } else {
-                // Conditionally call updateDirector or registerDirector based on the existence of uploadedLogo.current
-                if (update) {
-                    if (user.info?.role === UserRole.captain) {
-                        await mutateUser({ variables: { userId: user.info._id, updateInput: directorUpdateObj } })
-                    } else {
-                        await updateDirector({ variables: updateVar });
-                    }
-                } else {
-                    await registerDirector({ variables: { args: inputArgs, logo: null } });
-                    // Reset form and state
-                    setDirectorState(initialDirector);
-                    setLdoState(initialLdo);
-                    const formEl = e.target as HTMLFormElement;
-                    formEl.reset();
-                }
-            }
-            setActErr(null);
-            await client.refetchQueries({
-                include: [GET_LDOS],
-            });
-            if (setAddNetDirector) setAddNetDirector(false);
-        } catch (error: any) {
-            console.error('Error during GraphQL mutation:', error);
-            if (error && error?.graphQLErrors && error.graphQLErrors?.length && error.graphQLErrors.length > 0) {
-                // Valid error
-                const invalidAuth = error.graphQLErrors.find((e: any) => e && e?.extensions && e.extensions?.response && e.extensions.response.statusCode === 401);
-                if (invalidAuth) {
-                    // Delete cookies and redirect to login page
-                    await Promise.all([removeCookie('token'), removeCookie('user')]);
-                    window.location.href = `${ADMIN_URL}/login`
-                }
-            }
-            setActErr(error);
-        } finally {
-            setIsLoading(false);
-        }
+        addOrUpdateDirector({ directorUpdate, update, setActErr, directorState, ldoState,
+            ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
+            initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, client, e, ldoId })
     };
 
     useEffect(() => {
@@ -207,21 +118,16 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
 
     return (
         <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
-            {user.info?.role !== UserRole.captain && (<React.Fragment>
-                <FileInput defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12' />
-                <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
-                    defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
-            </React.Fragment>)}
+            <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
+                defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
 
             <TextInput vertical defaultValue={directorState.firstName} name='firstName' required={!update} lblTxt='First Name'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             <TextInput vertical defaultValue={directorState.lastName} name='lastName' required={!update} lblTxt='Last Name'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            {user.info?.role !== UserRole.captain && (
-                <EmailInput vertical name='email' required={!update} lblTxt='Email'
-                    defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            )}
-            {user.info?.role === UserRole.captain && update && (
+            <EmailInput vertical name='email' required={!update} lblTxt='Email'
+                defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            {update && (
                 <PasswordInput vertical name='oldPassword' required={!update} lblTxt="Old Password"
                     handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             )}
@@ -229,6 +135,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            <FileInput defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
             <div className="input-group w-full mt-4">
                 <button className="btn-info" type="submit">
                     {update ? 'Update' : 'Register'}

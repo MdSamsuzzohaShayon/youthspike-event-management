@@ -102,6 +102,7 @@ export class PlayerResolver {
       };
 
       const playerExist = await this.playerService.findById(playerId);
+      if (!playerExist) return AppResponse.exists("Player");
 
       const updatePromises = [];
       // Rank Update if a player move from middle of the 
@@ -120,6 +121,7 @@ export class PlayerResolver {
             }
           }
         } else if (input?.status === EPlayerStatus.ACTIVE) {
+          // Check how many active players
           playerObj.rank = teamExist.players.length;
         }
       }
@@ -167,6 +169,17 @@ export class PlayerResolver {
           )
         );
         if (playerObj.team) delete playerObj.team;
+      }
+
+      if ((playerExist.captainuser || playerExist.cocaptainuser) && (input.firstName || input.lastName)) {
+        const userObj: any = {};
+        if (input.firstName) userObj.firstName = input.firstName;
+        if (input.lastName) userObj.lastName = input.lastName;
+        if (playerExist.captainuser) {
+          await this.userService.updateOne({ _id: playerExist.captainuser.toString() }, userObj)
+        } else if (playerExist.cocaptainuser) {
+          await this.userService.updateOne({ _id: playerExist.cocaptainuser.toString() }, userObj)
+        }
       }
 
       if (playerObj.playerTeamId) delete playerObj.playerTeamId;

@@ -137,14 +137,16 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
         mutateClient.refetchQueries({ include: [GET_EVENT_WITH_PLAYERS] });
       } else {
         client.refetchQueries({ include: [GET_EVENT_WITH_PLAYERS] });
-      } if (playerRes && playerRes.data.createPlayer.code === 201) {
-        setPlayerAdd(initialPlayerAdd);
-        const formEl = e.target as HTMLFormElement;
-        formEl.reset();
+      } if (playerRes && playerRes.data?.createPlayer?.code === 201 || playerRes.data?.updatePlayer?.code === 202) {
+        if(!update){
+          setPlayerAdd(initialPlayerAdd);
+          const formEl = e.target as HTMLFormElement;
+          formEl.reset();
+        }
       } else {
         setActErr({ name: playerRes.data.createPlayer.code, message: playerRes.data.createPlayer.message, main: playerRes.data.createPlayer })
       }
-      if (setAddPlayer) setAddPlayer(false);
+      if (setAddPlayer && !update) setAddPlayer(false);
     } catch (error) {
       console.log(error);
     } finally {
