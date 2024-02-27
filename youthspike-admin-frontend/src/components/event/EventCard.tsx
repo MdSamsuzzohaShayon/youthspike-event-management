@@ -6,6 +6,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 import useClickOutside from '../../../hooks/useClickOutside';
+import TextImg from '../elements/TextImg';
 
 interface IEventCardProps {
     event: IEvent;
@@ -58,7 +59,7 @@ function EventCard({ event, copyEvent, user, directorId }: IEventCardProps) {
             </div>
             <Link href={`/${event._id}`}>
                 <div className="img-wrapper w-full flex justify-center items-center">
-                    {event.logo ? <AdvancedImage cldImg={cld.image(event.logo)} alt="logo" className="w-12" /> : <img src="/free-logo.svg" alt="logo" className="w-12" />}
+                    {event.logo ? <AdvancedImage cldImg={cld.image(event.logo)} alt="logo" className="w-12" /> : <TextImg className='w-12 h-12' fullText={event.name}  />}
                 </div>
                 <div className="text-box text-center">
                     <h3 className='text-lg font-bold mb-0'>{event.name}</h3>

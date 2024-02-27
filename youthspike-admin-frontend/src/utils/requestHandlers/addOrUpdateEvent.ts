@@ -18,7 +18,7 @@ interface IAddOrUpdateProps {
     eventState: IEventAdd;
     updateEvent: Partial<IEventAdd>;
     sponsorImgList: IEventSponsorAdd[];
-    sponsorInputEl:  React.RefObject<HTMLInputElement>;
+    sponsorInputEl: React.RefObject<HTMLInputElement>;
     eventLogo: React.RefObject<null | File>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     eventUpdate: MutationFunction;
@@ -32,10 +32,10 @@ interface IAddOrUpdateProps {
 /**
  * Add event mutation
  */
-async function addOrUpdateEvent({ 
-    e, update, eventId, directorId, setEventState, setIsLoading, eventState, 
-    updateEvent, sponsorImgList, sponsorInputEl, eventLogo, setActErr, eventUpdate, 
-    eventAdd, user, router, initialEvent}: IAddOrUpdateProps) {
+async function addOrUpdateEvent({
+    e, update, eventId, directorId, setEventState, setIsLoading, eventState,
+    updateEvent, sponsorImgList, sponsorInputEl, eventLogo, setActErr, eventUpdate,
+    eventAdd, user, router, initialEvent }: IAddOrUpdateProps) {
     e.preventDefault();
 
     setIsLoading(true);
@@ -75,6 +75,10 @@ async function addOrUpdateEvent({
             for (let i = 0; i < sponsorImgList.length; i += 1) {
                 mapObj[i.toString()] = [`variables.sponsorsInput.${i}.logo`];
             }
+
+            // formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
+            // formData.set('0', uploadedLogo.current);
+
             if (eventLogo && eventLogo.current) {
                 mapObj[sponsorImgList.length] = [`variables.logo`];
             }
@@ -90,8 +94,12 @@ async function addOrUpdateEvent({
             if (eventLogo && eventLogo.current) {
                 formData.set(`${sponsorImgList.length}`, eventLogo.current);
                 // @ts-ignore
-                mutationVariables.logo = eventLogo.current;
+                // mutationVariables.logo = eventLogo.current;
             }
+
+            formData.forEach(function (value, key) {
+                console.log(key + ': ' + value);
+            });
 
 
             const token = getCookie('token');
@@ -121,6 +129,9 @@ async function addOrUpdateEvent({
             // Use Apollo Client mutation
             if (!mutationVariables.sponsorsInput) mutationVariables.sponsorsInput = [];
             let eventRes = null;
+            const mutationInput = { ...mutationVariables.input };
+            if (mutationInput.logo) delete mutationInput.logo;
+            mutationVariables.input = mutationInput;
             if (update) {
                 eventRes = await eventUpdate({ variables: mutationVariables });
             } else {

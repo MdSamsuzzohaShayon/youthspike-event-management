@@ -33,7 +33,6 @@ const { homeTeamStrategy, rosterLockList } = staticData;
 
 const initialEvent = {
     name: 'Event 1',
-    logo: null,
     divisions: '',
     nets: 3,
     rounds: 2,
@@ -53,7 +52,7 @@ const initialEvent = {
 
 const initialCurrSponsor = { logo: null, company: '' };
 
-function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading, client }: IEventAddProps) {
+function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAddProps) {
     // Hooks
     const router = useRouter();
     const user = useUser();
@@ -91,7 +90,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading, client }: 
         });
 
         // Refetch
-        client.refetchQueries({ include: [GET_A_EVENT] })
+        // client.refetchQueries({ include: [GET_A_EVENT] });
     };
 
     /**

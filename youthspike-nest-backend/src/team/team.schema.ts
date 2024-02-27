@@ -33,6 +33,10 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   name: string;
 
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  logo: string;
+
   @Field({ nullable: false })
   @Prop({ required: true })
   active: boolean;

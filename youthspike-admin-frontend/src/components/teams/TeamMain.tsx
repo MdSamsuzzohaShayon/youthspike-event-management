@@ -115,14 +115,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             {currEvent && (<CurrentEvent currEvent={currEvent} />)}
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
-            {/* <div className="w-full flex justify-between items-center flex-col mb-4">
-                <div className="logo w-20">
-                    <img src="/free-logo.svg" alt="program-playoffs" className='w-full' />
-                </div>
-                <h3 className='text-2xl'>Program Playoffs</h3>
-                <p className="date flex mt-2"><span><img src="/icons/clock.svg" alt="clock" className='w-6 svg-white mr-2' /></span> Apr 5, 2024 - Apr 5, 2024</p>
-                <p className="date flex mt-2"><span><img src="/icons/location.svg" alt="location" className='w-6 svg-white mr-2' /></span> Orlando, Florida</p>
-            </div> */}
             <div className="mb-4 division-selection w-full">
                 <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
             </div>

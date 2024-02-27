@@ -1,0 +1,53 @@
+"use client"
+
+import Message from '@/components/elements/Message';
+import TeamAdd from '@/components/teams/TeamAdd';
+import { GET_A_TEAM } from '@/graphql/teams';
+import { IError, IEventExpRel, IPlayer } from '@/types';
+import { isValidObjectId } from '@/utils/helper';
+import { useLazyQuery } from '@apollo/client';
+import React, { useEffect, useState } from 'react';
+
+function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string } }) {
+  const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId: params.teamId } });
+  
+  const [actErr, setActErr] = useState<IError | null>(null);
+  const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
+  const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const handleClose=()=>{
+    
+  }
+
+  const handleRefetch = async () => {
+    // You can call refetch here to manually refetch the data
+    await refetch({ variables: { teamId: params.teamId } });
+  };
+
+  useEffect(() => {
+    if (params.teamId) {
+      if (isValidObjectId(params.teamId)) {
+        fetchTeam({ variables: { teamId: params.teamId } });
+      } else {
+        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+      }
+    }
+
+  }, [params.teamId]);
+
+  const teamData = data?.getTeam?.data;
+  const divisions = data?.getTeam?.data?.event?.divisions;
+
+  return (
+    <div className='container mx-auto px-2 min-h-screen'>
+      <h1 className='mb-8 text-center'>Update Team</h1>
+      {error && <Message error={error} />}
+      {actErr && <Message error={actErr} />}
+      {teamData && <TeamAdd eventId={params.eventId} availablePlayers={availablePlayers} divisions={divisions} handleClose={handleClose} setActErr={setActErr} 
+      setAvailablePlayers={setAvailablePlayers} setIsLoading={setIsLoading} prevTeam={teamData} update refetch={handleRefetch} />}
+    </div>
+  )
+}
+
+export default TeamUpdatePage;

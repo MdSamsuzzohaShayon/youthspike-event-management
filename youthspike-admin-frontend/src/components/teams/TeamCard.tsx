@@ -2,10 +2,15 @@ import { useUser } from '@/lib/UserProvider';
 import { IEvent, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { useMutation } from '@apollo/client';
 import { MOVE_TEAM } from '@/graphql/teams';
+import useClickOutside from '../../../hooks/useClickOutside';
+import { useRouter } from 'next/navigation';
+import { AdvancedImage } from '@cloudinary/react';
+import cld from '@/config/cloudinary.config';
+import TextImg from '../elements/TextImg';
 
 interface TeamCardProps {
     eventId: string;
@@ -21,6 +26,10 @@ interface ITeamMove {
 
 function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
     const user = useUser();
+    const router = useRouter();
+
+    const actionEl = useRef<null | HTMLUListElement>(null);
+
     const [actionOpen, setActionOpen] = useState<boolean>(false);
     const [openMoveTeam, setOpenMoveTeam] = useState<boolean>(false);
     const [eventOptions, setEventOptions] = useState<IOption[]>([]);
@@ -28,6 +37,10 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
 
     const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
     const [moveTeamMutation, { loading, data }] = useMutation(MOVE_TEAM);
+
+    useClickOutside(actionEl, () => {
+        setActionOpen(false);
+    });
 
 
     /**
@@ -74,6 +87,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
     const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {
         e.preventDefault();
         // Fetch team by team Id
+        router.push(`/${eventId}/teams/${teamId}/update`);
     }
 
     const handleDeleteTeam = (e: React.SyntheticEvent, teamId: string) => {
@@ -120,7 +134,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
     return (
         <div className="team-card w-full rounded-lg">
             <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative">
-                <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
+                <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
                     <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} >Edit</li>
                     <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}>Move Team</li>
                     <li role="presentation" onClick={(e) => handleDeleteTeam(e, team._id)}>Delete</li>
@@ -132,7 +146,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
                 <div className="w-5/12">
                     <Link href={`/${eventId}/teams/${team._id}`}>
                         <div className="brand flex gap-1 items-center">
-                            <img src="/free-logo.svg" alt="free-logo" className="w-12" />
+                            {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-12" /> : <TextImg className='w-12 h-12' fullText={team.name} />}
                             <h3 className='leading-none text-lg font-bold capitalize'>{team.name}</h3>
                         </div>
                         <p>2-1 Record</p>
@@ -142,7 +156,10 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
                     <Link href={`/${eventId}/teams/${team._id}`}>
                         {team.captain && (
                             <div className="brand flex gap-1">
-                                <img src="/free-logo.svg" alt="free-logo" className="w-12 h-12 rounded-full border-2 border-yellow-500" />
+                                {team.captain?.profile 
+                                ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-500" /> 
+                                : <TextImg className='w-12 h-12 border-2 border-yellow-500' fText={team.captain.firstName} lText={team.captain.lastName} />}
+                                
                                 <div className="caption flex flex-col">
                                     <p className='uppercase text-xs'>Captain</p>
                                     <h3 className='leading-none text-lg font-bold'>{team.captain?.firstName + " " + team.captain?.lastName}</h3>

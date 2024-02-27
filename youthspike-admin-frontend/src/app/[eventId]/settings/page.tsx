@@ -10,11 +10,11 @@ import { GET_A_EVENT } from '@/graphql/event';
 import Loader from '@/components/elements/Loader';
 import { isValidObjectId } from '@/utils/helper';
 import { useUser } from '@/lib/UserProvider';
-import PlayerAdd from '@/components/player/PlayerAdd';
 import DirectorAdd from '@/components/ldo/DirectorAdd';
-import { GET_LDO } from '@/graphql/director';
 import { getCookie } from '@/utils/cookie';
 import { GET_CAPTAIN } from '@/graphql/captain';
+import PlayerAdd from '@/components/player/PlayerAdd';
+import { GET_A_PLAYER } from '@/graphql/players';
 
 const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   const [actErr, setActErr] = useState<IError | null>(null);
@@ -24,9 +24,10 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   /**
    * Read query from cache or fetch data from server
    */
-  const [fetchEvent, { data, loading, error, client }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
-  const [fetchCaptain, { data: captainData, error: captainErr, loading: captainLoading }] = useLazyQuery(GET_CAPTAIN);
+  const [fetchEvent, { data, loading, error, client }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } }); 
+  const [fetchPlayer, { data: playerData, error: playerErr, loading: playerLoading }] = useLazyQuery(GET_A_PLAYER);
 
+  // 65d8b250efd88fce90a62619
   useEffect(() => {
     if (params.eventId) {
       if (isValidObjectId(params.eventId)) {
@@ -34,7 +35,11 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
         if (user) {
           const userRes = JSON.parse(user)
           if (userRes.role === UserRole.captain) {
-            fetchCaptain({ variables: { userId: userRes._id } });
+            if(userRes.captainplayer){
+              fetchPlayer({ variables: { playerId: userRes.captainplayer } });
+            }else if(userRes.cocaptainplayer){
+              fetchPlayer({ variables: { playerId: userRes.cocaptainplayer } });
+            }
           } else {
             fetchEvent({ variables: { eventId: params.eventId } });
           }
@@ -45,31 +50,19 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
     }
   }, [params.eventId]);
 
-  if (loading || isLoading || captainLoading) return <Loader />;
-  const prevEvent = data?.getEvent?.data;
-
-  const precisedCaptain = {
-    name: "", logo: "",
-    director: {
-      firstName: captainData?.getUser?.data?.firstName,
-      lastName: captainData?.getUser?.data?.lastName,
-      email: "",
-      password: "",
-      confirmPassword: "",
-    }
-  };
-
-
-  // Fetch previous player
+  if (loading || isLoading || playerLoading) return <Loader />;
+  
+  const prevEvent = data?.getEvent?.data;  
+  const prevPlayer = playerData?.getPlayer?.data;
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
       <h1 className='capitalize'>{user.info?.role === UserRole.captain ? "Update captain" : "Update Event"}</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {user.info?.role === UserRole.captain 
-      ? (captainData && <DirectorAdd update setIsLoading={setIsLoading} prevLdo={precisedCaptain} setActErr={setActErr} />) 
-      : (prevEvent && <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} client={client} />)}
+      {user.info?.role === UserRole.captain
+        ? (prevPlayer && <PlayerAdd eventId={params.eventId} setIsLoading={setIsLoading} update prevPlayer={prevPlayer} divisionList={[]} teamList={[]} />)
+        : (prevEvent && <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />)}
 
     </div>
   )
