@@ -26,6 +26,7 @@ import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { ConfigService } from '@nestjs/config';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
+import * as bcrypt from 'bcrypt';
 import { CreateEventInput, EventSponsorInput, UpdateEventInput } from './event.args';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
@@ -220,9 +221,9 @@ export class EventResolver {
         divisions: eventExist.divisions
       };
 
-      if(logo){
+      if (logo) {
         const logoUrl = await this.cloudinaryService.uploadFiles(logo);
-        if(logoUrl){
+        if (logoUrl) {
           eventData.logo = logoUrl;
         }
       }
@@ -264,6 +265,34 @@ export class EventResolver {
 
         await Promise.all(divisionPromises);
         eventData.divisions = currDivList.join(', ');
+      }
+
+      // Update Coach Password
+      if (eventData.coachPassword) {
+        const teamsOfEvent = await this.teamService.query({ event: eventId });
+        const cap = [], coCap = [];
+        for (const t of teamsOfEvent) {
+          if (t.captain) cap.push(t.captain);
+          if (t.cocaptain) coCap.push(t.cocaptain);
+        }
+
+        const userIds = [];
+        const capUsers = await this.userService.query({ captainplayer: { $in: cap } });
+        const capUserIds = capUsers.map((u) => u._id);
+        userIds.push(...capUserIds)
+
+        const coCapUsers = await this.userService.query({ cocaptainplayer: { $in: coCap } });
+        const coCapUserIds = coCapUsers.map((u) => u._id);
+        userIds.push(...coCapUserIds);
+
+        if (userIds.length > 0) {
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash(eventData.coachPassword, salt);
+
+          await this.userService.updateMany({ _id: { $in: userIds } }, { password: hashedPassword });
+        }
+
+
       }
 
       const updatedEvent = await this.eventService.update(eventData, eventId);

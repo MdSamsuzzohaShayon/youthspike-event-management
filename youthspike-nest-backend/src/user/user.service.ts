@@ -122,6 +122,10 @@ export class UserService {
     return this.userModel.updateOne(filter, updateData);
   }
 
+  async updateMany(filter: FilterQuery<User>, updateData: UpdateQuery<User>){
+    return this.userModel.updateMany(filter, updateData);
+  }
+
   async createOrUpdateAdmin(user: User) {
     let admin = await this.userModel.findOne({
       email: user.email,
