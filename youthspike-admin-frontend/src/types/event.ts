@@ -5,6 +5,13 @@ import { IDefaultMatch, IMatch } from "./match";
 import { EAssignStrategies } from "./elements";
 import { ApolloClient } from "@apollo/client";
 
+export enum EEventPeriod{
+  UPCOMING="UPCOMING",
+  CURRENT="CURRENT",
+  PASSED="PASSED",
+}
+
+
 export interface IEventSponsor{
   _id: string;
   company: string;

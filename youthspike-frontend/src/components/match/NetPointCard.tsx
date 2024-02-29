@@ -35,7 +35,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth }: I
         if (!netId) return;
 
         const inputEl = e.target as HTMLInputElement;
-        if (inputEl.value === '') return;
+        if (!inputEl.value || inputEl.value === '') return;
         const teamScore = parseInt(inputEl.value, 10);
         const updateObj: { teamAScore: null | number, teamBScore: null | number } = { teamAScore: null, teamBScore: null };
         if (teamAorB === ETeam.teamA) {
@@ -59,16 +59,16 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth }: I
     return (
         <div className={`absolute z-10 ${screenWidth > screen.xs ? "h-20" : "h-28"} w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center p-1 flex-col`} style={{ top: '39%' }}>
             {user && teamACapOrCo
-                ? <TeamScoreInput currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />
-                : <TeamScoreInput currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />}
+                ? <TeamScoreInput key={`${1}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />
+                : <TeamScoreInput key={`${2}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />}
             <div className="net-card flex justify-around items-center w-full py-1">
                 <img src="/icons/right-arrow.svg" alt="right-arrow" onKeyUp={handleKeyUp} onClick={handleRightShift} role="presentation" className="w-4 svg-white" style={{ transform: 'scaleX(-1)' }} />
                 <h3 style={fsToggle(screenWidth)} className='leading-3'>Net {net?.num}</h3>
                 <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4  svg-white" />
             </div>
             {user && teamACapOrCo
-                ? <TeamScoreInput currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />
-                : <TeamScoreInput currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />}
+                ? <TeamScoreInput key={`${3}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />
+                : <TeamScoreInput key={`${4}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />}
         </div>
     )
 }

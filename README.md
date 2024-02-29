@@ -58,8 +58,6 @@ ___
  - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
  - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
  - Work with bulk actions
- - If coach password changes from an event update that password to every captain of the event
- - If there are no two players assigned in a new there should not be any pair score
  - Issue with admin directing to event setting page (It is redirecting to /admin page)
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
@@ -75,11 +73,9 @@ ___
  - Till 15:00
  
  
- - Whatever division we are on that will be always on the top and that division will be selected for the rest of the event
- - Before submitting lineup, in the validate content, players will have their ranking and team will have pair score
+ - Whatever division we are on, that will be always on the top and that division will be selected for the rest of the event
  - When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - Player sub, a player can be off for a round and can get back in the next round
- - When clicking on empty player card that net name should be shown on the player list on the left
  - Updaing round creating some issues (Log in as admin)
 
 
@@ -298,6 +294,7 @@ ___
 ### Ask
  - If player return, will he return to same event or can return to different event
  - I have updated auto assign logic for random assign, you did not notice the button below the net
+ - Currently there are 3 status for a match, if the date passed it will say "PASSED", if the date of the match is about to come it will say "UPCOMING", and if today is the date of the match it will say "CURRENT". Is it okay? Should I add "COMPLETED" in match status?
 
 
  curl -i -N  \

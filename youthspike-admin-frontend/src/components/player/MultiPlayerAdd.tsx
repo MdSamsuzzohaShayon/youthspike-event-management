@@ -4,9 +4,10 @@ import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import { ApolloClient, ApolloClientOptions, RefetchQueriesFunction, useMutation } from '@apollo/client';
 import { redirect, useRouter } from 'next/navigation';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
+import { getDivisionFromStore } from '@/utils/localStorage';
 
 type ApolloClientType = import('@apollo/client').ApolloClient<any>; // Replace 'any' with your specific schema types
 
@@ -26,7 +27,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
     const [selectedDivision, setSelectedDivision] = useState<string>('');
     const router = useRouter();
 
-    const handleDivisionInput = (e: React.SyntheticEvent) => {
+    const handleDivisionChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
         setSelectedDivision(inputEl.value);
@@ -86,13 +87,21 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
         }
     };
 
+    useEffect(()=>{
+        const prevDivision = getDivisionFromStore();
+        if(prevDivision){
+            setSelectedDivision(prevDivision);
+        }
+    }, []);
+    
+
     return (
         <form onSubmit={handleUploadMultiPlayers}>
             <div className="input-group w-full">
                 <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
                 <input type="file" ref={uploadFileEl} className='form-control w-full' onChange={handleInputChange} />
             </div>
-            <SelectInput vertical handleSelect={handleDivisionInput} name='division' optionList={divisionList} defaultValue="" />
+            <SelectInput key={crypto.randomUUID()} vertical handleSelect={handleDivisionChange} name='division' optionList={divisionList} defaultValue={selectedDivision} />
             <div className="input-group mt-4">
                 <button type="submit" className="btn-info">Upload</button>
             </div>

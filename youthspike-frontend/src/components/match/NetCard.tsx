@@ -174,7 +174,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
 
     dispatch(setShowTeamPlayers(true))
     dispatch(setPlayerSpot(playerSpot));
-    if (net) dispatch(setSelectedNet(net))
+    if (net) dispatch(setSelectedNet(net));
 
 
 
@@ -248,16 +248,16 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     const playerB = matchTPlayer(TPB);
     const playerARank = playerA?.rank, playerBRank = playerB?.rank;
     const pairScore = calcPairScore(playerARank, playerBRank);
-    return (<div className={`net-top h-3/6 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} ${border.light} items-center justify-start`}>
+    return (<div className={`net-top h-3/6 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gray-900 text-gray-100 ' : 'flex-col-reverse bg-gray-100 text-gray-900'} border ${border.light} items-center justify-start`}>
       <div className="player-pair flex justify-between w-full">
-        <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? "w-12" : "w-16"} ${!onTop && border.light}`}>
+        <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? "w-12" : "w-16"} border ${!onTop && border.light}`}>
           <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
         </div>
-        <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? "w-12" : "w-16"} ${!onTop && border.light}`}>
+        <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? "w-12" : "w-16"} border ${!onTop && border.light}`}>
           <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
         </div>
       </div>
-      <h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>
+      {playerARank && playerBRank && (<h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>)}
     </div>);
   }
 

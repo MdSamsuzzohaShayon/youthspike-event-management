@@ -57,7 +57,8 @@ function TeamsPage({ params }: ITeamsPageProps) {
       {currEvent && (<CurrentEvent currEvent={currEvent} />)}
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} divisions={divisions} setAvailablePlayers={setAvailablePlayers} setActErr={setActErr} />
+      <TeamAdd setIsLoading={setIsLoading} availablePlayers={availablePlayers} handleClose={handleClose} eventId={params.eventId} divisions={divisions} 
+      setAvailablePlayers={setAvailablePlayers} setActErr={setActErr} refetch={refetch} />
     </div>
   )
 }

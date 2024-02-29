@@ -13,6 +13,7 @@ import { IError, IEventExpRel, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import CurrentEvent from '@/components/event/CurrentEvent';
+import { removeTeamFromStore } from '@/utils/localStorage';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
 
@@ -25,6 +26,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
 
   useEffect(() => {
+    removeTeamFromStore();
     if (params.eventId) {
       if (isValidObjectId(params.eventId)) {
         fetchEvent({ variables: { eventId: params.eventId } });

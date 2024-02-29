@@ -39,14 +39,21 @@ import LineupStrategy from '@/components/match/LineupStrategy';
 
 /**
  * Test Match
+ * Match URL 
+ * http://localhost:3001/matches/65e0879b81d16290815d65ff
  * 
+ * Team Mal
  * Captain
- * ayyy.spence@gmail.com
- * braden.peterson8@gmail.com
- * 
+ * grace.adams@yp.com
  * Co-captains
- * bowenmaynard.24@shelleyschools.org
- * jarenhaggard2010@gmail.com
+ * james.robinson@yp.com
+ * 
+ * 
+ * team Sri
+ * Captain
+ * john.doe@yp.com
+ * Co-captains
+ * michael.johnson@yp.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {

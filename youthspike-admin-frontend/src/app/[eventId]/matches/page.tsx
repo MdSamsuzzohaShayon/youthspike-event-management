@@ -51,10 +51,10 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         {addMatch ? <>
           {/* Only director and admin can create match  */}
           {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-            <>
+            <React.Fragment>
               <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(false)}>Match List</button>
               <MatchAdd matchData={toMatchDefaultData(eventData)} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} />
-            </>
+            </React.Fragment>
           )}
         </> : <>
           {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}

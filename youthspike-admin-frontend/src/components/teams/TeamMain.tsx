@@ -16,6 +16,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../../hooks/useClickOutside';
+import { getDivisionFromStore, removeDivisionToStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -49,9 +50,10 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         const inputEl = e.target as HTMLInputElement;
         if (inputEl.value === '') {
             setFilteredlist([...teamList]);
+            removeDivisionToStore();
         } else {
+            setDivisionToStore(inputEl.value.trim());
             const newList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-            // console.log({inputted: inputEl.value, filtered: newList});
             setFilteredlist([...newList]);
         }
     }
@@ -98,8 +100,14 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }, [eventId]);
 
 
+    useEffect(()=>{
+        removeTeamFromStore();
+    }, []);
+
+
     if (loading || isLoading || ldoLoading) return <Loader />;
     const eventList = ldoData?.getEventDirector?.data?.events;
+
 
 
 

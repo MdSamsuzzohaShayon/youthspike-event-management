@@ -187,7 +187,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
       {/* Left side round detail start  */}
       {!showTeamPlayers
-        ? (<div className={`round-detail ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
+        ? (<div className={`round-detail border ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
           {/* Top Side Start  */}
           <div className="round-top w-full h-3/6 bg-gray-900 text-gray-100 px-2 flex flex-col items-center justify-around">
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
@@ -206,14 +206,17 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Top Side End  */}
 
           {/* Bottom Side Start  */}
-          <div className={`round-bottom w-full h-3/6 ${border.light} px-2 flex flex-col items-center justify-around`}>
+          <div className={`round-bottom w-full h-3/6 border ${border.light} px-2 flex flex-col items-center justify-around`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
           </div>
           {/* Bottom Side End  */}
         </div>)
-        : (<div className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 ${border.light}`} style={setNetH(screenWidth)}>
+        : (<div className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`} style={setNetH(screenWidth)}>
           <img src='/icons/close.svg' className='svg-black right-2 top-2' role='presentation' onClick={handleClosePlayers} />
+          <div className="px-2 w-full">
+            <h3>Selected Net {selectedNet?.num}</h3>
+          </div>
           {renderAvailablePlayers()}
         </div>)}
       {/* Left side round detail end  */}
@@ -223,7 +226,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {/* Setting end  */}
 
       {/* Right side net detail start */}
-      <div className={`right-side net-card-wrapper ${border.light} flex ${screenWidth > screen.xs ? "w-9/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
+      <div className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? "w-9/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
         {screenWidth > screen.xs
           ? currentRoundNets.map((net) => <NetCard key={net._id} net={net} screenWidth={screenWidth} />)
           : <NetCard net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} screenWidth={screenWidth} />}

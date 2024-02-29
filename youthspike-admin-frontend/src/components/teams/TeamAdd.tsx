@@ -13,6 +13,7 @@ import FileInput from '../elements/forms/FileInput';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
+import { getDivisionFromStore, setDivisionToStore } from '@/utils/localStorage';
 
 interface IPrevTeam extends ITeamAdd{
     _id: string;
@@ -118,19 +119,33 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
     const handleSelect = (e: React.SyntheticEvent) => {
         const selectInputEl = e.target as HTMLSelectElement;
         setTeamState((prevState) => ({ ...prevState, [selectInputEl.name]: selectInputEl.value.toLowerCase() }));
+        setDivisionToStore(selectInputEl.value);
         if (update) {
             setUpdateTeamState((prevState) => ({ ...prevState, [selectInputEl.name]: selectInputEl.value }));
         }
     }
 
     useEffect(() => {
+        const teamObj: Partial<ITeamAdd> = {};
         if (availablePlayers && availablePlayers.length > 0) {
-            setTeamState((prevState) => ({ ...prevState, captain: availablePlayers[0]._id }));
+            teamObj.captain = availablePlayers[0]._id 
         }
 
         const divs = divisionsToOptionList(divisions);
         setDivisionList(divs);
+
+        // Set division from local Storage
+        const selectedDivision = getDivisionFromStore();
+        if(selectedDivision && !update){
+            teamObj.division = selectedDivision;
+        }
+
+        if(Object.entries(teamObj).length > 0){
+            setTeamState((prevState) => ({ ...prevState, ...teamObj }));
+        }
     }, [divisions, availablePlayers]);
+    
+
 
     // Renders
     const selectedPlayers = (ap: IPlayer[], pil: string[]): IOption[] => {
@@ -148,7 +163,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
-            <SelectInput name='division' defaultValue={teamState.division} optionList={divisionList} handleSelect={handleSelect} lw='w-5/12' rw='w-5/12' />
+            <SelectInput key={crypto.randomUUID()} name='division' defaultValue={teamState.division} optionList={divisionList} handleSelect={handleSelect} lw='w-5/12' rw='w-5/12' />
 
             {!update && (
                 <div className='input-group w-full flex flex-col'>
@@ -162,7 +177,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
                 </div>
             )}
             {playerIdList.length > 0 && !update && (
-                <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
+                <SelectInput key={crypto.randomUUID()} name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
             )}
 
             <div className="input-group w-full">

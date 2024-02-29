@@ -4,6 +4,7 @@ export interface ITeam {
   _id: string;
   active: boolean;
   name: string;
+  logo?: string | null;
   division: string;
   event: IEvent;
   players: IPlayer[];
@@ -11,14 +12,6 @@ export interface ITeam {
   cocaptain: IPlayer | null;
 }
 
-export interface ITeamAdd {
-  active: boolean;
-  name: string;
-  event: string;
-  players: string[];
-  captain: string | null;
-  cocaptain?: string | null;
-}
 
 export enum ETeam{
   teamA = 'teamA',
