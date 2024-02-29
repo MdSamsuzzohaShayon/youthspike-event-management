@@ -72,12 +72,11 @@ ___
  - When updating points, there should not be a button for updating points instead, when input change it will be updated
  - Till 15:00
  
- 
- - Whatever division we are on, that will be always on the top and that division will be selected for the rest of the event
  - When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - Player sub, a player can be off for a round and can get back in the next round
  - Updaing round creating some issues (Log in as admin)
 
+ - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
 
 ### Issues
  - Edit player from team page
