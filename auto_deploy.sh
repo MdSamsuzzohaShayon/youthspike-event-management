@@ -1,4 +1,4 @@
-##!/bin/bash
+#!/bin/bash
 
 ### Clean up previous project
 pm2 stop nest_backend
@@ -18,18 +18,17 @@ rm -rf youthspike-event-management
 
 ### Setup from stratch
 echo "Setup from stratch"
-export NODE_ENV=production
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 
 
 echo "Installing dependencies for youthspike-nest-backend"
 cd /home/shayon/youthspike-event-management/youthspike-nest-backend
-npm install
-echo "# NestJS Backend" > .env
 nano .env
+npm install
 npm run build
 pm2 start ecosystem.config.js
+
 
 echo "Installing dependencies for youthspike-admin-frontend"
 cd /home/shayon/youthspike-event-management/youthspike-admin-frontend
