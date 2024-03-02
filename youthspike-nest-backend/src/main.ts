@@ -5,10 +5,10 @@ import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  let origin = ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
-  if (process.env.NODE_ENV === 'production') {
-    origin = ['https://aslsquads.com', 'https://admin.aslsquads.com', 'https://studio.apollographql.com'];
-  }
+// const origin = ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
+  // if (process.env.NODE_ENV === 'production') {
+  // }
+const origin = ['https://aslsquads.com', 'https://admin.aslsquads.com', 'https://studio.apollographql.com'];
 
 
   app.enableCors({
