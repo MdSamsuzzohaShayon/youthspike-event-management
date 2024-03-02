@@ -101,7 +101,6 @@ type Match {
   autoAssignLogic: String
   rosterLock: String
   timeout: Float
-  coachPassword: String
   location: String
 }
 

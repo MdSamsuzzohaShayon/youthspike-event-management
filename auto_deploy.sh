@@ -18,6 +18,7 @@ rm -rf youthspike-event-management
 
 ### Setup from stratch
 echo "Setup from stratch"
+export NODE_ENV=production
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 

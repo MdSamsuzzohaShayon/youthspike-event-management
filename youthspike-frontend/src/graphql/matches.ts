@@ -11,6 +11,7 @@ players {
   lastName
   profile
   email
+  status
   rank
 }
 captain {

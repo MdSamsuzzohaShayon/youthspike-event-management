@@ -12,6 +12,7 @@ interface ICurrentEventProps {
 function CurrentEvent({ currEvent }: ICurrentEventProps) {
     return (
         <div className='event-detail w-full flex flex-col justify-center items-center gap-2'>
+            <h1>{currEvent.name}</h1>
             {currEvent.logo
                 ? <AdvancedImage cldImg={cld.image(currEvent.logo)} className="w-32 h-32 rounded-full object-center object-cover" alt="event-logo" />
                 : <TextImg className='w-32 h-32 rounded-full object-center object-cover' fullText={currEvent.name} txtCls='text-2xl' />}

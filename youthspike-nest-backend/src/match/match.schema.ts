@@ -48,13 +48,6 @@ export class Match extends AppDocument {
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Room' })
   room?: Room | string;
 
-  // @Field((type) => Int, { nullable: true })
-  // @Prop({ required: false })
-  // teamAScore?: number;
-
-  // @Field((type) => Int, { nullable: true })
-  // @Prop({ required: true })
-  // teamBScore?: number;
 
   // Default properties
   @Field({ nullable: false })
@@ -92,10 +85,6 @@ export class Match extends AppDocument {
   @Field({ nullable: true })
   @Prop({ required: false })
   timeout?: number;
-
-  @Field({ nullable: true })
-  @Prop({ required: false })
-  coachPassword?: string;
 
   @Field({ nullable: true })
   @Prop({ required: false })

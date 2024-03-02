@@ -9,7 +9,7 @@ function getDivisionFromStore(): null | string {
     return null;
 }
 
-function removeDivisionToStore() {
+function removeDivisionFromStore() {
     window.localStorage.removeItem("division");
 }
 
@@ -29,4 +29,4 @@ function removeTeamFromStore() {
     window.localStorage.removeItem("team");
 }
 
-export { setDivisionToStore, getDivisionFromStore, removeDivisionToStore, setTeamToStore, getTeamFromStore, removeTeamFromStore};
+export { setDivisionToStore, getDivisionFromStore, removeDivisionFromStore, setTeamToStore, getTeamFromStore, removeTeamFromStore};

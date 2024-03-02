@@ -31,10 +31,10 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
     reformatAPlayers = teamAF.players.map((player: IPlayer) => {
       const newPlayer: IPlayer = {
         _id: player._id,
-        status: player.status,
         firstName: player.firstName,
         lastName: player.lastName,
         email: player.email,
+        status: player.status,
         rank: player.rank,
         team: teamAF._id,
         event: event._id,
@@ -49,10 +49,10 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
     reformatBPlayers = teamBF.players.map((player: IPlayer) => {
       const newPlayer: IPlayer = {
         _id: player._id,
-        status: player.status,
         firstName: player.firstName,
         lastName: player.lastName,
         email: player.email,
+        status: player.status,
         rank: player.rank,
         team: teamBF._id,
         event: event._id,

@@ -244,7 +244,7 @@ export class MyGatWay implements OnModuleInit {
     roomData.rounds = roundList;
     this.roomsLocal.set(submitLineup.room, roomData);
 
-    const roomDataWithNets: RoomLocalWithNets = { ...roomData, nets: submitLineup.nets }
+    const roomDataWithNets: RoomLocalWithNets = { ...roomData, nets: submitLineup.nets };
     client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
   }
 

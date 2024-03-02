@@ -24,6 +24,7 @@ import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/emitSocketEv
 import MatchSetting from './MatchSetting';
 import { setNetH } from '@/utils/helper';
 import { border } from '@/utils/styles';
+import { EPlayerStatus } from '@/types/player';
 
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
@@ -151,7 +152,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
       const dtp = dpIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
 
-      if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
+      // Inactive players should not be shown
+      if (availablePlayerIds.includes(teamPlayerList[i]._id) && teamPlayerList[i].status !== EPlayerStatus.INACTIVE) {
         playerListEl.push(
           <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-400" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
             <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center">{teamPlayerList[i].rank}</p>
