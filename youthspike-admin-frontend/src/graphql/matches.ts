@@ -7,7 +7,6 @@ const eventResponse = `
     active
     autoAssign
     autoAssignLogic
-    coachPassword
     divisions
     endDate
     homeTeam
@@ -53,7 +52,6 @@ const matchResponse = `
     autoAssignLogic
     rosterLock
     timeout
-    coachPassword
     location
     ${roundResponse}
     teamA {

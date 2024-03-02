@@ -3,7 +3,7 @@ import { IDocument } from "./document";
 /**
  * Player Status
  */
-export enum PlayerStatus {
+export enum EPlayerStatus {
   "ACTIVE" = "ACTIVE",
   "INACTIVE" = "INACTIVE",
 }
@@ -24,7 +24,7 @@ export interface IPlayer extends IDocument {
   profile: string | null;
   email: string;
   rank: number | null;
-  status: PlayerStatus,
+  status: EPlayerStatus,
   event?: string;
   team?: string;
   captainofteam: {

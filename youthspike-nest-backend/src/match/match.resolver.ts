@@ -69,7 +69,6 @@ export class MatchResolver {
       if (!matchObj.autoAssignLogic) matchObj.autoAssignLogic = findEvent.autoAssignLogic;
       if (!matchObj.rosterLock) matchObj.rosterLock = findEvent.rosterLock;
       if (!matchObj.timeout) matchObj.timeout = findEvent.timeout;
-      if (!matchObj.coachPassword) matchObj.coachPassword = findEvent.coachPassword;
       if (!matchObj.location) matchObj.location = findEvent.location;
 
       const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB })

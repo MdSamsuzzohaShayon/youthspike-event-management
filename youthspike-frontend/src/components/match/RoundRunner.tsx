@@ -69,11 +69,6 @@ function RoundRunner() {
     }
   }, [currentRound, user, teamA]);
 
-  console.log(user.info?.role);
-
-
-  console.log({ mtp, currentRoom });
-
   return (
     <div className="w-full">
       <div className="container px-4 mx-auto my-4 bg-gray-900 text-gray-100 text-center">

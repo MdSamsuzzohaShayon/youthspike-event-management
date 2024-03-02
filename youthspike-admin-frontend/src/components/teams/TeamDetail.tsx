@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import PlayerAdd from '../player/PlayerAdd'
 import PlayerList from '../player/PlayerList'
 import { IEvent, IOption, ITeam } from '@/types'
 import TextImg from '../elements/TextImg';
+import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 
 interface ITeamDetailProps {
     event: IEvent;
@@ -13,9 +14,14 @@ interface ITeamDetailProps {
     teamList: ITeam[];
 }
 
-function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList}: ITeamDetailProps) {
+function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList }: ITeamDetailProps) {
     const [addPlayer, setAddPlayer] = useState<boolean>(false);
-        
+
+    useEffect(() => {
+        // Set division
+        setDivisionToStore(team.division);
+        setTeamToStore(team._id);
+    }, []);
     return (
         <React.Fragment>
             <h1 className='uppercase text-center'>Teams/roster</h1>

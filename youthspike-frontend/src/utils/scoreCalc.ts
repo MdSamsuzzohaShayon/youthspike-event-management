@@ -6,7 +6,7 @@ interface IReturnScore {
     plusMinusScore: number;
 }
 
-function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, dark: boolean, teamE: ETeam): IReturnScore {
+function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE: ETeam): IReturnScore {
     // Remove the teamE declaration here
     let score = 0;
     let plusMinusScore = 0;
@@ -16,23 +16,16 @@ function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, dark:
         const teamBScore = net.teamBScore || 0;
 
         // Dark is oponent team
-        if (dark) {
-            if (teamE === ETeam.teamA && teamAScore > teamBScore) {
-                score += 1;
-            } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
-                score += 1;
-            }
-        } else {
-            if (teamE === ETeam.teamA && teamBScore < teamAScore) {
-                score += 1;
-            } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
-                score += 1;
-            }
+        if (teamE === ETeam.teamA && teamAScore > teamBScore) {
+            score += 1;
+        } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
+            score += 1;
         }
     });
+    
 
-    const fullPoints = dark ? round.teamBScore || 0 : round.teamAScore || 0;
-    plusMinusScore = fullPoints - (dark ? round.teamAScore || 0 : round.teamBScore || 0);
+    const fullPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
+    plusMinusScore = fullPoints - (teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0);
 
     return { score, plusMinusScore };
 }

@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import TextInput from '../elements/forms/TextInput';
 import { IPlayer, IPlayerAdd } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IError, IOption, ITeam } from '@/types';
+import { IError, IOption, ITeam, ITeamAdd } from '@/types';
 import { gql, useMutation } from '@apollo/client';
 import { CREATE_PLAYER, GET_PLAYERS, CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW, UPDATE_PLAYER, GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import EmailInput from '../elements/forms/EmailInput';
@@ -11,6 +11,8 @@ import FileInput from '../elements/forms/FileInput';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import { useRouter } from 'next/navigation';
+import { divisionsToOptionList } from '@/utils/helper';
+import { getDivisionFromStore, getTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -36,11 +38,12 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
   const router = useRouter();
 
   const [actErr, setActErr] = useState<IError | null>(null);
-  const [playerAdd, setPlayerAdd] = useState<IPlayerAdd>(initialPlayerAdd);
+  const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
   const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
   const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
+  const [currDivision, setCurrDivision] = useState<string>('');
 
   const uploadedProfile = useRef<File | null>(null);
 
@@ -53,7 +56,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
     if (update) {
       setPlayerUpdate(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
     } else {
-      setPlayerAdd(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
+      setPlayerState(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
     }
   }
 
@@ -65,26 +68,33 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
     }
   }
 
-  const handleSelect = (e: React.SyntheticEvent) => {
+  const handleTeamChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLSelectElement;
+    setTeamToStore(inputEl.value);
     if (update) {
       setPlayerUpdate(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
     } else {
-      setPlayerAdd(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
+      setPlayerState(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
     }
   };
 
-  const handleDivisionChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLSelectElement;
+  const filterTeam = (dVal: string) => { // dVal = division value
+    setCurrDivision(dVal.trim());
     const dl: IOption[] = [];
     for (let i = 0; i < teamList.length; i += 1) {
-      if (teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
+      if (teamList[i].division.trim().toLowerCase() === dVal.trim().toLowerCase()) {
         dl.push({ text: teamList[i].name, value: teamList[i]._id });
       }
     }
     setTeamOptions(dl);
+  }
+
+  const handleDivisionChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    filterTeam(inputEl.value.trim());
+    setDivisionToStore(inputEl.value);
   }
 
   /**
@@ -94,7 +104,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
     e.preventDefault();
     try {
       setIsLoading(true);
-      const playerAddObj = structuredClone(playerAdd);
+      const playerAddObj = structuredClone(playerState);
       // @ts-ignore
       if (playerAddObj.rank) playerAddObj.rank = parseInt(playerAddObj.rank, 10);
       playerAddObj.event = eventId;
@@ -138,8 +148,8 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
       } else {
         client.refetchQueries({ include: [GET_EVENT_WITH_PLAYERS] });
       } if (playerRes && playerRes.data?.createPlayer?.code === 201 || playerRes.data?.updatePlayer?.code === 202) {
-        if(!update){
-          setPlayerAdd(initialPlayerAdd);
+        if (!update) {
+          setPlayerState(initialPlayerAdd);
           const formEl = e.target as HTMLFormElement;
           formEl.reset();
         }
@@ -158,6 +168,20 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
 
   }
 
+  useEffect(() => {
+    // Set division from local Storage
+    const selectedDivision = getDivisionFromStore();
+    if (selectedDivision && !update) {
+      filterTeam(selectedDivision);
+    }
+
+    const selectedTeam = getTeamFromStore();
+    if (selectedTeam && !update) {
+      setPlayerState(prevState => ({ ...prevState, team: selectedTeam }));
+    }
+
+  }, []);
+
 
   return (
     <form onSubmit={handleAddPlayer} className='flex justify-between items-center flex-wrap'>
@@ -166,8 +190,8 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, di
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={prevPlayer?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <EmailInput name='email' defaultValue={prevPlayer?.email} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>
-        <SelectInput name='division' optionList={divisionList} handleSelect={handleDivisionChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
-        <SelectInput name='team' optionList={teamOptions} handleSelect={handleSelect} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+        <SelectInput key={crypto.randomUUID()} defaultValue={currDivision} name='division' optionList={divisionList} handleSelect={handleDivisionChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+        <SelectInput key={crypto.randomUUID()} defaultValue={playerState.team} name='team' optionList={teamOptions} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
       </React.Fragment>)}
       {/* <Link className='underline underline-offset-8 w-full mt-4' href={`/${eventId}/teams/new`}>Create Team!</Link> */}
       <div className="input-group w-full">

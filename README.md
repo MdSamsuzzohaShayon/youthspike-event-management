@@ -55,17 +55,12 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
- - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
+ - Create team without a captain
  - Work with bulk actions
- - If coach password changes from an event update that password to every captain of the event
- - If there are no two players assigned in a new there should not be any pair score
- - Issue with admin directing to event setting page (It is redirecting to /admin page)
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
  - Move team - when moving team to another event current event should not have that team
- - Move player to diffrent divisions and team
- - When make player inactive the rank should be update and 
+ - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
 
  - Update director informations as admin (Not working properly)
@@ -74,193 +69,103 @@ ___
  - When updating points, there should not be a button for updating points instead, when input change it will be updated
  - Till 15:00
  
- 
- - Whatever division we are on that will be always on the top and that division will be selected for the rest of the event
- - Before submitting lineup, in the validate content, players will have their ranking and team will have pair score
- - When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+
  - Player sub, a player can be off for a round and can get back in the next round
- - When clicking on empty player card that net name should be shown on the player list on the left
- - Updaing round creating some issues (Log in as admin)
 
+ - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
+ - Update/refetch acter creating an event
+ - Changing round one by one (Need to jump to the clicked round)
 
-### Issues
- - Edit player from team page
+ - Team name sometime showing up at the top and sometime not
+ - When logged in as captain the captain should only see his team and players of the team
+ - Division filter always need to be at the top
+ - If a round has been submitted he can not re-rank his players
+ - Showing cors issue when making requesat with fetch
+ - After updating points there next round button should be show up
+ - in active players are still showing up when we click on the empty player box
+ 
+
 
 ### Requirements
 
  - Work with bulk actions
-
- - **Divisions**
- - ✅✅ Update division need to work properly
- - ✅✅ Select division properly - teams are assigned by divisions
- - Division on a match [12:12](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
-
- - **Admin**
- - Admin, captain and director can change ranking of players, drag and drop feature
- - ✅✅ Admin should be able to edit organization and events detail
 
 
  - Next js testing with react testing library
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
- - **Match**
- - ✅✅ Match need to organize in order - current, upcoming, and past
- - After creating a match with premier division(division 1) -> go to match list and by default item will be selected (division 1)
- - Captain need to change their picture
- - If anyone login as captain on the admin panel it should show the team that he is captain of, and the event [31:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - Get a sound notification on an socket event
- - Once all players are placed submit line up will show up
- - Showing players pop up  on the right side when placing players for line up [36:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - Pair score properly in order to matcvh up the net [39:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - on the setting dialog, show pair score, net variance, captain name
- - Click on the box and it will hilight some points (1 to 15) on the update score
- - On the round score, if if team a won in a net they will have 1 point [45:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - If there are no two players assigned in a new there should not be any pair score
- - Work with match total score
- - 
 
  - **Team**
- - Buttons - Create team and add another team, create and save
- - Captain is not creating by defailt - when creating a team
  - If there is a team of player, create the team for him as well on the import of players file[14:40](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa), If a player unassigned they will be at the event as unassigned players
- - After assigning players to a team they are showing up again
- - After importing a file need to ask what division to import that file
- - Touch name / search name to assign player in the time of creating team
- - Show event detail and tyeam on the /teams/{teamId} page
- - Co-captain will have same previllages and access as captain
- - There will be a setting button to make some setting
  - Add search function for player when creating a new team
- - A coach and make a team with all players of a league
  - Players page -> do not make filter -> Insteand just select team to see the team
- - In teams section, There are many leagues, and coaches, if you do not want to use filter how do you want to find teams (any plan for this)?
- - Team logo need to be muteable
- - First of all, it will show all the all unassigned players to create a team, then it will show players who had been assigned. If I select an assigned players the player will be moved from previous to to current team. [06:00](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
- - ✅✅ No division selection on team edit page, move team will have option for division selection.
- - Reassigning captain need to work
+ - Create team without a captain
+ - Team name sometime showing up at the top and sometime not
 
  - **Players**
- - Move players to different team
  - In the player list show all players in an event
  - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
- - Check player who are unassigned -> from /teams/{teamId} add new will show all the unassigned players [12:00](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa)
- - Player will have division, and A player can be moved to another division
  - Email for a player is optional field, only if we want to add that player to captain we will need email
-
-
-___
-
- - **Players**
  - Import players from excel file should have a confirmation message
- - Player edit -> team needs to be edited properly
- - Inactive player will have no rank -> Ranking system won't work on inactive players
- - Need to work with ranking to make it smooth
- - [Exports players](https://www.loom.com/share/835208d304cf48ec9f951e42f198d10e) from __manager.leagueapps.com__ and import that into this program
  - Assign players to a net will be drop down and move both event
- - Make player leave of or inavtive in the match day
+ - Make player leave of or inactive in the match day
  - Move team, or players to different event
  - Move player to diffrent divisions and team
- - If coach password changes from an event update that password to every captain of the event
- - When we edit a player we should not see division and team, when we move the player they should appear
 
  - **Dashboard**
- - [Explanation video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82)
- - A event is either tournament or league
-    - Tournament (1 or 2 days duration)
-    - League (8 or 8 weeks) also called league
- - Show event detail at the top of / and /teams page of admin
- - Dashboard menu -> when a director comes to the dashboard first time he will see only account (setting option) -> If the user goes into the event then he will see some specific menu items such as players, teams, matches, settings -> event name will be shown to the top
- - Click on the logo to return to leagues (Event name and logo)
  - Copy Events properly (Do something for players)
  - If date is pass the status of league will be past, add past events in  the filter, 
- - On click setting button, a setting screen will appear
- - Rosters can be submitted only once
- - On Iphone we need to do passcode verification, to edit match or roster
- - Show sponsers only on the public view (Not in admin project)
- - Add text field for sponsors name and image url
- - Make sure of Test Driven Development (Unit testing, End To End Testing)
  - No division section inside roster design, (There are 3 different skills level means 3 sections)
- - Dicisions for best players or worst players (Types of event). It can be men's division, woman division
  - Net range is same as net variance, therefore, delete one of them [assign player with net variance 10:50](https://www.loom.com/share/01cf8693859b474981b4a51660444e4e)
- - [Explaning Point spread](https://www.loom.com/share/1fa1717af21d4f19a01a3450721cd4f6)
+
 
  - **Captain**
- - Coach/Captain can change 4 digit passcode
- - Set default password for all captains and they can change their password later on
  - Send welcome email to all of our captains
  - But coach/captain can change only his team but points can be changed by any captain of any team
+ - When logged in as captain the captain should only see his team and players of the team
+ - Captain can edit roster photo, and re-rank players
+ - If a round has been submitted he can not re-rank his players
  
  - **Event**
- - ✅✅ Add location, date, and logo properly
- - ✅✅ Update event properly
- - Every Event need to have a logo and should be able to change that
- - Whatever division we are on that will be always on the top and that division will be selected for the rest of the event
  - Updaing round creating some issues (Log in as admin)
 
+ 
+ - **Division**
+ - Division filter always need to be at the top
+ - Select a division from an event and that will stick for rest of the event pages
 
  - **Match**
- - Show available players id properly / logically
- - Add players and score through gateway
- - There will be usually 7 or 8 players in each team and 3 nets in each round where 6 players wiull be assigned in 3 nets and 1 or 2 players out of 7 or 8 players will be sub
+ - After updating points there next round button should be show up
  - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
- - Instead of timeout call it sub clock from match setting [13:20](https://www.loom.com/share/ce3f543ec3b24083a921bb870cbf0c7f)
- - Coach password and Location should not be in the match setting
- - Currently captain is able to create a match that should not be -> only LDO can create a match
- - Pair score is combine ranking of two players. [04:00 exlain new varience](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), net verience means if a team has pair score of 9 and they submit their lineup, the other team can only assign player that does not exceed a limit as pair score, in this case it is 6 to 12 (pair score).
- - Create pair -> there is a limit in pair score -> If someone is added make sure a list of player with whom the pair score limit does not exceed.
- - Start match should not be there -> Instead when both coach appear there will be a clock to start
- - If a player plays with someone in the round 1 he can not play with with in round 2 or three
-
- - **Match**
- - Move players to different team
- - First team will assign players (and click on submit lineup)
- - Captain will not see other team's action box but he can see rosters of other team
- - In order to create matches show only those team that are in the selected division
- - Add Rank or a player A with  rank of the player B in the same net and that will be pair score
- - Show  submit line up button only when all the players are assigned
- - If all nets has score it will allow to go to the next round
- - Changing round whern click on round 1 button (RD1)
- - Before submitting lineup, in the validate content, players will have their ranking and team will have pair score
- - When updating points, there should not be a button for updating points instead, when input change it will be updated
- - When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+ - When updating points, there should not be a button for updating points instead, when input change it will be updated1
  - Player sub, a player can be off for a round and can get back in the next round
  - When clicking on empty player card that net name should be shown on the player list on the left
+ - Get a sound notification on an socket event
+ - Sponsors will always have a logo of ourself
 
 
-___
  - **Single Match (public)**
- - Create a setting option
- - Create swap net on touch event -> Need to work properly
- - Players need to be assign within 3 minutes or less
- - Show  ranking in select dropdown player for assigning player to a net
- - Work with user authentication - https://www.apollographql.com/docs/react/networking/authentication/#header
- - On click of empty player (player placeholder) a list of players will appear, (name, record). On the second box only appear those players who can pair up with the first.
- - Add an action button in the place of submit lineup. Are all of your players there **check in**. Both caption will have this option [action box sequences T-14:00](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
- - Both team captains need to check in whatever team assign first then he will send a pop up box and other team will accept and the clock start
- - Once both captain checked in the clock will start. They will have 3 minutes
- - Auto assign -> **1)** Ancoring Strategy: pair the best player with worst player of the team **2)** Hierarchy strategy: rank 1 player pay with tank 2 player, rank 3 player play with rank 4 player **3)** Random strategy
- - When You select high, rank 1 and 2  player on net 1, rank 3 and 4 player on net 2 and so on... Second option is anchor, for example there are 6 player, rank 1 player pair up with rank 4 player, rank 2 with rank 5, rank 3 with 6. Last option is auto, players will be assigned randomly here
+ - Players need to be assign within 3 minutes or less according to clock
  - When the clock runs out it will automitically randomly assign
- - From the second round a player can not play with someone who had paired up with in the previous round
  - Dedicated pages for nets and rounds of the match
-
- - **Match Actions**
- - Create a room with name of 2 team
- - Join two captains 
- - And work with actions boxes
-
-
-
-
-___
- - **New Design**
- - When make the phone landscape more need to show all three nets
  - There are 3 different strategies when assignin players
     1. Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
  - When the clock runs out it will automitically assign randomly
 
+### Bug Fixing
+ - Issue with admin directing to event setting page (It is redirecting to /admin page)
+ - Edit player from team page
+ - When make player inactive the rank should be update and and this should work properly
+ - in active players are still showing up when we click on the empty player box
+ - Updaing round creating some issues (Log in as admin)
+ - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+
+ - Add or updating ldo or director logo is not working peroperly
+ - Update event logo also not working
+ - Showing cors issue when making requesat with fetch
 
 
 
@@ -298,6 +203,13 @@ ___
 ### Ask
  - If player return, will he return to same event or can return to different event
  - I have updated auto assign logic for random assign, you did not notice the button below the net
+ - Currently there are 3 status for a match, if the date passed it will say "PASSED", if the date of the match is about to come it will say "UPCOMING", and if today is the date of the match it will say "CURRENT". Is it okay? Should I add "COMPLETED" in match status?
+ - Update multiple division at once is not working properly - after updaging check all team and match division changes
+
+ - I guess you have not check the current update, some errors you have mentioned and I fixed and those were working with me. However, I will double check.
+ - And you could not import file for teams because you had some duplicate player's emails that already imported in another event. I will show a message saying that you have duplicates
+ - I will let you allow creating a team withour captain
+ - When we create a playuer without email address, he won't have any uniqueness in his record, his name can contain someone else and when we find/or select for a team we will be confused. So what is your plan for this? should create a username for all user that will be unique?
 
 
  curl -i -N  \

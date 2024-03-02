@@ -13,6 +13,7 @@ import cld from '@/config/cloudinary.config';
 import Link from 'next/link';
 import { getCookie, removeCookie } from '@/utils/cookie';
 import { isValidObjectId } from '@/utils/helper';
+import { FRONTEND_URL } from '@/utils/keys';
 
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
@@ -64,6 +65,12 @@ const initialUserMenuList: IMenuItem[] = [
         imgName: 'account',
         text: 'LDO',
         link: '/admin/directors'
+    },
+    {
+        id: 9,
+        imgName: 'event',
+        text: 'Tournament',
+        link: `` // Redirect to Frontend
     },
 ];
 
@@ -188,7 +195,7 @@ function Menu() {
             } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
             } else {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5 || menuItem.id === 8)]); // 5 = account
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
             }
         } else {
             setEventId(eventPath);
@@ -197,7 +204,7 @@ function Menu() {
                 setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
                 setDirectorId(userDetail.info._id);
             } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1)]); // captain
+                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1 || menuItem.id === 9)]); // captain
             } else {
                 setUserMenuList(initialUserMenuList);
             }
@@ -233,8 +240,15 @@ function Menu() {
         const menuItems: React.ReactNode[] = [];
         for (let i = 0; i < uml.length; i++) {
             let newLink: string = '';
-            if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) newLink = '/' + eId;
-            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={makeMenuLink(`${newLink}${uml[i].link}`)} />);
+            if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) {
+                newLink = '/' + eId;
+            }else if(eId && eId !== '' && (uml[i].id === 9)){
+                newLink = `${FRONTEND_URL}/events/${eId}`
+            }
+            
+            menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} 
+            link={makeMenuLink(`${newLink}${uml[i].link}`)} />);
+
         }
 
         return <>{menuItems}</>;

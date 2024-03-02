@@ -16,6 +16,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../../hooks/useClickOutside';
+import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -31,6 +32,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
     const [divisionList, setDivisionList] = useState<IOption[]>([]);
     const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
+    const [currDivision, setCurrDivision] = useState<string>('');
 
     /**
      * Fetch all teams, players, matches of this event from GraphQL Server
@@ -47,11 +49,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
          * Filter items
          */
         const inputEl = e.target as HTMLInputElement;
+        setCurrDivision(inputEl.value.trim());
         if (inputEl.value === '') {
             setFilteredlist([...teamList]);
+            removeDivisionFromStore();
         } else {
+            setDivisionToStore(inputEl.value.trim());
             const newList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-            // console.log({inputted: inputEl.value, filtered: newList});
             setFilteredlist([...newList]);
         }
     }
@@ -73,11 +77,20 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const fetchEvent = async () => {
         const eventResponse = await getEvent({ variables: { eventId: eventId } });
 
-        const newTeamList = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+        const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+        let newFilteredList = [...newTeamList];
         if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
+        // Division and team value
+        removeTeamFromStore();
+        const divisionExist = getDivisionFromStore();
+        if(divisionExist){
+            setCurrDivision(divisionExist);
+            newFilteredList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+        }
+
         setTeamList(newTeamList);
-        setFilteredlist(newTeamList);
+        setFilteredlist(newFilteredList);
 
         // Making divisions list
         const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
@@ -98,8 +111,11 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }, [eventId]);
 
 
+
+
     if (loading || isLoading || ldoLoading) return <Loader />;
     const eventList = ldoData?.getEventDirector?.data?.events;
+
 
 
 
@@ -116,7 +132,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
             <div className="mb-4 division-selection w-full">
-                <SelectInput handleSelect={handleDivisionSelection} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
+                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
             </div>
             <div className="mb-8 make-team flex w-full justify-between">
                 <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>

@@ -4,12 +4,14 @@ const teamResponse = `
 _id
 active
 name
+logo
 players {
   _id
   firstName
   lastName
   profile
   email
+  status
   rank
 }
 captain {

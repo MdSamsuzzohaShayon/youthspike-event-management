@@ -24,6 +24,7 @@ import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/emitSocketEv
 import MatchSetting from './MatchSetting';
 import { setNetH } from '@/utils/helper';
 import { border } from '@/utils/styles';
+import { EPlayerStatus } from '@/types/player';
 
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
@@ -151,7 +152,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
       const dtp = dpIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
 
-      if (availablePlayerIds.includes(teamPlayerList[i]._id)) {
+      // Inactive players should not be shown
+      if (availablePlayerIds.includes(teamPlayerList[i]._id) && teamPlayerList[i].status !== EPlayerStatus.INACTIVE) {
         playerListEl.push(
           <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-400" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
             <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center">{teamPlayerList[i].rank}</p>
@@ -187,7 +189,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
       {/* Left side round detail start  */}
       {!showTeamPlayers
-        ? (<div className={`round-detail ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
+        ? (<div className={`round-detail border ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
           {/* Top Side Start  */}
           <div className="round-top w-full h-3/6 bg-gray-900 text-gray-100 px-2 flex flex-col items-center justify-around">
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
@@ -206,14 +208,17 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Top Side End  */}
 
           {/* Bottom Side Start  */}
-          <div className={`round-bottom w-full h-3/6 ${border.light} px-2 flex flex-col items-center justify-around`}>
+          <div className={`round-bottom w-full h-3/6 border ${border.light} px-2 flex flex-col items-center justify-around`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
           </div>
           {/* Bottom Side End  */}
         </div>)
-        : (<div className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 ${border.light}`} style={setNetH(screenWidth)}>
+        : (<div className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`} style={setNetH(screenWidth)}>
           <img src='/icons/close.svg' className='svg-black right-2 top-2' role='presentation' onClick={handleClosePlayers} />
+          <div className="px-2 w-full">
+            <h3>Selected Net {selectedNet?.num}</h3>
+          </div>
           {renderAvailablePlayers()}
         </div>)}
       {/* Left side round detail end  */}
@@ -223,7 +228,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {/* Setting end  */}
 
       {/* Right side net detail start */}
-      <div className={`right-side net-card-wrapper ${border.light} flex ${screenWidth > screen.xs ? "w-9/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
+      <div className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? "w-9/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
         {screenWidth > screen.xs
           ? currentRoundNets.map((net) => <NetCard key={net._id} net={net} screenWidth={screenWidth} />)
           : <NetCard net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} screenWidth={screenWidth} />}

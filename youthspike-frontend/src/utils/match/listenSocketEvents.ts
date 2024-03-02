@@ -50,6 +50,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
   });
 
   socket.on('submit-lineup-response', (data: IRoomNets) => {
+    // Need to organize rounds in ascending order
     // Set current nets of the rounds 
     dispatch(updateMultiNetsPlayers(data.nets));
 
