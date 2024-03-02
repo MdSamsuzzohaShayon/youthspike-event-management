@@ -26,6 +26,7 @@ echo "Installing dependencies for youthspike-nest-backend"
 cd /home/shayon/youthspike-event-management/youthspike-nest-backend
 nano .env
 npm install
+nano src/main.ts
 npm run build
 pm2 start ecosystem.config.js
 
