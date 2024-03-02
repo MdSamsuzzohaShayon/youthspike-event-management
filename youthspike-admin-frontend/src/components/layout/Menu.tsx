@@ -201,7 +201,7 @@ function Menu() {
             setEventId(eventPath);
             if (userDetail.info?.role === UserRole.director) {
                 // console.log(initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7));
-                setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
+                setUserMenuList((prevState) => [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7 &&  menuItem.id !== 9)]); // 2 = teams // 4 = matches
                 setDirectorId(userDetail.info._id);
             } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
                 setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1 || menuItem.id === 9)]); // captain

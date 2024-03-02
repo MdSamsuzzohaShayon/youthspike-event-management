@@ -11,7 +11,7 @@ export class CreateTeamInput {
   @Field()
   division: string;
 
-  @Field()
+  @Field({nullable: true})
   captain?: string;
 
   @Field()

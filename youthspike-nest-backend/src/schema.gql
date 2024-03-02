@@ -92,7 +92,7 @@ type Match {
   teamA: Team
   teamB: Team
   room: Room
-  divisions: String!
+  division: String!
   numberOfNets: Int!
   numberOfRounds: Int!
   netVariance: Float
@@ -496,7 +496,7 @@ input CreateTeamInput {
   name: String!
   active: Boolean!
   division: String!
-  captain: String!
+  captain: String
   event: String!
   players: [ID!]
 }
@@ -516,7 +516,7 @@ input CreateMatchInput {
   date: String!
   teamA: String
   teamB: String
-  divisions: String
+  division: String
   numberOfNets: Float
   numberOfRounds: Float
   playerLimit: Int
@@ -526,7 +526,6 @@ input CreateMatchInput {
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
-  coachPassword: String
   location: String!
 }
 
@@ -535,7 +534,7 @@ input UpdateMatchInput {
   date: String
   teamA: String
   teamB: String
-  divisions: String
+  division: String
   numberOfNets: Float
   numberOfRounds: Float
   playerLimit: Int
@@ -545,7 +544,6 @@ input UpdateMatchInput {
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
-  coachPassword: String
   location: String
 }
 

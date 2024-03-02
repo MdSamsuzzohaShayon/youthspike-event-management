@@ -51,8 +51,8 @@ export class Match extends AppDocument {
 
   // Default properties
   @Field({ nullable: false })
-  @Prop({ required: false })
-  divisions?: string;
+  @Prop({ required: true })
+  division: string;
 
   @Field((type) => Int)
   @Prop({ required: false })

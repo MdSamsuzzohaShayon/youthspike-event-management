@@ -30,15 +30,18 @@ async function addOrUpdateTeam ({eventId, teamState, setActErr, setIsLoading, up
     try {
         // Validation
         if (!teamState.division || teamState.division === '') {
-            return setActErr({ name: "Invalid team!", message: "You must select a division and a captain" })
+            return setActErr({ name: "Invalid team!", message: "You must select a division" })
         }
         // else if(!teamState.captain || teamState.captain === ''){
         //     return setActErr({ name: "Invalid team!", message: "No captain has been selected!" })
         // }
         setIsLoading(true);
         const teamObj = update && prevTeam ? { input: {...updateTeamState}, teamId: prevTeam._id, eventId, logo: null } : {input: { ...teamState, players: playerIdList, event: eventId }, logo: null};
-        // @ts-ignore
-        if(teamObj.logo)delete teamObj.logo;
+
+        const inputObj = {...teamObj.input};
+        if(!inputObj.captain || inputObj.captain === "") delete inputObj.captain;
+        delete inputObj.logo;
+        teamObj.input = inputObj;
 
         if (uploadedLogo.current) {
             const formData = new FormData();

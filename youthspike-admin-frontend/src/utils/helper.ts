@@ -18,24 +18,24 @@ interface IMatchTeams extends IDefaultMatchProps {
   teams: ITeam[]; // add teams to IDefaultEventMatch
 }
 
-export const toMatchDefaultData = (eData: IEventMatchTeams): IMatchTeams | null => {
-  if (!eData) return null;
-  const defaultProps = {
-    divisions: eData.divisions,
-    numberOfNets: eData.nets ? eData.nets : eData.numberOfNets, // Changes
-    numberOfRounds: eData.rounds ? eData.rounds : eData.numberOfRounds, // Changes
-    netVariance: eData.netVariance,
-    homeTeam: eData.homeTeam,
-    autoAssign: eData.autoAssign,
-    autoAssignLogic: eData.autoAssignLogic,
-    rosterLock: eData.rosterLock,
-    timeout: eData.timeout,
-    coachPassword: eData.coachPassword,
-    location: eData.location,
-    teams: eData.teams
-  }
-  return defaultProps;
-}
+// export const toMatchDefaultData = (eData: IEventMatchTeams): IMatchTeams | null => {
+//   if (!eData) return null;
+//   const defaultProps = {
+//     division: eData.division,
+//     numberOfNets: eData.nets ? eData.nets : eData.numberOfNets, // Changes
+//     numberOfRounds: eData.rounds ? eData.rounds : eData.numberOfRounds, // Changes
+//     netVariance: eData.netVariance,
+//     homeTeam: eData.homeTeam,
+//     autoAssign: eData.autoAssign,
+//     autoAssignLogic: eData.autoAssignLogic,
+//     rosterLock: eData.rosterLock,
+//     timeout: eData.timeout,
+//     coachPassword: eData.coachPassword,
+//     location: eData.location,
+//     teams: eData.teams
+//   }
+//   return defaultProps;
+// }
 
 export const divisionsToOptionList = (divisions: string) => {
   const divs: IOption[] = [];

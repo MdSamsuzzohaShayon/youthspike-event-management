@@ -21,5 +21,5 @@ export interface ITeamAdd {
   event: string;
   division: string;
   players: string[];
-  captain: string | null;
+  captain?: string | null;
 }

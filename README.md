@@ -56,6 +56,7 @@ ___
 
 ### Running
  - Create team without a captain
+ - Division filter always need to be at the top
  - Work with bulk actions
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
@@ -78,9 +79,7 @@ ___
 
  - Team name sometime showing up at the top and sometime not
  - When logged in as captain the captain should only see his team and players of the team
- - Division filter always need to be at the top
  - If a round has been submitted he can not re-rank his players
- - Showing cors issue when making requesat with fetch
  - After updating points there next round button should be show up
  - in active players are still showing up when we click on the empty player box
  
@@ -112,6 +111,7 @@ ___
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
  - Move player to diffrent divisions and team
+ - Showing unassigned players and inactive players somewhere in the roster
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -163,10 +163,6 @@ ___
  - Updaing round creating some issues (Log in as admin)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
 
- - Add or updating ldo or director logo is not working peroperly
- - Update event logo also not working
- - Showing cors issue when making requesat with fetch
-
 
 
 ### Deployment
@@ -201,15 +197,7 @@ ___
 
 
 ### Ask
- - If player return, will he return to same event or can return to different event
- - I have updated auto assign logic for random assign, you did not notice the button below the net
- - Currently there are 3 status for a match, if the date passed it will say "PASSED", if the date of the match is about to come it will say "UPCOMING", and if today is the date of the match it will say "CURRENT". Is it okay? Should I add "COMPLETED" in match status?
- - Update multiple division at once is not working properly - after updaging check all team and match division changes
-
- - I guess you have not check the current update, some errors you have mentioned and I fixed and those were working with me. However, I will double check.
- - And you could not import file for teams because you had some duplicate player's emails that already imported in another event. I will show a message saying that you have duplicates
- - I will let you allow creating a team withour captain
- - When we create a playuer without email address, he won't have any uniqueness in his record, his name can contain someone else and when we find/or select for a team we will be confused. So what is your plan for this? should create a username for all user that will be unique?
+ - 
 
 
  curl -i -N  \

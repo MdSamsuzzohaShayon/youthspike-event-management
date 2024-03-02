@@ -127,13 +127,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 </div>
                 <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} divisionList={divisionList} />
             </dialog>
+            <div className="mb-4 division-selection w-full">
+                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+            </div>
             <h1 className='text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
             {currEvent && (<CurrentEvent currEvent={currEvent} />)}
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
-            <div className="mb-4 division-selection w-full">
-                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} lw='w-5/12' rw='w-5/12' />
-            </div>
             <div className="mb-8 make-team flex w-full justify-between">
                 <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>
                     <span><img src="/icons/plus.svg" alt="plus" className='w-6 svg-white' /></span>Add New Team
