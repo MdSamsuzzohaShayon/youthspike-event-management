@@ -4,7 +4,7 @@ import { IDocument } from "./document";
 /**
  * Player Status
  */
-export enum PlayerStatus {
+export enum EPlayerStatus {
   "ACTIVE" = "ACTIVE",
   "INACTIVE" = "INACTIVE",
 }
@@ -15,6 +15,7 @@ export interface IPlayerAdd {
   lastName: string;
   email: string;
   phone?: string;
+  division: string;
   rank?: string | null;
   event?: string;
   team?: string;
@@ -25,9 +26,10 @@ export interface IPlayer extends IDocument {
   lastName: string;
   profile: string | null;
   phone?: string;
+  division: string;
   email: string;
   rank: number | null;
-  status: PlayerStatus,
+  status: EPlayerStatus,
   events?: string[];
   teams?: string[];
   captainofteams: {
@@ -45,9 +47,10 @@ export interface IPlayerExpRel extends IDocument {
   lastName: string;
   profile: string | null;
   phone?: string;
+  division: string;
   email: string;
   rank: number | null;
-  status: PlayerStatus,
+  status: EPlayerStatus,
   events?: IEvent[];
   teams?: ITeam[];
   captainofteams: ITeam[] | null;

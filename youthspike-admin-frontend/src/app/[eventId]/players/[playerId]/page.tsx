@@ -18,16 +18,14 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
   if (loading || isLoading || eventLoading) return <Loader />;
 
   const prevPlayer = data?.getPlayer?.data;
-  console.log(eventData);
   
-  const divisionList = eventData?.getEvent?.data?.divisions ? divisionsToOptionList(eventData?.getEvent?.data?.divisions): [];
   const teamList = eventData?.getEvent?.data?.teams ? eventData?.getEvent?.data?.teams: [];
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
       <h1>Player Update</h1>
       {error && <Message error={error} />}
-      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} divisionList={divisionList} teamList={teamList} /> }
+      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} teamList={teamList} /> }
     </div>
   )
 }

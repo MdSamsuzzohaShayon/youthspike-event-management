@@ -13,6 +13,9 @@ export class CreatePlayerInput {
   event: string;
 
   @Field()
+  division: string;
+
+  @Field()
   email: string;
 
   @Field()

@@ -92,6 +92,7 @@ export class PlayerService {
               lastName: lnv,
               rank: null,
               email: ev,
+              division,
               events: [event],
               teams: []
             };

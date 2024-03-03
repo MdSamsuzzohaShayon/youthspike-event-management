@@ -27,6 +27,8 @@ const playerResponse = `
   email
   rank
   status
+  phone
+  division
   teams {
     _id
     name

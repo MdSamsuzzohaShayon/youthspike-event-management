@@ -146,6 +146,7 @@ type Player {
   rank: Int
   profile: String
   phone: String
+  division: String!
   events: [Event!]
   teams: [Team!]
   captainofteams: [Team!]
@@ -586,6 +587,7 @@ input CreatePlayerInput {
   firstName: String!
   lastName: String!
   event: String!
+  division: String!
   email: String!
   rank: Float!
   team: String
@@ -595,6 +597,7 @@ input UpdatePlayerInput {
   firstName: String
   lastName: String
   event: String
+  division: String
   email: String
   rank: Float
   team: String
@@ -606,6 +609,7 @@ input UpdatePlayersInput {
   firstName: String
   lastName: String
   event: String
+  division: String
   email: String
   rank: Float
   team: String
