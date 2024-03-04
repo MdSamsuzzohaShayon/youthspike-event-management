@@ -17,6 +17,7 @@ import cld from '@/config/cloudinary.config';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../../hooks/useClickOutside';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -24,6 +25,11 @@ interface ITeamsOfEventPage {
 
 function TeamMain({ eventId }: ITeamsOfEventPage) {
 
+    // Hooks
+    const pathname = usePathname();
+    const router = useRouter();
+
+    // Local State
     const importerEl = useRef<HTMLDialogElement | null>(null);
     const [showFilter, setShowFilter] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,12 +40,11 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
     const [currDivision, setCurrDivision] = useState<string>('');
 
-    /**
-     * Fetch all teams, players, matches of this event from GraphQL Server
-     */
+    // GraphQL
     const [getEvent, { data: eventData, loading, error, refetch}] = useLazyQuery(GET_EVENT_WITH_TEAMS);
     const { data: ldoData, loading: ldoLoading } = useQuery(GET_LDO);
 
+    // Custom Hook
     useClickOutside(importerEl, () => { closeDialog() });
 
 
@@ -75,7 +80,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }
 
     const fetchEvent = async () => {
-        const eventResponse = await getEvent({ variables: { eventId: eventId } });
+        const eventResponse = await getEvent({ variables: { eventId: eventId }, fetchPolicy: "network-only" });
 
         const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         let newFilteredList = [...newTeamList];
@@ -100,15 +105,17 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
     // Do this for all event pages
     useEffect(() => {
+        
         if (eventId) {
             if (isValidObjectId(eventId)) {
+                console.log("Mounted---------->", eventId);
                 fetchEvent();
             } else {
                 setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
             }
         }
 
-    }, [eventId]);
+    }, [pathname, router, eventId]);
 
 
 

@@ -55,14 +55,6 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Create team without a captain
- - Division filter always need to be at the top
- - Work with bulk actions
- - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
-
- - Move team - when moving team to another event current event should not have that team
- - When make player inactive the rank should be update and and this should work properly
- - When Moving player rank them properly
 
  - Update director informations as admin (Not working properly)
  - Email for a player is optional field, only if we want to add that player to captain we will need email
@@ -101,6 +93,7 @@ ___
  - Players page -> do not make filter -> Insteand just select team to see the team
  - Create team without a captain
  - Team name sometime showing up at the top and sometime not
+ - Move team - when moving team to another event current event should not have that team
 
  - **Players**
  - In the player list show all players in an event
@@ -112,6 +105,8 @@ ___
  - Move team, or players to different event
  - Move player to diffrent divisions and team
  - Showing unassigned players and inactive players somewhere in the roster
+ - When make player inactive the rank should be update and and this should work properly
+ - When Moving player rank them properly
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -162,6 +157,7 @@ ___
  - in active players are still showing up when we click on the empty player box
  - Updaing round creating some issues (Log in as admin)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+ - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
 
 

@@ -43,6 +43,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     if (!playerRes) return;
 
     const npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
+    console.log(npList);
+    
     let fpList = [...npList]; // fp list = filtered players list
 
     const ntList: ITeam[] = playerRes?.data?.getEvent?.data?.teams ? playerRes?.data?.getEvent?.data?.teams : []; // Nt List = new team List
@@ -64,8 +66,6 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     setFilteredPlayerList(fpList);
     setTeamList(ntList);
     setFilteredTeamList(ftList);
-
-
   }
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -88,6 +88,12 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       
       setFilteredPlayerList([...npList]);
     }
+  }
+
+  // Callback functions
+  const playerAddCB=(playerData: IPlayerExpRel)=>{
+    setPlayerList((prevState)=> [...prevState, playerData]);
+    setFilteredPlayerList((prevState)=> [...prevState, playerData]);
   }
 
   useEffect(() => {
@@ -117,7 +123,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       {addPlayer ? (<>
         <h3 className='mt-4'>Player Add</h3>
         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
-        <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} refetch={refetch} />
+        <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} />
       </>) : (<>
         <h3 className='mt-4' >Player List</h3>
         {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (

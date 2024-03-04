@@ -14,6 +14,7 @@ import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import { getDivisionFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 
 interface IPrevTeam extends ITeamAdd{
     _id: string;
@@ -25,10 +26,9 @@ interface ITeamAddProps {
     setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    divisions: string;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-    refetch: ()=> void;
-
+    teamAddCB: (teamData: ITeam)=> void;
+    currDivision?: string;
     update?: boolean;
     prevTeam?: IPrevTeam;
 }
@@ -43,13 +43,12 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisions, setAvailablePlayers, setActErr, update, prevTeam, refetch }: ITeamAddProps) {
+function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB }: ITeamAddProps) {
 
     const router = useRouter();
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
     const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
-    const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
     const uploadedLogo = useRef<File | null>(null);
 
@@ -64,7 +63,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         await addOrUpdateTeam({eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState, 
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, refetch});
+            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB});
 
         // console.log({ resultData });
         const formEl = e.target as HTMLFormElement;
@@ -76,7 +75,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
     const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         await addOrUpdateTeam({eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState, 
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, refetch});
+            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB});
     }
 
 
@@ -116,37 +115,6 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
         }
     }
 
-    const handleSelect = (e: React.SyntheticEvent) => {
-        const selectInputEl = e.target as HTMLSelectElement;
-        setTeamState((prevState) => ({ ...prevState, [selectInputEl.name]: selectInputEl.value.toLowerCase() }));
-        setDivisionToStore(selectInputEl.value);
-        if (update) {
-            setUpdateTeamState((prevState) => ({ ...prevState, [selectInputEl.name]: selectInputEl.value }));
-        }
-    }
-
-    useEffect(() => {
-        const teamObj: Partial<ITeamAdd> = {};
-        if (availablePlayers && availablePlayers.length > 0) {
-            teamObj.captain = availablePlayers[0]._id 
-        }
-
-        const divs = divisionsToOptionList(divisions);
-        setDivisionList(divs);
-
-        // Set division from local Storage
-        const selectedDivision = getDivisionFromStore();
-        if(selectedDivision && !update){
-            teamObj.division = selectedDivision;
-        }
-
-        if(Object.entries(teamObj).length > 0){
-            setTeamState((prevState) => ({ ...prevState, ...teamObj }));
-        }
-    }, [divisions, availablePlayers]);
-    
-
-
     // Renders
     const selectedPlayers = (ap: IPlayer[], pil: string[]): IOption[] => {
         const newAp = ap.filter(p => pil.includes(p._id));
@@ -162,8 +130,6 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, divisio
 
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
-
-            <SelectInput key={crypto.randomUUID()} name='division' defaultValue={teamState.division} optionList={divisionList} handleSelect={handleSelect} lw='w-5/12' rw='w-5/12' />
 
             {!update && (
                 <div className='input-group w-full flex flex-col'>

@@ -55,7 +55,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       setDivisionToStore(inputEl.value.trim());
       const newTeamList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       setFilteredTeamList([...newTeamList]);
-      
+
       const newMatchList = matchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       setFilteredMatchList([...newMatchList]);
     }
@@ -63,7 +63,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
   const fetchEvent = async () => {
     const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
-    
+
 
     const newMatchList: IMatch[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
     let newFilteredMatchList = [...newMatchList];
@@ -72,15 +72,15 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     let newFilteredTeamList = [...newTeamList];
 
     if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
-    
+
 
     // Division and team value
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
-    if(divisionExist){
-        setCurrDivision(divisionExist);
-        newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-        newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+    if (divisionExist) {
+      setCurrDivision(divisionExist);
+      newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+      newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
     }
 
     setMatchList(newMatchList);
@@ -90,10 +90,10 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     setFilteredTeamList(newFilteredTeamList);
 
     // Making divisions list
-    const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
+    const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
     const divs = divisionsToOptionList(divisions);
     setDivisionList(divs);
-}
+  }
 
 
 
@@ -109,7 +109,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
   if (loading || isLoading) return <Loader />;
 
-  
+
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
@@ -128,8 +128,8 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
             <React.Fragment>
               <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(false)}>Match List</button>
 
-              <MatchAdd eventData={currEvent} teamList={filteredTeamList} eventId={params.eventId} 
-              setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} currDivision={currDivision} />
+              <MatchAdd eventData={currEvent} teamList={filteredTeamList} eventId={params.eventId}
+                setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} currDivision={currDivision} />
             </React.Fragment>
           )}
         </> : <>

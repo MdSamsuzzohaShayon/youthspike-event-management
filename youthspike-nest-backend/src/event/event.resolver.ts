@@ -462,7 +462,8 @@ export class EventResolver {
 
   @ResolveField()
   async teams(@Parent() event: Event) {
-    return this.teamService.query({ _id: { $in: event.teams } });
+    const teamList = await  this.teamService.query({ _id: { $in: event.teams } });
+    return teamList;
   }
 
   @ResolveField()

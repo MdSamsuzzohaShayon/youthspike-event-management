@@ -1,6 +1,6 @@
 import { CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW } from "@/graphql/players";
 import { IError, ITeamAdd } from "@/types";
-import { IPlayer, IPlayerAdd } from "@/types/player";
+import { IPlayer, IPlayerAdd, IPlayerExpRel } from "@/types/player";
 import { getCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { MutationFunction } from "@apollo/client";
@@ -23,12 +23,13 @@ interface IAddOrUpdatePlayer {
     setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
     router: AppRouterInstance;
     e: React.SyntheticEvent;
-    refetch?: () => void;
+    playerAddCB?: (playerData: IPlayerExpRel) => void;
+    playerUpdateCB?: (playerData: IPlayerExpRel) => void;
     update?: boolean;
 }
 
 async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-    prevPlayer, updatePlayer, addPlayer, refetch, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update }: IAddOrUpdatePlayer) {
+    prevPlayer, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update }: IAddOrUpdatePlayer) {
     try {
         setIsLoading(true);
         const playerAddObj = structuredClone(playerState);
@@ -73,7 +74,13 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
             }
         }
 
-        if (refetch) refetch();
+        if (playerRes?.data?.createPlayer?.data && !update) {
+            if (playerAddCB) playerAddCB(playerRes.data.createPlayer.data);
+        } else {
+            if (playerRes?.data?.updatePlayer?.data) {
+                if (playerUpdateCB) playerUpdateCB(playerRes?.data?.updatePlayer?.data);
+            }
+        }
 
         if (playerRes && playerRes.data?.createPlayer?.code === 201 || playerRes.data?.updatePlayer?.code === 202) {
             if (!update) {

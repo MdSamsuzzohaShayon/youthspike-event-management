@@ -50,31 +50,6 @@ export class TeamResolver {
     private configService: ConfigService
   ) { }
 
-  /*
-  // General Function
-  async createOrUpdateUser(playerExist: Player, playerUserExist: User, eventExist: Event, role: UserRole) {
-    const userObj = {
-      email: playerExist.email, password: eventExist.coachPassword,
-      firstName: playerExist.firstName, lastName: playerExist.lastName, role,
-      captainplayer: null, cocaptainplayer: null,
-      active: true
-    }
-    let newCaptainUser = null;
-    if (playerUserExist) {
-      userObj.captainplayer = role === UserRole.captain ? playerExist._id : playerUserExist.captainplayer;
-      userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : playerUserExist.cocaptainplayer;
-      const hashedPassword = await bcrypt.hash(eventExist.coachPassword, 10);
-      userObj.password = hashedPassword;
-      newCaptainUser = await this.userService.updateOne({ _id: playerUserExist._id }, userObj);
-    } else {
-      userObj.captainplayer = role === UserRole.captain ? playerExist._id : null;
-      userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : null;
-      newCaptainUser = await this.userService.create(userObj);
-    }
-    return newCaptainUser;
-  }
-  */
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -287,8 +262,8 @@ export class TeamResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
-    const teams = await this.teamService.find({});
     try {
+      const teams = await this.teamService.find({});
       return {
         code: 200,
         success: true,

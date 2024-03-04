@@ -26,7 +26,7 @@ interface PlayerCardProps {
   teamList?: ITeam[];
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls, isAssigned, divisionList, teamList }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls, divisionList, teamList }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -181,9 +181,11 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     }
   }, []);
 
+  
+
   return (
     <React.Fragment>
-      <li className={`w-full flex justify-between items-center ${isAssigned ? "bg-gray-500" : "bg-gray-700 "} py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
+      <li className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500" } py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
 
 
         {/* Draggable element start  */}
@@ -197,6 +199,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
               <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
               {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
               {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
+              <p className='text-yellow-500 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
             </div>
           </div>
 

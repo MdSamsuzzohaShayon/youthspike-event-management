@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import TextInput from '../elements/forms/TextInput';
-import { IPlayer, IPlayerAdd } from '@/types/player';
+import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
 import { IError, IOption, ITeam, ITeamAdd } from '@/types';
 import { RefetchQueriesFunction, gql, useMutation } from '@apollo/client';
@@ -21,7 +21,8 @@ interface IPlayerAddProps {
   teamList: ITeam[];
   division?: string;
   update?: boolean;
-  refetch?: () => void;
+  playerAddCB?: (playerData: IPlayerExpRel) => void;
+  playerUpdateCB?: (playerData: IPlayerExpRel) => void;
 }
 
 const initialPlayerAdd = {
@@ -34,7 +35,7 @@ const initialPlayerAdd = {
   division: ''
 };
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, division, refetch }: IPlayerAddProps) {
+function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB, playerUpdateCB }: IPlayerAddProps) {
 
 
   // React Hooks
@@ -89,7 +90,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     e.preventDefault();
     addOrUpdatePlayer({
       setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-      prevPlayer, updatePlayer, addPlayer, refetch, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update
+      prevPlayer, updatePlayer, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update
     });
   }
 
