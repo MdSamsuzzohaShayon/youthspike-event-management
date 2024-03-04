@@ -52,21 +52,21 @@ function MatchCard({ match, sl, eventId }: MatchCardProps) {
         <div className="content w-full text-center mb-4 border-b border-gray-900 py-2">
           {/* <p className="capitalize">ID: {match._id}</p> */}
           <p className="capitalize">Location: {match.location}</p>
-          <p className="capitalize">Divison: {match.divisions}</p>
+          <p className="capitalize">Divison: {match.division}</p>
         </div>
         <div className="teams w-full flex justify-between items-center">
           <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
             {match?.teamA?.captain?.profile ? <AdvancedImage cldImg={cld.image(match.teamA.captain?.profile)} className="w-10 h-10 border-4 border-yellow-500 rounded-full" /> : <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />}
 
             <div className="match-name flex flex-col w-full">
-              <h3>{match?.teamA?.name}</h3>
+              <h3 className='capitalize'>{match?.teamA?.name}</h3>
               {match?.teamA?.captain?.firstName && <p className='capitalize'>Captain: {match?.teamA?.captain?.firstName + ' ' + match?.teamA?.captain?.lastName}</p> }
             </div>
           </div>
           <div className="w-2/10 text-center"><p className='w-10 h-10 rounded-full bg-yellow-500 text-gray-100 flex items-center justify-center'>VS</p></div>
           <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
             <div className="match-name flex flex-col w-full">
-              <h3>{match?.teamB?.name}</h3>
+              <h3 className='capitalize'>{match?.teamB?.name}</h3>
               {match?.teamB?.captain && <p className='capitalize'>Captain: {match?.teamB?.captain?.firstName + ' ' + match?.teamB?.captain?.lastName}</p> }
             </div>
             {match?.teamB?.captain?.profile ? <AdvancedImage cldImg={cld.image(match.teamB.captain?.profile)} className="w-10 h-10 border-4 border-yellow-500 rounded-full" /> : <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full" />}

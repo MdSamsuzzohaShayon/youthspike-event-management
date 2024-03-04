@@ -6,7 +6,7 @@ import MatchAdd from '@/components/match/MatchAdd';
 import RoundList from '@/components/round/RoundList';
 import { GET_A_MATCH } from '@/graphql/matches';
 import { IError } from '@/types';
-import { isValidObjectId, toMatchDefaultData } from '@/utils/helper';
+import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 
@@ -54,7 +54,6 @@ function MatchSingle({ params }: MatchSingleProps) {
 
     const matchData = data?.getMatch?.data;
     const roundList = data?.getMatch?.data?.rounds;
-    const defaultMatch = toMatchDefaultData({...matchData, teams: []});
     
     
 
@@ -66,8 +65,9 @@ function MatchSingle({ params }: MatchSingleProps) {
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
 
-            <h1>Update Match</h1>
-            <MatchAdd matchData={defaultMatch} eventId={params.eventId} setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />
+
+            {matchData && <MatchAdd prevMatch={matchData} eventId={params.eventId} 
+              setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />}
 
             <h3>Rounds</h3>
             <RoundList roundList={roundList} eventId={params.eventId} />

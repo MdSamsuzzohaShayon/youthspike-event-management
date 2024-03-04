@@ -48,8 +48,8 @@ export class MatchResolver {
        *    Step-4: Update Match with with netId and roundId
        *    Step-5: Update Match with eventId
        */
-      const findEvent = await this.eventService.findById(input.event.toString());
-      if (!findEvent) return AppResponse.notFound('Event');
+      const eventExist = await this.eventService.findById(input.event.toString());
+      if (!eventExist) return AppResponse.notFound('Event');
 
       const netIds = [];
       const roundIds = [];
@@ -59,17 +59,17 @@ export class MatchResolver {
         ...input,
         nets: netIds, rounds: roundIds, players: playerIds,
       };
-      if (!matchObj.divisions) matchObj.divisions = findEvent.divisions;
-      if (!matchObj.numberOfNets) matchObj.numberOfNets = findEvent.nets;
-      if (!matchObj.numberOfRounds) matchObj.numberOfRounds = findEvent.rounds;
-      if (!matchObj.playerLimit) matchObj.playerLimit = findEvent.playerLimit;
-      if (!matchObj.netVariance) matchObj.netVariance = findEvent.netVariance;
-      if (!matchObj.homeTeam) matchObj.homeTeam = findEvent.homeTeam;
-      if (!matchObj.autoAssign) matchObj.autoAssign = findEvent.autoAssign;
-      if (!matchObj.autoAssignLogic) matchObj.autoAssignLogic = findEvent.autoAssignLogic;
-      if (!matchObj.rosterLock) matchObj.rosterLock = findEvent.rosterLock;
-      if (!matchObj.timeout) matchObj.timeout = findEvent.timeout;
-      if (!matchObj.location) matchObj.location = findEvent.location;
+      if (!matchObj.division || !eventExist.divisions.toLowerCase().includes(matchObj.division.trim().toLowerCase())) return AppResponse.notFound('Event');
+      if (!matchObj.numberOfNets) matchObj.numberOfNets = eventExist.nets;
+      if (!matchObj.numberOfRounds) matchObj.numberOfRounds = eventExist.rounds;
+      if (!matchObj.playerLimit) matchObj.playerLimit = eventExist.playerLimit;
+      if (!matchObj.netVariance) matchObj.netVariance = eventExist.netVariance;
+      if (!matchObj.homeTeam) matchObj.homeTeam = eventExist.homeTeam;
+      if (!matchObj.autoAssign) matchObj.autoAssign = eventExist.autoAssign;
+      if (!matchObj.autoAssignLogic) matchObj.autoAssignLogic = eventExist.autoAssignLogic;
+      if (!matchObj.rosterLock) matchObj.rosterLock = eventExist.rosterLock;
+      if (!matchObj.timeout) matchObj.timeout = eventExist.timeout;
+      if (!matchObj.location) matchObj.location = eventExist.location;
 
       const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB })
       const newMatch = await this.matchService.create({ ...matchObj, room: newRoom._id });

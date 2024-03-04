@@ -1,14 +1,13 @@
 import { ITeam } from ".";
 
 export interface IDefaultMatch{
-  divisions: string;
+  division: string;
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;
   autoAssignLogic: string;
   rosterLock: string;
   timeout: number;
-  coachPassword: string;
   location: string;
 }
 
@@ -23,9 +22,13 @@ interface IMatchBase extends Partial<IDefaultMatchProps>{
   event: string;
 }
 
-export interface IAddMatch extends IMatchBase{
+export interface IAddMatch extends IDefaultMatch{
+  date: string;
+  event: string;
   teamA: string;
   teamB: string;
+  numberOfNets: number;
+  numberOfRounds: number;
 }
 
 export interface IMatch extends IMatchBase{

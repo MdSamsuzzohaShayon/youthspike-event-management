@@ -14,6 +14,10 @@ const teamResponse = `
       email
       profile
       status
+      teams {
+        _id
+        name
+      }
       captainofteams {
         _id
         name

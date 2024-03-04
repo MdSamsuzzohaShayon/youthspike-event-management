@@ -17,7 +17,7 @@ export class CreateMatchInput {
 
   // Default properties
   @Field({nullable: true})
-  divisions?: string;
+  division?: string;
   
   @Field({ nullable: true })
   numberOfNets?: number;
@@ -45,9 +45,6 @@ export class CreateMatchInput {
 
   @Field(() => Int, { nullable: true })
   timeout?: number;
-
-  @Field({ nullable: true })
-  coachPassword?: string;
 
   @Field({ nullable: false })
   location?: string;

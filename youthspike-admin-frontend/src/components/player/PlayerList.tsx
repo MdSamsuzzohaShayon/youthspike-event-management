@@ -1,6 +1,6 @@
 import React, { Touch, useEffect, useRef, useState } from 'react';
 import PlayerCard from './PlayerCard';
-import { IPlayer, IPlayerExpRel, PlayerStatus } from '@/types/player';
+import { IPlayer, IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { UPDATE_PLAYERS } from '@/graphql/players';
 import { GET_A_TEAM } from '@/graphql/teams';
@@ -9,7 +9,7 @@ import { IOption, ITeam } from '@/types';
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
   eventId: string;
-  teamId: string | null;
+  teamId?: string | null;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   rankControls?: boolean;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -27,10 +27,6 @@ interface IPlayerRank {
 function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds, divisionList, teamList }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading, client }] = useMutation(UPDATE_PLAYERS);
-
-  const [playerActiveClone, setPlayerActiveClone] = useState<IPlayerExpRel[]>([]);
-  const [playerInactiveClone, setPlayerInactiveClone] = useState<IPlayerExpRel[]>([]);
-  const [playerRanking, setPlayerRanking] = useState<IPlayerRank[]>([]);
 
   const dragPI = useRef<number>(0);
   const dragOverPI = useRef<number>(0);
@@ -70,12 +66,12 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     if (!rankControls) return;
 
     // Create a new list to submit
-    let activeList = [...playerActiveClone];
+    let activeList = [...playerList.filter((p)=> p.status === EPlayerStatus.ACTIVE)];
     const draggedPlayer = activeList.splice(dragPI.current, 1);
     if (draggedPlayer && draggedPlayer.length > 0) {
       activeList.splice(dragOverPI.current, 0, draggedPlayer[0]);
     } else {
-      activeList = [...playerActiveClone];
+      activeList = [...playerList];
     }
     const updatedRanking = activeList.map((p, i) => ({ rank: i += 1, _id: p._id }));
     // setPlayerRanking(updatedRanking);
@@ -87,36 +83,19 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     e.preventDefault(); // Prevent scrolling
   }
 
-  const checkAssignments = (pt?: ITeam[]): boolean => {
-    let assigned = false;
-    if (pt) {
-      const teamsOfPlayer = pt.map((t) => t._id);      
-      for (let i = 0; i < teamsOfPlayer.length; i += 1) {
-        if (teamIds?.includes(teamsOfPlayer[i])) assigned = true;
-      }
-    }  
-    return assigned;
-  }
 
-
-  useEffect(() => {
-    if (playerList && playerList.length > 0) {
-      setPlayerActiveClone(playerList.filter((p) => p.status === PlayerStatus.ACTIVE));
-      setPlayerInactiveClone(playerList.filter((p) => p.status === PlayerStatus.INACTIVE));
-    }
-  }, [playerList]);
 
   return (
     <div className='mt-2'>
       <ul className='flex flex-wrap items-center gap-2'>
-        {playerActiveClone.length > 0 && playerActiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
+        {playerList.map((player: IPlayerExpRel, index) => player.status === EPlayerStatus.ACTIVE && <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter}
           touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} divisionList={divisionList} teamList={teamList} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>
-        {playerInactiveClone.length > 0 && playerInactiveClone.map((player: IPlayerExpRel, index) => <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
-          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter} isAssigned={checkAssignments(player?.teams)}
+        {playerList.map((player: IPlayerExpRel, index) => player.status === EPlayerStatus.INACTIVE && <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
+          setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter}
           touchDragEnd={handleDragEnd} touchMove={handleTouchMove} divisionList={divisionList} teamList={teamList} />)}
       </ul>
     </div>

@@ -1,7 +1,7 @@
 import cld from '@/config/cloudinary.config';
 import { UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { IPlayer, IPlayerExpRel, PlayerStatus } from '@/types/player';
+import { IPlayer, IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ import { IOption, ITeam } from '@/types';
 interface PlayerCardProps {
   player: IPlayerExpRel;
   index: number;
-  teamId: string | null;
+  teamId?: string | null;
   eventId: string,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   touchDragStart: (index: number) => void;
@@ -26,7 +26,7 @@ interface PlayerCardProps {
   teamList?: ITeam[];
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls, isAssigned, divisionList, teamList }: PlayerCardProps) {
+function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls, divisionList, teamList }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -95,7 +95,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       console.log(error);
     }
   }
-  const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: PlayerStatus, playerId: string) => {
+  const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
     e.preventDefault();
 
     setActionOpen(prevState => !prevState);
@@ -181,9 +181,11 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     }
   }, []);
 
+  
+
   return (
     <React.Fragment>
-      <li className={`w-full flex justify-between items-center ${isAssigned ? "bg-gray-500" : "bg-gray-700 "} py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
+      <li className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500" } py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
 
 
         {/* Draggable element start  */}
@@ -197,6 +199,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
               <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
               {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
               {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
+              <p className='text-yellow-500 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
             </div>
           </div>
 
@@ -227,7 +230,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
             <li role="presentation" onClick={(e) => handleMakeCoCaptain(e, player._id)} > Make Co-captain</li>
           </React.Fragment>)}
           <li role="presentation" onClick={handleMovePlayerBox} > Move Player</li>
-          {player.status === PlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, PlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, PlayerStatus.ACTIVE, player._id)} > Make Active</li>)}
+          {player.status === EPlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)} > Make Active</li>)}
           <li role="presentation" onClick={(e) => handleDelete(e, player._id)} >Delete</li>
         </ul>
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 svg-white' role="presentation" onClick={handleOpenAction} />
