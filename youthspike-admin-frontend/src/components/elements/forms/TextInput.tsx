@@ -3,7 +3,7 @@ import { ITextInputProps } from '@/types';
 
 const TextInput = (props: ITextInputProps) => {
     let dv = '';
-    if (props.defaultValue && props.defaultValue !== '') dv = props.defaultValue;;
+    if (props.defaultValue && props.defaultValue !== '') dv = props.defaultValue;
 
     return (
         <div className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : ''} items-center ${props.extraCls}`}>

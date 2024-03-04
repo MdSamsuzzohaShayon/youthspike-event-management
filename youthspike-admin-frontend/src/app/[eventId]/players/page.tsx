@@ -43,7 +43,6 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     if (!playerRes) return;
 
     const npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
-    console.log(npList);
     
     let fpList = [...npList]; // fp list = filtered players list
 

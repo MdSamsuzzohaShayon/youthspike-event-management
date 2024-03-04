@@ -10,6 +10,7 @@ import ToggleInput from '../elements/forms/ToggleInput';
 import { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, UPDATE_MATCH } from '@/graphql/matches';
 import { assignStrategies } from '@/utils/staticData';
 import { EAssignStrategies } from '@/types/elements';
+import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -26,6 +27,7 @@ interface IMatchAddProps {
     eventData?: IEventExpRel | null;
     showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
     prevMatch?: IMatch;
+    addMatchCB?:  (matchData: IMatch) => void;
 }
 
 
@@ -57,7 +59,7 @@ function MatchAdd({ eventId,
     matchId,
     eventData,
     showAddMatch,
-    prevMatch, }: IMatchAddProps) {
+    prevMatch, addMatchCB}: IMatchAddProps) {
     const { homeTeamStrategy, assignLogicList, rosterLockList } = staticData;
 
     // Local State
@@ -118,36 +120,7 @@ function MatchAdd({ eventId,
      */
     const handleAddMatch = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        try {
-            setIsLoading(true);
-            let matchRes = null;
-            if (update) {
-                const updateMatchObj = { ...updateMatch, event: eventId };
-                if (updateMatchObj.date) {
-                    updateMatchObj.date = new Date(updateMatchObj.date).toISOString();
-                }
-                if (Object.entries(updateMatchObj).length <= 1) return setIsLoading(false); // Do not allow to update empty object
-                // @ts-ignore
-                if (updateMatchObj.teams) delete updateMatchObj.teams;
-                matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
-                await updateClient.refetchQueries({ include: [GET_EVENT_WITH_MATCHES_TEAMS] });
-            } else {
-                const addMatchObj = { ...addMatch, event: eventId };
-                if (currDivision) addMatchObj.division = currDivision;
-                addMatchObj.date = new Date(addMatchObj.date).toISOString();
-                if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ name: 'Invalid Teams', message: 'Teams can not be empty to unselected!' })
-                if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ name: 'Invalid Teams', message: 'Both teams are same!' })
-                // @ts-ignore
-                if (addMatchObj.teams) delete addMatchObj.teams;
-                matchRes = await createMatch({ variables: { input: addMatchObj } });
-                await client.refetchQueries({ include: [GET_EVENT_WITH_MATCHES_TEAMS] });
-            }
-            if (showAddMatch) showAddMatch(false);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setIsLoading(false);
-        }
+        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, addMatchCB});
     }
 
     /**

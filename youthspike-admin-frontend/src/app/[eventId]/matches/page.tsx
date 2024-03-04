@@ -8,7 +8,7 @@ import MatchAdd from '@/components/match/MatchAdd';
 import MatchList from '@/components/match/MatchList';
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
-import { IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, IEventExpRel, IMatch, IOption, ITeam } from '@/types';
+import { IAddMatch, IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, IEventExpRel, IMatch, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
@@ -95,6 +95,11 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     setDivisionList(divs);
   }
 
+  const addMatchCB=(matchData: IMatch)=>{
+    setMatchList((prevState)=> [...prevState, matchData]);
+    setFilteredMatchList((prevState)=> [...prevState, matchData]);
+  }
+
 
 
   useEffect(() => {
@@ -128,7 +133,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
             <React.Fragment>
               <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(false)}>Match List</button>
 
-              <MatchAdd eventData={currEvent} teamList={filteredTeamList} eventId={params.eventId}
+              <MatchAdd eventData={currEvent} teamList={filteredTeamList} eventId={params.eventId} addMatchCB={addMatchCB}
                 setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} currDivision={currDivision} />
             </React.Fragment>
           )}

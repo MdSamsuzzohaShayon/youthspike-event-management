@@ -93,14 +93,7 @@ async function addOrUpdateEvent({
             // Add the event logo to formData
             if (eventLogo && eventLogo.current) {
                 formData.set(`${sponsorImgList.length}`, eventLogo.current);
-                // @ts-ignore
-                // mutationVariables.logo = eventLogo.current;
             }
-
-            formData.forEach(function (value, key) {
-                console.log(key + ': ' + value);
-            });
-
 
             const token = getCookie('token');
             const response = await fetch(BACKEND_URL, {

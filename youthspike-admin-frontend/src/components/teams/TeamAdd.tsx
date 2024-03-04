@@ -143,7 +143,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
                 </div>
             )}
             {playerIdList.length > 0 && !update && (
-                <SelectInput key={crypto.randomUUID()} name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
+                <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
             )}
 
             <div className="input-group w-full">

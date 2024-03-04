@@ -67,3 +67,10 @@ export const clickedInside = (e: Event, targetElement: HTMLElement): boolean => 
   const withinBoundaries = e.composedPath().includes(targetElement)
   return withinBoundaries;
 }
+
+export function randomKey() {
+  const timestamp = new Date().getTime();
+  const randomNum = Math.floor(Math.random() * 1000000); // Adjust the range as needed
+  const key = `${timestamp}-${randomNum}`;
+  return key;
+}
