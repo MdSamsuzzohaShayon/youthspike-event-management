@@ -19,6 +19,7 @@ interface IPlayerAddProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   teamList: ITeam[];
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   division?: string;
   update?: boolean;
   playerAddCB?: (playerData: IPlayerExpRel) => void;
@@ -35,14 +36,13 @@ const initialPlayerAdd = {
   division: ''
 };
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB, playerUpdateCB }: IPlayerAddProps) {
+function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, setActErr, division, playerAddCB, playerUpdateCB }: IPlayerAddProps) {
 
 
   // React Hooks
   const router = useRouter();
 
   // local States
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);

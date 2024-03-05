@@ -30,7 +30,7 @@ function MatchList({ matchList, divisions }: IMatchListProps) {
     if (inputEl.value === "") {
       if (matchList) setFilteredMatchList([...matchList]);
     } else {
-      const filteredItems = matchList?.filter((m) => m.divisions && m.divisions.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+      const filteredItems = matchList?.filter((m) => m.division && m.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       if (filteredItems) setFilteredMatchList([...filteredItems]);
     }
   }

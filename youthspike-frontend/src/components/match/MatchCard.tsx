@@ -23,7 +23,7 @@ function MatchCard({ match }: MatchCardProps) {
                 <div className="content w-full px-2 text-center border-b border-gray-900">
                     {/* <h3>ID: {match._id}</h3> */}
                     <p>Location: {match.location}</p>
-                    <p>Divisons: {match.divisions}</p>
+                    <p>Divisons: {match.division}</p>
                 </div>
                 <div className="w-full match-teams text-center  flex justify-between items-center">
 

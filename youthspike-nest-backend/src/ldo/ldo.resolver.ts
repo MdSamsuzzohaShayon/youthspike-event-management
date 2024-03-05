@@ -103,6 +103,8 @@ export class LdoResolver {
         data: ldo,
       };
     } catch (err) {
+      console.log(err);
+      
       return AppResponse.getError(err);
     }
   }

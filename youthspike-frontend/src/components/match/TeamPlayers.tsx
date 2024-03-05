@@ -5,6 +5,7 @@ import { IPlayer } from '@/types';
 import PlayerScoreCard from './PlayerScoreCard';
 import { ETeamPlayer } from '@/types/net';
 import { screen } from '@/utils/constant';
+import { useAppSelector } from '@/redux/hooks';
 
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[];
@@ -18,6 +19,9 @@ const touchThreshold: number = 50;
 const initialStartTrim: number = 0;
 
 function TeamPlayers({ teamPlayers, team, screenWidth }: ITeamPlayersProps) {
+
+  // Global States
+  const { myTeamE } = useAppSelector((state) => state.matches);
 
   // Local State
   const [cloneTeamPlayers, setCloneTeamPlayers] = React.useState<IPlayer[]>([]);
@@ -77,7 +81,7 @@ function TeamPlayers({ teamPlayers, team, screenWidth }: ITeamPlayersProps) {
           {trimPlayers && trimPlayers.map((player) => (
             // @ts-ignore
             <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-              <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} />
+              <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
             </div>
           ))}
           {screenWidth > screen.xs && (<button type="button" className="bg-transparent border-o h-full" onClick={shiftRight}>

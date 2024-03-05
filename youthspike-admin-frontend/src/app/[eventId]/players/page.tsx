@@ -122,7 +122,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       {addPlayer ? (<>
         <h3 className='mt-4'>Player Add</h3>
         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
-        <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} />
+        <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} setActErr={setActErr} />
       </>) : (<>
         <h3 className='mt-4' >Player List</h3>
         {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (

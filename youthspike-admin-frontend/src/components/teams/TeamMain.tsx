@@ -108,7 +108,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         
         if (eventId) {
             if (isValidObjectId(eventId)) {
-                console.log("Mounted---------->", eventId);
                 fetchEvent();
             } else {
                 setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })

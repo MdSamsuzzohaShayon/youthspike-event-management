@@ -43,7 +43,7 @@ query GetMatch($matchId: String!) {
       autoAssign
       autoAssignLogic
       date
-      divisions
+      division
       homeTeam
       location
       netVariance

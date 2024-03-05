@@ -42,18 +42,14 @@ import LineupStrategy from '@/components/match/LineupStrategy';
  * Match URL 
  * http://localhost:3001/matches/65e0879b81d16290815d65ff
  * 
- * Wolves-Alex
+ * T1
  * Captain
- * alex@bristol.group
- * Co-captains
- * bowenmaynard.24@shelleyschools.org
+ * p9d3@e.com
  * 
  * 
- * Vipers-Konnor
+ * T2
  * Captain
- * flame50006@icloud.com
- * Co-captains
- * parker_alex76@yahoo.com
+ * p4d3@e.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
