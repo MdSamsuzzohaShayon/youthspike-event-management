@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { getCookie, removeCookie } from '@/utils/cookie';
 import { isValidObjectId } from '@/utils/helper';
 import { FRONTEND_URL } from '@/utils/keys';
+import { removeDivisionFromStore, removeTeamFromStore } from '@/utils/localStorage';
 
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
@@ -120,6 +121,8 @@ function Menu() {
         e.preventDefault();
         removeCookie('token');
         removeCookie('user');
+        removeDivisionFromStore();
+        removeTeamFromStore();
         // setIsAuthenticated(false);
         // setOpenMenu(false);
         // return router.push('/login');

@@ -66,10 +66,8 @@ ___
  - Player sub, a player can be off for a round and can get back in the next round
 
  - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
- - Update/refetch acter creating an event
  - Changing round one by one (Need to jump to the clicked round)
 
- - Team name sometime showing up at the top and sometime not
  - When logged in as captain the captain should only see his team and players of the team
  - If a round has been submitted he can not re-rank his players
  - After updating points there next round button should be show up
@@ -107,6 +105,7 @@ ___
  - Showing unassigned players and inactive players somewhere in the roster
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
+ - So I think we came up with a solution. Each team will be assigned teamID# such as 182. The login for the caitian for that squad would be “captain182” and the cocaptain login would be     “cocaptain182” etc. Password would be default password as normal. This way the email is not the unique id or the username to login.
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -157,6 +156,7 @@ ___
  - in active players are still showing up when we click on the empty player box
  - Updaing round creating some issues (Log in as admin)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
+ - When saving a team and creating another team, it does not update the player list. That need to be updated properly
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
 
 

@@ -13,6 +13,7 @@ export interface IPlayerAdd {
   firstName: string;
   lastName: string;
   email: string;
+  division: string;
   rank?: string | null;
   event?: string;
   team?: string;

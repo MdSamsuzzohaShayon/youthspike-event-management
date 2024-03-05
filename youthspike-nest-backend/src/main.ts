@@ -5,16 +5,15 @@ import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-// const origin = ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
-  // if (process.env.NODE_ENV === 'production') {
-  // }
-const origin = "*";
-// 'https://admin.aslsquads.com'
+  let origin = ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
+  if (process.env.NODE_ENV === 'production') {
+    origin = ['https://admin.aslsquads.com', 'https://aslsquads.com', 'https://studio.apollographql.com'];
+  }
+  // 'https://admin.aslsquads.com'
 
   app.enableCors({
     origin, // Replace with your frontend URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Allow sending cookies from the frontend
   });
   app.use(graphqlUploadExpress({ maxFiles: 10, maxFileSize: 10000000 }));
 

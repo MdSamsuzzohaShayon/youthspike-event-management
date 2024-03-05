@@ -1,7 +1,7 @@
 import { IEvent, IRoom, IRoundExpRel, ITeam } from ".";
 
 export interface IDefaultMatch{
-  divisions: string;
+  division: string;
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;

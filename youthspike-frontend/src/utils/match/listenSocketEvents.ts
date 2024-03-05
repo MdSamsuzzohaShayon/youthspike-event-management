@@ -56,7 +56,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
 
     // Set current round and round list
     const updatedRoundList: IRoundRelatives[] = [];
-    let currRoundObj: null | IRoundRelatives = null;
+    // let currRoundObj: null | IRoundRelatives = null;
     const roomRounds: IRoomRoundProcess[] = [...data.rounds];
     if (roomRounds.length > 0) {
       for (let i = 0; i < roomRounds.length; i++) {
@@ -66,16 +66,16 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
           if (roundObj) {
             // @ts-ignore
             updatedRoundList.push({ ...roundObj, ...teamProcessObj });
-            if (roomRounds[i]._id === currentRound?._id) {
-              // @ts-ignore
-              currRoundObj = { ...roundObj, ...teamProcessObj };
-            }
+            // if (roomRounds[i]._id === currentRound?._id) {
+            //   // @ts-ignore
+            //   currRoundObj = { ...roundObj, ...teamProcessObj };
+            // }
           }
         }
       }
 
       dispatch(setRoundList(updatedRoundList));
-      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+      // if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
   });
 

@@ -6,7 +6,6 @@ import { useSocket } from '@/lib/SocketProvider';
 import CheckInBox from '../ActionBoxes/CheckInBox';
 import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
-import RoundChangeBox from '../ActionBoxes/RoundChangeBox';
 import { EActionProcess } from '@/types/room';
 
 
