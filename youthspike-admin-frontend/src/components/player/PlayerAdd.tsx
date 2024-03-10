@@ -94,15 +94,24 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     });
   }
 
-  useEffect(()=>{
-    if(update && prevPlayer){
-      const pObj = {...initialPlayerAdd};
+  useEffect(() => {
+    if (update && prevPlayer) {
+      const pObj = { ...initialPlayerAdd };
       pObj.firstName = prevPlayer.firstName;
       pObj.lastName = prevPlayer.lastName;
       pObj.email = prevPlayer.email;
       setPlayerState(pObj);
     }
-  }, [update, prevPlayer])
+  }, [update, prevPlayer]);
+
+  useEffect(() => {
+    const tdObj: { team?: string; division?: string } = {};
+    const teamExist = getTeamFromStore();
+    if (teamExist) tdObj.team = teamExist;
+    const divisionExist = getDivisionFromStore();
+    if (divisionExist) tdObj.division = divisionExist
+    setPlayerState((prevState) => ({ ...prevState, ...tdObj }));
+  }, []);
 
 
   return (

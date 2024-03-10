@@ -85,8 +85,8 @@ export class MatchResolver {
           num: i + 1,
           nets: [], // Will be populated later
           players: playerIds,
-          teamAProcess: EActionProcess.INITIATE,
-          teamBProcess: EActionProcess.INITIATE,
+          teamAProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN, // From the second round captain does not need to check in once again
+          teamBProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN,
           subs: [],
           firstPlacing
         };

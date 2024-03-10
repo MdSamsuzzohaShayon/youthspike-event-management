@@ -23,12 +23,6 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currentRound, roundList, } = useAppSelector((state) => state.rounds);
 
-  const handleUpdatePoints = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // Update round and nets
-    lineupToUpdatePoints({allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch});
-  }
-
   const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
     e.preventDefault();
     /**
@@ -59,7 +53,6 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
       {otp === EActionProcess.LINEUP ? <div>
         <p>Both team have submitted their lineup, now this round is locked, no one change their players in the net!</p>
         <div className="buttons flex w-full justify-center items-center gap-x-2">
-          <button className="btn-primary" type='button' onClick={handleUpdatePoints}>Update Points</button>
           {currentRound?.teamAScore && currentRound.teamBScore && (<button className="btn-primary" type='button' onClick={(e) => handleChangeRound(e, true)}>Next Round</button>)}
 
         </div>

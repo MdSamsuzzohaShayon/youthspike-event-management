@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrNetNum, setCurrentRoundNets, updateNetPlayer, setUpdateNets } from '@/redux/slices/netSlice';
+import { setCurrNetNum, setCurrentRoundNets, updateNetPlayer, setNets } from '@/redux/slices/netSlice';
 
 // Utils
 import { netSize, screen } from '@/utils/constant';
@@ -110,9 +110,18 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
     const netPlayerObj: INetUpdate = createNetPlayerObject(selectedNet, teamPlayerId, selectedPlayerSpot, myTeamE);
 
-    // Update players of the net
-    dispatch(updateNetPlayer(netPlayerObj));
-    dispatch(setUpdateNets(netPlayerObj));
+    // Update all nets and current round nets
+    const updatedCRN = [...currentRoundNets]; // crn = current round nets
+    const updatedAllNets = [...allNets];
+    const findCRN = updatedCRN.findIndex((n) => n._id === selectedNet._id);
+    if (findCRN !== -1) updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...netPlayerObj };
+    const findAN = updatedAllNets.findIndex((n) => n._id === selectedNet._id);
+    if (findAN !== -1) updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...netPlayerObj };
+    dispatch(setCurrentRoundNets(updatedCRN));
+    dispatch(setNets(updatedAllNets));
+
+
+
 
     // Disabled players after selecting them
     // @ts-ignore

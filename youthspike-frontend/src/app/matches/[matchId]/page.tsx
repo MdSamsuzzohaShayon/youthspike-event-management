@@ -40,16 +40,20 @@ import LineupStrategy from '@/components/match/LineupStrategy';
 /**
  * Test Match
  * Match URL 
- * http://localhost:3001/matches/65e0879b81d16290815d65ff
+ * http://localhost:3001/matches/65e8cba57c597b83c183c279
  * 
- * T1
+ * Wolves-Alex
  * Captain
- * p9d3@e.com
+ * alex@bristol.group
+ * Co-captain
+ * ayyy.spence@gmail.com
  * 
  * 
- * T2
+ * Vipers-Konnor
  * Captain
- * p4d3@e.com
+ * flame50006@icloud.com
+ * Co-captain
+ * konnorcordingley@gmail.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -68,8 +72,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
-  const { currentRoundNets: currRoundNets, updateNets, nets: allNets } = useAppSelector((state) => state.nets);
+  const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam } = useAppSelector((state) => state.matches);
+  const {current: currRoom} = useAppSelector((state)=> state.rooms);
 
 
   // GraphAL
@@ -158,7 +163,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets}  roundList={roundList}/>
 
 
-          {user && user.info && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
+          {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) &&  <RoundRunner />}
 
         
           {eventSponsors.length > 0 && (!user || !user.token )&& (

@@ -263,21 +263,6 @@ export class PlayerResolver {
           const [createTeam, eventExist] = await Promise.all([this.teamService.create(teamObj), this.eventService.findById(eventId)]);
           teamIds.push(createTeam._id);
           updatePlayers.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $addToSet: { teams: createTeam._id } }));
-
-          /*
-          const playerPush: any = { captainofteams: createTeam._id };
-          if (teamObj.captain) {
-            // Create captain player user
-            const captainExist = playerList.find((p) => p._id === teamObj.captain);
-            if (captainExist) {
-              const createUser = await this.userService.createCapUser(captainExist, null, eventExist, UserRole.captain);
-              if (createUser) {
-                playerPush.captainuser = createUser._id
-              }
-            }
-            updatePlayers.push(this.playerService.updateOne({ _id: teamObj.captain }, { $addToSet: playerPush }));
-          }
-          */
         } catch (dErrs) {
           console.log(dErrs);
         }

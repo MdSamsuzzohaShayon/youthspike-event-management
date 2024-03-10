@@ -74,9 +74,6 @@ function RoundRunner() {
         <div className="box w-full flex flex-col justify-center items-center py-2">
           {currentRoom && renderActionBoxes()}
         </div>
-        {/* <div className="clock bg-red-700 w-full flex justify-center">
-          <p className="text-gray-100">05:00</p>
-        </div> */}
       </div>
     </div>
   );

@@ -58,19 +58,11 @@ function LoginPage() {
   if (loading) return <Loader />;
 
   return (
-    <>
-      <Head>
-        <title>Login | Spikeball Game</title>
-      </Head>
-
-      <main >
-        <div className="min-h-screen flex flex-col w-full justify-center items-center">
-          {error && <Message error={error} />}
-          {actionsErrors && <Message error={actionsErrors} />}
-          <Login handleLogin={handleLogin} email={email} setEmail={setEmail} password={password} setPassword={setPassword} />
-        </div>
-      </main>
-    </>
+    <div className="container mx-auto px-2 min-h-screen flex flex-col w-full justify-center items-center">
+      {error && <Message error={error} />}
+      {actionsErrors && <Message error={actionsErrors} />}
+      <Login handleLogin={handleLogin} email={email} setEmail={setEmail} password={password} setPassword={setPassword} />
+    </div>
   )
 }
 

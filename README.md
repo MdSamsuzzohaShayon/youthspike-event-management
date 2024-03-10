@@ -5,6 +5,7 @@ ___
  - [Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?type=design&node-id=27-5&t=Ucn2d4Li6ufI8Q7j-1&scaling=scale-down&page-id=0%3A1)
  - [Landscape Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
  - [Backend/admin panel prototype](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
+ - [Action box design](https://www.canva.com/design/DAF-9-GdNuM/8rUTuBtKb2hCfzOlmx2jCQ/edit)
  
 ___
  - **Video Explanation**
@@ -73,6 +74,17 @@ ___
  - After updating points there next round button should be show up
  - in active players are still showing up when we click on the empty player box
  
+ - Select team when adding players
+ - Moving players are not working
+ - Player update -> save and exit the screen
+ - Fit player image properly 
+ - Inactive player will be off the rosters on the list
+
+ - Style according to Figma
+ - Make color scheme same
+ - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
+ - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
+ 
 
 
 ### Requirements
@@ -106,6 +118,11 @@ ___
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
  - So I think we came up with a solution. Each team will be assigned teamID# such as 182. The login for the caitian for that squad would be “captain182” and the cocaptain login would be     “cocaptain182” etc. Password would be default password as normal. This way the email is not the unique id or the username to login.
+ - Select team when adding players
+ - Moving players are not working
+ - Player update -> save and exit the screen
+ - Fit player image properly
+ - Inactive player will be off the rosters on the list
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -148,6 +165,11 @@ ___
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
  - When the clock runs out it will automitically assign randomly
+
+### Design
+ - Style according to Figma
+ - Make color scheme same
+ - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
 
 ### Bug Fixing
  - Issue with admin directing to event setting page (It is redirecting to /admin page)

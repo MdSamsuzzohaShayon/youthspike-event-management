@@ -33,10 +33,11 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
             // Get updated match
         } else {
+            if (!currDivision || currDivision === '') return setActErr({ name: 'Invalid Division', message: 'You must select a division!' })
             const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision) addMatchObj.division = currDivision;
             addMatchObj.date = new Date(addMatchObj.date).toISOString();
-            if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ name: 'Invalid Teams', message: 'Teams can not be empty to unselected!' })
+            if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ name: 'Invalid Teams', message: 'Teams can not be empty to unselected!' });
             if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ name: 'Invalid Teams', message: 'Both teams are same!' })
             // @ts-ignore
             if (addMatchObj.teams) delete addMatchObj.teams;

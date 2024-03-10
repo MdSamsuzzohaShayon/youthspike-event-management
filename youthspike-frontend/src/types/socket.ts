@@ -58,8 +58,6 @@ export interface INextRoundProps extends ICommonProps {
 
 export interface ISubmitUpdatePointsdProps {
     socket: Socket | null;
-    dispatch: React.Dispatch<React.ReducerAction<any>>;
-    allNets: INetRelatives[];
     currRoom: IRoom | null;
     currRound: IRoundRelatives | null;
     currRoundNets: INetRelatives[];

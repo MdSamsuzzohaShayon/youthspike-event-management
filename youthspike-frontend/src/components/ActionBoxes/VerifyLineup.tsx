@@ -71,4 +71,4 @@ function VerifyLineup() {
     )
 }
 
-export default VerifyLineup
+export default VerifyLineup;

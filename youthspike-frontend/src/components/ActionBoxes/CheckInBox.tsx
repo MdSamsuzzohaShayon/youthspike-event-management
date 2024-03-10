@@ -46,7 +46,6 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
     }
 
     if (filled) dispatch(setVerifyLineup(true));
-    // checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNets: currentRoundNets, roundList, dispatch, myTeamE });
   }
 
 

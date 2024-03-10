@@ -1,5 +1,5 @@
 import { setActErr } from "@/redux/slices/elementSlice";
-import { setTeamE } from "@/redux/slices/matchesSlice";
+import { setTeamE, setVerifyLineup } from "@/redux/slices/matchesSlice";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives } from "@/types";
@@ -12,12 +12,12 @@ import { ETeam } from "@/types/team";
 function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
     if (!socket || !userInfo || !userToken) return;
     const parsedUser = JSON.parse(userInfo);
-    if ((!parsedUser.captainplayer && !parsedUser.cocaptainplayer) || !teamA || !teamB  || (!teamA.captain  && !teamA.cocaptain ) || (!teamB.captain && !teamB.cocaptain) || !currRound) return;
+    if ((!parsedUser.captainplayer && !parsedUser.cocaptainplayer) || !teamA || !teamB || (!teamA.captain && !teamA.cocaptain) || (!teamB.captain && !teamB.cocaptain) || !currRound) return;
 
     let userTeamId = null;
-    if ((teamA.captain && parsedUser.captainplayer === teamA.captain._id) || ( teamA.cocaptain && parsedUser.cocaptainplayer === teamA.cocaptain._id)) {
+    if ((teamA.captain && parsedUser.captainplayer === teamA.captain._id) || (teamA.cocaptain && parsedUser.cocaptainplayer === teamA.cocaptain._id)) {
         userTeamId = teamA._id;
-    } else if ((teamB.captain && parsedUser.captainplayer === teamB.captain._id) || ( teamB.cocaptain && parsedUser.cocaptainplayer === teamB.cocaptain._id)) {
+    } else if ((teamB.captain && parsedUser.captainplayer === teamB.captain._id) || (teamB.cocaptain && parsedUser.cocaptainplayer === teamB.cocaptain._id)) {
         userTeamId = teamB._id;
     } else {
         return;
@@ -72,10 +72,10 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
 
     let fillAllNets = true;
     const roundNetAssign: IRoomNetAssign[] = currRoundNets.map((net) => {
-        if(myTeamE === ETeam.teamA){
-            if (!net.teamAPlayerA || !net.teamAPlayerB ) fillAllNets = false
-        }else{
-            if(!net.teamBPlayerA || !net.teamBPlayerB) fillAllNets = false;
+        if (myTeamE === ETeam.teamA) {
+            if (!net.teamAPlayerA || !net.teamAPlayerB) fillAllNets = false
+        } else {
+            if (!net.teamBPlayerA || !net.teamBPlayerB) fillAllNets = false;
         }
 
         return {
@@ -87,7 +87,7 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
         }
     });
     if (!fillAllNets) {
-        return dispatch(setActErr({main: "Invalid nets", message: "Every nets must have players!"}));
+        return dispatch(setActErr({ main: "Invalid nets", message: "Every nets must have players!" }));
     };
     actionData.nets = roundNetAssign;
 
@@ -98,13 +98,14 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
     const roundObj: IRoundRelatives = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess };
     dispatch(setRoundList([...roundList.filter((r) => r._id !== currRound?._id), roundObj]));
     dispatch(setCurrentRound(roundObj));
+    dispatch(setVerifyLineup(false));
 
     if (socket) socket.emit('submit-lineup-from-client', actionData);
 }
 
 
 
-function canGoNextOrPrevRound({ currRound, roundList, next, currRoundNets, dispatch}: ICanGoProps): number {
+function canGoNextOrPrevRound({ currRound, roundList, next, currRoundNets, dispatch }: ICanGoProps): number {
     const findRoundIndex = roundList.findIndex((r) => r._id === currRound?._id);
     if (findRoundIndex === -1) return findRoundIndex;
     let newRoundIndex = 0;
@@ -151,38 +152,21 @@ function changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRou
     dispatch(setRoundList(newRoundList));
 
 
-    if (socket) socket.emit("round-change-from-client", { room: currRoom?._id, round: currRound?._id, nextRound: newRoundObj._id });
+    // if (socket) socket.emit("round-change-from-client", { room: currRoom?._id, round: currRound?._id, nextRound: newRoundObj._id });
 }
 
 
 
-function lineupToUpdatePoints({socket, dispatch, allNets, currRoom, currRound, currRoundNets, }: ISubmitUpdatePointsdProps){
-    const cloneAN = [...allNets]; // AN = all nets
-    const cloneCRN = [...currRoundNets]; // crn = current round nets
+function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets, }: ISubmitUpdatePointsdProps) {
     const netPointsList = [];
     for (const n of currRoundNets) {
-      const nObj = {
-        _id: n._id,
-        teamAScore: n.teamAScore ? n.teamAScore : 0,
-        teamBScore: n.teamBScore ? n.teamBScore : 0,
-      };
-      netPointsList.push(nObj);
-
-      // To set current round nets
-      const findCRNi = cloneCRN.findIndex((cn)=> cn._id === n._id);
-      if(findCRNi !== -1){
-        cloneCRN[findCRNi] = {...cloneCRN[findCRNi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore};
-      }
-
-      // to set all round nets
-      const findANi= cloneAN.findIndex((an)=> an._id === n._id);
-      if(findANi !== -1){
-        cloneAN[findANi] = {...cloneAN[findANi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore};
-      }
+        const nObj = {
+            _id: n._id,
+            teamAScore: n.teamAScore ? n.teamAScore : 0,
+            teamBScore: n.teamBScore ? n.teamBScore : 0,
+        };
+        netPointsList.push(nObj);
     }
-
-    dispatch(setCurrentRoundNets(cloneCRN));
-    dispatch(setNets(cloneAN));
 
     if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
 }

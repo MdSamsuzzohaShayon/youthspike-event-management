@@ -1,9 +1,7 @@
 import cld from '@/config/cloudinary.config';
 import { ILDO, ILDOItem } from '@/types';
-import { useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 
 const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
@@ -18,7 +16,7 @@ const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
             <td className="py-2 px-4 lowercase" >{ldo.director?.email}</td>
             <td className="py-2 px-4 capitalize flex justify-center items-center gap-2" >
                 <Link href={`/ldos/${ldo._id}`} className='btn-info flex justify-center items-center' >
-                    Details<img src='/icons/event.svg' alt='edit' className='w-6 svg-white' />
+                    Details
                 </Link>
             </td>
         </tr>

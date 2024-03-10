@@ -2,7 +2,7 @@ import { IListenSocketProps, INetRelatives, IRoundExpRel, IRoundRelatives, ITeam
 import { Socket } from "socket.io-client";
 import { getCookie } from "../cookie";
 import { setCurrentRoom } from "@/redux/slices/roomSlice";
-import { setCurrentRoundNets, setNets, updateMultiNetsPlayers } from "@/redux/slices/netSlice";
+import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { EActionProcess, IRoom, IRoomNets, IRoomRoundProcess } from "@/types/room";
 import { joinTheRoom } from "./emitSocketEvents";
@@ -50,13 +50,33 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
   });
 
   socket.on('submit-lineup-response', (data: IRoomNets) => {
-    // Need to organize rounds in ascending order
-    // Set current nets of the rounds 
-    dispatch(updateMultiNetsPlayers(data.nets));
+
+    
+    // Set current round nets and all nets
+    const updatedCRN = [...currRoundNets]; // crn = current round nets
+    const updatedAllNets = [...allNets];
+    for (let i = 0; i < data.nets.length; i++) {
+      const teamObj = {
+        teamAPlayerA: data.nets[i].teamAPlayerA,
+        teamAPlayerB: data.nets[i].teamAPlayerB,
+        teamBPlayerA: data.nets[i].teamBPlayerA,
+        teamBPlayerB: data.nets[i].teamBPlayerB,
+      };
+
+      const findCRNI = updatedCRN.findIndex((n) => n._id === data.nets[i]._id);
+      if (findCRNI !== -1) updatedCRN[findCRNI] = { ...updatedCRN[findCRNI], ...teamObj };
+
+      const findANI = updatedAllNets.findIndex((n) => n._id === data.nets[i]._id);
+      if (findANI !== -1) updatedAllNets[findANI] = { ...updatedAllNets[findANI], ...teamObj };
+    }
+    dispatch(setCurrentRoundNets(updatedCRN));
+    dispatch(setNets(updatedAllNets));
+
+
 
     // Set current round and round list
     const updatedRoundList: IRoundRelatives[] = [];
-    // let currRoundObj: null | IRoundRelatives = null;
+    let currRoundObj: null | IRoundRelatives = null;
     const roomRounds: IRoomRoundProcess[] = [...data.rounds];
     if (roomRounds.length > 0) {
       for (let i = 0; i < roomRounds.length; i++) {
@@ -64,18 +84,21 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
           const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
           const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
           if (roundObj) {
+
             // @ts-ignore
             updatedRoundList.push({ ...roundObj, ...teamProcessObj });
-            // if (roomRounds[i]._id === currentRound?._id) {
-            //   // @ts-ignore
-            //   currRoundObj = { ...roundObj, ...teamProcessObj };
-            // }
+            if (roomRounds[i]._id === currentRound?._id) {
+              // @ts-ignore
+              currRoundObj = { ...currentRound, ...teamProcessObj };
+            }
+
           }
         }
       }
 
+
       dispatch(setRoundList(updatedRoundList));
-      // if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
   });
 
@@ -114,32 +137,32 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
   });
 
 
-  if (socket) socket.on('round-change-response', (data: IRoom) => {
-    // Set current round and round list
-    const updatedRoundList: IRoundRelatives[] = [];
-    let currRoundObj: null | IRoundRelatives = null;
-    const roomRounds: IRoomRoundProcess[] = [...data.rounds];
-    if (roomRounds.length > 0) {
-      for (let i = 0; i < roomRounds.length; i++) {
-        if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
-          const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
-          const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
-          if (roundObj) {
-            // @ts-ignore
-            updatedRoundList.push({ ...roundObj, ...teamProcessObj });
-            if (roomRounds[i]._id === currentRound?._id) {
-              // @ts-ignore
-              currRoundObj = { ...roundObj, ...teamProcessObj };
-            }
-          }
-        }
-      }
+  // if (socket) socket.on('round-change-response', (data: IRoom) => {
+  //   // Set current round and round list
+  //   const updatedRoundList: IRoundRelatives[] = [];
+  //   let currRoundObj: null | IRoundRelatives = null;
+  //   const roomRounds: IRoomRoundProcess[] = [...data.rounds];
+  //   if (roomRounds.length > 0) {
+  //     for (let i = 0; i < roomRounds.length; i++) {
+  //       if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
+  //         const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
+  //         const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
+  //         if (roundObj) {
+  //           // @ts-ignore
+  //           updatedRoundList.push({ ...roundObj, ...teamProcessObj });
+  //           if (roomRounds[i]._id === currentRound?._id) {
+  //             // @ts-ignore
+  //             currRoundObj = { ...roundObj, ...teamProcessObj };
+  //           }
+  //         }
+  //       }
+  //     }
 
-      dispatch(setRoundList(updatedRoundList));
-      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
-    }
+  //     dispatch(setRoundList(updatedRoundList));
+  //     if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+  //   }
 
-  });
+  // });
 
 };
 
