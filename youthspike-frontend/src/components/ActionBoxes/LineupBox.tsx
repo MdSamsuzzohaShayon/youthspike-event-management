@@ -20,9 +20,8 @@ function LineupBox({ currRoom, socket, otp }: IBoxProps) {
   const dispatch = useAppDispatch();
 
   // ===== Local State =====
-  const [opProcessForMyRound, setOpProcessForMyRound] = useState<EActionProcess>(EActionProcess.CHECKIN); // Oponent process for my current round
   const [pTxt, setPTxt] = useState<string>('');
-  const [submittedLineup, setSubmittedLineup] = useState<boolean>(false);
+  const [bgBox, setBgBox] = useState<string>("box-danger");
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
 
   const { myTeamE, } = useAppSelector((state) => state.matches)
@@ -48,30 +47,24 @@ function LineupBox({ currRoom, socket, otp }: IBoxProps) {
     updateMultiplePoints({ allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch });
   }
 
-  useEffect(() => {
-    // ===== Set oponent team process for Specific round =====
-    if (currentRound) {
-      if (myTeamE === ETeam.teamA) {
-        if (currentRound.teamAProcess) setOpProcessForMyRound(currentRound.teamAProcess);
-      } else {
-        if (currentRound.teamBProcess) setOpProcessForMyRound(currentRound.teamBProcess);
-      }
-    }
-  }, [currentRound]);
 
   useEffect(() => {
     let pt = '';
+    let bb = "box-danger";
     if (otp === EActionProcess.LINEUP) {
       pt = `Round ${currentRound?.num} - Game Play`;
+      bb = "box-success";
     } else {
       pt = `Round ${currentRound?.num} - Player Assignments`;
       setIsWaiting(true);
+      bb = "box-danger";
     }
     setPTxt(pt);
+    setBgBox(bb);
   }, [otp, currentRound]);
 
   return (
-    <div className={`flex py-2 w-full justify-between items-center gap-1 ${isWaiting ? "box-danger" : "box-success"}`}>
+    <div className={`flex py-2 w-full justify-between items-center gap-1 ${bgBox}`}>
       <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
         <PointText txt={pTxt} />
         {otp === EActionProcess.LINEUP

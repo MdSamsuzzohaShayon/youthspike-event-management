@@ -15,16 +15,17 @@ import NetCard from './NetCard';
 import { IError, INetRelatives, IPlayer, ITeam } from '@/types';
 import { useUser } from '@/lib/UserProvider';
 import { useSocket } from '@/lib/SocketProvider';
-import { setDisabledPlayerIds, setOutOfRange, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
+import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import { ETeamPlayer, INetUpdate } from '@/types/net';
 import { ETeam } from '@/types/team';
-import { canGoNextOrPrevRound, changeTheRound } from '@/utils/match/emitSocketEvents';
+import { changeTheRound } from '@/utils/match/emitSocketEvents';
 import MatchSetting from './MatchSetting';
 import { setNetH } from '@/utils/helper';
 import { border } from '@/utils/styles';
 import { EPlayerStatus } from '@/types/player';
+import { setActErr } from '@/redux/slices/elementSlice';
 
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
@@ -50,8 +51,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
 
 
-  // Input Change
-
+  // ===== Input Round Change ===== 
   const handleRoundChange = (e: React.SyntheticEvent, roundId: string) => {
     e.preventDefault();
     let next = false;
@@ -59,11 +59,15 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     if (targetRoundIndex !== -1 && currentRound) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
         next = true;
-        targetRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets: currentRoundNets, dispatch });
+        const prevRound = roundList[targetRoundIndex - 1];
+        if (!prevRound || !prevRound.completed) return dispatch(setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." }));
+        dispatch(setActErr(null));
       }
-      if (targetRoundIndex !== -1) changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex: targetRoundIndex, myTeamE, currRound: currentRound });
+      
+      changeTheRound({ roundList, dispatch, allNets, newRoundIndex: targetRoundIndex, myTeamE });
+      dispatch(setDisabledPlayerIds([]));
+      dispatch(setPrevPartner(null));
     }
-    // Change current round and current round list
   }
 
   const isValidNet = (net: INetRelatives,) => net && net._id && net.round;

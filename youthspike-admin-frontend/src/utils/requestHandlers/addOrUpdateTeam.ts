@@ -20,7 +20,7 @@ interface IAddOrUpdateTeam {
     addTeam: MutationFunction;
     setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
     setPlayerIdList: React.Dispatch<React.SetStateAction<string[]>>;
-    teamAddCB: (teamData: ITeam) => void;
+    teamAddCB?: (teamData: ITeam) => void;
     update?: boolean;
     prevTeam?: IPrevTeam;
     currDivision?: string;
@@ -73,7 +73,7 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
                     variables: teamObj
                 });
                 if (teamRes?.data?.createTeam?.data) {
-                    teamAddCB(teamRes.data.createTeam.data);
+                    if (teamAddCB) teamAddCB(teamRes.data.createTeam.data);
                 }
             }
             setAvailablePlayers((prevState) => [...prevState.filter((p) => !playerIdList.includes(p._id))]);

@@ -57,7 +57,9 @@ ___
 
 ### Running
 
- - Make sure completed a round is working properly
+ - Style according to Figma
+ - Make color scheme same
+ 
  - Creating team, players, match smoothly
  - Run a match smoothly
 
@@ -73,22 +75,12 @@ ___
  - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
  - Changing round one by one (Need to jump to the clicked round)
 
- - When logged in as captain the captain should only see his team and players of the team
  - If a round has been submitted he can not re-rank his players
  - After updating points there next round button should be show up
  - in active players are still showing up when we click on the empty player box
- 
- - Select team when adding players
- - Player update -> save and exit the screen
- - Fit player image properly 
- - Inactive player will be off the rosters on the list
 
- - Style according to Figma
- - Make color scheme same
  - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
  - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
-
- - When we are in a particular team page, we can add player to the team from all unassigned players (button add players to the team)
  
 
 
@@ -109,7 +101,6 @@ ___
  - Create team without a captain
  - Team name sometime showing up at the top and sometime not
  - Move team - when moving team to another event current event should not have that team
- - When we are in a particular team page, we can add player to the team from all unassigned players (button add players to the team)
 
  - **Players**
  - In the player list show all players in an event
@@ -126,8 +117,6 @@ ___
  - So I think we came up with a solution. Each team will be assigned teamID# such as 182. The login for the caitian for that squad would be “captain182” and the cocaptain login would be     “cocaptain182” etc. Password would be default password as normal. This way the email is not the unique id or the username to login.
  - Select team when adding players
  - Moving players are not working - need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
- - Player update -> save and exit the screen
- - Fit player image properly
  - Inactive player will be off the rosters on the list
  - Sometime players are not adding properly
 
@@ -141,7 +130,6 @@ ___
  - **Captain**
  - Send welcome email to all of our captains
  - But coach/captain can change only his team but points can be changed by any captain of any team
- - When logged in as captain the captain should only see his team and players of the team
  - Captain can edit roster photo, and re-rank players
  - If a round has been submitted he can not re-rank his players
  

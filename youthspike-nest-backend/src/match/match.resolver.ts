@@ -77,7 +77,7 @@ export class MatchResolver {
       const promisesAll = [];
 
       let firstPlacing = ETeam.teamA;
-      // Create Round and nets inside a round
+      // ===== Create Round and nets inside a round ===== 
       for (let i = 0; i < input.numberOfRounds; i += 1) {
         const netObjs = [];
         const newRound = {
@@ -95,15 +95,15 @@ export class MatchResolver {
         firstPlacing = firstPlacing === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
         roundIds.push(round._id);
 
-        // Create net
+        // ===== Create net ===== 
         for (let j = 0; j < input.numberOfNets; j += 1) {
           const netObj = {
             match: newMatch._id,
             round: round._id,
             num: j + 1,
             points: 1,
-            teamAScore: 0,
-            teamBScore: 0,
+            teamAScore: null,
+            teamBScore: null,
             pairRange: 0,
           };
           netObjs.push(netObj);

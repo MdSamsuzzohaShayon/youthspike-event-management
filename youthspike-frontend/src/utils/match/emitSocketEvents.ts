@@ -104,37 +104,10 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
 }
 
 
-
-function canGoNextOrPrevRound({ currRound, roundList, next, currRoundNets, dispatch }: ICanGoProps): number {
-    const findRoundIndex = roundList.findIndex((r) => r._id === currRound?._id);
-    if (findRoundIndex === -1) return findRoundIndex;
-    let newRoundIndex = 0;
-    if (next) {
-        let canGoNext = true;
-        for (const currNet of currRoundNets) {
-            if (!currNet.teamAScore || !currNet.teamBScore) canGoNext = false;
-        }
-        if (!canGoNext) {
-            dispatch(setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." }));
-            return -1;
-        }
-        if ((!currRound?.teamAScore || currRound?.teamAScore === 0 || !currRound?.teamBScore || currRound?.teamBScore === 0)) return -1;
-
-        if (roundList[findRoundIndex + 1]) {
-            newRoundIndex = findRoundIndex + 1;
-        }
-    } else {
-        if (findRoundIndex !== 0) {
-            newRoundIndex = findRoundIndex - 1;
-        }
-    }
-    return newRoundIndex;
-}
-
-function changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex, myTeamE, currRound }: INextRoundProps) {
+function changeTheRound({roundList, dispatch, allNets, newRoundIndex, myTeamE }: INextRoundProps) {
 
 
-    // Current round, current round nets and round list properly
+    // ===== Current round, current round nets and round list properly ===== 
     const newRoundObj = { ...roundList[newRoundIndex] };
     const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
     dispatch(setCurrentRoundNets(filteredNets));
@@ -150,9 +123,6 @@ function changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRou
     const newRoundList = roundList.filter((r) => r._id !== newRoundObj._id);
     newRoundList.push(newRoundObj);
     dispatch(setRoundList(newRoundList));
-
-
-    // if (socket) socket.emit("round-change-from-client", { room: currRoom?._id, round: currRound?._id, nextRound: newRoundObj._id });
 }
 
 
@@ -202,4 +172,4 @@ function updateMultiplePoints({socket, dispatch, allNets, currRoom, currRound, c
     if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
 }
 
-export { joinTheRoom, checkInToLineup, initToCheckIn, canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints, updateMultiplePoints };
+export { joinTheRoom, checkInToLineup, initToCheckIn, changeTheRound, lineupToUpdatePoints, updateMultiplePoints };

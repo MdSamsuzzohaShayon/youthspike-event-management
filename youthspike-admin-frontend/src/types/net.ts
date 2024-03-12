@@ -1,14 +1,14 @@
 import { IMatch, IRoundRelatives, ITeam } from ".";
 
 export interface INetBase{
-    num: number,
-    points: number,
-    teamAPlayerA: null | string,
-    teamAPlayerB: null | string,
-    teamAScore: number,
-    teamBPlayerA: null | string,
-    teamBPlayerB: null | string,
-    teamBScore: number
+    num: number;
+    points: number;
+    teamAPlayerA: null | string;
+    teamAPlayerB: null | string;
+    teamAScore: number | null;
+    teamBPlayerA: null | string;
+    teamBPlayerB: null | string;
+    teamBScore: number | null;
 }
 
 

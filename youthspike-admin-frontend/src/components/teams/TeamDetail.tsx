@@ -40,7 +40,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                     <h3 >Player Add</h3>
                     <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
                 </div>
-                <PlayerAdd setIsLoading={setIsLoading} eventId={eventId} update={false} setAddPlayer={setAddPlayer} division={team.division} teamList={teamList} setActErr={setActErr} />
+                <PlayerAdd setIsLoading={setIsLoading} eventId={eventId} update={false} setAddPlayer={setAddPlayer} division={team.division} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} />
             </>) : (
 
                 <div className="bulk-operations-players mt-8">

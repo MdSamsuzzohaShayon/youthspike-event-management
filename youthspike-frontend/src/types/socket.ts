@@ -47,11 +47,11 @@ export interface ICommonProps {
 
 }
 
-export interface INextRoundProps extends ICommonProps {
-    socket: Socket | null;
+// roundList, dispatch, allNets, newRoundIndex, myTeamE 
+export interface INextRoundProps {
+    roundList: IRoundRelatives[];
     dispatch: React.Dispatch<React.ReducerAction<any>>;
     allNets: INetRelatives[];
-    currRoom: IRoom | null;
     newRoundIndex: number;
     myTeamE: ETeam;
 }
@@ -72,6 +72,7 @@ export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps{
 export interface ICanGoProps extends ICommonProps {
     next: boolean;
     currRoundNets: INetRelatives[];
+    targetRoundIndex: number;
     dispatch: React.Dispatch<React.ReducerAction<any>>;
 }
 

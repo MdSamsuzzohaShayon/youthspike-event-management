@@ -32,10 +32,10 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
   const [placingFirst, setPlacingFirst] = useState<boolean>(false);
   const [opSubmitted, setOpSubmitted] = useState<boolean>(false);
   const [pTxt, setPTxt] = useState<string>('');
+  const [bgBox, setBgBox] = useState<string>("box-danger");
 
   // ===== Redux State =====
-  const { teamA } = useAppSelector((state) => state.teams);
-  const { myTeamE, verifyLineup } = useAppSelector((state) => state.matches);
+  const { myTeamE } = useAppSelector((state) => state.matches);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
   const { current: currRound } = useAppSelector((state) => state.rounds);
 
@@ -71,6 +71,7 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
 
   useEffect(() => {
     let pt = "";
+    let bb = "box-danger";
     // You have checked in successfully, now the other team need to be checked in!
     // Set wait for another team
     // Placing first
@@ -78,12 +79,14 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
       pt = `Round ${currRound.num} - Player Assignments`;
       if (myTeamE === currRound?.firstPlacing) {
         setPlacingFirst(true);
+        bb = "box-success";
       }
     } else {
       // placing second
       if (otp === EActionProcess.LINEUP) {
         pt = `Round ${currRound?.num} - Player Assignments`;
-        setOpSubmitted(true);        
+        setOpSubmitted(true);    
+        bb = "box-success";    
       } else {
         if (currRound?.num === 1) {
           setCheckedIn(true);
@@ -91,6 +94,7 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
         }
       }
     }
+    setBgBox(bb);
     setPTxt(pt);
   }, [currRound, otp, myTeamE]);
 
@@ -104,8 +108,11 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
     </div>);
   }
 
+  console.log({checkedIn, placingFirst, opSubmitted});
+  
+
   return (
-    <div className={`flex py-2 w-full justify-between items-center gap-1 ${checkedIn && !placingFirst && !opSubmitted? "box-danger" : "box-success"}`}>
+    <div className={`flex py-2 w-full justify-between items-center gap-1 ${bgBox}`}>
       <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
         <PointText txt={pTxt} />
         {currRound?.teamAProcess === EActionProcess.CHECKIN && currRound?.teamBProcess === EActionProcess.CHECKIN

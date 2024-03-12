@@ -34,7 +34,7 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
   return (
     <div className={`points-by-round flex justify-start items-center w-full ${dark ? 'text-gray-100' : 'text-gray-900'} gap-1`}>
       {roundList.map((round, i) => (
-        <div className={`r-box ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"}`} key={i}>
+        <div className={`r-box ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"} flex ${dark ? "flex-col" : "flex-col-reverse"} justify-center items-center`} key={i}>
           {calcScore(round)}
         </div>
       ))}

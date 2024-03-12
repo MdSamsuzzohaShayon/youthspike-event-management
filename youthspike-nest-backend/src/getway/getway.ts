@@ -40,7 +40,7 @@ class RoomLocal {
   @Field({ nullable: true })
   teamBClient: null | string;
 
-  @Field(()=> [RoomRoundProcess],{ nullable: false, defaultValue: [] })
+  @Field(() => [RoomRoundProcess], { nullable: false, defaultValue: [] })
   rounds: RoomRoundProcess[];
 
 }
@@ -181,14 +181,14 @@ export class MyGatWay implements OnModuleInit {
     if (!prevRoom) return;
     const roomData = { ...prevRoom };
     let roundList = [...roomData.rounds];
-    const roundI = roundList.findIndex((r)=> r._id === checkIn.round)
-    if(roundI === -1) return;
+    const roundI = roundList.findIndex((r) => r._id === checkIn.round)
+    if (roundI === -1) return;
 
     // update round to checkin
-    const currRoundObj = {...roundList[roundI]}
+    const currRoundObj = { ...roundList[roundI] }
     if (prevRoom.teamAClient === client.id) {
       currRoundObj.teamAProcess = EActionProcess.CHECKIN;
-    }else if (prevRoom.teamBClient === client.id){
+    } else if (prevRoom.teamBClient === client.id) {
       currRoundObj.teamBProcess = EActionProcess.CHECKIN;
     } else {
       return;
@@ -214,11 +214,11 @@ export class MyGatWay implements OnModuleInit {
     if (!prevRoom) return;
     let roomData = { ...prevRoom };
     let roundList = [...roomData.rounds];
-    const roundI = roundList.findIndex((r)=> r._id === submitLineup.round)
-    if(roundI === -1) return;
+    const roundI = roundList.findIndex((r) => r._id === submitLineup.round)
+    if (roundI === -1) return;
 
     // update round to checkin
-    const currRoundObj = {...roundList[roundI]};
+    const currRoundObj = { ...roundList[roundI] };
     if (prevRoom.teamAClient === client.id) {
       currRoundObj.teamAProcess = EActionProcess.LINEUP;
     } else {
@@ -268,17 +268,22 @@ export class MyGatWay implements OnModuleInit {
 
     // Calculate and update score for all nets of a round
     const findNets = await this.netService.query({ round: updatePointsInput.round });
-    let teamAScore = 0;
-    let teamBScore = 0;
+    let teamAScore = null;
+    let teamBScore = null;
     let i = 0;
     while (i < findNets.length) {
-      if (findNets[i].teamAScore) teamAScore += findNets[i].teamAScore;
-      if (findNets[i].teamBScore) teamBScore += findNets[i].teamBScore;
+      if (findNets[i].teamAScore && findNets[i].teamBScore) {
+        teamAScore ? teamAScore += findNets[i].teamAScore : teamAScore = findNets[i].teamAScore
+        teamBScore ? teamBScore += findNets[i].teamBScore : teamBScore = findNets[i].teamBScore;
+      }else{
+        teamAScore = null;
+        teamBScore = null;
+      }
       i += 1;
     }
 
     let completed = false;
-    if(teamAScore > 0 && teamBScore > 0) completed = true;
+    if (teamAScore > 0 && teamBScore > 0) completed = true;
     await this.roundService.update({ teamAScore, teamBScore, completed }, updatePointsInput.round);
 
     const pointsResponse: RoundUpdatedResponse = {
