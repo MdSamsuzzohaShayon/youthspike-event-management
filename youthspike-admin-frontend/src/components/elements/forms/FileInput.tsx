@@ -28,17 +28,17 @@ const FileInput = (props: IFileFileProps) => {
         props.handleFileChange(e);
 
     }
-    
+
     // Check default value 
     const renderImage = () => {
         let imgEl: null | HTMLImageElement | React.ReactNode = null;
         if (!fileName || fileName === '') {
             if (props.defaultValue && typeof props.defaultValue === 'string') {
-                imgEl = <AdvancedImage className='w-3/6 h-32 object-cover object-center' cldImg={cld.image(props.defaultValue)} />
+                imgEl = <AdvancedImage className='w-32 h-32 object-cover object-center' cldImg={cld.image(props.defaultValue)} />
             }
         } else {
             if (fileUrl && fileUrl !== '') {
-                imgEl = <img src={fileUrl} alt='file-upload' className='w-3/6 h-32 object-cover object-center' />;
+                imgEl = <img src={fileUrl} alt='file-upload' className='w-32 h-32 object-cover object-center' />;
             }
         }
         return imgEl;
@@ -51,7 +51,9 @@ const FileInput = (props: IFileFileProps) => {
             <div className={`input-group w-full flex ${props.vertical ? 'flex-col' : ''} justify-between items-center flex-wrap`}>
                 {/* <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{fileName ? fileName : props.name}</label> */}
                 <div className="w-full flex justify-between gap-2">
-                    {renderImage()}
+                    <div className='w-3/6'>
+                        {renderImage()}
+                    </div>
                     <div className="btn-text w-full flex flex-col w-3/6 justify-center gap-2">
                         {fileName && <p>{fileName}</p>}
                         <button className={`btn-secondary h-fit flex justify-center items-center gap-2`} onClick={handleOpenImg} >File Upload

@@ -2,7 +2,7 @@ import React, { Touch, useEffect, useRef, useState } from 'react';
 import PlayerCard from './PlayerCard';
 import { IPlayer, IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
-import { UPDATE_PLAYERS } from '@/graphql/players';
+import { GET_EVENT_WITH_PLAYERS, UPDATE_PLAYERS } from '@/graphql/players';
 import { GET_A_TEAM } from '@/graphql/teams';
 import { IOption, ITeam } from '@/types';
 
@@ -17,6 +17,7 @@ interface IPlayerListProps {
   teamIds?: string[];
   divisionList?: IOption[];
   teamList?: ITeam[];
+  refetchFunc?: () => Promise<void>;
 }
 
 interface IPlayerRank {
@@ -24,24 +25,21 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds, divisionList, teamList }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds, divisionList, teamList, refetchFunc }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading, client }] = useMutation(UPDATE_PLAYERS);
 
   const dragPI = useRef<number>(0);
   const dragOverPI = useRef<number>(0);
 
-  /**
-   * Handle events
-   */
+  // ====== Handle Events =====
   const handleUpdate = async (upr: IPlayerRank[]) => { // upr = update player ranking
     if (!rankControls) return;
     if (upr.length > 0) {
       try {
         setIsLoading(true)
-        // Submit to the server
         await rankPlayers({ variables: { input: upr } });
-        client.refetchQueries({ include: [GET_A_TEAM] })
+        if (refetchFunc) await refetchFunc();
         if (setAddPlayer) setAddPlayer(false);
       } catch (error) {
         console.log(error);
@@ -51,9 +49,8 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     }
   }
 
-  /**
-   * Drag or touch event for players rankings
-   */
+
+  // ====== Drag or touch event for players rankings ====== 
   const handleDragStart = (index: number) => {
     if (!rankControls) return;
     dragPI.current = index;
@@ -65,8 +62,8 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
   const handleDragEnd = async (index: number, playerId: string) => {
     if (!rankControls) return;
 
-    // Create a new list to submit
-    let activeList = [...playerList.filter((p)=> p.status === EPlayerStatus.ACTIVE)];
+    // ======  Create a new list to submit ====== 
+    let activeList = [...playerList.filter((p) => p.status === EPlayerStatus.ACTIVE)];
     const draggedPlayer = activeList.splice(dragPI.current, 1);
     if (draggedPlayer && draggedPlayer.length > 0) {
       activeList.splice(dragOverPI.current, 0, draggedPlayer[0]);
@@ -74,15 +71,14 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
       activeList = [...playerList];
     }
     const updatedRanking = activeList.map((p, i) => ({ rank: i += 1, _id: p._id }));
-    // setPlayerRanking(updatedRanking);
-    // setPlayerActiveClone(activeList);
     await handleUpdate(updatedRanking);
   };
-  const handleTouchMove = (e: TouchEvent) => {
+  const handleTouchMove = (e: TouchEvent, index: number) => {
     if (!rankControls) return;
     e.preventDefault(); // Prevent scrolling
+    dragOverPI.current = index;
   }
-
+  
 
 
   return (

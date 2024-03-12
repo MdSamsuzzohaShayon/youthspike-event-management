@@ -7,6 +7,7 @@ import CheckInBox from '../ActionBoxes/CheckInBox';
 import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
 import { EActionProcess } from '@/types/room';
+import CompletedBox from '../ActionBoxes/CompletedBox';
 
 
 
@@ -40,6 +41,9 @@ function RoundRunner() {
       hasAction = true;
     }
 
+    if(currentRound?.completed) return <CompletedBox currRoom={currentRoom} socket={socket} />
+    
+
 
     switch (mtp) {
       case EActionProcess.INITIATE:
@@ -49,7 +53,7 @@ function RoundRunner() {
         return <CheckInBox currRoom={currentRoom} user={user} socket={socket} roundList={roundList} mtp={mtp} otp={otp} />
 
       case EActionProcess.LINEUP:
-        return <LineupBox currRoom={currentRoom} user={user} socket={socket} mtp={mtp} otp={otp} />
+        return <LineupBox currRoom={currentRoom} socket={socket} otp={otp} />
 
       default:
         break;
@@ -70,13 +74,10 @@ function RoundRunner() {
 
   return (
     <div className="w-full">
-      <div className="container px-4 mx-auto my-4 bg-gray-900 text-gray-100 text-center">
+      <div className="container px-4 mx-auto my-4 text-center">
         <div className="box w-full flex flex-col justify-center items-center py-2">
           {currentRoom && renderActionBoxes()}
         </div>
-        {/* <div className="clock bg-red-700 w-full flex justify-center">
-          <p className="text-gray-100">05:00</p>
-        </div> */}
       </div>
     </div>
   );

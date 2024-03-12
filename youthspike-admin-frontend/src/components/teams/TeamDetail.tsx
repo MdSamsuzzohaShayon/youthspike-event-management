@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import PlayerAdd from '../player/PlayerAdd'
 import PlayerList from '../player/PlayerList'
-import { IEvent, IOption, ITeam } from '@/types'
+import { IError, IEvent, IOption, ITeam } from '@/types'
 import TextImg from '../elements/TextImg';
 import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 
@@ -12,9 +12,11 @@ interface ITeamDetailProps {
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     divisionList: IOption[];
     teamList: ITeam[];
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    refetchFunc?: () => Promise<void>;
 }
 
-function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList }: ITeamDetailProps) {
+function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc }: ITeamDetailProps) {
     const [addPlayer, setAddPlayer] = useState<boolean>(false);
 
     useEffect(() => {
@@ -38,7 +40,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                     <h3 >Player Add</h3>
                     <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
                 </div>
-                <PlayerAdd setIsLoading={setIsLoading} eventId={eventId} update={false} setAddPlayer={setAddPlayer} divisionList={divisionList} teamList={teamList} />
+                <PlayerAdd setIsLoading={setIsLoading} eventId={eventId} update={false} setAddPlayer={setAddPlayer} division={team.division} teamList={teamList} setActErr={setActErr} />
             </>) : (
 
                 <div className="bulk-operations-players mt-8">
@@ -47,7 +49,8 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add Player</button>
                     </div>
                     <p>Make Inactive / Re-rank / A-Z</p>
-                    <PlayerList eventId={eventId} playerList={team ? team.players : []} teamId={team._id} setIsLoading={setIsLoading} rankControls showRank divisionList={divisionList} teamList={teamList} />
+                    <PlayerList eventId={eventId} playerList={team ? team.players : []} teamId={team._id} setIsLoading={setIsLoading} rankControls showRank 
+                    divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} />
                 </div>
             )}
 

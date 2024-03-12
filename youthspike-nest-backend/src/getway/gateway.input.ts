@@ -92,6 +92,9 @@ export class RoundResoponse {
   teamAScore: number;
   @Field({ nullable: true })
   teamBScore: number;
+
+  @Field({ nullable: false })
+  completed: boolean;
 }
 
 @ObjectType()

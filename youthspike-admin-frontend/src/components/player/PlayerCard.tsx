@@ -18,7 +18,7 @@ interface PlayerCardProps {
   touchDragStart: (index: number) => void;
   touchDragEnter: (index: number) => void;
   touchDragEnd: (index: number, playerId: string) => void;
-  touchMove: (e: TouchEvent) => void;
+  touchMove: (e: TouchEvent, index: number) => void;
   showRank?: boolean;
   rankControls?: boolean;
   isAssigned?: boolean;
@@ -40,9 +40,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const playerLiEl = useRef<HTMLDivElement | null>(null);
 
 
-  /**
-   * Actions for players
-   */
+  // ====== Actions for players  ====== 
   const handleOpenAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setActionOpen(prevState => !prevState);
@@ -76,8 +74,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }
   const handleMovePlayerBox = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log({playerId: player._id, teamId});
-    
     setMovePlayer(true);
     setActionOpen(prevState => !prevState);
   }
@@ -100,7 +96,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
     setActionOpen(prevState => !prevState);
     try {
-      // setIsLoading(true);
       await mutatePlayer({
         variables: {
           input: { status: newStatus, playerTeamId: teamId },
@@ -119,9 +114,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     console.log(`Delete player: ${playerId}`);
   }
 
-  /**
-   * Change events
-   */
+  // ====== Change events ======
   const handleDivisionChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!teamList) return;
@@ -141,14 +134,13 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     setNewTeamId(inputEl.value);
   }
 
-  /**
-   * Drag or touch event for players rankings
-   */
+  // ====== Drag or touch event for players rankings ======
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     setIsDragging(true);
     touchDragStart(index,);
   };
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    console.log({ index });
     touchDragEnter(index);
   };
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
@@ -162,10 +154,22 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const handleTouchEnd = (e: TouchEvent) => {
     touchDragEnd(index, player._id)
   }
-  const handleTouchMove = (e: TouchEvent) => {
-    touchMove(e);
-  }
 
+  const handleTouchMove = (e: TouchEvent) => {
+    e.preventDefault();
+
+    // ===== Find out index for dropping element =====
+    const touchY = e.touches[0].clientY; // Get the Y coordinate of the touch event
+    const playerMobileEls = document.querySelectorAll('.mobile-draggable-element');
+    let newIndex = -1;
+    playerMobileEls.forEach((element, i) => {
+      const rect = element.getBoundingClientRect();
+      if (touchY >= rect.top && touchY <= rect.bottom) {
+        newIndex = i;
+      }
+    });
+    touchMove(e, newIndex);
+  };
   useEffect(() => {
     const liEl = playerLiEl.current;
     if (liEl) {
@@ -180,45 +184,48 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       }
     }
   }, []);
-
+  
   
 
   return (
     <React.Fragment>
-      <li className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500" } py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
+      <li className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500"} py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
 
 
         {/* Draggable element start  */}
-        <div ref={playerLiEl} className="draggable-element w-11/12 flex justify-between items-center gap-1" draggable={rankControls ?? false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter}  >
+        <div className="draggable-element w-11/12 flex justify-between items-center" draggable={rankControls ?? false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter}  >
           <input type="checkbox" name="player-select" id="option" className='w-1/12' />
 
-          <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
-            {/* <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> */}
-            {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
-            <div className="player-name flex flex-col w-full">
-              <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
-              {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
-              {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
-              <p className='text-yellow-500 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
+          <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
+            <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
+              {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
+              <div className="player-name flex flex-col w-full">
+                <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
+                {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
+                {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
+                <p className='text-yellow-500 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
+              </div>
+            </div>
+
+            {showRank && player?.rank && (
+              <div className="rank-box h-6 w-6 flex flex-col items-center">
+                <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
+                  {player?.rank}
+                </h3>
+                <p>Rank</p>
+              </div>
+            )}
+
+            <div className="text-box w-5/12">
+              <div className="w-full flex flex-col justify-center items-end">
+                <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
+                <p className='break-words w-full text-end' >{player.email}</p>
+                <p className='break-words w-full text-end' >2-3 / +3 games</p>
+              </div>
             </div>
           </div>
 
-          {showRank && player?.rank && (
-            <div className="rank-box h-6 w-6 flex flex-col items-center">
-              <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
-                {player?.rank}
-              </h3>
-              <p>Rank</p>
-            </div>
-          )}
 
-          <div className="text-box w-5/12">
-            <div className="w-full flex flex-col justify-center items-end">
-              <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
-              <p className='break-words w-full text-end' >{player.email}</p>
-              <p className='break-words w-full text-end' >2-3 / +3 games</p>
-            </div>
-          </div>
         </div>
         {/* Draggable element End  */}
 

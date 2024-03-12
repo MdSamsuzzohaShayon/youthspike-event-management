@@ -6,6 +6,7 @@ import { EActionProcess } from '@/types/room';
 import { initToCheckIn } from '@/utils/match/emitSocketEvents';
 import React from 'react';
 import { Socket } from 'socket.io-client';
+import PointText from './PointText';
 
 
 interface IBoxProps {
@@ -28,9 +29,16 @@ function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp, otp 
         initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch });
     }
     return (
-        <div className='flex py-2 w-full flex-col justify-center items-center gap-1'>
-            <p>Ensure you have all your players and are ready to play, then check in!</p>
-            {mtp === EActionProcess.INITIATE && <button className="btn-primary" type='button' onClick={handleInitToCheckIn} >Check In</button>}
+        <div className='flex py-2 w-full justify-between items-center gap-1 box-success'>
+            <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
+                <PointText txt='Squad check in' />
+                <h3 className="font-script">Welcome to your match</h3>
+                <h2 className="uppercase font-black text-start">Gather your players and then enter the match.</h2>
+                {mtp === EActionProcess.INITIATE && <button className="btn-light uppercase" type='button' onClick={handleInitToCheckIn} >Check In</button>}
+            </div>
+            <div className="hidden md:block w-2/6">
+                <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+            </div>
         </div>
     )
 }

@@ -1,5 +1,37 @@
 import { gql } from "@apollo/client";
 
+const matchResponse = `
+matches {
+  _id
+  date
+  division
+  teamA {
+    _id
+    name
+    active
+    division
+    captain {
+      _id
+      firstName
+      lastName
+      email
+    }
+  }
+  teamB {
+    _id
+    name
+    active
+    division
+    captain {
+      _id
+      firstName
+      lastName
+      email
+    }
+  }
+  location
+}`;
+
 const eventResponse = `
 _id
 name
@@ -27,36 +59,7 @@ sponsors{
   company
   logo
 }
-matches {
-  _id
-  date
-  divisions
-  teamA {
-    _id
-    name
-    active
-    division
-    captain {
-      _id
-      firstName
-      lastName
-      email
-    }
-  }
-  teamB {
-    _id
-    name
-    active
-    division
-    captain {
-      _id
-      firstName
-      lastName
-      email
-    }
-  }
-  location
-}
+${matchResponse}
 players {
   _id
   firstName

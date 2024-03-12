@@ -42,7 +42,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
   // React Hooks
   const router = useRouter();
 
-  // local States
+  // ===== local States =====
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
@@ -50,9 +50,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
 
   const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
 
-  /**
-   * Input Change
-   */
+  /// ===== input Change =====
   const handleInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
@@ -94,15 +92,24 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     });
   }
 
-  useEffect(()=>{
-    if(update && prevPlayer){
-      const pObj = {...initialPlayerAdd};
+  useEffect(() => {
+    if (update && prevPlayer) {
+      const pObj = { ...initialPlayerAdd };
       pObj.firstName = prevPlayer.firstName;
       pObj.lastName = prevPlayer.lastName;
       pObj.email = prevPlayer.email;
       setPlayerState(pObj);
     }
-  }, [update, prevPlayer])
+  }, [update, prevPlayer]);
+
+  useEffect(() => {
+    const tdObj: { team?: string; division?: string } = {};
+    const teamExist = getTeamFromStore();
+    if (teamExist) tdObj.team = teamExist;
+    const divisionExist = getDivisionFromStore();
+    if (divisionExist) tdObj.division = divisionExist
+    setPlayerState((prevState) => ({ ...prevState, ...tdObj }));
+  }, []);
 
 
   return (

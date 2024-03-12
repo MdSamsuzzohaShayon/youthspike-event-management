@@ -84,7 +84,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
     const playerIds = round.players ? round.players.map((r) => r._id) : [];
     const subIds = round.subs ? round.subs.map((r) => r._id) : [];
     const roundObj: IRoundRelatives = {
-      _id: round._id, num: round.num, nets: [], players: playerIds, subs: subIds,
+      _id: round._id, num: round.num, completed: round.completed, nets: [], players: playerIds, subs: subIds,
       match: matchId, teamAProcess: round.teamAProcess, teamAScore: round.teamAScore,
       teamBProcess: round.teamBProcess, teamBScore: round.teamBScore, firstPlacing: round.firstPlacing
     };

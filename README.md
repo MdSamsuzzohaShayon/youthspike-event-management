@@ -5,6 +5,7 @@ ___
  - [Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?type=design&node-id=27-5&t=Ucn2d4Li6ufI8Q7j-1&scaling=scale-down&page-id=0%3A1)
  - [Landscape Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
  - [Backend/admin panel prototype](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
+ - [Action box design](https://www.canva.com/design/DAF-9-GdNuM/8rUTuBtKb2hCfzOlmx2jCQ/edit)
  
 ___
  - **Video Explanation**
@@ -56,6 +57,10 @@ ___
 
 ### Running
 
+ - Make sure completed a round is working properly
+ - Creating team, players, match smoothly
+ - Run a match smoothly
+
  - Update director informations as admin (Not working properly)
  - Email for a player is optional field, only if we want to add that player to captain we will need email
  - When we edit a player we should not see division and team, when we move the player they should appear
@@ -72,6 +77,18 @@ ___
  - If a round has been submitted he can not re-rank his players
  - After updating points there next round button should be show up
  - in active players are still showing up when we click on the empty player box
+ 
+ - Select team when adding players
+ - Player update -> save and exit the screen
+ - Fit player image properly 
+ - Inactive player will be off the rosters on the list
+
+ - Style according to Figma
+ - Make color scheme same
+ - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
+ - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
+
+ - When we are in a particular team page, we can add player to the team from all unassigned players (button add players to the team)
  
 
 
@@ -92,6 +109,7 @@ ___
  - Create team without a captain
  - Team name sometime showing up at the top and sometime not
  - Move team - when moving team to another event current event should not have that team
+ - When we are in a particular team page, we can add player to the team from all unassigned players (button add players to the team)
 
  - **Players**
  - In the player list show all players in an event
@@ -106,6 +124,12 @@ ___
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
  - So I think we came up with a solution. Each team will be assigned teamID# such as 182. The login for the caitian for that squad would be “captain182” and the cocaptain login would be     “cocaptain182” etc. Password would be default password as normal. This way the email is not the unique id or the username to login.
+ - Select team when adding players
+ - Moving players are not working - need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
+ - Player update -> save and exit the screen
+ - Fit player image properly
+ - Inactive player will be off the rosters on the list
+ - Sometime players are not adding properly
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -138,6 +162,13 @@ ___
  - Get a sound notification on an socket event
  - Sponsors will always have a logo of ourself
 
+ - **Final Round**
+ - 2 points net logic [04:20](https://www.loom.com/share/a39b08628d344b6588bd94d23e47ad8e) appear in the final round
+ - The captain will select a net to break the tie. 
+ - When we click on the a net from all nets in the last round, there will be a confirmation screen of all lineup of a net (team A player A, team B player B, team A player B, team B player A) and their pair score and ranking
+ - One captain will choose to ban a net and the other captain will be waiting 
+
+
 
  - **Single Match (public)**
  - Players need to be assign within 3 minutes or less according to clock
@@ -148,6 +179,11 @@ ___
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
  - When the clock runs out it will automitically assign randomly
+
+### Design
+ - Style according to Figma
+ - Make color scheme same
+ - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
 
 ### Bug Fixing
  - Issue with admin directing to event setting page (It is redirecting to /admin page)
@@ -193,7 +229,14 @@ ___
 
 
 ### Ask
- - 
+ - Should we add all action boxs with same image?
+ - Do we must need to add images to the boxes? because on mobile screeen we won't have must space to add them. If we add them along with text it might not look great.
+ - The boxes you have shown will look great on the desktop, but it won't look good on mobile phone. However, I will try to make it look better.
+ - Though, it is little bit complicated I understand the basic logics of 2 points net and i will ask you for more clarification.
+ - How do you want calculate 2 points net? now we are scoring according to a terms that if team A win in net 1, 1 point will be added to them, by implementing 2 points net logic should do we need to add 2 point if a team win in that net?
+ - What if the nets are more than 3 in a round? what should we do in that case?
+ - Can it be more than 2 points net? is there any chance of making a net with custom points for instance 5, 10 or 20 for on any numaric value?
+
 
 
  curl -i -N  \

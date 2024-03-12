@@ -78,14 +78,14 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
             <span>{position === 'left' ? 'R' : 'S'}</span>
           </div>
         ))} */}
-        <div className={`img-left-txt absolute bg-slate-100/75 text-gray-900 bottom-0 left-0 w-7 z-10 text-center flex flex-col`} style={fsToggle(screenWidth)}>
+        {/* <div className={`img-left-txt absolute bg-slate-100/75 text-gray-900 bottom-0 left-0 w-7 z-10 text-center flex flex-col`} style={fsToggle(screenWidth)}>
           <span>1-1</span>
           <span>R</span>
         </div>
         <div className={`img-right-txt absolute bg-slate-100/75 text-gray-900 bottom-0 right-0 w-7 z-10 text-center flex flex-col`} style={fsToggle(screenWidth)}>
           <span>1-1</span>
           <span>S</span>
-        </div>
+        </div> */}
       </div>
 
       <div className={`p-name-rank w-full flex ${screenWidth > screen.xs ? 'h-7' : 'h-9'}`}>

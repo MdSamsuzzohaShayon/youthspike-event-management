@@ -70,6 +70,7 @@ query GetMatch($matchId: String!) {
       rounds {
         _id
         num
+        completed
         teamAProcess
         teamAScore
         teamBProcess

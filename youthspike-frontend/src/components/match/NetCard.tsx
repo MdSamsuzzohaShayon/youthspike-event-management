@@ -2,9 +2,8 @@
 import React, { useEffect, useState } from 'react';
 
 // Redux
-import { setCurrNetNum, updateNetPlayer } from '@/redux/slices/netSlice';
+import { setCurrNetNum, setCurrentRoundNets, setNets, updateNetPlayer } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setUpdateNets } from '@/redux/slices/netSlice';
 
 // Components
 import PlayerScoreCard from './PlayerScoreCard';
@@ -125,8 +124,18 @@ function NetCard({ net, screenWidth }: INetCardProps) {
       }
     }
 
-    dispatch(updateNetPlayer(netPlayerObj));
-    dispatch(setUpdateNets(netPlayerObj));
+    
+    // Set current round nets and all nets
+    const updatedCRN = [...currRoundNets]; // crn = current round nets
+    const updatedAllNets = [...allNets];
+    const findCRN = updatedCRN.findIndex((n) => n._id === net._id);
+    if (findCRN !== -1) updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...netPlayerObj };
+    const findAN = updatedAllNets.findIndex((n) => n._id === net._id);
+    if (findAN !== -1) updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...netPlayerObj };
+    dispatch(setCurrentRoundNets(updatedCRN));
+    dispatch(setNets(updatedAllNets));
+
+
     dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp !== evacuatedPlayerId)]))
   };
 
@@ -267,7 +276,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
       {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true)}
       {/* Net top section end  */}
 
-      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} />
+      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} />
 
       {/* Net bottom section start  */}
       {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false)}

@@ -43,7 +43,7 @@ function VerifyLineup() {
 
         
         return (<div className="net-box mb-4 flex justify-center items-center" key={crn._id}>
-            <div className={`mx-8 w-full border ${border.light}`}>
+            <div className={`w-full border ${border.light}`}>
                 <h4>Net {crn.num}</h4>
                 <div className={`w-full flex justify-between items-center border-t ${border.light}`}>
                     <div className="players w-4/6 p-1 text-start">
@@ -59,7 +59,8 @@ function VerifyLineup() {
         </div>)
     }
     return (
-        <div className='absolute left-0 top-0 w-full bg-gray-100 text-gray-900 z-20 overflow-y-scroll' style={{ height: "50rem" }}>
+        <div className='w-full bg-gray-100 text-gray-900 z-20 overflow-y-scroll' style={{ height: "50rem" }}>
+            <div className='container p-4 mx-auto '>
             <img src='/icons/close.svg' className='svg-black w-8 h-8 mb-4' role="presentation" onClick={handleCloseLineup} />
             <h3 className='mb-4'>Assigned Nets</h3>
             {currentRoundNets && currentRoundNets.length > 0 && currentRoundNets.map((crn) => (myTeamE === ETeam.teamA
@@ -67,8 +68,9 @@ function VerifyLineup() {
             ))}
 
             <button type="button" className='btn-secondary mb-4' onClick={handlePlayerSubmit}>Submit</button>
+            </div>
         </div>
     )
 }
 
-export default VerifyLineup
+export default VerifyLineup;

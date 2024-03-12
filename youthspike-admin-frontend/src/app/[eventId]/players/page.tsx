@@ -18,14 +18,15 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
 
-  // hooks
+  // ===== hooks ===== 
   const user = useUser();
 
-  // Local State
+  // ===== Local State ===== 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
+  const [showRank, setShowRank] = useState<boolean>(false);
+  const [rankControls, setRankControls] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
-  const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
   const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
   const [filteredPlayerList, setFilteredPlayerList] = useState<IPlayerExpRel[]>([]);
@@ -34,17 +35,21 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
 
 
-  // GraphQL
+  // ===== GraphQL ===== 
   const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
+
+  const refetchFunc=async ()=>{
+    await refetch();
+  }
 
   const fetchPlayer = async () => {
     const playerRes = await getEvent({ variables: { eventId: params.eventId } });
 
     if (!playerRes) return;
 
-    const npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
-    
-    let fpList = [...npList]; // fp list = filtered players list
+    let npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
+
+
 
     const ntList: ITeam[] = playerRes?.data?.getEvent?.data?.teams ? playerRes?.data?.getEvent?.data?.teams : []; // Nt List = new team List
     let ftList = [...ntList]; // ft List = filtered team list
@@ -52,7 +57,32 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     const divs = playerRes?.data?.getEvent?.data?.divisions ? divisionsToOptionList(playerRes?.data?.getEvent?.data?.divisions) : []; // divs = divisions
     setDivisionList(divs);
 
-    // Division and team value
+    // ===== Show players of captain's team ===== 
+    if (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) {
+      setShowRank(true);
+      setRankControls(true);
+      let pId = user.info.captainplayer ? user.info.captainplayer : user.info.cocaptainplayer;
+      const playerExist = npList.find((p) => p._id === pId);
+      if (playerExist) {
+        const teamId = playerExist.teams && playerExist.teams.length > 0 ? playerExist.teams[0]._id : null;
+        if (teamId) {
+          npList = npList.filter((p) => {
+            if (p.teams && p.teams.length > 0) {
+              const tIds = p.teams.map((t) => t._id);
+              if (tIds.includes(teamId)) {
+                return p;
+              }
+            }
+          });
+        }
+      } else {
+        npList = [];
+      }
+    }
+
+    let fpList = [...npList]; // fp list = filtered players list
+
+    // ===== Division and team value ===== 
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
     if (divisionExist) {
@@ -69,9 +99,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    /**
-     * Filter Players
-     */
+    // ===== Filter Players ===== 
     const inputEl = e.target as HTMLInputElement;
     setCurrDivision(inputEl.value.trim());
     if (inputEl.value === '') {
@@ -84,29 +112,29 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       setFilteredTeamList([...ntList]);
 
       const npList = playerList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      
+
       setFilteredPlayerList([...npList]);
     }
   }
 
-  // Callback functions
-  const playerAddCB=(playerData: IPlayerExpRel)=>{
-    setPlayerList((prevState)=> [...prevState, playerData]);
-    setFilteredPlayerList((prevState)=> [...prevState, playerData]);
+  // ===== Callback functions ===== 
+  const playerAddCB = (playerData: IPlayerExpRel) => {
+    setPlayerList((prevState) => [...prevState, playerData]);
+    setFilteredPlayerList((prevState) => [...prevState, playerData]);
   }
 
   useEffect(() => {
-    if (params.eventId) {
+    if (params.eventId && user.token) {
       if (isValidObjectId(params.eventId)) {
         fetchPlayer();
       } else {
         setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
-  }, [params.eventId]);
+  }, [params.eventId, user, data]);
 
   if (loading || isLoading) return <Loader />;
-  
+
 
 
 
@@ -128,7 +156,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
           <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
-        <PlayerList playerList={filteredPlayerList} eventId={params.eventId} setIsLoading={setIsLoading} setAddPlayer={setAddPlayer} teamIds={teamList.map((t) => t._id)} />
+        <PlayerList playerList={filteredPlayerList} eventId={params.eventId} setIsLoading={setIsLoading} setAddPlayer={setAddPlayer} teamIds={teamList.map((t) => t._id)} 
+        showRank={showRank} rankControls={rankControls} refetchFunc={refetchFunc} divisionList={divisionList} teamList={filteredTeamList} />
       </>)}
     </div>
   )

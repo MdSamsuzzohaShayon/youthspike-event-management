@@ -2,7 +2,7 @@
 
 /* eslint-disable no-unused-vars */
 import Head from 'next/head';
-import React, { useEffect, useCallback, Suspense, useState } from 'react';
+import React, { useEffect, useCallback, Suspense, useState, useRef } from 'react';
 
 // Hooks
 import useResizeObserver from '@/hooks/useResizeObserver';
@@ -36,20 +36,25 @@ import listenSocketEvents from '@/utils/match/listenSocketEvents';
 import { canGoNextOrPrevRound, joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
+import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 
 /**
  * Test Match
  * Match URL 
- * http://localhost:3001/matches/65e0879b81d16290815d65ff
+ * http://localhost:3001/matches/65e8cba57c597b83c183c279
  * 
- * T1
+ * Wolves-Alex
  * Captain
- * p9d3@e.com
+ * alex@bristol.group
+ * Co-captain
+ * ayyy.spence@gmail.com
  * 
  * 
- * T2
+ * Vipers-Konnor
  * Captain
- * p4d3@e.com
+ * flame50006@icloud.com
+ * Co-captain
+ * konnorcordingley@gmail.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -63,13 +68,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const user = useUser();
   const socket = useSocket();
 
+  const audioPlayEl = useRef<HTMLButtonElement>(null);
+
   // Redux States
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
-  const { currentRoundNets: currRoundNets, updateNets, nets: allNets } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam } = useAppSelector((state) => state.matches);
+  const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
+  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup } = useAppSelector((state) => state.matches);
+  const { current: currRoom } = useAppSelector((state) => state.rooms);
 
 
   // GraphAL
@@ -88,6 +96,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       // changeTheRound({ socket, roundList, currRound: currentRound, dispatch, allNets, currRoom: currentRoom, newRoundIndex, myTeamE, opTeamProcess })
     }
   }
+
+  const handlePlayAudio=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    const audio = new Audio('/audio/notification.mp3');
+    audio.play().catch(error => console.error(error));
+  }
+  
+  const restartAudio = () => {
+    if(audioPlayEl.current) audioPlayEl.current.click();
+  };
 
   /**
    * Fetch data
@@ -124,7 +142,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       const userToken = getCookie("token");
 
       joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId })
-      listenSocketEvents({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList });
+      listenSocketEvents({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
 
   }, [socket, user, teamA, teamB, roundList]);
@@ -137,8 +155,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const mainEl = useResizeObserver(onResize);
 
   if (loading) return <Loader />;
-  
-  
+
+
 
   return (
     <React.Fragment>
@@ -152,16 +170,25 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
+
+          <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
+
           <TeamPlayers teamPlayers={opPlayers} team={opTeamE} screenWidth={screenWidth} />
+          {verifyLineup
+            ? <VerifyLineup />
+            : (<React.Fragment>
+              {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+              <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} />
 
-          {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-          <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets}  roundList={roundList}/>
+
+              {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
+            </React.Fragment>)}
 
 
-          {user && user.info && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
 
-        
-          {eventSponsors.length > 0 && (!user || !user.token )&& (
+
+
+          {eventSponsors.length > 0 && (!user || !user.token) && (
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
               <h3>Sponsors</h3>
               <div className="flex items-center justify-between flex-wrap w-full">

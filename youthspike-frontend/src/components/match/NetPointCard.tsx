@@ -1,14 +1,18 @@
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setUpdateNets } from '@/redux/slices/netSlice';
-import { INetBase, INetRelatives, INetUpdate, ITeam } from '@/types';
-import { EActionProcess } from '@/types/room';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { INetBase, INetRelatives, INetUpdate, IRoundRelatives, ITeam } from '@/types';
+import { EActionProcess, IRoom } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
 import { fsToggle } from '@/utils/helper';
 import React, { useEffect, useState } from 'react';
 import TeamScoreInput from '../team/TeamScoreInput';
 import { screen } from '@/utils/constant';
+import { setCurrentRound } from '@/redux/slices/roundSlice';
+import { lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
+import { Socket } from 'socket.io-client';
+import { useSocket } from '@/lib/SocketProvider';
 
 
 interface INetPointCard {
@@ -18,12 +22,16 @@ interface INetPointCard {
     handleRightShift: () => void;
     handleLeftShift: () => void;
     screenWidth: number;
+    currRoom: IRoom | null;
 }
 
-function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth }: INetPointCard) {
+function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, currRoom }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
+    const socket = useSocket();
+
     const { current: currRound } = useAppSelector((state) => state.rounds);
+    const { nets: allNets, currentRoundNets:  currRoundNets} = useAppSelector((state) => state.nets);
     const teamA = useAppSelector((state) => state.teams.teamA);
 
 
@@ -45,7 +53,26 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth }: I
             updateObj.teamBScore = teamScore;
             updateObj.teamAScore = net?.teamAScore ? net?.teamAScore : null;
         }
-        dispatch(setUpdateNets({ _id: netId, ...updateObj }));
+
+        // Set current round nets and all nets
+        const updatedCRN = [...currRoundNets]; // crn = current round nets
+        const updatedAllNets = [...allNets];
+        const findCRN = updatedCRN.findIndex((n) => n._id === netId);
+        if (findCRN !== -1) updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...updateObj };
+        const findAN = updatedAllNets.findIndex((n) => n._id === netId);
+        if (findAN !== -1) updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...updateObj };
+        dispatch(setCurrentRoundNets(updatedCRN));
+        dispatch(setNets(updatedAllNets));
+
+        // Update current round
+        const currRoundObj = { ...currRound, teamAScore: updateObj.teamAScore, teamBScore: updateObj.teamBScore } as IRoundRelatives;
+        dispatch(setCurrentRound(currRoundObj));
+
+        // Update to the server
+        lineupToUpdatePoints({socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN});
+        console.log("Update");
+        
+
 
     }
 

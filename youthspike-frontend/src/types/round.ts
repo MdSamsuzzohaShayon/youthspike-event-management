@@ -14,8 +14,9 @@ interface IRoundBase {
     _id: string;
     num: number;
     firstPlacing: ETeam;
-    teamAScore?: number;
-    teamBScore?: number;
+    completed: boolean;
+    teamAScore?: number | null;
+    teamBScore?: number | null;
     teamAProcess: EActionProcess; // Oponent Team
     teamBProcess: EActionProcess; // My Team
 }
