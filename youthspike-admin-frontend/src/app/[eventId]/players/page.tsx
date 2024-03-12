@@ -157,7 +157,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
         <PlayerList playerList={filteredPlayerList} eventId={params.eventId} setIsLoading={setIsLoading} setAddPlayer={setAddPlayer} teamIds={teamList.map((t) => t._id)} 
-        showRank={showRank} rankControls={rankControls} refetchFunc={refetchFunc} />
+        showRank={showRank} rankControls={rankControls} refetchFunc={refetchFunc} divisionList={divisionList} teamList={filteredTeamList} />
       </>)}
     </div>
   )

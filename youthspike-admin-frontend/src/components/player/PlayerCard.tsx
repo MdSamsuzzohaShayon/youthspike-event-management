@@ -74,8 +74,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   }
   const handleMovePlayerBox = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log({ playerId: player._id, teamId });
-
     setMovePlayer(true);
     setActionOpen(prevState => !prevState);
   }
@@ -186,8 +184,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       }
     }
   }, []);
-
-
+  
+  
 
   return (
     <React.Fragment>

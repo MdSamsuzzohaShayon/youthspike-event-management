@@ -4,7 +4,7 @@ import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives } from "@/types";
 import { EActionProcess, } from "@/types/room";
-import { ISubmitUpdatePointsdProps } from "@/types/socket";
+import { ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from "@/types/socket";
 import { ETeam } from "@/types/team";
 
 
@@ -157,7 +157,7 @@ function changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRou
 
 
 
-function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets, }: ISubmitUpdatePointsdProps) {
+function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets, }: ISubmitUpdatePointsProps) {
     const netPointsList = [];
     for (const n of currRoundNets) {
         const nObj = {
@@ -171,4 +171,35 @@ function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets, }: I
     if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
 }
 
-export { joinTheRoom, checkInToLineup, initToCheckIn, canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints };
+function updateMultiplePoints({socket, dispatch, allNets, currRoom, currRound, currRoundNets, }: IUpdateMultiplePointsProps){
+    const cloneAN = [...allNets]; // AN = all nets
+    const cloneCRN = [...currRoundNets]; // crn = current round nets
+    const netPointsList = [];
+    for (const n of currRoundNets) {
+      const nObj = {
+        _id: n._id,
+        teamAScore: n.teamAScore ? n.teamAScore : 0,
+        teamBScore: n.teamBScore ? n.teamBScore : 0,
+      };
+      netPointsList.push(nObj);
+
+      // To set current round nets
+      const findCRNi = cloneCRN.findIndex((cn)=> cn._id === n._id);
+      if(findCRNi !== -1){
+        cloneCRN[findCRNi] = {...cloneCRN[findCRNi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore};
+      }
+
+      // to set all round nets
+      const findANi= cloneAN.findIndex((an)=> an._id === n._id);
+      if(findANi !== -1){
+        cloneAN[findANi] = {...cloneAN[findANi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore};
+      }
+    }
+
+    dispatch(setCurrentRoundNets(cloneCRN));
+    dispatch(setNets(cloneAN));
+
+    if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
+}
+
+export { joinTheRoom, checkInToLineup, initToCheckIn, canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints, updateMultiplePoints };

@@ -28,6 +28,7 @@ type Round {
   teamBScore: Int
   teamAProcess: EActionProcess!
   teamBProcess: EActionProcess!
+  completed: Boolean
   firstPlacing: ETeam!
 }
 
@@ -37,7 +38,7 @@ enum EActionProcess {
   LINEUP
   LINEUP_SUBMITTED
   LOCKED
-  COMPLETE
+  COMPLETED
 }
 
 enum ETeam {
@@ -330,6 +331,7 @@ type RoundResoponse {
   _id: String!
   teamAScore: Float
   teamBScore: Float
+  completed: Boolean!
 }
 
 type RoomRoundProcess {

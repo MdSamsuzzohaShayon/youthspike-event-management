@@ -277,12 +277,14 @@ export class MyGatWay implements OnModuleInit {
       i += 1;
     }
 
-    await this.roundService.update({ teamAScore, teamBScore }, updatePointsInput.round);
+    let completed = false;
+    if(teamAScore > 0 && teamBScore > 0) completed = true;
+    await this.roundService.update({ teamAScore, teamBScore, completed }, updatePointsInput.round);
 
     const pointsResponse: RoundUpdatedResponse = {
       nets: updatePointsInput.nets,
       room: updatePointsInput.room,
-      round: { _id: updatePointsInput.round, teamAScore, teamBScore }
+      round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed }
     }
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
   }

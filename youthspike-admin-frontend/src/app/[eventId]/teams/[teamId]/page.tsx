@@ -40,9 +40,6 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
         setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
-    return () => {
-      removeTeamFromStore();
-    }
   }, [teamId]);
 
   if (loading || isLoading) return <Loader />;

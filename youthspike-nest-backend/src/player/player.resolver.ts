@@ -94,7 +94,7 @@ export class PlayerResolver {
   async updatePlayer(@Args('input') input: UpdatePlayerInput, @Args("playerId") playerId: string, @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true })
   profile?: Upload,): Promise<PlayerResponse> {
     try {
-      // Upload image to cloudinary
+      // ===== Upload image to cloudinary ===== 
       const playerObj: UpdateQuery<Player> = { ...input };
       if (profile) {
         const profileUrl = await this.cloudinaryService.uploadFiles(profile);
@@ -105,7 +105,7 @@ export class PlayerResolver {
       if (!playerExist) return AppResponse.exists("Player");
 
       const updatePromises = [];
-      // Rank Update if a player move from middle of the 
+      // ===== Rank Update if a player move from middle of the ===== 
       if (input?.status && input.playerTeamId) {
         const teamExist = await this.teamService.findById(input.playerTeamId);
         if (!teamExist) return AppResponse.exists("Team");
@@ -121,20 +121,19 @@ export class PlayerResolver {
             }
           }
         } else if (input?.status === EPlayerStatus.ACTIVE) {
-          // Check how many active players
+          // =====  Check how many active players ===== 
           playerObj.rank = teamExist.players.length;
         }
       }
 
 
-      // Curr team - 65d8b250efd88fce90a62607
-      if (input.team) {
+      // ===== Rank a player if player move to another team ===== 
+      if (input.team && input.team !== input.playerTeamId) {
         const teamExist = await this.teamService.findById(input.playerTeamId);
         if (!teamExist) return AppResponse.exists("Team");
         // Add to new team
         updatePromises.push(this.teamService.update({ $addToSet: { players: playerId } }, { _id: input.team }));
 
-        /*
         // Rank Players properly
         playerObj.rank = null;
         const findTeamPlayers = await this.playerService.query({ _id: { $in: teamExist.players.map((p) => p.toString()) } });
@@ -146,11 +145,12 @@ export class PlayerResolver {
             updatePromises.push(this.playerService.updateOne({ _id: restOfThePlayers[i]._id }, element));
           }
         }
-        */
+
 
         // Previous team
         if (input.playerTeamId) {
           updatePromises.push(this.teamService.update({ $pull: { players: playerId } }, { _id: input.playerTeamId }));
+          // Rank players of previous team properly
         }
 
         // First, add the new team if it doesn't exist

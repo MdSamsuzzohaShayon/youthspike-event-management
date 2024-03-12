@@ -78,6 +78,7 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
     e.preventDefault(); // Prevent scrolling
     dragOverPI.current = index;
   }
+  
 
 
   return (

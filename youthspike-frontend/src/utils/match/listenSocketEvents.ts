@@ -1,4 +1,4 @@
-import { IListenSocketProps, INetRelatives, IRoundExpRel, IRoundRelatives, ITeam, IUser, IUserContext } from "@/types";
+import { IListenSocketProps, INetRelatives, IRoundExpRel, IRoundRelatives, ITeam, IUpdateScoreResponse, IUser, IUserContext } from "@/types";
 import { Socket } from "socket.io-client";
 import { getCookie } from "../cookie";
 import { setCurrentRoom } from "@/redux/slices/roomSlice";
@@ -9,7 +9,7 @@ import { joinTheRoom } from "./emitSocketEvents";
 
 
 
-const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList }: IListenSocketProps) => {
+const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
   /**
    * Socket real time connection
    * After joining to the room action button will be visiable
@@ -22,6 +22,8 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     dispatch(setCurrentRoom(extranctedData));
   });
   socket.on('check-in-response', (data: IRoom) => {
+
+    restartAudio();
 
     // Set current round and round list
     const updatedRoundList: IRoundRelatives[] = [];
@@ -51,6 +53,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
 
   socket.on('submit-lineup-response', (data: IRoomNets) => {
 
+    restartAudio();
     
     // Set current round nets and all nets
     const updatedCRN = [...currRoundNets]; // crn = current round nets
@@ -102,10 +105,9 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     }
   });
 
-  // @ts-ignore
+
   socket.on("update-points-response", (data: IUpdateScoreResponse) => {
-    // Set nets
-    // set current round nets
+    // ===== set current round nets ===== 
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
 
@@ -124,10 +126,11 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
 
     dispatch(setNets(newAllNets));
     dispatch(setCurrentRoundNets(netsOfRound));
-    // update round
+
+    // ===== update round =====
     const findRound = roundList.find((r) => r._id === data.round._id);
     if (findRound) {
-      const updatedRound = { ...findRound, teamAScore: data.round.teamAScore, teamBScore: data.round.teamBScore };
+      const updatedRound = { ...findRound, teamAScore: data.round.teamAScore, teamBScore: data.round.teamBScore, completed: data.round.completed };
       const newRoundList = [updatedRound, ...roundList.filter(r => r._id !== data.round._id)];
       dispatch(setRoundList(newRoundList));
       if (currentRound && findRound._id === currentRound._id) {

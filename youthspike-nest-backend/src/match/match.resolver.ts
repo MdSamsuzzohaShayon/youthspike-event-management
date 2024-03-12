@@ -88,7 +88,8 @@ export class MatchResolver {
           teamAProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN, // From the second round captain does not need to check in once again
           teamBProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN,
           subs: [],
-          firstPlacing
+          firstPlacing,
+          completed: false
         };
         const round = await this.roundService.create(newRound);
         firstPlacing = firstPlacing === ETeam.teamA ? ETeam.teamB : ETeam.teamA;

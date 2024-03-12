@@ -3,21 +3,27 @@ import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { IRoom, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
+import { canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints, updateMultiplePoints } from '@/utils/match/emitSocketEvents';
 import React, { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client';
+import PointText from './PointText';
 
 interface IBoxProps {
   currRoom: IRoom | null;
-  user: null | IUserContext;
   socket: Socket | null;
   otp: EActionProcess;
-  mtp: EActionProcess;
 }
 
-function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
+function LineupBox({ currRoom, socket, otp }: IBoxProps) {
+
+  // ===== Hooks =====
   const dispatch = useAppDispatch();
+
+  // ===== Local State =====
   const [opProcessForMyRound, setOpProcessForMyRound] = useState<EActionProcess>(EActionProcess.CHECKIN); // Oponent process for my current round
+  const [pTxt, setPTxt] = useState<string>('');
+  const [submittedLineup, setSubmittedLineup] = useState<boolean>(false);
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
 
   const { myTeamE, } = useAppSelector((state) => state.matches)
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
@@ -36,8 +42,14 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
     }
   }
 
+  const handleUpdatePoints = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    // Update round and nets
+    updateMultiplePoints({ allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch });
+  }
+
   useEffect(() => {
-    // Set oponent team process for Specific round
+    // ===== Set oponent team process for Specific round =====
     if (currentRound) {
       if (myTeamE === ETeam.teamA) {
         if (currentRound.teamAProcess) setOpProcessForMyRound(currentRound.teamAProcess);
@@ -46,17 +58,36 @@ function LineupBox({ currRoom, user, socket, otp, mtp }: IBoxProps) {
       }
     }
   }, [currentRound]);
-  
+
+  useEffect(() => {
+    let pt = '';
+    if (otp === EActionProcess.LINEUP) {
+      pt = `Round ${currentRound?.num} - Game Play`;
+    } else {
+      pt = `Round ${currentRound?.num} - Player Assignments`;
+      setIsWaiting(true);
+    }
+    setPTxt(pt);
+  }, [otp, currentRound]);
 
   return (
-    <div>
-      {otp === EActionProcess.LINEUP ? <div>
-        <p>Both team have submitted their lineup, now this round is locked, no one change their players in the net!</p>
-        <div className="buttons flex w-full justify-center items-center gap-x-2">
-          {currentRound?.teamAScore && currentRound.teamBScore && (<button className="btn-primary" type='button' onClick={(e) => handleChangeRound(e, true)}>Next Round</button>)}
-
-        </div>
-      </div> : <p>You have submitted your lineup successfully, now the other team need to submit their lineup!</p>}
+    <div className={`flex py-2 w-full justify-between items-center gap-1 ${isWaiting ? "box-danger" : "box-success"}`}>
+      <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
+        <PointText txt={pTxt} />
+        {otp === EActionProcess.LINEUP
+          ? (<React.Fragment>
+            <h2 className="font-black text-start">Time to go PLAY. Once the games are finished, input the scores to complete round.</h2>
+            <button className="btn-light" type='button' onClick={handleUpdatePoints}>Update Scores</button>
+            {/* {currentRound?.teamAScore && currentRound.teamBScore && (<button className="btn-light" type='button' onClick={(e) => handleChangeRound(e, true)}>Next Round</button>)} */}
+          </React.Fragment>)
+          : <React.Fragment>
+            <h2 className="font-black text-start">Waiting for the other squad to MATCH their lineup.</h2>
+            <button className={`btn-light-outline`} type='button' >YOU PLACED YOUR LINEUP</button>
+          </React.Fragment>}
+      </div>
+      <div className="hidden md:block w-2/6">
+        <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+      </div>
     </div>
   )
 }

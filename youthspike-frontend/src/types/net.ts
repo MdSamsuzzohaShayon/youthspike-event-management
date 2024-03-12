@@ -34,13 +34,14 @@ interface INetUpdate {
 interface INetScoreUpdate {
     _id: string;
     teamAScore: number;
-    teamBScore: number
+    teamBScore: number;
+    completed: boolean;
 }
 
 interface IUpdateScoreResponse {
     nets: INetScoreUpdate[];
     room: string;
-    round: INetScoreUpdate
+    round: INetScoreUpdate;
 }
 
 interface INetPlayers {

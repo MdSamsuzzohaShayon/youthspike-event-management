@@ -16,7 +16,7 @@ export enum EActionProcess {
   LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
   
   LOCKED = 'LOCKED',
-  COMPLETE = 'COMPLETE',
+  COMPLETED = 'COMPLETED',
 };
 
 export enum ETeam{
@@ -76,6 +76,10 @@ export class Round extends AppDocument {
   @Field((type) => EActionProcess, { nullable: false })
   @Prop({ required: true, type: String, default: EActionProcess.INITIATE, enum: EActionProcess })
   teamBProcess: EActionProcess;
+
+  @Field((type) => Boolean, { nullable: true })
+  @Prop({ required: false, default: false})
+  completed: boolean;
 
 
   @Field((type) => ETeam, { nullable: false })

@@ -11,7 +11,8 @@ export interface IListenSocketProps {
     currentRound: IRoundRelatives | null;
     currRoundNets: INetRelatives[];
     allNets: INetRelatives[];
-    roundList: IRoundRelatives[]
+    roundList: IRoundRelatives[];
+    restartAudio: () => void;
 }
 
 
@@ -56,11 +57,16 @@ export interface INextRoundProps extends ICommonProps {
 }
 
 
-export interface ISubmitUpdatePointsdProps {
+export interface ISubmitUpdatePointsProps {
     socket: Socket | null;
     currRoom: IRoom | null;
     currRound: IRoundRelatives | null;
     currRoundNets: INetRelatives[];
+}
+
+export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps{
+    dispatch: React.Dispatch<React.ReducerAction<any>>;
+    allNets: INetRelatives[];
 }
 
 export interface ICanGoProps extends ICommonProps {

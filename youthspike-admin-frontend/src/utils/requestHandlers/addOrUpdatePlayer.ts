@@ -6,6 +6,7 @@ import { BACKEND_URL } from "../keys";
 import { MutationFunction } from "@apollo/client";
 import { Router } from "next/router";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { getTeamFromStore } from "../localStorage";
 
 interface IAddOrUpdatePlayer {
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -97,7 +98,12 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
     } finally {
         setIsLoading(false);
         if (update) {
-            router.push(`/${eventId}/players/${prevPlayer?._id}`)
+            const teamExist = getTeamFromStore();
+            if(teamExist){
+                router.push(`/${eventId}/teams/${teamExist}`)
+            }else{
+                router.push(`/${eventId}/players/${prevPlayer?._id}`)
+            }
         }
     }
 }

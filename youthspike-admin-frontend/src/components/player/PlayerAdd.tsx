@@ -42,7 +42,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
   // React Hooks
   const router = useRouter();
 
-  // local States
+  // ===== local States =====
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
@@ -50,9 +50,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
 
   const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
 
-  /**
-   * Input Change
-   */
+  /// ===== input Change =====
   const handleInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
