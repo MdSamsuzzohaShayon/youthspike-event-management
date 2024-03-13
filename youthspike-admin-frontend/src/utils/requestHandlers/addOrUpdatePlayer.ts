@@ -27,10 +27,11 @@ interface IAddOrUpdatePlayer {
     playerAddCB?: (playerData: IPlayerExpRel) => void;
     playerUpdateCB?: (playerData: IPlayerExpRel) => void;
     update?: boolean;
+    refetchFunc?: ()=> Promise<void>;
 }
 
 async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-    prevPlayer, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update }: IAddOrUpdatePlayer) {
+    prevPlayer, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
     try {
         setIsLoading(true);
         const playerAddObj = structuredClone(playerState);
@@ -93,6 +94,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
             setActErr({ name: playerRes.data.createPlayer.code, message: playerRes.data.createPlayer.message, main: playerRes.data.createPlayer });
         }
         if (setAddPlayer && !update) setAddPlayer(false);
+        if(refetchFunc) await refetchFunc();
     } catch (error) {
         console.log(error);
     } finally {

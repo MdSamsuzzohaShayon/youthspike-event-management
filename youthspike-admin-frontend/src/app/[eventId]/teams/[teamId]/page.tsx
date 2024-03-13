@@ -23,11 +23,13 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
    * Captain can change team player ranking
    * 
    */
-  const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId } });
+  const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId }, fetchPolicy: "network-only" });
   const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const refetchFunc = async () => {
+    console.log("Calling refetch team");
+    
     await refetch();
   }
 

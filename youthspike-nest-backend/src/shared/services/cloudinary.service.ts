@@ -45,6 +45,7 @@ export class CloudinaryService {
         transformation: {
           width: w,
           height: h,
+          crop: 'limit',
         },
       });
 
@@ -77,6 +78,7 @@ export class CloudinaryService {
         transformation: {
           width: w,
           height: h,
+          crop: 'limit',
         },
       });
 

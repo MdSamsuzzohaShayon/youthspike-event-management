@@ -8,27 +8,21 @@ import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
 import { EActionProcess } from '@/types/room';
 import CompletedBox from '../ActionBoxes/CompletedBox';
-
+import FinalRoundBox from '../ActionBoxes/FinalRoundBox';
 
 
 function RoundRunner() {
-  /**
-   * Step-1: Both team check in -> If a team checked in show your team checked in
-   * Step-2: If both team checked in start placing players to the net
-   * Step-3: Submit line up one by one team
-   * Step-4: If both team submit their line up the net will be locked up they can not change players on the net (All nets of the round need to be locked)
-   * Step-5: make submit line up from the next round and showing a prompt to oponent that "Your oponent is waiting for you in the next round to submit your lineup" - Change process from the server
-   */
-  // Hooks
+  // ===== Hooks ===== 
   const user = useUser();
   const socket = useSocket();
 
-  // Redux State
+  // =====  Redux State ===== 
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { teamA } = useAppSelector((state) => state.teams)
+  const { myTeamE } = useAppSelector((state) => state.matches)
 
-  // Local State
+  // ===== Local State ===== 
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
   const [otp, setOtp] = useState<EActionProcess>(EActionProcess.INITIATE); // otp = Oponent team process
 
@@ -36,14 +30,16 @@ function RoundRunner() {
   const renderActionBoxes = (): React.ReactNode => {
     let hasAction: boolean = false;
 
-    // Check if user has action
+    // =====  Check if user has action ===== 
     if (user && user?.token && (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain)) {
       hasAction = true;
     }
 
-    if(currentRound?.completed) return <CompletedBox currRoom={currentRoom} socket={socket} />
-    
+    if (currentRound?.num === roundList.length && currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamAProcess === EActionProcess.LINEUP){
+      return <FinalRoundBox currRoom={currentRoom} socket={socket} otp={otp} myTeamE={myTeamE} />
+    }
 
+    if (currentRound?.completed) return <CompletedBox currRoom={currentRoom} socket={socket} />
 
     switch (mtp) {
       case EActionProcess.INITIATE:

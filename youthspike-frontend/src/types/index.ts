@@ -20,9 +20,9 @@ import { ITeam } from "./team";
 import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from "./match";
 import { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse} from "./net";
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from "./round";
-import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNets, IRoomRoundProcess, ICheckInAction} from "./room";
+import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNetType, IRoomNets, IRoomRoundProcess, ICheckInAction} from "./room";
 
-import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps } from "./socket";
+import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps, INotTwoPointNetProps } from "./socket";
 
 export type {
   // Elements
@@ -75,6 +75,7 @@ export type {
   INetUpdate,
   INetPlayers,
   IRoomNetAssign,
+  IRoomNetType,
   INetScoreUpdate,
   IUpdateScoreResponse,
 
@@ -94,6 +95,6 @@ export type {
 
   // socket
   IListenSocketProps,
-  IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps,
+  IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, INotTwoPointNetProps,
   ICheckInToLineupProps, 
 };

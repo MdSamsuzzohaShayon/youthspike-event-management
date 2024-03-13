@@ -49,7 +49,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
 
   return (
     <React.Fragment>
-      <div className={`p-img-wrap relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24'}`}>
+      <div className={`p-img-wrap relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
         {shouldShowEvacuateButton && (
           <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full">
             {myTeamE === ETeam.teamA && !dark ? (!currentRound.teamAScore && (
@@ -71,21 +71,6 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
             onClick={handleDropDown}
           />
         )}
-
-        {/* {['left', 'right'].map((position) => (
-          <div key={position} className={`img-${position}-txt absolute bg-slate-100/75 text-gray-900 bottom-0 ${position}-0 w-7 z-20 text-center flex flex-col`} style={fsToggle(screenWidth)}>
-            <span>1-1</span>
-            <span>{position === 'left' ? 'R' : 'S'}</span>
-          </div>
-        ))} */}
-        {/* <div className={`img-left-txt absolute bg-slate-100/75 text-gray-900 bottom-0 left-0 w-7 z-10 text-center flex flex-col`} style={fsToggle(screenWidth)}>
-          <span>1-1</span>
-          <span>R</span>
-        </div>
-        <div className={`img-right-txt absolute bg-slate-100/75 text-gray-900 bottom-0 right-0 w-7 z-10 text-center flex flex-col`} style={fsToggle(screenWidth)}>
-          <span>1-1</span>
-          <span>S</span>
-        </div> */}
       </div>
 
       <div className={`p-name-rank w-full flex ${screenWidth > screen.xs ? 'h-7' : 'h-9'}`}>

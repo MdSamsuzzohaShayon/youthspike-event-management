@@ -24,6 +24,7 @@ interface IPlayerAddProps {
   update?: boolean;
   playerAddCB?: (playerData: IPlayerExpRel) => void;
   playerUpdateCB?: (playerData: IPlayerExpRel) => void;
+  refetchFunc?: () =>Promise<void>;
 }
 
 const initialPlayerAdd = {
@@ -36,7 +37,7 @@ const initialPlayerAdd = {
   division: ''
 };
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, setActErr, division, playerAddCB, playerUpdateCB }: IPlayerAddProps) {
+function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, setActErr, division, playerAddCB, playerUpdateCB, refetchFunc }: IPlayerAddProps) {
 
 
   // React Hooks
@@ -88,7 +89,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     e.preventDefault();
     addOrUpdatePlayer({
       setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-      prevPlayer, updatePlayer, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update
+      prevPlayer, updatePlayer, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update, refetchFunc
     });
   }
 

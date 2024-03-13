@@ -2,7 +2,7 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
-import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, UpdatePointsInput, RoundUpdatedResponse, RoundChangeInput } from './gateway.input';
+import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, UpdatePointsInput, RoundUpdatedResponse, RoundChangeInput, TieBreakerInput, NetTieBreaker } from './gateway.input';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
@@ -40,7 +40,7 @@ class RoomLocal {
   @Field({ nullable: true })
   teamBClient: null | string;
 
-  @Field(()=> [RoomRoundProcess],{ nullable: false, defaultValue: [] })
+  @Field(() => [RoomRoundProcess], { nullable: false, defaultValue: [] })
   rounds: RoomRoundProcess[];
 
 }
@@ -49,6 +49,13 @@ class RoomLocal {
 class RoomLocalWithNets {
   @Field(type => [NetAssign], { nullable: false })
   nets: NetAssign[]
+
+}
+
+@ObjectType()
+class RoomLocalWithNetTypes {
+  @Field(type => [NetAssign], { nullable: false })
+  nets: NetTieBreaker[]
 
 }
 
@@ -181,14 +188,14 @@ export class MyGatWay implements OnModuleInit {
     if (!prevRoom) return;
     const roomData = { ...prevRoom };
     let roundList = [...roomData.rounds];
-    const roundI = roundList.findIndex((r)=> r._id === checkIn.round)
-    if(roundI === -1) return;
+    const roundI = roundList.findIndex((r) => r._id === checkIn.round)
+    if (roundI === -1) return;
 
     // update round to checkin
-    const currRoundObj = {...roundList[roundI]}
+    const currRoundObj = { ...roundList[roundI] }
     if (prevRoom.teamAClient === client.id) {
       currRoundObj.teamAProcess = EActionProcess.CHECKIN;
-    }else if (prevRoom.teamBClient === client.id){
+    } else if (prevRoom.teamBClient === client.id) {
       currRoundObj.teamBProcess = EActionProcess.CHECKIN;
     } else {
       return;
@@ -214,11 +221,11 @@ export class MyGatWay implements OnModuleInit {
     if (!prevRoom) return;
     let roomData = { ...prevRoom };
     let roundList = [...roomData.rounds];
-    const roundI = roundList.findIndex((r)=> r._id === submitLineup.round)
-    if(roundI === -1) return;
+    const roundI = roundList.findIndex((r) => r._id === submitLineup.round)
+    if (roundI === -1) return;
 
     // update round to checkin
-    const currRoundObj = {...roundList[roundI]};
+    const currRoundObj = { ...roundList[roundI] };
     if (prevRoom.teamAClient === client.id) {
       currRoundObj.teamAProcess = EActionProcess.LINEUP;
     } else {
@@ -249,6 +256,31 @@ export class MyGatWay implements OnModuleInit {
     client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
   }
 
+  @SubscribeMessage("update-net-from-client")
+  async onNetUpdate(client, netInputs: TieBreakerInput){
+    const prevRoom = this.roomsLocal.get(netInputs.room);
+    if (!prevRoom) return;
+    let roomData = { ...prevRoom };
+
+    const roundExist = await this.roundService.findById(netInputs.round)
+    if (!roundExist) return;
+
+
+    // Update nets and round by assigning player to nets
+    const updatePromises = [];
+    for (const n of netInputs.nets) {
+      updatePromises.push(this.netService.update({
+        netType: n.netType
+      }, n._id));
+    }
+
+    await Promise.all(updatePromises);
+
+    this.roomsLocal.set(netInputs.room, roomData);
+    const roomDataWithNets: RoomLocalWithNetTypes = { ...roomData, nets: netInputs.nets };
+    client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
+  }
+
   @SubscribeMessage('update-points-from-client')
   async onPointsUpdate(client, updatePointsInput: UpdatePointsInput) {
 
@@ -268,17 +300,22 @@ export class MyGatWay implements OnModuleInit {
 
     // Calculate and update score for all nets of a round
     const findNets = await this.netService.query({ round: updatePointsInput.round });
-    let teamAScore = 0;
-    let teamBScore = 0;
+    let teamAScore = null;
+    let teamBScore = null;
     let i = 0;
     while (i < findNets.length) {
-      if (findNets[i].teamAScore) teamAScore += findNets[i].teamAScore;
-      if (findNets[i].teamBScore) teamBScore += findNets[i].teamBScore;
+      if (findNets[i].teamAScore && findNets[i].teamBScore) {
+        teamAScore ? teamAScore += findNets[i].teamAScore : teamAScore = findNets[i].teamAScore
+        teamBScore ? teamBScore += findNets[i].teamBScore : teamBScore = findNets[i].teamBScore;
+      }else{
+        teamAScore = null;
+        teamBScore = null;
+      }
       i += 1;
     }
 
     let completed = false;
-    if(teamAScore > 0 && teamBScore > 0) completed = true;
+    if (teamAScore > 0 && teamBScore > 0) completed = true;
     await this.roundService.update({ teamAScore, teamBScore, completed }, updatePointsInput.round);
 
     const pointsResponse: RoundUpdatedResponse = {
@@ -288,46 +325,6 @@ export class MyGatWay implements OnModuleInit {
     }
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
   }
-
-  // @SubscribeMessage("round-change-from-client")
-  // async onRoundChange(client, roundChangeInput: RoundChangeInput) {
-  //   /**
-  //    * Change process for a team
-  //    * Make submit process for the team who changes the  round
-  //    * Invite other team to be in the same round as current team is in
-  //    * Check current round is not locked, if it is locked let it be
-  //    */
-  //   const [currRoundExist, nextRoundExist] = await Promise.all([
-  //     this.roundService.findById(roundChangeInput.round),
-  //     this.roundService.findById(roundChangeInput.nextRound)
-  //   ]);
-
-  //   if (!currRoundExist || !nextRoundExist) return;
-  //   const prevRoom = this.roomsLocal.get(roundChangeInput.room);
-  //   if (!prevRoom) return;
-
-  //   // Set room data initially
-  //   let roomData = structuredClone(prevRoom);;
-
-
-
-  //   const roundUpdateObj = {
-  //     teamAProcess: nextRoundExist.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamAProcess,
-  //     teamBProcess: nextRoundExist.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamBProcess
-  //   };
-
-  //   let roomRounds = [...prevRoom.rounds];
-  //   const localRoundIndex = roomRounds.findIndex((r)=> r._id === roundChangeInput.nextRound);
-  //   if(localRoundIndex !== -1){
-  //     roomRounds[localRoundIndex] = {...roomRounds[localRoundIndex], ...roundUpdateObj};
-  //     roomData.rounds = roomRounds;
-  //   }
-  //   await this.roundService.updateOne({ _id: roundChangeInput.nextRound }, roundUpdateObj);
-  //   this.roomsLocal.set(prevRoom._id, roomData);
-
-  //   // set oponent specific round and current round
-  //   client.to(prevRoom._id).emit("round-change-response", roomData);
-  // }
 
   @SubscribeMessage("room-detail-client")
   async onRoomCheck(client, { roomId }: { roomId: string }) {

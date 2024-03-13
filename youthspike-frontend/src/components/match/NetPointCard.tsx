@@ -4,14 +4,12 @@ import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { INetBase, INetRelatives, INetUpdate, IRoundRelatives, ITeam } from '@/types';
 import { EActionProcess, IRoom } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { UserRole } from '@/types/user';
 import { fsToggle } from '@/utils/helper';
 import React, { useEffect, useState } from 'react';
 import TeamScoreInput from '../team/TeamScoreInput';
 import { screen } from '@/utils/constant';
 import { setCurrentRound } from '@/redux/slices/roundSlice';
 import { lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
-import { Socket } from 'socket.io-client';
 import { useSocket } from '@/lib/SocketProvider';
 
 
@@ -31,7 +29,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     const socket = useSocket();
 
     const { current: currRound } = useAppSelector((state) => state.rounds);
-    const { nets: allNets, currentRoundNets:  currRoundNets} = useAppSelector((state) => state.nets);
+    const { nets: allNets, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
     const teamA = useAppSelector((state) => state.teams.teamA);
 
 
@@ -65,15 +63,22 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         dispatch(setNets(updatedAllNets));
 
         // Update current round
-        const currRoundObj = { ...currRound, teamAScore: updateObj.teamAScore, teamBScore: updateObj.teamBScore } as IRoundRelatives;
+        let tas: number | null = null, tbs: number | null = null;
+        updatedCRN.forEach((n)=>{
+            if(n.teamAScore && n.teamBScore){
+                tas = tas ? tas + n.teamAScore : n.teamAScore;
+                tbs = tbs ? tbs + n.teamBScore : n.teamBScore;
+            }else{
+                tas = null;
+                tbs = null;
+            }
+        });
+
+        const currRoundObj = { ...currRound, teamAScore: tas, teamBScore: tbs, completed: tas && tbs ? true : false } as IRoundRelatives;
         dispatch(setCurrentRound(currRoundObj));
 
         // Update to the server
-        lineupToUpdatePoints({socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN});
-        console.log("Update");
-        
-
-
+        lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN });
     }
 
     const handleKeyUp = (e: React.SyntheticEvent) => {
@@ -84,7 +89,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     const teamACapOrCo = user.info?.captainplayer === teamA?.captain?._id || user.info?.cocaptainplayer === teamA?.cocaptain?._id;
 
     return (
-        <div className={`absolute z-10 ${screenWidth > screen.xs ? "h-20" : "h-28"} w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center p-1 flex-col`} style={{ top: '39%' }}>
+        <div className={`absolute z-10 ${screenWidth > screen.xs ? "h-20" : "h-28"} w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center p-1 flex-col rounded-lg`} style={{ top: '39%' }}>
             {user && teamACapOrCo
                 ? <TeamScoreInput key={`${1}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />
                 : <TeamScoreInput key={`${2}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />}

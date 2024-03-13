@@ -2,16 +2,12 @@
 
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import MenuItem from './MenuItem';
 import { IUser, UserRole } from '@/types/user';
 import { IMenuItem } from '@/types';
-import { gql, useApolloClient, useLazyQuery, useReadQuery } from '@apollo/client';
 import Link from 'next/link';
 import { removeCookie, getCookie } from '@/utils/cookie';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-
-const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
 const initialUserMenuList: IMenuItem[] = [
     {
@@ -45,16 +41,6 @@ const initialUser = {
 };
 
 function Menu() {
-    /**
-     * For home/ leagues page show only account option
-     * Add logo to the top for league director organization
-     * If user is captain show only matches and teams
-     * Show setting, teams, matches, players option and event name if the user has a eventId
-     * Create LDO or League Director Organization from the backend
-     */
-    const router = useRouter();
-    const pathname = usePathname();
-    const client = useApolloClient();
 
     const [openMenu, setOpenMenu] = useState<boolean>(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -78,16 +64,7 @@ function Menu() {
         return window.location.reload();
     }
 
-    /**
-     * Using Cache
-     */
-
-
-
-
-    /**
-     * Mount hooks
-     */
+    // ===== Component mount ===== 
     useEffect(() => {
         const instantToken = getCookie('token'); // Fetch again
         const instantInfo = getCookie('user');
@@ -102,43 +79,7 @@ function Menu() {
         }
     }, []);
 
-    // console.log({data});
-
-
-    /*
-    useEffect(() => {
-        const pathList = pathname.split('/');
-        let eventPath = pathList.length > 0 ? pathList[1] : null;
-        if (eventPath && eventPath.length < 5) eventPath = null;
-        if (eventPath && eventPaths.includes(eventPath)) eventPath = null;
-
-        if (!eventPath || eventPath === '') {
-            setEventId(null);
-
-            if (user.info?.role === UserRole.admin) {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]); // Admin and directors
-            } else if (user.info?.role === UserRole.captain) {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
-            } else {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]); // 5 = account
-            }
-        } else {
-            setEventId(eventPath);
-            if (user.info?.role === UserRole.director) {
-                setUserMenuList((prevState) => [...prevState.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7)]); // 2 = teams // 4 = matches
-            } else if (user.info?.role === UserRole.captain) {
-                setUserMenuList([...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]); // captain
-            } else {
-                setUserMenuList(initialUserMenuList);
-            }
-        }
-
-    }, [user, router, pathname]);
-    */
-
-    /**
-     * Renders sub components
-     */
+    // =====  Render sub components ===== 
     const renderMenuItems = (eId: string | null, uml: IMenuItem[]) => { // uml = user menu list
         const menuItems: React.ReactNode[] = [];
         for (let i = 0; i < uml.length; i++) {
@@ -150,10 +91,8 @@ function Menu() {
         return <>{menuItems}</>;
     }
 
-    // if (!user.info || !user.token || user.token === '') return null;
-
     return (
-        <div className='container px-2 mx-auto bg-gray-800 text-gray-100'>
+        <div className='container px-2 mx-auto bg-gray-900 text-gray-100'>
             {isAuthenticated && (
                 <button onClick={openMenuHandler} className='menu-button'>
                     <img src='/icons/menu.svg' className='w-10 mt-4 svg-white' alt='menu' />

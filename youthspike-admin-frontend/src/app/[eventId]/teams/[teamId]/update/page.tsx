@@ -1,5 +1,6 @@
 "use client"
 
+import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamAdd from '@/components/teams/TeamAdd';
 import { GET_A_TEAM } from '@/graphql/teams';
@@ -9,7 +10,7 @@ import { useLazyQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 
 function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string } }) {
-  const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId: params.teamId } });
+  const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId: params.teamId }, fetchPolicy: "network-only" });
   
   const [actErr, setActErr] = useState<IError | null>(null);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
@@ -39,13 +40,15 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
   const teamData = data?.getTeam?.data;
   const divisions = data?.getTeam?.data?.event?.divisions;
 
+  if(isLoading || loading) return <Loader />
+
   return (
     <div className='container mx-auto px-2 min-h-screen'>
       <h1 className='mb-8 text-center'>Update Team</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {teamData && <TeamAdd eventId={params.eventId} availablePlayers={availablePlayers} divisions={divisions} handleClose={handleClose} setActErr={setActErr} 
-      setAvailablePlayers={setAvailablePlayers} setIsLoading={setIsLoading} prevTeam={teamData} update refetch={handleRefetch} />}
+      {teamData && <TeamAdd eventId={params.eventId} availablePlayers={availablePlayers} handleClose={handleClose} setActErr={setActErr} 
+      setAvailablePlayers={setAvailablePlayers} setIsLoading={setIsLoading} prevTeam={teamData} update refetchFunc={handleRefetch} />}
     </div>
   )
 }

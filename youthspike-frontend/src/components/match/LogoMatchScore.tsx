@@ -32,17 +32,17 @@ function LogoMatchScore({ dark, team, roundList, teamE, screenWidth, allNets }: 
   
 
   return (
-    <div className={`logo-match-score flex w-full ${dark ? "text-gray-100 flex-col" : "text-gray-900 flex-col-reverse"} `}>
+    <div className={`logo-match-score flex w-full ${dark ? "text-gray-100 flex-col" : "text-gray-900 flex-col-reverse"} gap-1`}>
       <div className="w-full flex justify-between items-center pt-4 gap-1">
         {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} /> : <TextImg fullText={team?.name} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} />}
         <h3 className={`break-words w-2/6 leading-4`} style={headingStyle(screenWidth)}>Match Score</h3>
-        <div className={`score-box w-2/6 border ${dark ? border.dark : border.light} ${screenWidth > screen.xs ? "" : "p-2"} flex justify-center items-center text-center flex-col`}>
+        <div className={`score-box w-2/6 border ${dark ? border.dark : border.light} ${screenWidth > screen.xs ? "" : "p-2"} flex justify-center items-center text-center flex-col rounded-lg`}>
           <p style={textStyle(screenWidth)}>{calcTeamScore().ts}</p>
           <p style={textStyle(screenWidth)} className={calcTeamScore().pms > 0 ? `text-green-600` : `text-red-600`}>{calcTeamScore().pms > 0 ? `+${calcTeamScore().pms}` : `${calcTeamScore().pms}`}</p>
         </div>
       </div>
-      <div className={`w-full border  ${dark ? border.dark : border.light} ${screenWidth > screen.xs ? "mt-2" : "mt-4"} `}>
-        <h2 className={`${screenWidth > screen.xs ? 'leading-5' : 'p-2 leading-8'} text-center uppercase break-words`} style={headingStyle(screenWidth, 0, 0.2)}>{team && team.name}</h2>
+      <div className={`w-full border rounded-lg ${dark ? border.dark : border.light} `}>
+        <h2 className={`${screenWidth > screen.xs ? 'leading-5' : 'px-2 leading-8'} text-center uppercase break-words`} style={headingStyle(screenWidth, 0, 0.2)}>{team && team.name}</h2>
       </div>
     </div>
   );

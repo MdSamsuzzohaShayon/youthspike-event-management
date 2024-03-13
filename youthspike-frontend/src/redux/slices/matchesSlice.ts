@@ -41,7 +41,7 @@ const initialState: MatchesState = {
     location: '',
     numberOfNets: 0,
     numberOfRounds: 0,
-    divisions: '',
+    division: '',
     netVariance: 0,
     homeTeam: '',
     autoAssign: false,
@@ -106,6 +106,7 @@ export const matchesSlice = createSlice({
     setVerifyLineup:(state, action: PayloadAction<boolean>)=>{
       state.verifyLineup = action.payload;
     },
+
 
     setNetTeamPlayers: (state, action: PayloadAction<ETeamPlayer>) => {
       state.netTeamPlayer = action.payload;

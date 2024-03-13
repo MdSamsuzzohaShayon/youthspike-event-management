@@ -1,9 +1,18 @@
 import { IPlayer } from ".";
 
+
+export enum ETieBreaker{
+    PREV_NET="PREV_NET",
+    FINAL_ROUND_NET="FINAL_ROUND_NET",
+    FINAL_ROUND_NET_LOCKED="FINAL_ROUND_NET_LOCKED",
+    TIE_BREAKER_NET="TIE_BREAKER_NET",
+  }
+
 interface INetBase {
     _id: string;
     num: number;
     points: number;
+    netType: ETieBreaker;
     teamAScore: number | null;
     teamBScore: number | null;
     pairRange?: number;

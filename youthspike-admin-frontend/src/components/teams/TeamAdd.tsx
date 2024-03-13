@@ -1,22 +1,16 @@
-import { RefetchQueriesFunction, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import React, { useState, useEffect, useRef } from 'react';
-import Loader from '../elements/Loader';
 import Message from '../elements/Message';
 import { IError, IOption, IPlayer, ITeam, ITeamAdd } from '@/types';
-import { ADD_A_TEAM, ADD_TEAM_RAW, UPDATE_TEAM, UPDATE_TEAM_RAW } from '@/graphql/teams';
+import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
 import Link from 'next/link';
-import { divisionsToOptionList } from '@/utils/helper';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import FileInput from '../elements/forms/FileInput';
-import { getCookie } from '@/utils/cookie';
-import { BACKEND_URL } from '@/utils/keys';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
-import { getDivisionFromStore, setDivisionToStore } from '@/utils/localStorage';
-import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 
-interface IPrevTeam extends ITeamAdd{
+interface IPrevTeam extends ITeamAdd {
     _id: string;
 }
 
@@ -27,10 +21,11 @@ interface ITeamAddProps {
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-    teamAddCB: (teamData: ITeam)=> void;
+    teamAddCB?: (teamData: ITeam) => void;
     currDivision?: string;
     update?: boolean;
     prevTeam?: IPrevTeam;
+    refetchFunc?: () => Promise<void>;
 }
 
 const initialTeamState = {
@@ -43,7 +38,7 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB }: ITeamAddProps) {
+function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
@@ -58,14 +53,16 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
 
 
 
-    
+
     // Handle events
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateTeam({eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState, 
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB});
+        await addOrUpdateTeam({
+            eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
+            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
+        });
 
-        // console.log({ resultData });
+        if (refetchFunc) await refetchFunc();
         const formEl = e.target as HTMLFormElement;
         formEl.reset();
         handleClose(e);
@@ -74,8 +71,11 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
 
     const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateTeam({eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState, 
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB});
+        await addOrUpdateTeam({
+            eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
+            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
+        });
+        if (refetchFunc) await refetchFunc();
     }
 
 

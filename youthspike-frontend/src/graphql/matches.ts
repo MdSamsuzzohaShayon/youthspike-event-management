@@ -87,6 +87,7 @@ query GetMatch($matchId: String!) {
         nets {
           _id
           num
+          netType
           teamAScore
           teamBScore
           points

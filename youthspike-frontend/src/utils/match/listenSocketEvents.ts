@@ -4,7 +4,7 @@ import { getCookie } from "../cookie";
 import { setCurrentRoom } from "@/redux/slices/roomSlice";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import { EActionProcess, IRoom, IRoomNets, IRoomRoundProcess } from "@/types/room";
+import { EActionProcess, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from "@/types/room";
 import { joinTheRoom } from "./emitSocketEvents";
 
 
@@ -54,7 +54,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
   socket.on('submit-lineup-response', (data: IRoomNets) => {
 
     restartAudio();
-    
+
     // Set current round nets and all nets
     const updatedCRN = [...currRoundNets]; // crn = current round nets
     const updatedAllNets = [...allNets];
@@ -140,32 +140,29 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
   });
 
 
-  // if (socket) socket.on('round-change-response', (data: IRoom) => {
-  //   // Set current round and round list
-  //   const updatedRoundList: IRoundRelatives[] = [];
-  //   let currRoundObj: null | IRoundRelatives = null;
-  //   const roomRounds: IRoomRoundProcess[] = [...data.rounds];
-  //   if (roomRounds.length > 0) {
-  //     for (let i = 0; i < roomRounds.length; i++) {
-  //       if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
-  //         const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
-  //         const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
-  //         if (roundObj) {
-  //           // @ts-ignore
-  //           updatedRoundList.push({ ...roundObj, ...teamProcessObj });
-  //           if (roomRounds[i]._id === currentRound?._id) {
-  //             // @ts-ignore
-  //             currRoundObj = { ...roundObj, ...teamProcessObj };
-  //           }
-  //         }
-  //       }
-  //     }
+  socket.on("update-net-response", (data: ITeiBreakerAction) => {
+    // Update current round nets and all nets
+    const updatedCRN = [...currRoundNets];
+    const updatedN = [...allNets];
 
-  //     dispatch(setRoundList(updatedRoundList));
-  //     if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
-  //   }
+    for (let i = 0; i < data.nets.length; i++) {
+      const crnI = updatedCRN.findIndex((n) => n._id === data.nets[i]._id); // crnI = current round net index
+      if (crnI !== -1) {
+        const netObj = { ...updatedCRN[crnI], netType: data.nets[i].netType };
+        updatedCRN[crnI] = netObj;
+      }
 
-  // });
+      const nI = updatedN.findIndex((n) => n._id === data.nets[i]._id); // nI = nI = net index
+      if (nI !== -1) {
+        const netObj = { ...updatedN[nI], netType: data.nets[i].netType };
+        updatedN[nI] = netObj;
+      }
+    }
+
+    dispatch(setCurrentRoundNets(updatedCRN));
+    dispatch(setNets(updatedN));
+
+  });
 
 };
 

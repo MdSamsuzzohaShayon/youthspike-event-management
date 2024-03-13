@@ -95,7 +95,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
       for (const n of round.nets) {
         netIds.push(n._id);
         formattedNets.push({
-          _id: n._id, num: n.num, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id,
+          _id: n._id, num: n.num, netType: n.netType, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id,
           teamAPlayerA: n.teamAPlayerA, teamAPlayerB: n.teamAPlayerB, teamBPlayerA: n.teamBPlayerA, teamBPlayerB: n.teamBPlayerB,
         });
       }

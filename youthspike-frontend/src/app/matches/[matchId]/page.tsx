@@ -33,10 +33,12 @@ import { useSocket } from '@/lib/SocketProvider';
 import { handleError, isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import listenSocketEvents from '@/utils/match/listenSocketEvents';
-import { canGoNextOrPrevRound, joinTheRoom } from '@/utils/match/emitSocketEvents';
+import { joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
+import { EPlayerStatus } from '@/types/player';
+import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 
 /**
  * Test Match
@@ -75,7 +77,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
-  const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
+  const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
@@ -83,28 +85,14 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   // GraphAL
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
 
-
-  const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
-    e.preventDefault();
-    /**
-     * Before completing current round someone can not go to the next round
-     * Round must have team a score and team b score to proceed
-     * Change current round nets
-     */
-    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch });
-    if (newRoundIndex !== -1) {
-      // changeTheRound({ socket, roundList, currRound: currentRound, dispatch, allNets, currRoom: currentRoom, newRoundIndex, myTeamE, opTeamProcess })
-    }
-  }
-
-  const handlePlayAudio=(e: React.SyntheticEvent)=>{
+  const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const audio = new Audio('/audio/notification.mp3');
     audio.play().catch(error => console.error(error));
   }
-  
+
   const restartAudio = () => {
-    if(audioPlayEl.current) audioPlayEl.current.click();
+    if (audioPlayEl.current) audioPlayEl.current.click();
   };
 
   /**
@@ -173,20 +161,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
           <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
 
-          <TeamPlayers teamPlayers={opPlayers} team={opTeamE} screenWidth={screenWidth} />
-          {verifyLineup
-            ? <VerifyLineup />
-            : (<React.Fragment>
-              {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-              <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} />
-
-
-              {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
-            </React.Fragment>)}
-
-
-
-
+          <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} team={opTeamE} screenWidth={screenWidth} />
+          {notTieBreakerNetId ? <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} /> : (
+            verifyLineup
+              ? <VerifyLineup />
+              : (<React.Fragment>
+                {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+                <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} />
+                {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
+              </React.Fragment>)
+          )}
 
           {eventSponsors.length > 0 && (!user || !user.token) && (
             <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
@@ -197,7 +181,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             </div>
           )}
           {/* My Players  */}
-          <TeamPlayers teamPlayers={myPlayers} team={myTeamE} screenWidth={screenWidth} />
+          <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} team={myTeamE} screenWidth={screenWidth} />
         </div>
       </Suspense>
     </React.Fragment>

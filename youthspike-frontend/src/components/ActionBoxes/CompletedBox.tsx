@@ -1,13 +1,15 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { IRoom, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
-import { canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints, updateMultiplePoints } from '@/utils/match/emitSocketEvents';
+import { changeTheRound, lineupToUpdatePoints, updateMultiplePoints } from '@/utils/match/emitSocketEvents';
 import React, { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client';
 import PointText from './PointText';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
+import { setActErr } from '@/redux/slices/elementSlice';
+import { setDisabledPlayerIds, setPrevPartner } from '@/redux/slices/matchesSlice';
 
 interface IBoxProps {
     currRoom: IRoom | null;
@@ -30,16 +32,22 @@ function CompletedBox({ currRoom, socket }: IBoxProps) {
     const { current: currentRound, roundList, } = useAppSelector((state) => state.rounds);
     const { teamA, teamB } = useAppSelector((state) => state.teams);
 
-    const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
+    const handleNextRound = (e: React.SyntheticEvent) => {
         e.preventDefault();
-        /**
-         * Before completing current round someone can not go to the next round
-         * Round must have team a score and team b score to proceed
-         * Change current round nets
-         */
-        const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch });
-        if (newRoundIndex !== -1) {
-            changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex, myTeamE, currRound: currentRound });
+        if (!currentRound?.num) return;
+        let next = false;
+        let targetRoundIndex = roundList.findIndex((r) => r.num === currentRound?.num + 1);
+        if (targetRoundIndex !== -1 && currentRound) {
+            if (roundList[targetRoundIndex].num > currentRound?.num) {
+                next = true;
+                const prevRound = roundList[targetRoundIndex - 1];
+                if (!prevRound || !prevRound.completed) return dispatch(setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." }));
+                dispatch(setActErr(null));
+            }
+
+            changeTheRound({ roundList, dispatch, allNets, newRoundIndex: targetRoundIndex, myTeamE });
+            dispatch(setDisabledPlayerIds([]));
+            dispatch(setPrevPartner(null));
         }
     }
 
@@ -76,7 +84,7 @@ function CompletedBox({ currRoom, socket }: IBoxProps) {
 
             <div className="w-2/6 md:hidden">
                 <button className={`btn-light`} type='button' >Update Score</button>
-                <button className={`btn-light`} type='button' >Next Round</button>
+                <button className={`btn-light`} type='button' onClick={handleNextRound} >Next Round</button>
             </div>
             <div className="w-1/6 hidden md:block">
                 <button className={`btn-light`} type='button' >Update Score</button>
@@ -86,7 +94,7 @@ function CompletedBox({ currRoom, socket }: IBoxProps) {
                 <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
             </div>
             <div className="w-1/6 hidden md:block">
-                <button className={`btn-light`} type='button' >Next Round</button>
+                <button className={`btn-light`} type='button' onClick={handleNextRound} >Next Round</button>
             </div>
 
             <div className="w-2/6 md:w-1/6 flex justify-center items-center flex-col">
