@@ -89,7 +89,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     const teamACapOrCo = user.info?.captainplayer === teamA?.captain?._id || user.info?.cocaptainplayer === teamA?.cocaptain?._id;
 
     return (
-        <div className={`absolute z-10 ${screenWidth > screen.xs ? "h-20" : "h-28"} w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center p-1 flex-col`} style={{ top: '39%' }}>
+        <div className={`absolute z-10 ${screenWidth > screen.xs ? "h-20" : "h-28"} w-11/12 left-2 bg-yellow-500 flex flex-col justify-around items-center p-1 flex-col rounded-lg`} style={{ top: '39%' }}>
             {user && teamACapOrCo
                 ? <TeamScoreInput key={`${1}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />
                 : <TeamScoreInput key={`${2}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />}

@@ -5,7 +5,7 @@ import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { INetRelatives, IPlayer } from '@/types';
 import { ETeam } from '@/types/team';
 import { checkInToLineup } from '@/utils/match/emitSocketEvents';
-import { border } from '@/utils/styles';
+import { border, overflowNetH } from '@/utils/styles';
 import React from 'react'
 
 function VerifyLineup() {
@@ -59,7 +59,7 @@ function VerifyLineup() {
         </div>)
     }
     return (
-        <div className='w-full bg-gray-100 text-gray-900 z-20 overflow-y-scroll' style={{ height: "50rem" }}>
+        <div className='w-full bg-gray-100 text-gray-900 z-20 overflow-y-scroll'style={{ height: `${overflowNetH}rem`}}>
             <div className='container p-4 mx-auto '>
             <img src='/icons/close.svg' className='svg-black w-8 h-8 mb-4' role="presentation" onClick={handleCloseLineup} />
             <h3 className='mb-4'>Assigned Nets</h3>

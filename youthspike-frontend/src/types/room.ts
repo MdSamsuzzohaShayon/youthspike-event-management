@@ -1,4 +1,5 @@
 import { INetPlayers } from ".";
+import { ETieBreaker } from "./net";
 
 export enum EActionProcess {
     INITIATE = 'INITIATE',
@@ -47,12 +48,23 @@ export interface IRoomNetAssign {
     teamBPlayerB: string | null | undefined;
 }
 
-export interface ICheckInAction {
+export interface IRoomNetType {
+    _id: string;
+    netType: ETieBreaker;
+}
+
+interface IActionCommon{
     room: string | null;
     round: string | null;
     teamAProcess: string | null;
     teamBProcess: string | null;
+}
+export interface ICheckInAction extends IActionCommon{
     nets: IRoomNetAssign[];
+}
+
+export interface ITeiBreakerAction extends IActionCommon{
+    nets: IRoomNetType[];
 }
 
 export interface ISubmitLineup {

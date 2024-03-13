@@ -1,9 +1,8 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { IRoom, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { canGoNextOrPrevRound, changeTheRound, lineupToUpdatePoints, updateMultiplePoints } from '@/utils/match/emitSocketEvents';
+import { changeTheRound, lineupToUpdatePoints, updateMultiplePoints } from '@/utils/match/emitSocketEvents';
 import React, { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client';
 import PointText from './PointText';
@@ -24,22 +23,8 @@ function LineupBox({ currRoom, socket, otp }: IBoxProps) {
   const [bgBox, setBgBox] = useState<string>("box-danger");
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
 
-  const { myTeamE, } = useAppSelector((state) => state.matches)
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currentRound, roundList, } = useAppSelector((state) => state.rounds);
-
-  const handleChangeRound = async (e: React.SyntheticEvent, next: boolean) => {
-    e.preventDefault();
-    /**
-     * Before completing current round someone can not go to the next round
-     * Round must have team a score and team b score to proceed
-     * Change current round nets
-     */
-    const newRoundIndex = canGoNextOrPrevRound({ currRound: currentRound, roundList, next, currRoundNets, dispatch });
-    if (newRoundIndex !== -1) {
-      changeTheRound({ socket, roundList, dispatch, allNets, currRoom, newRoundIndex, myTeamE, currRound: currentRound });
-    }
-  }
 
   const handleUpdatePoints = (e: React.SyntheticEvent) => {
     e.preventDefault();

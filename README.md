@@ -57,8 +57,7 @@ ___
 
 ### Running
 
- - Style according to Figma
- - Make color scheme same
+ - Style according to Figma - Make color scheme same
  
  - Creating team, players, match smoothly
  - Run a match smoothly
@@ -66,18 +65,14 @@ ___
  - Update director informations as admin (Not working properly)
  - Email for a player is optional field, only if we want to add that player to captain we will need email
  - When we edit a player we should not see division and team, when we move the player they should appear
- - When updating points, there should not be a button for updating points instead, when input change it will be updated
  - Till 15:00
  
 
  - Player sub, a player can be off for a round and can get back in the next round
 
  - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
- - Changing round one by one (Need to jump to the clicked round)
 
  - If a round has been submitted he can not re-rank his players
- - After updating points there next round button should be show up
- - in active players are still showing up when we click on the empty player box
 
  - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
  - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
@@ -144,7 +139,6 @@ ___
  - **Match**
  - After updating points there next round button should be show up
  - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
- - When updating points, there should not be a button for updating points instead, when input change it will be updated1
  - Player sub, a player can be off for a round and can get back in the next round
  - When clicking on empty player card that net name should be shown on the player list on the left
  - Get a sound notification on an socket event

@@ -26,6 +26,14 @@ export interface IJoinTheRoomProps {
     matchId: string;
 }
 
+export interface INotTwoPointNetProps {
+    socket: Socket | null;
+    netId: string;
+    currRoom: IRoom | null;
+    currRound: IRoundRelatives | null;
+    currRoundNets: INetRelatives[];
+}
+
 export interface IStatusChange {
     socket: Socket | null;
     user: IUserContext | null;
@@ -64,7 +72,7 @@ export interface ISubmitUpdatePointsProps {
     currRoundNets: INetRelatives[];
 }
 
-export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps{
+export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps {
     dispatch: React.Dispatch<React.ReducerAction<any>>;
     allNets: INetRelatives[];
 }

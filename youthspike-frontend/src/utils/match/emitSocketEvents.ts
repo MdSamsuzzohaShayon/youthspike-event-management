@@ -2,8 +2,9 @@ import { setActErr } from "@/redux/slices/elementSlice";
 import { setTeamE, setVerifyLineup } from "@/redux/slices/matchesSlice";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives } from "@/types";
-import { EActionProcess, } from "@/types/room";
+import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives, INotTwoPointNetProps} from "@/types";
+import { ETieBreaker } from "@/types/net";
+import { EActionProcess, IRoomNetType, ITeiBreakerAction, } from "@/types/room";
 import { ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from "@/types/socket";
 import { ETeam } from "@/types/team";
 
@@ -172,4 +173,27 @@ function updateMultiplePoints({socket, dispatch, allNets, currRoom, currRound, c
     if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
 }
 
-export { joinTheRoom, checkInToLineup, initToCheckIn, changeTheRound, lineupToUpdatePoints, updateMultiplePoints };
+
+function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets }: INotTwoPointNetProps) {
+    const actionData: ITeiBreakerAction = {
+        room: currRoom?._id ? currRoom?._id : null,
+        round: currRound?._id ? currRound?._id : null,
+        teamAProcess: currRound?.teamAProcess ? currRound?.teamAProcess : null,
+        teamBProcess: currRound?.teamBProcess ? currRound?.teamBProcess : null,
+        nets: []
+    };
+
+    const roundNetAssign: IRoomNetType[] = currRoundNets.map((net) => {
+        // Lock a specific dat
+        return {
+            _id: net._id,
+            netType: net._id === netId ? ETieBreaker.FINAL_ROUND_NET_LOCKED : ETieBreaker.FINAL_ROUND_NET
+        }
+    });
+    actionData.nets = roundNetAssign;
+
+
+    if (socket) socket.emit('update-net-from-client', actionData);
+}
+
+export { joinTheRoom, checkInToLineup, initToCheckIn, changeTheRound, lineupToUpdatePoints, updateMultiplePoints, notTwoPointNet };

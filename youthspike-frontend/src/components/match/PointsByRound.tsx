@@ -26,7 +26,7 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
         <p className={`plus-minus ${plusMinusScore >= 0 ? 'text-green-600' : 'text-red-600'} w-full text-center h-6`}>
           {plusMinusScore > 0 ? `+${plusMinusScore}` : plusMinusScore}
         </p>
-        <p className={`base-point w-full border ${dark ? border.dark : border.light} text-center`}>{score}</p>
+        <p className={`base-point h-10 w-full border ${dark ? border.dark + " rounded-t-lg" : border.light + " rounded-b-lg"} text-center flex justify-center items-center`}>{score}</p>
       </React.Fragment>
     );
   };

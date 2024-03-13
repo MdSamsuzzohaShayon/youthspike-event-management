@@ -2,7 +2,7 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
-import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, UpdatePointsInput, RoundUpdatedResponse, RoundChangeInput } from './gateway.input';
+import { CheckInInput, JoinRoomInput, SubmitLineupInput, NetAssign, UpdatePointsInput, RoundUpdatedResponse, RoundChangeInput, TieBreakerInput, NetTieBreaker } from './gateway.input';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
@@ -49,6 +49,13 @@ class RoomLocal {
 class RoomLocalWithNets {
   @Field(type => [NetAssign], { nullable: false })
   nets: NetAssign[]
+
+}
+
+@ObjectType()
+class RoomLocalWithNetTypes {
+  @Field(type => [NetAssign], { nullable: false })
+  nets: NetTieBreaker[]
 
 }
 
@@ -249,6 +256,31 @@ export class MyGatWay implements OnModuleInit {
     client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
   }
 
+  @SubscribeMessage("update-net-from-client")
+  async onNetUpdate(client, netInputs: TieBreakerInput){
+    const prevRoom = this.roomsLocal.get(netInputs.room);
+    if (!prevRoom) return;
+    let roomData = { ...prevRoom };
+
+    const roundExist = await this.roundService.findById(netInputs.round)
+    if (!roundExist) return;
+
+
+    // Update nets and round by assigning player to nets
+    const updatePromises = [];
+    for (const n of netInputs.nets) {
+      updatePromises.push(this.netService.update({
+        netType: n.netType
+      }, n._id));
+    }
+
+    await Promise.all(updatePromises);
+
+    this.roomsLocal.set(netInputs.room, roomData);
+    const roomDataWithNets: RoomLocalWithNetTypes = { ...roomData, nets: netInputs.nets };
+    client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
+  }
+
   @SubscribeMessage('update-points-from-client')
   async onPointsUpdate(client, updatePointsInput: UpdatePointsInput) {
 
@@ -293,46 +325,6 @@ export class MyGatWay implements OnModuleInit {
     }
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
   }
-
-  // @SubscribeMessage("round-change-from-client")
-  // async onRoundChange(client, roundChangeInput: RoundChangeInput) {
-  //   /**
-  //    * Change process for a team
-  //    * Make submit process for the team who changes the  round
-  //    * Invite other team to be in the same round as current team is in
-  //    * Check current round is not locked, if it is locked let it be
-  //    */
-  //   const [currRoundExist, nextRoundExist] = await Promise.all([
-  //     this.roundService.findById(roundChangeInput.round),
-  //     this.roundService.findById(roundChangeInput.nextRound)
-  //   ]);
-
-  //   if (!currRoundExist || !nextRoundExist) return;
-  //   const prevRoom = this.roomsLocal.get(roundChangeInput.room);
-  //   if (!prevRoom) return;
-
-  //   // Set room data initially
-  //   let roomData = structuredClone(prevRoom);;
-
-
-
-  //   const roundUpdateObj = {
-  //     teamAProcess: nextRoundExist.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamAProcess,
-  //     teamBProcess: nextRoundExist.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : nextRoundExist.teamBProcess
-  //   };
-
-  //   let roomRounds = [...prevRoom.rounds];
-  //   const localRoundIndex = roomRounds.findIndex((r)=> r._id === roundChangeInput.nextRound);
-  //   if(localRoundIndex !== -1){
-  //     roomRounds[localRoundIndex] = {...roomRounds[localRoundIndex], ...roundUpdateObj};
-  //     roomData.rounds = roomRounds;
-  //   }
-  //   await this.roundService.updateOne({ _id: roundChangeInput.nextRound }, roundUpdateObj);
-  //   this.roomsLocal.set(prevRoom._id, roomData);
-
-  //   // set oponent specific round and current round
-  //   client.to(prevRoom._id).emit("round-change-response", roomData);
-  // }
 
   @SubscribeMessage("room-detail-client")
   async onRoomCheck(client, { roomId }: { roomId: string }) {

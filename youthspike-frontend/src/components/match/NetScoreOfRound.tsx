@@ -63,7 +63,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         if (!prevRound || !prevRound.completed) return dispatch(setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." }));
         dispatch(setActErr(null));
       }
-      
+
       changeTheRound({ roundList, dispatch, allNets, newRoundIndex: targetRoundIndex, myTeamE });
       dispatch(setDisabledPlayerIds([]));
       dispatch(setPrevPartner(null));
@@ -204,12 +204,12 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {!showTeamPlayers
         ? (<div className={`round-detail border ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
           {/* Top Side Start  */}
-          <div className="round-top w-full h-3/6 bg-gray-900 text-gray-100 px-2 flex flex-col items-center justify-around">
+          <div className="round-top w-full h-3/6 bg-gradient-dark px-2 flex flex-col items-center justify-between">
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
 
             <div className={`round-nums ${screenWidth > screen.xs ? "mt-2" : "mt-4"} flex w-full justify-start gap-1 items-center`}>
               {roundList.map((round) => (
-                <button className={`single-r ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"}`} type="button"
+                <button className={`single-r ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"} rounded-lg`} type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}>
                   RD{round.num}
@@ -221,9 +221,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Top Side End  */}
 
           {/* Bottom Side Start  */}
-          <div className={`round-bottom w-full h-3/6 border ${border.light} px-2 flex flex-col items-center justify-around`}>
+          <div className={`round-bottom w-full h-3/6 border ${border.light} px-2 flex flex-col items-center justify-between`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
-            <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
+            <div className="mb-2">
+              <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
+            </div>
           </div>
           {/* Bottom Side End  */}
         </div>)

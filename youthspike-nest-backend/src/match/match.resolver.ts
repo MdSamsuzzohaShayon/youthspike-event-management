@@ -12,6 +12,7 @@ import { UserRole } from 'src/user/user.schema';
 import { Match } from './match.schema';
 import { CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
+import { ETieBreaker } from 'src/net/net.schema';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -101,7 +102,9 @@ export class MatchResolver {
             match: newMatch._id,
             round: round._id,
             num: j + 1,
-            points: 1,
+            points: 1, 
+            // For last round net make points more than 1
+            netType: input.numberOfRounds === i+1 ? ETieBreaker.FINAL_ROUND_NET : ETieBreaker.PREV_NET,
             teamAScore: null,
             teamBScore: null,
             pairRange: 0,

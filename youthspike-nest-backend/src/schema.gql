@@ -72,9 +72,17 @@ type Net {
   teamBPlayerA: String
   teamBPlayerB: String
   points: Int!
+  netType: ETieBreaker
   teamAScore: Int
   teamBScore: Int
   pairRange: Int!
+}
+
+enum ETieBreaker {
+  PREV_NET
+  FINAL_ROUND_NET
+  FINAL_ROUND_NET_LOCKED
+  TIE_BREAKER_NET
 }
 
 type Room {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
@@ -8,6 +8,17 @@ import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
+
+export enum ETieBreaker{
+  PREV_NET="PREV_NET",
+  FINAL_ROUND_NET="FINAL_ROUND_NET",
+  FINAL_ROUND_NET_LOCKED="FINAL_ROUND_NET_LOCKED",
+  TIE_BREAKER_NET="TIE_BREAKER_NET", // There will be only one tie breaker net in a round
+}
+
+registerEnumType(ETieBreaker, {
+  name: 'ETieBreaker',
+});
 
 /**
  * Round
@@ -67,6 +78,10 @@ export class Net extends AppDocument {
   @Field((type) => Int, { nullable: false })
   @Prop({ required: true, min: 1, max: 2, default: 1 })
   points: number;
+
+  @Field((type) => ETieBreaker, { nullable: true })
+  @Prop({ required: false, default: ETieBreaker.PREV_NET })
+  netType: ETieBreaker;
 
   @Field((type) => Int, { nullable: true })
   @Prop({ required: false, min: 0, default: null })

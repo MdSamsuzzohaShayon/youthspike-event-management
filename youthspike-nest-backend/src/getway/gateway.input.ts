@@ -1,5 +1,6 @@
 import { Field, InputType, ObjectType, PartialType } from '@nestjs/graphql';
 import { IsOptional, IsNotEmpty } from 'class-validator';
+import { ETieBreaker } from 'src/net/net.schema';
 
 @InputType()
 export class JoinRoomInput {
@@ -130,6 +131,33 @@ export class SubmitLineupInput {
 
   @Field(() => [NetAssign], { nullable: false })
   nets: NetAssign[];
+}
+
+@ObjectType()
+export class NetTieBreaker {
+  @Field({ nullable: false })
+  _id: string;
+  @Field({ nullable: true })
+  netType: ETieBreaker;
+}
+
+@InputType()
+export class TieBreakerInput {
+
+  @Field({ nullable: false })
+  room: string;
+
+  @Field({ nullable: false })
+  round: string;
+
+  @Field({ nullable: true })
+  teamAProcess: string;
+
+  @Field({ nullable: true })
+  teamBProcess: string;
+
+  @Field(() => [NetTieBreaker], { nullable: false })
+  nets: NetTieBreaker[];
 }
 
 @InputType()

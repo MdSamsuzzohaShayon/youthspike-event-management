@@ -11,6 +11,7 @@ interface INetState {
   currentRoundNets: INetRelatives[];
   currNetNum: number;
   updateNets: INetUpdate[];
+  notTieBreakerNetId: string | null;
 }
 
 interface INetScore {
@@ -21,7 +22,8 @@ const initialState: INetState = {
   nets: [],
   currentRoundNets: [],
   currNetNum: 0,
-  updateNets: []
+  updateNets: [],
+  notTieBreakerNetId: null,
 };
 const netSlice = createSlice({
   name: 'net',
@@ -57,8 +59,12 @@ const netSlice = createSlice({
         }
       }
     },
+
+    setNotTieBreakerNetId:(state, action: PayloadAction<string | null>)=>{
+      state.notTieBreakerNetId = action.payload;
+    },
   },
 });
 
-export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer} = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer, setNotTieBreakerNetId} = netSlice.actions;
 export default netSlice.reducer;
