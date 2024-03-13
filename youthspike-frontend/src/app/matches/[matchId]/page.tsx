@@ -168,7 +168,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
               : (<React.Fragment>
                 {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
                 <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} />
-                {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
+                {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain)
+                  && <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />}
               </React.Fragment>)
           )}
 

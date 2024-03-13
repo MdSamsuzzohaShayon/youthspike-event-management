@@ -7,6 +7,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
 import { NetService } from 'src/net/net.service';
+import { ETieBreaker } from 'src/net/net.schema';
 
 @ObjectType()
 class RoomRoundProcess {
@@ -257,7 +258,7 @@ export class MyGatWay implements OnModuleInit {
   }
 
   @SubscribeMessage("update-net-from-client")
-  async onNetUpdate(client, netInputs: TieBreakerInput){
+  async onNetUpdate(client, netInputs: TieBreakerInput) {
     const prevRoom = this.roomsLocal.get(netInputs.room);
     if (!prevRoom) return;
     let roomData = { ...prevRoom };
@@ -268,10 +269,17 @@ export class MyGatWay implements OnModuleInit {
 
     // Update nets and round by assigning player to nets
     const updatePromises = [];
+    let lockedNetIds = [];
     for (const n of netInputs.nets) {
+      if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) lockedNetIds.push(n._id);
       updatePromises.push(this.netService.update({
         netType: n.netType
       }, n._id));
+    }
+
+    if (lockedNetIds.length > 1) {
+      // TIE_BREAKER_NET, worth 2 points
+      this.netService.updateMany({ _id: { $nin: lockedNetIds } }, { $set: { points: 2, netType: ETieBreaker.TIE_BREAKER_NET } });
     }
 
     await Promise.all(updatePromises);
@@ -307,7 +315,7 @@ export class MyGatWay implements OnModuleInit {
       if (findNets[i].teamAScore && findNets[i].teamBScore) {
         teamAScore ? teamAScore += findNets[i].teamAScore : teamAScore = findNets[i].teamAScore
         teamBScore ? teamBScore += findNets[i].teamBScore : teamBScore = findNets[i].teamBScore;
-      }else{
+      } else {
         teamAScore = null;
         teamBScore = null;
       }

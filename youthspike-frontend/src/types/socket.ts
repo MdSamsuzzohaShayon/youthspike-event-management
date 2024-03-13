@@ -32,6 +32,8 @@ export interface INotTwoPointNetProps {
     currRoom: IRoom | null;
     currRound: IRoundRelatives | null;
     currRoundNets: INetRelatives[];
+    allNets: INetRelatives[];
+    dispatch: React.Dispatch<React.ReducerAction<any>>;
 }
 
 export interface IStatusChange {

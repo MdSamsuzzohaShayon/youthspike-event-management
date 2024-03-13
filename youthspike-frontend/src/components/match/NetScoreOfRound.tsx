@@ -29,10 +29,6 @@ import { setActErr } from '@/redux/slices/elementSlice';
 
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
-  /**
-   * Display specific selected net in mobile screen
-   * Display multiple nets with slider
-   */
 
   const user = useUser();
   const dispatch = useAppDispatch();

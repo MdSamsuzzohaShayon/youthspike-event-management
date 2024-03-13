@@ -8,9 +8,10 @@ import { fsToggle } from '@/utils/helper';
 import React, { useEffect, useState } from 'react';
 import TeamScoreInput from '../team/TeamScoreInput';
 import { screen } from '@/utils/constant';
-import { setCurrentRound } from '@/redux/slices/roundSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
 import { useSocket } from '@/lib/SocketProvider';
+import { ETieBreaker } from '@/types/net';
 
 
 interface INetPointCard {
@@ -21,9 +22,10 @@ interface INetPointCard {
     handleLeftShift: () => void;
     screenWidth: number;
     currRoom: IRoom | null;
+    roundList: IRoundRelatives[];
 }
 
-function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, currRoom }: INetPointCard) {
+function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, currRoom, roundList }: INetPointCard) {
     const user = useUser();
     const dispatch = useAppDispatch();
     const socket = useSocket();
@@ -64,11 +66,11 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
 
         // Update current round
         let tas: number | null = null, tbs: number | null = null;
-        updatedCRN.forEach((n)=>{
-            if(n.teamAScore && n.teamBScore){
+        updatedCRN.forEach((n) => {
+            if (n.teamAScore && n.teamBScore) {
                 tas = tas ? tas + n.teamAScore : n.teamAScore;
                 tbs = tbs ? tbs + n.teamBScore : n.teamBScore;
-            }else{
+            } else {
                 tas = null;
                 tbs = null;
             }
@@ -76,6 +78,11 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
 
         const currRoundObj = { ...currRound, teamAScore: tas, teamBScore: tbs, completed: tas && tbs ? true : false } as IRoundRelatives;
         dispatch(setCurrentRound(currRoundObj));
+        const updatedRoundList = [...roundList];
+        const rI = updatedRoundList.findIndex((r) => r._id === currRound?._id);
+        if (rI === -1) return;
+        updatedRoundList[rI] = { ...currRoundObj };
+        dispatch(setRoundList(updatedRoundList));
 
         // Update to the server
         lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN });
@@ -95,7 +102,11 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
                 : <TeamScoreInput key={`${2}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />}
             <div className="net-card flex justify-around items-center w-full py-1">
                 <img src="/icons/right-arrow.svg" alt="right-arrow" onKeyUp={handleKeyUp} onClick={handleRightShift} role="presentation" className="w-4 svg-white" style={{ transform: 'scaleX(-1)' }} />
+                <div className="texts text-center">
+
                 <h3 style={fsToggle(screenWidth)} className='leading-3'>Net {net?.num}</h3>
+                {net?.netType === ETieBreaker.TIE_BREAKER_NET && <p className='w-full'>Worth 2 points</p>}
+                </div>
                 <img src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4  svg-white" />
             </div>
             {user && teamACapOrCo

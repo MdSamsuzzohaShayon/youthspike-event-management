@@ -2,7 +2,7 @@ import { setActErr } from "@/redux/slices/elementSlice";
 import { setTeamE, setVerifyLineup } from "@/redux/slices/matchesSlice";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives, INotTwoPointNetProps} from "@/types";
+import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives, INotTwoPointNetProps } from "@/types";
 import { ETieBreaker } from "@/types/net";
 import { EActionProcess, IRoomNetType, ITeiBreakerAction, } from "@/types/room";
 import { ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from "@/types/socket";
@@ -105,7 +105,7 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
 }
 
 
-function changeTheRound({roundList, dispatch, allNets, newRoundIndex, myTeamE }: INextRoundProps) {
+function changeTheRound({ roundList, dispatch, allNets, newRoundIndex, myTeamE }: INextRoundProps) {
 
 
     // ===== Current round, current round nets and round list properly ===== 
@@ -142,29 +142,29 @@ function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets, }: I
     if (socket) socket.emit("update-points-from-client", { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
 }
 
-function updateMultiplePoints({socket, dispatch, allNets, currRoom, currRound, currRoundNets, }: IUpdateMultiplePointsProps){
+function updateMultiplePoints({ socket, dispatch, allNets, currRoom, currRound, currRoundNets, }: IUpdateMultiplePointsProps) {
     const cloneAN = [...allNets]; // AN = all nets
     const cloneCRN = [...currRoundNets]; // crn = current round nets
     const netPointsList = [];
     for (const n of currRoundNets) {
-      const nObj = {
-        _id: n._id,
-        teamAScore: n.teamAScore ? n.teamAScore : 0,
-        teamBScore: n.teamBScore ? n.teamBScore : 0,
-      };
-      netPointsList.push(nObj);
+        const nObj = {
+            _id: n._id,
+            teamAScore: n.teamAScore ? n.teamAScore : 0,
+            teamBScore: n.teamBScore ? n.teamBScore : 0,
+        };
+        netPointsList.push(nObj);
 
-      // To set current round nets
-      const findCRNi = cloneCRN.findIndex((cn)=> cn._id === n._id);
-      if(findCRNi !== -1){
-        cloneCRN[findCRNi] = {...cloneCRN[findCRNi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore};
-      }
+        // To set current round nets
+        const findCRNi = cloneCRN.findIndex((cn) => cn._id === n._id);
+        if (findCRNi !== -1) {
+            cloneCRN[findCRNi] = { ...cloneCRN[findCRNi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore };
+        }
 
-      // to set all round nets
-      const findANi= cloneAN.findIndex((an)=> an._id === n._id);
-      if(findANi !== -1){
-        cloneAN[findANi] = {...cloneAN[findANi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore};
-      }
+        // to set all round nets
+        const findANi = cloneAN.findIndex((an) => an._id === n._id);
+        if (findANi !== -1) {
+            cloneAN[findANi] = { ...cloneAN[findANi], teamAScore: nObj.teamAScore, teamBScore: nObj.teamBScore };
+        }
     }
 
     dispatch(setCurrentRoundNets(cloneCRN));
@@ -174,7 +174,7 @@ function updateMultiplePoints({socket, dispatch, allNets, currRoom, currRound, c
 }
 
 
-function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets }: INotTwoPointNetProps) {
+function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, allNets, dispatch }: INotTwoPointNetProps) {
     const actionData: ITeiBreakerAction = {
         room: currRoom?._id ? currRoom?._id : null,
         round: currRound?._id ? currRound?._id : null,
@@ -183,13 +183,40 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets }: I
         nets: []
     };
 
-    const roundNetAssign: IRoomNetType[] = currRoundNets.map((net) => {
-        // Lock a specific dat
-        return {
-            _id: net._id,
-            netType: net._id === netId ? ETieBreaker.FINAL_ROUND_NET_LOCKED : ETieBreaker.FINAL_ROUND_NET
+    const updatedAllNets = [...allNets];
+    const updatedNets = [...currRoundNets];
+    const nI = updatedNets.findIndex((n) => n._id === netId);
+    const anI = updatedAllNets.findIndex((n) => n._id === netId);
+    if (nI === -1 || anI === -1) return;
+    updatedAllNets[anI] = { ...updatedAllNets[anI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
+    updatedNets[nI] = { ...updatedNets[nI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
+
+    // ===== Create 2 Points Nets =====
+    const lockedNets = updatedNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    if (lockedNets.length > 1) {
+        const lnIds = lockedNets.map((n) => n._id)
+        for (let i = 0; i < updatedNets.length; i++) {
+            if (!lnIds.includes(updatedNets[i]._id)) {
+                updatedNets[i] = { ...updatedNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
+            }
         }
-    });
+
+        for (let i = 0; i < updatedAllNets.length; i++) {
+            if (!lnIds.includes(updatedAllNets[i]._id)) {
+                updatedAllNets[i] = { ...updatedAllNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
+            }
+        }
+    }
+
+    dispatch(setCurrentRoundNets(updatedNets));
+    dispatch(setNets(updatedAllNets));
+
+
+
+    const roundNetAssign: IRoomNetType[] = updatedNets.map((net) => ({
+        _id: net._id,
+        netType: net.netType
+    }));
     actionData.nets = roundNetAssign;
 
 
