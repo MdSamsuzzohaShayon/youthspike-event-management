@@ -232,7 +232,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         {/* Operation menu start  */}
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
-          {rankControls && (<React.Fragment>
+          {rankControls && player.email && player.email.trim() !== '' && (<React.Fragment>
             <li role="presentation" onClick={(e) => handleMakeCaptain(e, player._id)} > Make Captain</li>
             <li role="presentation" onClick={(e) => handleMakeCoCaptain(e, player._id)} > Make Co-captain</li>
           </React.Fragment>)}

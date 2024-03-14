@@ -58,21 +58,18 @@ ___
 ### Running
 
  - Style according to Figma - Make color scheme same
+ - Email for a player is optional field, only if we want to add that player to captain we will need email
  
  - Creating team, players, match smoothly
- - Run a match smoothly
-
- - Update director informations as admin (Not working properly)
- - Email for a player is optional field, only if we want to add that player to captain we will need email
- - When we edit a player we should not see division and team, when we move the player they should appear
- - Till 15:00
- 
+ - Run a match smoothly 
 
  - Player sub, a player can be off for a round and can get back in the next round
 
  - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
 
  - If a round has been submitted he can not re-rank his players
+
+ - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
 
  - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
  - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
@@ -176,6 +173,7 @@ ___
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - When saving a team and creating another team, it does not update the player list. That need to be updated properly
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
+ - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
 
 
 
@@ -211,15 +209,8 @@ ___
 
 
 ### Ask
- - Should we add all action boxs with same image?
- - Do we must need to add images to the boxes? because on mobile screeen we won't have must space to add them. If we add them along with text it might not look great.
- - The boxes you have shown will look great on the desktop, but it won't look good on mobile phone. However, I will try to make it look better.
- - Though, it is little bit complicated I understand the basic logics of 2 points net and i will ask you for more clarification.
- - How do you want calculate 2 points net? now we are scoring according to a terms that if team A win in net 1, 1 point will be added to them, by implementing 2 points net logic should do we need to add 2 point if a team win in that net?
- - What if the nets are more than 3 in a round? what should we do in that case?
- - Can it be more than 2 points net? is there any chance of making a net with custom points for instance 5, 10 or 20 for on any numaric value?
-
-
+ - Instead of selecting the net that is not 2 points net, we should select a net to make it 2 point net. For instance, a captain can select a net from the last round to make it 2 point net, it will generate a request and send it to other captain to make that specifric net 2 point net and if both of the captain agree then we can make that 2 point net. What do you think about it?
+ - https://www.loom.com/share/f4378984c26c4da7856153ae152da9b3 in this video 00:20, that yellow circle is not for showing logo. That is VS means versus, (Team A VS Team B)
 
  curl -i -N  \
     -H "Connection: Upgrade"  \

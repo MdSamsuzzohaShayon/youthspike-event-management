@@ -56,14 +56,6 @@ export class TeamResolver {
   @Mutation((resolves) => CreateOrUpdateTeamResponse)
   async createTeam(@Args('input') input: CreateTeamInput, @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
   logo?: Upload,): Promise<CreateOrUpdateTeamResponse> {
-    /**
-     * TODO:
-     *  Step-1: Event team relationship - Update teams in event
-     *  Step-2: Team player relationship - Update team in players
-     *  Step-3: Team player as captain relationship - Update captain in player
-     *  Step-4: Player and user relationship - Create a user with login access as captain of the team
-     */
-
     try {
       const players = input.players ? input.players : [];
 
@@ -83,14 +75,16 @@ export class TeamResolver {
         }),
         this.eventService.findById(input.event.toString())
       ]);
-      // Captain - User - Player - Team Relationship update
+
+      // ===== Captain - User - Player - Team Relationship update ===== 
       const promiseOperations = [];
       promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
       for (let i = 0; i < players.length; i += 1) {
         promiseOperations.push(this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id }, rank: i + 1 }));
       }
+
       if (input.captain) {
-        // Create new user for captain
+        // =====  Create new user for captain ===== 
         const findPlayer = await this.playerService.findById(input.captain.toString());
         const rawPassword = findEvent.coachPassword;
         const captainUser = await this.userService.create({
@@ -127,14 +121,6 @@ export class TeamResolver {
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
     logo?: Upload
   ): Promise<CreateOrUpdateTeamResponse> {
-    /**
-     * TODO:
-     *  Step-1: Find team, captain and captain user if someone wants to change captain
-     *  Step-2: Check prev captain and current is in the same team
-     *  Step-3: Create user if there are no user found
-     *  Step-4: Update captain, captainuser
-     */
-
     try {
       const [teamExist, eventExist] = await Promise.all([this.teamService.findById(teamId), this.eventService.findById(eventId)]);
       if (!teamExist) return AppResponse.exists("Team");
@@ -144,9 +130,7 @@ export class TeamResolver {
       const teamObj: any = { ...input };
       if (teamObj.division) teamObj.division = teamObj.division.toString().trim().toLowerCase();
 
-      /**
-       * Update Captain
-       */
+      // ===== Update captain ===== 
       if (input.captain) {
         const playerExist = await this.playerService.findById(input.captain.toString());
 
@@ -156,7 +140,7 @@ export class TeamResolver {
           let newCaptainUserId = createOrUpdatePlayer._id;
 
           if (teamExist.captain) {
-            // Make prevCaptain null
+            // =====  Make prevCaptain null ===== 
             const prevCaptain = await this.playerService.findById(teamExist.captain.toString());
             if (input.captain !== teamExist.captain.toString()) {
               updatePromises.push(this.playerService.updateOne({ _id: teamExist.captain.toString() }, { $pull: { captainofteams: teamExist._id.toString() }, captainuser: null }));
@@ -170,9 +154,7 @@ export class TeamResolver {
       }
 
 
-      /**
-       * Update Co-captain
-       */
+      // ===== Update co captain
       if (input.cocaptain) {
         const playerExist = await this.playerService.findById(input.cocaptain.toString());
         if (playerExist) {
@@ -181,7 +163,7 @@ export class TeamResolver {
           let newCaptainUserId = createOrUpdatePlayer._id;
 
           if (teamExist.cocaptain) {
-            // Make prevCaptain null
+            // ===== make prev co captain null ===== 
             const prevCaptain = await this.playerService.findById(teamExist.cocaptain.toString());
             if (input.cocaptain !== teamExist.cocaptain.toString()) {
               updatePromises.push(this.playerService.updateOne({ _id: teamExist.cocaptain.toString() }, { $pull: { cocaptainofteams: teamExist._id.toString() }, cocaptainuser: null }));
@@ -194,13 +176,19 @@ export class TeamResolver {
         }
       }
 
-      /**
-       * Update Logo
-      */
+      // =====  Update Logo ===== 
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
       if (logoUrl) teamObj.logo = logoUrl;
 
+
+      // =====  Update players =====  
+      const players = input.players ? input.players : [];
+      const prevPlayerIds = teamExist.players.map((pId) => pId.toString());
+      for (let i = 0; i < players.length; i += 1) {
+        updatePromises.push(this.playerService.updateOne({ _id: players[i] }, { $addToSet: { teams: teamExist._id }, rank: prevPlayerIds.length + i + 1 }));
+      }
+      teamObj.players = [...new Set([...prevPlayerIds, ...players])];
 
 
       updatePromises.push(this.teamService.update(teamObj, { _id: teamId }));
@@ -220,10 +208,6 @@ export class TeamResolver {
 
   @Mutation((resolves) => GetTeamResponse)
   async moveTeam(@Args("eventId") eventId: string, @Args("teamId") teamId: string, @Args("division") division: string) {
-    /**
-     * Step-1: find team
-     * Step-2: 
-     */
     try {
       const [eventExist, teamExist] = await Promise.all([
         this.eventService.findById(eventId),

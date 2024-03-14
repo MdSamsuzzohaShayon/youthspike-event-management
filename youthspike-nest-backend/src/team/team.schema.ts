@@ -45,10 +45,6 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   division: string;
 
-  // @Field(() => [PlayerRanking], { nullable: false })
-  // @Prop({ required: true, type: [{type: PlayerRanking}]})
-  // ranking: PlayerRanking[];
-
   /**
    * Relations
    */

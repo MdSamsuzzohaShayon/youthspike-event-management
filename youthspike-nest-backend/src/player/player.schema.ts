@@ -27,9 +27,9 @@ export class Player extends AppDocument {
   @Prop({ required: true })
   lastName: string;
 
-  @Field((_type) => String, { nullable: false })
-  @Prop({ required: true, unique: true })
-  email: string;
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  email?: string | null;
 
   @Field((_types)=> EPlayerStatus, {nullable: false})
   @Prop({required: true, enum: EPlayerStatus, default: EPlayerStatus.ACTIVE})

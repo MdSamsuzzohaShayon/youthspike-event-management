@@ -150,7 +150,7 @@ type Player {
   _id: String
   firstName: String!
   lastName: String!
-  email: String!
+  email: String
   status: EPlayerStatus!
   rank: Int
   profile: String

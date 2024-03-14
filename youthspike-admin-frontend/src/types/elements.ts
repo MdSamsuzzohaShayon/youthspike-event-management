@@ -1,5 +1,5 @@
 import React from "react";
-import { IUserContext } from ".";
+import { IPlayer, IUserContext } from ".";
 
 export enum EAssignStrategies{
   RANDOM = "RANDOM",
@@ -25,6 +25,15 @@ export interface ITextInputProps {
   defaultValue?: string | null | undefined;
   readOnly?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
+}
+
+export interface IPlayerSelectProps{
+  extraCls?: string;
+  name: string;
+  defaultValue?: string[];
+  handleCheckboxChange: (pId: string, isChecked: boolean) => void;
+  availablePlayers: IPlayer[];
+  eventId: string;
 }
 
 export interface IDateinputProps {

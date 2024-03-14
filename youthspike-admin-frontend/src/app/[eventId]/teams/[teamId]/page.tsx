@@ -27,9 +27,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const refetchFunc = async () => {
-    console.log("Calling refetch team");
-    
+  const refetchFunc = async () => {    
     await refetch();
   }
 
@@ -50,13 +48,15 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const eventData = data?.getTeam?.data?.event;
   const divisionList = data?.getTeam?.data?.event?.divisions ? divisionsToOptionList(data?.getTeam?.data?.event?.divisions) : [];
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
+  const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
 
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading} divisionList={divisionList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} />}
+      {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading} 
+      divisionList={divisionList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} playerList={playerList} />}
     </div>
   )
 }

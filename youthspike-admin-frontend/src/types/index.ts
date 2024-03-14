@@ -13,6 +13,7 @@ import {
   ILoginProps,
   IDateinputProps,
   IAnyFileFileProps,
+  IPlayerSelectProps,
 } from "./elements";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
@@ -37,6 +38,7 @@ export type {
   ILoginProps,
   IDateinputProps,
   IAnyFileFileProps,
+  IPlayerSelectProps,
 
   // Event
   IEvent,

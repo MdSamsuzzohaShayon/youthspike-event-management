@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
+import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
@@ -98,9 +99,8 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
         return newPlayerList;
     }
 
-    const handleCheckboxChange = (e: React.SyntheticEvent, playerId: string) => {
-        const checkboxEl = e.target as HTMLInputElement;
-        if (checkboxEl.checked) {
+    const handleCheckboxChange = (playerId: string, isChecked: boolean) => {
+        if (isChecked) {
             // @ts-ignore
             setPlayerIdList((prevState) => ([...new Set([...prevState, playerId])]));
         } else {
@@ -116,10 +116,10 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
     }
 
     // Renders
-    const selectedPlayers = (ap: IPlayer[], pil: string[]): IOption[] => {
-        const newAp = ap.filter(p => pil.includes(p._id));
-        const options = makeOptionList(newAp);
-        return options;
+    const toBeCaptains = () => {
+        const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
+        const options = makeOptionList(playersWithEmail);
+        return <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />
     }
 
     return (
@@ -131,20 +131,8 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
-            {!update && (
-                <div className='input-group w-full flex flex-col'>
-                    <label htmlFor="players">Select Players. <Link href={`/${eventId}/players`} className='underline underline-offset-1' >Create New Player!</Link></label>
-                    <ul className='flex flex-wrap items-center gap-2'>
-                        {availablePlayers.map((ap) => (<li key={ap._id} className='flex gap-1 items-center'>
-                            <input type="checkbox" onChange={(e) => handleCheckboxChange(e, ap._id)} />
-                            <span className='capitalize'>{`${ap.firstName} ${ap.lastName}`}</span>
-                        </li>))}
-                    </ul>
-                </div>
-            )}
-            {playerIdList.length > 0 && !update && (
-                <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={availablePlayers && availablePlayers.length > 0 ? selectedPlayers(availablePlayers, playerIdList) : []} handleSelect={handleInputChange} />
-            )}
+            {!update && (<PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />)}
+            {playerIdList.length > 0 && !update && toBeCaptains()}
 
             <div className="input-group w-full">
                 <button className='btn-primary mr-2' type='submit'>{update ? "Update" : "Save"}</button>

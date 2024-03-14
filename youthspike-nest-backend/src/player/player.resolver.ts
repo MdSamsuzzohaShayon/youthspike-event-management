@@ -61,6 +61,7 @@ export class PlayerResolver {
       if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
 
       const playerObj = { ...input, profile: profileUrl, events: [input.event], teams: [] };
+      if(playerObj.email === '') delete playerObj.email;
       if (input.team) playerObj.teams = [input.team];
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;

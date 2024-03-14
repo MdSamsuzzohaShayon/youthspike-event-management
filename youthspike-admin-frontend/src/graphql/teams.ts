@@ -74,6 +74,13 @@ const eventResponse = `
       name
       division
     }
+    players{
+      _id
+      firstName
+      lastName
+      email
+      division
+    }
 `;
 
 /**
