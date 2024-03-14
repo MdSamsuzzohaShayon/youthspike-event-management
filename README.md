@@ -58,14 +58,13 @@ ___
 ### Running
 
  - Style according to Figma - Make color scheme same
- - Email for a player is optional field, only if we want to add that player to captain we will need email
+ - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
  
  - Creating team, players, match smoothly
  - Run a match smoothly 
 
  - Player sub, a player can be off for a round and can get back in the next round
 
- - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
 
  - If a round has been submitted he can not re-rank his players
 

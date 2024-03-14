@@ -14,7 +14,7 @@ export interface ElementState {
   selectedColItem: EMenuTitle | null;
 }
 
-const initialStrategyList = [EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAssignStrategies.ANCHORING];
+const initialStrategyList = [EAssignStrategies.ANCHOR, EAssignStrategies.RANDOM, EAssignStrategies.HIERARCHY];
 
 const initialColMenu = [
   {id: 1, title: EMenuTitle.FWANGO},

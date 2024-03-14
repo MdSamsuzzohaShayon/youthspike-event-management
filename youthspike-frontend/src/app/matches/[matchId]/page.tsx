@@ -45,18 +45,18 @@ import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
  * Match URL 
  * http://localhost:3001/matches/65e8cba57c597b83c183c279
  * 
- * Wolves-Alex
+ * FC Barcelona
  * Captain
- * alex@bristol.group
+ * p5e1@e.com
  * Co-captain
- * ayyy.spence@gmail.com
+ * p4e1@e.com
  * 
  * 
- * Vipers-Konnor
+ * Real Madrid
  * Captain
- * flame50006@icloud.com
+ * p9e1@e.com
  * Co-captain
- * konnorcordingley@gmail.com
+ * p16e1@e.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
