@@ -59,6 +59,7 @@ ___
 
  - Style according to Figma - Make color scheme same
  - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
+ - Calculate all points for 2 points net - calculate points according to points in the net
  
  - Creating team, players, match smoothly
  - Run a match smoothly 
@@ -145,6 +146,7 @@ ___
  - The captain will select a net to break the tie. 
  - When we click on the a net from all nets in the last round, there will be a confirmation screen of all lineup of a net (team A player A, team B player B, team A player B, team B player A) and their pair score and ranking
  - One captain will choose to ban a net and the other captain will be waiting 
+ - Calculate all points for 2 points net - calculate points according to points in the net
 
 
 
@@ -153,7 +155,7 @@ ___
  - When the clock runs out it will automitically randomly assign
  - Dedicated pages for nets and rounds of the match
  - There are 3 different strategies when assignin players
-    1. Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
+    1. Anchor: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
  - When the clock runs out it will automitically assign randomly

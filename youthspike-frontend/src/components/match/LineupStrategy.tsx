@@ -1,10 +1,12 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { INetRelatives, IPlayer, IRoundExpRel, IRoundRelatives } from '@/types';
+import { IMatchRelatives, INetRelatives, IPlayer, IRoundExpRel, IRoundRelatives } from '@/types';
 import { EAssignStrategies } from '@/types/elements';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { randomAssign } from '@/utils/match/assignStrategies';
+import anchorAssign from '@/utils/assignStrategies/anchorAssign';
+import hierarchyAssign from '@/utils/assignStrategies/hierarchyAssign';
+import randomAssign from '@/utils/assignStrategies/randomAssign';
 import findPrevPartner from '@/utils/match/findPrevPartner';
 import React, { useState } from 'react'
 
@@ -12,12 +14,14 @@ interface ILineupProps {
     myTeamE: ETeam;
     currRound: IRoundRelatives | null;
     myPlayers: IPlayer[];
+    opPlayers: IPlayer[];
     currRoundNets: INetRelatives[];
     allNets: INetRelatives[];
-    roundList: IRoundRelatives[]
+    roundList: IRoundRelatives[];
+    currMatch: IMatchRelatives;
 }
 
-function LineupStrategy({ myTeamE, currRound, myPlayers, currRoundNets, allNets, roundList }: ILineupProps) {
+function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, currRoundNets, allNets, roundList }: ILineupProps) {
 
     const dispatch = useAppDispatch();
     // Local State
@@ -35,15 +39,17 @@ function LineupStrategy({ myTeamE, currRound, myPlayers, currRoundNets, allNets,
 
         switch (pas) {
             case EAssignStrategies.RANDOM:
-                randomAssign({ matchUp, allNets, currRoundNets, myPlayers, roundList, currRound, myTeamE, dispatch });
+                randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });
                 break;
 
             case EAssignStrategies.ANCHOR:
-                // Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
+                // Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and so on
+                anchorAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });
                 break;
 
             case EAssignStrategies.HIERARCHY:
                 // Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
+                hierarchyAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });
                 break;
 
             default:

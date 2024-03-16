@@ -107,8 +107,6 @@ function CheckInBox({ currRoom, user, roundList, mtp, otp, socket }: IBoxProps) 
       </React.Fragment>)}
     </div>);
   }
-
-  console.log({checkedIn, placingFirst, opSubmitted});
   
 
   return (

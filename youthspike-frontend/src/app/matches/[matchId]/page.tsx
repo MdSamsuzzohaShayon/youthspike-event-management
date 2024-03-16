@@ -78,7 +78,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup } = useAppSelector((state) => state.matches);
+  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch} = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
 
@@ -167,7 +167,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
               ? <VerifyLineup />
               : (<React.Fragment>
                 {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-                <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} />
+                <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} opPlayers={opPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} currMatch={currMatch} />
                 {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain)
                   && <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />}
               </React.Fragment>)

@@ -219,7 +219,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Bottom Side Start  */}
           <div className={`round-bottom w-full h-3/6 border ${border.light} px-2 flex flex-col items-center justify-between`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
-            <div className="mb-2">
+            <div className="mb-2 w-full">
               <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
             </div>
           </div>

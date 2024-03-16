@@ -279,7 +279,18 @@ export class MyGatWay implements OnModuleInit {
 
     if (lockedNetIds.length > 1) {
       // TIE_BREAKER_NET, worth 2 points
-      this.netService.updateMany({ _id: { $nin: lockedNetIds } }, { $set: { points: 2, netType: ETieBreaker.TIE_BREAKER_NET } });
+      this.netService.updateMany(
+        {
+          _id: { $nin: lockedNetIds },
+          $and: [
+            { round: netInputs.round },
+            { round: { $exists: true } } // Ensure that the round field exists
+          ]
+        },
+        {
+          $set: { points: 2, netType: ETieBreaker.TIE_BREAKER_NET }
+        }
+      );
     }
 
     await Promise.all(updatePromises);
