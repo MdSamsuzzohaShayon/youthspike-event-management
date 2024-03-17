@@ -56,7 +56,6 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Make mutation from frontend to delete team
  - If a round has been submitted he can not re-rank his players
  - Style according to Figma - Make color scheme same
  - Make sure random assign, anchor assign, heirarchy assign more smooth

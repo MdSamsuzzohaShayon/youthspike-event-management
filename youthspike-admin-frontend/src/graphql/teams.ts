@@ -208,4 +208,14 @@ const MOVE_TEAM = gql`
   }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, MOVE_TEAM };
+
+const DELETE_TEAM = gql`
+mutation DeleteTeam($teamId: String!) {
+  deleteTeam(teamId: $teamId) {
+    code
+    message
+  }
+}
+`;
+
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, MOVE_TEAM, DELETE_TEAM };

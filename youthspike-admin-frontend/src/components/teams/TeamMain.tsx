@@ -48,6 +48,11 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     useClickOutside(importerEl, () => { closeDialog() });
 
 
+    const fefetchFunc=async ()=>{
+        await fetchEvent();
+    }
+
+
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
         e.preventDefault();
         /**
@@ -162,7 +167,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} />}
             </div>
         </div>
     )

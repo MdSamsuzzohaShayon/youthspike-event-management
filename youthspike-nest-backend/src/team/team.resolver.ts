@@ -265,7 +265,7 @@ export class TeamResolver {
       updatePromises.push(this.netService.delete({ _id: { $in: teamNetIds } }));
       if (teamExist.captain) updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamId } }));
       if (teamExist.cocaptain) updatePromises.push(this.playerService.updateOne({ _d: teamExist.cocaptain }, { $pull: { teams: teamId } }));
-      updatePromises.push(this.eventService.update({$pull: {teams: teamId}}, teamExist.match.toString()));
+      if (teamExist.match) updatePromises.push(this.eventService.update({ $pull: { teams: teamId } }, teamExist.match.toString()));
       updatePromises.push(this.teamService.delete({ _id: teamId }));
       await Promise.all(updatePromises);
       return {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { useMutation } from '@apollo/client';
-import { MOVE_TEAM } from '@/graphql/teams';
+import { DELETE_TEAM, MOVE_TEAM } from '@/graphql/teams';
 import useClickOutside from '../../../hooks/useClickOutside';
 import { useRouter } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
@@ -17,6 +17,7 @@ interface TeamCardProps {
     team: ITeam;
     eventList: IEvent[];
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    fefetchFunc?: () => Promise<void>;
 }
 
 interface ITeamMove {
@@ -24,7 +25,7 @@ interface ITeamMove {
     division: string;
 }
 
-function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
+function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamCardProps) {
     const user = useUser();
     const router = useRouter();
 
@@ -37,6 +38,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
 
     const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
     const [moveTeamMutation, { loading, data }] = useMutation(MOVE_TEAM);
+    const [deleteTeam, { loading: dLoading, data: dData }] = useMutation(DELETE_TEAM);
 
     useClickOutside(actionEl, () => {
         setActionOpen(false);
@@ -90,8 +92,17 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
         router.push(`/${eventId}/teams/${teamId}/update`);
     }
 
-    const handleDeleteTeam = (e: React.SyntheticEvent, teamId: string) => {
+    const handleDeleteTeam = async (e: React.SyntheticEvent, teamId: string) => {
         e.preventDefault();
+        try {
+            const dRes = await deleteTeam({ variables: { teamId } });
+            console.log(dRes);
+            
+            if (fefetchFunc) await fefetchFunc();
+        } catch (error) {
+            console.log(error);
+
+        }
     }
 
     const handleMakeInactive = (e: React.SyntheticEvent, teamId: string) => {
@@ -156,10 +167,10 @@ function TeamCard({ team, eventId, eventList, setIsLoading }: TeamCardProps) {
                     <Link href={`/${eventId}/teams/${team._id}`}>
                         {team.captain && (
                             <div className="brand flex gap-1">
-                                {team.captain?.profile 
-                                ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-500" /> 
-                                : <TextImg className='w-12 h-12 border-2 border-yellow-500' fText={team.captain.firstName} lText={team.captain.lastName} />}
-                                
+                                {team.captain?.profile
+                                    ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-500" />
+                                    : <TextImg className='w-12 h-12 border-2 border-yellow-500' fText={team.captain.firstName} lText={team.captain.lastName} />}
+
                                 <div className="caption flex flex-col">
                                     <p className='uppercase text-xs'>Captain</p>
                                     <h3 className='leading-none text-lg font-bold'>{team.captain?.firstName + " " + team.captain?.lastName}</h3>
