@@ -20,6 +20,7 @@ import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { UpdateQuery } from 'mongoose';
+import { NetService } from 'src/net/net.service';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -47,6 +48,7 @@ export class TeamResolver {
     private playerService: PlayerService,
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
+    private netService: NetService,
     private configService: ConfigService
   ) { }
 
@@ -241,6 +243,39 @@ export class TeamResolver {
       AppResponse.handleError(error);
     }
 
+  }
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((resolves) => CreateOrUpdateTeamResponse)
+  async deleteTeam(
+    @Args('teamId') teamId: string
+  ): Promise<CreateOrUpdateTeamResponse> {
+    try {
+      const teamExist = await this.teamService.findById(teamId);
+      if (!teamExist) return AppResponse.exists("Team");
+
+      const teamPlayerIds = teamExist.players.map((p) => p.toString());
+      const teamNetIds = teamExist.nets.map((n) => n.toString());
+
+
+      const updatePromises = [];
+      updatePromises.push(this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { team: teamPlayerIds } }));
+      updatePromises.push(this.netService.delete({ _id: { $in: teamNetIds } }));
+      if (teamExist.captain) updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamId } }));
+      if (teamExist.cocaptain) updatePromises.push(this.playerService.updateOne({ _d: teamExist.cocaptain }, { $pull: { teams: teamId } }));
+      updatePromises.push(this.eventService.update({$pull: {teams: teamId}}, teamExist.match.toString()));
+      updatePromises.push(this.teamService.delete({ _id: teamId }));
+      await Promise.all(updatePromises);
+      return {
+        code: 200,
+        success: true,
+        data: null,
+      };
+    } catch (err) {
+      return AppResponse.getError(err);
+    }
   }
 
   @Roles(UserRole.admin, UserRole.director)

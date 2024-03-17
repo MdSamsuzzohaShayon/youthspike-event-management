@@ -56,23 +56,31 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
-
+ - Make mutation from frontend to delete team
+ - If a round has been submitted he can not re-rank his players
  - Style according to Figma - Make color scheme same
- - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
- - Calculate all points for 2 points net - calculate points according to points in the net
+ - Make sure random assign, anchor assign, heirarchy assign more smooth
  
  - Creating team, players, match smoothly
  - Run a match smoothly 
-
+ - Sponsors will always have a logo of ourself by default
  - Player sub, a player can be off for a round and can get back in the next round
 
-
- - If a round has been submitted he can not re-rank his players
+ - When make player inactive the rank should be update and and this should work properly
 
  - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
 
  - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
  - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
+
+ - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
+ - When login as captain show name of the team of which I am captain of
+ - Black text on yellow box
+ - Yellow need to be little more brighter than current yellow
+ - Close button must not show up after submitting lineup
+ - When click on input field to update score it should highlight the whole number
+ - When I will match and submit my lineup, net 1 should be selected automitically
+ - Update score button should not be shown - it is irrelevent now
  
 
 
@@ -87,66 +95,49 @@ ___
 
 
  - **Team**
- - If there is a team of player, create the team for him as well on the import of players file[14:40](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa), If a player unassigned they will be at the event as unassigned players
+ - Make mutation from frontend to delete team
  - Add search function for player when creating a new team
- - Players page -> do not make filter -> Insteand just select team to see the team
- - Create team without a captain
- - Team name sometime showing up at the top and sometime not
  - Move team - when moving team to another event current event should not have that team
 
  - **Players**
- - In the player list show all players in an event
- - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
- - Email for a player is optional field, only if we want to add that player to captain we will need email
- - Import players from excel file should have a confirmation message
+ - Import players from excel file should have a confirmation message (error message if there is any error)
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
- - Move player to diffrent divisions and team
- - Showing unassigned players and inactive players somewhere in the roster
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
- - So I think we came up with a solution. Each team will be assigned teamID# such as 182. The login for the caitian for that squad would be “captain182” and the cocaptain login would be     “cocaptain182” etc. Password would be default password as normal. This way the email is not the unique id or the username to login.
- - Select team when adding players
- - Moving players are not working - need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
- - Inactive player will be off the rosters on the list
- - Sometime players are not adding properly
+ - Need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
  - If date is pass the status of league will be past, add past events in  the filter, 
- - No division section inside roster design, (There are 3 different skills level means 3 sections)
- - Net range is same as net variance, therefore, delete one of them [assign player with net variance 10:50](https://www.loom.com/share/01cf8693859b474981b4a51660444e4e)
 
 
  - **Captain**
  - Send welcome email to all of our captains
- - But coach/captain can change only his team but points can be changed by any captain of any team
- - Captain can edit roster photo, and re-rank players
  - If a round has been submitted he can not re-rank his players
+ - When login as captain show name of the team of which I am captain of
  
  - **Event**
  - Updaing round creating some issues (Log in as admin)
 
- 
- - **Division**
- - Division filter always need to be at the top
- - Select a division from an event and that will stick for rest of the event pages
 
  - **Match**
- - After updating points there next round button should be show up
  - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
  - Player sub, a player can be off for a round and can get back in the next round
- - When clicking on empty player card that net name should be shown on the player list on the left
  - Get a sound notification on an socket event
- - Sponsors will always have a logo of ourself
+ - Sponsors will always have a logo of ourself by default
+ - Close button must not show up after submitting lineup
+ - When click on input field to update score it should highlight the whole number
+ - When I will match and submit my lineup, net 1 should be selected automitically
+ - Update score button should not be shown - it is irrelevent now
 
  - **Final Round**
  - 2 points net logic [04:20](https://www.loom.com/share/a39b08628d344b6588bd94d23e47ad8e) appear in the final round
- - The captain will select a net to break the tie. 
- - When we click on the a net from all nets in the last round, there will be a confirmation screen of all lineup of a net (team A player A, team B player B, team A player B, team B player A) and their pair score and ranking
- - One captain will choose to ban a net and the other captain will be waiting 
- - Calculate all points for 2 points net - calculate points according to points in the net
+
+ - **Design**
+ - Black text on yellow box
+ - Yellow need to be little more brighter than current yellow
 
 
 
@@ -210,8 +201,7 @@ ___
 
 
 ### Ask
- - Instead of selecting the net that is not 2 points net, we should select a net to make it 2 point net. For instance, a captain can select a net from the last round to make it 2 point net, it will generate a request and send it to other captain to make that specifric net 2 point net and if both of the captain agree then we can make that 2 point net. What do you think about it?
- - https://www.loom.com/share/f4378984c26c4da7856153ae152da9b3 in this video 00:20, that yellow circle is not for showing logo. That is VS means versus, (Team A VS Team B)
+ - Showing subbed players is not complex thing to do, but I am really confused where should I show them, because the page on mobile screen have not enough space.
 
  curl -i -N  \
     -H "Connection: Upgrade"  \
