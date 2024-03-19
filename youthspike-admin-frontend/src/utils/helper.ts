@@ -1,6 +1,10 @@
-import { IDefaultEventMatch, IDefaultMatchProps, IOption, ITeam } from "@/types";
+import { IDefaultEventMatch, IDefaultMatchProps, IMenuItem, IOption, ITeam, IUserContext } from "@/types";
+import { eventPaths, initialUserMenuList } from "./staticData";
+import { UserRole } from "@/types/user";
 
-export function isValidObjectId(docId: string): boolean {
+export function isValidObjectId(docId: string | null): boolean | null {
+  if (!docId) return null;
+
   // Pattern to match a valid ObjectId
   const objectIdPattern = /^[0-9a-fA-F]{24}$/;
 
@@ -9,33 +13,7 @@ export function isValidObjectId(docId: string): boolean {
 }
 
 
-interface IEventMatchTeams extends IDefaultEventMatch {
-  teams: ITeam[]; // add teams to IDefaultEventMatch
-  numberOfNets: number;
-  numberOfRounds: number;
-}
-interface IMatchTeams extends IDefaultMatchProps {
-  teams: ITeam[]; // add teams to IDefaultEventMatch
-}
 
-// export const toMatchDefaultData = (eData: IEventMatchTeams): IMatchTeams | null => {
-//   if (!eData) return null;
-//   const defaultProps = {
-//     division: eData.division,
-//     numberOfNets: eData.nets ? eData.nets : eData.numberOfNets, // Changes
-//     numberOfRounds: eData.rounds ? eData.rounds : eData.numberOfRounds, // Changes
-//     netVariance: eData.netVariance,
-//     homeTeam: eData.homeTeam,
-//     autoAssign: eData.autoAssign,
-//     autoAssignLogic: eData.autoAssignLogic,
-//     rosterLock: eData.rosterLock,
-//     timeout: eData.timeout,
-//     coachPassword: eData.coachPassword,
-//     location: eData.location,
-//     teams: eData.teams
-//   }
-//   return defaultProps;
-// }
 
 export const divisionsToOptionList = (divisions: string) => {
   const divs: IOption[] = [];
@@ -73,4 +51,36 @@ export function randomKey() {
   const randomNum = Math.floor(Math.random() * 1000000); // Adjust the range as needed
   const key = `${timestamp}-${randomNum}`;
   return key;
+}
+
+
+export function getEventIdFromPath(pathname: string) {
+  const pathList = pathname.split('/');
+  let eventPath = pathList.length > 0 ? pathList[1] : null;
+  if (!isValidObjectId(eventPath)) return null;
+  let isValidId = eventPath ? isValidObjectId(eventPath) : false;
+  if (eventPath && eventPaths.includes(eventPath)) isValidId = false;
+  return eventPath;
+}
+
+export function rearrangeMenu(userDetail: IUserContext, eventPath: string | null) {
+  let menuList: IMenuItem[] = [];
+  if (!eventPath) {
+    if (userDetail.info?.role === UserRole.admin) {
+      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id === 6 || menuItem.id === 7)]; // Admin and directors
+    } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
+      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4)]; // captain
+    } else {
+      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id === 5)]; // 5 = account
+    }
+  } else {
+    if (userDetail.info?.role === UserRole.director) {
+      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7 && menuItem.id !== 9)]; // 2 = teams // 4 = matches
+    } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
+      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1 || menuItem.id === 9)]; // captain
+    } else {
+      menuList = initialUserMenuList;
+    }
+  }
+  return menuList;
 }

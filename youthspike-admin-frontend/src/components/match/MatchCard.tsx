@@ -10,6 +10,7 @@ import { readDatetime, validateMatchDatetime } from '@/utils/datetime';
 import useClickOutside from '../../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
+import TextImg from '../elements/TextImg';
 
 interface MatchCardProps {
   match: IMatch;
@@ -39,7 +40,7 @@ function MatchCard({ match, sl, eventId, refetchFunc }: MatchCardProps) {
   const handleDeleteMatch = async (e: React.SyntheticEvent, matchId: string) => {
     e.preventDefault();
     await deleteMatch({ variables: { matchId } });
-    if(refetchFunc) await refetchFunc();
+    if (refetchFunc) await refetchFunc();
   }
 
 
@@ -73,20 +74,28 @@ function MatchCard({ match, sl, eventId, refetchFunc }: MatchCardProps) {
         </div>
         <div className="teams w-full flex justify-between items-center">
           <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
-            {match?.teamA?.captain?.profile ? <AdvancedImage cldImg={cld.image(match.teamA.captain?.profile)} className="w-10 h-10 border-4 border-yellow-400 rounded-full" /> : <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full" />}
+            <div className="logo-wrapper w-1/6">
+              {match?.teamA?.logo
+                ? <AdvancedImage cldImg={cld.image(match?.teamA?.logo)} className="w-10 h-10 border-4 border-yellow-400 rounded-full" />
+                : <TextImg className='w-8 h-8 border-4 border-yellow-400 rounded-full' fullText={match?.teamA?.name} />}
+            </div>
 
-            <div className="match-name flex flex-col w-full">
+            <div className="match-name flex flex-col w-5/10l">
               <h3 className='capitalize'>{match?.teamA?.name}</h3>
               {match?.teamA?.captain?.firstName && <p className='capitalize'>Captain: {match?.teamA?.captain?.firstName + ' ' + match?.teamA?.captain?.lastName}</p>}
             </div>
           </div>
-          <div className="w-2/10 text-center"><p className='w-10 h-10 rounded-full bg-yellow-400 text-gray-100 flex items-center justify-center'>VS</p></div>
+          <div className="w-2/10 text-center"><p className='w-8 h-8 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center'>VS</p></div>
           <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
-            <div className="match-name flex flex-col w-full">
+            <div className="match-name flex flex-col w-5/6">
               <h3 className='capitalize'>{match?.teamB?.name}</h3>
               {match?.teamB?.captain && <p className='capitalize'>Captain: {match?.teamB?.captain?.firstName + ' ' + match?.teamB?.captain?.lastName}</p>}
             </div>
-            {match?.teamB?.captain?.profile ? <AdvancedImage cldImg={cld.image(match.teamB.captain?.profile)} className="w-10 h-10 border-4 border-yellow-400 rounded-full" /> : <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full" />}
+            <div className="logo-wrapper w-1/6">
+              {match?.teamB?.logo
+                ? <AdvancedImage cldImg={cld.image(match?.teamB?.logo)} className="w-10 h-10 border-4 border-yellow-400 rounded-full" />
+                : <TextImg className='w-8 h-8 border-4 border-yellow-400 rounded-full' fullText={match?.teamB?.name} />}
+            </div>
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { IUserContext } from "@/types";
 import { ADMIN_URL, FRONTEND_URL, NODE_ENV } from "./keys";
 
 function getCookie(name: string): string | null {
@@ -37,4 +38,14 @@ function removeCookie(name: string ): void {
   }
 }
 
-export { getCookie, setCookie, removeCookie };
+// ===== Logical functions =====
+function getUserFromCookie  (): IUserContext {
+  const instantToken = getCookie('token'); // Fetch again
+  const instantInfo = getCookie('user');
+  return {
+      info: instantInfo ? JSON.parse(instantInfo) : null,
+      token: instantToken ? instantToken : null
+  }
+}
+
+export { getCookie, setCookie, removeCookie, getUserFromCookie };

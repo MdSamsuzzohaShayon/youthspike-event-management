@@ -37,7 +37,7 @@ import { joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
-import { EPlayerStatus } from '@/types/player';
+import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 
@@ -72,6 +72,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const socket = useSocket();
 
   const audioPlayEl = useRef<HTMLButtonElement>(null);
+  const [opSubbedPlayers, setOpSubbedPlayers] = useState<IPlayer[]>([]);
+  const [mySubbedPlayers, setMySubbedPlayers] = useState<IPlayer[]>([]);
 
   // Redux States
   const { teamA, teamB } = useAppSelector((state) => state.teams);
@@ -137,6 +139,31 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   }, [socket, user, teamA, teamB, roundList]);
 
 
+
+  useEffect(() => {
+    if (currentRound && myPlayers) {
+      const nmsp = []; // new subbed players
+      for (let i = 0; i < currentRound.subs.length; i++) {
+        const playerExist = myPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
+        if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
+          nmsp.push(playerExist);
+        }
+      }
+      setMySubbedPlayers(nmsp);
+    }
+    if (currentRound && opPlayers) {
+      const nosp = []; // new subbed players
+      for (let i = 0; i < currentRound.subs.length; i++) {
+        const playerExist = opPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
+        if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
+          nosp.push(playerExist);
+        }
+      }
+      setOpSubbedPlayers(nosp);
+    }
+  }, [currentRound, myPlayers, opPlayers]);
+
+
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
     dispatch(setScreenSize(entry.contentRect.width));
   }, []);
@@ -163,9 +190,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
 
           {/* // Show oponent subbed players  */}
-          <div className="subbed container px-4 mx-auto my-4">
-            <SubbedPlayerList teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} currRound={currentRound} />
-          </div>
+          {opSubbedPlayers && opSubbedPlayers.length > 0 && (<div className="subbed container px-4 mx-auto pt-4 bg-gray-900 text-gray-100">
+            <SubbedPlayerList teamPlayers={opSubbedPlayers} />
+          </div>)}
+
+          
+
           <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
 
           {notTieBreakerNetId ? <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} /> : (
@@ -187,13 +217,16 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
               </div>
             </div>
           )}
+
+
           {/* My Players  */}
           <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
           {/* // Show subbed players  */}
-          <div className="subbed container px-4 mx-auto mt-4">
-            <SubbedPlayerList teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} currRound={currentRound} subControl />
-          </div>
-          <br />
+          {mySubbedPlayers && mySubbedPlayers.length > 0 && (
+            <div className="subbed container px-4 mx-auto pt-4 bg-gray-900 text-gray-100">
+              <SubbedPlayerList teamPlayers={mySubbedPlayers} subControl />
+            </div>
+          )}
         </div>
       </Suspense>
     </React.Fragment>

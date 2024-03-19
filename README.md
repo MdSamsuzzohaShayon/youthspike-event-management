@@ -76,6 +76,16 @@ ___
 
  - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
  - When click on input field to update score it should highlight the whole number
+
+ - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
+ - Team logo is not showing up properly
+ - When we are in team, in the player list page (/players) in the place of assigned it will say the name of the team that is assigned to
+ - Moreover, the team name will be hyperlink
+ - Move players are still not working (from /players page)
+ - Player picture need to be square not cirrcle in player list
+ - Player will have phone number
+ - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
+ - Change redial nevy blue color to black gradient
  
 
 
@@ -93,15 +103,22 @@ ___
  - Make mutation from frontend to delete team
  - Add search function for player when creating a new team
  - Move team - when moving team to another event current event should not have that team
+ - Team logo is not showing up properly
+ - When we are in team, in the player list in the place of assigned it will say the name of the team that is assigned to
+ - Moreover, the team name will be hyperlink
 
  - **Players**
  - Import players from excel file should have a confirmation message (error message if there is any error)
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
+ - Move players are still not working (from /players page)
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
  - Need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
+ - Player picture need to be square not cirrcle in player list
+ - Player will have phone number
+ - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -145,6 +162,7 @@ ___
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
  - When the clock runs out it will automitically assign randomly
+ - Change redial nevy blue color to black gradient
 
 ### Design
  - Style according to Figma

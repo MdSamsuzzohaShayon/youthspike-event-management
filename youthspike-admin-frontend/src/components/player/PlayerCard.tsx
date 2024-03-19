@@ -213,7 +213,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
             {showRank && player?.rank && (
               <div className="rank-box h-6 w-6 flex flex-col items-center">
-                <h3 className='bg-yellow-400 w-8 h-8 flex justify-center items-center text-base'>
+                <h3 className='bg-yellow-400 text-gray-900 w-8 h-8 flex justify-center items-center text-base'>
                   {player?.rank}
                 </h3>
                 <p>Rank</p>
@@ -223,8 +223,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
             <div className="text-box w-5/12">
               <div className="w-full flex flex-col justify-center items-end">
                 <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
-                <p className='break-words w-full text-end' >{player.email}</p>
-                <p className='break-words w-full text-end' >2-3 / +3 games</p>
+                {/* <p className='break-words w-full text-end' >2-3 / +3 games</p> */}
               </div>
             </div>
           </div>
@@ -247,7 +246,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 svg-white' role="presentation" onClick={handleOpenAction} />
         {/* Operation menu ende  */}
       </li>
-      {/* && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director)  */}
       {movePlayer && (
         <div className="w-full move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
           <button className="close" onClick={(e) => setMovePlayer(false)}><img src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" /></button>

@@ -139,8 +139,8 @@ function EventsPage() {
       <div className="events flex flex-wrap gap-2 justify-between">
         <div style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-yellow-500 rounded-lg">
           <Link href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?directorId=${directorId}` : `/newevent`} className='h-full w-full flex justify-center items-center flex-col gap-2 rounded-md'>
-            <img src="/icons/plus.svg" alt="plus" className="w-12 svg-white" />
-            <p>Add New</p>
+            <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />
+            <p className='text-gray-900'>Add New</p>
           </Link>
         </div>
 

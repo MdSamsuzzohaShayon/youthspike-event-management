@@ -146,10 +146,11 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
             <div className="mb-8 make-team flex w-full justify-between">
-                <Link className='btn-info flex justify-between items-center gap-2' href={`/${eventId}/teams/new`}>
-                    <span><img src="/icons/plus.svg" alt="plus" className='w-6 svg-white' /></span>Add New Team
+                <Link className='btn-info flex justify-between items-center gap-2 text-gray-900' href={`/${eventId}/teams/new`}>
+                    <span><img src="/icons/plus.svg" alt="plus" className='w-6 svg-black' /></span>Add New Team
                 </Link>
-                <button onClick={(e) => { if (importerEl.current) importerEl.current.showModal() }} className="btn-info flex justify-between items-center gap-2"><span><img src="/icons/import.svg" alt="import" className='w-6 svg-white' /></span>Import File</button>
+                <button onClick={(e) => { if (importerEl.current) importerEl.current.showModal() }} className="btn-info flex justify-between items-center gap-2">
+                    <span><img src="/icons/import.svg" alt="import" className='w-6 svg-black' /></span>Import File</button>
             </div>
             <div className="list-with-filter w-full relative">
                 <div className="action-section flex justify-between mb-4">
