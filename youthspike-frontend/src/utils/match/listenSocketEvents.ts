@@ -2,7 +2,7 @@ import { IListenSocketProps, INetRelatives, IRoundExpRel, IRoundRelatives, ITeam
 import { Socket } from "socket.io-client";
 import { getCookie } from "../cookie";
 import { setCurrentRoom } from "@/redux/slices/roomSlice";
-import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
+import { setCurrNetNum, setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { EActionProcess, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from "@/types/room";
 import { joinTheRoom } from "./emitSocketEvents";
@@ -100,9 +100,9 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
         }
       }
 
-
       dispatch(setRoundList(updatedRoundList));
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+      dispatch(setCurrNetNum(1));
     }
   });
 
@@ -163,18 +163,18 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     // ===== Create 2 Points Nets =====
     const lockedNets = updatedCRN.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
     if (lockedNets.length > 1) {
-        const lnIds = lockedNets.map((n) => n._id)
-        for (let i = 0; i < updatedCRN.length; i++) {
-            if (!lnIds.includes(updatedCRN[i]._id)) {
-                updatedCRN[i] = { ...updatedCRN[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
-            }
+      const lnIds = lockedNets.map((n) => n._id)
+      for (let i = 0; i < updatedCRN.length; i++) {
+        if (!lnIds.includes(updatedCRN[i]._id) && updatedCRN[i].round === roundList[roundList.length - 1]._id) {
+          updatedCRN[i] = { ...updatedCRN[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
         }
+      }
 
-        for (let i = 0; i < updatedN.length; i++) {
-            if (!lnIds.includes(updatedN[i]._id)) {
-              updatedN[i] = { ...updatedN[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
-            }
+      for (let i = 0; i < updatedN.length; i++) {
+        if (!lnIds.includes(updatedN[i]._id)) {
+          updatedN[i] = { ...updatedN[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
         }
+      }
     }
 
     dispatch(setCurrentRoundNets(updatedCRN));

@@ -5,8 +5,8 @@ const screen = {
 
 const netSize = {
     // Height
-    mhl: 25,
-    mhm: 34,
+    mhl: 27,
+    mhm: 32,
 
     // Font seizes
     fsl: 0.6, // large screen

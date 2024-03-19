@@ -21,6 +21,7 @@ import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { UpdateQuery } from 'mongoose';
 import { NetService } from 'src/net/net.service';
+import { MatchService } from 'src/match/match.service';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -49,6 +50,7 @@ export class TeamResolver {
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
     private netService: NetService,
+    private matchService: MatchService,
     private configService: ConfigService
   ) { }
 
@@ -258,6 +260,7 @@ export class TeamResolver {
 
       const teamPlayerIds = teamExist.players.map((p) => p.toString());
       const teamNetIds = teamExist.nets.map((n) => n.toString());
+      const teamMatchIds = teamExist.matches.map((m) => m.toString());
 
 
       const updatePromises = [];
@@ -265,7 +268,7 @@ export class TeamResolver {
       updatePromises.push(this.netService.delete({ _id: { $in: teamNetIds } }));
       if (teamExist.captain) updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamId } }));
       if (teamExist.cocaptain) updatePromises.push(this.playerService.updateOne({ _d: teamExist.cocaptain }, { $pull: { teams: teamId } }));
-      if (teamExist.match) updatePromises.push(this.eventService.update({ $pull: { teams: teamId } }, teamExist.match.toString()));
+      if (teamMatchIds.length > 0) updatePromises.push(this.matchService.updateMany({ _id: { $in: teamMatchIds } }, { $set: { teamA: null, teamB: null } }));
       updatePromises.push(this.teamService.delete({ _id: teamId }));
       await Promise.all(updatePromises);
       return {

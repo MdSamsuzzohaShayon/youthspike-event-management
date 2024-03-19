@@ -136,27 +136,32 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
   // ====== Drag or touch event for players rankings ======
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    if(!rankControls) return;
     setIsDragging(true);
     touchDragStart(index,);
   };
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    console.log({ index });
+    if(!rankControls) return;
     touchDragEnter(index);
   };
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    if(!rankControls) return;
     setIsDragging(false);
     touchDragEnd(index, player._id);
   };
 
   const handleTouchStart = (e: TouchEvent) => {
+    if(!rankControls) return;
     touchDragStart(index)
   }
+  
   const handleTouchEnd = (e: TouchEvent) => {
+    if(!rankControls) return;
     touchDragEnd(index, player._id)
   }
-
   const handleTouchMove = (e: TouchEvent) => {
     e.preventDefault();
+    if(!rankControls) return;
 
     // ===== Find out index for dropping element =====
     const touchY = e.touches[0].clientY; // Get the Y coordinate of the touch event
@@ -185,7 +190,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     }
   }, []);
   
-  
 
   return (
     <React.Fragment>
@@ -193,23 +197,23 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
 
         {/* Draggable element start  */}
-        <div className="draggable-element w-11/12 flex justify-between items-center" draggable={rankControls ?? false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter}  >
+        <div className="draggable-element w-11/12 flex justify-between items-center" draggable={rankControls ? true : false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter}  >
           <input type="checkbox" name="player-select" id="option" className='w-1/12' />
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
-              {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-500 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-500 rounded-full svg-white" />}
+              {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-400 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full svg-white" />}
               <div className="player-name flex flex-col w-full">
                 <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
-                {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Captain</p>}
-                {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-500 uppercase'>Co-Captain</p>}
-                <p className='text-yellow-500 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
+                {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Captain</p>}
+                {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Co-Captain</p>}
+                <p className='text-yellow-400 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
               </div>
             </div>
 
             {showRank && player?.rank && (
               <div className="rank-box h-6 w-6 flex flex-col items-center">
-                <h3 className='bg-yellow-500 w-8 h-8 flex justify-center items-center text-base'>
+                <h3 className='bg-yellow-400 w-8 h-8 flex justify-center items-center text-base'>
                   {player?.rank}
                 </h3>
                 <p>Rank</p>

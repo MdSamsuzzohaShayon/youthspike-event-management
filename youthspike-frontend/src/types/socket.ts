@@ -51,6 +51,11 @@ export interface ICheckInToLineupProps extends IStatusChange {
     currRoundNets: INetRelatives[];
 }
 
+export interface ISubmitLineupProps extends ICheckInToLineupProps{
+    teamB?: ITeam | null;
+    myPlayerIds: string[];
+}
+
 export interface ICommonProps {
     currRound: IRoundRelatives | null;
     roundList: IRoundRelatives[];

@@ -56,9 +56,9 @@ export class Team extends AppDocument {
   @Field((type) => Player, { nullable: true })
   cocaptain?: Player | string; // Make the captain field nullable
 
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
-  @Field((type) => Match, { nullable: true })
-  match?: Match | string; // Make the captain field nullable
+  @Field((type) => [Match], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }]})
+  matches?: Match[] | string[]; // Make the captain field nullable
 
   @Field((type) => Event, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })

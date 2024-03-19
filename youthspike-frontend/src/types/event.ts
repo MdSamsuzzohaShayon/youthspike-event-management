@@ -17,6 +17,7 @@ export interface IEventSponsor{
 export interface IEvent extends IDefaultEventMatch {
   _id: string;
   name: string;
+  divisions: string;
   startDate: string;
   endDate: string;
   playerLimit: number;

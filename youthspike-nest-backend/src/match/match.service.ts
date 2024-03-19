@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { sign } from 'crypto';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Match } from 'src/match/match.schema';
 import { AppResponse } from 'src/shared/response';
 import { UserService } from 'src/user/user.service';
@@ -51,6 +51,11 @@ export class MatchService {
       { upsert: true, new: true },
     );
   }
+
+  async updateMany(filter: FilterQuery<Match>, matchObj: UpdateQuery<Match>) {
+    return this.matchModel.updateMany(filter, matchObj);
+  }
+
   async delete(filter: FilterQuery<Match>) {
     return this.matchModel.deleteMany(filter);
   }

@@ -54,7 +54,7 @@ type Team {
   division: String!
   captain: Player
   cocaptain: Player
-  match: Match
+  matches: [Match!]
   event: Event!
   players: [Player!]!
   nets: [Net!]!
@@ -153,6 +153,7 @@ type Player {
   email: String
   status: EPlayerStatus!
   rank: Int
+  rankLock: Boolean
   profile: String
   phone: String
   division: String!
@@ -198,6 +199,7 @@ type LoginUser {
   email: String!
   active: Boolean!
   event: String
+  team: String
 }
 
 type LoginResponseData {
@@ -344,6 +346,7 @@ type RoundResoponse {
 
 type RoomRoundProcess {
   _id: String!
+  num: Float!
   teamAProcess: String!
   teamBProcess: String!
 }
@@ -430,6 +433,7 @@ type Mutation {
   deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
   createMatch(input: CreateMatchInput!): GetMatchResponse!
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
+  deleteMatch(matchId: String!): GetMatchResponse!
   create(match: String!, locked: Boolean, id: String): GetRoundResponse!
   updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!

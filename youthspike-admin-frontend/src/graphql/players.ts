@@ -26,6 +26,7 @@ const playerResponse = `
   profile
   email
   rank
+  rankLock
   status
   phone
   division

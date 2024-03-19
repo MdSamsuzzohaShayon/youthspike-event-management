@@ -49,6 +49,14 @@ export class TeamService {
     return this.teamModel.findOneAndUpdate(filter, teamObj, { upsert: true, new: true });
   }
 
+  async updateMany(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>){
+    return this.teamModel.updateMany(filter, updateObj);
+  }
+  async updateOne(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>){
+    const updateTeam = await this.teamModel.updateOne(filter, updateObj);
+    return updateTeam;
+  }
+
   async delete(filter: FilterQuery<Team>) {
     return this.teamModel.deleteMany(filter);
   }

@@ -109,15 +109,11 @@ function Menu() {
 
                     <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
                         <h1>{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
-                        <p className='uppercase text-yellow-500 mt-1'>{user.info?.role}</p>
+                        {user.info?.team && <h3>{user.info?.team} </h3>}
+                        <p className='uppercase text-yellow-400 mt-1'>{user.info?.role}</p>
                     </div>
                     <div className="league-director w-full flex justify-between items-center mb-8">
-                        {user?.info?.role === UserRole.admin ? (<h1 className='text-2xl'>Admin</h1>) : (<>
-                            <Link role="presentation" onClick={closeMenuHandler} href="/">
-                                {/* {ldoData?.logo ? <AdvancedImage className="w-2/6" cldImg={cld.image(ldoData?.logo)} /> : <img src="/free-logo.svg" alt="spikeball-logo" className="w-2/6" />} */}
-                            </Link>
-                            {/* <h1 className='text-2xl'>{ldoData ? ldoData.name : ''}</h1> */}
-                        </>)}
+                        {user?.info?.role === UserRole.admin && (<h1 className='text-2xl'>Admin</h1>) }
                     </div>
                     {eventId && (
                         <div className="league mb-8 w-full">

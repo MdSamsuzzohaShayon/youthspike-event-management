@@ -11,7 +11,7 @@ export enum UserRole {
   "player" = "player",
 }
 
-export interface ILogin{
+export interface ILogin {
   email: string;
   password: string;
 }
@@ -22,6 +22,7 @@ export interface ILogin{
 export interface IUser extends IDocument {
   firstName: string;
   lastName: string;
+  team?: string;
   role: UserRole;
   active: boolean;
   login: ILogin;
@@ -32,7 +33,7 @@ export interface IUser extends IDocument {
 /**
  * Add director user
  */
-export interface IDirector{
+export interface IDirector {
   firstName: string;
   lastName: string;
   email: string;
@@ -40,7 +41,7 @@ export interface IDirector{
   confirmPassword: string;
 }
 
-export interface IDirectorItem{
+export interface IDirectorItem {
   firstName: string;
   lastName: string;
   email: string;

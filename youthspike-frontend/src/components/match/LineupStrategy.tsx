@@ -83,13 +83,13 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
 
 
     return (<div className="w-full flex justify-center items-center relative text-gray-100">
-        <div className="h-6 w-6 border-0 rounded-full bg-yellow-500 flex justify-center items-center">
+        <div className="h-6 w-6 border-0 rounded-full bg-yellow-400 flex justify-center items-center">
             <button type='button' onClick={e => setOpenPasControl((prevState) => !prevState)} >A</button>
         </div>
         {openPasControl && (
             <ul className="player-select-strategy bg-gray-800 w-24 absolute bottom-6 inset-x-0 z-20" style={{ left: '50%', transform: 'translate(-50%)' }} >
                 {playerAssignStrategies.map((pas) => (
-                    <li className='p-2 border-b border-yellow-500 capitalize' key={pas} role="presentation" onClick={e => handlePASSelect(e, pas)} >{pas}</li>
+                    <li className='p-2 border-b border-yellow-400 capitalize' key={pas} role="presentation" onClick={e => handlePASSelect(e, pas)} >{pas}</li>
                 ))}
             </ul>
         )}

@@ -16,13 +16,7 @@ interface TeamSingleMainProps {
 }
 
 function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
-  /**
-   * Need to test drag and drop with mobile (important)
-   * Figma Link (Page 6) - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
-   * League director can change captain
-   * Captain can change team player ranking
-   * 
-   */
+
   const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId }, fetchPolicy: "network-only" });
   const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -49,6 +43,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const divisionList = data?.getTeam?.data?.event?.divisions ? divisionsToOptionList(data?.getTeam?.data?.event?.divisions) : [];
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
+  
 
 
   return (

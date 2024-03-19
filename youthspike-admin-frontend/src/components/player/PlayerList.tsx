@@ -28,6 +28,7 @@ interface IPlayerRank {
 function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, setAddPlayer, showRank, teamIds, divisionList, teamList, refetchFunc }: IPlayerListProps) {
 
   const [rankPlayers, { data, error, loading, client }] = useMutation(UPDATE_PLAYERS);
+  
 
   const dragPI = useRef<number>(0);
   const dragOverPI = useRef<number>(0);
@@ -80,13 +81,12 @@ function PlayerList({ playerList, eventId, teamId, setIsLoading, rankControls, s
   }
   
 
-
   return (
     <div className='mt-2'>
       <ul className='flex flex-wrap items-center gap-2'>
         {playerList.map((player: IPlayerExpRel, index) => player.status === EPlayerStatus.ACTIVE && <PlayerCard key={player._id} eventId={eventId} player={player} index={index} teamId={teamId}
           setIsLoading={setIsLoading} touchDragStart={handleDragStart} touchDragEnter={handleDragEnter}
-          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls} showRank={showRank} divisionList={divisionList} teamList={teamList} />)}
+          touchDragEnd={handleDragEnd} touchMove={handleTouchMove} rankControls={rankControls && !player.rankLock ? true : false} showRank={showRank} divisionList={divisionList} teamList={teamList} />)}
       </ul>
       <h3 className="mt-4">Inactive Players</h3>
       <ul className='flex flex-wrap items-center gap-2'>

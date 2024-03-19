@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
-import { checkInToLineup, notTwoPointNet } from '@/utils/match/emitSocketEvents';
+import { notTwoPointNet } from '@/utils/match/emitSocketEvents';
 import { border, overflowNetH } from '@/utils/styles';
 import React, { useEffect, useState } from 'react';
 import PlayerScoreCard from '../match/PlayerScoreCard';

@@ -23,6 +23,7 @@ export interface IUser extends IDocument {
   firstName: string;
   lastName: string;
   role: UserRole;
+  team?: string;
   active: boolean;
   login: ILogin;
   captainplayer: string | null;

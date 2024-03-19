@@ -91,6 +91,7 @@ export class RoundResoponse {
 
   @Field({ nullable: true })
   teamAScore: number;
+  
   @Field({ nullable: true })
   teamBScore: number;
 
@@ -123,11 +124,20 @@ export class SubmitLineupInput {
   @Field({ nullable: false })
   round: string;
 
+  @Field({ nullable: false })
+  teamAId: string;
+
+  @Field({ nullable: false })
+  teamBId: string;
+
   @Field({ nullable: true })
   teamAProcess: string;
 
   @Field({ nullable: true })
   teamBProcess: string;
+
+  @Field(()=> [String],{defaultValue: [], nullable: true})
+  subbedPlayers: string[]
 
   @Field(() => [NetAssign], { nullable: false })
   nets: NetAssign[];

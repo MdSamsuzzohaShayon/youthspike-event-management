@@ -13,9 +13,10 @@ interface IMatchListProps {
   eventId: string;
   matchList: IMatch[];
   division: string;
+  refetchFunc?: ()=> Promise<void>;
 }
 
-function MatchList({ matchList, division, eventId }: IMatchListProps) {
+function MatchList({ matchList, division, eventId, refetchFunc }: IMatchListProps) {
   const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([...matchList]);
   const user = useUser();
 
@@ -40,7 +41,7 @@ function MatchList({ matchList, division, eventId }: IMatchListProps) {
     <div className='matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap'>
       <SelectInput handleSelect={handlePeriodChange} name='period' optionList={eventPeriods.map((p) => ({ text: p, value: p }))} lblTxt='Date' rw='w-3/6' />
 
-      {filteredMatchList && filteredMatchList.map((match: IMatch, i) => <MatchCard eventId={eventId} key={match._id} match={match} sl={i + 1} />)}
+      {filteredMatchList && filteredMatchList.map((match: IMatch, i) => <MatchCard eventId={eventId} key={match._id} match={match} sl={i + 1} refetchFunc={refetchFunc} />)}
     </div>
   );
 }

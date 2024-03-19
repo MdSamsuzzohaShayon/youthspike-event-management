@@ -56,14 +56,16 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
+ - Player sub, a player can be off for a round and can get back in the next round
+
  - If a round has been submitted he can not re-rank his players
+ - Close button must not show up after submitting lineup
  - Style according to Figma - Make color scheme same
  - Make sure random assign, anchor assign, heirarchy assign more smooth
  
  - Creating team, players, match smoothly
  - Run a match smoothly 
  - Sponsors will always have a logo of ourself by default
- - Player sub, a player can be off for a round and can get back in the next round
 
  - When make player inactive the rank should be update and and this should work properly
 
@@ -73,13 +75,7 @@ ___
  - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
 
  - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
- - When login as captain show name of the team of which I am captain of
- - Black text on yellow box
- - Yellow need to be little more brighter than current yellow
- - Close button must not show up after submitting lineup
  - When click on input field to update score it should highlight the whole number
- - When I will match and submit my lineup, net 1 should be selected automitically
- - Update score button should not be shown - it is irrelevent now
  
 
 

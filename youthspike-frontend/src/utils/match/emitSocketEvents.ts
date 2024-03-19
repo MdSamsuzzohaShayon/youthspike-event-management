@@ -4,8 +4,8 @@ import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { IJoinTheRoomProps, ICanGoProps, ICheckInToLineupProps, INextRoundProps, IStatusChange, IRoomNetAssign, ICheckInAction, IRoundRelatives, INotTwoPointNetProps } from "@/types";
 import { ETieBreaker } from "@/types/net";
-import { EActionProcess, IRoomNetType, ITeiBreakerAction, } from "@/types/room";
-import { ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from "@/types/socket";
+import { EActionProcess, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction, } from "@/types/room";
+import { ISubmitLineupProps, ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from "@/types/socket";
 import { ETeam } from "@/types/team";
 
 
@@ -55,15 +55,18 @@ function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, di
 
 
 
-function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNets, roundList, dispatch, myTeamE }: ICheckInToLineupProps) {
+function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, dispatch, myTeamE }: ISubmitLineupProps) {
     const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
     const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
-    const actionData: ICheckInAction = {
+    const actionData: ISubmitLineupAction = {
         room: currRoom?._id ? currRoom?._id : null,
         round: currRound?._id ? currRound?._id : null,
         teamAProcess: currRound?.teamAProcess ? currRound?.teamAProcess : null,
         teamBProcess: currRound?.teamBProcess ? currRound?.teamBProcess : null,
-        nets: []
+        teamAId: teamA?._id ? teamA?._id : "NO_ID_FOUND",
+        teamBId: teamB?._id ? teamB?._id : "NO_ID_FOUND",
+        subbedPlayers: [],
+        nets: [],
     };
     if (isTeamACaptain || isTeamACoCaptain) {
         actionData.teamAProcess = EActionProcess.LINEUP;
@@ -72,10 +75,15 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
     }
 
     let fillAllNets = true;
+    const lineupPlayerList = new Set();
     const roundNetAssign: IRoomNetAssign[] = currRoundNets.map((net) => {
         if (myTeamE === ETeam.teamA) {
+            lineupPlayerList.add(net.teamAPlayerA);
+            lineupPlayerList.add(net.teamAPlayerB);
             if (!net.teamAPlayerA || !net.teamAPlayerB) fillAllNets = false
         } else {
+            lineupPlayerList.add(net.teamBPlayerA);
+            lineupPlayerList.add(net.teamBPlayerB);
             if (!net.teamBPlayerA || !net.teamBPlayerB) fillAllNets = false;
         }
 
@@ -92,11 +100,20 @@ function checkInToLineup({ socket, user, teamA, currRoom, currRound, currRoundNe
     };
     actionData.nets = roundNetAssign;
 
+    // playerList
+    const subbedPlayers = [];
+    for (let i = 0; i < myPlayerIds.length; i++) {
+        if(!lineupPlayerList.has(myPlayerIds[i])){
+            subbedPlayers.push(myPlayerIds[i]);
+        }
+    }
+    actionData.subbedPlayers = subbedPlayers;
+
     // Reset current round, and round list
     const cri = roundList.findIndex((r) => r._id === currRound?._id) // vri = current round index
     if (cri === -1) return;
     // @ts-ignore
-    const roundObj: IRoundRelatives = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess };
+    const roundObj: IRoundRelatives = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess, subs: subbedPlayers };
     dispatch(setRoundList([...roundList.filter((r) => r._id !== currRound?._id), roundObj]));
     dispatch(setCurrentRound(roundObj));
     dispatch(setVerifyLineup(false));
@@ -196,13 +213,13 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, all
     if (lockedNets.length > 1) {
         const lnIds = lockedNets.map((n) => n._id)
         for (let i = 0; i < updatedNets.length; i++) {
-            if (!lnIds.includes(updatedNets[i]._id)) {
+            if (!lnIds.includes(updatedNets[i]._id) && updatedNets[i].round === currRound?._id) {
                 updatedNets[i] = { ...updatedNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
             }
         }
 
         for (let i = 0; i < updatedAllNets.length; i++) {
-            if (!lnIds.includes(updatedAllNets[i]._id)) {
+            if (!lnIds.includes(updatedAllNets[i]._id ) && updatedAllNets[i].round === currRound?._id) {
                 updatedAllNets[i] = { ...updatedAllNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
             }
         }

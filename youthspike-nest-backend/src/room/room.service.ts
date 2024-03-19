@@ -23,4 +23,11 @@ export class RoomService {
     async update(filter: FilterQuery<Room>, roomData: UpdateRoomInput) {
         return this.roomModel.updateOne(filter, roomData);
     }
+    async updateOne(filter: FilterQuery<Room>, roomData: UpdateRoomInput) {
+        return this.roomModel.updateOne(filter, roomData);
+    }
+
+    async deleteOne(filter: FilterQuery<Room>) {
+        return this.roomModel.deleteOne(filter);;
+    }
 }

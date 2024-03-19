@@ -95,7 +95,7 @@ dialog::backdrop {
 }
 
 .btn-info {
-  @apply px-3 py-2 bg-yellow-500 text-yellow-100 rounded-full hover:bg-yellow-700 font-bold text-xl;
+  @apply px-3 py-2 bg-yellow-400 text-yellow-100 rounded-full hover:bg-yellow-700 font-bold text-xl;
 }
 
 
@@ -104,7 +104,7 @@ dialog::backdrop {
 }
 
 .s {
-  @apply px-3 py-2 bg-yellow-500 text-yellow-100 rounded-md hover:bg-yellow-700 font-bold text-xl;
+  @apply px-3 py-2 bg-yellow-400 text-yellow-100 rounded-md hover:bg-yellow-700 font-bold text-xl;
 }
 
 .btn-danger {
@@ -152,3 +152,10 @@ dialog::backdrop {
   font-family: "Vujahday Script", cursive;
 }
 /* Typography ends  */
+
+
+/* Borders start  */
+.border-light{
+  @apply border border-gray-300
+}
+/* Borders end  */

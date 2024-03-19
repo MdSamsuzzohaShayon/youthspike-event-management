@@ -1,14 +1,9 @@
-import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrentRoom } from '@/redux/slices/roomSlice';
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IRoom, IRoundRelatives, IUserContext, IRoomNetAssign } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { checkInToLineup } from '@/utils/match/emitSocketEvents';
 import React, { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client';
-import VerifyLineup from './VerifyLineup';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import PointText from './PointText';
 

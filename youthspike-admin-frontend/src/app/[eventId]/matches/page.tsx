@@ -37,7 +37,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   const user = useUser();
 
   // Fetch teams and players of the teams
-  const [getEvent, { data, loading, error }] = useLazyQuery(GET_EVENT_WITH_MATCHES_TEAMS, { variables: { eventId: params.eventId } });
+  const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_MATCHES_TEAMS, { variables: { eventId: params.eventId }, fetchPolicy: "network-only" });
 
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -100,6 +100,10 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     setFilteredMatchList((prevState)=> [...prevState, matchData]);
   }
 
+  const refetchFunc=async ()=>{
+    await fetchEvent();
+  }
+
 
 
   useEffect(() => {
@@ -140,7 +144,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         </> : <>
           {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
           <br />
-          {filteredMatchList.length > 0 ? <MatchList eventId={params.eventId} division={currDivision} matchList={filteredMatchList} /> : <p>No match created yet!</p>}
+          {filteredMatchList.length > 0 ? <MatchList eventId={params.eventId} division={currDivision} matchList={filteredMatchList} refetchFunc={refetchFunc} /> : <p>No match created yet!</p>}
         </>}
       </div>
       <br />

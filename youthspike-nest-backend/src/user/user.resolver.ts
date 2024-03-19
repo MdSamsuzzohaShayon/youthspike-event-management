@@ -25,6 +25,9 @@ class LoginUser extends UserBase {
   event?: string;
 
   @Field((type) => String, { nullable: true })
+  team?: string;
+
+  @Field((type) => String, { nullable: true })
   captainplayer?: string;
 
   @Field((type) => String, { nullable: true })
@@ -84,13 +87,15 @@ export class UserResolver {
         const teamWithCaptain = await this.teamService.findOne({ captain: userObj.captainplayer.toString() });
         if (teamWithCaptain) {
           userObj.event = teamWithCaptain.event;
+          userObj.team = teamWithCaptain.name;
         }
       }
 
       if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
-        const teamWithCaptain = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer.toString() });
-        if (teamWithCaptain) {
-          userObj.event = teamWithCaptain.event;
+        const teamWithCoCaptain = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer.toString() });
+        if (teamWithCoCaptain) {
+          userObj.event = teamWithCoCaptain.event;
+          userObj.team = teamWithCoCaptain.name;
         }
       }
 

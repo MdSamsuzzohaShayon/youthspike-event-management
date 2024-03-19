@@ -13,6 +13,9 @@ import { Match } from './match.schema';
 import { CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
 import { ETieBreaker } from 'src/net/net.schema';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -37,6 +40,7 @@ export class MatchResolver {
     private roomService: RoomService,
   ) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetMatchResponse)
   async createMatch(@Args('input') input: CreateMatchInput): Promise<GetMatchResponse> {
@@ -102,9 +106,9 @@ export class MatchResolver {
             match: newMatch._id,
             round: round._id,
             num: j + 1,
-            points: 1, 
+            points: 1,
             // For last round net make points more than 1
-            netType: input.numberOfRounds === i+1 ? ETieBreaker.FINAL_ROUND_NET : ETieBreaker.PREV_NET,
+            netType: input.numberOfRounds === i + 1 ? ETieBreaker.FINAL_ROUND_NET : ETieBreaker.PREV_NET,
             teamAScore: null,
             teamBScore: null,
             pairRange: 0,
@@ -119,8 +123,8 @@ export class MatchResolver {
         // Update the nets field in the created round
         promisesAll.push(this.roundService.update({ nets: netIdsOfRound }, round._id));
       }
-      promisesAll.push(this.teamService.update({ match: newMatch._id }, { _id: input.teamA }));
-      promisesAll.push(this.teamService.update({ match: newMatch._id }, { _id: input.teamB }));
+      promisesAll.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamA }));
+      promisesAll.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamB }));
       promisesAll.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
       promisesAll.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
       promisesAll.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
@@ -136,6 +140,7 @@ export class MatchResolver {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
@@ -150,6 +155,39 @@ export class MatchResolver {
         data: updatedMatch,
         success: true,
         code: 200,
+      };
+    } catch (err) {
+      return AppResponse.getError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns) => GetMatchResponse)
+  async deleteMatch(@Args('matchId') matchId: string) {
+    try {
+      const matchExist = await this.matchService.findById(matchId);
+      if (!matchExist) return AppResponse.exists("Match");
+
+      const updatePromises = [];
+      const roundIds = matchExist.rounds.map((m) => m.toString());
+      if (roundIds.length > 0) {
+        updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
+      }
+      const netIds = matchExist.nets.map((n) => n.toString());
+      if (netIds.length > 0) {
+        updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
+      }
+
+      updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
+      updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
+      updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
+      updatePromises.push(this.matchService.delete({ _id: matchId }));
+      await Promise.all(updatePromises);
+      return {
+        data: null,
+        success: true,
+        code: 204,
       };
     } catch (err) {
       return AppResponse.getError(err);

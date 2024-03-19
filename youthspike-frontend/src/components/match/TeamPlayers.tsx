@@ -9,7 +9,6 @@ import { useAppSelector } from '@/redux/hooks';
 
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[];
-  team: string;
   screenWidth: number;
 }
 
@@ -18,7 +17,7 @@ const playersLimit: number = 5;
 const touchThreshold: number = 50;
 const initialStartTrim: number = 0;
 
-function TeamPlayers({ teamPlayers, team, screenWidth }: ITeamPlayersProps) {
+function TeamPlayers({ teamPlayers, screenWidth }: ITeamPlayersProps) {
 
   // Global States
   const { myTeamE } = useAppSelector((state) => state.matches);

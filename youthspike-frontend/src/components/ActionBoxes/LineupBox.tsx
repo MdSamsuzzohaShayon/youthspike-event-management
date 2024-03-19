@@ -26,11 +26,11 @@ function LineupBox({ currRoom, socket, otp }: IBoxProps) {
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currentRound, roundList, } = useAppSelector((state) => state.rounds);
 
-  const handleUpdatePoints = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // Update round and nets
-    updateMultiplePoints({ allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch });
-  }
+  // const handleUpdatePoints = (e: React.SyntheticEvent) => {
+  //   e.preventDefault();
+  //   // Update round and nets
+  //   updateMultiplePoints({ allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch });
+  // }
 
 
   useEffect(() => {
@@ -55,7 +55,7 @@ function LineupBox({ currRoom, socket, otp }: IBoxProps) {
         {otp === EActionProcess.LINEUP
           ? (<React.Fragment>
             <h2 className="font-black text-start">Time to go PLAY. Once the games are finished, input the scores to complete round.</h2>
-            <button className="btn-light" type='button' onClick={handleUpdatePoints}>Update Scores</button>
+            {/* <button className="btn-light" type='button' onClick={handleUpdatePoints}>Update Scores</button> */}
             {/* {currentRound?.teamAScore && currentRound.teamBScore && (<button className="btn-light" type='button' onClick={(e) => handleChangeRound(e, true)}>Next Round</button>)} */}
           </React.Fragment>)
           : <React.Fragment>

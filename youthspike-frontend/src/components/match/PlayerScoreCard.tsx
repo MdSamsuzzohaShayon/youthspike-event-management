@@ -10,12 +10,12 @@ import { ETeam } from '@/types/team';
 import { netSize, screen } from '@/utils/constant';
 import { fsToggle } from '@/utils/helper';
 import { AdvancedImage } from '@cloudinary/react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 
 interface IPlayerScoreCard {
   player: IPlayer | null;
-  teamPlayer: ETeamPlayer;
+  teamPlayer?: ETeamPlayer;
   evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
   dark: boolean;
@@ -27,13 +27,17 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { current: currentRound } = useAppSelector((state) => state.rounds);
+  const { currentRoundNets } = useAppSelector((state) => state.nets);
+
+
+  const [fillNets, setFillNets] = useState<boolean>(false);
 
   const handleDropDown = (e: React.SyntheticEvent) => {
-    if (dropdownPlayer) dropdownPlayer(e, teamPlayer);
+    if (dropdownPlayer && teamPlayer) dropdownPlayer(e, teamPlayer);
   };
 
   const handleEvacuatePlayer = (e: React.SyntheticEvent, playerId: string) => {
-    if (evacuatePlayer) evacuatePlayer(teamPlayer, playerId);
+    if (evacuatePlayer && teamPlayer) evacuatePlayer(teamPlayer, playerId);
   };
 
   const shouldShowEvacuateButton =
@@ -47,16 +51,34 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
       currentRound.teamAProcess === EActionProcess.CHECKIN ||
       currentRound.teamBProcess === EActionProcess.CHECKIN);
 
+  useEffect(() => {
+    let fn = true;
+    for (let i = 0; i < currentRoundNets.length; i++) {
+      if (myTeamE === ETeam.teamA) {
+        if (!currentRoundNets[i].teamAPlayerA || !currentRoundNets[i].teamAPlayerB) {
+          fn = false;
+        }
+      } else {
+        if (!currentRoundNets[i].teamBPlayerA || !currentRoundNets[i].teamBPlayerB) {
+          fn = false;
+        }
+      }
+    }
+    setFillNets(fn);
+  }, [currentRoundNets]);
+
   return (
     <React.Fragment>
       <div className={`p-img-wrap relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
         {shouldShowEvacuateButton && (
           <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full">
-            {myTeamE === ETeam.teamA && !dark ? (!currentRound.teamAScore && (
-              <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
-            )) : !currentRound.teamBScore && !dark && (
-              <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
-            )}
+            {myTeamE === ETeam.teamA && !fillNets && !dark
+              ? (!currentRound.teamAScore && (
+                <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
+              ))
+              : !currentRound.teamBScore && !fillNets && !dark && (
+                <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
+              )}
           </div>
         )}
 
@@ -74,7 +96,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
       </div>
 
       <div className={`p-name-rank w-full flex ${screenWidth > screen.xs ? 'h-7' : 'h-9'}`}>
-        <div className="rank w-4 h-full bg-yellow-500 text-gray-100 text-lg flex justify-center items-center" style={fsToggle(screenWidth)}>
+        <div className="rank w-4 h-full bg-yellow-400 text-gray-900 text-lg flex justify-center items-center" style={fsToggle(screenWidth)}>
           {player ? player.rank : 0}
         </div>
         <p className={`name flex justify-center items-center w-12 leading-3 capitalize break-words ${dark ? 'text-gray-100' : 'text-gray-900'}`} style={fsToggle(screenWidth)}>

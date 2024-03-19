@@ -80,6 +80,11 @@ const eventResponse = `
       lastName
       email
       division
+      rankLock
+      teams{
+        _id
+        name
+      }
     }
 `;
 

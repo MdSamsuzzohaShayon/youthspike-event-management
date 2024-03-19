@@ -39,24 +39,25 @@ import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
+import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 
 /**
  * Test Match
  * Match URL 
  * http://localhost:3001/matches/65e8cba57c597b83c183c279
  * 
- * FC Barcelona
- * Captain
- * p5e1@e.com
- * Co-captain
- * p4e1@e.com
- * 
- * 
  * Real Madrid
  * Captain
  * p9e1@e.com
- * Co-captain
+ * Co-captains
  * p16e1@e.com
+ * 
+ * 
+ * Girona CF
+ * Captain
+ * p18@e.com
+ * Co-captains
+ * p15e1@e.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -78,7 +79,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch} = useAppSelector((state) => state.matches);
+  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
 
@@ -161,7 +162,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
           <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
 
-          <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} team={opTeamE} screenWidth={screenWidth} />
+          {/* // Show oponent subbed players  */}
+          <div className="subbed container px-4 mx-auto my-4">
+            <SubbedPlayerList teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} currRound={currentRound} />
+          </div>
+          <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+
           {notTieBreakerNetId ? <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} /> : (
             verifyLineup
               ? <VerifyLineup />
@@ -182,7 +188,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             </div>
           )}
           {/* My Players  */}
-          <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} team={myTeamE} screenWidth={screenWidth} />
+          <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+          {/* // Show subbed players  */}
+          <div className="subbed container px-4 mx-auto mt-4">
+            <SubbedPlayerList teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} currRound={currentRound} subControl />
+          </div>
+          <br />
         </div>
       </Suspense>
     </React.Fragment>

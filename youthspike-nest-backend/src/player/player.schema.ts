@@ -39,6 +39,10 @@ export class Player extends AppDocument {
   @Prop({ required: false })
   rank?: number;
 
+  @Field((_type) => Boolean, { nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  rankLock: false;
+
   @Prop({ required: false })
   @Field({ nullable: true })
   profile?: string;

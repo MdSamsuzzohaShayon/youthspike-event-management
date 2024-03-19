@@ -165,7 +165,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       if (availablePlayerIds.includes(teamPlayerList[i]._id) && teamPlayerList[i].status !== EPlayerStatus.INACTIVE) {
         playerListEl.push(
           <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-400" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
-            <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-500 flex justify-center items-center">{teamPlayerList[i].rank}</p>
+            <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-400 flex justify-center items-center">{teamPlayerList[i].rank}</p>
             {teamPlayerList[i].profile ? <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-10 h-10 rounded-full border-2 border-gray-900" /> : <img src='/icons/sports-man.svg' className='svg-black w-10 h-10 rounded-full p-2 border-2 border-gray-900' />}
             <p className=' w-7/12 words-break capitalize'>
               {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
@@ -205,7 +205,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
             <div className={`round-nums ${screenWidth > screen.xs ? "mt-2" : "mt-4"} flex w-full justify-start gap-1 items-center`}>
               {roundList.map((round) => (
-                <button className={`single-r ${round._id === currentRound?._id ? "bg-yellow-500 text-gray-100" : "bg-gray-100 text-gray-900"} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"} rounded-lg`} type="button"
+                <button className={`single-r ${round._id === currentRound?._id ? "bg-yellow-400" : "bg-gray-100"} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"} rounded-lg`} type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}>
                   RD{round.num}
