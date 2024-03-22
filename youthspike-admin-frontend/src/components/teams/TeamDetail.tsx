@@ -12,6 +12,8 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { getEventIdFromPath, rearrangeMenu } from '@/utils/helper';
 import { usePathname } from 'next/navigation';
 import { BACKEND_URL } from '@/utils/keys';
+import { AdvancedImage } from '@cloudinary/react';
+import cld from '@/config/cloudinary.config';
 
 interface ITeamDetailProps {
     event: IEvent;
@@ -96,9 +98,10 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
             {/* Team detail  */}
             <div className="team-detail mt-8 w-full flex justify-center flex-col items-center">
-                <TextImg className='w-20 h-20' fullText={team.name} txtCls='text-2xl' />
+                {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className='w-20' /> : <TextImg className='w-20 h-20' fullText={team.name} txtCls='text-2xl' />}
+                
                 <h3 className="capitalize">{team && team.name}</h3>
-                <div className="navigator w-full flex justify-center items-center gap-x-2">
+                <div className="navigator w-full flex justify-center items-center gap-x-2 flex-wrap">
                     {userMenuList.map((item, iIdx) => <Link key={item.id} href={item.id === 8 || item.id === 5 ? `${item.link}` : `/${eventId}${item.link}`} >{iIdx !== 0 && "|"} {item.text}</Link>)}
                 </div>
             </div>

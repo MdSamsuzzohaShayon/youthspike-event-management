@@ -116,6 +116,8 @@ function Menu() {
             fetchLDO();
             // ===== Check path has event Id or not
             const eventPath = getEventIdFromPath(pathname);
+            setEventId(eventPath);
+
             if (userDetail.info?.role === UserRole.admin) {
                 const newDirectorId = searchParams.get("directorId");
                 if (newDirectorId) setDirectorId(newDirectorId);

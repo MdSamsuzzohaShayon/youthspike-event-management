@@ -15,8 +15,11 @@ export class CreatePlayerInput {
   @Field()
   division: string;
 
-  @Field()
+  @Field({nullable: true})
   email: string;
+
+  @Field({ nullable: true })
+  phone: string;
 
   @Field()
   rank?: number;
@@ -42,10 +45,10 @@ export class UpdatePlayersInput extends PartialType(CreatePlayerInput) {
 
 
 @InputType()
-export class RankingPlayerInput{
-  @Field({nullable: false})
+export class RankingPlayerInput {
+  @Field({ nullable: false })
   rank: number;
-  
-  @Field({nullable: false})
+
+  @Field({ nullable: false })
   playerId: string;
 }

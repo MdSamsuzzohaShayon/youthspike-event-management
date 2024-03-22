@@ -5,10 +5,12 @@ import SubbedPlayerCard from './SubbedPlayerCard';
 
 interface ISubbedPlayerProps {
     teamPlayers: IPlayer[];
+    currRound: IRoundRelatives | null;
+    roundList: IRoundRelatives[];
     subControl?: boolean;
 }
 
-function SubbedPlayerList({ teamPlayers, subControl }: ISubbedPlayerProps) {
+function SubbedPlayerList({ teamPlayers, subControl, currRound, roundList }: ISubbedPlayerProps) {
 
 
     return (
@@ -16,7 +18,7 @@ function SubbedPlayerList({ teamPlayers, subControl }: ISubbedPlayerProps) {
             <h2>Subbed Players</h2>
             <div className="subbed-player-list w-full flex flex-wrap justify-start gap-2">
                 {teamPlayers.map((p) => (
-                    <SubbedPlayerCard player={p} key={p._id} subControl={subControl} />
+                    <SubbedPlayerCard player={p} key={p._id} currRound={currRound} roundList={roundList} subControl={subControl} />
                 ))}
             </div>
         </div >

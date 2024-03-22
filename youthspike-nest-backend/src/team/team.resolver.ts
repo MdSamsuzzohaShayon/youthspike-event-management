@@ -51,7 +51,6 @@ export class TeamResolver {
     private cloudinaryService: CloudinaryService,
     private netService: NetService,
     private matchService: MatchService,
-    private configService: ConfigService
   ) { }
 
 

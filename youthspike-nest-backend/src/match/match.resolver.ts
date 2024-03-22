@@ -45,14 +45,6 @@ export class MatchResolver {
   @Mutation((returns) => GetMatchResponse)
   async createMatch(@Args('input') input: CreateMatchInput): Promise<GetMatchResponse> {
     try {
-      /**
-       * TODO:
-       *    Step-1: Find default properties from event and Create a new match
-       *    Step-2: Create number of rounds through loop
-       *    Step-3: Create number of nets through loop
-       *    Step-4: Update Match with with netId and roundId
-       *    Step-5: Update Match with eventId
-       */
       const eventExist = await this.eventService.findById(input.event.toString());
       if (!eventExist) return AppResponse.notFound('Event');
 
@@ -145,11 +137,6 @@ export class MatchResolver {
   @Mutation((returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
     try {
-      /**
-       * TODO:
-       *    Step-1: Create new nets or delete if nets number changes
-       *    Step-2: Create new rounds or delete if rounds number changes
-       */
       const updatedMatch = await this.matchService.update(input, matchId);
       return {
         data: updatedMatch,
@@ -197,8 +184,6 @@ export class MatchResolver {
   @Query((returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     try {
-      // const query: { eventId?: null | string } = {};
-      // if (eventId) query.eventId = eventId;
 
       // Assuming matchService is injected in your class
       const matches = await this.matchService.query(filter);

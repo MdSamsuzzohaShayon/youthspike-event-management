@@ -12,21 +12,19 @@ import React, { useState, useEffect } from 'react';
 
 /**
  * Test Match
- * Match URL 
- * http://localhost:3001/matches/65e0879b81d16290815d65ff
  * 
  * Real Madrid
  * Captain
- * p9e1@e.com
+ * p3@e.com
  * Co-captains
- * p16e1@e.com
+ * p4e2@e.com
  * 
  * 
- * Girona CF
+ * FC Barcelona
  * Captain
- * p18@e.com
+ * p7e2@e.com
  * Co-captains
- * p15e1@e.com
+ * p6@e.com
  */
 
 interface MatchSingleProps {

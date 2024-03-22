@@ -34,7 +34,7 @@ function LogoMatchScore({ dark, team, roundList, teamE, screenWidth, allNets }: 
   return (
     <div className={`logo-match-score flex w-full ${dark ? "text-gray-100 flex-col" : "text-gray-900 flex-col-reverse"} gap-1`}>
       <div className="w-full flex justify-between items-center pt-4 gap-1">
-        {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} /> : <TextImg fullText={team?.name} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} />}
+        {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-2/6" /> : <TextImg fullText={team?.name} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} />}
         <h3 className={`break-words w-2/6 leading-4`} style={headingStyle(screenWidth)}>Match Score</h3>
         <div className={`score-box w-2/6 border ${dark ? border.dark : border.light} ${screenWidth > screen.xs ? "" : "p-2"} flex justify-center items-center text-center flex-col rounded-lg`}>
           <p style={textStyle(screenWidth)}>{calcTeamScore().ts}</p>

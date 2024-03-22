@@ -7,9 +7,8 @@ import TeamDetail from '@/components/teams/TeamDetail';
 import { GET_A_TEAM } from '@/graphql/teams';
 import { IError } from '@/types';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { useLazyQuery, useQuery } from '@apollo/client';
-import Link from 'next/link';
-import { removeTeamFromStore, setTeamToStore } from '@/utils/localStorage';
+import { useLazyQuery} from '@apollo/client';
+import { setTeamToStore } from '@/utils/localStorage';
 
 interface TeamSingleMainProps {
   params: { teamId: string, eventId: string },

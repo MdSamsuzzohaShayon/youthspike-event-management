@@ -28,8 +28,6 @@ rounds {
   nets {
     _id
     num
-    points
-    points
     teamAPlayerA
     teamAPlayerB
     teamAScore
@@ -53,7 +51,6 @@ const matchResponse = `
     rosterLock
     timeout
     location
-    ${roundResponse}
     teamA {
       _id
       name
@@ -74,6 +71,11 @@ const matchResponse = `
         profile
       }
     }
+`;
+
+const matchResponseWithRound = `
+    ${roundResponse}
+    ${matchResponse}
 `;
 
 const teamResponse = `
@@ -125,7 +127,7 @@ const GET_A_MATCH = gql`
       message
       success
       data {
-        ${matchResponse}
+        ${matchResponseWithRound}
       }
     }
   }

@@ -28,9 +28,9 @@ registerEnumType(ETieBreaker, {
 export class Net extends AppDocument {
   
   
-  @Field((type) => Int)
+  @Field((type) => Int, {nullable: true})
   @Prop({ required: true, default: 1 })
-  num?: number;
+  num: number;
 
 
   /**

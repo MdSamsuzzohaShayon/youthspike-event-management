@@ -62,45 +62,51 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   }
 
   const fetchEvent = async () => {
-    const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
+    try {
+
+      const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
 
 
-    const newMatchList: IMatch[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
-    let newFilteredMatchList = [...newMatchList];
+      const newMatchList: IMatch[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
+      let newFilteredMatchList = [...newMatchList];
 
-    const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
-    let newFilteredTeamList = [...newTeamList];
+      const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+      let newFilteredTeamList = [...newTeamList];
 
-    if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
+      if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
 
-    // Division and team value
-    removeTeamFromStore();
-    const divisionExist = getDivisionFromStore();
-    if (divisionExist) {
-      setCurrDivision(divisionExist);
-      newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-      newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+      // Division and team value
+      removeTeamFromStore();
+      const divisionExist = getDivisionFromStore();
+      if (divisionExist) {
+        setCurrDivision(divisionExist);
+        newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+        newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+      }
+
+      setMatchList(newMatchList);
+      setFilteredMatchList(newFilteredMatchList);
+
+      setTeamList(newTeamList);
+      setFilteredTeamList(newFilteredTeamList);
+
+      // Making divisions list
+      const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
+      const divs = divisionsToOptionList(divisions);
+      setDivisionList(divs);
+    } catch (error) {
+      console.log(error);
+
     }
-
-    setMatchList(newMatchList);
-    setFilteredMatchList(newFilteredMatchList);
-
-    setTeamList(newTeamList);
-    setFilteredTeamList(newFilteredTeamList);
-
-    // Making divisions list
-    const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
-    const divs = divisionsToOptionList(divisions);
-    setDivisionList(divs);
   }
 
-  const addMatchCB=(matchData: IMatch)=>{
-    setMatchList((prevState)=> [...prevState, matchData]);
-    setFilteredMatchList((prevState)=> [...prevState, matchData]);
+  const addMatchCB = (matchData: IMatch) => {
+    setMatchList((prevState) => [...prevState, matchData]);
+    setFilteredMatchList((prevState) => [...prevState, matchData]);
   }
 
-  const refetchFunc=async ()=>{
+  const refetchFunc = async () => {
     await fetchEvent();
   }
 

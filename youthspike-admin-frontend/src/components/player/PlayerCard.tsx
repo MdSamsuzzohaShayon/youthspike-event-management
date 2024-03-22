@@ -8,6 +8,8 @@ import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { IOption, ITeam } from '@/types';
+import EmailInput from '../elements/forms/EmailInput';
+import { UserRole } from '@/types/user';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -33,6 +35,10 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
   const [newTeamId, setNewTeamId] = useState<null | string>(null);
+
+  const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
+  const [newEmail, setNewEmail] = useState<string>('');
+  const dialogEl = useRef<HTMLDialogElement | null>(null);
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
@@ -80,13 +86,24 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
   const handleMovePlayer = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
     try {
+      const playerInputObj: { playerTeamId?: string, team: string | null } = { team: newTeamId };
+      let prevTeamId = teamId;
+      if (!prevTeamId && player?.teams && player?.teams.length > 0) {
+        const nti = player?.teams[0];
+        const teamExist = teamList?.find((t) => t._id === nti._id);
+        if (teamExist) {
+          playerInputObj.playerTeamId = teamExist._id;
+        }
+      }
       await mutatePlayer({
         variables: {
-          input: { team: newTeamId, playerTeamId: teamId },
+          input: playerInputObj,
           playerId
         }
       });
       await client.refetchQueries({ include: [GET_A_TEAM] });
+      setActionOpen(false);
+      setMovePlayer(false);
     } catch (error) {
       console.log(error);
     }
@@ -114,6 +131,60 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     console.log(`Delete player: ${playerId}`);
   }
 
+
+  const closeModal = () => {
+    if (dialogEl && dialogEl.current) {
+      dialogEl.current.close();
+      setNewPlayerRole(null);
+      setNewEmail('');
+    }
+  }
+
+  const handleOpenDialog = (e: React.SyntheticEvent, capOrCo: UserRole) => {
+    e.preventDefault();
+    if (dialogEl && dialogEl.current) {
+      setNewPlayerRole(capOrCo);
+      setActionOpen(prevState => !prevState);
+      dialogEl.current.showModal()
+    }
+  }
+
+  const handleCloseModal = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    closeModal();
+  }
+
+  const handleCaptainEmail = async (e: React.SyntheticEvent) => {
+    /**
+     * Add email for player
+     * And Make him captain
+     */
+    e.preventDefault();
+    if (!newEmail || newEmail === "") return;
+    const updateObj: { email?: string, captain?: string, cocaptain?: string } = { email: newEmail };
+    if (newPlayerRole === UserRole.captain) {
+      updateObj.captain = player._id;
+    } else if (newPlayerRole === UserRole.co_captain) {
+      updateObj.cocaptain = player._id;
+    }
+    try {
+      const updatePlayer = await mutatePlayer({
+        variables: {
+          input: { email: newEmail },
+          playerId: player._id
+        }
+      });
+      if (updateObj.email) {
+        delete updateObj.email;
+        const updateTeam = await makeCaptainOrCoCaptain(updateObj);
+      }
+      closeModal();
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
   // ====== Change events ======
   const handleDivisionChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -136,32 +207,32 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
   // ====== Drag or touch event for players rankings ======
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     setIsDragging(true);
     touchDragStart(index,);
   };
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     touchDragEnter(index);
   };
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     setIsDragging(false);
     touchDragEnd(index, player._id);
   };
 
   const handleTouchStart = (e: TouchEvent) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     touchDragStart(index)
   }
-  
+
   const handleTouchEnd = (e: TouchEvent) => {
-    if(!rankControls) return;
+    if (!rankControls) return;
     touchDragEnd(index, player._id)
   }
   const handleTouchMove = (e: TouchEvent) => {
     e.preventDefault();
-    if(!rankControls) return;
+    if (!rankControls) return;
 
     // ===== Find out index for dropping element =====
     const touchY = e.touches[0].clientY; // Get the Y coordinate of the touch event
@@ -189,7 +260,17 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       }
     }
   }, []);
-  
+
+
+  const renderTeam = () => {
+    let teamFound = null;
+    if (player?.teams && player?.teams.length > 0) {
+      const nti = player?.teams[0];
+      teamFound = teamList?.find((t) => t._id === nti._id);
+    }
+    return <p className='text-yellow-400 uppercase'>{teamFound ? teamFound.name : "Unassigned"}</p>;
+  }
+
 
   return (
     <React.Fragment>
@@ -207,7 +288,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
                 <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Co-Captain</p>}
-                <p className='text-yellow-400 uppercase'>{!player?.teams || player?.teams.length === 0 ? "Unassigned" : 'Assigned'}</p>
+                {!teamId && renderTeam()}
               </div>
             </div>
 
@@ -235,9 +316,9 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         {/* Operation menu start  */}
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
-          {rankControls && player.email && player.email.trim() !== '' && (<React.Fragment>
-            <li role="presentation" onClick={(e) => handleMakeCaptain(e, player._id)} > Make Captain</li>
-            <li role="presentation" onClick={(e) => handleMakeCoCaptain(e, player._id)} > Make Co-captain</li>
+          {rankControls && (<React.Fragment>
+            <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain)} > Make Captain</li>
+            <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain)} > Make Co-Captain</li>
           </React.Fragment>)}
           <li role="presentation" onClick={handleMovePlayerBox} > Move Player</li>
           {player.status === EPlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)} > Make Active</li>)}
@@ -245,13 +326,23 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         </ul>
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 svg-white' role="presentation" onClick={handleOpenAction} />
         {/* Operation menu ende  */}
+
+        {/* Add email operation start  */}
+        <dialog ref={dialogEl} className='w-4/6 p-4'>
+          <img src="/icons/close.svg" role='presentation' className="svg-white" onClick={handleCloseModal} />
+          <form onSubmit={handleCaptainEmail}>
+            <EmailInput name='email' required handleInputChange={e => setNewEmail(e.target.value)} vertical />
+            <button className="btn-info mt-4" type='submit'>Make Captain</button>
+          </form>
+        </dialog>
+        {/* Add email operation end  */}
       </li>
       {movePlayer && (
         <div className="w-full move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
           <button className="close" onClick={(e) => setMovePlayer(false)}><img src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" /></button>
           <form className="w-full" onSubmit={(e) => handleMovePlayer(e, player._id)}>
-            <SelectInput handleSelect={handleDivisionChange} vertical name='division' optionList={divisionList ? divisionList : []} />
-            <SelectInput handleSelect={(e) => handleTeamChange(e, player._id)} vertical name='team' optionList={teamOptions} />
+            <SelectInput key={"division-1"} handleSelect={handleDivisionChange} vertical name='division' optionList={divisionList ? divisionList : []} />
+            <SelectInput key={`division-2`} handleSelect={(e) => handleTeamChange(e, player._id)} vertical name='team' optionList={teamOptions} />
             <button className="btn-info mt-4" type='submit'>Move</button>
           </form>
         </div>

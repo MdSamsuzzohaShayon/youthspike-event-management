@@ -61,12 +61,19 @@ export class PlayerResolver {
       if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
 
       const playerObj = { ...input, profile: profileUrl, events: [input.event], teams: [] };
-      if(playerObj.email === '') delete playerObj.email;
+      if (playerObj.email === '') delete playerObj.email;
+      if (playerObj.phone === '') delete playerObj.phone;
       if (input.team) playerObj.teams = [input.team];
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;
 
       if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
+      if (input.team) {
+        const teamExist = await this.teamService.findById(input.team);
+        if (teamExist && teamExist.players) {
+          playerObj.rank = teamExist.players.length + 1;
+        }
+      }
       const newPlayer = await this.playerService.create(playerObj);
 
 
@@ -128,16 +135,16 @@ export class PlayerResolver {
       }
 
 
-      // ===== Rank a player if player move to another team ===== 
-      if (input.team && input.team !== input.playerTeamId) {
-        const teamExist = await this.teamService.findById(input.playerTeamId);
-        if (!teamExist) return AppResponse.exists("Team");
-        // Add to new team
-        updatePromises.push(this.teamService.update({ $addToSet: { players: playerId } }, { _id: input.team }));
+      // ===== Move to New Team =====
+      if (input.team) {
+        const newTeamExist = await this.teamService.findById(input.team);
+        if (!newTeamExist) return AppResponse.exists("Team");
+        updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
 
         // Rank Players properly
+        /*
         playerObj.rank = null;
-        const findTeamPlayers = await this.playerService.query({ _id: { $in: teamExist.players.map((p) => p.toString()) } });
+        const findTeamPlayers = await this.playerService.query({ _id: { $in: newTeamExist.players.map((p) => p.toString()) } });
         const findIPI = findTeamPlayers.findIndex((p) => p._id.toString() === playerId); // IPI = Inactive Player Index
         if (findIPI !== -1 && findIPI !== findTeamPlayers.length - 1) {
           const restOfThePlayers = findTeamPlayers.slice(findIPI + 1, findTeamPlayers.length);
@@ -146,31 +153,37 @@ export class PlayerResolver {
             updatePromises.push(this.playerService.updateOne({ _id: restOfThePlayers[i]._id }, element));
           }
         }
-
-
-        // Previous team
-        if (input.playerTeamId) {
-          updatePromises.push(this.teamService.update({ $pull: { players: playerId } }, { _id: input.playerTeamId }));
-          // Rank players of previous team properly
-        }
+        */
 
         // First, add the new team if it doesn't exist
         updatePromises.push(
           this.playerService.updateOne(
-            { _id: playerId, teams: { $ne: input.team } },
-            { $addToSet: { teams: input.team } }
+            { _id: playerId },
+            { $addToSet: { teams: input.team }, $set: { rank: newTeamExist.players.length + 1 } },
           )
         );
+      }
 
+      // ===== Remove from Previous Team =====
+      if (input.playerTeamId && input.team) {
+        if (input.team === input.playerTeamId) return AppResponse.handleError({ name: "Invalid team", message: "New team and previous team both are same, therefore no need to change" });
+        const prevTeamExist = await this.teamService.findById(input.playerTeamId);
+        if (!prevTeamExist) return AppResponse.exists("Team");
+        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId }, { $pull: { players: playerId } },));
         // Second, remove the old team
         updatePromises.push(
           this.playerService.updateOne(
-            { _id: playerId, teams: input.playerTeamId },
+            { _id: playerId },
             { $pull: { teams: input.playerTeamId } }
           )
         );
-        if (playerObj.team) delete playerObj.team;
       }
+
+      if (playerObj.team) delete playerObj.team;
+
+
+
+
 
       if ((playerExist.captainuser || playerExist.cocaptainuser) && (input.firstName || input.lastName)) {
         const userObj: any = {};
@@ -186,11 +199,12 @@ export class PlayerResolver {
       if (playerObj.playerTeamId) delete playerObj.playerTeamId;
       if (Object.entries(playerObj).length > 0) updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));
       await Promise.all(updatePromises);
+      const findPlayer = await this.playerService.findById(playerId);
 
       return {
         success: true,
         code: 202,
-        data: playerExist,
+        data: findPlayer,
       };
     } catch (error) {
       return AppResponse.handleError(error);

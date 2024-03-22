@@ -31,6 +31,7 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             // @ts-ignore
             if (updateMatchObj.teams) delete updateMatchObj.teams;
             matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
+            setActErr(null);
             // Get updated match
         } else {
             if (!currDivision || currDivision === '') return setActErr({ name: 'Invalid Division', message: 'You must select a division!' })
@@ -43,6 +44,7 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });
             if (matchRes?.data?.createMatch?.data && addMatchCB) addMatchCB(matchRes?.data?.createMatch?.data);
+            setActErr(null);
         }
         if (showAddMatch) showAddMatch(false);
     } catch (error) {
