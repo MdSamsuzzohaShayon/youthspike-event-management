@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
-import { checkInToLineup, notTwoPointNet } from '@/utils/match/emitSocketEvents';
+import { notTwoPointNet } from '@/utils/match/emitSocketEvents';
 import { border, overflowNetH } from '@/utils/styles';
 import React, { useEffect, useState } from 'react';
 import PlayerScoreCard from '../match/PlayerScoreCard';
@@ -28,7 +28,7 @@ function NotTieBreaker({ teamA, teamB, ntbnId, screenWidth, currRoundNets, socke
     const [selectedNet, setSelectedNet] = useState<null | INetRelatives>(null);
 
     const { myTeamE, verifyLineup } = useAppSelector((state) => state.matches);
-    const { currentRoundNets } = useAppSelector((state) => state.nets);
+    const { currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
     const currRoom = useAppSelector((state) => state.rooms.current);
     const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
 
@@ -40,7 +40,7 @@ function NotTieBreaker({ teamA, teamB, ntbnId, screenWidth, currRoundNets, socke
 
     const handleConfirmNet = (e: React.SyntheticEvent) => {
         e.preventDefault();
-        notTwoPointNet({ socket, netId: ntbnId, currRoom, currRound, currRoundNets });
+        notTwoPointNet({ socket, netId: ntbnId, currRoom, currRound, currRoundNets, dispatch, allNets});
         dispatch(setNotTieBreakerNetId(null));
     }
 

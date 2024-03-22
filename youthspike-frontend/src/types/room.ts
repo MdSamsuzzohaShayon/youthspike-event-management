@@ -63,6 +63,12 @@ export interface ICheckInAction extends IActionCommon{
     nets: IRoomNetAssign[];
 }
 
+export interface ISubmitLineupAction extends ICheckInAction{
+    teamAId: string;
+    teamBId: string;
+    subbedPlayers: string[];
+}
+
 export interface ITeiBreakerAction extends IActionCommon{
     nets: IRoomNetType[];
 }

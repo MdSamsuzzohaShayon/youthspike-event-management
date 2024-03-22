@@ -1,3 +1,4 @@
+import { IUserContext } from "@/types";
 import { ADMIN_URL, FRONTEND_URL, NODE_ENV } from "./keys";
 
 function getCookie(name: string): string | null {
@@ -18,21 +19,12 @@ function setCookie(name: string, value: string, days: number): void {
   expirationDate.setDate(expirationDate.getDate() + days);
 
   if (NODE_ENV === "production"){
-    /**
-     * Domain=.aslsquads.com: This part sets the domain for which the cookie is valid. 
-     * By specifying .aslsquads.com as the domain (note the leading dot), 
-     * the cookie is accessible across all subdomains of aslsquads.com, including 
-     */
     const allSubDomains = FRONTEND_URL.split('//')[1];
     document.cookie = `${name}=${value}; expires=${expirationDate.toUTCString()}; Domain=${allSubDomains}; path=/`;
   }else{
     document.cookie = `${name}=${value}; expires=${expirationDate.toUTCString()};  path=/`;
   }
 }
-
-// function removeCookie(name: string): void {
-//   document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/;`;
-// }
 
 function removeCookie(name: string ): void {
   // Set the expiration date in the past to delete the cookie
@@ -46,4 +38,14 @@ function removeCookie(name: string ): void {
   }
 }
 
-export { getCookie, setCookie, removeCookie };
+// ===== Logical functions =====
+function getUserFromCookie  (): IUserContext {
+  const instantToken = getCookie('token'); // Fetch again
+  const instantInfo = getCookie('user');
+  return {
+      info: instantInfo ? JSON.parse(instantInfo) : null,
+      token: instantToken ? instantToken : null
+  }
+}
+
+export { getCookie, setCookie, removeCookie, getUserFromCookie };

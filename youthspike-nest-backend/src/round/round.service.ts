@@ -5,7 +5,7 @@ import { Round } from 'src/round/round.schema';
 
 @Injectable()
 export class RoundService {
-  constructor(@InjectModel(Round.name) private roundModel: Model<Round>) {}
+  constructor(@InjectModel(Round.name) private roundModel: Model<Round>) { }
 
   async create(round: Round) {
     const newRound = await this.roundModel.create({ ...round });
@@ -27,8 +27,12 @@ export class RoundService {
     );
   }
 
-  async updateOne(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>){
+  async updateOne(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>) {
     return this.roundModel.updateOne(filter, updateData);
+  }
+
+  async updateMany(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>) {
+    return this.roundModel.updateMany(filter, updateData);
   }
 
   async countDocuments(query: FilterQuery<Round>) {
@@ -52,6 +56,10 @@ export class RoundService {
   }
 
   async delete(filter: FilterQuery<Round>) {
+    return this.roundModel.deleteMany(filter);
+  }
+
+  async deleteMany(filter: FilterQuery<Round>) {
     return this.roundModel.deleteMany(filter);
   }
 }

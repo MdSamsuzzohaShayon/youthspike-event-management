@@ -54,7 +54,7 @@ type Team {
   division: String!
   captain: Player
   cocaptain: Player
-  match: Match
+  matches: [Match!]
   event: Event!
   players: [Player!]!
   nets: [Net!]!
@@ -62,7 +62,7 @@ type Team {
 
 type Net {
   _id: String
-  num: Int!
+  num: Int
   match: Match!
   round: Round!
   teamA: Team
@@ -150,9 +150,10 @@ type Player {
   _id: String
   firstName: String!
   lastName: String!
-  email: String!
+  email: String
   status: EPlayerStatus!
   rank: Int
+  rankLock: Boolean
   profile: String
   phone: String
   division: String!
@@ -198,6 +199,7 @@ type LoginUser {
   email: String!
   active: Boolean!
   event: String
+  team: String
 }
 
 type LoginResponseData {
@@ -344,6 +346,7 @@ type RoundResoponse {
 
 type RoomRoundProcess {
   _id: String!
+  num: Float!
   teamAProcess: String!
   teamBProcess: String!
 }
@@ -427,10 +430,11 @@ type Mutation {
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   moveTeam(eventId: String!, teamId: String!, division: String!): GetTeamResponse!
+  deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
   createMatch(input: CreateMatchInput!): GetMatchResponse!
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
-  create(match: String!, locked: Boolean, id: String): GetRoundResponse!
-  updateRound(matchId: String!, locked: Boolean, id: String): CreateOrUpdateRoundResponse!
+  deleteMatch(matchId: String!): GetMatchResponse!
+  updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
   createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
@@ -520,6 +524,7 @@ input UpdateTeamInput {
   event: String
   players: [ID!]
   cocaptain: String
+  email: String
 }
 
 input CreateMatchInput {
@@ -556,6 +561,12 @@ input UpdateMatchInput {
   rosterLock: String
   timeout: Int
   location: String
+}
+
+input UpdateRoundInput {
+  roundId: String!
+  matchId: String!
+  subs: [String!]
 }
 
 input UpdateNetInput {
@@ -598,7 +609,8 @@ input CreatePlayerInput {
   lastName: String!
   event: String!
   division: String!
-  email: String!
+  email: String
+  phone: String
   rank: Float!
   team: String
 }
@@ -609,6 +621,7 @@ input UpdatePlayerInput {
   event: String
   division: String
   email: String
+  phone: String
   rank: Float
   team: String
   status: String
@@ -621,6 +634,7 @@ input UpdatePlayersInput {
   event: String
   division: String
   email: String
+  phone: String
   rank: Float
   team: String
   _id: String!

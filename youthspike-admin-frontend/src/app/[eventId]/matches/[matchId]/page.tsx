@@ -12,21 +12,19 @@ import React, { useState, useEffect } from 'react';
 
 /**
  * Test Match
- * Match URL 
- * http://localhost:3001/matches/65e0879b81d16290815d65ff
  * 
- * Team Mal
+ * Real Madrid
  * Captain
- * grace.adams@yp.com
+ * p3@e.com
  * Co-captains
- * james.robinson@yp.com
+ * p4e2@e.com
  * 
  * 
- * team Sri
+ * FC Barcelona
  * Captain
- * john.doe@yp.com
+ * p7e2@e.com
  * Co-captains
- * michael.johnson@yp.com
+ * p6@e.com
  */
 
 interface MatchSingleProps {
@@ -36,7 +34,7 @@ interface MatchSingleProps {
 function MatchSingle({ params }: MatchSingleProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [actErr, setActErr] = useState<IError | null>(null);
-    const [fetchMatch, { data, loading, error }] = useLazyQuery(GET_A_MATCH, { variables: { matchId: params.matchId } });
+    const [fetchMatch, { data, loading, error, refetch }] = useLazyQuery(GET_A_MATCH, { variables: { matchId: params.matchId } });
     
 
     useEffect(() => {

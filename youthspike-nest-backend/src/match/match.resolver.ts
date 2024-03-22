@@ -13,6 +13,9 @@ import { Match } from './match.schema';
 import { CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
 import { ETieBreaker } from 'src/net/net.schema';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -37,18 +40,11 @@ export class MatchResolver {
     private roomService: RoomService,
   ) { }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetMatchResponse)
   async createMatch(@Args('input') input: CreateMatchInput): Promise<GetMatchResponse> {
     try {
-      /**
-       * TODO:
-       *    Step-1: Find default properties from event and Create a new match
-       *    Step-2: Create number of rounds through loop
-       *    Step-3: Create number of nets through loop
-       *    Step-4: Update Match with with netId and roundId
-       *    Step-5: Update Match with eventId
-       */
       const eventExist = await this.eventService.findById(input.event.toString());
       if (!eventExist) return AppResponse.notFound('Event');
 
@@ -102,9 +98,9 @@ export class MatchResolver {
             match: newMatch._id,
             round: round._id,
             num: j + 1,
-            points: 1, 
+            points: 1,
             // For last round net make points more than 1
-            netType: input.numberOfRounds === i+1 ? ETieBreaker.FINAL_ROUND_NET : ETieBreaker.PREV_NET,
+            netType: input.numberOfRounds === i + 1 ? ETieBreaker.FINAL_ROUND_NET : ETieBreaker.PREV_NET,
             teamAScore: null,
             teamBScore: null,
             pairRange: 0,
@@ -119,8 +115,8 @@ export class MatchResolver {
         // Update the nets field in the created round
         promisesAll.push(this.roundService.update({ nets: netIdsOfRound }, round._id));
       }
-      promisesAll.push(this.teamService.update({ match: newMatch._id }, { _id: input.teamA }));
-      promisesAll.push(this.teamService.update({ match: newMatch._id }, { _id: input.teamB }));
+      promisesAll.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamA }));
+      promisesAll.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamB }));
       promisesAll.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
       promisesAll.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
       promisesAll.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
@@ -136,15 +132,11 @@ export class MatchResolver {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
     try {
-      /**
-       * TODO:
-       *    Step-1: Create new nets or delete if nets number changes
-       *    Step-2: Create new rounds or delete if rounds number changes
-       */
       const updatedMatch = await this.matchService.update(input, matchId);
       return {
         data: updatedMatch,
@@ -156,11 +148,42 @@ export class MatchResolver {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns) => GetMatchResponse)
+  async deleteMatch(@Args('matchId') matchId: string) {
+    try {
+      const matchExist = await this.matchService.findById(matchId);
+      if (!matchExist) return AppResponse.exists("Match");
+
+      const updatePromises = [];
+      const roundIds = matchExist.rounds.map((m) => m.toString());
+      if (roundIds.length > 0) {
+        updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
+      }
+      const netIds = matchExist.nets.map((n) => n.toString());
+      if (netIds.length > 0) {
+        updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
+      }
+
+      updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
+      updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
+      updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
+      updatePromises.push(this.matchService.delete({ _id: matchId }));
+      await Promise.all(updatePromises);
+      return {
+        data: null,
+        success: true,
+        code: 204,
+      };
+    } catch (err) {
+      return AppResponse.getError(err);
+    }
+  }
+
   @Query((returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     try {
-      // const query: { eventId?: null | string } = {};
-      // if (eventId) query.eventId = eventId;
 
       // Assuming matchService is injected in your class
       const matches = await this.matchService.query(filter);

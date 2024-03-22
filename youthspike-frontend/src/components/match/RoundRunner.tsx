@@ -6,21 +6,27 @@ import { useSocket } from '@/lib/SocketProvider';
 import CheckInBox from '../ActionBoxes/CheckInBox';
 import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
-import { EActionProcess } from '@/types/room';
+import { EActionProcess, IRoom } from '@/types/room';
 import CompletedBox from '../ActionBoxes/CompletedBox';
 import FinalRoundBox from '../ActionBoxes/FinalRoundBox';
+import { INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import { ETeam } from '@/types/team';
+import { ETieBreaker } from '@/types/net';
 
 
-function RoundRunner() {
+interface IRoundRunnerProps{
+  currentRound: IRoundRelatives | null; 
+  roundList:  IRoundRelatives[]; 
+  currentRoom: IRoom; 
+  teamA?: ITeam | null; 
+  myTeamE: ETeam;
+  currRoundNets: INetRelatives[];
+}
+
+function RoundRunner({currentRound, roundList, currentRoom, teamA, myTeamE, currRoundNets}: IRoundRunnerProps) {
   // ===== Hooks ===== 
   const user = useUser();
   const socket = useSocket();
-
-  // =====  Redux State ===== 
-  const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
-  const currentRoom = useAppSelector((state) => state.rooms.current);
-  const { teamA } = useAppSelector((state) => state.teams)
-  const { myTeamE } = useAppSelector((state) => state.matches)
 
   // ===== Local State ===== 
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
@@ -35,7 +41,8 @@ function RoundRunner() {
       hasAction = true;
     }
 
-    if (currentRound?.num === roundList.length && currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamAProcess === EActionProcess.LINEUP){
+    const lockedNets = currRoundNets.filter((n)=> n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED)
+    if (currentRound?.num === roundList.length && currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamAProcess === EActionProcess.LINEUP && lockedNets.length <= 1){
       return <FinalRoundBox currRoom={currentRoom} socket={socket} otp={otp} myTeamE={myTeamE} />
     }
 

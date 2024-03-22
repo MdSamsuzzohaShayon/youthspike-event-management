@@ -27,7 +27,7 @@ function TeamCard({ team }: ITeamCardProps) {
                 <div className="w-6/12">
                     <Link href={`/teams/${team._id}`}>
                         <div className="brand flex gap-1">
-                            <img src="/free-logo.svg" alt="free-logo" className="w-12 h-12 rounded-full border-2 border-yellow-500" />
+                            <img src="/free-logo.svg" alt="free-logo" className="w-12 h-12 rounded-full border-2 border-yellow-400" />
                             <div className="caption flex flex-col">
                                 <p className='uppercase text-xs'>Captain</p>
                                 <h3 className='leading-none text-lg font-bold'>{team?.captain?.firstName + " " + team?.captain?.lastName}</h3>

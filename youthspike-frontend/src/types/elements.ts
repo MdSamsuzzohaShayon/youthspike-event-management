@@ -10,8 +10,8 @@ export interface IMenuItem {
 
 export enum EAssignStrategies{
   RANDOM = "RANDOM",
-  AUTO = "AUTO",
-  ANCHORING = "ANCHORING",
+  ANCHOR = "ANCHOR",
+  HIERARCHY = "HIERARCHY",
 }
 
 export enum EMenuTitle{

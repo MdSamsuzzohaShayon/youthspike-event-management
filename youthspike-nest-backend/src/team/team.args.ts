@@ -26,4 +26,7 @@ export class CreateTeamInput {
 export class UpdateTeamInput extends PartialType(CreateTeamInput) {
   @Field(type => String, { nullable: true })
   cocaptain?: string;
+
+  @Field(type => String, { nullable: true })
+  email?: string;
 }

@@ -37,52 +37,49 @@ import { joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
-import { EPlayerStatus } from '@/types/player';
+import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
+import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 
 /**
  * Test Match
- * Match URL 
- * http://localhost:3001/matches/65e8cba57c597b83c183c279
  * 
- * Wolves-Alex
+ * Real Madrid
  * Captain
- * alex@bristol.group
- * Co-captain
- * ayyy.spence@gmail.com
+ * p3@e.com
+ * Co-captains
+ * p4e2@e.com
  * 
  * 
- * Vipers-Konnor
+ * FC Barcelona
  * Captain
- * flame50006@icloud.com
- * Co-captain
- * konnorcordingley@gmail.com
+ * p7e2@e.com
+ * Co-captains
+ * p6@e.com
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
-  /**
-   * @private version
-   * Get all the players of the match
-   * Players of my team and players of oponent team
-   * Get all rounds and the round we are on
-   */
+  // ===== Hooks =====
   const dispatch = useAppDispatch();
   const user = useUser();
   const socket = useSocket();
 
+  // ===== Local State =====
   const audioPlayEl = useRef<HTMLButtonElement>(null);
+  const [opSubbedPlayers, setOpSubbedPlayers] = useState<IPlayer[]>([]);
+  const [mySubbedPlayers, setMySubbedPlayers] = useState<IPlayer[]>([]);
 
-  // Redux States
+  // ===== Redux States =====
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup } = useAppSelector((state) => state.matches);
+  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
 
-  // GraphAL
+  // ===== GraphAL =====
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
@@ -95,9 +92,15 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     if (audioPlayEl.current) audioPlayEl.current.click();
   };
 
-  /**
-   * Fetch data
-   */
+
+  // ===== Component resize =====
+  const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
+    dispatch(setScreenSize(entry.contentRect.width));
+  }, []);
+
+  const mainEl = useResizeObserver(onResize);
+
+  // ===== Fetch Data =====
   useEffect(() => {
     // Get user info here
     const token = !getCookie('token') || getCookie('token')?.trim() === '' ? null : getCookie('token');
@@ -121,9 +124,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   }, [data?.getMatch?.data, fetchMatch, params.matchId]); // props, client
 
 
-  /**
-   * Web socket real time connection
-   */
+  // ===== Web Socket Real Time connection =====
   useEffect(() => {
     if (socket && roundList && roundList.length > 0) {
       const userInfo = getCookie("user");
@@ -136,55 +137,97 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   }, [socket, user, teamA, teamB, roundList]);
 
 
-  const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
-    dispatch(setScreenSize(entry.contentRect.width));
-  }, []);
 
-  const mainEl = useResizeObserver(onResize);
+  // ===== Subbed & Inactive players =====
+  useEffect(() => {
+    if (currentRound && myPlayers) {
+      const nmsp = []; // new subbed players
+      for (let i = 0; i < currentRound.subs.length; i++) {
+        const playerExist = myPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
+        if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
+          nmsp.push(playerExist);
+        }
+      }
+      setMySubbedPlayers(nmsp);
+    }
+    if (currentRound && opPlayers) {
+      const nosp = []; // new subbed players
+      for (let i = 0; i < currentRound.subs.length; i++) {
+        const playerExist = opPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
+        if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
+          nosp.push(playerExist);
+        }
+      }
+      setOpSubbedPlayers(nosp);
+    }
+  }, [currentRound, myPlayers, opPlayers]);
+
+  // ===== Click on DOM by default to get rid of error when playing audio =====
+  useEffect(() => {
+    if (mainEl && mainEl.current) {
+      mainEl.current.click();
+    }
+  }, [mainEl]);
+
+
 
   if (loading) return <Loader />;
 
 
 
   return (
-    <React.Fragment>
-      <Head>
-        <title>Spike Ball</title>
-        <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Suspense fallback={<Loader />}>
-        <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
+    <Suspense fallback={<Loader />}>
+      <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
+        <div className="container mx-auto px-4">
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
-
-          <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
-
-          <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} team={opTeamE} screenWidth={screenWidth} />
-          {notTieBreakerNetId ? <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} /> : (
-            verifyLineup
-              ? <VerifyLineup />
-              : (<React.Fragment>
-                {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-                <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} />
-                {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && <RoundRunner />}
-              </React.Fragment>)
-          )}
-
-          {eventSponsors.length > 0 && (!user || !user.token) && (
-            <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
-              <h3>Sponsors</h3>
-              <div className="flex items-center justify-between flex-wrap w-full">
-                {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
-              </div>
-            </div>
-          )}
-          {/* My Players  */}
-          <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} team={myTeamE} screenWidth={screenWidth} />
         </div>
-      </Suspense>
-    </React.Fragment>
+
+        <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
+
+        {/* // Show oponent subbed players  */}
+
+        {opSubbedPlayers && opSubbedPlayers.length > 0 && (<div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100"><div className="container px-4 mx-auto ">
+          <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
+        </div> </div>)}
+
+
+
+        <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+
+        {notTieBreakerNetId ? <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} /> : (
+          verifyLineup
+            ? <VerifyLineup />
+            : (<React.Fragment>
+              {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+              <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} opPlayers={opPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} currMatch={currMatch} />
+              {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain)
+                && <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />}
+            </React.Fragment>)
+        )}
+
+        {eventSponsors.length > 0 && (!user || !user.token) && (
+          <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
+            <h3>Sponsors</h3>
+            <div className="flex items-center justify-between flex-wrap w-full">
+              {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
+            </div>
+          </div>
+        )}
+
+
+        {/* My Players  */}
+        <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+        {/* // Show subbed players  */}
+        {mySubbedPlayers && mySubbedPlayers.length > 0 && (
+          <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">
+            <div className="container px-4 mx-auto">
+              <SubbedPlayerList teamPlayers={mySubbedPlayers} currRound={currentRound} roundList={roundList} subControl />
+            </div>
+          </div>
+        )}
+      </div>
+    </Suspense>
   );
 }
 

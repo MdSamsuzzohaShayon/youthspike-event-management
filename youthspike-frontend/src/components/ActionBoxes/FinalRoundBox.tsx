@@ -25,6 +25,7 @@ function FinalRoundBox({ currRoom, socket, otp, myTeamE }: IBoxProps) {
   const [pTxt, setPTxt] = useState<string>('');
   const [bgBox, setBgBox] = useState<string>("box-danger");
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
+  const [lockedNetId, setLockedNetId] = useState<string | null>(null);
 
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currentRound, roundList, } = useAppSelector((state) => state.rounds);
@@ -37,24 +38,40 @@ function FinalRoundBox({ currRoom, socket, otp, myTeamE }: IBoxProps) {
   useEffect(() => {
     let pt = '';
     let bb = "box-danger";
+    let lni = null;
+
+    currRoundNets.forEach((n) => {
+      if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) {
+        lni = n._id;
+      }
+    });
+
+
     if (myTeamE === currentRound?.firstPlacing) {
       pt = `Round ${currentRound?.num} - 2-Point net selection`;
-      bb = "box-success";
+      bb = lni ? "box-danger" : "box-success";
     } else {
       pt = `Round ${currentRound?.num} - 2-Point net selection`;
       setIsWaiting(true);
-      bb = "box-danger";
+      bb = lni ? "box-success" : "box-danger";
     }
+    setLockedNetId(lni);
     setPTxt(pt);
     setBgBox(bb);
-  }, [otp, currentRound]);
+  }, [currentRound, myTeamE, currRoundNets]);
 
-  const netBtnRender = (net: INetRelatives) => {
+  useEffect(() => {
+
+  }, [currRoundNets]);
+
+  const netBtnRender = (net: INetRelatives | undefined) => {
+
+    if (!net) return null;
     switch (net.netType) {
       case ETieBreaker.FINAL_ROUND_NET:
         return <button key={net._id} className="btn-light" type='button' onClick={(e) => handleSelectNet(e, net._id)}>Net {net.num}</button>;
       case ETieBreaker.FINAL_ROUND_NET_LOCKED:
-        return <button key={net._id} className="btn-light-outline" type='button' onClick={(e) => handleSelectNet(e, net._id)}>Net {net.num} banned</button>;
+        return <button key={net._id} className="btn-light-outline" type='button'>Net {net.num} banned</button>;
 
       case ETieBreaker.TIE_BREAKER_NET:
         return <button key={net._id} className="btn-light" type='button' onClick={(e) => handleSelectNet(e, net._id)}>Net {net.num}</button>;
@@ -64,8 +81,6 @@ function FinalRoundBox({ currRoom, socket, otp, myTeamE }: IBoxProps) {
     }
   }
 
-  console.log(currRoundNets);
-  
 
   return (
     <div className={`flex py-2 w-full justify-between items-center gap-1 ${bgBox}`}>
@@ -73,13 +88,27 @@ function FinalRoundBox({ currRoom, socket, otp, myTeamE }: IBoxProps) {
         <PointText txt={pTxt} />
         {myTeamE === currentRound?.firstPlacing
           ? (<React.Fragment>
-            <h2 className="font-black text-start">One of the nets this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.</h2>
+            <h2 className="font-black text-start" >
+              {lockedNetId
+                ? "The other squad is choosing which net they do NOT want to be worth 2 points."
+                : "One of the nets this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points."}
+            </h2>
+
             <div className="net-btns w-full flex justify-start items-start gap-x-1">
-              {currRoundNets.map((n) => netBtnRender(n))}
+              {!lockedNetId
+                ? currRoundNets.map((n) => netBtnRender(n))
+                : netBtnRender(currRoundNets.find(n => n._id === lockedNetId))}
             </div>
           </React.Fragment>)
           : <React.Fragment>
-            <h2 className="font-black text-start">One of the nets this round will be worth 2 points. The other squad is choosing a net they do NOT want to be worth 2 points.</h2>
+            <h2 className="font-black text-start">
+              {lockedNetId
+                ? "Which of the remaining nets  do you NOT want to be worth 2 points?"
+                : "One of the nets this round will be worth 2 points. The other squad is choosing a net they do NOT want to be worth 2 points."}
+            </h2>
+            <div className="net-btns w-full flex justify-start items-start gap-x-1">
+              {lockedNetId && currRoundNets.map((n) => netBtnRender(n))}
+            </div>
           </React.Fragment>}
       </div>
       <div className="hidden md:block w-2/6">

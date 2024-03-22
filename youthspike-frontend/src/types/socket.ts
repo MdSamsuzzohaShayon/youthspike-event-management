@@ -32,6 +32,8 @@ export interface INotTwoPointNetProps {
     currRoom: IRoom | null;
     currRound: IRoundRelatives | null;
     currRoundNets: INetRelatives[];
+    allNets: INetRelatives[];
+    dispatch: React.Dispatch<React.ReducerAction<any>>;
 }
 
 export interface IStatusChange {
@@ -47,6 +49,11 @@ export interface IStatusChange {
 export interface ICheckInToLineupProps extends IStatusChange {
     myTeamE: ETeam;
     currRoundNets: INetRelatives[];
+}
+
+export interface ISubmitLineupProps extends ICheckInToLineupProps{
+    teamB?: ITeam | null;
+    myPlayerIds: string[];
 }
 
 export interface ICommonProps {

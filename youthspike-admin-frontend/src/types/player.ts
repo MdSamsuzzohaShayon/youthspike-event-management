@@ -29,6 +29,7 @@ export interface IPlayer extends IDocument {
   division: string;
   email: string;
   rank: number | null;
+  rankLock?: boolean;
   status: EPlayerStatus,
   events?: string[];
   teams?: string[];
@@ -50,6 +51,7 @@ export interface IPlayerExpRel extends IDocument {
   division: string;
   email: string;
   rank: number | null;
+  rankLock?: boolean;
   status: EPlayerStatus,
   events?: IEvent[];
   teams?: ITeam[];

@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Field, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { Match } from 'src/match/match.schema';
-import { Net } from 'src/net/net.schema';
+import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
-import { MatchService } from 'src/match/match.service';
-import { NetService } from 'src/net/net.service';
 import { RoundService } from './round.service';
 import { UserRole } from 'src/user/user.schema';
 import { Round } from './round.schema';
+import { UpdateRoundInput } from './round.input';
+import { Match } from 'src/match/match.schema';
+import { NetService } from 'src/net/net.service';
 
 @ObjectType()
 class CreateOrUpdateRoundResponse extends AppResponse<Round> {
@@ -32,44 +31,25 @@ class GetRoundResponse extends AppResponse<Round> {
 export class RoundResolver {
   constructor(
     private roundService: RoundService,
-    private matchService: MatchService,
     private netService: NetService,
-  ) {}
-
-  @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetRoundResponse)
-  async create(
-    @Args('match') match: string,
-    @Args('locked', { nullable: true })
-    locked?: boolean,
-    @Args('id', { nullable: true }) id?: string,
-  ): Promise<CreateOrUpdateRoundResponse> {
-    try {
-      // Create Match, rounds, nets
-
-      return {
-        data: null,
-        success: true,
-        code: 200,
-      };
-    } catch (err) {
-      return AppResponse.getError(err);
-    }
-  }
+  ) { }
 
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateRoundResponse)
   async updateRound(
-    @Args('matchId') matchId: string,
-    @Args('locked', { nullable: true })
-    locked?: boolean,
-    @Args('id', { nullable: true }) id?: string,
+    @Args("updateInput") updateInput: UpdateRoundInput
   ): Promise<CreateOrUpdateRoundResponse> {
     try {
-      // Update
+      const roundExist = await this.roundService.findById(updateInput.roundId);
+      if (!roundExist) return AppResponse.exists("Round");
 
+      if (updateInput.subs && updateInput.subs.length > 0) {
+        await this.roundService.updateOne({ _id: { $gte: roundExist.num } }, { $set: { subs: updateInput.subs } });
+      }
+
+      const findRound = await this.roundService.findById(updateInput.roundId);
       return {
-        data: null,
+        data: findRound,
         success: true,
         code: 200,
       };
@@ -109,23 +89,12 @@ export class RoundResolver {
     }
   }
 
-  @ResolveField((returns) => Match)
-  async match(@Parent() round: Round) {
-    try {
-      return this.matchService.findById(round.match.toString());
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField((returns) => [Net])
+  @ResolveField((returns) => [Round])
   async nets(@Parent() round: Round) {
     try {
-      return this.netService.query({
-        round: round._id,
-      });
+      return this.netService.query({ round: round._id.toString() });
     } catch {
-      return null;
+      return [];
     }
   }
 }

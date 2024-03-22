@@ -27,9 +27,9 @@ export class Player extends AppDocument {
   @Prop({ required: true })
   lastName: string;
 
-  @Field((_type) => String, { nullable: false })
-  @Prop({ required: true, unique: true })
-  email: string;
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  email?: string | null;
 
   @Field((_types)=> EPlayerStatus, {nullable: false})
   @Prop({required: true, enum: EPlayerStatus, default: EPlayerStatus.ACTIVE})
@@ -38,6 +38,10 @@ export class Player extends AppDocument {
   @Field((_type) => Int, { nullable: true })
   @Prop({ required: false })
   rank?: number;
+
+  @Field((_type) => Boolean, { nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  rankLock: false;
 
   @Prop({ required: false })
   @Field({ nullable: true })

@@ -12,6 +12,7 @@ import { BACKEND_URL } from '@/utils/keys';
 import { useRouter } from 'next/navigation';
 import { getDivisionFromStore, getTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import addOrUpdatePlayer from '@/utils/requestHandlers/addOrUpdatePlayer';
+import NumberInput from '../elements/forms/NumberInput';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -32,7 +33,7 @@ const initialPlayerAdd = {
   lastName: '',
   email: '',
   event: '',
-  // team: '',
+  phone: '',
   rank: "0",
   division: ''
 };
@@ -118,7 +119,8 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
       <TextInput name='firstName' lblTxt='First Name' defaultValue={playerState?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerState?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
-      <EmailInput name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
+      <EmailInput name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
+      <NumberInput name='phone' defaultValue={null} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>
         <SelectInput key={crypto.randomUUID()} defaultValue={playerState.team} name='team' optionList={teamList.map((t): IOption => ({ text: t.name, value: t._id }))} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
       </React.Fragment>)}

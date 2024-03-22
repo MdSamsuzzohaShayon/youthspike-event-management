@@ -13,6 +13,7 @@ const LOGIN_USER = gql`
           firstName
           lastName
           role
+          team
           email
           event
           captainplayer

@@ -27,7 +27,7 @@ function TextImg({className, fullText, fText, lText, txtCls, style}: ITextImg) {
   }
 
   return (
-    <div className={`text-white bg-yellow-500 flex justify-center items-center rounded-full ${className}`} style={style} >
+    <div className={`text-black bg-yellow-400 flex justify-center items-center rounded-full ${className}`} style={style} >
         <p className={`uppercase ${txtCls ? txtCls : ''}`}>
             {fullText 
             ? initFromFull(fullText)

@@ -276,7 +276,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
       {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true)}
       {/* Net top section end  */}
 
-      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} />
+      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
 
       {/* Net bottom section start  */}
       {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false)}

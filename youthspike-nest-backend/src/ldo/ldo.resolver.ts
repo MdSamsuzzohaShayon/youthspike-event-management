@@ -286,7 +286,7 @@ export class LdoResolver {
               if (matches && matches.length > 0) {
                 for (const match of matches) {
                   const roundIds = match.rounds.map(r => r.toString());
-                  promisesToDelete.push(this.roundsService.delete({ _id: { $in: roundIds } }));
+                  promisesToDelete.push(this.roundsService.deleteMany({ _id: { $in: roundIds } }));
 
                   const netIds = match.nets.map(r => r.toString());
                   promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));

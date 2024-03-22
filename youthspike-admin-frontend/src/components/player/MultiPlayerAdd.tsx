@@ -82,6 +82,8 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
         } catch (error) {
             closeDialog();
             console.log(error);
+            // @ts-ignore
+            setActErr({name: error?.name, message: error?.message, main: error});
         } finally {
             setIsLoading(false);
         }

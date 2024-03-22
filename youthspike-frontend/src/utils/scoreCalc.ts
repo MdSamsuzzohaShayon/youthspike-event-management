@@ -17,9 +17,9 @@ function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE
 
         // Dark is oponent team
         if (teamE === ETeam.teamA && teamAScore > teamBScore) {
-            score += 1;
+            score += net.points;
         } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
-            score += 1;
+            score += net.points;
         }
     });
     

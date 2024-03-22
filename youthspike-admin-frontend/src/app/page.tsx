@@ -17,6 +17,7 @@ import { IError } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
 import useClickOutside from '../../hooks/useClickOutside';
+import TextImg from '@/components/elements/TextImg';
 
 interface IItem {
   id: number;
@@ -46,7 +47,7 @@ function EventsPage() {
   const filterListEl = useRef<HTMLDialogElement | null>(null);
 
   // GraphQL Queries
-  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO);
+  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO, {fetchPolicy: "network-only"});
   const [cloneEvent] = useMutation(CLONE_EVENT);
 
   // Events handle
@@ -113,6 +114,7 @@ function EventsPage() {
   // if (ldoLoading) return <Loader />;
 
   const newLdoData = ldoData?.getEventDirector?.data;
+  
 
   return (
     <div className="container px-2 mx-auto min-h-screen">
@@ -124,7 +126,9 @@ function EventsPage() {
       {/* {error && <Message error={error} />} */}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
-        {newLdoData?.logo ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} /> : <img src="/free-logo.svg" alt="free-logo" className="w-28 h-28 rounded-full object-cover object-fill" />}
+        {newLdoData?.logo 
+        ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} /> 
+        : <TextImg className="w-28 h-28 rounded-full object-cover object-fill"  fullText={newLdoData ? newLdoData.name : 'LDO'} />}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
         <h2 >Events</h2>
@@ -139,8 +143,8 @@ function EventsPage() {
       <div className="events flex flex-wrap gap-2 justify-between">
         <div style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-yellow-500 rounded-lg">
           <Link href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?directorId=${directorId}` : `/newevent`} className='h-full w-full flex justify-center items-center flex-col gap-2 rounded-md'>
-            <img src="/icons/plus.svg" alt="plus" className="w-12 svg-white" />
-            <p>Add New</p>
+            <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />
+            <p className='text-gray-900'>Add New</p>
           </Link>
         </div>
 

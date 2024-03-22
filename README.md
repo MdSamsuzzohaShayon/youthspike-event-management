@@ -56,26 +56,36 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
-
- - Style according to Figma - Make color scheme same
- 
- - Creating team, players, match smoothly
- - Run a match smoothly
-
- - Update director informations as admin (Not working properly)
- - Email for a player is optional field, only if we want to add that player to captain we will need email
- - When we edit a player we should not see division and team, when we move the player they should appear
- - Till 15:00
- 
-
  - Player sub, a player can be off for a round and can get back in the next round
 
- - Make sure random assign follow net variance rule, also do not allow a player with previous round partner
-
  - If a round has been submitted he can not re-rank his players
+ - Close button must not show up after submitting lineup
+ - Style according to Figma - Make color scheme same
+ - Make sure random assign, anchor assign, heirarchy assign more smooth
+ 
+ - Creating team, players, match smoothly
+ - Run a match smoothly 
+ - Sponsors will always have a logo of ourself by default
+
+ - When make player inactive the rank should be update and and this should work properly
+
+ - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
 
  - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
  - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
+
+ - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
+ - When click on input field to update score it should highlight the whole number
+
+ - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
+ - Team logo is not showing up properly
+ - When we are in team, in the player list page (/players) in the place of assigned it will say the name of the team that is assigned to
+ - Moreover, the team name will be hyperlink
+ - Move players are still not working (from /players page)
+ - Player picture need to be square not cirrcle in player list
+ - Player will have phone number
+ - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
+ - Change redial nevy blue color to black gradient
  
 
 
@@ -90,65 +100,56 @@ ___
 
 
  - **Team**
- - If there is a team of player, create the team for him as well on the import of players file[14:40](https://www.loom.com/share/fda9c04b47f94d3a8cbae578a886f4fa), If a player unassigned they will be at the event as unassigned players
+ - Make mutation from frontend to delete team
  - Add search function for player when creating a new team
- - Players page -> do not make filter -> Insteand just select team to see the team
- - Create team without a captain
- - Team name sometime showing up at the top and sometime not
  - Move team - when moving team to another event current event should not have that team
+ - Team logo is not showing up properly
+ - When we are in team, in the player list in the place of assigned it will say the name of the team that is assigned to
+ - Moreover, the team name will be hyperlink
 
  - **Players**
- - In the player list show all players in an event
- - To Add player need to select division and teams. Submit and and rank (Submit and take to the team, re-rank players)
- - Email for a player is optional field, only if we want to add that player to captain we will need email
- - Import players from excel file should have a confirmation message
+ - Import players from excel file should have a confirmation message (error message if there is any error)
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
- - Move player to diffrent divisions and team
- - Showing unassigned players and inactive players somewhere in the roster
+ - Move players are still not working (from /players page)
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
- - So I think we came up with a solution. Each team will be assigned teamID# such as 182. The login for the caitian for that squad would be “captain182” and the cocaptain login would be     “cocaptain182” etc. Password would be default password as normal. This way the email is not the unique id or the username to login.
- - Select team when adding players
- - Moving players are not working - need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
- - Inactive player will be off the rosters on the list
- - Sometime players are not adding properly
+ - Need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
+ - Player picture need to be square not cirrcle in player list
+ - Player will have phone number
+ - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
  - If date is pass the status of league will be past, add past events in  the filter, 
- - No division section inside roster design, (There are 3 different skills level means 3 sections)
- - Net range is same as net variance, therefore, delete one of them [assign player with net variance 10:50](https://www.loom.com/share/01cf8693859b474981b4a51660444e4e)
 
 
  - **Captain**
  - Send welcome email to all of our captains
- - But coach/captain can change only his team but points can be changed by any captain of any team
- - Captain can edit roster photo, and re-rank players
  - If a round has been submitted he can not re-rank his players
+ - When login as captain show name of the team of which I am captain of
  
  - **Event**
  - Updaing round creating some issues (Log in as admin)
 
- 
- - **Division**
- - Division filter always need to be at the top
- - Select a division from an event and that will stick for rest of the event pages
 
  - **Match**
- - After updating points there next round button should be show up
  - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
  - Player sub, a player can be off for a round and can get back in the next round
- - When clicking on empty player card that net name should be shown on the player list on the left
  - Get a sound notification on an socket event
- - Sponsors will always have a logo of ourself
+ - Sponsors will always have a logo of ourself by default
+ - Close button must not show up after submitting lineup
+ - When click on input field to update score it should highlight the whole number
+ - When I will match and submit my lineup, net 1 should be selected automitically
+ - Update score button should not be shown - it is irrelevent now
 
  - **Final Round**
  - 2 points net logic [04:20](https://www.loom.com/share/a39b08628d344b6588bd94d23e47ad8e) appear in the final round
- - The captain will select a net to break the tie. 
- - When we click on the a net from all nets in the last round, there will be a confirmation screen of all lineup of a net (team A player A, team B player B, team A player B, team B player A) and their pair score and ranking
- - One captain will choose to ban a net and the other captain will be waiting 
+
+ - **Design**
+ - Black text on yellow box
+ - Yellow need to be little more brighter than current yellow
 
 
 
@@ -157,10 +158,11 @@ ___
  - When the clock runs out it will automitically randomly assign
  - Dedicated pages for nets and rounds of the match
  - There are 3 different strategies when assignin players
-    1. Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
+    1. Anchor: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
  - When the clock runs out it will automitically assign randomly
+ - Change redial nevy blue color to black gradient
 
 ### Design
  - Style according to Figma
@@ -176,6 +178,7 @@ ___
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - When saving a team and creating another team, it does not update the player list. That need to be updated properly
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
+ - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
 
 
 
@@ -211,15 +214,7 @@ ___
 
 
 ### Ask
- - Should we add all action boxs with same image?
- - Do we must need to add images to the boxes? because on mobile screeen we won't have must space to add them. If we add them along with text it might not look great.
- - The boxes you have shown will look great on the desktop, but it won't look good on mobile phone. However, I will try to make it look better.
- - Though, it is little bit complicated I understand the basic logics of 2 points net and i will ask you for more clarification.
- - How do you want calculate 2 points net? now we are scoring according to a terms that if team A win in net 1, 1 point will be added to them, by implementing 2 points net logic should do we need to add 2 point if a team win in that net?
- - What if the nets are more than 3 in a round? what should we do in that case?
- - Can it be more than 2 points net? is there any chance of making a net with custom points for instance 5, 10 or 20 for on any numaric value?
-
-
+ - Showing subbed players is not complex thing to do, but I am really confused where should I show them, because the page on mobile screen have not enough space.
 
  curl -i -N  \
     -H "Connection: Upgrade"  \
