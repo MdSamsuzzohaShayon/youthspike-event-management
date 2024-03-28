@@ -14,7 +14,7 @@ export interface IEventSponsor{
   logo: string;
 }
 
-export interface IEvent extends IDefaultEventMatch {
+export interface IEvent {
   _id: string;
   name: string;
   divisions: string;
@@ -24,6 +24,16 @@ export interface IEvent extends IDefaultEventMatch {
   active: boolean;
   sponsors: IEventSponsor[];
   ldo?: ILDO;
+  nets: number;
+  rounds: number;
+  netVariance: number;
+  homeTeam: string;
+  autoAssign: boolean;
+  autoAssignLogic: string;
+  rosterLock: string;
+  timeout: number;
+  coachPassword: string;
+  location: string;
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

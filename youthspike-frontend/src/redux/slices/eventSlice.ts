@@ -7,12 +7,14 @@ export interface EventState {
   current?: IEvent | null;
   sponsors: IEventSponsor[];
   ldo?: ILDO | null;
+  eventList: IEvent[];
 }
 
 const initialState: EventState = {
   current: null,
   sponsors: [],
-  ldo: null
+  ldo: null,
+  eventList: []
 };
 
 export const eventSlice = createSlice({
@@ -25,13 +27,17 @@ export const eventSlice = createSlice({
     setEventSponsors: (state, action: PayloadAction<IEventSponsor[]>) => {
       state.sponsors = action.payload;
     },
-    setLdo: (state, action: PayloadAction<ILDO>)=>{
+    setLdo: (state, action: PayloadAction<ILDO>) => {
       state.ldo = action.payload;
+    },
+
+    setEventList: (state, action: PayloadAction<IEvent[]>) => {
+      state.eventList = action.payload;
     },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setCurrentEventInfo, setEventSponsors, setLdo } = eventSlice.actions;
+export const { setCurrentEventInfo, setEventSponsors, setLdo, setEventList } = eventSlice.actions;
 
 export default eventSlice.reducer;

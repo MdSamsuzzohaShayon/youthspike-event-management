@@ -1,20 +1,4 @@
 {
-	"folders": [
-		{
-			"name": "youthspike-nest-backend",
-			"path": "youthspike-nest-backend"
-		},
-		{
-			"name": "youthspike-admin-frontend",
-			"path": "youthspike-admin-frontend"
-		},
-		{
-			"name": "youthspike-event-management",
-			"path": "."
-		},
-		{
-			"path": "youthspike-frontend"
-		}
-	],
+	"folders": [],
 	"settings": {}
 }

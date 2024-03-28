@@ -56,15 +56,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Player sub, a player can be off for a round and can get back in the next round
 
- - If a round has been submitted he can not re-rank his players
- - Close button must not show up after submitting lineup
  - Style according to Figma - Make color scheme same
- - Make sure random assign, anchor assign, heirarchy assign more smooth
- 
- - Creating team, players, match smoothly
- - Run a match smoothly 
  - Sponsors will always have a logo of ourself by default
 
  - When make player inactive the rank should be update and and this should work properly
@@ -78,14 +71,18 @@ ___
  - When click on input field to update score it should highlight the whole number
 
  - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
- - Team logo is not showing up properly
- - When we are in team, in the player list page (/players) in the place of assigned it will say the name of the team that is assigned to
  - Moreover, the team name will be hyperlink
- - Move players are still not working (from /players page)
- - Player picture need to be square not cirrcle in player list
- - Player will have phone number
- - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
  - Change redial nevy blue color to black gradient
+
+
+ - Move team need to work properly
+ - Move player need to work properly
+
+ - There will be list of events instead of list of LDOs
+ - List need to filter by date, upcomming, past
+ - When some3one click on the event it will taker them to matches or teams
+ - No need to show phone, email, or anything, Need to show name of the player and team they are on
+ - Team logo is not showing
  
 
 
@@ -101,24 +98,21 @@ ___
 
  - **Team**
  - Make mutation from frontend to delete team
+ - Move team need to work properly
  - Add search function for player when creating a new team
  - Move team - when moving team to another event current event should not have that team
- - Team logo is not showing up properly
  - When we are in team, in the player list in the place of assigned it will say the name of the team that is assigned to
  - Moreover, the team name will be hyperlink
 
  - **Players**
+ - Move player need to work properly
  - Import players from excel file should have a confirmation message (error message if there is any error)
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
- - Move players are still not working (from /players page)
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
  - Need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
- - Player picture need to be square not cirrcle in player list
- - Player will have phone number
- - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -127,7 +121,6 @@ ___
 
  - **Captain**
  - Send welcome email to all of our captains
- - If a round has been submitted he can not re-rank his players
  - When login as captain show name of the team of which I am captain of
  
  - **Event**
@@ -135,8 +128,8 @@ ___
 
 
  - **Match**
+ - Run a match smoothly 
  - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
- - Player sub, a player can be off for a round and can get back in the next round
  - Get a sound notification on an socket event
  - Sponsors will always have a logo of ourself by default
  - Close button must not show up after submitting lineup
@@ -151,6 +144,13 @@ ___
  - Black text on yellow box
  - Yellow need to be little more brighter than current yellow
 
+ - **Public View**
+ - There will be list of events instead of list of LDOs
+ - List need to filter by date, upcomming, past
+ - When some3one click on the event it will taker them to matches or teams
+ - No need to show phone, email, or anything, Need to show name of the player and team they are on
+ - Team logo is not showing
+
 
 
  - **Single Match (public)**
@@ -161,6 +161,7 @@ ___
     1. Anchor: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
+ - Make sure random assign, anchor assign, heirarchy assign more smooth
  - When the clock runs out it will automitically assign randomly
  - Change redial nevy blue color to black gradient
 

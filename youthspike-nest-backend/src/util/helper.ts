@@ -20,6 +20,7 @@ export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any
 
 export function tokenToUser(context, secret: string): string | null {
   const authToken = context.req.headers.authorization;
+  if(!authToken) return null;
   const token = authToken.split(' ');
   let user: JwtPayload | null = null;
   const baseToken = token[1];

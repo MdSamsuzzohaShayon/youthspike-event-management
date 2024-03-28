@@ -32,7 +32,7 @@ enum EItem{
 
 
 function EventDetail({ event }: { event: IEventRelatives }) {
-    const [selectedItem, setSelectedItem] = useState<EItem>(EItem.PLAYER);
+    const [selectedItem, setSelectedItem] = useState<EItem>(EItem.MATCH);
 
     const renderContent = () => {
         switch (selectedItem) {

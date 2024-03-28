@@ -30,7 +30,8 @@ matches {
     }
   }
   location
-}`;
+}
+`;
 
 const eventResponse = `
 _id
@@ -101,4 +102,22 @@ query GetEvent($eventId: String!) {
 }`;
 
 
-export { GET_AN_EVENT };
+/**
+ * Mutation
+ * =========================================================================================================================================
+ */
+
+const GET_EVENTS = gql`
+query GetEvents {
+  getEvents {
+    code
+    data {
+      ${eventResponse}
+    }
+  }
+}
+`;
+
+
+
+export { GET_AN_EVENT, GET_EVENTS };
