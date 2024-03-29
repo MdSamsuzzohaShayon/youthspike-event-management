@@ -76,20 +76,14 @@ ___
 
 
  - Move team need to work properly - one division to another division
- - Move player need to work properly
 
  - List need to filter by date, upcomming, past
-
- - When creating team along with logo, players are still there after they are being added to the team
  - Email address are not showing up for account setting
  - If there are no logo, do not put any text there
- - On matches page, we do not need upcomming, only current ande passed
+ - On matches page, we do not need upcomming, only current and passed
  - No current or any text on yellow box of match card, instead just keep the date
  - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
  - Update player need to go to save and team page (if there is a team id) / player page
- - Make player image bigger in player card
- - When login as captain there won't be any option for division
- - Phone number is not updating or saving properly
 
 
 ### Requirements

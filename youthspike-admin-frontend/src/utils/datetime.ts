@@ -10,9 +10,10 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
 
     if (targetDate < currDate) {
         return EEventPeriod.PASSED;
-    } else if (targetDate > currDate) {
-        return EEventPeriod.UPCOMING;
-    }
+    } 
+    // else if (targetDate > currDate) {
+    //     return EEventPeriod.UPCOMING;
+    // }
     return EEventPeriod.CURRENT;
 }
 
