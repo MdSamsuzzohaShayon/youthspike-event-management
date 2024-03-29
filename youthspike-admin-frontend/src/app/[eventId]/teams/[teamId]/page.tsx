@@ -51,6 +51,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
       {actErr && <Message error={actErr} />}
       {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading} 
       divisionList={divisionList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} playerList={playerList} />}
+      
     </div>
   )
 }

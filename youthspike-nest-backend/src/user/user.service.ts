@@ -142,4 +142,11 @@ export class UserService {
   async delete(filter: FilterQuery<User>) {
     return this.userModel.deleteMany(filter);
   }
+
+  async deleteMany(filter: FilterQuery<User>) {
+    return this.userModel.deleteMany(filter);
+  }
+  async deleteOne(filter: FilterQuery<User>) {
+    return this.userModel.deleteOne(filter);
+  }
 }

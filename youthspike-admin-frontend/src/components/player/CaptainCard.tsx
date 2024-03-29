@@ -1,9 +1,16 @@
-import { IPlayer, ITeam } from '@/types';
+import { IEvent, INetRelatives, IPlayer, ITeam } from '@/types';
 import React, { useState } from 'react';
 
-interface IExtedndedTeam extends ITeam {
-    captain: IPlayer,
-    players: IPlayer[],
+interface IExtedndedTeam {
+    _id: string;
+    active: boolean;
+    name: string;
+    logo?: string | null;
+    division: string;
+    event: IEvent;
+    captain: IPlayer;
+    players: IPlayer[];
+    nets: INetRelatives[];
 }
 
 interface CaptainCardProps {
@@ -24,11 +31,11 @@ function CaptainCard({ teamData }: CaptainCardProps) {
                 <img src="/free-logo.svg" alt={teamData && teamData.name} className='w-20' />
                 <div className="team-text">
                     <h4>{teamData.name}</h4>
-                    <p className="text-yellow-400 text-black ">3-2</p>
+                    <p className="text-yellow-logo text-black ">3-2</p>
                 </div>
             </div>
             <div className="right-captain w-6/12 flex items-center justify-between gap-1">
-                <img src="/free-logo.svg" className='w-20 h-20 border-4 border-yellow-400 text-black rounded-full' alt="captain" />
+                <img src="/free-logo.svg" className='w-20 h-20 border-4 border-yellow-logo text-black rounded-full' alt="captain" />
                 <h3 className="capitalize">{teamData && teamData.captain.firstName} {teamData && teamData.captain.lastName}</h3>
                 <img src="/icons/dots-vertical.svg" className='svg-white w-5 h-5 justify-end items-start' alt="menu" role="presentation" onClick={handleOpenAction} />
             </div>

@@ -143,8 +143,8 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
 
 
     return (
-        <div className="team-card w-full rounded-lg">
-            <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative">
+        <div className="team-card w-full">
+            <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
                 <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
                     <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} >Edit</li>
                     <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}>Move Team</li>
@@ -168,8 +168,8 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                         {team.captain && (
                             <div className="brand flex gap-1">
                                 {team.captain?.profile
-                                    ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-400" />
-                                    : <TextImg className='w-12 h-12 border-2 border-yellow-400' fText={team.captain.firstName} lText={team.captain.lastName} />}
+                                    ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-logo" />
+                                    : <TextImg className='w-12 h-12 border-2 border-yellow-logo' fText={team.captain.firstName} lText={team.captain.lastName} />}
 
                                 <div className="caption flex flex-col">
                                     <p className='uppercase text-xs'>Captain</p>

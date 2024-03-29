@@ -444,6 +444,7 @@ type Mutation {
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
+  deletePlayer(playerId: String!): PlayersResponse!
 }
 
 input UpdateUserArgs {

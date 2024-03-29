@@ -81,6 +81,11 @@ export class EventService {
     return updatedEvent;
   }
 
+  async updateOne(filter: FilterQuery<Event>, updateData: UpdateQuery<Event>){
+    const updateEvent = await this.eventModel.updateOne(filter, updateData);
+    return updateEvent;
+  }
+
   async delete(filter: FilterQuery<Event>) {
     return this.eventModel.deleteMany(filter);
   }

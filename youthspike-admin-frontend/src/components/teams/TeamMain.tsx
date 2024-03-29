@@ -6,8 +6,8 @@ import { GET_EVENT_WITH_TEAMS, GET_TEAMS_BY_EVENT } from '@/graphql/teams';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamList from '@/components/teams/TeamList';
-import { ISOToReadableDate, divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IError, IEvent, IEventExpRel, IOption, ITeam } from '@/types';
+import { ISOToReadableDate, divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
+import { IError, IEvent, IEventExpRel, IMenuItem, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import SelectInput from '../elements/forms/SelectInput';
@@ -16,8 +16,11 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../../hooks/useClickOutside';
-import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { usePathname, useRouter } from 'next/navigation';
+import { initialUserMenuList } from '@/utils/staticData';
+import { getUserFromCookie } from '@/utils/cookie';
+import UserMenuList from '../layout/UserMenuList';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -41,14 +44,14 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const [currDivision, setCurrDivision] = useState<string>('');
 
     // GraphQL
-    const [getEvent, { data: eventData, loading, error, refetch}] = useLazyQuery(GET_EVENT_WITH_TEAMS);
+    const [getEvent, { data: eventData, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
     const { data: ldoData, loading: ldoLoading } = useQuery(GET_LDO);
 
     // Custom Hook
     useClickOutside(importerEl, () => { closeDialog() });
 
 
-    const fefetchFunc=async ()=>{
+    const fefetchFunc = async () => {
         await fetchEvent();
     }
 
@@ -94,7 +97,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         // Division and team value
         removeTeamFromStore();
         const divisionExist = getDivisionFromStore();
-        if(divisionExist){
+        if (divisionExist) {
             setCurrDivision(divisionExist);
             newFilteredList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
         }
@@ -108,9 +111,10 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         setDivisionList(divs);
     }
 
+
     // Do this for all event pages
     useEffect(() => {
-        
+
         if (eventId) {
             if (isValidObjectId(eventId)) {
                 fetchEvent();
@@ -141,8 +145,12 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             <div className="mb-4 division-selection w-full">
                 <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
             </div>
-            <h1 className='text-2xl font-bold pt-6 text-center mb-8'>Teams</h1>
+            <h1 className='text-2xl font-bold pt-6 text-center mb-4'>Teams</h1>
             {currEvent && (<CurrentEvent currEvent={currEvent} />)}
+            <div className="navigator mb-4">
+                <UserMenuList eventId={eventId} />
+            </div>
+
             {error && <Message error={error} />}
             {actErr && <Message error={actErr} />}
             <div className="mb-8 make-team flex w-full justify-between">

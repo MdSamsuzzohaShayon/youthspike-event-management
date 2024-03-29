@@ -301,6 +301,66 @@ export class PlayerResolver {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => PlayersResponse)
+  async deletePlayer(
+    @Args('playerId', { nullable: false }) playerId: string,
+  ) {
+    /**
+     * TODO:
+     *    Step-1: Delete player 
+     *    Step-2: Remove player from all the related fields
+     */
+    try {
+
+      const playerExist = await this.playerService.findById(playerId);
+      if (!playerExist) return AppResponse.exists("Player");
+
+      const updatePromises = [];
+
+      if (playerExist.events && playerExist.events.length > 0) {
+        updatePromises.push(this.eventService.updateOne({ _id: { $in: playerExist.events } }, { $pull: { players: playerId } }));
+      }
+
+      if (playerExist.teams && playerExist.teams.length > 0) {
+        updatePromises.push(this.teamService.updateOne({ _id: { $in: playerExist.teams } }, { $pull: { players: playerId } }));
+      }
+
+      if (playerExist.captainofteams && playerExist.captainofteams.length > 0) {
+        updatePromises.push(this.teamService.updateMany({ _id: { $in: playerExist.captainofteams } }, { $pull: { players: playerId } }));
+      }
+
+      if (playerExist.cocaptainofteams && playerExist.cocaptainofteams.length > 0) {
+        updatePromises.push(this.teamService.updateMany({ _id: { $in: playerExist.cocaptainofteams } }, { $pull: { players: playerId } }));
+      }
+
+      if (playerExist.captainuser) {
+        updatePromises.push(this.userService.deleteOne({ _id: playerExist.captainuser }));
+      }
+
+      if (playerExist.cocaptainuser) {
+        updatePromises.push(this.userService.deleteOne({ _id: playerExist.cocaptainuser }));
+      }
+
+      updatePromises.push(this.playerService.deleteOne({ _id: playerId }));
+
+
+      await Promise.all(updatePromises);
+
+
+      return {
+        success: true,
+        code: 201,
+        data: [], // allPlayers
+      };
+    } catch (error) {
+      console.error('Error in createMultiPlayers:', error);
+      // Customize the error response based on the type of error
+      return AppResponse.handleError(error);
+    }
+  }
+
 
   @Query((_returns) => PlayerResponse) // Specify the return type
   async getPlayer(@Args('playerId') playerId: string): Promise<PlayerResponse> {

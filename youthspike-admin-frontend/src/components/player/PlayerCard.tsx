@@ -1,5 +1,5 @@
 import cld from '@/config/cloudinary.config';
-import { UPDATE_PLAYER } from '@/graphql/players';
+import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayer, IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
@@ -13,26 +13,21 @@ import { UserRole } from '@/types/user';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
-  index: number;
-  teamId?: string | null;
   eventId: string,
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  touchDragStart: (index: number) => void;
-  touchDragEnter: (index: number) => void;
-  touchDragEnd: (index: number, playerId: string) => void;
-  touchMove: (e: TouchEvent, index: number) => void;
+  teamId?: string | null;
   showRank?: boolean;
   rankControls?: boolean;
   isAssigned?: boolean;
   divisionList?: IOption[];
   teamList?: ITeam[];
+  refetchFunc?: () => void;
 }
 
-function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragStart, touchDragEnter, touchDragEnd, touchMove, showRank, rankControls, divisionList, teamList }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
   const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
   const [newTeamId, setNewTeamId] = useState<null | string>(null);
 
@@ -42,6 +37,7 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
+  const [deleteAPlayer] = useMutation(DELETE_A_PLAYER);
 
   const playerLiEl = useRef<HTMLDivElement | null>(null);
 
@@ -52,11 +48,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     setActionOpen(prevState => !prevState);
   }
 
-  const handleEdit = (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    setActionOpen(prevState => !prevState);
-    console.log(`Edit player: ${playerId}`);
-  }
 
   const makeCaptainOrCoCaptain = async (input: { captain?: string, cocaptain?: string }) => {
     setActionOpen(prevState => !prevState);
@@ -101,7 +92,8 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
           playerId
         }
       });
-      await client.refetchQueries({ include: [GET_A_TEAM] });
+      // await client.refetchQueries({ include: [GET_A_TEAM] });
+      if(refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
     } catch (error) {
@@ -119,16 +111,25 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
           playerId
         }
       });
-      await client.refetchQueries({ include: [GET_A_TEAM] });
+      // await client.refetchQueries({ include: [GET_A_TEAM] });
+      if(refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     }
 
   }
-  const handleDelete = (e: React.SyntheticEvent, playerId: string) => {
+  const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
-    setActionOpen(prevState => !prevState);
-    console.log(`Delete player: ${playerId}`);
+    try {
+      setActionOpen(prevState => !prevState);
+      setIsLoading(true);
+      const deletePlayer = await deleteAPlayer({ variables: { playerId } });
+      if(refetchFunc) await refetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
 
@@ -205,61 +206,6 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
     setNewTeamId(inputEl.value);
   }
 
-  // ====== Drag or touch event for players rankings ======
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!rankControls) return;
-    setIsDragging(true);
-    touchDragStart(index,);
-  };
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!rankControls) return;
-    touchDragEnter(index);
-  };
-  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!rankControls) return;
-    setIsDragging(false);
-    touchDragEnd(index, player._id);
-  };
-
-  const handleTouchStart = (e: TouchEvent) => {
-    if (!rankControls) return;
-    touchDragStart(index)
-  }
-
-  const handleTouchEnd = (e: TouchEvent) => {
-    if (!rankControls) return;
-    touchDragEnd(index, player._id)
-  }
-  const handleTouchMove = (e: TouchEvent) => {
-    e.preventDefault();
-    if (!rankControls) return;
-
-    // ===== Find out index for dropping element =====
-    const touchY = e.touches[0].clientY; // Get the Y coordinate of the touch event
-    const playerMobileEls = document.querySelectorAll('.mobile-draggable-element');
-    let newIndex = -1;
-    playerMobileEls.forEach((element, i) => {
-      const rect = element.getBoundingClientRect();
-      if (touchY >= rect.top && touchY <= rect.bottom) {
-        newIndex = i;
-      }
-    });
-    touchMove(e, newIndex);
-  };
-  useEffect(() => {
-    const liEl = playerLiEl.current;
-    if (liEl) {
-      liEl.addEventListener("touchstart", handleTouchStart, { passive: false });
-      liEl.addEventListener("touchmove", handleTouchMove, { passive: false });
-      liEl.addEventListener("touchend", handleTouchEnd, { passive: false });
-
-      return () => {
-        liEl.removeEventListener("touchstart", handleTouchStart);
-        liEl.removeEventListener("touchmove", handleTouchMove);
-        liEl.removeEventListener("touchend", handleTouchEnd);
-      }
-    }
-  }, []);
 
 
   const renderTeam = () => {
@@ -268,43 +214,43 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
       const nti = player?.teams[0];
       teamFound = teamList?.find((t) => t._id === nti._id);
     }
-    return <p className='text-yellow-400 uppercase'>{teamFound ? teamFound.name : "Unassigned"}</p>;
+    return <p className='text-yellow-logo uppercase'>{teamFound ? teamFound.name : "Unassigned"}</p>;
   }
 
 
   return (
     <React.Fragment>
-      <li className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500"} py-2 relative rounded-md ${isDragging ? '' : 'opacity-100'}`} style={{ minHeight: '6rem' }} >
+      <div className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500"} py-2 relative rounded-md `} style={{ minHeight: '6rem' }} >
 
 
         {/* Draggable element start  */}
-        <div className="draggable-element w-11/12 flex justify-between items-center" draggable={rankControls ? true : false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onDrop={handleDragEnter}  >
+        <div className="draggable-element w-11/12 flex justify-between items-center" draggable={rankControls ? true : false}  >
           <input type="checkbox" name="player-select" id="option" className='w-1/12' />
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
-            <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
-              {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-400 rounded-full" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full svg-white" />}
+            <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
+              {player.profile ? <AdvancedImage className="w-28 border-4 border-yellow-logo rounded-full" cldImg={cld.image(player.profile)} />
+                : <img src="/icons/sports-man.svg" alt="" className="w-28 border-4 border-yellow-400 rounded-full svg-white" />}
               <div className="player-name flex flex-col w-full">
-                <h3 className='break-words w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
-                {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Captain</p>}
-                {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Co-Captain</p>}
+                <h3 className='break-words w-28 md:w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
+                {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-logo uppercase'>Captain</p>}
+                {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-logo uppercase'>Co-Captain</p>}
                 {!teamId && renderTeam()}
               </div>
             </div>
 
-            {showRank && player?.rank && (
-              <div className="rank-box h-6 w-6 flex flex-col items-center">
-                <h3 className='bg-yellow-400 text-gray-900 w-8 h-8 flex justify-center items-center text-base'>
-                  {player?.rank}
-                </h3>
-                <p>Rank</p>
-              </div>
-            )}
 
-            <div className="text-box w-5/12">
+            <div className="text-box w-3/12 flex flex-col justify-center items-center">
+              {showRank && player?.rank && (
+                <div className="rank-box flex flex-col items-center">
+                  <h3 className='bg-yellow-logo text-gray-900 w-8 h-8 flex justify-center items-center text-base'>
+                    {player?.rank}
+                  </h3>
+                  <p>Rank</p>
+                </div>
+              )}
               <div className="w-full flex flex-col justify-center items-end">
                 <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
-                {/* <p className='break-words w-full text-end' >2-3 / +3 games</p> */}
               </div>
             </div>
           </div>
@@ -331,12 +277,13 @@ function PlayerCard({ player, index, teamId, eventId, setIsLoading, touchDragSta
         <dialog ref={dialogEl} className='w-4/6 p-4'>
           <img src="/icons/close.svg" role='presentation' className="svg-white" onClick={handleCloseModal} />
           <form onSubmit={handleCaptainEmail}>
+            {/* @ts-ignore */}
             <EmailInput name='email' required handleInputChange={e => setNewEmail(e.target.value)} vertical />
             <button className="btn-info mt-4" type='submit'>Make Captain</button>
           </form>
         </dialog>
         {/* Add email operation end  */}
-      </li>
+      </div>
       {movePlayer && (
         <div className="w-full move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
           <button className="close" onClick={(e) => setMovePlayer(false)}><img src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" /></button>

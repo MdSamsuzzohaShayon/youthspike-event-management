@@ -56,15 +56,8 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Player sub, a player can be off for a round and can get back in the next round
 
- - If a round has been submitted he can not re-rank his players
- - Close button must not show up after submitting lineup
  - Style according to Figma - Make color scheme same
- - Make sure random assign, anchor assign, heirarchy assign more smooth
- 
- - Creating team, players, match smoothly
- - Run a match smoothly 
  - Sponsors will always have a logo of ourself by default
 
  - When make player inactive the rank should be update and and this should work properly
@@ -78,15 +71,24 @@ ___
  - When click on input field to update score it should highlight the whole number
 
  - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
- - Team logo is not showing up properly
- - When we are in team, in the player list page (/players) in the place of assigned it will say the name of the team that is assigned to
  - Moreover, the team name will be hyperlink
- - Move players are still not working (from /players page)
- - Player picture need to be square not cirrcle in player list
- - Player will have phone number
- - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
  - Change redial nevy blue color to black gradient
- 
+
+
+ - Move team need to work properly - one division to another division
+ - Move player need to work properly
+
+ - List need to filter by date, upcomming, past
+
+ - Email address are not showing up for account setting
+ - If there are no logo, do not put any text there
+ - On matches page, we do not need upcomming, only current ande passed
+ - No current or any text on yellow box of match card, instead just keep the date
+ - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
+ - Update player need to go to save and team page (if there is a team id) / player page
+ - Make player image bigger in player card
+ - When login as captain there won't be any option for division
+ - Phone number is not updating or saving properly
 
 
 ### Requirements
@@ -101,24 +103,26 @@ ___
 
  - **Team**
  - Make mutation from frontend to delete team
+ - Move team need to work properly - one division to another division
  - Add search function for player when creating a new team
  - Move team - when moving team to another event current event should not have that team
- - Team logo is not showing up properly
  - When we are in team, in the player list in the place of assigned it will say the name of the team that is assigned to
  - Moreover, the team name will be hyperlink
+ - If there are no logo, do not put any text there
 
  - **Players**
+ - Move player need to work properly
  - Import players from excel file should have a confirmation message (error message if there is any error)
  - Assign players to a net will be drop down and move both event
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
- - Move players are still not working (from /players page)
  - When make player inactive the rank should be update and and this should work properly
  - When Moving player rank them properly
  - Need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
- - Player picture need to be square not cirrcle in player list
- - Player will have phone number
- - When making a player that does not have email or phone number, it will say you do not have email or phone number to make him captain, add email and phone in order to make him captain
+ - Update player need to go to save and team page (if there is a team id) / player page
+ - Add new player need to work properly when click on create new player link
+ - Make player image bigger in player card
+ - Phone number is not updating or saving properly
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -127,22 +131,25 @@ ___
 
  - **Captain**
  - Send welcome email to all of our captains
- - If a round has been submitted he can not re-rank his players
  - When login as captain show name of the team of which I am captain of
+ - When login as captain there won't be any option for division
  
  - **Event**
  - Updaing round creating some issues (Log in as admin)
 
 
  - **Match**
+ - Run a match smoothly 
  - There could be exception, a team can have 5 players because they can get a player injured, In that case they can play will 5 players (Check every net should have atleast 1 player)
- - Player sub, a player can be off for a round and can get back in the next round
  - Get a sound notification on an socket event
  - Sponsors will always have a logo of ourself by default
  - Close button must not show up after submitting lineup
  - When click on input field to update score it should highlight the whole number
  - When I will match and submit my lineup, net 1 should be selected automitically
  - Update score button should not be shown - it is irrelevent now
+ - On matches page, we do not need upcomming, only current ande passed
+ - No current or any text on yellow box of match card, instead just keep the date
+ - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
 
  - **Final Round**
  - 2 points net logic [04:20](https://www.loom.com/share/a39b08628d344b6588bd94d23e47ad8e) appear in the final round
@@ -150,6 +157,14 @@ ___
  - **Design**
  - Black text on yellow box
  - Yellow need to be little more brighter than current yellow
+ - Put those headers in every page of a event
+
+ - **Public View**
+ - There will be list of events instead of list of LDOs
+ - List need to filter by date, upcomming, past
+ - When some3one click on the event it will taker them to matches or teams
+ - No need to show phone, email, or anything, Need to show name of the player and team they are on
+ - Team logo is not showing
 
 
 
@@ -161,8 +176,12 @@ ___
     1. Anchor: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and son on
     2. Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
     3. Random: Random pair
+ - Make sure random assign, anchor assign, heirarchy assign more smooth
  - When the clock runs out it will automitically assign randomly
  - Change redial nevy blue color to black gradient
+
+ - **LDO**
+ - Email address are not showing up for account setting
 
 ### Design
  - Style according to Figma
@@ -179,6 +198,10 @@ ___
  - When saving a team and creating another team, it does not update the player list. That need to be updated properly
  - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
  - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
+ 
+ 
+ - src/components/event/EventAddUpdate.tsx
+ - src/app/[eventId]/settings/page.tsx
 
 
 
@@ -214,7 +237,11 @@ ___
 
 
 ### Ask
- - Showing subbed players is not complex thing to do, but I am really confused where should I show them, because the page on mobile screen have not enough space.
+ - Indeed, I am trying to make Text sizes on different devices as responsive as possible. However, some pages has many elements therefore, it is really hard to fit them in little space. To fix this, either we need to decrease the size of text (in this case, in smaller screen texts are going to be less visiable) or we can decrease the sizes of other elements. I guess need to check every thing on smaller phone to fix everything, so that on bigger devices it will not create any problem. For now I will try everything with IPhone 8 or 7
+ - For moving a team, we can move a team to another event, perhaps you had not created multiple events to move team from a event to another event.
+ - To be honest, I did not notice the ddesign for match list. I just made it without any reference. Somehow, I missed that page design. I will do it soon.
+ - On your the phone, when you are scrolling players it is automitically re-ranking players and when you are selecting lefet side or right side of the screen, it will scrool. I have a idea to make this better. We can use a icon like this -> https://www.flaticon.com/free-icon/arrow_13934430 director and captains are going to re-rank players holding those icons.
+
 
  curl -i -N  \
     -H "Connection: Upgrade"  \

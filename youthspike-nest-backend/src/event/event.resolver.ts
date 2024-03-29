@@ -385,38 +385,52 @@ export class EventResolver {
 
   }
 
-  @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetEventsResponse)
-  async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
-    /**
-     * TODO:
-     *  Step-1: Check role
-     *  Step-2: Must need director id if logged is as admin
-     *  Step-3: Find all events according to director id
-     */
-    const secret = this.configService.get<string>('JWT_SECRET');
-    const userId = tokenToUser(context, secret);
-
-    // Get user
-    const loggedUser = await this.userService.findById(userId);
-    if (!loggedUser) return AppResponse.unauthorized();
-
-    // If the user is admin we must need ldoId otherwise get id from token
-    let newDirectorId = null;
-    if (loggedUser.role === UserRole.director) {
-      newDirectorId = loggedUser._id;
-    } else if (loggedUser.role === UserRole.admin) {
-      if (!directorId)
-        return AppResponse.handleError({
-          name: 'No Director',
-          message: 'You must select a director in order to update a event!',
-        });
-      newDirectorId = directorId;
-    }
-
-    const events = await this.eventService.query({ directorId: newDirectorId });
+  async getEvents(
+    @Context() context: any,
+    @Args('directorId', { nullable: true }) directorId?: string
+  ) {
 
     try {
+
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userId = tokenToUser(context, secret);
+
+      // Get logged in user
+      const loggedUser = userId ? await this.userService.findById(userId) : null;
+
+      // Determine director ID based on user role
+      let newDirectorId = null;
+      if (loggedUser) {
+        switch (loggedUser.role) {
+          case UserRole.director:
+            newDirectorId = loggedUser._id;
+            break;
+          case UserRole.admin:
+            if (!directorId) {
+              return AppResponse.handleError({
+                name: 'No Director',
+                message: 'You must select a director in order to update an event!',
+              });
+            }
+            newDirectorId = directorId;
+            break;
+          default:
+            break;
+        }
+      }
+
+      // Filter events based on director ID
+      const filter: Partial<Event> = {};
+      if (newDirectorId) {
+        const ldoExist = await this.ldoService.findByDirectorId(newDirectorId);
+        if (ldoExist) {
+          filter.ldo = ldoExist._id;
+        }
+      }
+
+
+      const events = await this.eventService.query(filter);
       return {
         code: 200,
         success: true,
@@ -426,6 +440,7 @@ export class EventResolver {
       return AppResponse.getError(err);
     }
   }
+
 
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
@@ -462,7 +477,7 @@ export class EventResolver {
 
   @ResolveField()
   async teams(@Parent() event: Event) {
-    const teamList = await  this.teamService.query({ _id: { $in: event.teams } });
+    const teamList = await this.teamService.query({ _id: { $in: event.teams } });
     return teamList;
   }
 

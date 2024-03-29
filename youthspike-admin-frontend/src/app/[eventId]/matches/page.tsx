@@ -4,32 +4,36 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import CurrentEvent from '@/components/event/CurrentEvent';
+import UserMenuList from '@/components/layout/UserMenuList';
 import MatchAdd from '@/components/match/MatchAdd';
 import MatchList from '@/components/match/MatchList';
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
-import { IAddMatch, IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, IEventExpRel, IMatch, IOption, ITeam } from '@/types';
+import { IAddMatch, IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, IEventExpRel, IMatch, IMenuItem, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
+import { getUserFromCookie } from '@/utils/cookie';
+import { divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { initialUserMenuList } from '@/utils/staticData';
 import { useLazyQuery, useQuery } from '@apollo/client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
+
+  const pathname = usePathname();
+
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addMatch, setAddMatch] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
-
   const [matchList, setMatchList] = useState<IMatch[]>([]);
   const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([]);
-
-
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
-
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
@@ -122,6 +126,8 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     }
   }, [params.eventId]);
 
+
+
   if (loading || isLoading) return <Loader />;
 
 
@@ -133,6 +139,9 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       </div>
       <h1 className='mb-8 text-center'>Matches</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
+      <div className="navigator mb-4">
+        <UserMenuList eventId={params.eventId} />
+      </div>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
 

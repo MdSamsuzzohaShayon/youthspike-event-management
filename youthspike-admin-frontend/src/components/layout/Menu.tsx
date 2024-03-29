@@ -179,7 +179,7 @@ function Menu() {
                     <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
                         <h1 className='capitalize'>{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
                         {user.info?.team && <h3>{user.info?.team} </h3>}
-                        <p className='uppercase text-yellow-400 mt-1'>{user.info?.role}</p>
+                        <p className='uppercase text-yellow-logo mt-1'>{user.info?.role}</p>
                         <br />
                     </div>
                     {eventId && (
