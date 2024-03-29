@@ -168,8 +168,8 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                         {team.captain && (
                             <div className="brand flex gap-1">
                                 {team.captain?.profile
-                                    ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-400" />
-                                    : <TextImg className='w-12 h-12 border-2 border-yellow-400' fText={team.captain.firstName} lText={team.captain.lastName} />}
+                                    ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-logo" />
+                                    : <TextImg className='w-12 h-12 border-2 border-yellow-logo' fText={team.captain.firstName} lText={team.captain.lastName} />}
 
                                 <div className="caption flex flex-col">
                                     <p className='uppercase text-xs'>Captain</p>

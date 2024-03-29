@@ -59,19 +59,19 @@ function EventDetail({ event }: { event: IEventRelatives }) {
             {event?.sponsors && event.sponsors.length > 0 && (
                 <>
                     <h3 className='mb-4'>Sponsors</h3>
-                    <div className="sponsors w-full flex items-center justify-between md:justify-start flex-wrap gap-2">
+                    <div className="sponsors w-full flex items-center justify-between md:justify-start flex-wrap gap-2 bg-gray-900">
                         {renderSponsors()}
                     </div>
                 </>
             )}
 
             <div className="flex flex-col md:flex-row mt-8 bg-gray-900 px-2">
-                <div className="side-bar sticky top-0 w-full md:w-2/6 flex flex-row md:flex-col flex-wrap mb-2">
-                    <li role="presentation" onClick={() => setSelectedItem(EItem.PLAYER)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.PLAYER ? "font-bold bg-yellow-400" : ""}`}>Players</li>
-                    <li role="presentation" onClick={() => setSelectedItem(EItem.TEAM)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? "font-bold bg-yellow-400" : ""}`}>Teams</li>
-                    <li role="presentation" onClick={() => setSelectedItem(EItem.MATCH)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.MATCH ? "font-bold bg-yellow-400" : ""}`}>Matches</li>
+                <div className="side-bar sticky top-0 w-full md:w-2/6 flex flex-row md:flex-col flex-wrap mb-2 ">
+                    <li role="presentation" onClick={() => setSelectedItem(EItem.PLAYER)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.PLAYER ? "font-bold bg-yellow-400" : "bg-gray-900"}`}>Players</li>
+                    <li role="presentation" onClick={() => setSelectedItem(EItem.TEAM)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? "font-bold bg-yellow-400" : "bg-gray-900"}`}>Teams</li>
+                    <li role="presentation" onClick={() => setSelectedItem(EItem.MATCH)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.MATCH ? "font-bold bg-yellow-400" : "bg-gray-900"}`}>Matches</li>
                 </div>
-                <div className="content w-full md:w-4/6">
+                <div className="w-full md:w-4/6 static">
                     {renderContent()}
                 </div>
             </div>

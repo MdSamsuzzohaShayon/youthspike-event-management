@@ -14,12 +14,11 @@ function PlayerCard({ player }: PlayerCardProps) {
   return (
     <li ref={playerLiEl} className={`w-full bg-gray-700 py-2 flex justify-between items-center gap-2 rounded-md`} style={{ minHeight: '6rem' }} >
 
-      <div className="img-wrapper h-full w-5/12 flex justify-between items-center gap-1">
-        {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-400 rounded-full ml-2" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full svg-white ml-2" />}
-        <div className="player-name flex flex-col w-full">
-          <h3 className='break-words'>{player.firstName + ' ' + player.lastName}</h3>
-          {player?.captainofteam && <p className='text-yellow-400 uppercase'>Captain</p>}
-        </div>
+      {player.profile ? <AdvancedImage className="w-10 h-10 border-4 border-yellow-400 rounded-full ml-2" cldImg={cld.image(player.profile)} /> : <img src="/icons/sports-man.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full svg-white ml-2" />}
+      <div className="player-name flex flex-col w-full">
+        <h3 className='break-words'>{player.firstName + ' ' + player.lastName}</h3>
+        {player.teams && player.teams.length > 0 && <p className='text-yellow-400 uppercase'>{player.teams[0].name}</p>}
+        {player?.captainofteams && player.captainofteams.length > 0 && <p className='text-yellow-400 uppercase'>Captain</p>}
       </div>
 
       {player?.rank && (
@@ -31,13 +30,6 @@ function PlayerCard({ player }: PlayerCardProps) {
         </div>
       )}
 
-      <div className="text-box w-6/12">
-        <div className="w-full">
-          <p className='break-words' >7676-783-8263</p>
-          <p className='break-words' >E: {player.email}</p>
-          <p className='break-words' >2-3 / +3 games</p>
-        </div>
-      </div>
     </li>
   )
 }

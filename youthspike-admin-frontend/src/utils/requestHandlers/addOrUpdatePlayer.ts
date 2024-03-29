@@ -27,11 +27,13 @@ interface IAddOrUpdatePlayer {
     playerAddCB?: (playerData: IPlayerExpRel) => void;
     playerUpdateCB?: (playerData: IPlayerExpRel) => void;
     update?: boolean;
-    refetchFunc?: ()=> Promise<void>;
+    refetchFunc?: () => Promise<void>;
 }
 
 async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
     prevPlayer, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
+    const teamExist = getTeamFromStore();
+
     try {
         setIsLoading(true);
         const playerAddObj = structuredClone(playerState);
@@ -78,6 +80,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
 
         if (playerRes?.data?.createPlayer?.data && !update) {
             if (playerAddCB) playerAddCB(playerRes.data.createPlayer.data);
+            if (teamExist) return router.push(`/${eventId}/teams/${teamExist}`);
         } else {
             if (playerRes?.data?.updatePlayer?.data) {
                 if (playerUpdateCB) playerUpdateCB(playerRes?.data?.updatePlayer?.data);
@@ -94,17 +97,16 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
             setActErr({ name: playerRes.data.createPlayer.code, message: playerRes.data.createPlayer.message, main: playerRes.data.createPlayer });
         }
         if (setAddPlayer && !update) setAddPlayer(false);
-        if(refetchFunc) await refetchFunc();
+        if (refetchFunc) await refetchFunc();
     } catch (error) {
         console.log(error);
     } finally {
         setIsLoading(false);
         if (update) {
-            const teamExist = getTeamFromStore();
-            if(teamExist){
-                router.push(`/${eventId}/teams/${teamExist}`)
-            }else{
-                router.push(`/${eventId}/players/${prevPlayer?._id}`)
+            if (teamExist) {
+                router.push(`/${eventId}/teams/${teamExist}`);
+            } else {
+                router.push(`/${eventId}/players/${prevPlayer?._id}`);
             }
         }
     }

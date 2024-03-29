@@ -5,11 +5,16 @@ import { ITeam } from '@/types/team';
 export interface TeamsState {
   teamA?: ITeam | null;
   teamB?: ITeam | null;
+  teamList: ITeam[];
 }
 
 const initialState: TeamsState = {
+  // For match
   teamA: null,
   teamB: null,
+
+  // For event
+  teamList: [],
 };
 
 const teamSlice = createSlice({
@@ -22,9 +27,12 @@ const teamSlice = createSlice({
     setTeamB: (state, action: PayloadAction<ITeam>) => {
       state.teamB = action.payload;
     },
+    setTeamList: (state, action:  PayloadAction<ITeam[]>)=>{
+      state.teamList = action.payload;
+    },
   },
 });
 
-export const { setTeamA, setTeamB } = teamSlice.actions;
+export const { setTeamA, setTeamB, setTeamList } = teamSlice.actions;
 
 export default teamSlice.reducer;

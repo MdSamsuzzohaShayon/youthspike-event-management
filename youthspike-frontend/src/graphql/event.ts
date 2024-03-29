@@ -33,6 +33,40 @@ matches {
 }
 `;
 
+const teamResponse = `
+teams{
+  _id
+  name
+  division
+  captain {
+    _id
+    firstName
+    lastName
+    email
+    profile
+  }
+}
+`;
+
+const playerResponse = `
+players {
+  _id
+  firstName
+  lastName
+  profile
+  email
+  ${teamResponse}
+}
+`;
+
+const sponsorResponse= `
+sponsors{
+  _id
+  company
+  logo
+}
+`;
+
 const eventResponse = `
 _id
 name
@@ -55,33 +89,11 @@ rounds
 netVariance
 rosterLock
 timeout
-sponsors{
-  _id
-  company
-  logo
-}
-${matchResponse}
-players {
-  _id
-  firstName
-  lastName
-  profile
-  email
-  email
-}
 
-teams {
-  _id
-  name
-  division
-  captain {
-    _id
-    firstName
-    lastName
-    email
-    profile
-  }
-}
+${matchResponse}
+${playerResponse}
+${teamResponse}
+${sponsorResponse}
 `;
 
 /**

@@ -109,7 +109,7 @@ dialog::backdrop {
 }
 
 .btn-info {
-  @apply px-3 py-2 bg-yellow-500 text-gray-900 rounded-md hover:bg-yellow-700 font-bold text-xl;
+  @apply px-3 py-2 bg-yellow-logo text-gray-900 rounded-md hover:bg-yellow-700 font-bold text-xl;
 }
 
 .btn-danger {
@@ -155,4 +155,23 @@ dialog::backdrop {
   animation: spin 1s linear infinite;
   /* border: 4px solid rgba(0, 0, 0, 0.1);
   border-top: 4px solid #3498db; */
+}
+
+/* Custom Design */
+.text-yellow-logo{
+  color: #fce013;
+}
+
+.bg-yellow-logo{
+  background: #fce013;
+}
+.border-yellow-logo{
+  border-color: #fce013;
+}
+
+/* Event card design  */
+.events-page .event-card{
+  /* style={{ width: '48.5%', minHeight: '12rem' }} */
+  width: 48%;
+  min-height: 12rem;
 }

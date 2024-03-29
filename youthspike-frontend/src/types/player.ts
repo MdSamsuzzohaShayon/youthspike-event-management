@@ -1,3 +1,4 @@
+import { ITeam } from ".";
 import { IDocument } from "./document";
 
 /**
@@ -27,9 +28,6 @@ export interface IPlayer extends IDocument {
   rank: number | null;
   status: EPlayerStatus,
   event?: string;
-  team?: string;
-  captainofteam: {
-    _id: string;
-    name: string;
-  } | null;
+  teams?: ITeam[];
+  captainofteams: ITeam[];
 }

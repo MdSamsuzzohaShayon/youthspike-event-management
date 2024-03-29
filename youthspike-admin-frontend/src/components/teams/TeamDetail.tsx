@@ -14,6 +14,7 @@ import { usePathname } from 'next/navigation';
 import { BACKEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
+import SortableList from '../player/SortableList';
 
 interface ITeamDetailProps {
     event: IEvent;
@@ -99,7 +100,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
             {/* Team detail  */}
             <div className="team-detail mt-8 w-full flex justify-center flex-col items-center">
                 {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className='w-20' /> : <TextImg className='w-20 h-20' fullText={team.name} txtCls='text-2xl' />}
-                
+
                 <h3 className="capitalize">{team && team.name}</h3>
                 <div className="navigator w-full flex justify-center items-center gap-x-2 flex-wrap">
                     {userMenuList.map((item, iIdx) => <Link key={item.id} href={item.id === 8 || item.id === 5 ? `${item.link}` : `/${eventId}${item.link}`} >{iIdx !== 0 && "|"} {item.text}</Link>)}
@@ -108,7 +109,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
             {addPlayer ? (<>
                 <div className="flex w-full justify-between items-center mb-4">
-                    <h3 >Player Add to Team</h3>
+                    <h3 >Add Player to Team</h3>
                     <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
                 </div>
                 <form onSubmit={handleAddPlayersToTeam} >
@@ -121,8 +122,12 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                         <h3 className='mt-4'>Player List</h3>
                         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Player Add to Team</button>
                     </div>
-                    <PlayerList eventId={eventId} playerList={team ? team.players : []} teamId={team._id} setIsLoading={setIsLoading} rankControls showRank
-                        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} />
+                    {/* <PlayerList eventId={eventId} playerList={team ? team.players : []} teamId={team._id} setIsLoading={setIsLoading} rankControls showRank
+                        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} /> */}
+
+                    <div className="sortable-player-list mt-4">
+                        <SortableList playerList={team.players} eventId={eventId} setIsLoading={setIsLoading} />
+                    </div>
                 </div>
             )}
 

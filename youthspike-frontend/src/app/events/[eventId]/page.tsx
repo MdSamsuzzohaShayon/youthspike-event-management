@@ -14,17 +14,28 @@ function EventSingle({ params }: { params: { eventId: string } }) {
   /**
    * Read query from cache or fetch data from server
    */
-  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_AN_EVENT, { variables: { eventId: params.eventId } });
+  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_AN_EVENT, { variables: { eventId: params.eventId }, fetchPolicy: "network-only" });
 
   useEffect(() => {
     if (params.eventId) {
       if (isValidObjectId(params.eventId)) {
+        // (async ()=>{
+        //   const res = await fetchEvent({ variables: { eventId: params.eventId } });
+        //   if(res?.data?.getEvent?.data){
+        //     console.log(res.data.getEvent.data);
+        //     // Players, teams, matches
+        //   }
+          
+        // })();
+
         fetchEvent({ variables: { eventId: params.eventId } });
       } else {
         setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
   }, [params.eventId]);
+
+
 
   if (loading || isLoading) return <Loader />;
   

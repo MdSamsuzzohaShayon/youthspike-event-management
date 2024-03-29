@@ -1,6 +1,9 @@
+import cld from '@/config/cloudinary.config';
 import { IMatchExpRel, IMatchRelatives, IPlayer, ITeam } from '@/types';
+import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useState } from 'react';
+import TextImg from '../elements/TextImg';
 
 interface ITeamCaptain extends ITeam {
     captain: IPlayer;
@@ -28,7 +31,7 @@ function MatchCard({ match }: MatchCardProps) {
                 <div className="w-full match-teams text-center  flex justify-between items-center">
 
                     <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">
-                        <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full ml-2" />
+                        {match.teamA?.logo ? <AdvancedImage cldImg={cld.image(match.teamA.logo)} className='w-10' /> : <TextImg className='w-10 h-10' fullText={match.teamA.name} />}
                         <div className="match-name flex flex-col w-full">
                             <h3 className='capitalize'>{match?.teamA?.name}</h3>
                             <p className='capitalize'>Captain: {match?.teamA?.captain?.firstName + ' ' + match?.teamA?.captain?.lastName}</p>
@@ -40,7 +43,7 @@ function MatchCard({ match }: MatchCardProps) {
                             <h3 className='capitalize'>{match?.teamB?.name}</h3>
                             <p className='capitalize'>Captain: {match?.teamB?.captain?.firstName + ' ' + match?.teamB?.captain?.lastName}</p>
                         </div>
-                        <img src="/free-logo.svg" alt="" className="w-10 h-10 border-4 border-yellow-400 rounded-full mr-2" />
+                        {match.teamB?.logo ? <AdvancedImage cldImg={cld.image(match.teamB.logo)} className='w-10' /> : <TextImg className='w-10 h-10' fullText={match.teamB.name} />}
                     </div>
                 </div>
             </Link>

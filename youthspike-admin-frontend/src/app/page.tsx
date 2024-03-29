@@ -117,7 +117,7 @@ function EventsPage() {
   
 
   return (
-    <div className="container px-2 mx-auto min-h-screen">
+    <div className="events-page container px-2 mx-auto min-h-screen">
       <dialog ref={filterListEl}>
         <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
         {itemList.map((item) => <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)} >{item.text}</p>)}
@@ -141,7 +141,7 @@ function EventsPage() {
         {filteredItems.map((item) => <p key={item.id} className='px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between'>{item.text} <span onClick={(e) => handleRemoveFilter(e, item.id)}><img src='/icons/close.svg' className='svg-white w-6 ml-2 p-0 m-0' alt='close' /></span></p>)}
       </div>
       <div className="events flex flex-wrap gap-2 justify-between">
-        <div style={{ width: '48.5%' }} className="box mb-1 p-2 h-48 bg-yellow-500 rounded-lg">
+        <div className="event-card mb-1 p-2 bg-yellow-logo rounded-lg">
           <Link href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?directorId=${directorId}` : `/newevent`} className='h-full w-full flex justify-center items-center flex-col gap-2 rounded-md'>
             <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />
             <p className='text-gray-900'>Add New</p>

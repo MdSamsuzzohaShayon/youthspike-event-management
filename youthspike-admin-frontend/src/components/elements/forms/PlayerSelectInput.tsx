@@ -10,7 +10,7 @@ function PlayerSelectInput(props: IPlayerSelectProps) {
     
     return (
         <div className={`input-group w-full flex flex-col ${props.extraCls}`}>
-            <label htmlFor="players">Select Players or <Link href={`/${props.eventId}/players`} className='underline underline-offset-1' >Create New Player!</Link></label>
+            <label htmlFor="players">Select Players or <Link href={`/${props.eventId}/players/new`} className='underline underline-offset-1' >Create New Player!</Link></label>
             <ul className='flex flex-wrap items-center gap-2'>
                 {props.availablePlayers.map((ap) => ap.teams?.length === 0 && (
                     <li key={ap._id} className='flex gap-1 items-center'>

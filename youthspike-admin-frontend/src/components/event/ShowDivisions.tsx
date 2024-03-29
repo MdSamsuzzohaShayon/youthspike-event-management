@@ -189,7 +189,7 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
         {listEl}
 
         {update && (
-            <li className='px-4 py-2 rounded-full bg-yellow-400 text-black flex items-center justify-between' role="presentation" onClick={handleShowAddDivision} >
+            <li className='px-4 py-2 rounded-full bg-yellow-logo text-black flex items-center justify-between' role="presentation" onClick={handleShowAddDivision} >
                 Add New
                 <img className='w-4 h-4 svg-black ml-2' src='/icons/plus.svg' />
             </li>
