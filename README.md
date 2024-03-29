@@ -238,10 +238,3 @@ ___
  - To be honest, I did not notice the ddesign for match list. I just made it without any reference. Somehow, I missed that page design. I will do it soon.
  - On your the phone, when you are scrolling players it is automitically re-ranking players and when you are selecting lefet side or right side of the screen, it will scrool. I have a idea to make this better. We can use a icon like this -> https://www.flaticon.com/free-icon/arrow_13934430 director and captains are going to re-rank players holding those icons.
 
-
- curl -i -N  \
-    -H "Connection: Upgrade"  \
-    -H "Upgrade: websocket"  \
-    -H "Host: echo.websocket.org"  \
-    -H "Origin: http://www.websocket.org"  \
-    http://echo.websocket.org
