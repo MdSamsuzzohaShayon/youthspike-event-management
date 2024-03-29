@@ -15,6 +15,7 @@ interface ISortableListProps {
     showRank?: boolean;
     teamList?: ITeam[];
     rankControls?: boolean;
+    teamId?: string;
     refetchFunc?: () => void;
 }
 
@@ -23,7 +24,7 @@ interface IPlayerRank {
     rank: number;
 }
 
-const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList}) => {
+const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId}) => {
     const listRef = useRef<HTMLUListElement>(null);
     const screenWidth = useScreenWidth();
 
@@ -104,7 +105,8 @@ const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIs
         <ul ref={listRef} className='w-full'>
             {playerList.map((player: IPlayerExpRel, index: number) => (
                 <li key={index} className="sortable-item mb-2">
-                    <PlayerCard key={index} eventId={eventId} player={player} setIsLoading={setIsLoading} showRank={showRank} teamList={teamList} divisionList={divisionList} refetchFunc={refetchFunc} />
+                    <PlayerCard key={index} eventId={eventId} player={player} setIsLoading={setIsLoading} showRank={showRank} teamList={teamList} divisionList={divisionList} 
+                    refetchFunc={refetchFunc} rankControls={rankControls} teamId={teamId} />
                 </li>
             ))}
         </ul>

@@ -53,8 +53,10 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     setActionOpen(prevState => !prevState);
     try {
       setIsLoading(true);
-      await mutateTeam({ variables: { input, teamId, eventId } });
-      await client.refetchQueries({ include: [GET_A_TEAM] });
+      if(teamId && eventId){
+        await mutateTeam({ variables: { input, teamId, eventId } });
+        await client.refetchQueries({ include: [GET_A_TEAM] });
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -217,6 +219,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     return <p className='text-yellow-logo uppercase'>{teamFound ? teamFound.name : "Unassigned"}</p>;
   }
 
+  
 
   return (
     <React.Fragment>

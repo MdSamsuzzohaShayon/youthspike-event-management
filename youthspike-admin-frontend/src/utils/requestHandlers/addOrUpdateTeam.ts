@@ -76,9 +76,9 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
                     if (teamAddCB) teamAddCB(teamRes.data.createTeam.data);
                 }
             }
-            setAvailablePlayers((prevState) => [...prevState.filter((p) => !playerIdList.includes(p._id))]);
-            setPlayerIdList([]);
         }
+        setAvailablePlayers((prevState) => [...prevState.filter((p) => !playerIdList.includes(p._id))]);
+        setPlayerIdList([]);
         setActErr(null);
 
     } catch (error) {
