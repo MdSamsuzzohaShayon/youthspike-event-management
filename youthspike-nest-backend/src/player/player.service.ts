@@ -139,4 +139,8 @@ export class PlayerService {
     return this.playerModel.deleteMany(filter);
   }
 
+  async deleteOne(filter: FilterQuery<Player>) {
+    return this.playerModel.deleteOne(filter);
+  }
+
   }

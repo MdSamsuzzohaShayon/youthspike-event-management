@@ -131,10 +131,12 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
-            {!update && (<PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />)}
+            {!update && (<div className="player-input mb-4">
+                <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />
+            </div>)}
             {playerIdList.length > 0 && !update && toBeCaptains()}
 
-            <div className="input-group w-full">
+            <div className="input-group w-full mb-4">
                 <button className='btn-primary mr-2' type='submit'>{update ? "Update" : "Save"}</button>
                 {!update && <button className='btn-primary' type='button' onClick={handleSaveAndCreate}>Save & Create Another</button>}
             </div>

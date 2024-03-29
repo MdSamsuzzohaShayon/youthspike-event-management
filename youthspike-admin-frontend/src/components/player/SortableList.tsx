@@ -1,4 +1,4 @@
-import { IPlayer, IPlayerExpRel } from '@/types';
+import { IOption, IPlayer, IPlayerExpRel, ITeam } from '@/types';
 import React, { useEffect, useRef } from 'react';
 import Sortable from 'sortablejs';
 import PlayerCard from './PlayerCard';
@@ -11,6 +11,11 @@ interface ISortableListProps {
     playerList: IPlayerExpRel[];
     eventId: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    divisionList?: IOption[];
+    showRank?: boolean;
+    teamList?: ITeam[];
+    rankControls?: boolean;
+    refetchFunc?: () => void;
 }
 
 interface IPlayerRank {
@@ -18,7 +23,7 @@ interface IPlayerRank {
     rank: number;
 }
 
-const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIsLoading }) => {
+const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList}) => {
     const listRef = useRef<HTMLUListElement>(null);
     const screenWidth = useScreenWidth();
 
@@ -29,11 +34,14 @@ const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIs
         // if (!rankControls) return;
         if (upr.length > 0) {
             try {
+                setIsLoading(true);
                 await rankPlayers({ variables: { input: upr } });
-                // if (refetchFunc) await refetchFunc();
+                if (refetchFunc) await refetchFunc();
                 // if (setAddPlayer) setAddPlayer(false);
             } catch (error) {
                 console.log(error);
+            }finally{
+                setIsLoading(false);
             }
         }
     }
@@ -62,24 +70,26 @@ const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIs
 
     useEffect(() => {
         let sortableList: Sortable | null = null;
-        if (screenWidth <= 768) { // Adjust behavior based on screen width
-            sortableList = Sortable.create(listRef.current!, {
-                animation: 150,
-                easing: "cubic-bezier(1, 0, 0, 1)",
-                delay: 200, // Delay in milliseconds before sorting starts
-                touchStartThreshold: 100, // Minimum distance in pixels to start sorting
-                onStart: function (evt) {
-                    // Workaround to prevent default behavior of long press on iOS
-                    evt.preventDefault();
-                },
-                onEnd: handleSortEnd,
-            });
-        } else {
-            sortableList = Sortable.create(listRef.current!, {
-                animation: 150,
-                easing: "cubic-bezier(1, 0, 0, 1)",
-                onEnd: handleSortEnd,
-            });
+        if (listRef && rankControls) {
+            if (screenWidth <= 768) { // Adjust behavior based on screen width
+                sortableList = Sortable.create(listRef.current!, {
+                    animation: 150,
+                    easing: "cubic-bezier(1, 0, 0, 1)",
+                    delay: 200, // Delay in milliseconds before sorting starts
+                    touchStartThreshold: 100, // Minimum distance in pixels to start sorting
+                    onStart: function (evt) {
+                        // Workaround to prevent default behavior of long press on iOS
+                        evt.preventDefault();
+                    },
+                    onEnd: handleSortEnd,
+                });
+            } else {
+                sortableList = Sortable.create(listRef.current!, {
+                    animation: 150,
+                    easing: "cubic-bezier(1, 0, 0, 1)",
+                    onEnd: handleSortEnd,
+                });
+            }
         }
         return () => {
             if (sortableList) {
@@ -87,13 +97,14 @@ const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIs
             }
         };
     }, [playerList, screenWidth]); // Re-run effect when playerList or screenWidth changes
+    
 
 
     return (
         <ul ref={listRef} className='w-full'>
             {playerList.map((player: IPlayerExpRel, index: number) => (
                 <li key={index} className="sortable-item mb-2">
-                    <PlayerCard key={index} eventId={eventId} player={player} setIsLoading={setIsLoading} showRank />
+                    <PlayerCard key={index} eventId={eventId} player={player} setIsLoading={setIsLoading} showRank={showRank} teamList={teamList} divisionList={divisionList} refetchFunc={refetchFunc} />
                 </li>
             ))}
         </ul>

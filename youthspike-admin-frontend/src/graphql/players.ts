@@ -154,9 +154,21 @@ mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
 `;
 
 
+const DELETE_A_PLAYER = gql`
+mutation DeletePlayer($playerId: String!) {
+  deletePlayer(playerId: $playerId) {
+    code
+    data {
+      _id
+    }
+  }
+}
+`;
+
+
 
 export {
   GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER,
   CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER,
-  UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER
+  UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER, DELETE_A_PLAYER
 };

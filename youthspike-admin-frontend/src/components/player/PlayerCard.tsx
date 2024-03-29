@@ -1,5 +1,5 @@
 import cld from '@/config/cloudinary.config';
-import { UPDATE_PLAYER } from '@/graphql/players';
+import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayer, IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
@@ -21,9 +21,10 @@ interface PlayerCardProps {
   isAssigned?: boolean;
   divisionList?: IOption[];
   teamList?: ITeam[];
+  refetchFunc?: () => void;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -36,6 +37,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
+  const [deleteAPlayer] = useMutation(DELETE_A_PLAYER);
 
   const playerLiEl = useRef<HTMLDivElement | null>(null);
 
@@ -90,7 +92,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId
         }
       });
-      await client.refetchQueries({ include: [GET_A_TEAM] });
+      // await client.refetchQueries({ include: [GET_A_TEAM] });
+      if(refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
     } catch (error) {
@@ -108,16 +111,25 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId
         }
       });
-      await client.refetchQueries({ include: [GET_A_TEAM] });
+      // await client.refetchQueries({ include: [GET_A_TEAM] });
+      if(refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     }
 
   }
-  const handleDelete = (e: React.SyntheticEvent, playerId: string) => {
+  const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
-    setActionOpen(prevState => !prevState);
-    console.log(`Delete player: ${playerId}`);
+    try {
+      setActionOpen(prevState => !prevState);
+      setIsLoading(true);
+      const deletePlayer = await deleteAPlayer({ variables: { playerId } });
+      if(refetchFunc) await refetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
 

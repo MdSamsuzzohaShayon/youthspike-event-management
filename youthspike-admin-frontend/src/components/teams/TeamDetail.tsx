@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import PlayerList from '../player/PlayerList'
-import { IError, IEvent, IMenuItem, IOption, IPlayer, ITeam } from '@/types'
+import React, { useEffect, useState } from 'react';
+import { IError, IEvent, IMenuItem, IOption, IPlayer, ITeam } from '@/types';
 import TextImg from '../elements/TextImg';
 import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -11,7 +10,6 @@ import { initialUserMenuList } from '@/utils/staticData';
 import { getUserFromCookie } from '@/utils/cookie';
 import { getEventIdFromPath, rearrangeMenu } from '@/utils/helper';
 import { usePathname } from 'next/navigation';
-import { BACKEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import SortableList from '../player/SortableList';
@@ -112,7 +110,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                     <h3 >Add Player to Team</h3>
                     <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(false)} >Player List</button>
                 </div>
-                <form onSubmit={handleAddPlayersToTeam} >
+                <form onSubmit={handleAddPlayersToTeam} className='mb-4' >
                     <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='add-player-to-team' />
                     <button type="submit" className='btn-primary mt-4' >Add</button>
                 </form>
@@ -122,11 +120,9 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                         <h3 className='mt-4'>Player List</h3>
                         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Player Add to Team</button>
                     </div>
-                    {/* <PlayerList eventId={eventId} playerList={team ? team.players : []} teamId={team._id} setIsLoading={setIsLoading} rankControls showRank
-                        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} /> */}
 
                     <div className="sortable-player-list mt-4">
-                        <SortableList playerList={team.players} eventId={eventId} setIsLoading={setIsLoading} />
+                        <SortableList playerList={team.players} eventId={eventId} setIsLoading={setIsLoading} rankControls refetchFunc={refetchFunc} teamList={teamList} divisionList={divisionList} />
                     </div>
                 </div>
             )}

@@ -8,7 +8,7 @@ import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import EventCard from '@/components/event/EventCard';
-import { IEvent } from '@/types';
+import { IEvent, IMenuItem } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GET_LDO } from '@/graphql/director';
 import cld from '@/config/cloudinary.config';
@@ -18,6 +18,7 @@ import { UserRole } from '@/types/user';
 import Link from 'next/link';
 import useClickOutside from '../../hooks/useClickOutside';
 import TextImg from '@/components/elements/TextImg';
+import { initialUserMenuList } from '@/utils/staticData';
 
 interface IItem {
   id: number;
@@ -132,6 +133,7 @@ function EventsPage() {
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
         <h2 >Events</h2>
+        
       </div>
       <div className="filter flex justify-between mb-2">
         <h3>All Events</h3>

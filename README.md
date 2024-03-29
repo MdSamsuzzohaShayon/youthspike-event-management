@@ -75,13 +75,11 @@ ___
  - Change redial nevy blue color to black gradient
 
 
- - Move team need to work properly
+ - Move team need to work properly - one division to another division
  - Move player need to work properly
 
  - List need to filter by date, upcomming, past
 
- - Add new player need to work properly when click on create new player link
- - Put those headers in every page of a event
  - Email address are not showing up for account setting
  - If there are no logo, do not put any text there
  - On matches page, we do not need upcomming, only current ande passed
@@ -105,7 +103,7 @@ ___
 
  - **Team**
  - Make mutation from frontend to delete team
- - Move team need to work properly
+ - Move team need to work properly - one division to another division
  - Add search function for player when creating a new team
  - Move team - when moving team to another event current event should not have that team
  - When we are in team, in the player list in the place of assigned it will say the name of the team that is assigned to

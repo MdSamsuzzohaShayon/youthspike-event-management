@@ -1,4 +1,6 @@
+import cld from '@/config/cloudinary.config';
 import { IPlayerSelectProps } from '@/types';
+import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React from 'react';
 
@@ -15,6 +17,7 @@ function PlayerSelectInput(props: IPlayerSelectProps) {
                 {props.availablePlayers.map((ap) => ap.teams?.length === 0 && (
                     <li key={ap._id} className='flex gap-1 items-center'>
                         <input type="checkbox" onChange={(e) => handleCheckboxChange(e, ap._id)} />
+                        {/* {ap.profile && <AdvancedImage cldImg={cld.image(ap.profile)} className="w-12" alt={`${ap.firstName}-profile`} /> } */}
                         <span className='capitalize'>{`${ap.firstName} ${ap.lastName}`}</span>
                     </li>
                 ))}

@@ -12,6 +12,7 @@ const teamResponse = `
       lastName
       rank
       email
+      phone
       profile
       status
       teams {
