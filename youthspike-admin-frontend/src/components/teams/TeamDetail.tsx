@@ -123,7 +123,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
                     <div className="sortable-player-list mt-4">
                         <SortableList playerList={team.players} eventId={eventId} setIsLoading={setIsLoading} rankControls
-                         refetchFunc={refetchFunc} teamList={teamList} divisionList={divisionList} teamId={team._id} />
+                         refetchFunc={refetchFunc} teamList={teamList} divisionList={divisionList} teamId={team._id} showRank />
                     </div>
                 </div>
             )}
