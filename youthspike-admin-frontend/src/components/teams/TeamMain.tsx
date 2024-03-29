@@ -176,7 +176,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc}  />}
             </div>
         </div>
     )

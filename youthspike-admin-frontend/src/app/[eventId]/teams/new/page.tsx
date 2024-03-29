@@ -34,7 +34,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
   // GraphQL
-  const [getPlayers, { loading, data, error }] = useLazyQuery(GET_EVENT_WITH_PLAYERS);
+  const [getPlayers, { loading, data, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS);
 
 
   const handleClose = (e: React.SyntheticEvent) => {
@@ -85,11 +85,11 @@ function TeamsPage({ params }: ITeamsPageProps) {
   }
 
 
-  const teamAddCB=(teamData: ITeam)=>{
-
+  const teamAddCB = async (teamData: ITeam) => {
+    // await fetchPlayers();
   }
 
-  useEffect(() => {    
+  useEffect(() => {
     (async () => {
       if (params.eventId) {
         if (isValidObjectId(params.eventId)) {
@@ -113,7 +113,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <TeamAdd setIsLoading={setIsLoading} availablePlayers={filteredPlayers} handleClose={handleClose} eventId={params.eventId}
-        setAvailablePlayers={setAvailablePlayers} setActErr={setActErr} currDivision={currDivision} teamAddCB={teamAddCB} />
+        setAvailablePlayers={setFilteredPlayers} setActErr={setActErr} currDivision={currDivision} teamAddCB={teamAddCB} />
     </div>
   )
 }

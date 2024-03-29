@@ -80,6 +80,7 @@ ___
 
  - List need to filter by date, upcomming, past
 
+ - When creating team along with logo, players are still there after they are being added to the team
  - Email address are not showing up for account setting
  - If there are no logo, do not put any text there
  - On matches page, we do not need upcomming, only current ande passed
@@ -123,6 +124,7 @@ ___
  - Add new player need to work properly when click on create new player link
  - Make player image bigger in player card
  - Phone number is not updating or saving properly
+ - When creating team along with logo, players are still there after they are being added to the team
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
