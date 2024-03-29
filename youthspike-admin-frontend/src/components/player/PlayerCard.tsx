@@ -53,7 +53,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     setActionOpen(prevState => !prevState);
     try {
       setIsLoading(true);
-      if(teamId && eventId){
+      if (teamId && eventId) {
         await mutateTeam({ variables: { input, teamId, eventId } });
         await client.refetchQueries({ include: [GET_A_TEAM] });
       }
@@ -81,7 +81,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     try {
       const playerInputObj: { playerTeamId?: string, team: string | null } = { team: newTeamId };
       let prevTeamId = teamId;
-      if (!prevTeamId && player?.teams && player?.teams.length > 0) {
+      if (prevTeamId && player?.teams && player?.teams.length > 0) {
         const nti = player?.teams[0];
         const teamExist = teamList?.find((t) => t._id === nti._id);
         if (teamExist) {
@@ -94,8 +94,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId
         }
       });
-      // await client.refetchQueries({ include: [GET_A_TEAM] });
-      if(refetchFunc) await refetchFunc();
+  
+      if (refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
     } catch (error) {
@@ -113,8 +113,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId
         }
       });
-      // await client.refetchQueries({ include: [GET_A_TEAM] });
-      if(refetchFunc) await refetchFunc();
+  
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     }
@@ -126,7 +126,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setActionOpen(prevState => !prevState);
       setIsLoading(true);
       const deletePlayer = await deleteAPlayer({ variables: { playerId } });
-      if(refetchFunc) await refetchFunc();
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -219,7 +219,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     return <p className='text-yellow-logo uppercase'>{teamFound ? teamFound.name : "Unassigned"}</p>;
   }
 
-  
+
 
   return (
     <React.Fragment>
@@ -232,7 +232,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
-              {player.profile ? <AdvancedImage className="w-28 border-4 border-yellow-logo rounded-full" cldImg={cld.image(player.profile)} />
+              {player.profile ? <AdvancedImage className="w-28 h-28 object-center object-cover border-4 border-yellow-logo rounded-full" cldImg={cld.image(player.profile)} />
                 : <img src="/icons/sports-man.svg" alt="" className="w-28 border-4 border-yellow-400 rounded-full svg-white" />}
               <div className="player-name flex flex-col w-full">
                 <h3 className='break-words w-28 md:w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
@@ -252,7 +252,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                   <p>Rank</p>
                 </div>
               )}
-              <div className="w-full flex flex-col justify-center items-end">
+              <div className="flex flex-col justify-center items-end">
                 <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
               </div>
             </div>
