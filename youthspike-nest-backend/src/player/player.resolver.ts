@@ -170,8 +170,9 @@ export class PlayerResolver {
         const prevTeamExist = await this.teamService.findById(input.playerTeamId);
         if (!prevTeamExist) return AppResponse.exists("Team");
         const playerIds = prevTeamExist.players.map((p)=> p.toString());
-        const newPlayerIds = playerIds.filter(p=> p.toString() !== playerId)
-        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId }, { $set: { players:  newPlayerIds} },));
+        const newPlayerIds = playerIds.filter(p => p.toString() !== playerId);
+        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId },  { $set: { players:  newPlayerIds} },));
+        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId },  { $pull: { players:  playerId} },));
         // Second, remove the old team
         updatePromises.push(
           this.playerService.updateOne(
