@@ -61,16 +61,17 @@ function MatchCard({ match, sl, eventId, refetchFunc }: MatchCardProps) {
 
       <input type="checkbox" name="match-select" id="option" className='w-1/12' />
       <div className="w-10/12">
-        <div className="w-full flex justify-center items-center">
+        {/* <div className="w-full flex justify-center items-center">
           <p className="p-2 bg-yellow-logo text-black w-fit rounded-lg flex flex-col flex-center items-center">
             <span className='uppercase font-bold'> {validateMatchDatetime(match.date)}</span>
             <span>Date: {readDatetime(match.date)}</span>
           </p>
-        </div>
+        </div> */}
         <div className="content w-full text-center mb-4 border-b border-gray-900 py-2">
           {/* <p className="capitalize">ID: {match._id}</p> */}
           <p className="capitalize">Location: {match.location}</p>
           <p className="capitalize">Divison: {match.division}</p>
+          <p className="capitalize" >Date: {readDatetime(match.date)}</p>
         </div>
         <div className="teams w-full flex justify-between items-center">
           <div className="img-wrapper h-full w-5/10 flex justify-between items-center gap-1">

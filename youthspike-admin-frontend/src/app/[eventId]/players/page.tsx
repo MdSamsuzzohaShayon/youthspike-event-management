@@ -147,9 +147,11 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
-      <div className="mb-4 division-selection w-full">
-        <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-      </div>
+      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+        <div className="mb-4 division-selection w-full">
+          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        </div>
+      )}
       <h1 className='mb-8 text-center'>Players</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       <div className="navigator mb-4">
@@ -167,7 +169,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           <button className="btn-info mt-4 mb-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
         {/* <PlayerList teamIds={teamList.map((t) => t._id)}  divisionList={divisionList} teamList={filteredTeamList} /> */}
-        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList}  />
+        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
       </>)}
     </div>
   )

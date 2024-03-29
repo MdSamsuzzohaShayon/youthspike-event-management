@@ -134,9 +134,11 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      <div className="mb-4 division-selection w-full">
-        <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-      </div>
+      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+        <div className="mb-4 division-selection w-full">
+          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        </div>
+      )}
       <h1 className='mb-8 text-center'>Matches</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       <div className="navigator mb-4">
