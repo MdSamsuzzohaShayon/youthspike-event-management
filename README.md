@@ -85,6 +85,10 @@ ___
  - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
  - Update player need to go to save and team page (if there is a team id) / player page
 
+### Important
+ - Removed someone from captain it erased  him off of his ldo account
+ - Put default logo picture of the event
+
 
 ### Requirements
 
@@ -237,4 +241,9 @@ ___
  - For moving a team, we can move a team to another event, perhaps you had not created multiple events to move team from a event to another event.
  - To be honest, I did not notice the ddesign for match list. I just made it without any reference. Somehow, I missed that page design. I will do it soon.
  - On your the phone, when you are scrolling players it is automitically re-ranking players and when you are selecting lefet side or right side of the screen, it will scrool. I have a idea to make this better. We can use a icon like this -> https://www.flaticon.com/free-icon/arrow_13934430 director and captains are going to re-rank players holding those icons.
+
+
+
+
+
 

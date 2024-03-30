@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import SortableList from '../player/SortableList';
+import { EPlayerStatus } from '@/types/player';
 
 interface ITeamDetailProps {
     event: IEvent;
@@ -90,6 +91,9 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
 
 
+    const activePlayers = team?.players ? team.players.filter((p) => p.status === EPlayerStatus.ACTIVE) : [];
+    const inactivePlayers = team?.players ? team.players.filter((p) => p.status !== EPlayerStatus.ACTIVE) : [];
+
     return (
         <React.Fragment>
             <h1 className='uppercase text-center'>Teams/roster</h1>
@@ -121,10 +125,17 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                         <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Player Add to Team</button>
                     </div>
 
-                    <div className="sortable-player-list mt-4">
-                        <SortableList playerList={team.players} eventId={eventId} setIsLoading={setIsLoading} rankControls
-                         refetchFunc={refetchFunc} teamList={teamList} divisionList={divisionList} teamId={team._id} showRank />
+                    <div className="sortable-active-player-list mt-4">
+                        <SortableList playerList={activePlayers} eventId={eventId} setIsLoading={setIsLoading} rankControls
+                            refetchFunc={refetchFunc} teamList={teamList} divisionList={divisionList} teamId={team._id} showRank />
                     </div>
+
+                    {inactivePlayers.length > 0 && (<div className="sortable-inactive-player-list mt-4">
+                    <h3 className='my-4'>Inactive Player List</h3>
+                        <SortableList playerList={inactivePlayers} eventId={eventId} setIsLoading={setIsLoading} rankControls
+                            refetchFunc={refetchFunc} teamList={teamList} divisionList={divisionList} teamId={team._id} />
+                    </div>)}
+
                 </div>
             )}
 

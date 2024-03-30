@@ -25,10 +25,12 @@ function DirectorPage() {
       <h1 className='my-4 text-center'>Directors</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {addNewDirector ? <DirectorAdd setIsLoading={setIsLoading} update={false} setActErr={setActErr} setAddNetDirector={setAddNetDirector} /> : (<>
+      {addNewDirector 
+      ? <DirectorAdd setIsLoading={setIsLoading} update={false} setActErr={setActErr} setAddNetDirector={setAddNetDirector} /> 
+      : (<React.Fragment>
         <DirectorList ldoList={data?.getEventDirectors?.data} />
         <button className="btn-info mt-4" type='button' onClick={() => setAddNetDirector(true)}>Add New</button>
-      </>)}
+      </React.Fragment>)}
     </div>
   )
 }

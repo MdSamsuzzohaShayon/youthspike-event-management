@@ -119,6 +119,7 @@ export class PlayerResolver {
         if (!teamExist) return AppResponse.exists("Team");
         if (input?.status === EPlayerStatus.INACTIVE) {
           playerObj.rank = null;
+          /*
           const findTeamPlayers = await this.playerService.query({ _id: { $in: teamExist.players.map((p) => p.toString()) } });
           const findIPI = findTeamPlayers.findIndex((p) => p._id.toString() === playerId); // IPI = Inactive Player Index
           if (findIPI !== -1 && findIPI !== findTeamPlayers.length - 1) {
@@ -128,6 +129,7 @@ export class PlayerResolver {
               updatePromises.push(this.playerService.updateOne({ _id: restOfThePlayers[i]._id }, element));
             }
           }
+          */
         } else if (input?.status === EPlayerStatus.ACTIVE) {
           // =====  Check how many active players ===== 
           playerObj.rank = teamExist.players.length;

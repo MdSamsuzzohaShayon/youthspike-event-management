@@ -46,6 +46,12 @@ export class LdoService {
     return result;
   }
 
+  async updateOne(filter: FilterQuery<LDO>, updateObj: UpdateQuery<LDO>) {
+    // Execute the update query
+    const result = await this.ldoModel.updateOne(filter, updateObj);
+    return result;
+  }
+
   async findByDirectorId(dId: string) {
     return this.ldoModel.findOne({
       $or: [{ director: dId.toString() }, { _id: dId.toString() }],
