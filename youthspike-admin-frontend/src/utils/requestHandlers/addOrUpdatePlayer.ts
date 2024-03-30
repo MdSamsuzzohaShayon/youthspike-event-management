@@ -106,7 +106,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
             if (teamExist) {
                 router.push(`/${eventId}/teams/${teamExist}`);
             } else {
-                router.push(`/${eventId}/players/${prevPlayer?._id}`);
+                router.push(`/${eventId}/players`);
             }
         }
     }
