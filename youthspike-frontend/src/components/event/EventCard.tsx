@@ -23,7 +23,7 @@ function EventCard({ event }: IEventCardProps) {
         <div key={event._id} style={{ width: screenWidth <= 768 ?  '48.5%' : '24.6%' }} className="box mb-1 p-2 h-48 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md">
             <Link href={`/events/${event._id}`}>
                 <div className="img-wrapper w-full flex justify-center items-center">
-                    <img src="/free-logo.svg" alt="plus" className="w-12" />
+                    <img src="/free-logo.png" alt="plus" className="w-12" />
                 </div>
                 <div className="text-box text-center">
                     <h3 className='text-lg font-bold mb-0'>{event.name}</h3>

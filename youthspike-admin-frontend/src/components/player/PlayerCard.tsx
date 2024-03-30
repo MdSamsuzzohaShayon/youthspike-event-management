@@ -232,8 +232,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
-              {player.profile ? <AdvancedImage className="w-28 h-28 object-center object-cover border-4 border-yellow-logo rounded-full" cldImg={cld.image(player.profile)} />
-                : <img src="/icons/sports-man.svg" alt="" className="w-28 border-4 border-yellow-400 rounded-full svg-white" />}
+              {player.profile ? <AdvancedImage className="w-20 h-full object-center object-cover" cldImg={cld.image(player.profile)} />
+                : <img src="/icons/sports-man.svg" alt="" className="w-20 svg-white" />}
               <div className="player-name flex flex-col w-full">
                 <h3 className='break-words w-28 md:w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-logo uppercase'>Captain</p>}
@@ -265,7 +265,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         {/* Operation menu start  */}
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
-          {rankControls && (<React.Fragment>
+          {rankControls && player.status === EPlayerStatus.ACTIVE && (<React.Fragment>
             <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain)} > Make Captain</li>
             <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain)} > Make Co-Captain</li>
           </React.Fragment>)}

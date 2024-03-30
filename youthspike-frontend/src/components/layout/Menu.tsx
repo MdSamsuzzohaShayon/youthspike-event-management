@@ -92,7 +92,7 @@ function Menu() {
     }
 
     return (
-        <div className='container px-2 mx-auto bg-gray-900 text-gray-100'>
+        <div className='container px-2 mx-auto bg-gray-800 text-gray-100'>
             {isAuthenticated && (
                 <button onClick={openMenuHandler} className='menu-button'>
                     <img src='/icons/menu.svg' className='w-10 mt-4 svg-white' alt='menu' />
@@ -108,7 +108,7 @@ function Menu() {
                     </div>
 
                     <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
-                        <h1>{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
+                        <h1 className='capitalize'>{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
                         {user.info?.team && <h3>{user.info?.team} </h3>}
                         <p className='uppercase text-yellow-400 mt-1'>{user.info?.role}</p>
                     </div>
