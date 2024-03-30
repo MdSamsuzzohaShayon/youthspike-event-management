@@ -177,7 +177,7 @@ type User {
   role: UserRole!
   captainplayer: Player
   cocaptainplayer: Player
-  email: String!
+  email: String
   active: Boolean!
   password: String!
 }
@@ -196,7 +196,7 @@ type LoginUser {
   role: UserRole!
   captainplayer: String
   cocaptainplayer: String
-  email: String!
+  email: String
   active: Boolean!
   event: String
   team: String
