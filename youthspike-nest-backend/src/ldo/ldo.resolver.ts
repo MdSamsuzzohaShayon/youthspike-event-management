@@ -127,16 +127,17 @@ export class LdoResolver {
       const loggedUser = await this.userService.findById(userId);
       if (!loggedUser) return AppResponse.unauthorized();
 
+      const ldoExist = await this.ldoService.findOne({
+        $or: [{ director: dId.toString() }, { _id: dId.toString() }],
+      });
+      if(!ldoExist) return AppResponse.exists("LDO");
+
       // If the user is admin we must need ldoId otherwise get id from token
       let updateUserId = null;
       if (loggedUser.role === UserRole.director) {
         updateUserId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin && dId && dId !== '') {
-        const ldo = await this.ldoService.findOne({
-          $or: [{ director: dId.toString() }, { _id: dId.toString() }],
-        });
-        if(!ldo) return AppResponse.exists("LDO");
-        updateUserId = ldo.director.toString();
+        updateUserId = ldoExist.director.toString();
       }
 
       // Upload image to cloudinary
@@ -150,29 +151,35 @@ export class LdoResolver {
         active: true,
       };
       const newUserObj = rmInvalidProps(userObj);
-      const loginObj: { password?: string; email?: string } = {};
-      if (args.password) {
+      if (args.password && args.password !== '') {
         const salt = await bcrypt.genSalt(10);
-        loginObj.password = await bcrypt.hash(args.password, salt);
+        newUserObj.password = await bcrypt.hash(args.password, salt);
       }
-      if (args.email) loginObj.email = args.email;
+      if (args.email || args?.email?.trim() === '') {
+        if(args.email.trim() === ''){
+          return AppResponse.handleError({msg: "Email field can not be empty"});
+        }
 
-      if (loginObj.email || loginObj.password) newUserObj.login = loginObj;
-
-      const director = await this.userService.createOrUpdate(newUserObj, updateUserId);
-      if (director && director._id) {
-        updateUserId = director._id.toString();
+        const directorExist = await this.userService.findOne({email: args.email});
+        if(directorExist){
+          return AppResponse.handleError({msg: "There is already a user with this email"});
+        }
+        newUserObj.email = args.email
       }
+
+      const updatePromises = [];
+      updatePromises.push(this.userService.updateOne({_id: updateUserId}, newUserObj));
+
 
       // Update user -> set user id inside ldo
-      const updateObj: any = { name: args.name };
-      if(logoUrl) updateObj.logo = logoUrl;
-      const ldo = await this.ldoService.update(updateObj, updateUserId);
+      const updateLdoObj: any = { name: args.name };
+      if(logoUrl) updateLdoObj.logo = logoUrl;
+      updatePromises.push(this.ldoService.updateOne({_id: ldoExist._id}, updateLdoObj));
 
       return {
         code: 201,
         success: true,
-        data: ldo,
+        data: ldoExist,
       };
     } catch (err) {
       return AppResponse.getError(err);

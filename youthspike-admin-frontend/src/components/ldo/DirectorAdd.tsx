@@ -128,10 +128,10 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             <EmailInput vertical name='email' required={!update} lblTxt='Email'
                 defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            {update && (
+            {/* {update && (
                 <PasswordInput vertical name='oldPassword' required={!update} lblTxt="Old Password"
                     handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            )}
+            )} */}
             <PasswordInput vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'

@@ -160,7 +160,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                             {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-12" /> : <TextImg className='w-12 h-12' fullText={team.name} />}
                             <h3 className='leading-none text-lg font-bold capitalize'>{team.name}</h3>
                         </div>
-                        <p>2-1 Record</p>
+                        {/* <p>2-1 Record</p> */}
                     </Link>
                 </div>
                 <div className="w-5/12">
@@ -177,7 +177,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                                 </div>
                             </div>
                         )}
-                        <p className='flex'><span><img src="/icons/telephone.svg" alt="telephone" className='w-6 svg-white' /></span>222-222-2222</p>
+                        {/* <p className='flex'><span><img src="/icons/telephone.svg" alt="telephone" className='w-6 svg-white' /></span>222-222-2222</p> */}
                         <p className='flex gap-1'>Active players <span className='flex items-center justify-center w-6 h-6 rounded-full bg-gray-900'>{team?.players?.length}</span></p>
                     </Link>
                 </div>
