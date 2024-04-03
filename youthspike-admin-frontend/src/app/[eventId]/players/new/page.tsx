@@ -69,6 +69,7 @@ function PlayerAddPage({params}: IPlayerAddPageProps) {
         try {
     
           const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
+          if (!eventResponse?.data?.getEvent?.success) return setActErr({success: false, code: eventResponse?.data?.getEvent?.code, message: eventResponse?.data?.getEvent?.message});
     
           const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
           let newFilteredTeamList = [...newTeamList];    
@@ -99,7 +100,7 @@ function PlayerAddPage({params}: IPlayerAddPageProps) {
           if (isValidObjectId(params.eventId)) {
             fetchEvent()
           } else {
-            setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+            setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
           }
         }
       }, [params.eventId]);

@@ -102,6 +102,8 @@ const CREATE_MULTIPLE_PLAYERS_RAW = `
 mutation CreateMultiPlayers($uploadedFile: Upload!, $eventId: String!, $division: String!) {
   createMultiPlayers(uploadedFile: $uploadedFile, eventId: $eventId, division: $division) {
     code
+    success
+    message
     data {
       ${playerResponse}
     }
@@ -116,7 +118,7 @@ const CREATE_PLAYER_RAW = `
     createPlayer(input: $input, profile: $profile) {
       code
       message
-      success
+      name
       data{
         ${playerResponse}
       }
@@ -130,7 +132,7 @@ const UPDATE_PLAYER_RAW = `
     updatePlayer(input: $input, playerId: $playerId, profile: $profile) {
       code
       message
-      success
+      name
       data {
         ${playerResponse}
       }
@@ -144,8 +146,8 @@ const UPDATE_PLAYERS = gql`
 mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
   updatePlayers(input: $input) {
     code
-    message
     success
+    message
     data {
       ${playerResponse}
     }
@@ -158,6 +160,8 @@ const DELETE_A_PLAYER = gql`
 mutation DeletePlayer($playerId: String!) {
   deletePlayer(playerId: $playerId) {
     code
+    success
+    message
     data {
       _id
     }

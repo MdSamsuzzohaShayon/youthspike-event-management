@@ -29,7 +29,7 @@ export class UserService {
     userObj.password = hashedPassword;
     const existing = await this.userModel.findOne({ email: user.email, });
 
-    if (existing) throw AppResponse.exists('user');
+    if (existing) throw AppResponse.notFound('user');
     return this.userModel.create({ ...userObj });
   }
 

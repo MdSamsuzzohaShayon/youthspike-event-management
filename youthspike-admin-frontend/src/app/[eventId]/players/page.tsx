@@ -50,6 +50,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   const fetchPlayer = async () => {
     const playerRes = await getEvent({ variables: { eventId: params.eventId } });
+    if (!playerRes?.data?.getEvent?.success) return setActErr({success: false, code: playerRes?.data?.getEvent?.code, message: playerRes?.data?.getEvent?.message});
 
     if (!playerRes) return;
 
@@ -134,7 +135,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       if (isValidObjectId(params.eventId)) {
         fetchPlayer();
       } else {
-        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+        setActErr({ success : false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
   }, [params.eventId, user, data]);

@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
@@ -17,33 +18,36 @@ export class AppResponse<Type = null> {
     this.message = message;
   }
 
-  static handleError(obj: any) {
-    if (obj instanceof AppResponse) return obj;
-    return new AppResponse(406, false, JSON.stringify(obj));
-  }
 
-  static getError(obj: any) {
-    if (obj instanceof AppResponse) return obj;
-    return new AppResponse(500, false, 'Something went wrong!');
-  }
+  static handleError(error: any) {
+    let code = HttpStatus.INTERNAL_SERVER_ERROR;
+    let errorDescription = 'Internal server error occurred.';
 
-  static exists(resource: string) {
-    return new AppResponse(400, false, `Such a ${resource} exists!`);
+    if (error instanceof HttpException) {
+      const response = error.getResponse();
+      const statusCode = response['statusCode'] || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = response['message'] || 'An error occurred.';
+
+      code = statusCode;
+      errorDescription = message;
+    }
+
+    return { code, success: false, errorDescription };
   }
 
   static notFound(resource: string) {
-    return new AppResponse(404, false, `No such ${resource} exists!`);
+    return new AppResponse(HttpStatus.NOT_FOUND, false, `No such ${resource} exists!`);
   }
 
   static invalidCredentials() {
-    return new AppResponse(406, false, `Invalid credentials!`);
+    return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid credentials!`);
   }
 
   static invalidFile(msg: string = '') {
-    return new AppResponse(406, false, `Invalid file type! ${msg}`);
+    return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid file type! ${msg}`);
   }
 
   static unauthorized() {
-    return new AppResponse(403, false, `You are not authorized to perform such an action!`);
+    return new AppResponse(HttpStatus.UNAUTHORIZED, false, `You are not authorized to perform such an action!`);
   }
 }

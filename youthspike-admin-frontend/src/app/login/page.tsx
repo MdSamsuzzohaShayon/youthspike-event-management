@@ -22,7 +22,7 @@ function LoginPage() {
   const [actionsErrors, setActionsErrors] = useState<IError>();
 
   const handleLogin = async (e: React.SyntheticEvent) => {
-    if (email === '' || password === '') return setActionsErrors({ name: "Invalid Credentials", message: "Set correct email and password!" });
+    if (email === '' || password === '') return setActionsErrors({ success: false, message: "Set correct email and password!" });
     const { data: resultData } = await loginFunction({
       variables: {
         email,

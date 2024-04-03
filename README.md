@@ -60,13 +60,6 @@ ___
  - Style according to Figma - Make color scheme same
  - Sponsors will always have a logo of ourself by default
 
- - When make player inactive the rank should be update and and this should work properly
-
- - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
-
- - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
- - Double click and rank players on mobile [5:00](https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c)
-
  - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
  - When click on input field to update score it should highlight the whole number
 

@@ -58,12 +58,17 @@ const ldoResponse = `
   }
 `;
 
+
+/**
+ * Queries
+ * ==========================================================================================================
+ */
 const GET_LDOS = gql`
   query GetEventDirectors {
     getEventDirectors {
       code
-      message
       success
+      message
       data {
         ${ldoResponse}
       }
@@ -75,8 +80,8 @@ const GET_LDOS_LIGHT = gql`
   query GetEventDirectors {
     getEventDirectors {
       code
-      message
       success
+      message
       data {
         _id
       director {
@@ -94,8 +99,8 @@ const GET_LDO = gql`
   query GetEventDirector($dId: String) {
     getEventDirector(dId: $dId) {
       code
-      message
       success
+      message
       data {
         ${ldoResponse}
       }
@@ -111,8 +116,8 @@ const ADD_DIRECTOR_RAW = `
 mutation CreateDirector($args: CreateDirectorArgs!, $logo: Upload) {
   createDirector(args: $args, logo: $logo) {
       code
-      message
       success
+      message
       data {
         ${ldoResponse}
       }
@@ -127,8 +132,8 @@ const UPDATE_DIRECTOR_RAW = `
 mutation UpdateDirector($args: UpdateDirectorArgs!, $dId: String, $logo: Upload) {
   updateDirector(args: $args, logo: $logo, dId: $dId) {
     code
-    message
     success
+      message
     data {
       ${ldoResponse}
     }
@@ -144,8 +149,8 @@ const DELETE_DIRECTOR = gql`
 mutation DeleteEventDirector($dId: String!) {
   deleteEventDirector(dId: $dId) {
     code
-    message
     success
+      message
     data {
       ${ldoResponse}
     }

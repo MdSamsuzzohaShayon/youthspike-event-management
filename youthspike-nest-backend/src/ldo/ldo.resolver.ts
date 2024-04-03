@@ -12,7 +12,7 @@ import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import * as bcrypt from 'bcrypt';
 import { rmInvalidProps, tokenToUser } from 'src/util/helper';
-import { UseGuards } from '@nestjs/common';
+import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -98,14 +98,15 @@ export class LdoResolver {
       );
 
       return {
-        code: 201,
+        code: HttpStatus.CREATED,
         success: true,
+        message: 'Created the LDO successfully!',
         data: ldo,
       };
     } catch (err) {
       console.log(err);
-      
-      return AppResponse.getError(err);
+
+      return AppResponse.handleError(err);
     }
   }
 
@@ -130,7 +131,7 @@ export class LdoResolver {
       const ldoExist = await this.ldoService.findOne({
         $or: [{ director: dId.toString() }, { _id: dId.toString() }],
       });
-      if(!ldoExist) return AppResponse.exists("LDO");
+      if (!ldoExist) return AppResponse.notFound("LDO");
 
       // If the user is admin we must need ldoId otherwise get id from token
       let updateUserId = null;
@@ -156,33 +157,34 @@ export class LdoResolver {
         newUserObj.password = await bcrypt.hash(args.password, salt);
       }
       if (args.email || args?.email?.trim() === '') {
-        if(args.email.trim() === ''){
-          return AppResponse.handleError({msg: "Email field can not be empty"});
+        if (args.email.trim() === '') {
+          return AppResponse.handleError({ msg: "Email field can not be empty" });
         }
 
-        const directorExist = await this.userService.findOne({email: args.email});
-        if(directorExist){
-          return AppResponse.handleError({msg: "There is already a user with this email"});
+        const directorExist = await this.userService.findOne({ email: args.email });
+        if (directorExist) {
+          return AppResponse.handleError({ msg: "There is already a user with this email" });
         }
         newUserObj.email = args.email
       }
 
       const updatePromises = [];
-      updatePromises.push(this.userService.updateOne({_id: updateUserId}, newUserObj));
+      updatePromises.push(this.userService.updateOne({ _id: updateUserId }, newUserObj));
 
 
       // Update user -> set user id inside ldo
       const updateLdoObj: any = { name: args.name };
-      if(logoUrl) updateLdoObj.logo = logoUrl;
-      updatePromises.push(this.ldoService.updateOne({_id: ldoExist._id}, updateLdoObj));
+      if (logoUrl) updateLdoObj.logo = logoUrl;
+      updatePromises.push(this.ldoService.updateOne({ _id: ldoExist._id }, updateLdoObj));
 
       return {
-        code: 201,
+        code: HttpStatus.ACCEPTED,
         success: true,
+        message: 'Updated the LDO successfully!',
         data: ldoExist,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -196,7 +198,7 @@ export class LdoResolver {
       if (dId) {
         const findDirector = await this.ldoService.findByDirectorId(dId);
         return {
-          code: 200,
+          code: HttpStatus.OK,
           success: true,
           data: findDirector,
         };
@@ -218,15 +220,15 @@ export class LdoResolver {
 
       if (!newUserId) return AppResponse.unauthorized();
 
-      const ldo = await this.ldoService.findByDirectorId(newUserId);
+      const ldoExist = await this.ldoService.findByDirectorId(newUserId);
 
       return {
-        code: 200,
-        success: true,
-        data: ldo,
+        code: ldoExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: ldoExist ? true : false,
+        data: ldoExist,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -234,14 +236,15 @@ export class LdoResolver {
   async getEventDirectors() {
     try {
       // If the user is admin we must need ldoId otherwise get id from token
-      const ldo = await this.ldoService.query({ role: UserRole.director });
+      const ldosExist = await this.ldoService.find({ role: UserRole.director });
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
-        data: ldo,
+        message: "List of all LDOs",
+        data: ldosExist,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -310,15 +313,21 @@ export class LdoResolver {
 
       await Promise.all(promisesToDelete);
       return {
-        code: 204,
+        code: HttpStatus.NO_CONTENT,
         success: true,
+        message: 'Delete the LDO successfully!',
         data: ldo,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
+
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
   // Assuming "director" is a string representing the ID of the director user
   @ResolveField((returns) => User) // Assuming UserType is your GraphQL type for users
   async director(@Parent() ldo: LDO) {

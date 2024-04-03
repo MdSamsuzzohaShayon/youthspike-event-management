@@ -31,7 +31,7 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
       if (isValidObjectId(params.teamId)) {
         fetchTeam({ variables: { teamId: params.teamId } });
       } else {
-        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+        setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
 

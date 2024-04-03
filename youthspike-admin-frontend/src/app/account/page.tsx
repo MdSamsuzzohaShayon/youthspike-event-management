@@ -25,12 +25,14 @@ function AccountPage() {
     (async () => {
       const { data } = await getLdo(); // Use dynamic id // use either ldoId or directorI      
       const ldoObj = data?.getEventDirector?.data;
+      if(!data?.getEventDirector?.success)return setActErr({message: data?.getEventDirector?.message, success: false});
+      
 
       setLdoState({
         name: ldoObj?.name,
         logo: ldoObj?.logo,
         director: {
-          email: ldoObj?.director?.login?.email,
+          email: ldoObj?.director?.email,
           firstName: ldoObj?.director?.firstName,
           lastName: ldoObj?.director?.lastName,
           password: '',

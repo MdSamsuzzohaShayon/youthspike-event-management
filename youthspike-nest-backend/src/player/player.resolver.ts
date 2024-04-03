@@ -4,7 +4,7 @@ import { CreatePlayerInput, RankingPlayerInput, UpdatePlayerInput, UpdatePlayers
 import { EPlayerStatus, Player } from './player.schema';
 import { AppResponse } from 'src/shared/response';
 import { Roles } from 'src/shared/auth/roles.decorator';
-import { BadRequestException, UseGuards } from '@nestjs/common';
+import { BadRequestException, HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { User, UserRole } from 'src/user/user.schema';
@@ -87,8 +87,9 @@ export class PlayerResolver {
       await Promise.all(ensurePromises);
 
       return {
+        code: HttpStatus.CREATED,
         success: true,
-        code: 201,
+        message : "Player has been created successfully!",
         data: newPlayer,
       };
     } catch (error) {
@@ -110,26 +111,15 @@ export class PlayerResolver {
       };
 
       const playerExist = await this.playerService.findById(playerId);
-      if (!playerExist) return AppResponse.exists("Player");
+      if (!playerExist) return AppResponse.notFound("Player");
 
       const updatePromises = [];
       // ===== Rank Update if a player move from middle of the ===== 
       if (input?.status && input.playerTeamId) {
         const teamExist = await this.teamService.findById(input.playerTeamId);
-        if (!teamExist) return AppResponse.exists("Team");
+        if (!teamExist) return AppResponse.notFound("Team");
         if (input?.status === EPlayerStatus.INACTIVE) {
           playerObj.rank = null;
-          /*
-          const findTeamPlayers = await this.playerService.query({ _id: { $in: teamExist.players.map((p) => p.toString()) } });
-          const findIPI = findTeamPlayers.findIndex((p) => p._id.toString() === playerId); // IPI = Inactive Player Index
-          if (findIPI !== -1 && findIPI !== findTeamPlayers.length - 1) {
-            const restOfThePlayers = findTeamPlayers.slice(findIPI + 1, findTeamPlayers.length);
-            for (let i = 0; i < restOfThePlayers.length; i++) {
-              const element = { rank: restOfThePlayers[i].rank ? restOfThePlayers[i].rank - 1 : findTeamPlayers.length + i };
-              updatePromises.push(this.playerService.updateOne({ _id: restOfThePlayers[i]._id }, element));
-            }
-          }
-          */
         } else if (input?.status === EPlayerStatus.ACTIVE) {
           // =====  Check how many active players ===== 
           playerObj.rank = teamExist.players.length;
@@ -140,22 +130,8 @@ export class PlayerResolver {
       // ===== Move to New Team =====
       if (input.team) {
         const newTeamExist = await this.teamService.findById(input.team);
-        if (!newTeamExist) return AppResponse.exists("Team");
+        if (!newTeamExist) return AppResponse.notFound("Team");
         updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
-
-        // Rank Players properly
-        /*
-        playerObj.rank = null;
-        const findTeamPlayers = await this.playerService.query({ _id: { $in: newTeamExist.players.map((p) => p.toString()) } });
-        const findIPI = findTeamPlayers.findIndex((p) => p._id.toString() === playerId); // IPI = Inactive Player Index
-        if (findIPI !== -1 && findIPI !== findTeamPlayers.length - 1) {
-          const restOfThePlayers = findTeamPlayers.slice(findIPI + 1, findTeamPlayers.length);
-          for (let i = 0; i < restOfThePlayers.length; i++) {
-            const element = { rank: restOfThePlayers[i].rank ? restOfThePlayers[i].rank - 1 : findTeamPlayers.length + i };
-            updatePromises.push(this.playerService.updateOne({ _id: restOfThePlayers[i]._id }, element));
-          }
-        }
-        */
 
         // First, add the new team if it doesn't exist
         updatePromises.push(
@@ -170,11 +146,11 @@ export class PlayerResolver {
       if (input.playerTeamId && input.team) {
         if (input.team === input.playerTeamId) return AppResponse.handleError({ name: "Invalid team", message: "New team and previous team both are same, therefore no need to change" });
         const prevTeamExist = await this.teamService.findById(input.playerTeamId);
-        if (!prevTeamExist) return AppResponse.exists("Team");
-        const playerIds = prevTeamExist.players.map((p)=> p.toString());
+        if (!prevTeamExist) return AppResponse.notFound("Team");
+        const playerIds = prevTeamExist.players.map((p) => p.toString());
         const newPlayerIds = playerIds.filter(p => p.toString() !== playerId);
-        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId },  { $set: { players:  newPlayerIds} },));
-        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId },  { $pull: { players:  playerId} },));
+        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId }, { $set: { players: newPlayerIds } },));
+        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId }, { $pull: { players: playerId } },));
         // Second, remove the old team
         updatePromises.push(
           this.playerService.updateOne(
@@ -207,8 +183,9 @@ export class PlayerResolver {
       const findPlayer = await this.playerService.findById(playerId);
 
       return {
+        code: HttpStatus.ACCEPTED,
+        message : "Player has been updated successfully!",
         success: true,
-        code: 202,
         data: findPlayer,
       };
     } catch (error) {
@@ -235,8 +212,9 @@ export class PlayerResolver {
       }
       const findPlayers = await this.playerService.query({ _id: { $in: input.map((i) => i._id) } });
       return {
+        code: HttpStatus.ACCEPTED,
+        message : "Multiple Players have been created successfully!",
         success: true,
-        code: 202,
         data: findPlayers,
       };
     } catch (error) {
@@ -295,8 +273,9 @@ export class PlayerResolver {
       await this.eventService.update({ $addToSet: { teams: { $each: teamIds }, players: { $each: playerIds } } }, eventId);
 
       return {
+        code: HttpStatus.CREATED,
         success: true,
-        code: 201,
+        message : "Multiple Players have been created successfully!",
         data: [], // allPlayers
       };
     } catch (error) {
@@ -320,7 +299,7 @@ export class PlayerResolver {
     try {
 
       const playerExist = await this.playerService.findById(playerId);
-      if (!playerExist) return AppResponse.exists("Player");
+      if (!playerExist) return AppResponse.notFound("Player");
 
       const updatePromises = [];
 
@@ -355,9 +334,9 @@ export class PlayerResolver {
 
 
       return {
+        code: HttpStatus.CREATED,
         success: true,
-        code: 201,
-        data: [], // allPlayers
+        message : "Player has been deleted successfully!",
       };
     } catch (error) {
       console.error('Error in createMultiPlayers:', error);
@@ -370,11 +349,11 @@ export class PlayerResolver {
   @Query((_returns) => PlayerResponse) // Specify the return type
   async getPlayer(@Args('playerId') playerId: string): Promise<PlayerResponse> {
     try {
-      const player = await this.playerService.findById(playerId.toString());
+      const playerExist = await this.playerService.findById(playerId.toString());
       return {
-        success: true,
-        code: 200,
-        data: player,
+        code: playerExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: playerExist ? true : false,
+        data: playerExist,
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -386,8 +365,9 @@ export class PlayerResolver {
     try {
       const players = await this.playerService.query({ events: { $in: [eventId] } });
       return {
+        code: HttpStatus.OK,
         success: true,
-        code: 200,
+        message : "List of players!",
         data: players,
       };
     } catch (error) {
@@ -396,7 +376,8 @@ export class PlayerResolver {
   }
 
   /**
-   * Populate
+   * POPULATE
+   * ===============================================================================================
    */
   @ResolveField(() => Event) // Specify the return type
   async events(@Parent() player: Player): Promise<Event[]> {

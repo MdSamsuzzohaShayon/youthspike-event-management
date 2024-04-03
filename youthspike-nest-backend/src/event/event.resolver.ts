@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ExecutionContext, UseGuards } from '@nestjs/common';
+import { ExecutionContext, HttpStatus, UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -34,11 +34,8 @@ import { LdoService } from 'src/ldo/ldo.service';
 import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
 import { SponsorService } from 'src/sponsor/sponsor.service';
+import { FilterQuery } from 'mongoose';
 
-interface JwtPayload {
-  _id: string;
-  // Add other properties if necessary
-}
 
 @ObjectType()
 class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -105,7 +102,7 @@ export class EventResolver {
       } else if (loggedUser.role === UserRole.admin) {
         if (!args.ldo) {
           return AppResponse.handleError({
-            name: 'Invalid LDO',
+            success: false,
             message: 'You must provide a LDO id in order to create an Event!',
           });
         }
@@ -114,7 +111,7 @@ export class EventResolver {
       const findLdo = await this.ldoService.findByDirectorId(directorId);
       if (!findLdo)
         return AppResponse.handleError({
-          name: 'No LDO',
+          success: false,
           message: 'User need to be in league director organization in order to create an Event!',
         });
 
@@ -156,7 +153,8 @@ export class EventResolver {
       return {
         data: savedEvent,
         success: true,
-        code: 201,
+        message: 'Event has been created successfully.',
+        code: HttpStatus.CREATED,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -188,7 +186,7 @@ export class EventResolver {
       // Get user
       const [loggedUser, eventExist] = await Promise.all([this.userService.findById(userId), this.eventService.findById(eventId)]);
       if (!loggedUser) return AppResponse.unauthorized();
-      if (!eventExist) return AppResponse.exists("Event");
+      if (!eventExist) return AppResponse.notFound("Event");
 
       // If the user is admin we must need ldoId otherwise get id from token
       let directorId = null;
@@ -198,7 +196,7 @@ export class EventResolver {
       } else if (loggedUser.role === UserRole.admin) {
         if (!args.ldo)
           return AppResponse.handleError({
-            name: 'No Director',
+            success: false,
             message: 'You must select a director in order to update a event!',
           });
         directorId = args.ldo;
@@ -230,8 +228,7 @@ export class EventResolver {
 
       // Update divisions
       if (args.divisions && args.divisions !== "" && eventExist.divisions !== args.divisions) {
-        // Check which item has been updated
-        // Check previous division name
+        // Check which item has been updated, Check previous division name
         const prevDivList = eventExist.divisions.split(',');
         const currDivList = args.divisions.split(',');
 
@@ -301,7 +298,8 @@ export class EventResolver {
       return {
         data: updatedEvent,
         success: true,
-        code: 202,
+        message: 'Event has been updated successfully.',
+        code: HttpStatus.ACCEPTED,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -346,7 +344,7 @@ export class EventResolver {
       delete eventObj._id;
       const clonedEvent = await this.eventService.create(eventObj);
 
-      const updatedPlayers = await this.playerService.updateMany({ _id: { $in: playerIds } }, { $push: { events: clonedEvent._id } });
+      await this.playerService.updateMany({ _id: { $in: playerIds } }, { $push: { events: clonedEvent._id } });
 
       // teams
       const teamIds = findEvent.teams;
@@ -362,9 +360,9 @@ export class EventResolver {
 
       // sponsors
       const sponsorIds = findEvent.sponsors;
-      const findsponsors = await this.sponsorService.query({ _id: { $in: sponsorIds } });
+      const sponsorsExist = await this.sponsorService.query({ _id: { $in: sponsorIds } });
       const sponsorObjList = [];
-      for (const sponsor of findsponsors) {
+      for (const sponsor of sponsorsExist) {
         const sponsorObj = { ...sponsor, company: sponsor.company, logo: sponsor.logo, event: clonedEvent._id };
         delete sponsorObj._id;
         sponsorObjList.push(sponsorObj)
@@ -372,12 +370,13 @@ export class EventResolver {
       const newSponsors = await this.sponsorService.insertMany(sponsorObjList);
       const newSponsorIds = newSponsors.map((t) => t._id);
 
-      const updatedEvent = await this.eventService.update({ teams: newTeamIds, sponsors: newSponsorIds }, clonedEvent._id);
+      await this.eventService.updateOne({ _id: clonedEvent._id }, { teams: newTeamIds, sponsors: newSponsorIds });
 
       return {
-        data: updatedEvent,
+        data: clonedEvent,
         success: true,
-        code: 201,
+        message: 'Event has been cloned successfully.',
+        code: HttpStatus.CREATED,
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -409,7 +408,7 @@ export class EventResolver {
           case UserRole.admin:
             if (!directorId) {
               return AppResponse.handleError({
-                name: 'No Director',
+                success: false,
                 message: 'You must select a director in order to update an event!',
               });
             }
@@ -421,7 +420,7 @@ export class EventResolver {
       }
 
       // Filter events based on director ID
-      const filter: Partial<Event> = {};
+      const filter: FilterQuery<Event> = {};
       if (newDirectorId) {
         const ldoExist = await this.ldoService.findByDirectorId(newDirectorId);
         if (ldoExist) {
@@ -430,14 +429,14 @@ export class EventResolver {
       }
 
 
-      const events = await this.eventService.query(filter);
+      const events = await this.eventService.find(filter);
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
         data: events,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -445,30 +444,22 @@ export class EventResolver {
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
     try {
-      const findEvent = await await this.eventService.findById(eventId);
+      const findEvent = await this.eventService.findById(eventId);
       return {
-        code: 200,
-        success: true,
+        code: findEvent ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: findEvent ? true : false,
         data: findEvent,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
-  @Roles(UserRole.admin)
-  @Query((returns) => GetEventResponse)
-  async getEventByName(@Args('name') name: string) {
-    try {
-      return {
-        code: 200,
-        success: true,
-        data: await this.eventService.findByName(name),
-      };
-    } catch (err) {
-      return AppResponse.getError(err);
-    }
-  }
+  
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
 
   @ResolveField()
   async ldo(@Parent() event: Event) {

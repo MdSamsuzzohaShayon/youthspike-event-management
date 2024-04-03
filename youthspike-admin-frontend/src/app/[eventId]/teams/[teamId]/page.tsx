@@ -30,7 +30,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
         fetchTeam({ variables: { teamId } });
         setTeamToStore(teamId);
       } else {
-        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+        setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
   }, [teamId]);

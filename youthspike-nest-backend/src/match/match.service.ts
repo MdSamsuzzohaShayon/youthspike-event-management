@@ -24,6 +24,12 @@ export class MatchService {
       updatedAt: -1,
     });
   }
+  
+  async find(filter: FilterQuery<Match>) {
+    return this.matchModel.find(filter).sort({
+      updatedAt: -1,
+    });
+  }
 
   async findById(id: string) {
     return this.matchModel.findById(id);

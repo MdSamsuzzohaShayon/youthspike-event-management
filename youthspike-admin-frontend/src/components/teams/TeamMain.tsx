@@ -90,6 +90,8 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const fetchEvent = async () => {
         const eventResponse = await getEvent({ variables: { eventId: eventId }, fetchPolicy: "network-only" });
 
+        if (!eventResponse?.data?.getEvent?.success) return setActErr({ message: eventResponse?.data?.getEvent?.message, success: false });
+
         const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         let newFilteredList = [...newTeamList];
         if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
@@ -119,7 +121,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             if (isValidObjectId(eventId)) {
                 fetchEvent();
             } else {
-                setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+                setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
             }
         }
 
@@ -176,7 +178,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc}  />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} />}
             </div>
         </div>
     )

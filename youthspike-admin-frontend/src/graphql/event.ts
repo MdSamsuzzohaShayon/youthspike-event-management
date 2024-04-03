@@ -43,7 +43,6 @@ const GET_EVENTS = gql`
   query GetEvents($directorId: String) {
     getEvents(directorId: $directorId) {
       code
-      message
       success
       data {
         ${eventResponse}
@@ -56,8 +55,8 @@ const GET_A_EVENT = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
-    message
     success
+    message
     data {
       ${eventResponse}
     }
@@ -89,8 +88,8 @@ const UPDATE_EVENT_RAW = `
 mutation UpdateEvent($sponsorsInput: [Upload!]!, $input: UpdateEventInput!, $eventId: String!, $logo: Upload) {
   updateEvent(sponsorsInput: $sponsorsInput, input: $input, eventId: $eventId, logo: $logo) {
     code
-    message
     success
+    message
     data {
       ${eventResponse}
     }
@@ -104,8 +103,8 @@ const CLONE_EVENT = gql`
   mutation CloneEvent($eventId: String!) {
     cloneEvent(eventId: $eventId) {
       code
-      message
       success
+      message
       data {
         ${eventResponse}
       }

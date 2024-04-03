@@ -13,7 +13,7 @@ import { Match } from './match.schema';
 import { CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
 import { ETieBreaker } from 'src/net/net.schema';
-import { UseGuards } from '@nestjs/common';
+import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 
@@ -124,11 +124,12 @@ export class MatchResolver {
 
       return {
         data: newMatch,
+        code: HttpStatus.CREATED,
         success: true,
-        code: 201,
+        message: 'Match Created successfully!',
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -140,11 +141,12 @@ export class MatchResolver {
       const updatedMatch = await this.matchService.update(input, matchId);
       return {
         data: updatedMatch,
+        message: 'Match Updated successfully!',
+        code: HttpStatus.ACCEPTED,
         success: true,
-        code: 200,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -154,7 +156,7 @@ export class MatchResolver {
   async deleteMatch(@Args('matchId') matchId: string) {
     try {
       const matchExist = await this.matchService.findById(matchId);
-      if (!matchExist) return AppResponse.exists("Match");
+      if (!matchExist) return AppResponse.notFound("Match");
 
       const updatePromises = [];
       const roundIds = matchExist.rounds.map((m) => m.toString());
@@ -173,11 +175,12 @@ export class MatchResolver {
       await Promise.all(updatePromises);
       return {
         data: null,
+        code: HttpStatus.NO_CONTENT,
+        message: 'Match Deleted successfully!',
         success: true,
-        code: 204,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -186,15 +189,16 @@ export class MatchResolver {
     try {
 
       // Assuming matchService is injected in your class
-      const matches = await this.matchService.query(filter);
+      const matches = await this.matchService.find(filter);
 
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
+        message: "List of matches",
         data: matches,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -202,20 +206,21 @@ export class MatchResolver {
   @Query((returns) => GetMatchResponse)
   async getMatch(@Args('matchId') matchId: string) {
     try {
-      const findMatch = await this.matchService.findById(matchId)
+      const matchExist = await this.matchService.findById(matchId)
       return {
-        code: 200,
-        success: true,
-        data: findMatch,
+        code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: matchExist ? true : false,
+        message: 'No match found!',
+        data: matchExist,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
   /**
-   * Resolve Fields
-   * =============================================================================================
+   * POPULATE
+   * ===============================================================================================
    */
   @ResolveField()
   async teamA(@Parent() match: Match) {

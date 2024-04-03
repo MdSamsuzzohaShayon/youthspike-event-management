@@ -48,7 +48,7 @@ function EventsPage() {
   const filterListEl = useRef<HTMLDialogElement | null>(null);
 
   // GraphQL Queries
-  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO, {fetchPolicy: "network-only"});
+  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
   const [cloneEvent] = useMutation(CLONE_EVENT);
 
   // Events handle
@@ -83,9 +83,8 @@ function EventsPage() {
    */
   const handleCopyEvent = async (e: React.SyntheticEvent, eventId: string) => {
     const eventResponse = await cloneEvent({ variables: { eventId } });
-    if (eventResponse.data.cloneEvent.code !== 201) {
-      setActErr({ name: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, main: eventResponse.data.cloneEvent });
-      return;
+    if (eventResponse.data.cloneEvent.success !== true) {
+      return setActErr({ code: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, success: false });
     }
     return router.push(`/${eventResponse.data.cloneEvent.data._id}/settings`);
   }
@@ -96,12 +95,11 @@ function EventsPage() {
         const newLdoId = searchParams.get('ldoId');
         if (!newLdoId) return router.push('/admin');
         setLdoId(newLdoId);
-        const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match        
+        const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
+        if (ldoRes?.data?.getEventDirector?.success !== true) return setActErr({ code: ldoRes?.data?.getEventDirector?.code, message: ldoRes?.data?.getEventDirector?.message, success: false });
         const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
         setDirectorId(newDirectorId);
         if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-        // const eventsRes = await fetchEvents({ variables: { directorId: newDirectorId } });
-        // console.log({ eventsRes, newDirectorId, ldoId: newLdoId });
       } else {
         setDirectorId(user.info?._id ? user.info._id : null);
         const ldoRes = await fetchLDO();
@@ -115,7 +113,7 @@ function EventsPage() {
   // if (ldoLoading) return <Loader />;
 
   const newLdoData = ldoData?.getEventDirector?.data;
-  
+
 
   return (
     <div className="events-page container px-2 mx-auto min-h-screen">
@@ -127,13 +125,13 @@ function EventsPage() {
       {/* {error && <Message error={error} />} */}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
-        {newLdoData?.logo 
-        ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} /> 
-        : <TextImg className="w-28 h-28 rounded-full object-cover object-fill"  fullText={newLdoData ? newLdoData.name : 'LDO'} />}
+        {newLdoData?.logo
+          ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} />
+          : <TextImg className="w-28 h-28 rounded-full object-cover object-fill" fullText={newLdoData ? newLdoData.name : 'LDO'} />}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
         <h2 >Events</h2>
-        
+
       </div>
       <div className="filter flex justify-between mb-2">
         <h3>All Events</h3>

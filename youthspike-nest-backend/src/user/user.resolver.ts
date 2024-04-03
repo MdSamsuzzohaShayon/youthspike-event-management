@@ -10,7 +10,7 @@ import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import { UpdateDirectorArgs, UpdateUserArgs } from './user.args';
-import { UseGuards } from '@nestjs/common';
+import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -101,14 +101,15 @@ export class UserResolver {
 
       const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
       return {
-        code: 202,
+        code: HttpStatus.ACCEPTED,
         success: true,
+        message: "A token has been issued successfully, you can login authenticate with this!",
         data: { token, user: userObj },
 
         // data: user && user.length > 0 ? user[0] : null,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -116,17 +117,17 @@ export class UserResolver {
   async getUser(@Args('userId') userId: string) {
     try {
       const userExist: any = await this.userService.findById(userId);
+      if(!userExist) return AppResponse.notFound("User");
       const userObj = { ...userExist._doc };
       delete userObj.password;
       return {
-        code: userExist ? 200 : 404,
+        code:  HttpStatus.OK,
         success: true,
-        message: "Has message",
         data: userObj,
 
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -142,7 +143,7 @@ export class UserResolver {
     try {
 
       const userExist = await this.userService.findById(userId);
-      if (!userExist) return AppResponse.exists("User");
+      if (!userExist) return AppResponse.notFound("User");
 
       // Upload image to cloudinary
       let profileUrl: string | null = null;
@@ -172,39 +173,19 @@ export class UserResolver {
       if (newUserObj.email) delete newUserObj.email;
       const director = await this.userService.createOrUpdate(newUserObj, userId);
       return {
-        code: 201,
+        code: HttpStatus.CREATED,
         success: true,
+        message: "The user has been updated successfully!",
         data: director,
       };
     } catch (err) {
-      return AppResponse.getError(err);
-    }
-  }
-
-  @Mutation((returns) => ChangePWDDataRes)
-  async changePassword(
-    @Args('id') id: string,
-    @Args('oldPassword', { nullable: true }) oldPassword: string,
-    @Args('newPassword', { nullable: true }) newPassword: string,
-  ): Promise<ChangePWDDataRes> {
-    try {
-      const user = await this.userService.findById(id);
-      const isValid = await bcrypt.compare(oldPassword, user?.password);
-      if (isValid) {
-        user.password = newPassword;
-        user.save();
-      }
-      return {
-        code: isValid ? 200 : 300,
-        success: true,
-      };
-    } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
   /**
-   * Populate data
+   * POPULATE
+   * ===============================================================================================
    */
   @ResolveField(() => Player, { nullable: true })
   async captainplayer(@Parent() user: User) {

@@ -42,6 +42,10 @@ export class EventService {
     return this.eventModel.findOne(query);
   }
 
+  async find(filter: FilterQuery<Event>) {
+    return this.eventModel.find(filter);
+  }
+
   async create(event: Event): Promise<Event> {
     return this.eventModel.create({
       ...event,

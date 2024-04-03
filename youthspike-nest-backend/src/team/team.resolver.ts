@@ -11,7 +11,7 @@ import { Team } from './team.schema';
 import { CreateTeamInput, UpdateTeamInput } from './team.args';
 import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
-import { UseGuards } from '@nestjs/common';
+import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { ConfigService } from '@nestjs/config';
@@ -105,12 +105,13 @@ export class TeamResolver {
       }
       await Promise.all(promiseOperations);
       return {
-        code: 201,
+        code: HttpStatus.CREATED,
         success: true,
+        message: "A team has been created successfully",
         data: newTeam,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -126,8 +127,8 @@ export class TeamResolver {
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const [teamExist, eventExist] = await Promise.all([this.teamService.findById(teamId), this.eventService.findById(eventId)]);
-      if (!teamExist) return AppResponse.exists("Team");
-      if (!eventExist) return AppResponse.exists("Event");
+      if (!teamExist) return AppResponse.notFound("Team");
+      if (!eventExist) return AppResponse.notFound("Event");
 
       const updatePromises = [];
       const teamObj: any = { ...input };
@@ -200,12 +201,13 @@ export class TeamResolver {
       await Promise.all(updatePromises);
       const updatedTeam = await this.teamService.findById(teamId);
       return {
-        code: 200,
+        code: HttpStatus.ACCEPTED,
         success: true,
+        message: "A team has been updated successfully",
         data: updatedTeam,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -216,7 +218,7 @@ export class TeamResolver {
         this.eventService.findById(eventId),
         this.teamService.findById(teamId)
       ]);
-      if (!teamExist || !eventExist) return AppResponse.exists('team or event');
+      if (!teamExist || !eventExist) return AppResponse.notFound('team or event');
 
       const teamObj: any = teamExist.toJSON();
       delete teamObj._id;
@@ -236,8 +238,9 @@ export class TeamResolver {
       ]);
 
       return {
-        code: 201,
+        code: HttpStatus.OK,
         success: true,
+        message: "A team has been moved successfully",
         data: newTeam,
       };
     } catch (error) {
@@ -255,7 +258,7 @@ export class TeamResolver {
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const teamExist = await this.teamService.findById(teamId);
-      if (!teamExist) return AppResponse.exists("Team");
+      if (!teamExist) return AppResponse.notFound("Team");
 
       const teamPlayerIds = teamExist.players.map((p) => p.toString());
       const teamNetIds = teamExist.nets.map((n) => n.toString());
@@ -271,12 +274,12 @@ export class TeamResolver {
       updatePromises.push(this.teamService.delete({ _id: teamId }));
       await Promise.all(updatePromises);
       return {
-        code: 200,
+        code: HttpStatus.NO_CONTENT,
         success: true,
-        data: null,
+        message: "A team has been deleted successfully",
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
@@ -284,30 +287,38 @@ export class TeamResolver {
   @Query((returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
     try {
-      const teams = await this.teamService.find({});
+      const teams = await this.teamService.find({ event: eventId });
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
+        message: "List of teams!",
         data: teams,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetTeamResponse)
   async getTeam(@Args('teamId') teamId: string) {
+    const teamExist = await this.teamService.findById(teamId);
+    if (!teamExist) return AppResponse.notFound("Team");
     try {
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
-        data: await this.teamService.findById(teamId),
+        data: teamExist,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
+
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
 
   @ResolveField() // Specify the return type for "players"
   async players(@Parent() team: Team): Promise<Player[]> {
