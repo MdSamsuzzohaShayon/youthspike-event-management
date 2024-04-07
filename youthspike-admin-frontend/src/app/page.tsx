@@ -19,6 +19,7 @@ import Link from 'next/link';
 import useClickOutside from '../../hooks/useClickOutside';
 import TextImg from '@/components/elements/TextImg';
 import { initialUserMenuList } from '@/utils/staticData';
+import { handleResponse } from '@/utils/handleError';
 
 interface IItem {
   id: number;
@@ -91,26 +92,39 @@ function EventsPage() {
 
   useEffect(() => {
     (async () => {
-      if (user.info?.role === UserRole.admin) {
-        const newLdoId = searchParams.get('ldoId');
-        if (!newLdoId) return router.push('/admin');
-        setLdoId(newLdoId);
-        const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
-        if (ldoRes?.data?.getEventDirector?.success !== true) return setActErr({ code: ldoRes?.data?.getEventDirector?.code, message: ldoRes?.data?.getEventDirector?.message, success: false });
-        const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
-        setDirectorId(newDirectorId);
-        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-      } else {
-        setDirectorId(user.info?._id ? user.info._id : null);
-        const ldoRes = await fetchLDO();
-        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-
+      try {        
+        if (user.info?.role === UserRole.admin) {
+          const newLdoId = searchParams.get('ldoId');
+          if (!newLdoId) return router.push('/admin');
+          setLdoId(newLdoId);
+          const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
+          console.log({ ldoRes });
+  
+          const success = handleResponse({response: ldoRes?.data?.getEventDirector, setActErr});
+          if (success) {
+            const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
+            setDirectorId(newDirectorId);
+          }
+          if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+        } else {
+          setDirectorId(user.info?._id ? user.info._id : null);
+          const ldoRes = await fetchLDO();
+          const success = handleResponse({response: ldoRes?.data?.getEventDirector, setActErr});
+          if (success) {
+            if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+          }
+  
+        }
+      } catch (error) {
+        console.log(error);
+        
       }
-    })()
+    })();
+
   }, [router, user]);
 
 
-  // if (ldoLoading) return <Loader />;
+  if (ldoLoading) return <Loader />;
 
   const newLdoData = ldoData?.getEventDirector?.data;
 
@@ -122,7 +136,7 @@ function EventsPage() {
         {itemList.map((item) => <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)} >{item.text}</p>)}
       </dialog>
       <h1 className='my-4 text-center'>Events Director</h1>
-      {/* {error && <Message error={error} />} */}
+      {ldoError && <Message error={ldoError} />}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {newLdoData?.logo

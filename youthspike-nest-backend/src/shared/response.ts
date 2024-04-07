@@ -21,18 +21,21 @@ export class AppResponse<Type = null> {
 
   static handleError(error: any) {
     let code = HttpStatus.INTERNAL_SERVER_ERROR;
-    let errorDescription = 'Internal server error occurred.';
+    let message = 'Internal server error occurred.';
 
     if (error instanceof HttpException) {
       const response = error.getResponse();
+      const nMessage = response['message'] || 'An error occurred.';
       const statusCode = response['statusCode'] || HttpStatus.INTERNAL_SERVER_ERROR;
-      const message = response['message'] || 'An error occurred.';
 
       code = statusCode;
-      errorDescription = message;
+      message = nMessage;
+    } else if (error?.name === 'TokenExpiredError') {
+      code = HttpStatus.UNAUTHORIZED;
+      message = 'Token expired. Please log in again.';
     }
 
-    return { code, success: false, errorDescription };
+    return { code, success: false, message };
   }
 
   static notFound(resource: string) {
@@ -43,8 +46,9 @@ export class AppResponse<Type = null> {
     return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid credentials!`);
   }
 
-  static invalidFile(msg: string = '') {
-    return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid file type! ${msg}`);
+  static invalidFile(msg: string) {
+    const newMsg = msg ? msg : '';
+    return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid file type! ${newMsg}`);
   }
 
   static unauthorized() {

@@ -93,6 +93,16 @@ ___
  - Handle error just like uploading multiple player file error handling
 
 
+### Update - 1
+ - When LDO is the same as the captain of the squad [00:55](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a), instead of email address, we should be able to add username
+ - Subbing did not work very well
+ - Some issue with sponsor, they  just somehow disappeared
+ - Add yellow box to the players once again
+ - American version of the phone number 000-000-0000, type phone number if that automitically format that would be great
+ - [05:50](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
+ - Once a round is submitted that ranking should not be ever changed
+ - [07:00](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) If something on the roster changes later on the round on the match and director decide to remove injured because he got injured, his ranking should be remain same (No isseue because ranking is locked because round has started), when he will be back his ranking should be same
+
  - **Team**
  - Make mutation from frontend to delete team
  - Move team need to work properly - one division to another division
@@ -109,13 +119,18 @@ ___
  - Make player leave of or inactive in the match day
  - Move team, or players to different event
  - When make player inactive the rank should be update and and this should work properly
- - When Moving player rank them properly
+ - When Moving player rank them properl y
  - Need to create a seperate database document for this that will hold player id and player rank, so a player will have seperate rank in seperate team
  - Update player need to go to save and team page (if there is a team id) / player page
  - Add new player need to work properly when click on create new player link
  - Make player image bigger in player card
  - Phone number is not updating or saving properly
  - When creating team along with logo, players are still there after they are being added to the team
+ - Subbing did not work very well
+ - Add yellow box to the players once again
+ - [05:50](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
+ - Once a round is submitted that ranking should not be ever changed
+ - [07:00](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) If something on the roster changes later on the round on the match and director decide to remove injured because he got injured, his ranking should be remain same (No isseue because ranking is locked because round has started), when he will be back his ranking should be same
 
  - **Dashboard**
  - Copy Events properly (Do something for players)
@@ -159,7 +174,8 @@ ___
  - No need to show phone, email, or anything, Need to show name of the player and team they are on
  - Team logo is not showing
 
-
+ - **Sponsors**
+ - Some issue with sponsor, they  just somehow disappeared
 
  - **Single Match (public)**
  - Players need to be assign within 3 minutes or less according to clock
@@ -175,6 +191,7 @@ ___
 
  - **LDO**
  - Email address are not showing up for account setting
+ - When LDO is the same as the captain of the squad [00:55](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a), instead of email address, we should be able to add username
 
 ### Design
  - Style according to Figma

@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 const Message = ({ error }: { error: IError | null }) => {
 
 
-  if (error === null) return null;
+  if (!error && error === null) return null;
   return (
     <div className={`${ error.success ? "text-gray-900" : "text-red-500"} container mx-auto`}>
       <div className="flex gap-2 items-center">
