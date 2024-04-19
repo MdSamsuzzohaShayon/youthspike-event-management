@@ -7,32 +7,33 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import { IError, IOption, IPlayerExpRel, ITeam } from '@/types';
+import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { useLazyQuery } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-interface IPlayerAddPageProps{
-    params: {
-        eventId: string;
-    }
+interface IPlayerAddPageProps {
+  params: {
+    eventId: string;
+  }
 }
 
-function PlayerAddPage({params}: IPlayerAddPageProps) {
+function PlayerAddPage({ params }: IPlayerAddPageProps) {
 
-    // ===== Local State ===== 
-    const router = useRouter();
+  // ===== Local State ===== 
+  const router = useRouter();
 
-     // ===== Local State ===== 
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [actErr, setActErr] = useState<IError | null>(null);
-    const [currDivision, setCurrDivision] = useState<string>('');
-    const [divisionList, setDivisionList] = useState<IOption[]>([]);
-    const [teamList, setTeamList] = useState<ITeam[]>([]);
-    const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
+  // ===== Local State ===== 
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [actErr, setActErr] = useState<IError | null>(null);
+  const [currDivision, setCurrDivision] = useState<string>('');
+  const [divisionList, setDivisionList] = useState<IOption[]>([]);
+  const [teamList, setTeamList] = useState<ITeam[]>([]);
+  const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
 
-      // ===== GraphQL ===== 
+  // ===== GraphQL ===== 
   const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
 
 
@@ -57,71 +58,72 @@ function PlayerAddPage({params}: IPlayerAddPageProps) {
     // }
   }
 
-    // ===== Callback functions ===== 
-    const playerAddCB = (playerData: IPlayerExpRel) => {
-        // setPlayerList((prevState) => [...prevState, playerData]);
-        // setFilteredPlayerList((prevState) => [...prevState, playerData]);
-        
+  // ===== Callback functions ===== 
+  const playerAddCB = (playerData: IPlayerExpRel) => {
+    // setPlayerList((prevState) => [...prevState, playerData]);
+    // setFilteredPlayerList((prevState) => [...prevState, playerData]);
+
+  }
+
+
+  const fetchEvent = async () => {
+    try {
+
+      const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
+      const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
+      if (!success) return;
+
+      const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+      let newFilteredTeamList = [...newTeamList];
+
+      // Division and team value
+      const divisionExist = getDivisionFromStore();
+      if (divisionExist) {
+        setCurrDivision(divisionExist);
+        newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
       }
 
+      setTeamList(newTeamList);
+      setFilteredTeamList(newFilteredTeamList);
 
-      const fetchEvent = async () => {
-        try {
-    
-          const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
-          if (!eventResponse?.data?.getEvent?.success) return setActErr({success: false, code: eventResponse?.data?.getEvent?.code, message: eventResponse?.data?.getEvent?.message});
-    
-          const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
-          let newFilteredTeamList = [...newTeamList];    
-    
-          // Division and team value
-          const divisionExist = getDivisionFromStore();
-          if (divisionExist) {
-            setCurrDivision(divisionExist);
-            newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-          }
-    
-          setTeamList(newTeamList);
-          setFilteredTeamList(newFilteredTeamList);
-    
-          // Making divisions list
-          const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
-          const divs = divisionsToOptionList(divisions);
-          setDivisionList(divs);
-        } catch (error) {
-          console.log(error);
-    
-        }
+      // Making divisions list
+      const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
+      const divs = divisionsToOptionList(divisions);
+      setDivisionList(divs);
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
+
+  useEffect(() => {
+    if (params.eventId) {
+      if (isValidObjectId(params.eventId)) {
+        fetchEvent()
+      } else {
+        setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
-
-      
-      useEffect(() => {
-        if (params.eventId) {
-          if (isValidObjectId(params.eventId)) {
-            fetchEvent()
-          } else {
-            setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
-          }
-        }
-      }, [params.eventId]);
+    }
+  }, [params.eventId]);
 
 
-    if (loading || isLoading) return <Loader />;
+  if (loading || isLoading) return <Loader />;
 
-    return (
-        <div className='container mx-auto px-2 min-h-screen'>
-          <div className="mb-4 division-selection w-full">
-            <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-          </div>
-          <h1 className='mb-8 text-center'>Add Player</h1>
-          {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
+  return (
+    <div className='container mx-auto px-2 min-h-screen'>
+      <div className="mb-4 division-selection w-full">
+        <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+      </div>
+      <h1 className='mb-8 text-center'>Add Player</h1>
+      {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
 
-          {error && <Message error={error} />}
-          {actErr && <Message error={actErr} />}
+      {error && <Message error={error} />}
+      {actErr && <Message error={actErr} />}
 
-          <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} setActErr={setActErr} />
-        </div>
-      )
+      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} setActErr={setActErr} />
+    </div>
+  )
 }
 
 export default PlayerAddPage;

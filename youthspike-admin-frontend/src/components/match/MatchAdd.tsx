@@ -27,7 +27,7 @@ interface IMatchAddProps {
     eventData?: IEventExpRel | null;
     showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
     prevMatch?: IMatch;
-    addMatchCB?:  (matchData: IMatch) => void;
+    addMatchCB?: (matchData: IMatch) => void;
 }
 
 
@@ -59,7 +59,7 @@ function MatchAdd({ eventId,
     matchId,
     eventData,
     showAddMatch,
-    prevMatch, addMatchCB}: IMatchAddProps) {
+    prevMatch, addMatchCB }: IMatchAddProps) {
     const { homeTeamStrategy, assignLogicList, rosterLockList } = staticData;
 
     // Local State
@@ -120,7 +120,7 @@ function MatchAdd({ eventId,
      */
     const handleAddMatch = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, addMatchCB});
+        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, addMatchCB });
     }
 
     /**
@@ -165,11 +165,13 @@ function MatchAdd({ eventId,
                 <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(teamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
                 <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(teamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
             </>)}
-
-            <h3 className='w-full'>Default settings</h3>
+            <div className="mt-4 w-full">
+                <h3 className='w-full capitalize'>Default settings</h3>
+            </div>
             <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
+            
             <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
 
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}

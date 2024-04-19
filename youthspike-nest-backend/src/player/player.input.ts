@@ -9,13 +9,16 @@ export class CreatePlayerInput {
   @Field()
   lastName: string;
 
+  @Field({ nullable: false })
+  username: string;
+
   @Field()
   event: string;
 
   @Field()
   division: string;
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   email: string;
 
   @Field({ nullable: true })

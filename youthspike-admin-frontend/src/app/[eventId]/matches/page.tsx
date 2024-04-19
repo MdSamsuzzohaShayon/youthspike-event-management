@@ -11,19 +11,15 @@ import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
 import { IAddMatch, IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, IEventExpRel, IMatch, IMenuItem, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
-import { getUserFromCookie } from '@/utils/cookie';
+import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
-import { initialUserMenuList } from '@/utils/staticData';
 import { useLazyQuery, useQuery } from '@apollo/client';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
-
-  const pathname = usePathname();
 
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -69,13 +65,17 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     try {
 
       const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
-      if (!eventResponse?.data?.getEvent?.success) return setActErr({success: false, code: eventResponse?.data?.getEvent?.code, message: eventResponse?.data?.getEvent?.message});
+      
+      
+      const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
+      if (!success) return;
 
 
       const newMatchList: IMatch[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
       let newFilteredMatchList = [...newMatchList];
 
       const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
+      
       let newFilteredTeamList = [...newTeamList];
 
       if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
@@ -135,16 +135,17 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-        <div className="mb-4 division-selection w-full">
-          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-        </div>
-      )}
       <h1 className='mb-8 text-center'>Matches</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />
       </div>
+      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+        <div className="mb-4 division-selection w-full">
+          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        </div>
+      )}
+      
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
 

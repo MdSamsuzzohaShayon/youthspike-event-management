@@ -14,7 +14,6 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
   
   const [actErr, setActErr] = useState<IError | null>(null);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
-  const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleClose=()=>{

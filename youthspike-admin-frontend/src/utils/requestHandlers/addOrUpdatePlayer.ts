@@ -7,6 +7,7 @@ import { MutationFunction } from "@apollo/client";
 import { Router } from "next/router";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { getTeamFromStore } from "../localStorage";
+import { handleResponse } from "../handleError";
 
 interface IAddOrUpdatePlayer {
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -33,11 +34,11 @@ interface IAddOrUpdatePlayer {
 async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
     prevPlayer, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
     const teamExist = getTeamFromStore();
-
+    let success = true;
     try {
         setIsLoading(true);
         const playerAddObj = structuredClone(playerState);
-        if (division === '' && !update) return setActErr({ name: "Invalid player", message: "You must select a division!" })
+        if (division === '' && !update) return setActErr({ success: false, message: "You must select a division!" })
         if (division) playerAddObj.division = division;
         // @ts-ignore
         if (playerAddObj.rank) playerAddObj.rank = parseInt(playerAddObj.rank, 10);
@@ -78,7 +79,10 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
             }
         }
 
-        if (playerRes?.data?.createPlayer?.data && !update) {
+        success = handleResponse({ response: !update ? playerRes?.data?.createPlayer : playerRes?.data?.updatePlayer, setActErr });
+        if (!success) return;
+
+        if (!update && playerRes?.data?.createPlayer?.data) {
             if (playerAddCB) playerAddCB(playerRes.data.createPlayer.data);
             if (teamExist) return router.push(`/${eventId}/teams/${teamExist}`);
         } else {
@@ -94,7 +98,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
                 formEl.reset();
             }
         } else {
-            setActErr({ name: playerRes.data.createPlayer.code, message: playerRes.data.createPlayer.message, main: playerRes.data.createPlayer });
+            setActErr({ success: false, message: playerRes.data.createPlayer.message });
         }
         if (setAddPlayer && !update) setAddPlayer(false);
         if (refetchFunc) await refetchFunc();
@@ -102,7 +106,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
         console.log(error);
     } finally {
         setIsLoading(false);
-        if (update) {
+        if (update && success) {
             if (teamExist) {
                 router.push(`/${eventId}/teams/${teamExist}`);
             } else {

@@ -18,7 +18,6 @@ import * as Upload from 'graphql-upload/Upload.js';
 import { rmInvalidProps } from 'src/util/helper';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 
-
 @ObjectType()
 class LoginUser extends UserBase {
   @Field((type) => String, { nullable: true })
@@ -69,7 +68,13 @@ class ChangePWDDataRes extends AppResponse<ChangePWDData> {
 
 @Resolver((of) => User)
 export class UserResolver {
-  constructor(private readonly userService: UserService, private playerService: PlayerService, private teamService: TeamService, private jwtService: JwtService, private readonly cloudinaryService: CloudinaryService) { }
+  constructor(
+    private readonly userService: UserService,
+    private playerService: PlayerService,
+    private teamService: TeamService,
+    private jwtService: JwtService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Mutation((returns) => LoginResponse)
   async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
@@ -99,11 +104,15 @@ export class UserResolver {
         }
       }
 
-      const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
+      const token = await this.jwtService.sign({
+        _id: existingUser._id,
+        email: existingUser.email,
+        role: userObj.role,
+      });
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
-        message: "A token has been issued successfully, you can login authenticate with this!",
+        message: 'A token has been issued successfully, you can login authenticate with this!',
         data: { token, user: userObj },
 
         // data: user && user.length > 0 ? user[0] : null,
@@ -117,20 +126,18 @@ export class UserResolver {
   async getUser(@Args('userId') userId: string) {
     try {
       const userExist: any = await this.userService.findById(userId);
-      if(!userExist) return AppResponse.notFound("User");
+      if (!userExist) return AppResponse.notFound('User');
       const userObj = { ...userExist._doc };
       delete userObj.password;
       return {
-        code:  HttpStatus.OK,
+        code: HttpStatus.OK,
         success: true,
         data: userObj,
-
       };
     } catch (err) {
       return AppResponse.handleError(err);
     }
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
@@ -141,9 +148,8 @@ export class UserResolver {
     @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
   ) {
     try {
-
       const userExist = await this.userService.findById(userId);
-      if (!userExist) return AppResponse.notFound("User");
+      if (!userExist) return AppResponse.notFound('User');
 
       // Upload image to cloudinary
       let profileUrl: string | null = null;
@@ -164,10 +170,10 @@ export class UserResolver {
         delete newUserObj.password;
       }
       if (profileUrl && userExist.captainplayer) {
-        await this.playerService.updateOne({_id: userExist.captainplayer.toString()}, { profile: profileUrl });
+        await this.playerService.updateOne({ _id: userExist.captainplayer.toString() }, { profile: profileUrl });
       }
       if (profileUrl && userExist.cocaptainplayer) {
-        await this.playerService.updateOne({_id: userExist.cocaptainplayer.toString()}, { profile: profileUrl });
+        await this.playerService.updateOne({ _id: userExist.cocaptainplayer.toString() }, { profile: profileUrl });
       }
 
       if (newUserObj.email) delete newUserObj.email;
@@ -175,7 +181,7 @@ export class UserResolver {
       return {
         code: HttpStatus.CREATED,
         success: true,
-        message: "The user has been updated successfully!",
+        message: 'The user has been updated successfully!',
         data: director,
       };
     } catch (err) {

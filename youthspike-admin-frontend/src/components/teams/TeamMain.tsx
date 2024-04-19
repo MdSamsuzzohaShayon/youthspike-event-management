@@ -21,6 +21,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { initialUserMenuList } from '@/utils/staticData';
 import { getUserFromCookie } from '@/utils/cookie';
 import UserMenuList from '../layout/UserMenuList';
+import { handleResponse } from '@/utils/handleError';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -90,7 +91,9 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const fetchEvent = async () => {
         const eventResponse = await getEvent({ variables: { eventId: eventId }, fetchPolicy: "network-only" });
 
-        if (!eventResponse?.data?.getEvent?.success) return setActErr({ message: eventResponse?.data?.getEvent?.message, success: false });
+        const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
+        if (!success) return;
+
 
         const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         let newFilteredList = [...newTeamList];
@@ -144,13 +147,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 </div>
                 <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} divisionList={divisionList} />
             </dialog>
-            <div className="mb-4 division-selection w-full">
-                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-            </div>
-            <h1 className='text-2xl font-bold pt-6 text-center mb-4'>Teams</h1>
+            <h1 className='text-center mb-4'>Teams</h1>
             {currEvent && (<CurrentEvent currEvent={currEvent} />)}
             <div className="navigator mb-4">
                 <UserMenuList eventId={eventId} />
+            </div>
+            <div className="mb-4 division-selection w-full">
+                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
             </div>
 
             {error && <Message error={error} />}

@@ -13,6 +13,7 @@ export enum EPlayerStatus {
 export interface IPlayerAdd {
   firstName: string;
   lastName: string;
+  username: string;
   email: string;
   phone?: string;
   division: string;
@@ -24,6 +25,7 @@ export interface IPlayerAdd {
 export interface IPlayer extends IDocument {
   firstName: string;
   lastName: string;
+  username: string;
   profile: string | null;
   phone?: string;
   division: string;
@@ -49,7 +51,8 @@ export interface IPlayerExpRel extends IDocument {
   profile: string | null;
   phone?: string;
   division: string;
-  email: string;
+  email?: string;
+  username: string;
   rank: number | null;
   rankLock?: boolean;
   status: EPlayerStatus,

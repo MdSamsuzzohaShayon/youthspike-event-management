@@ -9,6 +9,7 @@ import Message from '@/components/elements/Message';
 import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
 import { IDirector, IError, ILDO } from '@/types';
+import { handleResponse } from '@/utils/handleError';
 
 function AccountPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,7 +26,8 @@ function AccountPage() {
     (async () => {
       const { data } = await getLdo(); // Use dynamic id // use either ldoId or directorI      
       const ldoObj = data?.getEventDirector?.data;
-      if(!data?.getEventDirector?.success)return setActErr({message: data?.getEventDirector?.message, success: false});
+      const success = handleResponse({response: data?.getEventDirector, setActErr});
+      if(!success)return;
       
 
       setLdoState({

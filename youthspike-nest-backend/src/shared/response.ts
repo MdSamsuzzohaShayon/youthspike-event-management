@@ -20,8 +20,8 @@ export class AppResponse<Type = null> {
 
 
   static handleError(error: any) {
-    let code = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error occurred.';
+    let code = error?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = error?.message || 'Internal server error occurred.';
 
     if (error instanceof HttpException) {
       const response = error.getResponse();

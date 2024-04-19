@@ -16,35 +16,42 @@ export class UserService {
   private readonly notFound = AppResponse.notFound('user');
   private readonly invalidCredentials = AppResponse.invalidCredentials();
 
-  constructor(@InjectModel(User.name) 
-  private userModel: Model<User>, 
-  private readonly jwtService: JwtService, 
-  private readonly teamService: TeamService, 
-  private readonly playerService: PlayerService) { }
+  constructor(
+    @InjectModel(User.name)
+    private userModel: Model<User>,
+    private readonly jwtService: JwtService,
+    private readonly teamService: TeamService,
+    private readonly playerService: PlayerService,
+  ) {}
 
   async create(user: User) {
     const userObj = { ...user };
     const password = userObj.password;
     const hashedPassword = await bcrypt.hash(password, 10);
     userObj.password = hashedPassword;
-    const existing = await this.userModel.findOne({ email: user.email, });
+    const existing = await this.userModel.findOne({ email: user.email });
 
     if (existing) throw AppResponse.notFound('user');
     return this.userModel.create({ ...userObj });
   }
 
   // Create user for captain and co captain
-  async createCapUser(playerExist: Player, playerUserExist: User | null, eventExist: Event, role: UserRole): Promise<User> {
+  async createCapUser(
+    playerExist: Player,
+    playerUserExist: User | null,
+    eventExist: Event,
+    role: UserRole,
+  ): Promise<User> {
     const userObj = {
-      email: playerExist.email, 
+      email: playerExist.username,
       password: eventExist.coachPassword,
-      firstName: playerExist.firstName, 
-      lastName: playerExist.lastName, 
+      firstName: playerExist.firstName,
+      lastName: playerExist.lastName,
       role,
-      captainplayer: null, 
+      captainplayer: null,
       cocaptainplayer: null,
-      active: true
-    }
+      active: true,
+    };
     let newCaptainUser = null;
     if (playerUserExist) {
       userObj.captainplayer = role === UserRole.captain ? playerExist._id : playerUserExist.captainplayer;
@@ -80,17 +87,17 @@ export class UserService {
     const passwordFromUser = existingUser.password;
     const passwordMatched = await bcrypt.compare(password, passwordFromUser);
     if (!passwordMatched) throw this.invalidCredentials;
-    
+
     const userObj = { ...existingUser._doc };
     delete userObj.password;
 
-    if(userObj.role === UserRole.captain && userObj.captainplayer){
+    if (userObj.role === UserRole.captain && userObj.captainplayer) {
       // const player = await this.playerService.findById(userObj.captainplayer.toString());
-      const teamWithCaptain = await this.teamService.findOne({captain: userObj.captainplayer.toString()});
-      if(teamWithCaptain){
+      const teamWithCaptain = await this.teamService.findOne({ captain: userObj.captainplayer.toString() });
+      if (teamWithCaptain) {
         userObj.event = teamWithCaptain.event;
       }
-      delete userObj.captainplayer
+      delete userObj.captainplayer;
     }
 
     const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
@@ -118,11 +125,11 @@ export class UserService {
     });
   }
 
-  async updateOne(filter: FilterQuery<User>, updateData: UpdateQuery<User>){
+  async updateOne(filter: FilterQuery<User>, updateData: UpdateQuery<User>) {
     return this.userModel.updateOne(filter, updateData);
   }
 
-  async updateMany(filter: FilterQuery<User>, updateData: UpdateQuery<User>){
+  async updateMany(filter: FilterQuery<User>, updateData: UpdateQuery<User>) {
     return this.userModel.updateMany(filter, updateData);
   }
 

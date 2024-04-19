@@ -54,6 +54,7 @@ const matchResponse = `
     teamA {
       _id
       name
+      logo
       captain {
         _id
         firstName
@@ -64,6 +65,7 @@ const matchResponse = `
     teamB {
       _id
       name
+      logo
       captain {
         _id
         firstName
@@ -82,6 +84,7 @@ const teamResponse = `
     _id
     active
     name
+    logo
     division
     players {
       _id

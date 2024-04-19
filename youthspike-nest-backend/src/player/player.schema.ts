@@ -6,15 +6,14 @@ import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
 
-
-export enum EPlayerStatus{
+export enum EPlayerStatus {
   'ACTIVE' = 'ACTIVE',
   'INACTIVE' = 'INACTIVE',
 }
 
 registerEnumType(EPlayerStatus, {
-  name: "EPlayerStatus"
-})
+  name: 'EPlayerStatus',
+});
 
 @Schema()
 @ObjectType()
@@ -31,9 +30,9 @@ export class Player extends AppDocument {
   @Prop({ required: false })
   email?: string | null;
 
-  @Field((_types)=> EPlayerStatus, {nullable: false})
-  @Prop({required: true, enum: EPlayerStatus, default: EPlayerStatus.ACTIVE})
-  status: EPlayerStatus
+  @Field((_types) => EPlayerStatus, { nullable: false })
+  @Prop({ required: true, enum: EPlayerStatus, default: EPlayerStatus.ACTIVE })
+  status: EPlayerStatus;
 
   @Field((_type) => Int, { nullable: true })
   @Prop({ required: false })
@@ -55,28 +54,28 @@ export class Player extends AppDocument {
   @Field({ nullable: false })
   division: string;
 
-  // @Prop({ required: false })
-  // @Field({ nullable: true })
-  // division?: string;
+  @Prop({ required: true, unique: true })
+  @Field({ nullable: false })
+  username: string;
 
   /**
    * Relatives
    */
   @Field((_type) => [Event], { nullable: true })
-  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Event'}] })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
   events?: Event[] | string[];
 
   @Field(() => [Team], { nullable: true })
-  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
   teams?: Team[] | string[];
 
   // Create a user itself for captain of an event and make relation with event
   @Field((_type) => [Team], { nullable: true })
-  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
   captainofteams?: Team[] | string[];
 
   @Field((_type) => [Team], { nullable: true })
-  @Prop({ required: false, type: [{type: mongoose.Schema.Types.ObjectId, ref: 'Team'}] })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
   cocaptainofteams?: Team[] | string[];
 
   // User to login as captain

@@ -10,6 +10,7 @@ const teamResponse = `
       _id
       firstName
       lastName
+      username
       rank
       email
       phone

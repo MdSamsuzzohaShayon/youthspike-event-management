@@ -36,7 +36,6 @@ import { MatchService } from 'src/match/match.service';
 import { SponsorService } from 'src/sponsor/sponsor.service';
 import { FilterQuery } from 'mongoose';
 
-
 @ObjectType()
 class CreateOrUpdateEventResponse extends AppResponse<Event> {
   @Field((type) => Event, { nullable: true })
@@ -67,7 +66,7 @@ export class EventResolver {
     private matchService: MatchService,
     private userService: UserService,
     private sponsorService: SponsorService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -76,7 +75,7 @@ export class EventResolver {
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') args: CreateEventInput,
     @Context() context: any,
-    @Args("logo", { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
+    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -146,9 +145,8 @@ export class EventResolver {
       const savedEvent = await this.eventService.create(eventData);
       await Promise.all([
         this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
-        this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id })
+        this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id }),
       ]);
-
 
       return {
         data: savedEvent,
@@ -184,9 +182,12 @@ export class EventResolver {
       const userId = tokenToUser(context, secret);
 
       // Get user
-      const [loggedUser, eventExist] = await Promise.all([this.userService.findById(userId), this.eventService.findById(eventId)]);
+      const [loggedUser, eventExist] = await Promise.all([
+        this.userService.findById(userId),
+        this.eventService.findById(eventId),
+      ]);
       if (!loggedUser) return AppResponse.unauthorized();
-      if (!eventExist) return AppResponse.notFound("Event");
+      if (!eventExist) return AppResponse.notFound('Event');
 
       // If the user is admin we must need ldoId otherwise get id from token
       let directorId = null;
@@ -205,7 +206,8 @@ export class EventResolver {
       // Upload file to cloudinary
       const uploadPromises = [];
       for (let i = 0; i < sponsorsInput.length; i++) {
-        if (typeof sponsorsInput[i] !== 'string') uploadPromises.push(this.cloudinaryService.uploadFiles(sponsorsInput[i]));
+        if (typeof sponsorsInput[i] !== 'string')
+          uploadPromises.push(this.cloudinaryService.uploadFiles(sponsorsInput[i]));
       }
       const cloudinaryUrls: string[] = await Promise.all(uploadPromises);
 
@@ -216,7 +218,7 @@ export class EventResolver {
         ...args,
         ldo: findLdo._id,
         sponsors: cloudinaryUrls,
-        divisions: eventExist.divisions
+        divisions: eventExist.divisions,
       };
 
       if (logo) {
@@ -227,17 +229,18 @@ export class EventResolver {
       }
 
       // Update divisions
-      if (args.divisions && args.divisions !== "" && eventExist.divisions !== args.divisions) {
+      if (args.divisions && args.divisions !== '' && eventExist.divisions !== args.divisions) {
         // Check which item has been updated, Check previous division name
         const prevDivList = eventExist.divisions.split(',');
         const currDivList = args.divisions.split(',');
 
         const divisionPromises = [];
 
-
         // Check deleted item
         for (let i = 0; i < prevDivList.length; i++) {
-          const findItemIndex = currDivList.findIndex((d) => d.includes("_") || d.trim().toLowerCase() === prevDivList[i].trim().toLowerCase());
+          const findItemIndex = currDivList.findIndex(
+            (d) => d.includes('_') || d.trim().toLowerCase() === prevDivList[i].trim().toLowerCase(),
+          );
           if (findItemIndex === -1) {
             // Create a regular expression for case-insensitive and trimmed search
             const regex = new RegExp(`^${prevDivList[i].trim()}$`, 'i');
@@ -247,10 +250,11 @@ export class EventResolver {
 
         // Check updated Item
         for (let i = 0; i < currDivList.length; i++) {
-          if (currDivList[i].includes("_")) {
-            const fl = currDivList[i].split("_");
-            if (fl.length > 0 && fl[fl.length - 1] === "u") {
-              let oe = fl[0], ne = fl[1];
+          if (currDivList[i].includes('_')) {
+            const fl = currDivList[i].split('_');
+            if (fl.length > 0 && fl[fl.length - 1] === 'u') {
+              const oe = fl[0],
+                ne = fl[1];
               currDivList[i] = ne;
 
               // Create a regular expression for case-insensitive and trimmed search
@@ -267,7 +271,8 @@ export class EventResolver {
       // Update Coach Password
       if (eventData.coachPassword) {
         const teamsOfEvent = await this.teamService.query({ event: eventId });
-        const cap = [], coCap = [];
+        const cap = [],
+          coCap = [];
         for (const t of teamsOfEvent) {
           if (t.captain) cap.push(t.captain);
           if (t.cocaptain) coCap.push(t.cocaptain);
@@ -276,7 +281,7 @@ export class EventResolver {
         const userIds = [];
         const capUsers = await this.userService.query({ captainplayer: { $in: cap } });
         const capUserIds = capUsers.map((u) => u._id);
-        userIds.push(...capUserIds)
+        userIds.push(...capUserIds);
 
         const coCapUsers = await this.userService.query({ cocaptainplayer: { $in: coCap } });
         const coCapUserIds = coCapUsers.map((u) => u._id);
@@ -288,8 +293,6 @@ export class EventResolver {
 
           await this.userService.updateMany({ _id: { $in: userIds } }, { password: hashedPassword });
         }
-
-
       }
 
       const updatedEvent = await this.eventService.update(eventData, eventId);
@@ -353,7 +356,7 @@ export class EventResolver {
       for (const team of findTeams) {
         const teamObj = { ...team, name: team.name, active: true, event: clonedEvent._id };
         delete teamObj._id;
-        teamObjList.push(teamObj)
+        teamObjList.push(teamObj);
       }
       const newTeams = await this.teamService.insertMany(teamObjList);
       const newTeamIds = newTeams.map((t) => t._id);
@@ -365,7 +368,7 @@ export class EventResolver {
       for (const sponsor of sponsorsExist) {
         const sponsorObj = { ...sponsor, company: sponsor.company, logo: sponsor.logo, event: clonedEvent._id };
         delete sponsorObj._id;
-        sponsorObjList.push(sponsorObj)
+        sponsorObjList.push(sponsorObj);
       }
       const newSponsors = await this.sponsorService.insertMany(sponsorObjList);
       const newSponsorIds = newSponsors.map((t) => t._id);
@@ -381,17 +384,11 @@ export class EventResolver {
     } catch (error) {
       return AppResponse.handleError(error);
     }
-
   }
 
   @Query((returns) => GetEventsResponse)
-  async getEvents(
-    @Context() context: any,
-    @Args('directorId', { nullable: true }) directorId?: string
-  ) {
-
+  async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     try {
-
       const secret = this.configService.get<string>('JWT_SECRET');
       const userId = tokenToUser(context, secret);
 
@@ -428,7 +425,6 @@ export class EventResolver {
         }
       }
 
-
       const events = await this.eventService.find(filter);
       return {
         code: HttpStatus.OK,
@@ -439,7 +435,6 @@ export class EventResolver {
       return AppResponse.handleError(err);
     }
   }
-
 
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
@@ -455,7 +450,6 @@ export class EventResolver {
     }
   }
 
-  
   /**
    * POPULATE
    * ===============================================================================================

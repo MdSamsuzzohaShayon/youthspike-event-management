@@ -58,6 +58,7 @@ export interface IEventAdd extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   ldo?: string;
+  divisions: string;
   // sponsors: File[];
 }
 

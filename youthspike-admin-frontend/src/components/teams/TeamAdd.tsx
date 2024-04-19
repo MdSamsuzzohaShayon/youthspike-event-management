@@ -117,7 +117,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
 
     // Renders
     const toBeCaptains = () => {
-        const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
+        const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.username && ap.username.trim() !== '' );
         const options = makeOptionList(playersWithEmail);
         return <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />
     }

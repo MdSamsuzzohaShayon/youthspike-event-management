@@ -110,7 +110,8 @@ function Menu() {
     // ===== Component Mount =====
     useEffect(() => {
         const userDetail = getUserFromCookie();
-        if (userDetail) {
+
+        if (userDetail && userDetail.token) {
             if (!isAuthenticated) setIsAuthenticated(true);
             setUser({ token: userDetail.token, info: userDetail.info });
             fetchLDO();
@@ -182,11 +183,13 @@ function Menu() {
                         <p className='uppercase text-yellow-logo mt-1'>{user.info?.role}</p>
                         <br />
                     </div>
-                    {eventId && (
+                    {eventId ? (
                         <div className="league mb-8 w-full">
                             <Link href="/" className='text-2xl font-bold'>Event </Link>
                         </div>
-                    )}
+                    ) : <div className="league mb-8 w-full">
+                        <Link href="/" className='text-2xl font-bold'>Events </Link>
+                    </div>}
                     <ul className='menu-list flex justify-start flex-col gap-8'>
                         {renderMenuItems(eventId, userMenuList)}
                         {(user && user.token && user.token !== '') && <li><button className="btn-danger" type='button' onClick={handleLogout}>Logout</button></li>}

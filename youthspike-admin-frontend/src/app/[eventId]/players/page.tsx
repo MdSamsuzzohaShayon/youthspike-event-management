@@ -1,13 +1,13 @@
 'use client'
 
-import { GET_EVENT_WITH_PLAYERS, GET_PLAYERS } from '@/graphql/players';
-import { IPlayer, IPlayerExpRel } from '@/types/player';
+import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
+import { IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import { gql, useApolloClient, useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
-import { divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
+import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { IError, IEventExpRel, IMenuItem, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
@@ -15,17 +15,14 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import SortableList from '@/components/player/SortableList';
-import { initialUserMenuList } from '@/utils/staticData';
 import { usePathname } from 'next/navigation';
-import { getUserFromCookie } from '@/utils/cookie';
-import Link from 'next/link';
 import UserMenuList from '@/components/layout/UserMenuList';
+import { handleResponse } from '@/utils/handleError';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
 
   // ===== hooks ===== 
   const user = useUser();
-  const pathname = usePathname();
 
   // ===== Local State ===== 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -50,9 +47,9 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   const fetchPlayer = async () => {
     const playerRes = await getEvent({ variables: { eventId: params.eventId } });
-    if (!playerRes?.data?.getEvent?.success) return setActErr({success: false, code: playerRes?.data?.getEvent?.code, message: playerRes?.data?.getEvent?.message});
-
-    if (!playerRes) return;
+   
+    const success = handleResponse({response: playerRes?.data?.getEvent, setActErr});
+    if (!success) return;
 
     let npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
 
@@ -148,16 +145,18 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
-      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-        <div className="mb-4 division-selection w-full">
-          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-        </div>
-      )}
       <h1 className='mb-8 text-center'>Players</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />
       </div>
+
+      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+        <div className="mb-4 division-selection w-full">
+          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        </div>
+      )}
+      
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {addPlayer ? (<>
@@ -170,7 +169,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           <button className="btn-info mt-4 mb-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
         {/* <PlayerList teamIds={teamList.map((t) => t._id)}  divisionList={divisionList} teamList={filteredTeamList} /> */}
-        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} showRank={showRank} />
       </>)}
     </div>
   )

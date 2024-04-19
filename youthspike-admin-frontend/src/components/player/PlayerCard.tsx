@@ -3,7 +3,7 @@ import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayer, IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
-import { AdvancedImage } from '@cloudinary/react';
+import { AdvancedImage, responsive } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
@@ -94,7 +94,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId
         }
       });
-  
+
       if (refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
@@ -113,7 +113,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId
         }
       });
-  
+
       if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
@@ -219,8 +219,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     return <p className='text-yellow-logo uppercase'>{teamFound ? teamFound.name : "Unassigned"}</p>;
   }
 
-
-
   return (
     <React.Fragment>
       <div className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? "bg-gray-700 " : "bg-gray-500"} py-2 relative rounded-md `} style={{ minHeight: '6rem' }} >
@@ -232,8 +230,12 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
-              {player.profile ? <AdvancedImage className="w-20 h-full object-center object-cover" cldImg={cld.image(player.profile)} />
-                : <img src="/icons/sports-man.svg" alt="" className="w-20 svg-white" />}
+
+              <div className="advanced-img w-20 h-24 border border-yellow rounded-lg border-4">
+                {player.profile ? <AdvancedImage className="w-full h-full " cldImg={cld.image(player.profile)} />
+                  : <img src="/icons/sports-man.svg" alt="" className="svg-white w-full h-full" />}
+              </div>
+
               <div className="player-name flex flex-col w-full">
                 <h3 className='break-words w-28 md:w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-logo uppercase'>Captain</p>}
@@ -245,15 +247,16 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
             <div className="text-box w-3/12 flex flex-col justify-center items-center">
               {showRank && player?.rank && (
-                <div className="rank-box flex flex-col items-center">
-                  <h3 className='bg-yellow-logo text-gray-900 w-8 h-8 flex justify-center items-center text-base'>
+                <div className="rank-box flex flex-col items-center rounded-lg">
+                  <h3 className='bg-yellow-logo text-gray-900 px-2 flex justify-center items-center text-base'>
                     {player?.rank}
                   </h3>
                   <p>Rank</p>
                 </div>
               )}
-              <div className="flex flex-col justify-center items-end">
-                <p className='break-words w-full text-end' >{player.phone ? player.phone : 'Phone: N/A'}</p>
+              <div className="flex flex-col justify-center items-center w-full text-center">
+                <p className='break-words' >{player.username}</p>
+                <p className='break-words' >{player.phone ? player.phone : 'Phone: N/A'}</p>
               </div>
             </div>
           </div>
@@ -266,8 +269,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
           {rankControls && player.status === EPlayerStatus.ACTIVE && (<React.Fragment>
-            <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain)} > Make Captain</li>
-            <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain)} > Make Co-Captain</li>
+            <li role="presentation" onClick={(e) =>handleMakeCaptain(e, player._id) } > Make Captain</li>
+            <li role="presentation" onClick={(e) =>handleMakeCoCaptain(e, player._id)} > Make Co-Captain</li>
           </React.Fragment>)}
           <li role="presentation" onClick={handleMovePlayerBox} > Move Player</li>
           {player.status === EPlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)} > Make Active</li>)}

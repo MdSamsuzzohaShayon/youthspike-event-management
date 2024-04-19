@@ -43,6 +43,8 @@ function MatchCard({ match, sl, eventId, refetchFunc }: MatchCardProps) {
     if (refetchFunc) await refetchFunc();
   }
 
+  
+
 
   return (
     <li className='w-full md:w-5/12 bg-gray-700 py-2 flex justify-between items-center relative rounded-lg' style={{ minHeight: '6rem' }}>

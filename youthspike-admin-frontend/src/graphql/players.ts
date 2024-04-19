@@ -23,6 +23,7 @@ const playerResponse = `
   _id
   firstName
   lastName
+  username
   profile
   email
   rank
@@ -118,7 +119,7 @@ const CREATE_PLAYER_RAW = `
     createPlayer(input: $input, profile: $profile) {
       code
       message
-      name
+      success
       data{
         ${playerResponse}
       }
@@ -132,7 +133,7 @@ const UPDATE_PLAYER_RAW = `
     updatePlayer(input: $input, playerId: $playerId, profile: $profile) {
       code
       message
-      name
+      success
       data {
         ${playerResponse}
       }
