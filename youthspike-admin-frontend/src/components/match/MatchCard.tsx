@@ -12,18 +12,21 @@ import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
 import TextImg from '../elements/TextImg';
 import PointsByRound from './PointsByRound';
-import { INetRelatives, IRoundRelatives } from '@/types';
+import { IError, INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
+import MatchAdd from './MatchAdd';
 
 interface MatchCardProps {
   match: IMatchExpRel;
   sl: number;
   eventId: string;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   refetchFunc?: () => Promise<void>;
 }
 
-function MatchCard({ match, sl, eventId, refetchFunc }: MatchCardProps) {
+function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: MatchCardProps) {
 
   const actionItemEl = useRef<HTMLUListElement | null>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
@@ -53,9 +56,6 @@ function MatchCard({ match, sl, eventId, refetchFunc }: MatchCardProps) {
   }
 
 
-console.log(match);
-
-
   const teamCard = (team: ITeam, teamE: ETeam) => {
     let pointsOfRound = 0;
     roundList.forEach((r) => {
@@ -79,10 +79,11 @@ console.log(match);
     <div className='w-full md:w-5/12 bg-gray-700 flex flex-col justify-between items-center relative rounded-lg' style={{ minHeight: '6rem' }}>
 
       {/* ===== LEVEL 1 START ===== */}
-      <div className="level-1 w-full flex justify-between px-2 mt-2">
+      <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6">
         <input type="checkbox" name="match-select" id="option" className='w-4' />
-        <div className="w-10/12">
+        <div className="w-10/12 flex items-center justify-center">
           {/* <h2>Match Name</h2> */}
+          <Link href={`${FRONTEND_URL}/matches/${match._id}`} target='_blink' className='btn-info' >Enter</Link>
         </div>
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 md:h-10 svg-white' role="presentation" onClick={handleOpenAction} />
       </div>
@@ -90,17 +91,19 @@ console.log(match);
 
 
       {/* ===== LEVEL 2 START ===== */}
-      <div className="lavel-2 w-full flex justify-between items-center px-2 mt-2">
+      <div className="lavel-2 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">
         {teamCard(match?.teamA, ETeam.teamA)}
       </div>
       {/* ===== LEVEL 2 END ===== */}
 
       {/* ===== LEVEL 3 START ===== */}
-      <div className="lavel-3 w-full flex justify-between items-center px-2 mt-2">
-        <div className="w-1/12">
-          <img src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
+      <div className="lavel-3 w-full flex justify-center items-center px-2 md:px-6 mt-2 md:mt-6 gap-x-2">
+        <div className="">
+          <Link href={`/${eventId}/matches/${match._id}`}>
+            <img src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
+          </Link>
         </div>
-        <div className="w-10/12 rounds flex flex-col justify-center items-center">
+        <div className="rounds flex flex-col justify-center items-center">
           <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
             {roundList.map((round) => <li key={round._id} className='w-12 flex justify-center items-center text-yellow-logo'>RD{round.num}</li>)}
           </ul>
@@ -111,20 +114,20 @@ console.log(match);
             <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamB} dark />
           </div>
         </div>
-        <div className="w-1/12">
+        <div className="">
           <img src="/icons/share.svg" alt="share-icon" className="w-6 svg-white" />
         </div>
       </div>
       {/* ===== LEVEL 3 END ===== */}
 
       {/* ===== LEVEL 4 START ===== */}
-      <div className="lavel-4 w-full flex justify-between items-center px-2 mt-2">
+      <div className="lavel-4 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">
         {teamCard(match?.teamB, ETeam.teamB)}
       </div>
       {/* ===== LEVEL 4 END ===== */}
 
       {/* ===== LEVEL 5 START ===== */}
-      <div className="lavel-4 w-full flex justify-between items-start px-2 mt-2 pb-2">
+      <div className="lavel-4 w-full flex justify-between items-start px-2 md:px-6 mt-2 md:mt-6 pb-2">
         <div className="w-3/6">
           <p className='flex justify-start items-center gap-x-2 mb-2'>
             <span><img src='/icons/clock.svg' className='w-6 svg-white' /></span>
@@ -136,12 +139,20 @@ console.log(match);
           </p>
         </div>
         <div className="w-3/6 text-end">
-        <p className='flex justify-start items-center gap-x-2'>
+          <p className='flex justify-start items-center gap-x-2'>
             <span><img src='/icons/location.svg' className='w-6 svg-white' /></span>
             <span>{match.location}</span>
           </p>
         </div>
       </div>
+      {/* ===== LEVEL 5 END ===== */}
+
+      {/* ===== LEVEL 6 START ===== */}
+      {/* <div className="lavel-6 w-full flex justify-between items-start border-t border-gray-500 px-2 md:px-6 mt-2 md:mt-6 pb-2">
+        <h3>Match Setting</h3>
+        {match && <MatchAdd prevMatch={match} eventId={match.event}
+          setActErr={setActErr} setIsLoading={setIsLoading} update matchId={match._id} />}
+      </div> */}
       {/* ===== LEVEL 5 END ===== */}
 
       {/* Actions items start  */}

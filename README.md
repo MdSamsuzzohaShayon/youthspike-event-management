@@ -56,7 +56,6 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
- - Solve **src/components/match/PointsByRound.tsx** and show match card properly
  - Style according to Figma - Make color scheme same
  - Sponsors will always have a logo of ourself by default
 
@@ -94,8 +93,7 @@ ___
 
 
 ### Update - 1
- - When LDO is the same as the captain of the squad [00:55](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a), instead of email address, we should be able to add username
- - Subbing did not work very well
+ - Subbing did not work very well (Assign and unassign need to work properly)
  - Some issue with sponsor, they  just somehow disappeared
  - Add yellow box to the players once again
  - American version of the phone number 000-000-0000, type phone number if that automitically format that would be great
