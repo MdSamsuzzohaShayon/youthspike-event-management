@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IPlayer, IMatch, ITeam, IOption } from '@/types';
+import { IMatchExpRel } from '@/types';
 import { UserRole } from '@/types/user';
 import MatchCard from './MatchCard';
 import { divisionsToOptionList } from '@/utils/helper';
@@ -11,13 +11,13 @@ import { validateMatchDatetime } from '@/utils/datetime';
 
 interface IMatchListProps {
   eventId: string;
-  matchList: IMatch[];
+  matchList: IMatchExpRel[];
   division: string;
   refetchFunc?: ()=> Promise<void>;
 }
 
 function MatchList({ matchList, division, eventId, refetchFunc }: IMatchListProps) {
-  const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([...matchList]);
+  const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([...matchList]);
   const user = useUser();
 
   const handlePeriodChange = (e: React.SyntheticEvent) => {
@@ -41,7 +41,7 @@ function MatchList({ matchList, division, eventId, refetchFunc }: IMatchListProp
     <div className='matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap'>
       <SelectInput handleSelect={handlePeriodChange} name='period' optionList={eventPeriods.map((p) => ({ text: p, value: p }))} lblTxt='Date' rw='w-3/6' />
 
-      {filteredMatchList && filteredMatchList.map((match: IMatch, i) => <MatchCard eventId={eventId} key={match._id} match={match} sl={i + 1} refetchFunc={refetchFunc} />)}
+      {filteredMatchList && filteredMatchList.map((match: IMatchExpRel, i) => <MatchCard eventId={eventId} key={match._id} match={match} sl={i + 1} refetchFunc={refetchFunc} />)}
     </div>
   );
 }

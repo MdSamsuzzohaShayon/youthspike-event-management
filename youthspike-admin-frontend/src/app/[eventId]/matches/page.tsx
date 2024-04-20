@@ -9,13 +9,12 @@ import MatchAdd from '@/components/match/MatchAdd';
 import MatchList from '@/components/match/MatchList';
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
-import { IAddMatch, IDefaultEventMatch, IDefaultMatchProps, IError, IEvent, IEventExpRel, IMatch, IMenuItem, IOption, ITeam } from '@/types';
+import { IError, IEventExpRel, IMatch, IMatchExpRel, IOption, IRoundRelatives, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 import { useLazyQuery, useQuery } from '@apollo/client';
-import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 
@@ -26,12 +25,13 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   const [addMatch, setAddMatch] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
-  const [matchList, setMatchList] = useState<IMatch[]>([]);
-  const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([]);
+  const [matchList, setMatchList] = useState<IMatchExpRel[]>([]);
+  const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
+  
 
   // Hooks
   const user = useUser();
@@ -58,6 +58,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
       const newMatchList = matchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       setFilteredMatchList([...newMatchList]);
+
     }
   }
 
@@ -65,20 +66,23 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     try {
 
       const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
-      
-      
+
+
       const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
       if (!success) return;
 
 
-      const newMatchList: IMatch[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
+      const newMatchList: IMatchExpRel[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
       let newFilteredMatchList = [...newMatchList];
 
       const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
-      
+
       let newFilteredTeamList = [...newTeamList];
 
       if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
+
+  
+      
 
 
       // Division and team value
@@ -106,7 +110,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     }
   }
 
-  const addMatchCB = (matchData: IMatch) => {
+  const addMatchCB = (matchData: IMatchExpRel) => {
     setMatchList((prevState) => [...prevState, matchData]);
     setFilteredMatchList((prevState) => [...prevState, matchData]);
   }
@@ -145,7 +149,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
           <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
         </div>
       )}
-      
+
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
 

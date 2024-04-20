@@ -56,7 +56,7 @@ ___
  - color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
-
+ - Solve **src/components/match/PointsByRound.tsx** and show match card properly
  - Style according to Figma - Make color scheme same
  - Sponsors will always have a logo of ourself by default
 
@@ -75,7 +75,7 @@ ___
  - If there are no logo, do not put any text there
  - On matches page, we do not need upcomming, only current and passed
  - No current or any text on yellow box of match card, instead just keep the date
- - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
+ - Design match list same as this - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
  - Update player need to go to save and team page (if there is a team id) / player page
 
 ### Important

@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
-import { IAddMatch, IDefaultMatchProps, IError, IEventExpRel, IMatch, IOption, ITeam } from '@/types';
+import { IAddMatch, IDefaultMatchProps, IError, IEventExpRel, IMatch, IMatchExpRel, IOption, ITeam } from '@/types';
 import TextInput from '../elements/forms/TextInput';
 import NumberInput from '../elements/forms/NumberInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -26,8 +26,8 @@ interface IMatchAddProps {
     matchId?: string;
     eventData?: IEventExpRel | null;
     showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-    prevMatch?: IMatch;
-    addMatchCB?: (matchData: IMatch) => void;
+    prevMatch?: IMatchExpRel;
+    addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
 

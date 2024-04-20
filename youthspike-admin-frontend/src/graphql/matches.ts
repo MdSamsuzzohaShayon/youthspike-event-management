@@ -51,6 +51,23 @@ const matchResponse = `
     rosterLock
     timeout
     location
+    rounds {
+      _id
+      num
+      completed
+      teamAScore
+      teamBScore
+    }
+    nets {
+      _id
+      teamAScore
+      teamBScore
+      num
+      points
+      round{
+        _id
+      }
+    }
     teamA {
       _id
       name

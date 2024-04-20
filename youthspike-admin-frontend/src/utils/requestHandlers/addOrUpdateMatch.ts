@@ -1,5 +1,5 @@
 import { GET_EVENT_WITH_MATCHES_TEAMS } from "@/graphql/matches";
-import { IAddMatch, IError, IMatch } from "@/types";
+import { IAddMatch, IError, IMatch, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
 import React from "react";
 
@@ -15,7 +15,7 @@ interface IAddOrUpdateMatchProps {
     matchId?: string;
     update?: boolean;
     showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-    addMatchCB?: (matchData: IMatch) => void;
+    addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
 async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, addMatchCB }: IAddOrUpdateMatchProps) {
@@ -34,12 +34,12 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             setActErr(null);
             // Get updated match
         } else {
-            if (!currDivision || currDivision === '') return setActErr({ name: 'Invalid Division', message: 'You must select a division!' })
+            if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' })
             const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision) addMatchObj.division = currDivision;
             addMatchObj.date = new Date(addMatchObj.date).toISOString();
-            if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ name: 'Invalid Teams', message: 'Teams can not be empty to unselected!' });
-            if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ name: 'Invalid Teams', message: 'Both teams are same!' })
+            if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ code: 400, success: false, message: 'Teams can not be empty to unselected!' });
+            if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' })
             // @ts-ignore
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });

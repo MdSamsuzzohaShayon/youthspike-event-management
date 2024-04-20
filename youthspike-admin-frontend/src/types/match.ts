@@ -1,4 +1,4 @@
-import { ITeam } from ".";
+import { INetRelatives, IRoundRelatives, ITeam } from ".";
 
 export interface IDefaultMatch{
   division: string;
@@ -35,4 +35,19 @@ export interface IMatch extends IMatchBase{
   _id: string;
   teamA: ITeam;
   teamB: ITeam;
+}
+
+export interface IMatchRelatives extends IMatchBase{
+  _id: string;
+  teamA: ITeam;
+  teamB: ITeam;
+  rounds: IRoundRelatives[];
+}
+
+export interface IMatchExpRel extends IMatchBase{
+  _id: string;
+  teamA: ITeam;
+  teamB: ITeam;
+  rounds: IRoundRelatives[];
+  nets: INetRelatives[];
 }

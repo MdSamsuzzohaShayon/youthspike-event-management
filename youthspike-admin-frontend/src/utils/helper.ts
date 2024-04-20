@@ -1,6 +1,7 @@
-import { IDefaultEventMatch, IDefaultMatchProps, IMenuItem, IOption, ITeam, IUserContext } from "@/types";
+import { IDefaultEventMatch, IDefaultMatchProps, IMenuItem, INetRelatives, IOption, IRoundRelatives, ITeam, IUserContext } from "@/types";
 import { eventPaths, initialUserMenuList } from "./staticData";
 import { UserRole } from "@/types/user";
+import { ETeam } from "@/types/team";
 
 export function isValidObjectId(docId: string | null): boolean | null {
   if (!docId) return null;
@@ -83,4 +84,27 @@ export function rearrangeMenu(userDetail: IUserContext, eventPath: string | null
     }
   }
   return menuList;
+}
+
+
+export function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE: ETeam): number {
+  // Remove the teamE declaration here
+  let score = 0;
+
+  findNets.forEach((net) => {
+      const teamAScore = net.teamAScore || 0;
+      const teamBScore = net.teamBScore || 0;
+
+      // Dark is oponent team
+      if (teamE === ETeam.teamA && teamAScore > teamBScore) {
+          score += net.points;
+      } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
+          score += net.points;
+      }
+  });
+  
+
+  const fullPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
+
+  return score;
 }
