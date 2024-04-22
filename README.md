@@ -93,10 +93,7 @@ ___
 
 
 ### Update - 1
- - Subbing did not work very well (Assign and unassign need to work properly)
  - Some issue with sponsor, they  just somehow disappeared
- - Add yellow box to the players once again
- - American version of the phone number 000-000-0000, type phone number if that automitically format that would be great
  - [05:50](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
  - Once a round is submitted that ranking should not be ever changed
  - [07:00](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) If something on the roster changes later on the round on the match and director decide to remove injured because he got injured, his ranking should be remain same (No isseue because ranking is locked because round has started), when he will be back his ranking should be same
@@ -124,7 +121,6 @@ ___
  - Make player image bigger in player card
  - Phone number is not updating or saving properly
  - When creating team along with logo, players are still there after they are being added to the team
- - Subbing did not work very well
  - Add yellow box to the players once again
  - [05:50](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
  - Once a round is submitted that ranking should not be ever changed
@@ -250,6 +246,13 @@ ___
  - To be honest, I did not notice the ddesign for match list. I just made it without any reference. Somehow, I missed that page design. I will do it soon.
  - On your the phone, when you are scrolling players it is automitically re-ranking players and when you are selecting lefet side or right side of the screen, it will scrool. I have a idea to make this better. We can use a icon like this -> https://www.flaticon.com/free-icon/arrow_13934430 director and captains are going to re-rank players holding those icons.
 
+
+### Database operations 
+ - to fix username issues
+```
+spikeball-matches> db.players.updateMany({ username: { $exists: false } }, [{$set: { username: { $concat: ["$firstName", "_",{ $toString: { $add: [ { $toInt: { $multiply: [ { $rand: {} }, 1000 ] } },100 ] } } ]}}}]);
+
+```
 
 
 

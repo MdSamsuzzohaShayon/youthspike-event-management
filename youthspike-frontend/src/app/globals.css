@@ -159,3 +159,9 @@ dialog::backdrop {
   @apply border border-gray-300
 }
 /* Borders end  */
+
+
+.advanced-img img{
+  object-position: center;
+  object-fit: cover;
+}

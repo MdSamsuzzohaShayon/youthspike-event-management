@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ADD_EVENT, ADD_EVENT_RAW, GET_A_EVENT, UPDATE_EVENT, UPDATE_EVENT_RAW } from '@/graphql/event';
-import { useApolloClient, useMutation } from '@apollo/client';
+import { ADD_EVENT, UPDATE_EVENT } from '@/graphql/event';
+import { useMutation } from '@apollo/client';
 
 
 // Components
@@ -14,7 +14,7 @@ import NumberInput from '../elements/forms/NumberInput';
 import { useUser } from '@/lib/UserProvider';
 
 // TypeScript
-import { IEventAddProps, IEventAdd, IOption, IEventSponsorAdd } from '@/types';
+import { IEventAddProps, IEventAdd, IEventSponsorAdd } from '@/types';
 import { UserRole } from '@/types/user';
 
 import staticData from '../../lib/data.json';
@@ -31,7 +31,7 @@ import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
 // Select Input Options
 const { homeTeamStrategy, rosterLockList } = staticData;
 
-const initialEvent = {
+const initialEvent: IEventAdd = {
     name: 'Event 1',
     divisions: '',
     nets: 3,
@@ -65,10 +65,18 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     const addSponsorDialogEl = useRef<HTMLDialogElement | null>(null);
     const [currSponsor, setCurrSponsor] = useState<IEventSponsorAdd>(initialCurrSponsor);
 
-    const [eventState, setEventState] = useState<IEventAdd>(prevEvent ? prevEvent : initialEvent);
+    const [eventState, setEventState] = useState<IEventAdd>(prevEvent ? {...prevEvent, coachPassword: initialEvent.coachPassword} : initialEvent);
     const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
-    // const [sponsorImgList, setSponsorImgList] = useState<File[] | string[]>(prevEvent && prevEvent.sponsors ? prevEvent.sponsors : []);
-    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>([]);
+    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(()=>{
+        const sl: IEventSponsorAdd[]  = [];
+        if(prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0){
+            for (let i = 0; i < prevEvent.sponsors.length; i+=1) {
+                // @ts-ignore
+                sl.push({ company: prevEvent.sponsors[i].company,logo: prevEvent.sponsors[i].logo});
+            }
+        }
+        return sl;
+    });
     const [directorId, setDirectorId] = useState<string | null>(null);
     const [eventId, setEventId] = useState<string | null>(null);
 
@@ -88,9 +96,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             updateEvent, sponsorImgList, sponsorInputEl, eventLogo, setActErr, eventUpdate,
             eventAdd, user, router, initialEvent
         });
-
-        // Refetch
-        // client.refetchQueries({ include: [GET_A_EVENT] });
     };
 
     /**
@@ -131,7 +136,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
 
     const handleImgRemove = (e: React.SyntheticEvent, companyName: string) => {
         e.preventDefault();
-        // @ts-ignore
         setSponsorImgList((prevState) => { // Need to update
             return prevState.filter((imgFile) => typeof imgFile === "string" ? imgFile !== companyName : imgFile.company !== companyName);
         });
@@ -173,30 +177,31 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     const handleFileNameChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
-        if (!update) {
-            setCurrSponsor((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        } else {
-            // setEventState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        }
+        // if (!update) {
+        //     setCurrSponsor((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        // } else {
+        //     setEventState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        // }
+
+        setCurrSponsor((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
     }
 
     const handleFileChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const fileInputEl = e.target as HTMLInputElement;
+        sponsorInputEl.current = fileInputEl;
         if (!fileInputEl.files || fileInputEl.files.length === 0) return;
+
+        const inputedFile = fileInputEl.files[0];
 
         if (currSponsor.company && currSponsor.company !== '') {
             const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
-            let sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: fileInputEl.files[0] };
-            // @ts-ignore
+            let sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: inputedFile };
             setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
-            // @ts-ignore
-            setCurrSponsor((prevState) => ({ ...prevState, logo: fileInputEl.files[0] }));
+            setCurrSponsor((prevState) => ({ ...prevState, logo: inputedFile }));
         } else {
-            // @ts-ignore
-            setCurrSponsor((prevState) => ({ ...prevState, logo: fileInputEl.files[0] }));
-            // @ts-ignore
-            setSponsorImgList((prevState) => [...prevState, { company: currSponsor.company, logo: fileInputEl.files[0] }]);
+            setCurrSponsor((prevState) => ({ ...prevState, logo: inputedFile }));
+            setSponsorImgList((prevState) => [...prevState, { company: currSponsor.company, logo: inputedFile }]);
         }
     }
 
@@ -281,7 +286,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
                 <button type="button" onClick={handleSponsorDialog} className="btn-primary">Add New</button>
             </div>
             {/* File upload end  */}
-            <ShowSponsors fileList={sponsorImgList} />
+            <ShowSponsors fileList={sponsorImgList} handleImgRemove={handleImgRemove} />
 
             <button className="btn-info" type="submit" >{update ? "Update" : "Submit"}</button>
         </form>

@@ -62,4 +62,15 @@ function defaultInputValue(isoString: string): string {
     return formattedDate;
 }
 
-export { validateMatchDatetime, readDatetime, defaultInputValue, readDate, readTime };
+
+function formatUSPhoneNumber(number: string) {
+    const areaCode = number.slice(0, 3);
+    const prefix = number.slice(3, 6);
+    const lineNumber = number.slice(6);
+
+    return `(${areaCode}) ${prefix}-${lineNumber}`;
+}
+
+
+
+export { validateMatchDatetime, readDatetime, defaultInputValue, readDate, readTime, formatUSPhoneNumber };

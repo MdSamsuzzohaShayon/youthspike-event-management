@@ -12,8 +12,6 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import * as jwt from 'jsonwebtoken';
-import { Stream } from 'stream';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -27,7 +25,7 @@ import { ConfigService } from '@nestjs/config';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import * as bcrypt from 'bcrypt';
-import { CreateEventInput, EventSponsorInput, UpdateEventInput } from './event.args';
+import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, UpdateEventInput } from './event.args';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { LdoService } from 'src/ldo/ldo.service';
@@ -66,7 +64,7 @@ export class EventResolver {
     private matchService: MatchService,
     private userService: UserService,
     private sponsorService: SponsorService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -163,10 +161,13 @@ export class EventResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateEventResponse)
   async updateEvent(
-    @Args({ name: 'sponsorsInput', type: () => [GraphQLUpload] }) sponsorsInput: Upload[],
-    @Args('input') args: UpdateEventInput,
+    // @Args({ name: 'sponsorsInput', type: () => [GraphQLUpload] }) sponsorsInput: Upload[],
+    @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
+    @Args('updateInput') updateInput: UpdateEventInput,
     @Args('eventId') eventId: string,
     @Context() context: any,
+    @Args('sponsorsStringInput', { nullable: true, type: () => [EventSponsorStringInput] })
+    sponsorsStringInput?: EventSponsorStringInput[],
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
@@ -181,7 +182,7 @@ export class EventResolver {
       const secret = this.configService.get<string>('JWT_SECRET');
       const userId = tokenToUser(context, secret);
 
-      // Get user
+      // ===== Get user =====
       const [loggedUser, eventExist] = await Promise.all([
         this.userService.findById(userId),
         this.eventService.findById(eventId),
@@ -192,35 +193,64 @@ export class EventResolver {
       // If the user is admin we must need ldoId otherwise get id from token
       let directorId = null;
       if (loggedUser.role === UserRole.director) {
-        delete args.ldo;
+        delete updateInput.ldo;
         directorId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin) {
-        if (!args.ldo)
+        if (!updateInput.ldo)
           return AppResponse.handleError({
             success: false,
             message: 'You must select a director in order to update a event!',
           });
-        directorId = args.ldo;
+        directorId = updateInput.ldo;
       }
-
-      // Upload file to cloudinary
-      const uploadPromises = [];
-      for (let i = 0; i < sponsorsInput.length; i++) {
-        if (typeof sponsorsInput[i] !== 'string')
-          uploadPromises.push(this.cloudinaryService.uploadFiles(sponsorsInput[i]));
-      }
-      const cloudinaryUrls: string[] = await Promise.all(uploadPromises);
 
       const findLdo = await this.ldoService.findByDirectorId(directorId);
 
-      // Arrange data and save to database
+      // ===== Arrange data and save to database =====
       const eventData: any = {
-        ...args,
+        ...updateInput,
         ldo: findLdo._id,
-        sponsors: cloudinaryUrls,
+        // sponsors: cloudinaryUrls,
         divisions: eventExist.divisions,
       };
 
+      // ===== Upload Sponsors =====
+      if (sponsorsInput.length > 0 || sponsorsStringInput.length > 0) {
+        const prevSponsors = eventExist.sponsors;
+        const newSponsorIds = [];
+
+        const uploadPromises = [];
+        for (let i = 0; i < sponsorsInput.length; i++) {
+          uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+        }
+        const sponsorItemList = await Promise.all(uploadPromises);
+        if (sponsorItemList.length > 0) {
+          const organizeSponsors = sponsorItemList.map((s) => ({ company: s.company, logo: s.logo, event: eventId }));
+          const sponsorList = await this.sponsorService.insertMany(organizeSponsors);
+          newSponsorIds.push(...sponsorList.map((doc) => doc._id.toString()));
+        }
+
+        if (sponsorsStringInput.length > 0) {
+          const prevSponsorList = await this.sponsorService.query({ event: eventId });
+          if (prevSponsorList && prevSponsorList.length > 0) {
+            for (const ps of prevSponsorList) {
+              const matchedSponsor = sponsorsStringInput.find(
+                (ssi) => ssi.company === ps.company && ssi.logo === ps.logo,
+              );
+              if (matchedSponsor) newSponsorIds.push(ps._id.toString());
+            }
+          }
+        }
+
+        eventData.sponsors = newSponsorIds;
+        const deleteSponsors = [];
+        for (const ps of prevSponsors) {
+          if (!newSponsorIds.includes(ps.toString())) deleteSponsors.push(ps);
+        }
+        if (deleteSponsors.length > 0) await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
+      }
+
+      // ===== Update logo =====
       if (logo) {
         const logoUrl = await this.cloudinaryService.uploadFiles(logo);
         if (logoUrl) {
@@ -228,11 +258,11 @@ export class EventResolver {
         }
       }
 
-      // Update divisions
-      if (args.divisions && args.divisions !== '' && eventExist.divisions !== args.divisions) {
+      // ===== Update divisions =====
+      if (updateInput.divisions && updateInput.divisions !== '' && eventExist.divisions !== updateInput.divisions) {
         // Check which item has been updated, Check previous division name
         const prevDivList = eventExist.divisions.split(',');
-        const currDivList = args.divisions.split(',');
+        const currDivList = updateInput.divisions.split(',');
 
         const divisionPromises = [];
 
@@ -268,7 +298,7 @@ export class EventResolver {
         eventData.divisions = currDivList.join(', ');
       }
 
-      // Update Coach Password
+      // ===== Update Coach Password =====
       if (eventData.coachPassword) {
         const teamsOfEvent = await this.teamService.query({ event: eventId });
         const cap = [],
@@ -295,8 +325,8 @@ export class EventResolver {
         }
       }
 
-      const updatedEvent = await this.eventService.update(eventData, eventId);
-      // const updateLdo = await this.ldoService.update({ events: [updatedEvent._id] }, findLdo._id);
+      await this.eventService.updateOne({ _id: eventId }, eventData);
+      const updatedEvent = await this.eventService.findById(eventId);
 
       return {
         data: updatedEvent,

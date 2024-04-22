@@ -1,7 +1,6 @@
 import { INetRelatives, IRoundRelatives, ITeam } from ".";
 
-export interface IDefaultMatch{
-  division: string;
+export interface ICommonMatchEvent{
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;
@@ -9,6 +8,10 @@ export interface IDefaultMatch{
   rosterLock: string;
   timeout: number;
   location: string;
+}
+
+export interface IDefaultMatch extends ICommonMatchEvent{
+  division: string;
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {

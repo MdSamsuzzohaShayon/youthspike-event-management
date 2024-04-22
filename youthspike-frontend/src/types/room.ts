@@ -1,82 +1,83 @@
-import { INetPlayers } from ".";
-import { ETieBreaker } from "./net";
+import { INetPlayers } from '.';
+import { ETieBreaker } from './net';
 
 export enum EActionProcess {
-    INITIATE = 'INITIATE',
+  INITIATE = 'INITIATE',
 
-    CHECKIN = 'CHECKIN',
+  CHECKIN = 'CHECKIN',
 
-    LINEUP = 'LINEUP',
-    LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
+  LINEUP = 'LINEUP',
+  LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
 
-    LOCKED = 'LOCKED',
-    COMPLETE = 'COMPLETE',
-};
+  LOCKED = 'LOCKED',
+  COMPLETE = 'COMPLETE',
+}
 
 export interface IRoomRoundProcess {
-    _id: string;
-    teamAProcess: null | EActionProcess;
-    teamBProcess: null | EActionProcess;
+  _id: string;
+  teamAProcess: null | EActionProcess;
+  teamBProcess: null | EActionProcess;
 }
 
 export interface IRoom {
-    _id: string;
-    match: string;
-    teamA: null | string;
-    teamAClient: null | string;
-    teamB: null | string;
-    teamBClient: null | string;
-    rounds: IRoomRoundProcess[];
+  _id: string;
+  match: string;
+  teamA: null | string;
+  teamAClient: null | string;
+  teamB: null | string;
+  teamBClient: null | string;
+  rounds: IRoomRoundProcess[];
 }
 
 export interface IRoomNets extends IRoom {
-    nets: INetPlayers[]
+  nets: INetPlayers[];
 }
 
 export interface ICheckIn {
-    room: string;
-    round: string;
-    teamAProcess: string | null;
-    teamBProcess: string | null;
+  room: string;
+  round: string;
+  teamAProcess: string | null;
+  teamBProcess: string | null;
 }
 
 export interface IRoomNetAssign {
-    _id: string;
-    teamAPlayerA: string | null | undefined;
-    teamAPlayerB: string | null | undefined;
-    teamBPlayerA: string | null | undefined;
-    teamBPlayerB: string | null | undefined;
+  _id: string;
+  teamAPlayerA: string | null | undefined;
+  teamAPlayerB: string | null | undefined;
+  teamBPlayerA: string | null | undefined;
+  teamBPlayerB: string | null | undefined;
 }
 
 export interface IRoomNetType {
-    _id: string;
-    netType: ETieBreaker;
+  _id: string;
+  netType: ETieBreaker;
 }
 
-interface IActionCommon{
-    room: string | null;
-    round: string | null;
-    teamAProcess: string | null;
-    teamBProcess: string | null;
+interface IActionCommon {
+  room: string | null;
+  round: string | null;
+  teamAProcess: string | null;
+  teamBProcess: string | null;
 }
-export interface ICheckInAction extends IActionCommon{
-    nets: IRoomNetAssign[];
-}
-
-export interface ISubmitLineupAction extends ICheckInAction{
-    teamAId: string;
-    teamBId: string;
-    subbedPlayers: string[];
+export interface ICheckInAction extends IActionCommon {
+  nets: IRoomNetAssign[];
 }
 
-export interface ITeiBreakerAction extends IActionCommon{
-    nets: IRoomNetType[];
+export interface ISubmitLineupAction extends ICheckInAction {
+  teamAId: string;
+  teamBId: string;
+  match: string | null;
+  subbedPlayers: string[];
+}
+
+export interface ITeiBreakerAction extends IActionCommon {
+  nets: IRoomNetType[];
 }
 
 export interface ISubmitLineup {
-    room: string;
-    round: string;
-    teamAProcess: string | null;
-    teamBProcess: string | null;
-    nets: IRoomNetAssign[]
+  room: string;
+  round: string;
+  teamAProcess: string | null;
+  teamBProcess: string | null;
+  nets: IRoomNetAssign[];
 }

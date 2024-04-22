@@ -10,6 +10,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import { IOption, ITeam } from '@/types';
 import EmailInput from '../elements/forms/EmailInput';
 import { UserRole } from '@/types/user';
+import { formatUSPhoneNumber } from '@/utils/datetime';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -256,7 +257,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
               )}
               <div className="flex flex-col justify-center items-center w-full text-center">
                 <p className='break-words' >{player.username}</p>
-                <p className='break-words' >{player.phone ? player.phone : 'Phone: N/A'}</p>
+                <p className='break-words' >{player.phone ? formatUSPhoneNumber(player.phone) : 'Phone: N/A'}</p>
               </div>
             </div>
           </div>

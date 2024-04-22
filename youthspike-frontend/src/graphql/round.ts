@@ -14,4 +14,5 @@ mutation UpdateRound($updateInput: UpdateRoundInput!) {
   }
 `;
 
+// eslint-disable-next-line import/prefer-default-export
 export { UPDATE_ROUND };

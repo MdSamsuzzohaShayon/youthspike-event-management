@@ -409,7 +409,7 @@ type Mutation {
   login(email: String!, password: String!): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUserArgs!, profile: Upload): UserResponse!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
-  updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!, logo: Upload): CreateOrUpdateEventResponse!
+  updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
@@ -490,6 +490,11 @@ input UpdateEventInput {
   location: String
   ldo: String
   id: String
+}
+
+input EventSponsorStringInput {
+  company: String!
+  logo: String!
 }
 
 input CreateTeamInput {

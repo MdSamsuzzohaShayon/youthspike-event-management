@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+
 'use client';
 
 /* eslint-disable no-unused-vars */
@@ -84,7 +86,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const audio = new Audio('/audio/notification.mp3');
-    audio.play().catch((error) => console.error(error));
+    audio.play().catch((musicErr) => console.error(musicErr));
   };
 
   const restartAudio = () => {
@@ -136,7 +138,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   useEffect(() => {
     if (currentRound && myPlayers) {
       const nmsp = []; // new subbed players
-      for (let i = 0; i < currentRound.subs.length; i++) {
+      for (let i = 0; i < currentRound.subs.length; i += 1) {
         const playerExist = myPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
         if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
           nmsp.push(playerExist);
@@ -146,7 +148,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
     if (currentRound && opPlayers) {
       const nosp = []; // new subbed players
-      for (let i = 0; i < currentRound.subs.length; i++) {
+      for (let i = 0; i < currentRound.subs.length; i += 1) {
         const playerExist = opPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
         if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
           nosp.push(playerExist);
@@ -173,10 +175,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           {actErr && <Message error={actErr} />}
         </div>
 
-        <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton" />
+        <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
+          {' '}
+          Button
+        </button>
 
-        {/* // Show oponent subbed players  */}
-
+        {/* ===== Show oponent subbed players ===== */}
         {opSubbedPlayers && opSubbedPlayers.length > 0 && (
           <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">
             <div className="container px-4 mx-auto ">

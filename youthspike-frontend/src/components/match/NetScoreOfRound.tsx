@@ -1,62 +1,65 @@
-/* eslint-disable @next/next/no-img-element */
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrNetNum, setCurrentRoundNets, updateNetPlayer, setNets } from '@/redux/slices/netSlice';
+import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 
 // Utils
-import { netSize, screen } from '@/utils/constant';
+import { screen } from '@/utils/constant';
 
 // Components
-import LogoMatchScore from './LogoMatchScore';
-import PointsByRound from './PointsByRound';
-import NetCard from './NetCard';
-import { IError, INetRelatives, IPlayer, ITeam } from '@/types';
+import { INetRelatives, IPlayer } from '@/types';
 import { useUser } from '@/lib/UserProvider';
-import { useSocket } from '@/lib/SocketProvider';
 import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import { ETeamPlayer, INetUpdate } from '@/types/net';
+import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
 import { ETeam } from '@/types/team';
 import { changeTheRound } from '@/utils/match/emitSocketEvents';
-import MatchSetting from './MatchSetting';
 import { setNetH } from '@/utils/helper';
+import { useMutation } from '@apollo/client';
+import { UPDATE_ROUND } from '@/graphql/round';
 import { border } from '@/utils/styles';
 import { EPlayerStatus } from '@/types/player';
 import { setActErr } from '@/redux/slices/elementSlice';
-
+import MatchSetting from './MatchSetting';
+import LogoMatchScore from './LogoMatchScore';
+import PointsByRound from './PointsByRound';
+import NetCard from './NetCard';
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
-
   const user = useUser();
   const dispatch = useAppDispatch();
-  const socket = useSocket();
 
+  const [boardHeight, setBoardHeight] = useState<number>(0);
+
+  // Elements references for styling
+  const leftEl = useRef<null | HTMLDivElement>(null);
+  const leftTempEl = useRef<null | HTMLDivElement>(null);
+  const leftTopEl = useRef<null | HTMLDivElement>(null);
+  const leftBottomEl = useRef<null | HTMLDivElement>(null);
+  const rightEl = useRef<null | HTMLDivElement>(null);
 
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { myTeam, opTeam, showTeamPlayers, myPlayers, opPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match }
-    = useAppSelector((state) => state.matches);
-  const currRoom = useAppSelector((state) => state.rooms.current);
+  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match } = useAppSelector(
+    (state) => state.matches,
+  );
 
+  const [mutateRound] = useMutation(UPDATE_ROUND);
 
-
-
-
-
-  // ===== Input Round Change ===== 
+  // ===== Input Round Change =====
   const handleRoundChange = (e: React.SyntheticEvent, roundId: string) => {
     e.preventDefault();
-    let next = false;
-    let targetRoundIndex = roundList.findIndex((r) => r._id === roundId);
+    const targetRoundIndex = roundList.findIndex((r) => r._id === roundId);
     if (targetRoundIndex !== -1 && currentRound) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
-        next = true;
         const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound || !prevRound.completed) return dispatch(setActErr({ name: "Incomplete round!", message: "Make sure you have completed this round by putting players on all of the nets and points." }));
+        if (!prevRound || !prevRound.completed)
+          return dispatch(setActErr({ name: 'Incomplete round!', message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
         dispatch(setActErr(null));
       }
 
@@ -64,10 +67,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       dispatch(setDisabledPlayerIds([]));
       dispatch(setPrevPartner(null));
     }
-  }
+  };
 
-  const isValidNet = (net: INetRelatives,) => net && net._id && net.round;
-  const createNetPlayerObject = (net: INetRelatives, teamPlayerId: string, playerSpot: ETeamPlayer, myTeamE: ETeam) => {
+  const isValidNet = (net: INetRelatives) => net && net._id && net.round;
+  const createNetPlayerObject = (net: INetRelatives, teamPlayerId: string, playerSpot: ETeamPlayer, myTeamELocal: ETeam) => {
     const netPlayerObj = {
       _id: net._id,
       teamAPlayerA: net.teamAPlayerA || null,
@@ -76,39 +79,45 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       teamBPlayerB: net.teamBPlayerB || null,
     };
 
+    let enablePlayerId = null;
     if (playerSpot === ETeamPlayer.TA_PA || playerSpot === ETeamPlayer.TB_PA) {
-      if (myTeamE === ETeam.teamA) {
-        netPlayerObj.teamAPlayerA = teamPlayerId
+      if (myTeamELocal === ETeam.teamA) {
+        if (netPlayerObj.teamAPlayerA) enablePlayerId = netPlayerObj.teamAPlayerA;
+        netPlayerObj.teamAPlayerA = teamPlayerId;
       } else {
-        netPlayerObj.teamBPlayerA = teamPlayerId
+        if (netPlayerObj.teamBPlayerA) enablePlayerId = netPlayerObj.teamBPlayerA;
+        netPlayerObj.teamBPlayerA = teamPlayerId;
       }
     } else if (playerSpot === ETeamPlayer.TA_PB || playerSpot === ETeamPlayer.TB_PB) {
-      if (myTeamE === ETeam.teamA) {
-        netPlayerObj.teamAPlayerB = teamPlayerId
+      if (myTeamELocal === ETeam.teamA) {
+        if (netPlayerObj.teamAPlayerB) enablePlayerId = netPlayerObj.teamAPlayerB;
+        netPlayerObj.teamAPlayerB = teamPlayerId;
       } else {
-        netPlayerObj.teamBPlayerB = teamPlayerId
+        if (netPlayerObj.teamBPlayerB) enablePlayerId = netPlayerObj.teamBPlayerB;
+        netPlayerObj.teamBPlayerB = teamPlayerId;
       }
     }
 
-    return netPlayerObj;
+    return { netPlayerObj, enablePlayerId };
   };
   const handleSelectPlayer = (e: React.SyntheticEvent, teamPlayerId: string) => {
     e.preventDefault();
 
-    // Vslidate selecting invalid players 
+    // Check selected net already have a player or not, if there is already a player remove him from disabled player
+
+    // Vslidate selecting invalid players
     const dpIds = [...disabledPlayerIds];
     if (prevPartner) dpIds.push(prevPartner);
     if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
-    const dtp = dpIds.includes(teamPlayerId) ? true : false; // dtp = disabled this player
+    const dtp = !!dpIds.includes(teamPlayerId); // dtp = disabled this player
     if (dtp) return;
-
 
     dispatch(setShowTeamPlayers(false));
     if (!user || !user.token || !user.info) return;
 
     if (!selectedNet || !selectedPlayerSpot || !isValidNet(selectedNet)) return;
 
-    const netPlayerObj: INetUpdate = createNetPlayerObject(selectedNet, teamPlayerId, selectedPlayerSpot, myTeamE);
+    const { netPlayerObj, enablePlayerId }: { netPlayerObj: INetUpdate; enablePlayerId: string | null } = createNetPlayerObject(selectedNet, teamPlayerId, selectedPlayerSpot, myTeamE);
 
     // Update all nets and current round nets
     const updatedCRN = [...currentRoundNets]; // crn = current round nets
@@ -120,12 +129,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedAllNets));
 
-
-
-
     // Disabled players after selecting them
     // @ts-ignore
-    const dpi = [teamPlayerId, ...disabledPlayerIds]; // dpi = disabled players ids
+    let dpi = [teamPlayerId, ...disabledPlayerIds]; // dpi = disabled players ids
+    if (enablePlayerId) dpi = dpi.filter((d) => d !== enablePlayerId);
     dispatch(setDisabledPlayerIds(dpi));
     dispatch(setOutOfRange([]));
   };
@@ -134,10 +141,18 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     e.preventDefault();
     dispatch(setShowTeamPlayers(false));
     dispatch(setOutOfRange([]));
-  }
+  };
 
-
-
+  const handleRemoveSubb = async (e: React.SyntheticEvent, playerId: string) => {
+    e.preventDefault();
+    await updateSubbedPlayer({
+      currRound: currentRound,
+      dispatch,
+      mutateRound,
+      playerId,
+      roundList,
+    });
+  };
 
   useEffect(() => {
     if (currentRoundNets && currentRoundNets.length > 0) {
@@ -145,6 +160,23 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     }
   }, []);
 
+  useEffect(() => {
+    const leftH = rightEl.current?.clientHeight ? rightEl.current?.clientHeight : 0;
+    const rightH = rightEl.current?.clientHeight ? rightEl.current?.clientHeight : 0;
+    const fullHeight = leftH > rightH ? leftH : rightH;
+    // console.log({ leftH, rightH, fullHeight });
+
+    setBoardHeight(fullHeight);
+
+    if (leftTempEl.current) leftTempEl.current.style.height = `${fullHeight + 40}px`;
+
+    if (leftTopEl.current) {
+      leftTopEl.current.style.minHeight = `${fullHeight / 2 + 20}px`;
+    }
+    if (leftBottomEl.current) {
+      leftBottomEl.current.style.minHeight = `${fullHeight / 2 + 20}px`;
+    }
+  });
 
   const renderAvailablePlayers = (): React.ReactNode => {
     /**
@@ -153,61 +185,93 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
      * Which player to show that can be founded in Available Ids
      */
     const playerListEl: React.ReactNode[] = [];
-    let teamPlayerList: IPlayer[] = myPlayers.slice();
+    const teamPlayerList: IPlayer[] = myPlayers.slice();
+
+    const subbedPlayers = currentRound?.subs ?? [];
 
     for (let i = 0; i < teamPlayerList.length; i += 1) {
       const dpIds = [...disabledPlayerIds];
       if (prevPartner) dpIds.push(prevPartner);
       if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
-      const dtp = dpIds.includes(teamPlayerList[i]._id) ? true : false; // dtp = disabled this player
+      const dtp = !!dpIds.includes(teamPlayerList[i]._id); // dtp = disabled this player
 
       // Inactive players should not be shown
-      if (availablePlayerIds.includes(teamPlayerList[i]._id) && teamPlayerList[i].status !== EPlayerStatus.INACTIVE) {
+      if (availablePlayerIds.includes(teamPlayerList[i]._id) && teamPlayerList[i].status !== EPlayerStatus.INACTIVE && !subbedPlayers.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
-          <div key={i} className={`p-1 border-b border-gray-300 flex justify-between items-center w-full gap-1 cursor-pointer ${dtp ? "bg-gray-400" : "bg-transparent"}`} role="presentation" onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)} >
+          <div
+            key={i}
+            className={`border-b border-gray-300 flex justify-between items-center w-full cursor-pointer ${dtp ? 'bg-gray-400' : 'bg-transparent'}`}
+            role="presentation"
+            onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)}
+          >
             <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-400 flex justify-center items-center">{teamPlayerList[i].rank}</p>
-            {teamPlayerList[i].profile ? <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-10 h-10 rounded-full border-2 border-gray-900" /> : <img src='/icons/sports-man.svg' className='svg-black w-10 h-10 rounded-full p-2 border-2 border-gray-900' />}
-            <p className=' w-7/12 words-break capitalize'>
+            <div className="advanced-img w-10 h-10 rounded-full border-2 border-gray-900 overflow-hidden">
+              {teamPlayerList[i].profile ? (
+                <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
+              ) : (
+                <Image width={24} height={24} src="/icons/sports-man.svg" alt="sports-man" className="svg-black w-full" />
+              )}
+            </div>
+            <p className=" w-7/12 words-break capitalize">
               {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
             </p>
-          </div>
+          </div>,
         );
       }
     }
-
-
-    let opNetPlayerA = null, opNetPlayerB = null;
-    if (myTeamE === ETeam.teamA) {
-      if (selectedNet?.teamBPlayerA) opNetPlayerA = opPlayers.find((p) => p._id === selectedNet.teamBPlayerA);
-      if (selectedNet?.teamBPlayerB) opNetPlayerB = opPlayers.find((p) => p._id === selectedNet.teamBPlayerB);
-    } else {
-      if (selectedNet?.teamAPlayerA) opNetPlayerA = opPlayers.find((p) => p._id === selectedNet.teamAPlayerA);
-      if (selectedNet?.teamAPlayerB) opNetPlayerB = opPlayers.find((p) => p._id === selectedNet.teamAPlayerB);
-    }
-
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <div className='player-list mt-8'>
-      {playerListEl}
-    </div>;
+    return <div className="player-list mt-4 w-full flex flex-col gap-1">{playerListEl}</div>;
   };
 
-  // console.log({ teamA: user.info?.captainplayer === teamA?.captain?._id, tas: net?.teamAScore });
+  const renderSubbedPlayers = (): React.ReactNode => {
+    const playerListEl: React.ReactNode[] = [];
+    const teamPlayerList: IPlayer[] = myPlayers.slice();
 
+    const subbedPlayers = currentRound?.subs ?? [];
+
+    for (let i = 0; i < teamPlayerList.length; i += 1) {
+      // Inactive players should not be shown
+      if (availablePlayerIds.includes(teamPlayerList[i]._id) && subbedPlayers.includes(teamPlayerList[i]._id)) {
+        playerListEl.push(
+          <div key={i} className="border-b border-gray-300 flex justify-between items-center w-full cursor-pointer bg-transparent">
+            <div className="advanced-img w-10 h-10 rounded-full border-2 border-gray-900 overflow-hidden">
+              {teamPlayerList[i].profile ? (
+                <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
+              ) : (
+                <Image width={24} height={24} src="/icons/sports-man.svg" alt="sports-man" className="svg-black w-full" />
+              )}
+            </div>
+            <p className="w-7/12 words-break capitalize">
+              {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
+            </p>
+            <div className="w-1/12">
+              <Image width={16} height={16} alt="close-button" src="/icons/close.svg" className="svg-black" role="presentation" onClick={(e)=>handleRemoveSubb(e, teamPlayerList[i]._id)} />
+            </div>
+          </div>,
+        );
+      }
+    }
+    return <div className="player-list mt-4 w-full flex flex-col gap-1">{playerListEl}</div>;
+  };
 
   return (
     <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
       {/* Left side round detail start  */}
-      {!showTeamPlayers
-        ? (<div className={`round-detail border ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
+      {!showTeamPlayers ? (
+        <div ref={leftEl} className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
-          <div className="round-top w-full h-3/6 bg-gradient-dark px-2 flex flex-col items-center justify-between">
+          <div ref={leftTopEl} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
 
-            <div className={`round-nums ${screenWidth > screen.xs ? "mt-2" : "mt-4"} flex w-full justify-start gap-1 items-center`}>
+            <div className="round-nums flex w-full justify-start gap-1 items-center">
               {roundList.map((round) => (
-                <button className={`single-r ${round._id === currentRound?._id ? "bg-yellow-400" : "bg-gray-100"} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"} rounded-lg`} type="button"
+                <button
+                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-gray-100'} py-1 text-center cursor-pointer ${
+                    screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
+                  } rounded-lg`}
+                  type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
-                  key={round._id}>
+                  key={round._id}
+                >
                   RD{round.num}
                 </button>
               ))}
@@ -217,21 +281,28 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Top Side End  */}
 
           {/* Bottom Side Start  */}
-          <div className={`round-bottom w-full h-3/6 border ${border.light} px-2 flex flex-col items-center justify-between`}>
+          <div ref={leftBottomEl} className={`round-bottom w-full border ${border.light} px-2 flex flex-col items-center justify-between`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
               <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
             </div>
           </div>
           {/* Bottom Side End  */}
-        </div>)
-        : (<div className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`} style={setNetH(screenWidth)}>
-          <img src='/icons/close.svg' className='svg-black right-2 top-2' role='presentation' onClick={handleClosePlayers} />
-          <div className="px-2 w-full">
+        </div>
+      ) : (
+        <div ref={leftTempEl} className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`}>
+          <Image width={24} height={24} alt="close-button" src="/icons/close.svg" className="svg-black mx-2 mt-2" role="presentation" onClick={handleClosePlayers} />
+          <div className="px-2 w-full" style={{ minHeight: 'fit-content' }}>
             <h3>Selected Net {selectedNet?.num}</h3>
+            {renderAvailablePlayers()}
           </div>
-          {renderAvailablePlayers()}
-        </div>)}
+
+          <div className="px-2 w-full mt-4" style={{ minHeight: 'fit-content' }}>
+            <h3>Subbed Players</h3>
+            {renderSubbedPlayers()}
+          </div>
+        </div>
+      )}
       {/* Left side round detail end  */}
 
       {/* Setting start  */}
@@ -239,13 +310,14 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {/* Setting end  */}
 
       {/* Right side net detail start */}
-      <div className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? "w-9/12" : "w-3/6"}`} style={setNetH(screenWidth)}>
-        {screenWidth > screen.xs
-          ? currentRoundNets.map((net) => <NetCard key={net._id} net={net} screenWidth={screenWidth} />)
-          : <NetCard net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} screenWidth={screenWidth} />}
+      <div ref={rightEl} className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? 'w-9/12' : 'w-3/6'}`} style={setNetH(screenWidth)}>
+        {screenWidth > screen.xs ? (
+          currentRoundNets.map((net) => <NetCard boardHeight={boardHeight} key={net._id} net={net} screenWidth={screenWidth} />)
+        ) : (
+          <NetCard boardHeight={boardHeight} net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} screenWidth={screenWidth} />
+        )}
       </div>
       {/* Right side net detail end */}
-
     </div>
   );
 }
