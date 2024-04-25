@@ -93,7 +93,6 @@ ___
 
 
 ### Update - 1
- - Some issue with sponsor, they  just somehow disappeared
  - [05:50](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
  - Once a round is submitted that ranking should not be ever changed
  - [07:00](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) If something on the roster changes later on the round on the match and director decide to remove injured because he got injured, his ranking should be remain same (No isseue because ranking is locked because round has started), when he will be back his ranking should be same

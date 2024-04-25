@@ -26,6 +26,7 @@ import useClickOutside from '../../../hooks/useClickOutside';
 import AnyFileInput from '../elements/forms/AnyFileInput';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
+import { APP_NAME } from '@/utils/keys';
 
 
 // Select Input Options
@@ -65,20 +66,51 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     const addSponsorDialogEl = useRef<HTMLDialogElement | null>(null);
     const [currSponsor, setCurrSponsor] = useState<IEventSponsorAdd>(initialCurrSponsor);
 
-    const [eventState, setEventState] = useState<IEventAdd>(prevEvent ? {...prevEvent, coachPassword: initialEvent.coachPassword} : initialEvent);
+    const [eventState, setEventState] = useState<IEventAdd>(prevEvent ? { ...prevEvent, coachPassword: initialEvent.coachPassword } : initialEvent);
     const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
-    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(()=>{
-        const sl: IEventSponsorAdd[]  = [];
-        if(prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0){
-            for (let i = 0; i < prevEvent.sponsors.length; i+=1) {
-                // @ts-ignore
-                sl.push({ company: prevEvent.sponsors[i].company,logo: prevEvent.sponsors[i].logo});
-            }
-        }
-        return sl;
-    });
     const [directorId, setDirectorId] = useState<string | null>(null);
     const [eventId, setEventId] = useState<string | null>(null);
+
+    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch the logo file from the local directory
+                const response = await fetch('/free-logo.png');
+                const blob = await response.blob(); // Convert the response to a Blob
+
+                const defaultLogoFile = new File([blob], 'default_logo.jpg', { type: 'image/jpeg' }); // Create a File object
+
+                // Create the initial sponsor image list with the default logo file
+                const sl: IEventSponsorAdd[] = [{
+                    company: APP_NAME,
+                    logo: defaultLogoFile,
+                }];
+                if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
+                    for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
+                        sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
+                    }
+                }
+                setSponsorImgList(sl); // Set the initial state
+            } catch (error) {
+                console.error('Error fetching default logo:', error);
+                // If fetching fails, set a default logo without a file
+                const sl: IEventSponsorAdd[] = [{
+                    company: APP_NAME,
+                    logo: null,
+                }];
+                if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
+                    for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
+                        sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
+                    }
+                }
+                setSponsorImgList(sl); // Set the initial state
+            }
+        };
+
+        fetchData(); // Call the async function to fetch data
+
+        return []; // Return an empty array temporarily, as the state will be updated asynchronously
+    });
 
     // GraphQL
     const [eventAdd, { error: eaErr, loading: eaLoading, data: eaData }] = useMutation(ADD_EVENT);
