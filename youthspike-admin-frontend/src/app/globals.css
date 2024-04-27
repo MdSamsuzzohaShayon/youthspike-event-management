@@ -173,6 +173,9 @@ dialog::backdrop {
   border-color: #fce013;
 }
 
+.advanced-img{
+  overflow: hidden;
+}
 .advanced-img img{
   object-position: center;
   object-fit: cover;

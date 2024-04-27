@@ -54,8 +54,8 @@ export class LdoResolver {
     private playerService: PlayerService,
     private matchService: MatchService,
     private roundsService: RoundService,
-    private netService: NetService
-  ) { }
+    private netService: NetService,
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
@@ -84,7 +84,7 @@ export class LdoResolver {
         role: UserRole.director,
         active: true,
         email: args.email,
-        password: hashPwd
+        password: hashPwd,
       };
 
       const director = await this.userService.createOrUpdate(userObj);
@@ -131,7 +131,7 @@ export class LdoResolver {
       const ldoExist = await this.ldoService.findOne({
         $or: [{ director: dId.toString() }, { _id: dId.toString() }],
       });
-      if (!ldoExist) return AppResponse.notFound("LDO");
+      if (!ldoExist) return AppResponse.notFound('LDO');
 
       // If the user is admin we must need ldoId otherwise get id from token
       let updateUserId = null;
@@ -158,19 +158,18 @@ export class LdoResolver {
       }
       if (args.email || args?.email?.trim() === '') {
         if (args.email.trim() === '') {
-          return AppResponse.handleError({ msg: "Email field can not be empty" });
+          return AppResponse.handleError({ msg: 'Email field can not be empty' });
         }
 
         const directorExist = await this.userService.findOne({ email: args.email });
         if (directorExist) {
-          return AppResponse.handleError({ msg: "There is already a user with this email" });
+          return AppResponse.handleError({ msg: 'There is already a user with this email' });
         }
-        newUserObj.email = args.email
+        newUserObj.email = args.email;
       }
 
       const updatePromises = [];
       updatePromises.push(this.userService.updateOne({ _id: updateUserId }, newUserObj));
-
 
       // Update user -> set user id inside ldo
       const updateLdoObj: any = { name: args.name };
@@ -240,7 +239,7 @@ export class LdoResolver {
       return {
         code: HttpStatus.OK,
         success: true,
-        message: "List of all LDOs",
+        message: 'List of all LDOs',
         data: ldosExist,
       };
     } catch (err) {
@@ -251,10 +250,7 @@ export class LdoResolver {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
   @Mutation((returns) => GetDirectorLDOResponse)
-  async deleteEventDirector(
-    @Context() context: any,
-    @Args({ name: 'dId', type: () => String }) dId: string,
-  ) {
+  async deleteEventDirector(@Context() context: any, @Args({ name: 'dId', type: () => String }) dId: string) {
     /**
      * Delete all events assosiated with it
      * Delete the user that is assosiated with it
@@ -279,13 +275,13 @@ export class LdoResolver {
               // captains
               const teams = await this.teamService.query({ _id: { $in: teamIds } });
               if (teams && teams.length > 0) {
-                const captainPlayerIds = teams.filter(team => team.captain).map(team => team.captain.toString());
+                const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
                 promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
               }
             }
             if (event.players && event.players.length > 0) {
               const playerIds = event.players.map((player) => player.toString());
-              promisesToDelete.push(this.playerService.delete({ _id: { $in: playerIds } }))
+              promisesToDelete.push(this.playerService.delete({ _id: { $in: playerIds } }));
             }
             if (event.matches && event.matches.length > 0) {
               const matchIds = event.matches.map((match) => match.toString());
@@ -295,10 +291,10 @@ export class LdoResolver {
               const matches = await this.matchService.query({ _id: { $in: matchIds } });
               if (matches && matches.length > 0) {
                 for (const match of matches) {
-                  const roundIds = match.rounds.map(r => r.toString());
+                  const roundIds = match.rounds.map((r) => r.toString());
                   promisesToDelete.push(this.roundsService.deleteMany({ _id: { $in: roundIds } }));
 
-                  const netIds = match.nets.map(r => r.toString());
+                  const netIds = match.nets.map((r) => r.toString());
                   promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));
                 }
               }
@@ -316,13 +312,12 @@ export class LdoResolver {
         code: HttpStatus.NO_CONTENT,
         success: true,
         message: 'Delete the LDO successfully!',
-        data: ldo,
+        data: null,
       };
     } catch (err) {
       return AppResponse.handleError(err);
     }
   }
-
 
   /**
    * POPULATE

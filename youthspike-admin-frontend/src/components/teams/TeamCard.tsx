@@ -97,7 +97,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
         try {
             const dRes = await deleteTeam({ variables: { teamId } });
             console.log(dRes);
-            
+
             if (fefetchFunc) await fefetchFunc();
         } catch (error) {
             console.log(error);
@@ -157,7 +157,10 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                 <div className="w-5/12">
                     <Link href={`/${eventId}/teams/${team._id}`}>
                         <div className="brand flex gap-1 items-center">
-                            {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-12" /> : <TextImg className='w-12 h-12' fullText={team.name} />}
+                            {team.logo
+                                ? (<div className='advanced-img w-12'>
+                                    <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
+                                </div>) : <TextImg className='w-12 h-12' fullText={team.name} />}
                             <h3 className='leading-none text-lg font-bold capitalize'>{team.name}</h3>
                         </div>
                         {/* <p>2-1 Record</p> */}
@@ -168,7 +171,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                         {team.captain && (
                             <div className="brand flex gap-1">
                                 {team.captain?.profile
-                                    ? <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-12 h-12 rounded-full border-2 border-yellow-logo" />
+                                    ? <div className='advanced-img w-12 h-12 rounded-full border-2 border-yellow-logo'><AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-full" /></div>
                                     : <TextImg className='w-12 h-12 border-2 border-yellow-logo' fText={team.captain.firstName} lText={team.captain.lastName} />}
 
                                 <div className="caption flex flex-col">

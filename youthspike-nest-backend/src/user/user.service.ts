@@ -43,7 +43,7 @@ export class UserService {
     role: UserRole,
   ): Promise<User> {
     const userObj = {
-      email: playerExist.username,
+      email: playerExist.email,
       password: eventExist.coachPassword,
       firstName: playerExist.firstName,
       lastName: playerExist.lastName,

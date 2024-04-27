@@ -23,11 +23,9 @@ const playerResponse = `
   _id
   firstName
   lastName
-  username
   profile
   email
   rank
-  rankLock
   status
   phone
   division
@@ -84,6 +82,7 @@ query GetEvent($eventId: String!) {
           _id
           name
           division
+          rankLock
         }
         ldo {
           _id

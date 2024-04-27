@@ -45,6 +45,10 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   division: string;
 
+  @Field((_type) => Boolean, { nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  rankLock: boolean;
+
   /**
    * Relations
    */

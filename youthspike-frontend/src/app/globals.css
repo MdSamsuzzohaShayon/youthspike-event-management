@@ -160,7 +160,9 @@ dialog::backdrop {
 }
 /* Borders end  */
 
-
+.advanced-img{
+  overflow: hidden;
+}
 .advanced-img img{
   object-position: center;
   object-fit: cover;

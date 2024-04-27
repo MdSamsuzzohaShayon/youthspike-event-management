@@ -112,4 +112,15 @@ const CLONE_EVENT = gql`
   }
 `;
 
-export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT };
+
+const DELETE_AN_EVENT = gql`
+mutation DeleteEvent($eventId: String!) {
+  deleteEvent(eventId: $eventId) {
+    code
+    message
+    success
+  }
+}
+`;
+
+export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT, DELETE_AN_EVENT };

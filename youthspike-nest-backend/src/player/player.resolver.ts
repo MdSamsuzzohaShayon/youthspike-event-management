@@ -38,7 +38,7 @@ export class PlayerResolver {
     private teamService: TeamService,
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -55,12 +55,6 @@ export class PlayerResolver {
      *    Step-4: Update events
      */
     try {
-      const playerExist = await this.playerService.findOne({ username: input.username });
-      if (playerExist)
-        return AppResponse.handleError({
-          code: HttpStatus.NOT_ACCEPTABLE,
-          message: 'There is already a player with this username!',
-        });
       // Upload image to cloudinary
       let profileUrl: string | null = null;
       const ensurePromises = [];
@@ -78,6 +72,18 @@ export class PlayerResolver {
         const teamExist = await this.teamService.findById(input.team);
         if (teamExist && teamExist.players) {
           playerObj.rank = teamExist.players.length + 1;
+        }
+      }
+
+      // ===== Check duplicate email =====
+      if (input.email) {
+        const duplicateExist = await this.playerService.findOne({ email: input.email });
+        if (duplicateExist) {
+          return AppResponse.handleError({
+            name: 'Duplicate Email',
+            statusCode: HttpStatus.NOT_ACCEPTABLE,
+            message: 'Use another valid and email in order to change the email',
+          });
         }
       }
       const newPlayer = await this.playerService.create(playerObj);
@@ -149,14 +155,14 @@ export class PlayerResolver {
         );
       }
 
-      // ===== Check duplicate username =====
-      if (input.username) {
-        const duplicateExist = await this.playerService.findOne({ username: input.username });
-        if (duplicateExist && duplicateExist.username !== playerExist.username) {
+      // ===== Check duplicate email =====
+      if (input.email) {
+        const duplicateExist = await this.playerService.findOne({ email: input.email });
+        if (duplicateExist && duplicateExist.email !== playerExist.email) {
           return AppResponse.handleError({
-            name: 'DuplicateUsername',
+            name: 'Duplicate Email',
             statusCode: HttpStatus.NOT_ACCEPTABLE,
-            message: 'Use another valid and unique user name in order to change the user name',
+            message: 'Use another valid and email in order to change the email',
           });
         }
       }

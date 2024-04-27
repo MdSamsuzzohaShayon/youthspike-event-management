@@ -11,6 +11,7 @@ import { IOption, ITeam } from '@/types';
 import EmailInput from '../elements/forms/EmailInput';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
+import { useUser } from '@/lib/UserProvider';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -41,6 +42,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const [deleteAPlayer] = useMutation(DELETE_A_PLAYER);
 
   const playerLiEl = useRef<HTMLDivElement | null>(null);
+
+  const user = useUser();
 
 
   // ====== Actions for players  ====== 
@@ -127,7 +130,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setActionOpen(prevState => !prevState);
       setIsLoading(true);
       const deletePlayer = await deleteAPlayer({ variables: { playerId } });
-      if (refetchFunc) await refetchFunc();
+      if (refetchFunc) { await refetchFunc(); } else {
+        await client.refetchQueries({ include: [GET_A_TEAM] });
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -241,7 +246,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 <h3 className='break-words w-28 md:w-full capitalize'>{player.firstName + ' ' + player.lastName}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className='text-yellow-logo uppercase'>Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className='text-yellow-logo uppercase'>Co-Captain</p>}
-                {!teamId && renderTeam()}
+                {!teamId && (user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain) && renderTeam()}
               </div>
             </div>
 
@@ -256,7 +261,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 </div>
               )}
               <div className="flex flex-col justify-center items-center w-full text-center">
-                <p className='break-words' >{player.username}</p>
                 <p className='break-words' >{player.phone ? formatUSPhoneNumber(player.phone) : 'Phone: N/A'}</p>
               </div>
             </div>
@@ -270,8 +274,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation" > <Link href={`/${eventId}/players/${player._id}`}>Edit</Link></li>
           {rankControls && player.status === EPlayerStatus.ACTIVE && (<React.Fragment>
-            <li role="presentation" onClick={(e) =>handleMakeCaptain(e, player._id) } > Make Captain</li>
-            <li role="presentation" onClick={(e) =>handleMakeCoCaptain(e, player._id)} > Make Co-Captain</li>
+            <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain)} > Make Captain</li>
+            <li role="presentation" onClick={(e) => player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain)} > Make Co-Captain</li>
           </React.Fragment>)}
           <li role="presentation" onClick={handleMovePlayerBox} > Move Player</li>
           {player.status === EPlayerStatus.ACTIVE ? (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)} > Make Inactive</li>) : (<li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)} > Make Active</li>)}

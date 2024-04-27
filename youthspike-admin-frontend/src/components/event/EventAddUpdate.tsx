@@ -71,46 +71,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     const [directorId, setDirectorId] = useState<string | null>(null);
     const [eventId, setEventId] = useState<string | null>(null);
 
-    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch the logo file from the local directory
-                const response = await fetch('/free-logo.png');
-                const blob = await response.blob(); // Convert the response to a Blob
-
-                const defaultLogoFile = new File([blob], 'default_logo.jpg', { type: 'image/jpeg' }); // Create a File object
-
-                // Create the initial sponsor image list with the default logo file
-                const sl: IEventSponsorAdd[] = [{
-                    company: APP_NAME,
-                    logo: defaultLogoFile,
-                }];
-                if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
-                    for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
-                        sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
-                    }
-                }
-                setSponsorImgList(sl); // Set the initial state
-            } catch (error) {
-                console.error('Error fetching default logo:', error);
-                // If fetching fails, set a default logo without a file
-                const sl: IEventSponsorAdd[] = [{
-                    company: APP_NAME,
-                    logo: null,
-                }];
-                if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
-                    for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
-                        sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
-                    }
-                }
-                setSponsorImgList(sl); // Set the initial state
-            }
-        };
-
-        fetchData(); // Call the async function to fetch data
-
-        return []; // Return an empty array temporarily, as the state will be updated asynchronously
-    });
+    const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>([]);
 
     // GraphQL
     const [eventAdd, { error: eaErr, loading: eaLoading, data: eaData }] = useMutation(ADD_EVENT);
@@ -265,6 +226,47 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             setDirectorId(user.info?._id ? user.info._id : null);
         }
     }, [user]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const sl: IEventSponsorAdd[] = [];
+
+            try {
+                if (!update) {
+                    // Fetch the logo file from the local directory
+                    const response = await fetch('/free-logo.png');
+                    const blob = await response.blob(); // Convert the response to a Blob
+
+                    const defaultLogoFile = new File([blob], 'default_logo.jpg', { type: 'image/jpeg' }); // Create a File object
+
+                    // Create the initial sponsor image list with the default logo file
+                    sl.push({
+                        company: APP_NAME,
+                        logo: defaultLogoFile,
+                    });
+                }
+
+                if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
+                    for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
+                        sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
+                    }
+                }
+
+                setSponsorImgList(sl); // Update the state with the fetched data
+            } catch (error) {
+                console.error('Error fetching default logo:', error);
+                // If fetching fails, fall back to using the previous event sponsors
+                if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
+                    for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
+                        sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
+                    }
+                }
+                setSponsorImgList(sl); // Update the state with the fallback data
+            }
+        };
+
+        fetchData();
+    }, [prevEvent, update]); 
 
     return (
         <form onSubmit={handleEventAdd} className='flex flex-col gap-2'>

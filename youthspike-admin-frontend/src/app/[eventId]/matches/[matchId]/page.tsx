@@ -15,16 +15,16 @@ import React, { useState, useEffect } from 'react';
  * 
  * Real Madrid
  * Captain
- * p4
+ * p3e1@e.com
  * Co-captains
- * jacob_838
+ * p4e2@e.com
  * 
  * 
  * FC Barcelona
  * Captain
- * p5
+ * p9e1@e.com
  * Co-captains
- * ava_588
+ * p11e1@e.com
  */
 
 interface MatchSingleProps {

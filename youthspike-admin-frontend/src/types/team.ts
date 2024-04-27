@@ -5,6 +5,7 @@ export interface ITeam {
   active: boolean;
   name: string;
   logo?: string | null;
+  rankLock: boolean;
   division: string;
   event: IEvent;
   players: IPlayerExpRel[];

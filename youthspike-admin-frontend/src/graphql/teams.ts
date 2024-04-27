@@ -10,7 +10,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      username
       rank
       email
       phone
@@ -82,7 +81,6 @@ const eventResponse = `
       lastName
       email
       division
-      rankLock
       teams{
         _id
         name

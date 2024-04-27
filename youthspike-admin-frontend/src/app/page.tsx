@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/lib/UserProvider';
-import { CLONE_EVENT, GET_EVENTS } from '@/graphql/event';
+import { CLONE_EVENT, DELETE_AN_EVENT, GET_EVENTS } from '@/graphql/event';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
@@ -49,8 +49,9 @@ function EventsPage() {
   const filterListEl = useRef<HTMLDialogElement | null>(null);
 
   // GraphQL Queries
-  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
+  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
   const [cloneEvent] = useMutation(CLONE_EVENT);
+  const [deleteEvent] = useMutation(DELETE_AN_EVENT);
 
   // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
@@ -89,6 +90,23 @@ function EventsPage() {
     }
     return router.push(`/${eventResponse.data.cloneEvent.data._id}/settings`);
   }
+
+
+
+  const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
+    e.preventDefault();
+    try {      
+      const eventResponse = await deleteEvent({ variables: { eventId } });
+      if (eventResponse.data.deleteEvent.success !== true) {
+        return setActErr({ code: eventResponse.data.deleteEvent.code, message: eventResponse.data.deleteEvent.message, success: false });
+      }
+    } catch (error) {
+      console.log(error);
+      
+    }
+    await refetch();
+  }
+
 
   useEffect(() => {
     (async () => {
@@ -163,7 +181,7 @@ function EventsPage() {
         </div>
 
         {eventList && eventList.length > 0 && eventList.map((event: IEvent) => (
-          <EventCard key={event._id} copyEvent={handleCopyEvent} event={event} directorId={directorId} user={user} />
+          <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} event={event} directorId={directorId} user={user} />
         ))}
       </div>
     </div>

@@ -13,7 +13,7 @@ import {
   TieBreakerInput,
   NetTieBreaker,
 } from './gateway.input';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
 import { EActionProcess } from 'src/round/round.schema';
 import { NetService } from 'src/net/net.service';
@@ -64,6 +64,12 @@ class RoomLocal {
 class RoomLocalWithNets {
   @Field((type) => [NetAssign], { nullable: false })
   nets: NetAssign[];
+
+  @Field((type) => [String], { nullable: false })
+  subbedPlayers: string[];
+
+  @Field((type) => Int, { nullable: false })
+  subbedRound: number;
 }
 
 @ObjectType()
@@ -274,26 +280,30 @@ export class MyGatWay implements OnModuleInit {
     roomData.rounds = roundList;
     this.roomsLocal.set(submitLineup.room, roomData);
 
-    const roomDataWithNets: RoomLocalWithNets = { ...roomData, nets: submitLineup.nets };
+    const roomDataWithNets: RoomLocalWithNets = {
+      ...roomData,
+      nets: submitLineup.nets,
+      subbedRound: currRoundObj.num,
+      subbedPlayers: submitLineup.subbedPlayers,
+    };
 
-    console.log(submitLineup);
     // make players subbed for all next rounds
     if (submitLineup.subbedPlayers.length > 0) {
       updatePromises.push(
         this.roundService.updateMany(
-          { num: { $gte: currRoundObj.num }, match: submitLineup.match  },
+          { num: { $gte: currRoundObj.num }, match: submitLineup.match },
           { $addToSet: { subs: submitLineup.subbedPlayers } },
         ),
       );
     }
 
-    // Locking the player to rank
     updatePromises.push(
-      this.playerService.updateMany(
-        { teams: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
+      this.teamService.updateMany(
+        { _id: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
         { $set: { rankLock: true } },
       ),
     );
+    // update rank lock in the team
     await Promise.all(updatePromises);
 
     client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);

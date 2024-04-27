@@ -37,6 +37,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
     // if (user && user?.token && (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain)) {
     //   hasAction = true;
     // }
+    
 
     const lockedNets = currRoundNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
     if (currentRound?.num === roundList.length && currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamAProcess === EActionProcess.LINEUP && lockedNets.length <= 1) {

@@ -52,6 +52,7 @@ type Team {
   logo: String
   active: Boolean!
   division: String!
+  rankLock: Boolean
   captain: Player
   cocaptain: Player
   matches: [Match!]
@@ -153,11 +154,9 @@ type Player {
   email: String
   status: EPlayerStatus!
   rank: Int
-  rankLock: Boolean
   profile: String
   phone: String
   division: String!
-  username: String!
   events: [Event!]
   teams: [Team!]
   captainofteams: [Team!]
@@ -411,6 +410,7 @@ type Mutation {
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
   updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
+  deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   moveTeam(eventId: String!, teamId: String!, division: String!): GetTeamResponse!
@@ -597,7 +597,6 @@ input UpdateDirectorArgs {
 input CreatePlayerInput {
   firstName: String!
   lastName: String!
-  username: String!
   event: String!
   division: String!
   email: String
@@ -609,7 +608,6 @@ input CreatePlayerInput {
 input UpdatePlayerInput {
   firstName: String
   lastName: String
-  username: String
   event: String
   division: String
   email: String
@@ -623,7 +621,6 @@ input UpdatePlayerInput {
 input UpdatePlayersInput {
   firstName: String
   lastName: String
-  username: String
   event: String
   division: String
   email: String

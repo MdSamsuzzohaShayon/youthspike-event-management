@@ -29,6 +29,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [showRank, setShowRank] = useState<boolean>(false);
   const [rankControls, setRankControls] = useState<boolean>(false);
+  const [lockRank, setLockRank] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
   const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
@@ -55,6 +56,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
 
 
+
     const ntList: ITeam[] = playerRes?.data?.getEvent?.data?.teams ? playerRes?.data?.getEvent?.data?.teams : []; // Nt List = new team List
     let ftList = [...ntList]; // ft List = filtered team list
 
@@ -70,6 +72,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       if (playerExist) {
         const teamId = playerExist.teams && playerExist.teams.length > 0 ? playerExist.teams[0]._id : null;
         if (teamId) {
+          const teamExist = ntList.find((t)=> t._id === teamId);
+          if(teamExist && teamExist.rankLock) setLockRank(true);
           npList = npList.filter((p) => {
             if (p.teams && p.teams.length > 0) {
               const tIds = p.teams.map((t) => t._id);
@@ -83,6 +87,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         npList = [];
       }
     }
+
 
     let fpList = [...npList]; // fp list = filtered players list
 
@@ -169,7 +174,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           <button className="btn-info mt-4 mb-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
         {/* <PlayerList teamIds={teamList.map((t) => t._id)}  divisionList={divisionList} teamList={filteredTeamList} /> */}
-        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} showRank={showRank} />
+        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls && !lockRank} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} showRank={showRank} />
       </>)}
     </div>
   )

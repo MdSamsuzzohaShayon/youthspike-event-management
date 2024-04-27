@@ -74,6 +74,7 @@ export class TeamResolver {
           captain: input.captain,
           event: input.event,
           division: input.division.trim().toLowerCase(),
+          rankLock: false,
           active: true,
           players,
           nets: [],
@@ -149,7 +150,7 @@ export class TeamResolver {
         const playerExist = await this.playerService.findById(input.captain.toString());
 
         if (playerExist) {
-          const playerUserExist = await this.userService.findOne({ email: playerExist.username });
+          const playerUserExist = await this.userService.findOne({ email: playerExist.email });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,
@@ -195,7 +196,7 @@ export class TeamResolver {
       if (input.cocaptain) {
         const playerExist = await this.playerService.findById(input.cocaptain.toString());
         if (playerExist) {
-          const playerUserExist = await this.userService.findOne({ email: playerExist.username });
+          const playerUserExist = await this.userService.findOne({ email: playerExist.email });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,

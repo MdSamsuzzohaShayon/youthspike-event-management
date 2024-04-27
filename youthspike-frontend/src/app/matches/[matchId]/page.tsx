@@ -45,21 +45,20 @@ import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 
 /**
  * Test Match
- *
+ * 
  * Real Madrid
  * Captain
- * p3@e.com
+ * p3e1@e.com
  * Co-captains
  * p4e2@e.com
- *
- *
+ * 
+ * 
  * FC Barcelona
  * Captain
- * p7e2@e.com
+ * p9e1@e.com
  * Co-captains
- * p6@e.com
+ * p11e1@e.com
  */
-
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // ===== Hooks =====
   const dispatch = useAppDispatch();

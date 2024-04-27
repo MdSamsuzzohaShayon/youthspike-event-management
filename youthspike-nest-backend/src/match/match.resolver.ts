@@ -38,7 +38,7 @@ export class MatchResolver {
     private roundService: RoundService,
     private netService: NetService,
     private roomService: RoomService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -54,9 +54,12 @@ export class MatchResolver {
 
       const matchObj: any = {
         ...input,
-        nets: netIds, rounds: roundIds, players: playerIds,
+        nets: netIds,
+        rounds: roundIds,
+        players: playerIds,
       };
-      if (!matchObj.division || !eventExist.divisions.toLowerCase().includes(matchObj.division.trim().toLowerCase())) return AppResponse.notFound('Event');
+      if (!matchObj.division || !eventExist.divisions.toLowerCase().includes(matchObj.division.trim().toLowerCase()))
+        return AppResponse.notFound('Event');
       if (!matchObj.numberOfNets) matchObj.numberOfNets = eventExist.nets;
       if (!matchObj.numberOfRounds) matchObj.numberOfRounds = eventExist.rounds;
       if (!matchObj.playerLimit) matchObj.playerLimit = eventExist.playerLimit;
@@ -68,13 +71,13 @@ export class MatchResolver {
       if (!matchObj.timeout) matchObj.timeout = eventExist.timeout;
       if (!matchObj.location) matchObj.location = eventExist.location;
 
-      const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB })
+      const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB });
       const newMatch = await this.matchService.create({ ...matchObj, room: newRoom._id });
 
       const promisesAll = [];
 
       let firstPlacing = ETeam.teamA;
-      // ===== Create Round and nets inside a round ===== 
+      // ===== Create Round and nets inside a round =====
       for (let i = 0; i < input.numberOfRounds; i += 1) {
         const netObjs = [];
         const newRound = {
@@ -86,13 +89,13 @@ export class MatchResolver {
           teamBProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN,
           subs: [],
           firstPlacing,
-          completed: false
+          completed: false,
         };
         const round = await this.roundService.create(newRound);
         firstPlacing = firstPlacing === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
         roundIds.push(round._id);
 
-        // ===== Create net ===== 
+        // ===== Create net =====
         for (let j = 0; j < input.numberOfNets; j += 1) {
           const netObj = {
             match: newMatch._id,
@@ -156,7 +159,7 @@ export class MatchResolver {
   async deleteMatch(@Args('matchId') matchId: string) {
     try {
       const matchExist = await this.matchService.findById(matchId);
-      if (!matchExist) return AppResponse.notFound("Match");
+      if (!matchExist) return AppResponse.notFound('Match');
 
       const updatePromises = [];
       const roundIds = matchExist.rounds.map((m) => m.toString());
@@ -168,8 +171,12 @@ export class MatchResolver {
         updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
       }
 
-      updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
-      updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
+      updatePromises.push(
+        this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }),
+      );
+      updatePromises.push(
+        this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }),
+      );
       updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
       updatePromises.push(this.matchService.delete({ _id: matchId }));
       await Promise.all(updatePromises);
@@ -187,14 +194,13 @@ export class MatchResolver {
   @Query((returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     try {
-
       // Assuming matchService is injected in your class
       const matches = await this.matchService.find(filter);
 
       return {
         code: HttpStatus.OK,
         success: true,
-        message: "List of matches",
+        message: 'List of matches',
         data: matches,
       };
     } catch (err) {
@@ -202,11 +208,10 @@ export class MatchResolver {
     }
   }
 
-
   @Query((returns) => GetMatchResponse)
   async getMatch(@Args('matchId') matchId: string) {
     try {
-      const matchExist = await this.matchService.findById(matchId)
+      const matchExist = await this.matchService.findById(matchId);
       return {
         code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: matchExist ? true : false,

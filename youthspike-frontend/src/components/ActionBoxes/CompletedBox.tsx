@@ -42,21 +42,15 @@ function CompletedBox() {
     }
   };
 
-  //   const handleUpdatePoints = (e: React.SyntheticEvent) => {
-  //     e.preventDefault();
-  //     // =====  Update round and nets =====
-  //     updateMultiplePoints({ allNets, socket, currRoom, currRound: currentRound, currRoundNets, dispatch });
-  //   };
-
   useEffect(() => {
     let tap = 0;
     let tbp = 0;
     for (let i = 0; i < currRoundNets.length; i += 1) {
       // @ts-ignore
       if (currRoundNets[i].teamAScore > currRoundNets[i].teamBScore) {
-        tap += 1;
+        tap += currRoundNets[i].points;
       } else {
-        tbp += 1;
+        tbp += currRoundNets[i].points;
       }
     }
     setTeamAPoints(tap);
@@ -74,9 +68,6 @@ function CompletedBox() {
       </div>
 
       <div className="w-2/6 md:hidden">
-        <button className="btn-light" type="button">
-          Update Score
-        </button>
         <button className="btn-light" type="button" onClick={handleNextRound}>
           Next Round
         </button>
@@ -98,7 +89,13 @@ function CompletedBox() {
       </div>
 
       <div className="w-2/6 md:w-1/6 flex justify-center items-center flex-col">
-        {teamB?.logo ? <AdvancedImage cldImg={cld.image(teamB.logo)} className="w-20 h-20" /> : <TextImg fullText={teamB?.name} className="w-20 h-20" />}
+        {teamB?.logo ? (
+          <div className="advanced-img w-20">
+            <AdvancedImage cldImg={cld.image(teamB.logo)} className="w-full" />
+          </div>
+        ) : (
+          <TextImg fullText={teamB?.name} className="w-20 h-20" />
+        )}
         <h2>{teamB?.name}</h2>
         <div className="h-24 w-24 bg-gray-100 text-gray-900 rounded-lg flex justify-center items-center">
           <h2>{teamBPoints}</h2>

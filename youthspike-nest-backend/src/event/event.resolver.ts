@@ -33,6 +33,8 @@ import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
 import { SponsorService } from 'src/sponsor/sponsor.service';
 import { FilterQuery } from 'mongoose';
+import { RoundService } from 'src/round/round.service';
+import { NetService } from 'src/net/net.service';
 
 @ObjectType()
 class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -63,8 +65,10 @@ export class EventResolver {
     private playerService: PlayerService,
     private matchService: MatchService,
     private userService: UserService,
+    private roundService: RoundService,
+    private netService: NetService,
     private sponsorService: SponsorService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -474,6 +478,68 @@ export class EventResolver {
         code: findEvent ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: findEvent ? true : false,
         data: findEvent,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns) => GetEventResponse)
+  async deleteEvent(@Context() context: any, @Args({ name: 'eventId', type: () => String }) eventId: string) {
+    /**
+     * Delete all events assosiated with it
+     * Delete the user that is assosiated with it
+     * Delete all teams, players, rounds, nets assosiated with it
+     * Delete captain and players assosiated with it
+     */
+    try {
+      const promisesToDelete = [];
+      const eventExist = await this.eventService.findById(eventId);
+      if (!eventExist)
+        return AppResponse.handleError({ code: HttpStatus.NOT_FOUND, success: false, message: 'Event is not found' });
+
+      if (eventExist.teams && eventExist.teams.length > 0) {
+        const teamIds = eventExist.teams.map((team) => team.toString());
+        promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
+
+        // captains
+        const teams = await this.teamService.query({ _id: { $in: teamIds } });
+        if (teams && teams.length > 0) {
+          const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
+          promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
+        }
+      }
+      if (eventExist.players && eventExist.players.length > 0) {
+        const playerIds = eventExist.players.map((player) => player.toString());
+        promisesToDelete.push(this.playerService.delete({ _id: { $in: playerIds } }));
+      }
+      if (eventExist.matches && eventExist.matches.length > 0) {
+        const matchIds = eventExist.matches.map((match) => match.toString());
+        promisesToDelete.push(this.matchService.delete({ _id: { $in: matchIds } }));
+
+        // Rounds, nets
+        const matches = await this.matchService.query({ _id: { $in: matchIds } });
+        if (matches && matches.length > 0) {
+          for (const match of matches) {
+            const roundIds = match.rounds.map((r) => r.toString());
+            promisesToDelete.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
+
+            const netIds = match.nets.map((r) => r.toString());
+            promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));
+          }
+        }
+      }
+
+      promisesToDelete.push(this.eventService.delete({ _id: eventId }));
+
+      await Promise.all(promisesToDelete);
+      return {
+        code: HttpStatus.NO_CONTENT,
+        success: true,
+        message: 'Delete the LDO successfully!',
+        data: null,
       };
     } catch (err) {
       return AppResponse.handleError(err);

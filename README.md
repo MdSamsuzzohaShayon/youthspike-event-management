@@ -9,8 +9,6 @@ ___
  
 ___
  - **Video Explanation**
- - [ACL Match app collaboration docs](https://goalit.wimi.pro/#/asl-match-app/channel)
- - [Project Explanation Video](https://goalit.wimi.pro/#/asl-match-app/tasks/detail/4967510)
 
  - [Explan previous project video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82), [Explan previous project video 2(How the match works)](https://www.loom.com/share/142b7cc2efc64e208a3e6f6f0e779ffc), [Explanation video 3](https://www.loom.com/share/6c7397a3939c4896b090ff29275577da)
  - [Match explain](https://loom.com/share/679281f727f541b5a52b49ad755079ae)
@@ -57,29 +55,20 @@ ___
 
 ### Running
  - Style according to Figma - Make color scheme same
- - Sponsors will always have a logo of ourself by default
-
  - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
  - When click on input field to update score it should highlight the whole number
 
  - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
  - Moreover, the team name will be hyperlink
  - Change redial nevy blue color to black gradient
-
-
  - Move team need to work properly - one division to another division
-
- - List need to filter by date, upcomming, past
- - Email address are not showing up for account setting
  - If there are no logo, do not put any text there
- - On matches page, we do not need upcomming, only current and passed
- - No current or any text on yellow box of match card, instead just keep the date
  - Design match list same as this - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
  - Update player need to go to save and team page (if there is a team id) / player page
 
 ### Important
  - Removed someone from captain it erased  him off of his ldo account
- - Put default logo picture of the event
+ - Run the match 20 times and fix all the issues we got
 
 
 ### Requirements
@@ -91,11 +80,16 @@ ___
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
-
+Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 ### Update - 1
- - [05:50](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
+ - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
  - Once a round is submitted that ranking should not be ever changed
- - [07:00](https://www.loom.com/share/701aadddcb8341bba1631ca8d89e028a) If something on the roster changes later on the round on the match and director decide to remove injured because he got injured, his ranking should be remain same (No isseue because ranking is locked because round has started), when he will be back his ranking should be same
+
+### Update - 2
+ - Score input cursor need to change roperly on mobile phone
+ - Update score button need not to be on the action box
+ - On the last round there will be a net worth 2 points, and the score should be calculated according to that
+
 
  - **Team**
  - Make mutation from frontend to delete team
@@ -192,15 +186,10 @@ ___
  - https://www.loom.com/share/1290be7bff784ec190a58111f1411e3c
 
 ### Bug Fixing
+ - A team has submitted their lineup, and the other team could not submit their lineup, it skipped the process (No lineup setting for the other team) [00:00](https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb)
  - Issue with admin directing to event setting page (It is redirecting to /admin page)
- - Edit player from team page
- - When make player inactive the rank should be update and and this should work properly
- - in active players are still showing up when we click on the empty player box
- - Updaing round creating some issues (Log in as admin)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - When saving a team and creating another team, it does not update the player list. That need to be updated properly
- - Fix some common issues from running a match - https://www.loom.com/share/2056a1ba4d0f4713991366e3ca2b9112
- - A Player is selecting multiple times when we submit our lineup, and wehn we are assigning with starategies all ids need to be in the disabled ids
  
  
  - src/components/event/EventAddUpdate.tsx
@@ -240,11 +229,9 @@ ___
 
 
 ### Ask
- - Indeed, I am trying to make Text sizes on different devices as responsive as possible. However, some pages has many elements therefore, it is really hard to fit them in little space. To fix this, either we need to decrease the size of text (in this case, in smaller screen texts are going to be less visiable) or we can decrease the sizes of other elements. I guess need to check every thing on smaller phone to fix everything, so that on bigger devices it will not create any problem. For now I will try everything with IPhone 8 or 7
- - For moving a team, we can move a team to another event, perhaps you had not created multiple events to move team from a event to another event.
- - To be honest, I did not notice the ddesign for match list. I just made it without any reference. Somehow, I missed that page design. I will do it soon.
- - On your the phone, when you are scrolling players it is automitically re-ranking players and when you are selecting lefet side or right side of the screen, it will scrool. I have a idea to make this better. We can use a icon like this -> https://www.flaticon.com/free-icon/arrow_13934430 director and captains are going to re-rank players holding those icons.
-
+ - You reported an issue that after checkin both teams the submit line up button does not appear. Same thing happended to me, I have noticed I created multiple matches and both captain entered into diffrent match. I recommend you to verify that since in all matches looks similer
+ - Should I send a notification (as text) saying that team A has submitted their line up for round 1?
+ - I have modified the login system for player where firstname as username for a player and a player can login via username and password. A user can change his username. Is it okay to you?
 
 ### Database operations 
  - to fix username issues

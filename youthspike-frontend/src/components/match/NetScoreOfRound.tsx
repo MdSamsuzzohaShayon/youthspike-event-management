@@ -58,8 +58,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     if (targetRoundIndex !== -1 && currentRound) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
         const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound || !prevRound.completed)
-          return dispatch(setActErr({ name: 'Incomplete round!', message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
+        if (!prevRound || !prevRound.completed){
+          dispatch(setActErr({ name: 'Incomplete round!', message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
+          return;
+        }
         dispatch(setActErr(null));
       }
 

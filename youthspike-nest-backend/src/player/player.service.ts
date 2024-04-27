@@ -84,7 +84,6 @@ export class PlayerService {
           const matchFN = Object.entries(row).find(([k, v]) => new RegExp(/first?\s+name/, 'gi').test(k));
           const matchLN = Object.entries(row).find(([k, v]) => new RegExp(/last?\s+name/, 'gi').test(k));
           const matchEmail = Object.entries(row).find(([k, v]) => new RegExp(/email/, 'gi').test(k));
-          const matchUsername = Object.entries(row).find(([k, v]) => new RegExp(/username/, 'gi').test(k));
 
           // Organize player
           let playerObj = null;
@@ -92,18 +91,9 @@ export class PlayerService {
             const [fnk, fnv] = matchFN;
             const [lnk, lnv] = matchLN;
             const [ek, ev] = matchEmail;
-            let username = null;
-            if (matchUsername) {
-              const [uk, uv] = matchUsername;
-              username = uv;
-            }
-            if (!username) {
-              username = `${fnv.toLowerCase()}_${Math.floor(Math.random() * 900) + 100}`;
-            }
             playerObj = {
               firstName: fnv,
               lastName: lnv,
-              username,
               rank: null,
               email: ev,
               division,
