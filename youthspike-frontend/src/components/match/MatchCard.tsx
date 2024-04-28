@@ -43,7 +43,7 @@ function MatchCard({ match }: MatchCardProps) {
   };
 
   return (
-    <div className="w-full md:w-5/12 bg-gray-700 flex flex-col justify-between items-center relative rounded-lg" style={{ minHeight: '6rem' }}>
+    <div className="w-full bg-gray-700 flex flex-col justify-between items-center relative rounded-lg" style={{ minHeight: '6rem' }}>
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-center px-2 md:px-6 mt-2 md:mt-6">
         <Link href={`/matches/${match._id}`} className="btn-info">

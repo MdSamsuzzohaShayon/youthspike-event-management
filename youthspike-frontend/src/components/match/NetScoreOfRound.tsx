@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
 // Redux
@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 
 // Utils
-import { screen } from '@/utils/constant';
+import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 
 // Components
 import { INetRelatives, IPlayer } from '@/types';
@@ -36,11 +36,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const [boardHeight, setBoardHeight] = useState<number>(0);
 
   // Elements references for styling
-  const leftEl = useRef<null | HTMLDivElement>(null);
-  const leftTempEl = useRef<null | HTMLDivElement>(null);
-  const leftTopEl = useRef<null | HTMLDivElement>(null);
-  const leftBottomEl = useRef<null | HTMLDivElement>(null);
-  const rightEl = useRef<null | HTMLDivElement>(null);
+  // const leftEl = useRef<null | HTMLDivElement>(null);
+  // const leftTempEl = useRef<null | HTMLDivElement>(null);
+  // const leftTopEl = useRef<null | HTMLDivElement>(null);
+  // const leftBottomEl = useRef<null | HTMLDivElement>(null);
+  // const rightEl = useRef<null | HTMLDivElement>(null);
 
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
@@ -58,7 +58,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     if (targetRoundIndex !== -1 && currentRound) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
         const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound || !prevRound.completed){
+        if (!prevRound || !prevRound.completed) {
           dispatch(setActErr({ name: 'Incomplete round!', message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
           return;
         }
@@ -162,23 +162,32 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     }
   }, []);
 
-  useEffect(() => {
-    const leftH = rightEl.current?.clientHeight ? rightEl.current?.clientHeight : 0;
-    const rightH = rightEl.current?.clientHeight ? rightEl.current?.clientHeight : 0;
-    const fullHeight = leftH > rightH ? leftH : rightH;
-    // console.log({ leftH, rightH, fullHeight });
+  useLayoutEffect(() => {
+    // Use layout effect to measure the element after render
+    //    left-drop-down right-net-card
+    const leftFullEl = document.getElementById('left-round-detail');
+    const rightFullEl = document.getElementById('right-net-card');
+    const leftTopEl = document.getElementById('left-top');
+    const leftBottomEl = document.getElementById('left-bottom');
+    const leftddEl = document.getElementById('left-drop-down');
+    if (rightFullEl && leftFullEl) {
+      const fullHeight = rightFullEl.clientHeight > leftFullEl.clientHeight ? rightFullEl.clientHeight : leftFullEl.clientHeight;
+      setBoardHeight(fullHeight);
 
-    setBoardHeight(fullHeight);
+      // Modify styles based on the measured height
+      if (leftddEl) leftddEl.style.height = `${fullHeight + EXTRA_HEIGHT}px`;
 
-    if (leftTempEl.current) leftTempEl.current.style.height = `${fullHeight + 40}px`;
-
-    if (leftTopEl.current) {
-      leftTopEl.current.style.minHeight = `${fullHeight / 2 + 20}px`;
+      if (leftTopEl) {
+        leftTopEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
+      }
+      if (leftBottomEl) {
+        leftBottomEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
+      }
     }
-    if (leftBottomEl.current) {
-      leftBottomEl.current.style.minHeight = `${fullHeight / 2 + 20}px`;
-    }
-  });
+    // const measureHeight = () => {
+    // }
+    // window.requestAnimationFrame(measureHeight);
+  }, []); // Add dependencies that might affect the height measurement
 
   const renderAvailablePlayers = (): React.ReactNode => {
     /**
@@ -246,7 +255,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
               {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
             </p>
             <div className="w-1/12">
-              <Image width={16} height={16} alt="close-button" src="/icons/close.svg" className="svg-black" role="presentation" onClick={(e)=>handleRemoveSubb(e, teamPlayerList[i]._id)} />
+              <Image width={16} height={16} alt="close-button" src="/icons/close.svg" className="svg-black" role="presentation" onClick={(e) => handleRemoveSubb(e, teamPlayerList[i]._id)} />
             </div>
           </div>,
         );
@@ -259,12 +268,12 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
       {/* Left side round detail start  */}
       {!showTeamPlayers ? (
-        <div ref={leftEl} className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
+        <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
-          <div ref={leftTopEl} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
+          <div id="left-top" className="round-top w-full overflow-x-scroll bg-gradient-dark px-2 flex flex-col items-center justify-between">
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
 
-            <div className="round-nums flex w-full justify-start gap-1 items-center">
+            <div className="round-nums flex flex-wrap w-full justify-start gap-1 items-center">
               {roundList.map((round) => (
                 <button
                   className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-gray-100'} py-1 text-center cursor-pointer ${
@@ -283,7 +292,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Top Side End  */}
 
           {/* Bottom Side Start  */}
-          <div ref={leftBottomEl} className={`round-bottom w-full border ${border.light} px-2 flex flex-col items-center justify-between`}>
+          <div id="left-bottom" className={`round-bottom w-full overflow-x-scroll border ${border.light} px-2 flex flex-col items-center justify-between`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
               <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
@@ -292,7 +301,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Bottom Side End  */}
         </div>
       ) : (
-        <div ref={leftTempEl} className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`}>
+        <div id="left-drop-down" className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`}>
           <Image width={24} height={24} alt="close-button" src="/icons/close.svg" className="svg-black mx-2 mt-2" role="presentation" onClick={handleClosePlayers} />
           <div className="px-2 w-full" style={{ minHeight: 'fit-content' }}>
             <h3>Selected Net {selectedNet?.num}</h3>
@@ -312,7 +321,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {/* Setting end  */}
 
       {/* Right side net detail start */}
-      <div ref={rightEl} className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? 'w-9/12' : 'w-3/6'}`} style={setNetH(screenWidth)}>
+      <div id="right-net-card" className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? 'w-9/12' : 'w-3/6'}`}>
         {screenWidth > screen.xs ? (
           currentRoundNets.map((net) => <NetCard boardHeight={boardHeight} key={net._id} net={net} screenWidth={screenWidth} />)
         ) : (

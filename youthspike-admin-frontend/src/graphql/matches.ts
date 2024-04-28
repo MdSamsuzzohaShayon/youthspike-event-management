@@ -212,7 +212,8 @@ const DELETE_MATCH = gql`
 mutation DeleteMatch($matchId: String!) {
   deleteMatch(matchId: $matchId) {
     code
-    name
+    message
+    success
   }
 }
 `;

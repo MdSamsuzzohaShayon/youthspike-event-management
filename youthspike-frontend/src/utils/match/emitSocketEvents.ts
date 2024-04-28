@@ -99,18 +99,33 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
 
   // playerList
   const subbedPlayers: string[] = [];
-  for (let i = 0; i < myPlayerIds.length; i+=1) {
+  for (let i = 0; i < myPlayerIds.length; i += 1) {
     if (!lineupPlayerList.has(myPlayerIds[i])) {
       subbedPlayers.push(myPlayerIds[i]);
     }
   }
-  actionData.subbedPlayers = subbedPlayers;
+
+  // Get all subbed players from current rounds
+  const subsOrRound = currRound?.subs ? [...currRound.subs] : [];
+  // @ts-ignore
+  actionData.subbedPlayers = [...new Set([...subsOrRound, ...subbedPlayers])];
 
   // Reset current round, and round list
   const cri = roundList.findIndex((r) => r._id === currRound?._id); // vri = current round index
   if (cri === -1) return;
   const roundObj: IRoundRelatives = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess, subs: subbedPlayers };
-  dispatch(setRoundList([...roundList.filter((r) => r._id !== currRound?._id), roundObj]));
+
+  // Set subbed players
+  const updatedRoundList = [...roundList.filter((r) => r._id !== currRound?._id), roundObj];
+  const newRoundList = [];
+  for (let rI = 0; rI < updatedRoundList.length; rI += 1) {
+    const nrlObj = { ...updatedRoundList[rI] };
+    if (nrlObj.num >= (currRound?.num || 0)) {
+      nrlObj.subs = subbedPlayers;
+    }
+    newRoundList.push(nrlObj);
+  }
+  dispatch(setRoundList(newRoundList));
   dispatch(setCurrentRound(roundObj));
   dispatch(setVerifyLineup(false));
 
@@ -203,13 +218,13 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, all
   const lockedNets = updatedNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
   if (lockedNets.length > 1) {
     const lnIds = lockedNets.map((n) => n._id);
-    for (let i = 0; i < updatedNets.length; i+=1) {
+    for (let i = 0; i < updatedNets.length; i += 1) {
       if (!lnIds.includes(updatedNets[i]._id) && updatedNets[i].round === currRound?._id) {
         updatedNets[i] = { ...updatedNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
       }
     }
 
-    for (let i = 0; i < updatedAllNets.length; i+=1) {
+    for (let i = 0; i < updatedAllNets.length; i += 1) {
       if (!lnIds.includes(updatedAllNets[i]._id) && updatedAllNets[i].round === currRound?._id) {
         updatedAllNets[i] = { ...updatedAllNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
       }

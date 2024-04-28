@@ -1,14 +1,9 @@
-import { IListenSocketProps, INetRelatives, IRoundExpRel, IRoundRelatives, ITeam, IUpdateScoreResponse, IUser, IUserContext } from "@/types";
-import { Socket } from "socket.io-client";
-import { getCookie } from "../cookie";
-import { setCurrentRoom } from "@/redux/slices/roomSlice";
-import { setCurrNetNum, setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
-import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import { EActionProcess, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from "@/types/room";
-import { joinTheRoom } from "./emitSocketEvents";
-import { ETieBreaker } from "@/types/net";
-
-
+import { IListenSocketProps, IRoundRelatives, IUpdateScoreResponse } from '@/types';
+import { setCurrentRoom } from '@/redux/slices/roomSlice';
+import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
+import { ETieBreaker } from '@/types/net';
 
 const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
   /**
@@ -23,7 +18,6 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     dispatch(setCurrentRoom(extranctedData));
   });
   socket.on('check-in-response', (data: IRoom) => {
-
     restartAudio();
 
     // Set current round and round list
@@ -31,7 +25,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     let currRoundObj: null | IRoundRelatives = null;
     const roomRounds: IRoomRoundProcess[] = [...data.rounds];
     if (roomRounds.length > 0) {
-      for (let i = 0; i < roomRounds.length; i++) {
+      for (let i = 0; i < roomRounds.length; i += 1) {
         if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
           const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
           const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
@@ -49,17 +43,15 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
       dispatch(setRoundList(updatedRoundList));
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
-
   });
 
   socket.on('submit-lineup-response', (data: IRoomNets) => {
-
     restartAudio();
 
     // Set current round nets and all nets
     const updatedCRN = [...currRoundNets]; // crn = current round nets
     const updatedAllNets = [...allNets];
-    for (let i = 0; i < data.nets.length; i++) {
+    for (let i = 0; i < data.nets.length; i += 1) {
       const teamObj = {
         teamAPlayerA: data.nets[i].teamAPlayerA,
         teamAPlayerB: data.nets[i].teamAPlayerB,
@@ -76,29 +68,32 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedAllNets));
 
-
-
     // Set current round and round list
     const updatedRoundList: IRoundRelatives[] = [];
     let currRoundObj: null | IRoundRelatives = null;
     const roomRounds: IRoomRoundProcess[] = [...data.rounds];
     if (roomRounds.length > 0) {
-      for (let i = 0; i < roomRounds.length; i++) {
+      for (let i = 0; i < roomRounds.length; i += 1) {
         if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
           const teamProcessObj = { teamAProcess: roomRounds[i].teamAProcess, teamBProcess: roomRounds[i].teamBProcess };
           const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
           if (roundObj) {
-
+            const properRoundObj = { ...roundObj };
+            if (roundList[i].num >= data.subbedRound) {
+              properRoundObj.subs = data.subbedPlayers;
+            }
             // @ts-ignore
-            updatedRoundList.push({ ...roundObj, ...teamProcessObj });
+            updatedRoundList.push({ ...properRoundObj, ...teamProcessObj });
             if (roomRounds[i]._id === currentRound?._id) {
               // @ts-ignore
               currRoundObj = { ...currentRound, ...teamProcessObj };
             }
-
           }
         }
       }
+
+      // Set subbed players
+      //       subbedRound: currRoundObj.num, subbedPlayers: submitLineup.subbedPlayers,
 
       dispatch(setRoundList(updatedRoundList));
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
@@ -106,9 +101,8 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     }
   });
 
-
-  socket.on("update-points-response", (data: IUpdateScoreResponse) => {
-    // ===== set current round nets ===== 
+  socket.on('update-points-response', (data: IUpdateScoreResponse) => {
+    // ===== set current round nets =====
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
 
@@ -121,7 +115,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
       }
 
       if (findRoundNetIndex !== -1) {
-        netsOfRound[findRoundNetIndex] = { ...netsOfRound[findRoundNetIndex], teamAScore: data.nets[i].teamAScore, teamBScore: data.nets[i].teamBScore }
+        netsOfRound[findRoundNetIndex] = { ...netsOfRound[findRoundNetIndex], teamAScore: data.nets[i].teamAScore, teamBScore: data.nets[i].teamBScore };
       }
     }
 
@@ -132,7 +126,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     const findRound = roundList.find((r) => r._id === data.round._id);
     if (findRound) {
       const updatedRound = { ...findRound, teamAScore: data.round.teamAScore, teamBScore: data.round.teamBScore, completed: data.round.completed };
-      const newRoundList = [updatedRound, ...roundList.filter(r => r._id !== data.round._id)];
+      const newRoundList = [updatedRound, ...roundList.filter((r) => r._id !== data.round._id)];
       dispatch(setRoundList(newRoundList));
       if (currentRound && findRound._id === currentRound._id) {
         dispatch(setCurrentRound(updatedRound));
@@ -140,13 +134,12 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     }
   });
 
-
-  socket.on("update-net-response", (data: ITeiBreakerAction) => {
+  socket.on('update-net-response', (data: ITeiBreakerAction) => {
     // Update current round nets and all nets
     const updatedCRN = [...currRoundNets];
     const updatedN = [...allNets];
 
-    for (let i = 0; i < data.nets.length; i++) {
+    for (let i = 0; i < data.nets.length; i += 1) {
       const crnI = updatedCRN.findIndex((n) => n._id === data.nets[i]._id); // crnI = current round net index
       if (crnI !== -1) {
         const netObj = { ...updatedCRN[crnI], netType: data.nets[i].netType };
@@ -163,14 +156,14 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
     // ===== Create 2 Points Nets =====
     const lockedNets = updatedCRN.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
     if (lockedNets.length > 1) {
-      const lnIds = lockedNets.map((n) => n._id)
-      for (let i = 0; i < updatedCRN.length; i++) {
+      const lnIds = lockedNets.map((n) => n._id);
+      for (let i = 0; i < updatedCRN.length; i += 1) {
         if (!lnIds.includes(updatedCRN[i]._id) && updatedCRN[i].round === roundList[roundList.length - 1]._id) {
           updatedCRN[i] = { ...updatedCRN[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
         }
       }
 
-      for (let i = 0; i < updatedN.length; i++) {
+      for (let i = 0; i < updatedN.length; i += 1) {
         if (!lnIds.includes(updatedN[i]._id)) {
           updatedN[i] = { ...updatedN[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
         }
@@ -179,9 +172,7 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
 
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedN));
-
   });
-
 };
 
 export default listenSocketEvents;

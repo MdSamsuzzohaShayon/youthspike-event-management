@@ -103,14 +103,14 @@ function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: Mat
             <img src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
           </Link>
         </div>
-        <div className="rounds flex flex-col justify-center items-center">
+        <div className="rounds flex flex-col justify-center items-center w-full overflow-x-scroll">
           <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
             {roundList.map((round) => <li key={round._id} className='w-12 flex justify-center items-center text-yellow-logo'>RD{round.num}</li>)}
           </ul>
-          <div className="points-by-rounds w-full flex justify-center items-center">
+          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center">
             <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamA} />
           </div>
-          <div className="points-by-rounds w-full flex justify-center items-center mt-2">
+          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center mt-2">
             <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamB} dark />
           </div>
         </div>

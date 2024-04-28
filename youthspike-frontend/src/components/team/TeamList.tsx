@@ -39,7 +39,6 @@ function TeamList({ teamList, divisions }: ITeamListProps) {
     }
   }, [teamList, divisions]);
 
-  console.log(filteredTeamList);
   
   return (
     <div className="teamList w-full flex flex-col gap-1">

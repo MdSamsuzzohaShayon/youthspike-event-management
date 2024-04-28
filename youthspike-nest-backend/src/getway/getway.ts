@@ -235,78 +235,82 @@ export class MyGatWay implements OnModuleInit {
      * Find room from local map
      * Update process in the round to lock it if both team submit their players
      */
-    const updatePromises = [];
+    try {
+      const updatePromises = [];
 
-    // Validate and organize room data
-    const prevRoom = this.roomsLocal.get(submitLineup.room);
-    if (!prevRoom) return;
-    const roomData = { ...prevRoom };
-    const roundList = [...roomData.rounds];
-    const roundI = roundList.findIndex((r) => r._id === submitLineup.round);
-    if (roundI === -1) return;
+      // Validate and organize room data
+      const prevRoom = this.roomsLocal.get(submitLineup.room);
+      if (!prevRoom) return;
+      const roomData = { ...prevRoom };
+      const roundList = [...roomData.rounds];
+      const roundI = roundList.findIndex((r) => r._id === submitLineup.round);
+      if (roundI === -1) return;
 
-    // update round to checkin
-    const currRoundObj = { ...roundList[roundI] };
-    if (prevRoom.teamAClient === client.id) {
-      currRoundObj.teamAProcess = EActionProcess.LINEUP;
-    } else {
-      currRoundObj.teamBProcess = EActionProcess.LINEUP;
-    }
+      // update round to checkin
+      const currRoundObj = { ...roundList[roundI] };
+      if (prevRoom.teamAClient === client.id) {
+        currRoundObj.teamAProcess = EActionProcess.LINEUP;
+      } else {
+        currRoundObj.teamBProcess = EActionProcess.LINEUP;
+      }
 
-    // Update nets and round by assigning player to nets
-    updatePromises.push(
-      this.roundService.update(
-        { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess },
-        submitLineup.round,
-      ),
-    );
-    for (const n of submitLineup.nets) {
+      // Update nets and round by assigning player to nets
       updatePromises.push(
-        this.netService.update(
-          {
-            teamAPlayerA: n.teamAPlayerA,
-            teamAPlayerB: n.teamAPlayerB,
-            teamBPlayerA: n.teamBPlayerA,
-            teamBPlayerB: n.teamBPlayerB,
-          },
-          n._id,
+        this.roundService.update(
+          { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess },
+          submitLineup.round,
         ),
       );
-    }
+      for (const n of submitLineup.nets) {
+        updatePromises.push(
+          this.netService.update(
+            {
+              teamAPlayerA: n.teamAPlayerA,
+              teamAPlayerB: n.teamAPlayerB,
+              teamBPlayerA: n.teamBPlayerA,
+              teamBPlayerB: n.teamBPlayerB,
+            },
+            n._id,
+          ),
+        );
+      }
 
-    // Update room locally
-    roundList[roundI] = currRoundObj;
-    // const sortedRoundList = roundList.sort((a, b) => a.num - b.num);
-    roomData.rounds = roundList;
-    this.roomsLocal.set(submitLineup.room, roomData);
+      // Update room locally
+      roundList[roundI] = currRoundObj;
+      // const sortedRoundList = roundList.sort((a, b) => a.num - b.num);
+      roomData.rounds = roundList;
+      this.roomsLocal.set(submitLineup.room, roomData);
 
-    const roomDataWithNets: RoomLocalWithNets = {
-      ...roomData,
-      nets: submitLineup.nets,
-      subbedRound: currRoundObj.num,
-      subbedPlayers: submitLineup.subbedPlayers,
-    };
+      const roomDataWithNets: RoomLocalWithNets = {
+        ...roomData,
+        nets: submitLineup.nets,
+        subbedRound: currRoundObj.num,
+        subbedPlayers: submitLineup.subbedPlayers,
+      };
 
-    // make players subbed for all next rounds
-    if (submitLineup.subbedPlayers.length > 0) {
+      // make players subbed for all next rounds
+      if (submitLineup.subbedPlayers.length > 0) {
+        updatePromises.push(
+          this.roundService.updateMany(
+            { num: { $gte: currRoundObj.num }, match: submitLineup.match },
+            { $set: { subs: submitLineup.subbedPlayers } },
+          ),
+        );
+      }
+
       updatePromises.push(
-        this.roundService.updateMany(
-          { num: { $gte: currRoundObj.num }, match: submitLineup.match },
-          { $addToSet: { subs: submitLineup.subbedPlayers } },
+        this.teamService.updateMany(
+          { _id: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
+          { $set: { rankLock: true } },
         ),
       );
+      // update rank lock in the team
+      await Promise.all(updatePromises);
+
+      client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+    } catch (error) {
+      console.log(error);
     }
-
-    updatePromises.push(
-      this.teamService.updateMany(
-        { _id: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
-        { $set: { rankLock: true } },
-      ),
-    );
-    // update rank lock in the team
-    await Promise.all(updatePromises);
-
-    client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
   }
 
   @SubscribeMessage('update-net-from-client')

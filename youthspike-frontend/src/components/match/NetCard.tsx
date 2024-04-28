@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // Redux
 import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
@@ -19,7 +19,7 @@ import { setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers
 import { ETeamPlayer } from '@/types/net';
 import findOutOfRange from '@/utils/match/findOutOfRange';
 import findPrevPartner from '@/utils/match/findPrevPartner';
-import { screen } from '@/utils/constant';
+import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 import { border } from '@/utils/styles';
 import { calcPairScore } from '@/utils/scoreCalc';
 
@@ -40,8 +40,8 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const dispatch = useAppDispatch();
   const user = useUser();
 
-  const rightTopEl = useRef<HTMLDivElement | null>(null);
-  const rightBottomEl = useRef<HTMLDivElement | null>(null);
+  // const rightTopEl = useRef<HTMLDivElement | null>(null);
+  // const rightBottomEl = useRef<HTMLDivElement | null>(null);
 
   // Redux State
   const { currNetNum, currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
@@ -195,14 +195,15 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
     }
   }, [teamAPlayers, teamBPlayers, user]);
 
-  useEffect(() => {
-    // console.log({boardHeight});
+  useLayoutEffect(() => {
+    const rightTopEl = document.getElementById('top-team');
+    const rightBottomEl = document.getElementById('bottom-team');
 
-    if (rightTopEl.current) {
-      rightTopEl.current.style.minHeight = `${boardHeight / 2 + 20}px`;
+    if (rightTopEl) {
+      rightTopEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
     }
-    if (rightBottomEl.current) {
-      rightBottomEl.current.style.minHeight = `${boardHeight / 2 + 20}px`;
+    if (rightBottomEl) {
+      rightBottomEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
     }
   }, [screenWidth, boardHeight]);
 
@@ -245,7 +246,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
     return expectedPlayer === undefined ? null : expectedPlayer;
   };
 
-  const renderTeamSection = (TPA: ETeamPlayer, TPB: ETeamPlayer, onTop: boolean, refEl: React.RefObject<HTMLDivElement>): React.ReactNode => {
+  const renderTeamSection = (TPA: ETeamPlayer, TPB: ETeamPlayer, onTop: boolean, refId: string): React.ReactNode => {
     const playerA = matchTPlayer(TPA);
     const playerB = matchTPlayer(TPB);
     const playerARank = playerA?.rank;
@@ -253,7 +254,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
     const pairScore = calcPairScore(playerARank, playerBRank);
     return (
       <div
-        ref={refEl}
+        id={refId}
         className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-gray-100' : 'flex-col-reverse bg-gray-100 text-gray-900'} border ${
           border.light
         } items-center justify-start`}
@@ -272,24 +273,20 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   };
 
   return (
-    <div className="net-detail w-full h-full relative flex justify-between flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="net-detail w-full h-full relative flex justify-center items-center flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Net top section start  */}
-      {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true, rightTopEl)}
+      {/* Assuming renderTeamSection renders content */}
+      {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true, 'top-team')}
       {/* Net top section end  */}
 
-      <NetPointCard
-        teamA={teamA}
-        teamB={teamB}
-        net={net}
-        handleLeftShift={handleLeftShift}
-        handleRightShift={handleRightShift}
-        screenWidth={screenWidth}
-        currRoom={currentRoom}
-        roundList={roundList}
-      />
+      {/* Vertically centered NetPointCard component */}
+      <div className="flex-grow flex justify-center items-center">
+        <NetPointCard net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
+      </div>
 
       {/* Net bottom section start  */}
-      {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false, rightBottomEl)}
+      {/* Assuming renderTeamSection renders content */}
+      {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false, 'bottom-team')}
       {/* Net bottom section end */}
     </div>
   );
