@@ -25,7 +25,7 @@ interface IPlayerAddProps {
   update?: boolean;
   playerAddCB?: (playerData: IPlayerExpRel) => void;
   playerUpdateCB?: (playerData: IPlayerExpRel) => void;
-  refetchFunc?: () =>Promise<void>;
+  refetchFunc?: () => Promise<void>;
 }
 
 const initialPlayerAdd = {
@@ -100,6 +100,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       pObj.firstName = prevPlayer.firstName;
       pObj.lastName = prevPlayer.lastName;
       pObj.email = prevPlayer.email;
+      pObj.phone = prevPlayer.phone ? prevPlayer.phone.toString() : null;
       setPlayerState(pObj);
     }
   }, [update, prevPlayer]);
@@ -109,18 +110,20 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     const teamExist = getTeamFromStore();
     if (teamExist) tdObj.team = teamExist;
     const divisionExist = getDivisionFromStore();
-    if (divisionExist) tdObj.division = divisionExist
+    if (divisionExist) tdObj.division = divisionExist;
     setPlayerState((prevState) => ({ ...prevState, ...tdObj }));
-  }, []);
+  }, []);  
 
 
   return (
     <form onSubmit={handleAddPlayer} className='flex justify-between items-center flex-wrap'>
-      <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
+      <div className="w-full">
+        <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
+      </div>
       <TextInput name='firstName' lblTxt='First Name' defaultValue={playerState?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerState?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <EmailInput name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
-      <NumberInput name='phone' defaultValue={null} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
+      <NumberInput name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>
         <SelectInput key={crypto.randomUUID()} defaultValue={playerState.team} name='team' optionList={teamList.map((t): IOption => ({ text: t.name, value: t._id }))} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
       </React.Fragment>)}

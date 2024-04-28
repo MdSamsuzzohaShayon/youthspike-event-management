@@ -58,6 +58,10 @@ export class PlayerService {
     return this.playerModel.findById(playerId);
   }
 
+  async findOne(filter: FilterQuery<Player>) {
+    return this.playerModel.findOne(filter);
+  }
+
   async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>,) {
     return this.playerModel.updateOne(filter, player);
   }
@@ -143,4 +147,4 @@ export class PlayerService {
     return this.playerModel.deleteOne(filter);
   }
 
-  }
+}

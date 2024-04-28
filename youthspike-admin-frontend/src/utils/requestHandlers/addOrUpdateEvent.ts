@@ -5,7 +5,6 @@ import { getCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
 import { MutationFunction } from "@apollo/client";
-import { NextRouter, Router } from "next/router";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 interface IAddOrUpdateProps {
@@ -29,6 +28,17 @@ interface IAddOrUpdateProps {
 
 }
 
+interface IInput{
+    logo: string;
+}
+
+interface IMutationVariables {
+    sponsorsInput: IEventSponsorAdd[];
+    logo: null | string;
+    updateInput?: Partial<IEventAdd>;
+    input?: IEventAdd;
+}
+
 /**
  * Add event mutation
  */
@@ -45,22 +55,39 @@ async function addOrUpdateEvent({
     if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString()
     if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString()
 
-    const mutationVariables = {
+    const mutationVariables: IMutationVariables = {
         sponsorsInput: [],
-        input: inputData,
         logo: null, // This is event logo
     };
+    if (update) {
+        mutationVariables.updateInput = inputData;
+    } else {
+        mutationVariables.input = inputData
+    }
     // @ts-ignore
     if (update && eventId) mutationVariables.eventId = eventId;
 
     try {
-        if ((sponsorImgList.length > 0 && sponsorInputEl.current && sponsorInputEl.current.value && sponsorInputEl.current?.value !== '') || eventLogo.current) {
+
+        const sponsorFileList: IEventSponsorAdd[] = [];
+        const sponsorStringList = [];
+        sponsorImgList.forEach((sponsor) => {
+            if (typeof sponsor.logo === "string") {
+                sponsorStringList.push(sponsor);
+            } else {
+                sponsorFileList.push(sponsor);
+            }
+        });
+
+        if(update && sponsorStringList.length > 0) mutationVariables.sponsorsStringInput = sponsorStringList;
+        if ((sponsorFileList.length > 0) || eventLogo.current) {
+
             // Use FormData with fetch if there is a file to upload on the server
             const formData = new FormData();
 
             const sponsorsInputList = [];
-            for (let i = 0; i < sponsorImgList.length; i += 1) {
-                sponsorsInputList.push({ company: sponsorImgList[i].company, logo: null });
+            for (let i = 0; i < sponsorFileList.length; i += 1) {
+                sponsorsInputList.push({ company: sponsorFileList[i].company, logo: null });
             }
             // @ts-ignore
             mutationVariables.sponsorsInput = sponsorsInputList;
@@ -72,7 +99,7 @@ async function addOrUpdateEvent({
 
             // Sponsors
             const mapObj: any = {};
-            for (let i = 0; i < sponsorImgList.length; i += 1) {
+            for (let i = 0; i < sponsorFileList.length; i += 1) {
                 mapObj[i.toString()] = [`variables.sponsorsInput.${i}.logo`];
             }
 
@@ -80,19 +107,19 @@ async function addOrUpdateEvent({
             // formData.set('0', uploadedLogo.current);
 
             if (eventLogo && eventLogo.current) {
-                mapObj[sponsorImgList.length] = [`variables.logo`];
+                mapObj[sponsorFileList.length] = [`variables.logo`];
             }
             formData.set("map", JSON.stringify(mapObj));
-            for (let i = 0; i < sponsorImgList.length; i += 1) {
-                if (sponsorImgList[i].logo && sponsorImgList[i].logo instanceof File && sponsorImgList[i].company && sponsorImgList[i].company !== "") {
-                    const uploadedFile = sponsorImgList[i].logo as File;
+            for (let i = 0; i < sponsorFileList.length; i += 1) {
+                if (sponsorFileList[i].logo && sponsorFileList[i].logo instanceof File && sponsorFileList[i].company && sponsorFileList[i].company !== "") {
+                    const uploadedFile = sponsorFileList[i].logo as File;
                     formData.set(`${i}`, uploadedFile);
                 }
             }
 
             // Add the event logo to formData
             if (eventLogo && eventLogo.current) {
-                formData.set(`${sponsorImgList.length}`, eventLogo.current);
+                formData.set(`${sponsorFileList.length}`, eventLogo.current);
             }
 
             const token = getCookie('token');
@@ -111,9 +138,9 @@ async function addOrUpdateEvent({
             const eventRes = update ? responseData?.data?.updateEvent : responseData?.data?.createEvent;
             if (eventRes?.code !== 201 && eventRes?.code !== 202) {
                 setActErr({
-                    name: eventRes?.code,
+                    code: eventRes?.code,
                     message: eventRes?.message,
-                    main: responseData.data,
+                    success: false
                 });
             } else {
                 newEventId = eventRes?.data?._id;
@@ -136,7 +163,7 @@ async function addOrUpdateEvent({
 
             eventRes = update ? eventRes.data?.updateEvent : eventRes.data?.createEvent;
             if (eventRes?.code !== 201 && eventRes?.code !== 202) {
-                setActErr({ name: eventRes.code, message: eventRes.message })
+                setActErr({ code: eventRes.code, message: eventRes.message, success: false })
             } else {
                 newEventId = eventRes.data._id
             }
@@ -157,8 +184,7 @@ async function addOrUpdateEvent({
             router.push(redirectUrl);
         };
     } catch (error) {
-        // @ts-ignore
-        setActErr({ name: 'Invalid Mutation', message: error.message || '', main: error });
+        setActErr({ message: error?.message || '', success: false });
     } finally {
         setIsLoading(false);
     }

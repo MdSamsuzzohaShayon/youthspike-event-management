@@ -18,7 +18,6 @@ export class JoinRoomInput {
 
 @InputType()
 export class CheckInInput {
-
   @Field({ nullable: false })
   room: string;
 
@@ -34,7 +33,6 @@ export class CheckInInput {
 
 @InputType()
 export class RoundChangeInput {
-
   @Field({ nullable: false })
   room: string;
 
@@ -43,9 +41,7 @@ export class RoundChangeInput {
 
   @Field({ nullable: false })
   nextRound: string;
-  
 }
-
 
 @ObjectType()
 export class NetAssign {
@@ -71,14 +67,13 @@ export class NetPointsAssign {
   teamBScore: number;
 }
 
-
 @ObjectType()
 export class UpdatePointsInput {
   @Field({ nullable: false })
   round: string;
 
   @Field(() => [NetPointsAssign], { nullable: false })
-  nets: NetPointsAssign[]
+  nets: NetPointsAssign[];
 
   @Field({ nullable: false })
   room: string;
@@ -91,7 +86,7 @@ export class RoundResoponse {
 
   @Field({ nullable: true })
   teamAScore: number;
-  
+
   @Field({ nullable: true })
   teamBScore: number;
 
@@ -101,28 +96,26 @@ export class RoundResoponse {
 
 @ObjectType()
 export class RoundUpdatedResponse {
-
   @Field({ nullable: false })
   round: RoundResoponse;
 
   @Field(() => [NetPointsAssign], { nullable: false })
-  nets: NetPointsAssign[]
+  nets: NetPointsAssign[];
 
   @Field({ nullable: false })
   room: string;
 }
 
-
-
-
 @InputType()
 export class SubmitLineupInput {
-
   @Field({ nullable: false })
   room: string;
 
   @Field({ nullable: false })
   round: string;
+
+  @Field({ nullable: false })
+  match: string;
 
   @Field({ nullable: false })
   teamAId: string;
@@ -136,8 +129,8 @@ export class SubmitLineupInput {
   @Field({ nullable: true })
   teamBProcess: string;
 
-  @Field(()=> [String],{defaultValue: [], nullable: true})
-  subbedPlayers: string[]
+  @Field(() => [String], { defaultValue: [], nullable: true })
+  subbedPlayers: string[];
 
   @Field(() => [NetAssign], { nullable: false })
   nets: NetAssign[];
@@ -153,7 +146,6 @@ export class NetTieBreaker {
 
 @InputType()
 export class TieBreakerInput {
-
   @Field({ nullable: false })
   room: string;
 
@@ -171,4 +163,4 @@ export class TieBreakerInput {
 }
 
 @InputType()
-export class UpdateRoomInput extends PartialType(JoinRoomInput) { }
+export class UpdateRoomInput extends PartialType(JoinRoomInput) {}

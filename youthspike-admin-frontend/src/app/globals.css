@@ -169,6 +169,18 @@ dialog::backdrop {
   border-color: #fce013;
 }
 
+.border-yellow{
+  border-color: #fce013;
+}
+
+.advanced-img{
+  overflow: hidden;
+}
+.advanced-img img{
+  object-position: center;
+  object-fit: cover;
+}
+
 /* Event card design  */
 .events-page .event-card{
   /* style={{ width: '48.5%', minHeight: '12rem' }} */

@@ -15,7 +15,7 @@ export class CreatePlayerInput {
   @Field()
   division: string;
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   email: string;
 
   @Field({ nullable: true })

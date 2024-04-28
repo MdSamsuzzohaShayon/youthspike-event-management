@@ -50,7 +50,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
           }
         }
       } else {
-        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+        setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
   }, [params.eventId]);
@@ -65,7 +65,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
-      <h1 className='capitalize'>{user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? "Update captain" : "Update Event"}</h1>
+      <h1 className='capitalize text-center'>{user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? "Update captain" : "Update Event"}</h1>
 
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />

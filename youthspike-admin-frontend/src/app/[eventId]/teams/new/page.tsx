@@ -61,6 +61,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
 
   const fetchPlayers = async () => {
     const playerRes = await getPlayers({ variables: { eventId: params.eventId }, fetchPolicy: "network-only" });
+    if (!playerRes?.data?.getEvent?.success) return setActErr({success: false, code: playerRes?.data?.getEvent?.code, message: playerRes?.data?.getEvent?.message});
 
     if (playerRes?.data?.getEvent?.data) setCurrEvent(playerRes.data.getEvent.data);
 
@@ -95,7 +96,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
         if (isValidObjectId(params.eventId)) {
           fetchPlayers();
         } else {
-          setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+          setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
         }
       }
     })()

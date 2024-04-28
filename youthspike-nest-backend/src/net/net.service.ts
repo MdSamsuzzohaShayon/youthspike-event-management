@@ -28,6 +28,11 @@ export class NetService {
     );
   }
 
+  async updateOne(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>) {
+    const updatedNets = await this.netModel.updateOne(filter, updateObj);
+    return updatedNets;
+  }
+
   async updateMany(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>){
     // db.collection.updateMany(filter, update, options)
     const updatedNets = await this.netModel.updateMany(filter, updateObj);

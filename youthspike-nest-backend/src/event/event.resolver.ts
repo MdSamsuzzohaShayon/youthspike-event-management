@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ExecutionContext, UseGuards } from '@nestjs/common';
+import { ExecutionContext, HttpStatus, UseGuards } from '@nestjs/common';
 import {
   Args,
   Context,
@@ -12,8 +12,6 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import * as jwt from 'jsonwebtoken';
-import { Stream } from 'stream';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -27,18 +25,16 @@ import { ConfigService } from '@nestjs/config';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import * as bcrypt from 'bcrypt';
-import { CreateEventInput, EventSponsorInput, UpdateEventInput } from './event.args';
+import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, UpdateEventInput } from './event.args';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { LdoService } from 'src/ldo/ldo.service';
 import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
 import { SponsorService } from 'src/sponsor/sponsor.service';
-
-interface JwtPayload {
-  _id: string;
-  // Add other properties if necessary
-}
+import { FilterQuery } from 'mongoose';
+import { RoundService } from 'src/round/round.service';
+import { NetService } from 'src/net/net.service';
 
 @ObjectType()
 class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -69,8 +65,10 @@ export class EventResolver {
     private playerService: PlayerService,
     private matchService: MatchService,
     private userService: UserService,
+    private roundService: RoundService,
+    private netService: NetService,
     private sponsorService: SponsorService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -79,7 +77,7 @@ export class EventResolver {
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') args: CreateEventInput,
     @Context() context: any,
-    @Args("logo", { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
+    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -105,7 +103,7 @@ export class EventResolver {
       } else if (loggedUser.role === UserRole.admin) {
         if (!args.ldo) {
           return AppResponse.handleError({
-            name: 'Invalid LDO',
+            success: false,
             message: 'You must provide a LDO id in order to create an Event!',
           });
         }
@@ -114,7 +112,7 @@ export class EventResolver {
       const findLdo = await this.ldoService.findByDirectorId(directorId);
       if (!findLdo)
         return AppResponse.handleError({
-          name: 'No LDO',
+          success: false,
           message: 'User need to be in league director organization in order to create an Event!',
         });
 
@@ -149,14 +147,14 @@ export class EventResolver {
       const savedEvent = await this.eventService.create(eventData);
       await Promise.all([
         this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
-        this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id })
+        this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id }),
       ]);
-
 
       return {
         data: savedEvent,
         success: true,
-        code: 201,
+        message: 'Event has been created successfully.',
+        code: HttpStatus.CREATED,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -167,10 +165,13 @@ export class EventResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => CreateOrUpdateEventResponse)
   async updateEvent(
-    @Args({ name: 'sponsorsInput', type: () => [GraphQLUpload] }) sponsorsInput: Upload[],
-    @Args('input') args: UpdateEventInput,
+    // @Args({ name: 'sponsorsInput', type: () => [GraphQLUpload] }) sponsorsInput: Upload[],
+    @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
+    @Args('updateInput') updateInput: UpdateEventInput,
     @Args('eventId') eventId: string,
     @Context() context: any,
+    @Args('sponsorsStringInput', { nullable: true, type: () => [EventSponsorStringInput] })
+    sponsorsStringInput?: EventSponsorStringInput[],
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
@@ -185,42 +186,75 @@ export class EventResolver {
       const secret = this.configService.get<string>('JWT_SECRET');
       const userId = tokenToUser(context, secret);
 
-      // Get user
-      const [loggedUser, eventExist] = await Promise.all([this.userService.findById(userId), this.eventService.findById(eventId)]);
+      // ===== Get user =====
+      const [loggedUser, eventExist] = await Promise.all([
+        this.userService.findById(userId),
+        this.eventService.findById(eventId),
+      ]);
       if (!loggedUser) return AppResponse.unauthorized();
-      if (!eventExist) return AppResponse.exists("Event");
+      if (!eventExist) return AppResponse.notFound('Event');
 
       // If the user is admin we must need ldoId otherwise get id from token
       let directorId = null;
       if (loggedUser.role === UserRole.director) {
-        delete args.ldo;
+        delete updateInput.ldo;
         directorId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin) {
-        if (!args.ldo)
+        if (!updateInput.ldo)
           return AppResponse.handleError({
-            name: 'No Director',
+            success: false,
             message: 'You must select a director in order to update a event!',
           });
-        directorId = args.ldo;
+        directorId = updateInput.ldo;
       }
-
-      // Upload file to cloudinary
-      const uploadPromises = [];
-      for (let i = 0; i < sponsorsInput.length; i++) {
-        if (typeof sponsorsInput[i] !== 'string') uploadPromises.push(this.cloudinaryService.uploadFiles(sponsorsInput[i]));
-      }
-      const cloudinaryUrls: string[] = await Promise.all(uploadPromises);
 
       const findLdo = await this.ldoService.findByDirectorId(directorId);
 
-      // Arrange data and save to database
+      // ===== Arrange data and save to database =====
       const eventData: any = {
-        ...args,
+        ...updateInput,
         ldo: findLdo._id,
-        sponsors: cloudinaryUrls,
-        divisions: eventExist.divisions
+        // sponsors: cloudinaryUrls,
+        divisions: eventExist.divisions,
       };
 
+      // ===== Upload Sponsors =====
+      if (sponsorsInput.length > 0 || sponsorsStringInput.length > 0) {
+        const prevSponsors = eventExist.sponsors;
+        const newSponsorIds = [];
+
+        const uploadPromises = [];
+        for (let i = 0; i < sponsorsInput.length; i++) {
+          uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+        }
+        const sponsorItemList = await Promise.all(uploadPromises);
+        if (sponsorItemList.length > 0) {
+          const organizeSponsors = sponsorItemList.map((s) => ({ company: s.company, logo: s.logo, event: eventId }));
+          const sponsorList = await this.sponsorService.insertMany(organizeSponsors);
+          newSponsorIds.push(...sponsorList.map((doc) => doc._id.toString()));
+        }
+
+        if (sponsorsStringInput.length > 0) {
+          const prevSponsorList = await this.sponsorService.query({ event: eventId });
+          if (prevSponsorList && prevSponsorList.length > 0) {
+            for (const ps of prevSponsorList) {
+              const matchedSponsor = sponsorsStringInput.find(
+                (ssi) => ssi.company === ps.company && ssi.logo === ps.logo,
+              );
+              if (matchedSponsor) newSponsorIds.push(ps._id.toString());
+            }
+          }
+        }
+
+        eventData.sponsors = newSponsorIds;
+        const deleteSponsors = [];
+        for (const ps of prevSponsors) {
+          if (!newSponsorIds.includes(ps.toString())) deleteSponsors.push(ps);
+        }
+        if (deleteSponsors.length > 0) await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
+      }
+
+      // ===== Update logo =====
       if (logo) {
         const logoUrl = await this.cloudinaryService.uploadFiles(logo);
         if (logoUrl) {
@@ -228,19 +262,19 @@ export class EventResolver {
         }
       }
 
-      // Update divisions
-      if (args.divisions && args.divisions !== "" && eventExist.divisions !== args.divisions) {
-        // Check which item has been updated
-        // Check previous division name
+      // ===== Update divisions =====
+      if (updateInput.divisions && updateInput.divisions !== '' && eventExist.divisions !== updateInput.divisions) {
+        // Check which item has been updated, Check previous division name
         const prevDivList = eventExist.divisions.split(',');
-        const currDivList = args.divisions.split(',');
+        const currDivList = updateInput.divisions.split(',');
 
         const divisionPromises = [];
 
-
         // Check deleted item
         for (let i = 0; i < prevDivList.length; i++) {
-          const findItemIndex = currDivList.findIndex((d) => d.includes("_") || d.trim().toLowerCase() === prevDivList[i].trim().toLowerCase());
+          const findItemIndex = currDivList.findIndex(
+            (d) => d.includes('_') || d.trim().toLowerCase() === prevDivList[i].trim().toLowerCase(),
+          );
           if (findItemIndex === -1) {
             // Create a regular expression for case-insensitive and trimmed search
             const regex = new RegExp(`^${prevDivList[i].trim()}$`, 'i');
@@ -250,10 +284,11 @@ export class EventResolver {
 
         // Check updated Item
         for (let i = 0; i < currDivList.length; i++) {
-          if (currDivList[i].includes("_")) {
-            const fl = currDivList[i].split("_");
-            if (fl.length > 0 && fl[fl.length - 1] === "u") {
-              let oe = fl[0], ne = fl[1];
+          if (currDivList[i].includes('_')) {
+            const fl = currDivList[i].split('_');
+            if (fl.length > 0 && fl[fl.length - 1] === 'u') {
+              const oe = fl[0],
+                ne = fl[1];
               currDivList[i] = ne;
 
               // Create a regular expression for case-insensitive and trimmed search
@@ -267,10 +302,11 @@ export class EventResolver {
         eventData.divisions = currDivList.join(', ');
       }
 
-      // Update Coach Password
+      // ===== Update Coach Password =====
       if (eventData.coachPassword) {
         const teamsOfEvent = await this.teamService.query({ event: eventId });
-        const cap = [], coCap = [];
+        const cap = [],
+          coCap = [];
         for (const t of teamsOfEvent) {
           if (t.captain) cap.push(t.captain);
           if (t.cocaptain) coCap.push(t.cocaptain);
@@ -279,7 +315,7 @@ export class EventResolver {
         const userIds = [];
         const capUsers = await this.userService.query({ captainplayer: { $in: cap } });
         const capUserIds = capUsers.map((u) => u._id);
-        userIds.push(...capUserIds)
+        userIds.push(...capUserIds);
 
         const coCapUsers = await this.userService.query({ cocaptainplayer: { $in: coCap } });
         const coCapUserIds = coCapUsers.map((u) => u._id);
@@ -291,17 +327,16 @@ export class EventResolver {
 
           await this.userService.updateMany({ _id: { $in: userIds } }, { password: hashedPassword });
         }
-
-
       }
 
-      const updatedEvent = await this.eventService.update(eventData, eventId);
-      // const updateLdo = await this.ldoService.update({ events: [updatedEvent._id] }, findLdo._id);
+      await this.eventService.updateOne({ _id: eventId }, eventData);
+      const updatedEvent = await this.eventService.findById(eventId);
 
       return {
         data: updatedEvent,
         success: true,
-        code: 202,
+        message: 'Event has been updated successfully.',
+        code: HttpStatus.ACCEPTED,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -346,7 +381,7 @@ export class EventResolver {
       delete eventObj._id;
       const clonedEvent = await this.eventService.create(eventObj);
 
-      const updatedPlayers = await this.playerService.updateMany({ _id: { $in: playerIds } }, { $push: { events: clonedEvent._id } });
+      await this.playerService.updateMany({ _id: { $in: playerIds } }, { $push: { events: clonedEvent._id } });
 
       // teams
       const teamIds = findEvent.teams;
@@ -355,44 +390,39 @@ export class EventResolver {
       for (const team of findTeams) {
         const teamObj = { ...team, name: team.name, active: true, event: clonedEvent._id };
         delete teamObj._id;
-        teamObjList.push(teamObj)
+        teamObjList.push(teamObj);
       }
       const newTeams = await this.teamService.insertMany(teamObjList);
       const newTeamIds = newTeams.map((t) => t._id);
 
       // sponsors
       const sponsorIds = findEvent.sponsors;
-      const findsponsors = await this.sponsorService.query({ _id: { $in: sponsorIds } });
+      const sponsorsExist = await this.sponsorService.query({ _id: { $in: sponsorIds } });
       const sponsorObjList = [];
-      for (const sponsor of findsponsors) {
+      for (const sponsor of sponsorsExist) {
         const sponsorObj = { ...sponsor, company: sponsor.company, logo: sponsor.logo, event: clonedEvent._id };
         delete sponsorObj._id;
-        sponsorObjList.push(sponsorObj)
+        sponsorObjList.push(sponsorObj);
       }
       const newSponsors = await this.sponsorService.insertMany(sponsorObjList);
       const newSponsorIds = newSponsors.map((t) => t._id);
 
-      const updatedEvent = await this.eventService.update({ teams: newTeamIds, sponsors: newSponsorIds }, clonedEvent._id);
+      await this.eventService.updateOne({ _id: clonedEvent._id }, { teams: newTeamIds, sponsors: newSponsorIds });
 
       return {
-        data: updatedEvent,
+        data: clonedEvent,
         success: true,
-        code: 201,
+        message: 'Event has been cloned successfully.',
+        code: HttpStatus.CREATED,
       };
     } catch (error) {
       return AppResponse.handleError(error);
     }
-
   }
 
   @Query((returns) => GetEventsResponse)
-  async getEvents(
-    @Context() context: any,
-    @Args('directorId', { nullable: true }) directorId?: string
-  ) {
-
+  async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     try {
-
       const secret = this.configService.get<string>('JWT_SECRET');
       const userId = tokenToUser(context, secret);
 
@@ -409,7 +439,7 @@ export class EventResolver {
           case UserRole.admin:
             if (!directorId) {
               return AppResponse.handleError({
-                name: 'No Director',
+                success: false,
                 message: 'You must select a director in order to update an event!',
               });
             }
@@ -421,7 +451,7 @@ export class EventResolver {
       }
 
       // Filter events based on director ID
-      const filter: Partial<Event> = {};
+      const filter: FilterQuery<Event> = {};
       if (newDirectorId) {
         const ldoExist = await this.ldoService.findByDirectorId(newDirectorId);
         if (ldoExist) {
@@ -429,46 +459,97 @@ export class EventResolver {
         }
       }
 
-
-      const events = await this.eventService.query(filter);
+      const events = await this.eventService.find(filter);
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
         data: events,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
-
 
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
     try {
-      const findEvent = await await this.eventService.findById(eventId);
+      const findEvent = await this.eventService.findById(eventId);
       return {
-        code: 200,
-        success: true,
+        code: findEvent ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: findEvent ? true : false,
         data: findEvent,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
-  @Roles(UserRole.admin)
-  @Query((returns) => GetEventResponse)
-  async getEventByName(@Args('name') name: string) {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns) => GetEventResponse)
+  async deleteEvent(@Context() context: any, @Args({ name: 'eventId', type: () => String }) eventId: string) {
+    /**
+     * Delete all events assosiated with it
+     * Delete the user that is assosiated with it
+     * Delete all teams, players, rounds, nets assosiated with it
+     * Delete captain and players assosiated with it
+     */
     try {
+      const promisesToDelete = [];
+      const eventExist = await this.eventService.findById(eventId);
+      if (!eventExist)
+        return AppResponse.handleError({ code: HttpStatus.NOT_FOUND, success: false, message: 'Event is not found' });
+
+      if (eventExist.teams && eventExist.teams.length > 0) {
+        const teamIds = eventExist.teams.map((team) => team.toString());
+        promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
+
+        // captains
+        const teams = await this.teamService.query({ _id: { $in: teamIds } });
+        if (teams && teams.length > 0) {
+          const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
+          promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
+        }
+      }
+      if (eventExist.players && eventExist.players.length > 0) {
+        const playerIds = eventExist.players.map((player) => player.toString());
+        promisesToDelete.push(this.playerService.delete({ _id: { $in: playerIds } }));
+      }
+      if (eventExist.matches && eventExist.matches.length > 0) {
+        const matchIds = eventExist.matches.map((match) => match.toString());
+        promisesToDelete.push(this.matchService.delete({ _id: { $in: matchIds } }));
+
+        // Rounds, nets
+        const matches = await this.matchService.query({ _id: { $in: matchIds } });
+        if (matches && matches.length > 0) {
+          for (const match of matches) {
+            const roundIds = match.rounds.map((r) => r.toString());
+            promisesToDelete.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
+
+            const netIds = match.nets.map((r) => r.toString());
+            promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));
+          }
+        }
+      }
+
+      promisesToDelete.push(this.eventService.delete({ _id: eventId }));
+
+      await Promise.all(promisesToDelete);
       return {
-        code: 200,
+        code: HttpStatus.NO_CONTENT,
         success: true,
-        data: await this.eventService.findByName(name),
+        message: 'Delete the LDO successfully!',
+        data: null,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
+
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
 
   @ResolveField()
   async ldo(@Parent() event: Event) {

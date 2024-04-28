@@ -5,12 +5,21 @@ import * as Upload from 'graphql-upload/Upload.js';
 import { DateScalar } from 'src/shared/date-scaler';
 
 @InputType()
-export class EventSponsorInput{
+export class EventSponsorInput {
   @Field()
   company: string;
 
-  @Field(()=> GraphQLUpload)
+  @Field(() => GraphQLUpload)
   logo: Upload;
+}
+
+@InputType()
+export class EventSponsorStringInput {
+  @Field()
+  company: string;
+
+  @Field()
+  logo: string;
 }
 
 @InputType()
@@ -36,10 +45,9 @@ export class CreateEventInput {
 
   @Field(() => Int)
   rounds: number;
-  
+
   @Field(() => Int)
   playerLimit: number;
-
 
   @Field(() => Int)
   netVariance: number;
@@ -76,4 +84,4 @@ export class CreateEventInput {
 }
 
 @InputType()
-export class UpdateEventInput extends PartialType(CreateEventInput){}
+export class UpdateEventInput extends PartialType(CreateEventInput) {}

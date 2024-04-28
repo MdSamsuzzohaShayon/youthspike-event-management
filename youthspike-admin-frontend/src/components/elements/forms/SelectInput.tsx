@@ -15,18 +15,19 @@ const SelectInput = (props: ISelectInputProps) => {
 
   return (
     <div className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : 'flex-row'} justify-between items-center ${props.extraCls}`}>
-      <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{props.lblTxt ? props.lblTxt : props.name}</label>
+      {props.lblTxt && <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{props.lblTxt ? props.lblTxt : props.name}</label>}
+
       <select
         onChange={props.handleSelect}
         name={props.name}
         id={props.name}
-        className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw} max-w-full`}
+        className={`form-control capitalize  ${props.vertical ? 'w-full' : ''} ${props.rw} max-w-full`}
         style={!props.vertical ? selectStyle : {}}
         defaultValue={props.defaultValue?.toString()}  // Use props.defaultValue directly
       >
-        <option value="">Select an option</option>
+        <option value="" className='bg-gray-400 text-gray-700'>Select {props.name}</option>
         {props.optionList.map((o, i) => (
-          <option value={o.value} key={i} className='bg-gray-500 text-gray-900'>{o.text ? o.text : o.value}</option>
+          <option value={o.value} key={i} className='bg-gray-100 text-gray-900'>{o.text ? o.text : o.value}</option>
         ))}
       </select>
     </div>

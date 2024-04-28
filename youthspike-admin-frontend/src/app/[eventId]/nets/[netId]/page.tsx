@@ -1,6 +1,7 @@
 'use client'
 
 import Loader from '@/components/elements/Loader';
+import Message from '@/components/elements/Message';
 import NetTeamCard from '@/components/net/NetTeamCard';
 import { GET_A_NET } from '@/graphql/net';
 import { IError, INetRelatives } from '@/types';
@@ -31,7 +32,7 @@ function SingleNet({ params }: INetSingleProps) {
             if (isValidObjectId(params.netId)) {
                 fetchNet({ variables: { netId: params.netId } });
             } else {
-                setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid net ObjectId!" })
+                setActErr({ success: false, message: "Can not fetch data due to invalid net ObjectId!" })
             }
         }
 
@@ -40,12 +41,13 @@ function SingleNet({ params }: INetSingleProps) {
     if (loading || isLoading) return <Loader />;
 
     const currNet = data?.getNet?.data;
-    console.log(data);
 
 
     return (
         <div className='SingleNet container px-2 mx-auto min-h-screen'>
             <h1 className='text-center'>Net {currNet?.num}</h1>
+            {error && <Message error={error} />}
+            {actErr && <Message error={actErr} />}
             <div className="teams">
                 {currNet.teamA ? <NetTeamCard team={currNet.teamA} teamScore={currNet.teamAScore} /> : <NetTeamCard />}
                 <h2 className='text-center'>VS</h2>

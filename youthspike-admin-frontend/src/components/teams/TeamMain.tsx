@@ -21,6 +21,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { initialUserMenuList } from '@/utils/staticData';
 import { getUserFromCookie } from '@/utils/cookie';
 import UserMenuList from '../layout/UserMenuList';
+import { handleResponse } from '@/utils/handleError';
 
 interface ITeamsOfEventPage {
     eventId: string
@@ -90,6 +91,10 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     const fetchEvent = async () => {
         const eventResponse = await getEvent({ variables: { eventId: eventId }, fetchPolicy: "network-only" });
 
+        const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
+        if (!success) return;
+
+
         const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
         let newFilteredList = [...newTeamList];
         if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
@@ -119,7 +124,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
             if (isValidObjectId(eventId)) {
                 fetchEvent();
             } else {
-                setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+                setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
             }
         }
 
@@ -142,13 +147,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                 </div>
                 <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} divisionList={divisionList} />
             </dialog>
-            <div className="mb-4 division-selection w-full">
-                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-            </div>
-            <h1 className='text-2xl font-bold pt-6 text-center mb-4'>Teams</h1>
+            <h1 className='text-center mb-4'>Teams</h1>
             {currEvent && (<CurrentEvent currEvent={currEvent} />)}
             <div className="navigator mb-4">
                 <UserMenuList eventId={eventId} />
+            </div>
+            <div className="mb-4 division-selection w-full">
+                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
             </div>
 
             {error && <Message error={error} />}
@@ -176,7 +181,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
                         <li role="presentation" onClick={(e) => handleFilter(e, 2)} >Edit</li>
                     </ul>
                 </div>
-                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc}  />}
+                {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} />}
             </div>
         </div>
     )

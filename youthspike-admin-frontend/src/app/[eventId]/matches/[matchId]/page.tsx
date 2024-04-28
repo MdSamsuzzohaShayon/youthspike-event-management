@@ -15,16 +15,16 @@ import React, { useState, useEffect } from 'react';
  * 
  * Real Madrid
  * Captain
- * p3@e.com
+ * p3e1@e.com
  * Co-captains
  * p4e2@e.com
  * 
  * 
  * FC Barcelona
  * Captain
- * p7e2@e.com
+ * p9e1@e.com
  * Co-captains
- * p6@e.com
+ * p11e1@e.com
  */
 
 interface MatchSingleProps {
@@ -42,7 +42,7 @@ function MatchSingle({ params }: MatchSingleProps) {
             if (isValidObjectId(params.matchId)) {
                 fetchMatch({ variables: { matchId: params.matchId } });
             } else {
-                setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+                setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
             }
         }
 

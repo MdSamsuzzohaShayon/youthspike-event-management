@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
@@ -17,33 +18,40 @@ export class AppResponse<Type = null> {
     this.message = message;
   }
 
-  static handleError(obj: any) {
-    if (obj instanceof AppResponse) return obj;
-    return new AppResponse(406, false, JSON.stringify(obj));
-  }
 
-  static getError(obj: any) {
-    if (obj instanceof AppResponse) return obj;
-    return new AppResponse(500, false, 'Something went wrong!');
-  }
+  static handleError(error: any) {
+    let code = error?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = error?.message || 'Internal server error occurred.';
 
-  static exists(resource: string) {
-    return new AppResponse(400, false, `Such a ${resource} exists!`);
+    if (error instanceof HttpException) {
+      const response = error.getResponse();
+      const nMessage = response['message'] || 'An error occurred.';
+      const statusCode = response['statusCode'] || HttpStatus.INTERNAL_SERVER_ERROR;
+
+      code = statusCode;
+      message = nMessage;
+    } else if (error?.name === 'TokenExpiredError') {
+      code = HttpStatus.UNAUTHORIZED;
+      message = 'Token expired. Please log in again.';
+    }
+
+    return { code, success: false, message };
   }
 
   static notFound(resource: string) {
-    return new AppResponse(404, false, `No such ${resource} exists!`);
+    return new AppResponse(HttpStatus.NOT_FOUND, false, `No such ${resource} exists!`);
   }
 
   static invalidCredentials() {
-    return new AppResponse(406, false, `Invalid credentials!`);
+    return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid credentials!`);
   }
 
-  static invalidFile(msg: string = '') {
-    return new AppResponse(406, false, `Invalid file type! ${msg}`);
+  static invalidFile(msg: string) {
+    const newMsg = msg ? msg : '';
+    return new AppResponse(HttpStatus.NOT_ACCEPTABLE, false, `Invalid file type! ${newMsg}`);
   }
 
   static unauthorized() {
-    return new AppResponse(403, false, `You are not authorized to perform such an action!`);
+    return new AppResponse(HttpStatus.UNAUTHORIZED, false, `You are not authorized to perform such an action!`);
   }
 }

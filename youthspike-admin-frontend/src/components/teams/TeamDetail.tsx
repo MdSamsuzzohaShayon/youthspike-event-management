@@ -122,7 +122,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                 <div className="bulk-operations-players mt-8">
                     <div className="flex w-full justify-between items-center">
                         <h3 className='mt-4'>Player List</h3>
-                        <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Player Add to Team</button>
+                        <button className="btn-info mt-4" type='button' onClick={() => setAddPlayer(true)} >Add Player to Team</button>
                     </div>
 
                     <div className="sortable-active-player-list mt-4">

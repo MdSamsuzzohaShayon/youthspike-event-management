@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/lib/UserProvider';
-import { CLONE_EVENT, GET_EVENTS } from '@/graphql/event';
+import { CLONE_EVENT, DELETE_AN_EVENT, GET_EVENTS } from '@/graphql/event';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
@@ -19,6 +19,7 @@ import Link from 'next/link';
 import useClickOutside from '../../hooks/useClickOutside';
 import TextImg from '@/components/elements/TextImg';
 import { initialUserMenuList } from '@/utils/staticData';
+import { handleResponse } from '@/utils/handleError';
 
 interface IItem {
   id: number;
@@ -48,8 +49,9 @@ function EventsPage() {
   const filterListEl = useRef<HTMLDialogElement | null>(null);
 
   // GraphQL Queries
-  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData }] = useLazyQuery(GET_LDO, {fetchPolicy: "network-only"});
+  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
   const [cloneEvent] = useMutation(CLONE_EVENT);
+  const [deleteEvent] = useMutation(DELETE_AN_EVENT);
 
   // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
@@ -83,39 +85,67 @@ function EventsPage() {
    */
   const handleCopyEvent = async (e: React.SyntheticEvent, eventId: string) => {
     const eventResponse = await cloneEvent({ variables: { eventId } });
-    if (eventResponse.data.cloneEvent.code !== 201) {
-      setActErr({ name: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, main: eventResponse.data.cloneEvent });
-      return;
+    if (eventResponse.data.cloneEvent.success !== true) {
+      return setActErr({ code: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, success: false });
     }
     return router.push(`/${eventResponse.data.cloneEvent.data._id}/settings`);
   }
 
+
+
+  const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
+    e.preventDefault();
+    try {      
+      const eventResponse = await deleteEvent({ variables: { eventId } });
+      if (eventResponse.data.deleteEvent.success !== true) {
+        return setActErr({ code: eventResponse.data.deleteEvent.code, message: eventResponse.data.deleteEvent.message, success: false });
+      }
+    } catch (error) {
+      console.log(error);
+      
+    }
+    await refetch();
+  }
+
+
   useEffect(() => {
     (async () => {
-      if (user.info?.role === UserRole.admin) {
-        const newLdoId = searchParams.get('ldoId');
-        if (!newLdoId) return router.push('/admin');
-        setLdoId(newLdoId);
-        const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match        
-        const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
-        setDirectorId(newDirectorId);
-        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-        // const eventsRes = await fetchEvents({ variables: { directorId: newDirectorId } });
-        // console.log({ eventsRes, newDirectorId, ldoId: newLdoId });
-      } else {
-        setDirectorId(user.info?._id ? user.info._id : null);
-        const ldoRes = await fetchLDO();
-        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-
+      try {        
+        if (user.info?.role === UserRole.admin) {
+          const newLdoId = searchParams.get('ldoId');
+          if (!newLdoId) return router.push('/admin');
+          setLdoId(newLdoId);
+          const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
+          console.log({ ldoRes });
+  
+          const success = handleResponse({response: ldoRes?.data?.getEventDirector, setActErr});
+          if (success) {
+            const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
+            setDirectorId(newDirectorId);
+          }
+          if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+        } else {
+          setDirectorId(user.info?._id ? user.info._id : null);
+          const ldoRes = await fetchLDO();
+          const success = handleResponse({response: ldoRes?.data?.getEventDirector, setActErr});
+          if (success) {
+            if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+          }
+  
+        }
+      } catch (error) {
+        console.log(error);
+        
       }
-    })()
+    })();
+
   }, [router, user]);
 
 
-  // if (ldoLoading) return <Loader />;
+  if (ldoLoading) return <Loader />;
 
   const newLdoData = ldoData?.getEventDirector?.data;
-  
+
 
   return (
     <div className="events-page container px-2 mx-auto min-h-screen">
@@ -124,16 +154,16 @@ function EventsPage() {
         {itemList.map((item) => <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)} >{item.text}</p>)}
       </dialog>
       <h1 className='my-4 text-center'>Events Director</h1>
-      {/* {error && <Message error={error} />} */}
+      {ldoError && <Message error={ldoError} />}
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
-        {newLdoData?.logo 
-        ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} /> 
-        : <TextImg className="w-28 h-28 rounded-full object-cover object-fill"  fullText={newLdoData ? newLdoData.name : 'LDO'} />}
+        {newLdoData?.logo
+          ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} />
+          : <TextImg className="w-28 h-28 rounded-full object-cover object-fill" fullText={newLdoData ? newLdoData.name : 'LDO'} />}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
         <h2 >Events</h2>
-        
+
       </div>
       <div className="filter flex justify-between mb-2">
         <h3>All Events</h3>
@@ -151,7 +181,7 @@ function EventsPage() {
         </div>
 
         {eventList && eventList.length > 0 && eventList.map((event: IEvent) => (
-          <EventCard key={event._id} copyEvent={handleCopyEvent} event={event} directorId={directorId} user={user} />
+          <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} event={event} directorId={directorId} user={user} />
         ))}
       </div>
     </div>

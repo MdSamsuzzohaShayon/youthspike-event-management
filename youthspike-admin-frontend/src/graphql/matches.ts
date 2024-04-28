@@ -51,9 +51,27 @@ const matchResponse = `
     rosterLock
     timeout
     location
+    rounds {
+      _id
+      num
+      completed
+      teamAScore
+      teamBScore
+    }
+    nets {
+      _id
+      teamAScore
+      teamBScore
+      num
+      points
+      round{
+        _id
+      }
+    }
     teamA {
       _id
       name
+      logo
       captain {
         _id
         firstName
@@ -64,6 +82,7 @@ const matchResponse = `
     teamB {
       _id
       name
+      logo
       captain {
         _id
         firstName
@@ -82,6 +101,7 @@ const teamResponse = `
     _id
     active
     name
+    logo
     division
     players {
       _id
@@ -124,8 +144,8 @@ const GET_A_MATCH = gql`
   query GetMatch($matchId: String!) {
     getMatch(matchId: $matchId) {
       code
-      message
       success
+      message
       data {
         ${matchResponseWithRound}
       }
@@ -137,8 +157,8 @@ const GET_EVENT_WITH_MATCHES_TEAMS = gql`
   query GetEvent($eventId: String!) {
     getEvent(eventId: $eventId) {
       code
-      message
       success
+      message
       data {
         ${eventResponse}
         matches {
@@ -165,8 +185,8 @@ const CREATE_MATCH = gql`
 mutation CreateMatch($input: CreateMatchInput!) {
   createMatch(input: $input) {
     code
-    message
     success
+    message
     data {
       ${matchResponse}
     }
@@ -178,8 +198,8 @@ const UPDATE_MATCH = gql`
 mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
   updateMatch(input: $input, matchId: $matchId) {
     code
-    message
     success
+    message
     data {
       ${matchResponse}
     }

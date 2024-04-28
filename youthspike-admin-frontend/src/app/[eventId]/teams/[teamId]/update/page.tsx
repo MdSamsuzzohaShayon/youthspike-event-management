@@ -14,7 +14,6 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
   
   const [actErr, setActErr] = useState<IError | null>(null);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
-  const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleClose=()=>{
@@ -31,7 +30,7 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
       if (isValidObjectId(params.teamId)) {
         fetchTeam({ variables: { teamId: params.teamId } });
       } else {
-        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+        setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
 

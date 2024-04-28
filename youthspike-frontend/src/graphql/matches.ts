@@ -109,6 +109,5 @@ query GetMatch($matchId: String!) {
 }
 `;
 
-
-
-export {GET_MATCH_DETAIL};
+// eslint-disable-next-line import/prefer-default-export
+export { GET_MATCH_DETAIL };

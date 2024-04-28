@@ -12,5 +12,7 @@ if (NODE_ENV === 'production') {
     FRONTEND_URL = 'https://aslsquads.com';
 };
 
+const APP_NAME = 'Youthspike';
 
-export { NODE_ENV, BACKEND_URL, ADMIN_URL, FRONTEND_URL };
+
+export { NODE_ENV, BACKEND_URL, ADMIN_URL, FRONTEND_URL, APP_NAME };

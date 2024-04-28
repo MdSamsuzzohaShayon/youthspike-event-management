@@ -1,7 +1,6 @@
-import { ITeam } from ".";
+import { INetRelatives, IRoundRelatives, ITeam } from ".";
 
-export interface IDefaultMatch{
-  division: string;
+export interface ICommonMatchEvent{
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;
@@ -9,6 +8,10 @@ export interface IDefaultMatch{
   rosterLock: string;
   timeout: number;
   location: string;
+}
+
+export interface IDefaultMatch extends ICommonMatchEvent{
+  division: string;
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {
@@ -35,4 +38,19 @@ export interface IMatch extends IMatchBase{
   _id: string;
   teamA: ITeam;
   teamB: ITeam;
+}
+
+export interface IMatchRelatives extends IMatchBase{
+  _id: string;
+  teamA: ITeam;
+  teamB: ITeam;
+  rounds: IRoundRelatives[];
+}
+
+export interface IMatchExpRel extends IMatchBase{
+  _id: string;
+  teamA: ITeam;
+  teamB: ITeam;
+  rounds: IRoundRelatives[];
+  nets: INetRelatives[];
 }

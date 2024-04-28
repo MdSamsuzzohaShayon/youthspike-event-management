@@ -8,9 +8,9 @@ import { unlink } from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 
 type SponsorType = {
-  company: string,
-  logo: string
-}
+  company: string;
+  logo: string;
+};
 
 @Injectable()
 export class CloudinaryService {
@@ -83,7 +83,7 @@ export class CloudinaryService {
       });
 
       await unlink(localPath);
-      return {company, logo: cloudinaryResponse.public_id};
+      return { company, logo: cloudinaryResponse.public_id };
     } catch (error) {
       return null;
     }

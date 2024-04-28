@@ -27,6 +27,7 @@ interface IPlayerRank {
 const SortableList: React.FC<ISortableListProps> = ({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId}) => {
     const listRef = useRef<HTMLUListElement>(null);
     const screenWidth = useScreenWidth();
+    
 
     const [rankPlayers, { data, error, loading, client }] = useMutation(UPDATE_PLAYERS);
 

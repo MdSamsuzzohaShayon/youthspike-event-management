@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+
 'use client';
 
 /* eslint-disable no-unused-vars */
@@ -46,18 +48,17 @@ import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
  * 
  * Real Madrid
  * Captain
- * p3@e.com
+ * p3e1@e.com
  * Co-captains
  * p4e2@e.com
  * 
  * 
  * FC Barcelona
  * Captain
- * p7e2@e.com
+ * p9e1@e.com
  * Co-captains
- * p6@e.com
+ * p11e1@e.com
  */
-
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // ===== Hooks =====
   const dispatch = useAppDispatch();
@@ -78,20 +79,18 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
-
   // ===== GraphAL =====
   const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const audio = new Audio('/audio/notification.mp3');
-    audio.play().catch(error => console.error(error));
-  }
+    audio.play().catch((musicErr) => console.error(musicErr));
+  };
 
   const restartAudio = () => {
     if (audioPlayEl.current) audioPlayEl.current.click();
   };
-
 
   // ===== Component resize =====
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
@@ -113,36 +112,32 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         if (result?.data?.getMatch?.data) {
           organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
         } else {
-          dispatch(setActErr({ name: "Invalid Id", message: "No data found with given ID!" }));
+          dispatch(setActErr({ name: 'Invalid Id', message: 'No data found with given ID!' }));
         }
       })();
     } else {
-      dispatch(setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" }));
+      dispatch(setActErr({ name: 'Invalid Id', message: 'Can not fetch data due to invalid event ObjectId!' }));
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, fetchMatch, params.matchId]); // props, client
 
-
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
     if (socket && roundList && roundList.length > 0) {
-      const userInfo = getCookie("user");
-      const userToken = getCookie("token");
+      const userInfo = getCookie('user');
+      const userToken = getCookie('token');
 
-      joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId })
+      joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId });
       listenSocketEvents({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
-
   }, [socket, user, teamA, teamB, roundList]);
-
-
 
   // ===== Subbed & Inactive players =====
   useEffect(() => {
     if (currentRound && myPlayers) {
       const nmsp = []; // new subbed players
-      for (let i = 0; i < currentRound.subs.length; i++) {
+      for (let i = 0; i < currentRound.subs.length; i += 1) {
         const playerExist = myPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
         if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
           nmsp.push(playerExist);
@@ -152,7 +147,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
     if (currentRound && opPlayers) {
       const nosp = []; // new subbed players
-      for (let i = 0; i < currentRound.subs.length; i++) {
+      for (let i = 0; i < currentRound.subs.length; i += 1) {
         const playerExist = opPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
         if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
           nosp.push(playerExist);
@@ -169,11 +164,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   }, [mainEl]);
 
-
-
   if (loading) return <Loader />;
-
-
 
   return (
     <Suspense fallback={<Loader />}>
@@ -183,41 +174,58 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           {actErr && <Message error={actErr} />}
         </div>
 
-        <button ref={audioPlayEl} onClick={handlePlayAudio} className="hidden" id="playNotificationButton"></button>
+        <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
+          {' '}
+          Button
+        </button>
 
-        {/* // Show oponent subbed players  */}
+        {/* ===== Show oponent subbed players ===== */}
+        {opSubbedPlayers && opSubbedPlayers.length > 0 && (
+          <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">
+            <div className="container px-4 mx-auto ">
+              <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
+            </div>{' '}
+          </div>
+        )}
 
-        {opSubbedPlayers && opSubbedPlayers.length > 0 && (<div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100"><div className="container px-4 mx-auto ">
-          <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
-        </div> </div>)}
+        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
 
-
-
-        <TeamPlayers teamPlayers={opPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
-
-        {notTieBreakerNetId ? <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} /> : (
-          verifyLineup
-            ? <VerifyLineup />
-            : (<React.Fragment>
-              {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-              <LineupStrategy myTeamE={myTeamE} currRound={currentRound} myPlayers={myPlayers} opPlayers={opPlayers} currRoundNets={currRoundNets} allNets={allNets} roundList={roundList} currMatch={currMatch} />
-              {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain)
-                && <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />}
-            </React.Fragment>)
+        {notTieBreakerNetId ? (
+          <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} />
+        ) : verifyLineup ? (
+          <VerifyLineup />
+        ) : (
+          <>
+            {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+            <LineupStrategy
+              myTeamE={myTeamE}
+              currRound={currentRound}
+              myPlayers={myPlayers}
+              opPlayers={opPlayers}
+              currRoundNets={currRoundNets}
+              allNets={allNets}
+              roundList={roundList}
+              currMatch={currMatch}
+            />
+            {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
+              <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
+            )}
+          </>
         )}
 
         {eventSponsors.length > 0 && (!user || !user.token) && (
           <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
             <h3>Sponsors</h3>
             <div className="flex items-center justify-between flex-wrap w-full">
-              {eventSponsors.map((spon) => <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />)}
+              {eventSponsors.map((spon) => (
+                <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
+              ))}
             </div>
           </div>
         )}
 
-
         {/* My Players  */}
-        <TeamPlayers teamPlayers={myPlayers.filter(p => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+        <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
         {/* // Show subbed players  */}
         {mySubbedPlayers && mySubbedPlayers.length > 0 && (
           <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">

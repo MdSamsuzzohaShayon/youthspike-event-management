@@ -1,23 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { IPlayer, IMatch, ITeam, IOption } from '@/types';
-import { UserRole } from '@/types/user';
+import React, { useState } from 'react';
+import { IError, IMatchExpRel } from '@/types';
 import MatchCard from './MatchCard';
-import { divisionsToOptionList } from '@/utils/helper';
 import SelectInput from '../elements/forms/SelectInput';
 import { useUser } from '@/lib/UserProvider';
-import { EEventPeriod } from '@/types/event';
 import { eventPeriods } from '@/utils/staticData';
 import { validateMatchDatetime } from '@/utils/datetime';
 
 interface IMatchListProps {
   eventId: string;
-  matchList: IMatch[];
-  division: string;
+  matchList: IMatchExpRel[];
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   refetchFunc?: ()=> Promise<void>;
 }
 
-function MatchList({ matchList, division, eventId, refetchFunc }: IMatchListProps) {
-  const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([...matchList]);
+function MatchList({ matchList, setIsLoading, setActErr, eventId, refetchFunc }: IMatchListProps) {
+  const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([...matchList]);
   const user = useUser();
 
   const handlePeriodChange = (e: React.SyntheticEvent) => {
@@ -41,7 +39,7 @@ function MatchList({ matchList, division, eventId, refetchFunc }: IMatchListProp
     <div className='matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap'>
       <SelectInput handleSelect={handlePeriodChange} name='period' optionList={eventPeriods.map((p) => ({ text: p, value: p }))} lblTxt='Date' rw='w-3/6' />
 
-      {filteredMatchList && filteredMatchList.map((match: IMatch, i) => <MatchCard eventId={eventId} key={match._id} match={match} sl={i + 1} refetchFunc={refetchFunc} />)}
+      {filteredMatchList && filteredMatchList.map((match: IMatchExpRel, i) => <MatchCard setActErr={setActErr}  setIsLoading={setIsLoading} eventId={eventId} key={match._id} match={match} sl={i + 1} refetchFunc={refetchFunc} />)}
     </div>
   );
 }

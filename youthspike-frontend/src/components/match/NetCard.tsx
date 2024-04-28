@@ -1,45 +1,47 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // Redux
-import { setCurrNetNum, setCurrentRoundNets, setNets, updateNetPlayer } from '@/redux/slices/netSlice';
+import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 
 // Components
-import PlayerScoreCard from './PlayerScoreCard';
 
 // Utils / libs / config
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 
 // Types
-import { IUser, IUserContext, UserRole } from '@/types/user';
-import { IPlayer, INetRelatives, INetUpdate, ITeam } from '@/types';
+import { IPlayer, INetRelatives, INetUpdate } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import NetPointCard from './NetPointCard';
 import { fsToggle } from '@/utils/helper';
-import { setAvailablePlayers, setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers, setPrevPartner, setOutOfRange } from '@/redux/slices/matchesSlice';
+import { setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers, setPrevPartner, setOutOfRange } from '@/redux/slices/matchesSlice';
 import { ETeamPlayer } from '@/types/net';
 import findOutOfRange from '@/utils/match/findOutOfRange';
 import findPrevPartner from '@/utils/match/findPrevPartner';
-import { screen } from '@/utils/constant';
+import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 import { border } from '@/utils/styles';
 import { calcPairScore } from '@/utils/scoreCalc';
 
+import NetPointCard from './NetPointCard';
+import PlayerScoreCard from './PlayerScoreCard';
+
 interface INetCardProps {
-  net?: INetRelatives | null | undefined;
   screenWidth: number;
+  boardHeight: number;
+  net?: INetRelatives | null | undefined;
 }
 
 // Constant
 const touchThreshold: number = 50;
 
-function NetCard({ net, screenWidth }: INetCardProps) {
+function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   // Hook
   const dispatch = useAppDispatch();
   const user = useUser();
+
+  // const rightTopEl = useRef<HTMLDivElement | null>(null);
+  // const rightBottomEl = useRef<HTMLDivElement | null>(null);
 
   // Redux State
   const { currNetNum, currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
@@ -50,7 +52,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
   const { disabledPlayerIds, match: currMatch } = useAppSelector((state) => state.matches);
 
   // Local State
-  const [startPosX, setStartPosX] = useState<number>(0)
+  const [startPosX, setStartPosX] = useState<number>(0);
   const [myPlayers, setMyPlayers] = useState<IPlayer[]>([]);
   const [opPlayers, setOpPlayers] = useState<IPlayer[]>([]); // Op = oponent
   const [myTeamE, setMyTeamE] = useState<ETeam>(ETeam.teamB);
@@ -88,7 +90,6 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     }
   };
 
-
   const handleEvacuatePlayer = (playerSpot: ETeamPlayer) => {
     if (!user.token || !user.info) return;
     /**
@@ -98,7 +99,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     if (!net || !net._id || !net.round) return;
     let evacuatedPlayerId: string | null | undefined = null;
 
-    let netPlayerObj: INetUpdate = {
+    const netPlayerObj: INetUpdate = {
       _id: net._id,
       teamAPlayerA: net.teamAPlayerA ? net.teamAPlayerA : null,
       teamAPlayerB: net.teamAPlayerB ? net.teamAPlayerB : null,
@@ -124,7 +125,6 @@ function NetCard({ net, screenWidth }: INetCardProps) {
       }
     }
 
-    
     // Set current round nets and all nets
     const updatedCRN = [...currRoundNets]; // crn = current round nets
     const updatedAllNets = [...allNets];
@@ -135,8 +135,7 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedAllNets));
 
-
-    dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp !== evacuatedPlayerId)]))
+    dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp !== evacuatedPlayerId)]));
   };
 
   const handleDropdownPlayer = (e: React.SyntheticEvent, playerSpot: ETeamPlayer) => {
@@ -149,57 +148,40 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     e.preventDefault();
     if (!user.token || !user.info || !currRound) return;
 
-
-
-    // Process for the round must be checkin or lineup 
+    // Process for the round must be checkin or lineup
     let isTeamProcessValid = false;
     if (myTeamE === ETeam.teamA) {
-      if (currRound?.teamAProcess === EActionProcess.CHECKIN
-        && (currRound?.teamBProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.LINEUP)) {
+      if (currRound?.teamAProcess === EActionProcess.CHECKIN && (currRound?.teamBProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.LINEUP)) {
         isTeamProcessValid = true;
       }
-    } else {
-      if (currRound?.teamBProcess === EActionProcess.CHECKIN
-        && (currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamAProcess === EActionProcess.LINEUP)) {
-        isTeamProcessValid = true;
-      }
+    } else if (currRound?.teamBProcess === EActionProcess.CHECKIN && (currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamAProcess === EActionProcess.LINEUP)) {
+      isTeamProcessValid = true;
     }
+
     if (!isTeamProcessValid) return;
 
-    // At first first placing their player first will submit their players 
+    // At first first placing their player first will submit their players
     if (myTeamE === currRound?.firstPlacing) {
       if (myTeamE === ETeam.teamA) {
         if (currRound.teamAProcess === EActionProcess.LINEUP) return;
-      } else {
-        if (currRound.teamBProcess === EActionProcess.LINEUP) return;
-      }
-    } else {
-      if (myTeamE === ETeam.teamA) {
-        if (currRound.teamBProcess !== EActionProcess.LINEUP) return;
-      } else {
-        if (currRound.teamAProcess !== EActionProcess.LINEUP) return;
-      }
-    }
+      } else if (currRound.teamBProcess === EActionProcess.LINEUP) return;
+    } else if (myTeamE === ETeam.teamA) {
+      if (currRound.teamBProcess !== EActionProcess.LINEUP) return;
+    } else if (currRound.teamAProcess !== EActionProcess.LINEUP) return;
 
-    dispatch(setShowTeamPlayers(true))
+    dispatch(setShowTeamPlayers(true));
     dispatch(setPlayerSpot(playerSpot));
     if (net) dispatch(setSelectedNet(net));
 
-
-
     // Disabled players who played with him in previous round
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net });
+    // eslint-disable-next-line no-unused-expressions
     prevPartnerId ? dispatch(setPrevPartner(prevPartnerId)) : dispatch(setPrevPartner(null));
 
     // Disable players according to met variance
     const inavalidPlayerIds = findOutOfRange({ currMatch, net, myPlayers, myTeamE, opPlayers, playerSpot });
     if (inavalidPlayerIds.length > 0) dispatch(setOutOfRange(inavalidPlayerIds));
-
-
   };
-
-
-
 
   useEffect(() => {
     if (!teamAPlayers || !teamBPlayers || !user) return;
@@ -213,7 +195,17 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     }
   }, [teamAPlayers, teamBPlayers, user]);
 
+  useLayoutEffect(() => {
+    const rightTopEl = document.getElementById('top-team');
+    const rightBottomEl = document.getElementById('bottom-team');
 
+    if (rightTopEl) {
+      rightTopEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
+    }
+    if (rightBottomEl) {
+      rightBottomEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
+    }
+  }, [screenWidth, boardHeight]);
 
   /**
    * Renders logically
@@ -223,12 +215,15 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     if (!net || !net.round || !net._id) return null;
     let expectedPlayer: IPlayer | null | undefined = null;
 
-
-    let myPlayerA = net.teamBPlayerA, myPlayerB = net.teamBPlayerB;
-    let opPlayerA = net.teamAPlayerA, opPlayerB = net.teamAPlayerB;
+    let myPlayerA = net.teamBPlayerA;
+    let myPlayerB = net.teamBPlayerB;
+    let opPlayerA = net.teamAPlayerA;
+    let opPlayerB = net.teamAPlayerB;
     if (myTeamE === ETeam.teamA) {
-      myPlayerA = net.teamAPlayerA; myPlayerB = net.teamAPlayerB;
-      opPlayerA = net.teamBPlayerA; opPlayerB = net.teamBPlayerB;
+      myPlayerA = net.teamAPlayerA;
+      myPlayerB = net.teamAPlayerB;
+      opPlayerA = net.teamBPlayerA;
+      opPlayerB = net.teamBPlayerB;
     }
 
     switch (teamPlayer) {
@@ -251,35 +246,47 @@ function NetCard({ net, screenWidth }: INetCardProps) {
     return expectedPlayer === undefined ? null : expectedPlayer;
   };
 
-  const renderTeamSection = (TPA: ETeamPlayer, TPB: ETeamPlayer, onTop: boolean): React.ReactNode => {
-
+  const renderTeamSection = (TPA: ETeamPlayer, TPB: ETeamPlayer, onTop: boolean, refId: string): React.ReactNode => {
     const playerA = matchTPlayer(TPA);
     const playerB = matchTPlayer(TPB);
-    const playerARank = playerA?.rank, playerBRank = playerB?.rank;
+    const playerARank = playerA?.rank;
+    const playerBRank = playerB?.rank;
     const pairScore = calcPairScore(playerARank, playerBRank);
-    return (<div className={`net-top h-3/6 w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-gray-100' : 'flex-col-reverse bg-gray-100 text-gray-900'} border ${border.light} items-center justify-start`}>
-      <div className="player-pair flex justify-between w-full">
-        <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? "w-12" : "w-16"} border ${!onTop && border.light}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
+    return (
+      <div
+        id={refId}
+        className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-gray-100' : 'flex-col-reverse bg-gray-100 text-gray-900'} border ${
+          border.light
+        } items-center justify-start`}
+      >
+        <div className="player-pair flex justify-between w-full">
+          <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? 'w-12' : 'w-16'} border ${!onTop && border.light}`}>
+            <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
+          </div>
+          <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? 'w-12' : 'w-16'} border ${!onTop && border.light}`}>
+            <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
+          </div>
         </div>
-        <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? "w-12" : "w-16"} border ${!onTop && border.light}`}>
-          <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
-        </div>
+        {playerARank && playerBRank && <h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>}
       </div>
-      {playerARank && playerBRank && (<h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>)}
-    </div>);
-  }
+    );
+  };
 
   return (
-    <div className="net-detail w-full h-full relative flex justify-between flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="net-detail w-full h-full relative flex justify-center items-center flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Net top section start  */}
-      {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true)}
+      {/* Assuming renderTeamSection renders content */}
+      {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true, 'top-team')}
       {/* Net top section end  */}
 
-      <NetPointCard teamA={teamA} teamB={teamB} net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
+      {/* Vertically centered NetPointCard component */}
+      <div className="flex-grow flex justify-center items-center">
+        <NetPointCard net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
+      </div>
 
       {/* Net bottom section start  */}
-      {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false)}
+      {/* Assuming renderTeamSection renders content */}
+      {renderTeamSection(ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, false, 'bottom-team')}
       {/* Net bottom section end */}
     </div>
   );

@@ -5,6 +5,7 @@ export interface ITeam {
   active: boolean;
   name: string;
   logo?: string | null;
+  rankLock: boolean;
   division: string;
   event: IEvent;
   players: IPlayerExpRel[];
@@ -22,4 +23,9 @@ export interface ITeamAdd {
   division: string;
   players: string[];
   captain?: string | null;
+}
+
+export enum ETeam{
+  teamA = "teamA",
+  teamB = "teamB",
 }

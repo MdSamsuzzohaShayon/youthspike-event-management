@@ -81,7 +81,6 @@ const eventResponse = `
       lastName
       email
       division
-      rankLock
       teams{
         _id
         name
@@ -97,8 +96,8 @@ const GET_A_TEAM = gql`
   query GetTeam($teamId: String!) {
     getTeam(teamId: $teamId) {
       code
-      message
       success
+      message
       data {
       ${teamResponse}
       event{
@@ -113,8 +112,8 @@ const GET_TEAMS_BY_EVENT = gql`
   query GetTeams($eventId: String) {
     getTeams(eventId: $eventId) {
       code
-      message
       success
+      message
       data {
         ${teamResponse}
       }
@@ -126,8 +125,8 @@ const GET_EVENT_WITH_TEAMS = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
-    message
     success
+    message
     data {
       ${eventResponse}
       teams {
@@ -152,8 +151,8 @@ const ADD_TEAM_RAW = `
   mutation CreateTeam($input: CreateTeamInput!, $logo: Upload) {
     createTeam(input: $input, logo: $logo) {
       code
-      message
       success
+      message
       data {
         ${teamResponse}
       }
@@ -167,6 +166,8 @@ const UPDATE_TEAM_RAW = `
   mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!, $eventId: String!, $logo: Upload) {
     updateTeam(input: $input, teamId: $teamId, eventId: $eventId, logo: $logo) {
       code
+      success
+      message
       data {
         _id
         active
@@ -202,8 +203,8 @@ const MOVE_TEAM = gql`
   mutation MoveTeam($eventId: String!, $teamId: String!, $division: String!) {
     moveTeam(eventId: $eventId, teamId: $teamId, division: $division) {
       code
-      message
       success
+      message
       data {
         _id
         active
@@ -219,6 +220,7 @@ const DELETE_TEAM = gql`
 mutation DeleteTeam($teamId: String!) {
   deleteTeam(teamId: $teamId) {
     code
+    success
     message
   }
 }

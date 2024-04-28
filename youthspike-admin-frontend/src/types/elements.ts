@@ -72,7 +72,7 @@ export interface IAnyFileFileProps {
 export interface INumberInputProps {
   name: string;
   required?: boolean;
-  defaultValue?: number | null | undefined;
+  defaultValue?: string | null | undefined;
   handleInputChange: (e: React.SyntheticEvent) => void;
   lw?: string;
   rw?: string;
@@ -125,8 +125,8 @@ export interface IMenuArrangeProps{
 
 export interface IError {
   message?: string;
-  name?: string;
-  main?: any
+  success?: boolean;
+  code?: number;
 }
 
 

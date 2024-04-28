@@ -4,8 +4,8 @@ const GET_A_NET = gql`
 query GetNet($netId: String!) {
   getNet(netId: $netId) {
     code
-    message
     success
+    message
     data {
       _id
       num

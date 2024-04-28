@@ -1,7 +1,7 @@
 import React from "react";
 import { IError, ILDO, IPlayer, ITeam } from ".";
 import { IDocument } from "./document";
-import { IDefaultMatch, IMatch } from "./match";
+import { ICommonMatchEvent, IDefaultMatch, IMatch } from "./match";
 import { EAssignStrategies } from "./elements";
 import { ApolloClient } from "@apollo/client";
 
@@ -21,10 +21,10 @@ export interface IEventSponsor{
 
 export interface IEventSponsorAdd{
   company: string;
-  logo: File | null ;
+  logo: File | string | null ;
 }
 
-export interface IDefaultEventMatch extends IDefaultMatch {
+export interface IDefaultEventMatch extends ICommonMatchEvent {
   nets: number;
   rounds: number;
 }
@@ -58,7 +58,9 @@ export interface IEventAdd extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   ldo?: string;
+  divisions: string;
   // sponsors: File[];
+  coachPassword: string;
 }
 
 export interface IEventAddProps {

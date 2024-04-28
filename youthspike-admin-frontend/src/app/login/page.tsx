@@ -7,7 +7,6 @@ import { LOGIN_USER } from '@/graphql/admin';
 import { IError } from '@/types';
 import { UserRole } from '@/types/user';
 import { useMutation } from '@apollo/client';
-import Head from 'next/head'
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { setCookie } from '@/utils/cookie';
@@ -22,7 +21,7 @@ function LoginPage() {
   const [actionsErrors, setActionsErrors] = useState<IError>();
 
   const handleLogin = async (e: React.SyntheticEvent) => {
-    if (email === '' || password === '') return setActionsErrors({ name: "Invalid Credentials", message: "Set correct email and password!" });
+    if (email === '' || password === '') return setActionsErrors({ success: false, message: "Set correct email and password!" });
     const { data: resultData } = await loginFunction({
       variables: {
         email,
@@ -58,7 +57,7 @@ function LoginPage() {
   if (loading) return <Loader />;
 
   return (
-    <div className="container mx-auto px-2 min-h-screen flex flex-col w-full justify-center items-center">
+    <div className="min-h-screen flex flex-col w-full justify-center items-center">
       {error && <Message error={error} />}
       {actionsErrors && <Message error={actionsErrors} />}
       <Login handleLogin={handleLogin} email={email} setEmail={setEmail} password={password} setPassword={setPassword} />

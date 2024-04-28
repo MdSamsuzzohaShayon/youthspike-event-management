@@ -1,14 +1,14 @@
-import { setCurrentEventInfo, setEventSponsors, setLdo } from "@/redux/slices/eventSlice";
-import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE } from "@/redux/slices/matchesSlice";
-import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
-import { setTeamAPlayers, setTeamBPlayers } from "@/redux/slices/playerSlice";
-import { setCurrentRoom } from "@/redux/slices/roomSlice";
-import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import { setTeamA, setTeamB } from "@/redux/slices/teamSlice";
-import { store } from "@/redux/store";
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser } from "@/types";
-import { EActionProcess } from "@/types/room";
-import { ETeam } from "@/types/team";
+import { setCurrentEventInfo, setEventSponsors, setLdo } from '@/redux/slices/eventSlice';
+import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE } from '@/redux/slices/matchesSlice';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
+import { setCurrentRoom } from '@/redux/slices/roomSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
+import { store } from '@/redux/store';
+import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser } from '@/types';
+import { EActionProcess } from '@/types/room';
+import { ETeam } from '@/types/team';
 
 /**
  * Set initial state for current match
@@ -26,7 +26,8 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
   dispatch(setTeamB({ ...teamBF }));
 
   // Setting players
-  let reformatAPlayers: IPlayer[] = [], reformatBPlayers: IPlayer[] = [];
+  let reformatAPlayers: IPlayer[] = [];
+  let reformatBPlayers: IPlayer[] = [];
   if (teamAF.players) {
     reformatAPlayers = teamAF.players.map((player: IPlayer) => {
       const newPlayer: IPlayer = {
@@ -38,8 +39,8 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
         rank: player.rank,
         team: teamAF._id,
         event: event._id,
-        captainofteam: player.captainofteam,
-        profile: player.profile
+        captainofteams: player.captainofteams,
+        profile: player.profile,
       };
       return newPlayer;
     });
@@ -56,8 +57,8 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
         rank: player.rank,
         team: teamBF._id,
         event: event._id,
-        captainofteam: player.captainofteam,
-        profile: player.profile
+        captainofteams: player.captainofteams,
+        profile: player.profile,
       };
       return newPlayer;
     });
@@ -71,7 +72,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
 
   // setting ldo
   if (event?.ldo) {
-    dispatch(setLdo(event.ldo))
+    dispatch(setLdo(event.ldo));
   }
 
   // Event Sponsors
@@ -80,24 +81,45 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
   // Setting Rounds
   const formattedRounds: IRoundRelatives[] = [];
   const formattedNets: INetRelatives[] = [];
-  
-  for (const round of rounds) {
+
+  for (let i = 0; i < rounds.length; i += 1) {
+    const round = rounds[i];
     const playerIds = round.players ? round.players.map((r) => r._id) : [];
     const subIds = round.subs ? round.subs.map((r) => r._id) : [];
     const roundObj: IRoundRelatives = {
-      _id: round._id, num: round.num, completed: round.completed, nets: [], players: playerIds, subs: subIds,
-      match: matchId, teamAProcess: round.teamAProcess, teamAScore: round.teamAScore,
-      teamBProcess: round.teamBProcess, teamBScore: round.teamBScore, firstPlacing: round.firstPlacing
+      _id: round._id,
+      num: round.num,
+      completed: round.completed,
+      nets: [],
+      players: playerIds,
+      subs: subIds,
+      match: matchId,
+      teamAProcess: round.teamAProcess,
+      teamAScore: round.teamAScore,
+      teamBProcess: round.teamBProcess,
+      teamBScore: round.teamBScore,
+      firstPlacing: round.firstPlacing,
     };
 
     // Setting Nets of a round
     if (round.nets && round.nets.length > 0) {
       const netIds: string[] = [];
-      for (const n of round.nets) {
+      for (let nI = 0; nI < round.nets.length; nI += 1) {
+        const n = round.nets[nI];
         netIds.push(n._id);
         formattedNets.push({
-          _id: n._id, num: n.num, netType: n.netType, points: n.points, teamAScore: n.teamAScore, teamBScore: n.teamBScore, pairRange: n.pairRange, round: round._id,
-          teamAPlayerA: n.teamAPlayerA, teamAPlayerB: n.teamAPlayerB, teamBPlayerA: n.teamBPlayerA, teamBPlayerB: n.teamBPlayerB,
+          _id: n._id,
+          num: n.num,
+          netType: n.netType,
+          points: n.points,
+          teamAScore: n.teamAScore,
+          teamBScore: n.teamBScore,
+          pairRange: n.pairRange,
+          round: round._id,
+          teamAPlayerA: n.teamAPlayerA,
+          teamAPlayerB: n.teamAPlayerB,
+          teamBPlayerA: n.teamBPlayerA,
+          teamBPlayerB: n.teamBPlayerB,
         });
       }
       roundObj.nets = netIds;
@@ -119,7 +141,19 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
   // Setting room
   if (!token || !userInfo) {
     // @ts-ignore
-    dispatch(setCurrentRoom({ _id: matchData.room._id, match: _id, round: formattedRounds[0]._id, teamA: teamAF?._id ? teamAF._id : null, teamAClient: null, teamAProcess: formattedRounds[0].teamAProcess, teamB: teamBF?._id ? teamBF?._id : null, teamBClient: null, teamBProcess: formattedRounds[0].teamBProcess }))
+    dispatch(
+      setCurrentRoom({
+        _id: matchData.room._id,
+        match: _id,
+        round: formattedRounds[0]._id,
+        teamA: teamAF?._id ? teamAF._id : null,
+        teamAClient: null,
+        teamAProcess: formattedRounds[0].teamAProcess,
+        teamB: teamBF?._id ? teamBF?._id : null,
+        teamBClient: null,
+        teamBProcess: formattedRounds[0].teamBProcess,
+      }),
+    );
   }
 
   // Setting Match
@@ -133,11 +167,11 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
       teamA: teamAF._id,
       teamB: teamBF._id,
       event: event._id,
-      rounds: [...rounds.map(r => r._id)],
-      netVariance: matchData.netVariance
+      rounds: [...rounds.map((r) => r._id)],
+      netVariance: matchData.netVariance,
     }),
   );
-  
+
   // Setting variables for team A and team B
   if (userInfo && (userInfo.captainplayer === teamAF?.captain?._id || userInfo.cocaptainplayer === teamAF?.cocaptain?._id)) {
     dispatch(setMyTeam(teamAF));
@@ -148,7 +182,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
     dispatch(setAvailablePlayers(reformatAPlayers.map((p) => p._id)));
     if (rounds && rounds.length > 0) {
       let myTeamProcess = rounds[0].teamAProcess;
-      let opTeamProcess = rounds[0].teamBProcess;
+      const opTeamProcess = rounds[0].teamBProcess;
       if (opTeamProcess === EActionProcess.LINEUP) {
         myTeamProcess = EActionProcess.CHECKIN;
       }
@@ -161,7 +195,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
     dispatch(setAvailablePlayers(reformatBPlayers.map((p) => p._id)));
     if (rounds && rounds.length > 0) {
       let myTeamProcess = rounds[0].teamBProcess;
-      let opTeamProcess = rounds[0].teamAProcess;
+      const opTeamProcess = rounds[0].teamAProcess;
       if (opTeamProcess === EActionProcess.LINEUP) {
         myTeamProcess = EActionProcess.CHECKIN;
       }

@@ -45,6 +45,12 @@ export class RoundService {
     });
   }
 
+  async find(filter: FilterQuery<Round> = {}) {
+    return this.roundModel.find(filter).sort({
+      num: 1,
+    });
+  }
+
   async findOne(query: FilterQuery<Round>) {
     return this.roundModel.findOne(query).sort({
       updatedAt: -1,
@@ -62,4 +68,5 @@ export class RoundService {
   async deleteMany(filter: FilterQuery<Round>) {
     return this.roundModel.deleteMany(filter);
   }
+  
 }

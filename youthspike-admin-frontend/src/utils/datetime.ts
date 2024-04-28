@@ -29,6 +29,27 @@ function readDatetime(isoString: string) {
     return formatter.format(targetDate);
 }
 
+function readDate(isoDateString: string) {
+    const date = new Date(isoDateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    // @ts-ignore
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+
+function readTime(isoTimeString: string) {
+    const date = new Date(isoTimeString);
+    const options = {
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: true // Ensure AM/PM format
+    };
+    // @ts-ignore
+    return new Intl.DateTimeFormat('en-US', options).format(date);
+
+}
+
+
 
 function defaultInputValue(isoString: string): string {
     if (!isoString || isoString === "") return "";
@@ -41,4 +62,15 @@ function defaultInputValue(isoString: string): string {
     return formattedDate;
 }
 
-export { validateMatchDatetime, readDatetime, defaultInputValue };
+
+function formatUSPhoneNumber(number: string) {
+    const areaCode = number.slice(0, 3);
+    const prefix = number.slice(3, 6);
+    const lineNumber = number.slice(6);
+
+    return `(${areaCode}) ${prefix}-${lineNumber}`;
+}
+
+
+
+export { validateMatchDatetime, readDatetime, defaultInputValue, readDate, readTime, formatUSPhoneNumber };

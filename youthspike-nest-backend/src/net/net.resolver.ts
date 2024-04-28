@@ -42,96 +42,108 @@ export class NetResolver {
        *  Set players for team A and team B
       */
       const findNetPromise: any = (await this.netService.findOne({ _id: netId })).populate('match');
-      const findNet = await findNetPromise;
+      const netExist = await findNetPromise;
+      if (!netExist) return AppResponse.notFound("Net");
       const teamIds = [];
-      if (findNet.match?.teamA) teamIds.push(findNet.match.teamA);
-      if (findNet.match?.teamB) teamIds.push(findNet.match.teamB);
+      if (netExist.match?.teamA) teamIds.push(netExist.match.teamA);
+      if (netExist.match?.teamB) teamIds.push(netExist.match.teamB);
 
-      const updateNet = await this.netService.update(input, netId);
-      const updateTeam = await this.teamService.update({ $push: { nets: updateNet._id } }, { _id: { $in: teamIds } });
+      await Promise.all([
+        this.netService.updateOne({ _id: netId }, input),
+        this.teamService.updateOne({ _id: { $in: teamIds } }, { $push: { nets: netId } })
+      ]);
+
+
       return {
-        data: updateNet,
+        data: netExist,
+        code: HttpStatus.ACCEPTED,
+        message: "Net has been updated successfully!",
         success: true,
-        code: 202,
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain,  UserRole.co_captain)
   @Mutation((returns) => GetNetsResponse)
   async updateNets(@Args('input', { type: () => [UpdateMultipleNetInput] }) netsInput: UpdateMultipleNetInput[]): Promise<GetNetsResponse> {
-      try {
-          const netIds = netsInput.map(net => net._id);
-          const netsToUpdate = netsInput.map(({ _id, ...updateData }) => ({
-              updateData,
-              _id,
-          }));
-  
-          const updatedNets = await this.bulkUpdateNets(netsToUpdate);
-          await this.updateRelatedTeams(netIds);
-  
-          return {
-              data: updatedNets,
-              success: true,
-              code: HttpStatus.ACCEPTED,
-          };
-      } catch (err) {
-          throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
-      }
+    try {
+      const netIds = netsInput.map(net => net._id);
+      const netsToUpdate = netsInput.map(({ _id, ...updateData }) => ({
+        updateData,
+        _id,
+      }));
+
+      const updatedNets = await this.bulkUpdateNets(netsToUpdate);
+      await this.updateRelatedTeams(netIds);
+
+      return {
+        data: updatedNets,
+        code: HttpStatus.ACCEPTED,
+        message: "Multiple nets have been updated successfully!",
+        success: true,
+      };
+    } catch (err) {
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
-  
+
   private async bulkUpdateNets(netsToUpdate: { updateData: any, _id: string }[]): Promise<any[]> {
-      const updatePromises = netsToUpdate.map(({ updateData, _id }) => 
-          this.netService.update(updateData, _id)
-      );
-  
-      return await Promise.all(updatePromises);
+    const updatePromises = netsToUpdate.map(({ updateData, _id }) =>
+      this.netService.update(updateData, _id)
+    );
+
+    return await Promise.all(updatePromises);
   }
-  
+
   private async updateRelatedTeams(netIds: string[]): Promise<void> {
-      const netsWithMatches = await this.netService.findNetsWithMatches(netIds);
-  
-      const teamUpdates = netsWithMatches.flatMap(net => {
-          const teamIds = [];
-          const netMatch: any = net?.match;
-          if (netMatch?.teamA) teamIds.push(netMatch?.teamA);
-          if (netMatch?.teamB) teamIds.push(netMatch?.teamB);
-          return teamIds.map(teamId => this.teamService.update({ $push: { nets: net._id } }, { _id: teamId }));
-      });
-  
-      await Promise.all(teamUpdates);
+    const netsWithMatches = await this.netService.findNetsWithMatches(netIds);
+
+    const teamUpdates = netsWithMatches.flatMap(net => {
+      const teamIds = [];
+      const netMatch: any = net?.match;
+      if (netMatch?.teamA) teamIds.push(netMatch?.teamA);
+      if (netMatch?.teamB) teamIds.push(netMatch?.teamB);
+      return teamIds.map(teamId => this.teamService.update({ $push: { nets: net._id } }, { _id: teamId }));
+    });
+
+    await Promise.all(teamUpdates);
   }
 
   @Query((returns) => GetNetsResponse)
   async getNets(@Args('roundId') roundId: string) {
     try {
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
         data: (await this.netService.query({ roundId })) || [],
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
-  @Query((returns) => GetNetResponse)
+  @Query((returns) => Net)
   async getNet(@Args('netId') netId: string) {
     try {
       return {
-        code: 200,
+        code: HttpStatus.OK,
         success: true,
         data: await this.netService.findById(netId),
       };
     } catch (err) {
-      return AppResponse.getError(err);
+      return AppResponse.handleError(err);
     }
   }
 
+
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
 
   @ResolveField((returns) => Round)
   async teamA(@Parent() net: Net) {

@@ -28,7 +28,7 @@ function RoundSingle({ params }: IRoundSingleProps) {
             if (isValidObjectId(params.roundId)) {
                 fetchRound({ variables: { roundId: params.roundId } });
             } else {
-                setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid round ObjectId!" })
+                setActErr({ success: false, message: "Can not fetch data due to invalid round ObjectId!" })
             }
         }
 

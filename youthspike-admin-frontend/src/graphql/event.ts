@@ -43,7 +43,6 @@ const GET_EVENTS = gql`
   query GetEvents($directorId: String) {
     getEvents(directorId: $directorId) {
       code
-      message
       success
       data {
         ${eventResponse}
@@ -56,8 +55,8 @@ const GET_A_EVENT = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
-    message
     success
+    message
     data {
       ${eventResponse}
     }
@@ -86,8 +85,8 @@ mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventI
 const ADD_EVENT = gql`${ADD_EVENT_RAW}`;
 
 const UPDATE_EVENT_RAW = `
-mutation UpdateEvent($sponsorsInput: [Upload!]!, $input: UpdateEventInput!, $eventId: String!, $logo: Upload) {
-  updateEvent(sponsorsInput: $sponsorsInput, input: $input, eventId: $eventId, logo: $logo) {
+mutation UpdateEvent($sponsorsInput: [EventSponsorInput!]!, $updateInput: UpdateEventInput!, $eventId: String!, $sponsorsStringInput: [EventSponsorStringInput!], $logo: Upload) {
+  updateEvent(sponsorsInput: $sponsorsInput, updateInput: $updateInput, eventId: $eventId, sponsorsStringInput: $sponsorsStringInput, logo: $logo) {
     code
     message
     success
@@ -104,8 +103,8 @@ const CLONE_EVENT = gql`
   mutation CloneEvent($eventId: String!) {
     cloneEvent(eventId: $eventId) {
       code
-      message
       success
+      message
       data {
         ${eventResponse}
       }
@@ -113,4 +112,15 @@ const CLONE_EVENT = gql`
   }
 `;
 
-export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT };
+
+const DELETE_AN_EVENT = gql`
+mutation DeleteEvent($eventId: String!) {
+  deleteEvent(eventId: $eventId) {
+    code
+    message
+    success
+  }
+}
+`;
+
+export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT, DELETE_AN_EVENT };

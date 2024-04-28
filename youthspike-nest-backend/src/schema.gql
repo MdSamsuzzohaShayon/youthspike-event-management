@@ -52,6 +52,7 @@ type Team {
   logo: String
   active: Boolean!
   division: String!
+  rankLock: Boolean
   captain: Player
   cocaptain: Player
   matches: [Match!]
@@ -153,7 +154,6 @@ type Player {
   email: String
   status: EPlayerStatus!
   rank: Int
-  rankLock: Boolean
   profile: String
   phone: String
   division: String!
@@ -225,13 +225,6 @@ type UserResponse {
   data: User
 }
 
-type ChangePWDDataRes {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: ChangePWDData
-}
-
 type CreateOrUpdateEventResponse {
   code: Int!
   success: Boolean!
@@ -300,13 +293,6 @@ type GetRoundsResponse {
   success: Boolean!
   message: String
   data: [Round!]!
-}
-
-type GetRoundResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Round!
 }
 
 type GetNetsResponse {
@@ -387,15 +373,13 @@ type Query {
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
   getEvent(eventId: String!): GetEventResponse!
-  getEventByName(name: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
-  getRound(roundId: String!): GetRoundResponse!
   getNets(roundId: String!): GetNetsResponse!
-  getNet(netId: String!): GetNetResponse!
+  getNet(netId: String!): Net!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
   getPlayer(playerId: String!): PlayerResponse!
@@ -423,10 +407,10 @@ input FilterQueryInput {
 type Mutation {
   login(email: String!, password: String!): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUserArgs!, profile: Upload): UserResponse!
-  changePassword(id: String!, oldPassword: String, newPassword: String): ChangePWDDataRes!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
-  updateEvent(sponsorsInput: [Upload!]!, input: UpdateEventInput!, eventId: String!, logo: Upload): CreateOrUpdateEventResponse!
+  updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
+  deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   moveTeam(eventId: String!, teamId: String!, division: String!): GetTeamResponse!
@@ -506,6 +490,11 @@ input UpdateEventInput {
   location: String
   ldo: String
   id: String
+}
+
+input EventSponsorStringInput {
+  company: String!
+  logo: String!
 }
 
 input CreateTeamInput {

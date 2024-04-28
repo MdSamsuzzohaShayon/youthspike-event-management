@@ -8,8 +8,8 @@ const GET_CAPTAIN = gql`
 query GetUser($userId: String!) {
   getUser(userId: $userId) {
     code
-    message
     success
+    message
     data {
       _id
       firstName
@@ -29,6 +29,8 @@ const UPDATE_CAPTAIN_RAW = `
 mutation UpdateUser($userId: String!, $updateInput: UpdateUserArgs!) {
   updateUser(userId: $userId, updateInput: $updateInput) {
     code
+    success
+    message
     data {
       _id
       firstName
@@ -43,4 +45,4 @@ const UPDATE_CAPTAIN = gql`${UPDATE_CAPTAIN_RAW}`;
 
 
 
-export { GET_CAPTAIN, UPDATE_CAPTAIN_RAW, UPDATE_CAPTAIN};
+export { GET_CAPTAIN, UPDATE_CAPTAIN_RAW, UPDATE_CAPTAIN };

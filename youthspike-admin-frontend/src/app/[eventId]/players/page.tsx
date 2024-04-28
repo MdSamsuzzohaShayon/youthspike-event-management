@@ -1,13 +1,13 @@
 'use client'
 
-import { GET_EVENT_WITH_PLAYERS, GET_PLAYERS } from '@/graphql/players';
-import { IPlayer, IPlayerExpRel } from '@/types/player';
+import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
+import { IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import { gql, useApolloClient, useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
-import { divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
+import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { IError, IEventExpRel, IMenuItem, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
@@ -15,23 +15,21 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import SortableList from '@/components/player/SortableList';
-import { initialUserMenuList } from '@/utils/staticData';
 import { usePathname } from 'next/navigation';
-import { getUserFromCookie } from '@/utils/cookie';
-import Link from 'next/link';
 import UserMenuList from '@/components/layout/UserMenuList';
+import { handleResponse } from '@/utils/handleError';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
 
   // ===== hooks ===== 
   const user = useUser();
-  const pathname = usePathname();
 
   // ===== Local State ===== 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [showRank, setShowRank] = useState<boolean>(false);
   const [rankControls, setRankControls] = useState<boolean>(false);
+  const [lockRank, setLockRank] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
   const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
@@ -50,10 +48,12 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   const fetchPlayer = async () => {
     const playerRes = await getEvent({ variables: { eventId: params.eventId } });
-
-    if (!playerRes) return;
+   
+    const success = handleResponse({response: playerRes?.data?.getEvent, setActErr});
+    if (!success) return;
 
     let npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
+
 
 
 
@@ -72,6 +72,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       if (playerExist) {
         const teamId = playerExist.teams && playerExist.teams.length > 0 ? playerExist.teams[0]._id : null;
         if (teamId) {
+          const teamExist = ntList.find((t)=> t._id === teamId);
+          if(teamExist && teamExist.rankLock) setLockRank(true);
           npList = npList.filter((p) => {
             if (p.teams && p.teams.length > 0) {
               const tIds = p.teams.map((t) => t._id);
@@ -85,6 +87,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         npList = [];
       }
     }
+
 
     let fpList = [...npList]; // fp list = filtered players list
 
@@ -134,7 +137,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       if (isValidObjectId(params.eventId)) {
         fetchPlayer();
       } else {
-        setActErr({ name: "Invalid Id", message: "Can not fetch data due to invalid event ObjectId!" })
+        setActErr({ success : false, message: "Can not fetch data due to invalid event ObjectId!" })
       }
     }
   }, [params.eventId, user, data]);
@@ -147,16 +150,18 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
-      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-        <div className="mb-4 division-selection w-full">
-          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-        </div>
-      )}
       <h1 className='mb-8 text-center'>Players</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />
       </div>
+
+      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+        <div className="mb-4 division-selection w-full">
+          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        </div>
+      )}
+      
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {addPlayer ? (<>
@@ -169,7 +174,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           <button className="btn-info mt-4 mb-4" type='button' onClick={() => setAddPlayer(true)} >Add player</button>
         )}
         {/* <PlayerList teamIds={teamList.map((t) => t._id)}  divisionList={divisionList} teamList={filteredTeamList} /> */}
-        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+        <SortableList eventId={params.eventId} playerList={filteredPlayerList} setIsLoading={setIsLoading} rankControls={rankControls && !lockRank} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} showRank={showRank} />
       </>)}
     </div>
   )
