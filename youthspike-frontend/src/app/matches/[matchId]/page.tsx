@@ -42,17 +42,18 @@ import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
+import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
 
 /**
  * Test Match
- * 
+ *
  * Real Madrid
  * Captain
  * p3e1@e.com
  * Co-captains
  * p4e2@e.com
- * 
- * 
+ *
+ *
  * FC Barcelona
  * Captain
  * p9e1@e.com
@@ -84,8 +85,12 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const audio = new Audio('/audio/notification.mp3');
-    audio.play().catch((musicErr) => console.error(musicErr));
+    const timePassed = hasTimePassed(5);
+    if (timePassed) {
+      const audio = new Audio('/audio/notification.mp3');
+      audio.play().catch((musicErr) => console.error(musicErr));
+      setMusicPlayedTime();
+    }
   };
 
   const restartAudio = () => {

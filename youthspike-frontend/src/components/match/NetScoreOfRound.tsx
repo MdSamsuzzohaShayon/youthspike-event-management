@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import Image from 'next/image';
 
 // Redux
@@ -18,7 +18,6 @@ import { ETeamPlayer, INetUpdate } from '@/types/net';
 import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
 import { ETeam } from '@/types/team';
 import { changeTheRound } from '@/utils/match/emitSocketEvents';
-import { setNetH } from '@/utils/helper';
 import { useMutation } from '@apollo/client';
 import { UPDATE_ROUND } from '@/graphql/round';
 import { border } from '@/utils/styles';
@@ -164,7 +163,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
   useLayoutEffect(() => {
     // Use layout effect to measure the element after render
-    //    left-drop-down right-net-card
     const leftFullEl = document.getElementById('left-round-detail');
     const rightFullEl = document.getElementById('right-net-card');
     const leftTopEl = document.getElementById('left-top');
@@ -184,9 +182,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         leftBottomEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
       }
     }
-    // const measureHeight = () => {
-    // }
-    // window.requestAnimationFrame(measureHeight);
   }, []); // Add dependencies that might affect the height measurement
 
   const renderAvailablePlayers = (): React.ReactNode => {
@@ -265,7 +260,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   };
 
   return (
-    <div className="net-score container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
+    <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
       {/* Left side round detail start  */}
       {!showTeamPlayers ? (
         <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
@@ -325,7 +320,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         {screenWidth > screen.xs ? (
           currentRoundNets.map((net) => <NetCard boardHeight={boardHeight} key={net._id} net={net} screenWidth={screenWidth} />)
         ) : (
-          <NetCard boardHeight={boardHeight} net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId)} screenWidth={screenWidth} />
+          <NetCard boardHeight={boardHeight} net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId) ?? null} screenWidth={screenWidth} />
         )}
       </div>
       {/* Right side net detail end */}
