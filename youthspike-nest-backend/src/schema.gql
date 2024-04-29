@@ -9,6 +9,12 @@ type AppAbout {
   mode: String
 }
 
+type AppResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+}
+
 type LDO {
   _id: String
   name: String!
@@ -429,6 +435,7 @@ type Mutation {
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
+  sendCredentials(eventId: String, teamId: String, captain: String, co_captain: String): AppResponse!
 }
 
 input UpdateUserArgs {

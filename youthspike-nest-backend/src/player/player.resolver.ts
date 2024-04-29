@@ -38,7 +38,7 @@ export class PlayerResolver {
     private teamService: TeamService,
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)

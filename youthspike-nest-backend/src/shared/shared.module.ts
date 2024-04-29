@@ -28,6 +28,8 @@ import { SponsorService } from 'src/sponsor/sponsor.service';
 import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
 import { Room, RoomSchemaFactory } from 'src/room/room.schema';
 import { RoomService } from 'src/room/room.service';
+import { EmailsenderResolver } from 'src/emailsender/emailsender.resolver';
+import { EmailsenderService } from 'src/emailsender/emailsender.service';
 
 @Module({
   imports: [
@@ -109,6 +111,7 @@ import { RoomService } from 'src/room/room.service';
     SponsorService,
     // { provide: APP_GUARD, useClass: RolesGuard },
     RoomService,
+    EmailsenderService,
   ],
   exports: [
     CloudinaryService,
@@ -123,6 +126,7 @@ import { RoomService } from 'src/room/room.service';
     LdoService,
     SponsorService,
     RoomService,
+    EmailsenderService,
   ],
 })
 export class SharedModule {

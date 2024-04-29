@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
+import Image from 'next/image';
 
 interface TeamCardProps {
     eventId: string;
@@ -86,6 +87,11 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
         setOpenMoveTeam(prevState => !prevState);
     }
 
+    const handleSendCredential =(e: React.SyntheticEvent, teamId: string)=>{
+        e.preventDefault();
+        // Send captain credentials to the captain and co captain credentials to co captain
+    }
+
     const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {
         e.preventDefault();
         // Fetch team by team Id
@@ -146,10 +152,16 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
         <div className="team-card w-full">
             <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
                 <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-                    <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} >Edit</li>
-                    <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}>Move Team</li>
-                    <li role="presentation" onClick={(e) => handleDeleteTeam(e, team._id)}>Delete</li>
-                    <li role="presentation" onClick={(e) => handleMakeInactive(e, team._id)} >Make Inactive</li>
+                    <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} className='flex justify-start items-center gap-x-2' >
+                        <span><Image width={20} height={20} src='/icons/edit.svg' alt='Edit-icon' className='svg-white' /></span>Edit</li>
+                    <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}  className='flex justify-start items-center gap-x-2' >
+                        <span><Image width={20} height={20} src='/icons/move.svg' alt='Edit-icon' className='svg-white' /></span> Move Team</li>
+                    <li role="presentation" onClick={(e) => handleSendCredential(e, team._id)} className='flex justify-start items-center gap-x-2' >
+                        <span><Image width={20} height={20} src='/icons/send-email.svg' alt='Edit-icon' className='svg-white' /></span> Send Credential</li>
+                    <li role="presentation" onClick={(e) => handleDeleteTeam(e, team._id)} className='flex justify-start items-center gap-x-2' >
+                        <span><Image width={20} height={20} src='/icons/delete.svg' alt='Edit-icon' className='svg-white' /></span> Delete</li>
+                    {/* <li role="presentation" onClick={(e) => handleMakeInactive(e, team._id)} className='flex justify-start items-center gap-x-2' >
+                        <span><Image width={20} height={20} src='/icons/edit.svg' alt='Edit-icon' className='svg-white' /></span>Make Inactive</li> */}
                 </ul>
                 <div className="w-1/12">
                     <input type="checkbox" name="select-item" id="league-item" />
