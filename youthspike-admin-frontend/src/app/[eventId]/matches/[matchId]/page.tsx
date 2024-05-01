@@ -13,18 +13,18 @@ import React, { useState, useEffect } from 'react';
 /**
  * Test Match
  * 
- * Real Madrid
+ * Man City
  * Captain
- * p3e1@e.com
+ * pfn323
  * Co-captains
- * p4e2@e.com
  * 
  * 
- * FC Barcelona
+ * 
+ * PSG
  * Captain
- * p9e1@e.com
+ * pfn424
  * Co-captains
- * p11e1@e.com
+ * 
  */
 
 interface MatchSingleProps {

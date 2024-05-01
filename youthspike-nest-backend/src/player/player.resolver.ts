@@ -42,7 +42,7 @@ export class PlayerResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => PlayerResponse) // Specify the return type
+  @Mutation((_returns) => PlayerResponse) // Specify the return type
   async createPlayer(
     @Args('input') input: CreatePlayerInput,
     @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
@@ -75,17 +75,6 @@ export class PlayerResolver {
         }
       }
 
-      // ===== Check duplicate email =====
-      if (input.email) {
-        const duplicateExist = await this.playerService.findOne({ email: input.email });
-        if (duplicateExist) {
-          return AppResponse.handleError({
-            name: 'Duplicate Email',
-            statusCode: HttpStatus.NOT_ACCEPTABLE,
-            message: 'Use another valid and email in order to change the email',
-          });
-        }
-      }
       const newPlayer = await this.playerService.create(playerObj);
 
       if (input.team) {
@@ -109,7 +98,7 @@ export class PlayerResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((returns) => PlayerResponse)
+  @Mutation((_returns) => PlayerResponse)
   async updatePlayer(
     @Args('input') input: UpdatePlayerInput,
     @Args('playerId') playerId: string,

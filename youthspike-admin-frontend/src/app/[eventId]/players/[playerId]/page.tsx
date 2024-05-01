@@ -26,6 +26,7 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
   if (loading || isLoading || eventLoading) return <Loader />;
 
   const prevPlayer = data?.getPlayer?.data;
+  
 
   const teamList = eventData?.getEvent?.data?.teams ? eventData?.getEvent?.data?.teams : [];
 

@@ -95,6 +95,8 @@ export class TeamResolver {
       if (input.captain) {
         // =====  Create new user for captain =====
         const findPlayer = await this.playerService.findById(input.captain.toString());
+        const username = findPlayer.firstName.toLowerCase() + newTeam.num;
+        promiseOperations.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
         const rawPassword = findEvent.coachPassword;
         const captainUser = await this.userService.create({
           firstName: findPlayer.firstName,
@@ -102,16 +104,20 @@ export class TeamResolver {
           role: UserRole.captain,
           active: true,
           captainplayer: input.captain,
-          email: findPlayer.email,
+          email: username,
           password: rawPassword,
         });
         promiseOperations.push(
           this.playerService.updateOne(
             { _id: input.captain },
-            { captainofteams: newTeam._id, captainuser: captainUser._id },
+            {
+              $addToSet: { captainofteams: newTeam._id }, // Add push
+              captainuser: captainUser._id,
+            },
           ),
         );
       }
+
       await Promise.all(promiseOperations);
       return {
         code: HttpStatus.CREATED,

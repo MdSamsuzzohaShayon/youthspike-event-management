@@ -60,6 +60,7 @@ type Team {
   division: String!
   rankLock: Boolean
   sendCredentials: Boolean
+  num: Float
   captain: Player
   cocaptain: Player
   matches: [Match!]
@@ -159,6 +160,7 @@ type Player {
   _id: String
   firstName: String!
   lastName: String!
+  username: String
   email: String
   status: EPlayerStatus!
   rank: Int

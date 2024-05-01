@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
@@ -9,6 +9,23 @@ import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { User } from 'src/user/user.schema';
+
+const CounterSchema = new mongoose.Schema({
+  field: { type: String, required: true },
+  sequence: { type: Number, default: 0 },
+});
+
+const CounterModel = mongoose.model('Counter', CounterSchema);
+
+async function getNextSequence(fieldName: string): Promise<number> {
+  const counter = await CounterModel.findOneAndUpdate(
+    { field: fieldName },
+    { $inc: { sequence: 1 } },
+    { new: true, upsert: true }
+  );
+
+  return counter.sequence;
+}
 
 
 @ObjectType()
@@ -52,6 +69,10 @@ export class Team extends AppDocument {
   @Field({ nullable: true })
   @Prop({ required: false, default: false })
   sendCredentials: boolean;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  num?: number;
 
   /**
    * Relations

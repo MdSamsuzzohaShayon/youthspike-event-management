@@ -106,7 +106,7 @@ export class EmailsenderResolver {
               to: ['mdsamsuzzoha5222@gmail.com', player.email],
               subject,
               htmlFileName,
-              player_username: player.firstName,
+              player_username: player.username,
               coach_password: event.coachPassword,
               ldo_name: ldo.name,
               director_email: director.email,

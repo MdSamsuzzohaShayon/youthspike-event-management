@@ -212,6 +212,19 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Database Action
  -  Set `sendCredentials` to `false` in all document of event and team
+ - Set num in teams
+ ```
+ const cursor = db.teams.find()
+ let num = 1
+ while (cursor.hasNext()) {
+  let doc = cursor.next()
+  db.teams.updateOne(
+    { _id: doc._id }, // Match the document by its _id
+    { $set: { num: num } } // Set the 'num' field to the current counter value
+  )
+  num++ // Increment the counter for the next document
+}
+ ```
 
 
 ### Github action deployment

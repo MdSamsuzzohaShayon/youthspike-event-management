@@ -4,6 +4,8 @@ import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
 import { Types } from 'mongoose';
 
+type CreateQuery = Omit<Team, keyof Document>;
+
 @Injectable()
 export class TeamService {
   constructor(@InjectModel(Team.name) private teamModel: Model<Team>) {}
@@ -34,9 +36,12 @@ export class TeamService {
   }
 
   async create(team: Team) {
+    // const lastTeam = await this.teamModel.findOne({}, {}, { sort: { num: -1 } });
+    const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
     return this.teamModel.create({
       ...team,
       active: true,
+      num: lastTeam.num + 1,
     });
   }
 

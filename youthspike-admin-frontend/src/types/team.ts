@@ -8,6 +8,7 @@ export interface ITeam {
   rankLock: boolean;
   division: string;
   sendCredentials: false;
+  num: number;
   event: IEvent;
   players: IPlayerExpRel[];
   captain: IPlayerExpRel | null;

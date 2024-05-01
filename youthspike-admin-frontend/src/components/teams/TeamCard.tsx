@@ -41,7 +41,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
     const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
     const [moveTeamMutation, { loading, data }] = useMutation(MOVE_TEAM);
     const [deleteTeam, { loading: dLoading, data: dData }] = useMutation(DELETE_TEAM);
-    const [sendCredentials]= useMutation(SEND_CREDENTIALS);
+    const [sendCredentials] = useMutation(SEND_CREDENTIALS);
 
     useClickOutside(actionEl, () => {
         setActionOpen(false);
@@ -89,19 +89,19 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
         setOpenMoveTeam(prevState => !prevState);
     }
 
-    const handleSendCredential =async (e: React.SyntheticEvent, teamId: string)=>{
+    const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
         e.preventDefault();
         // Send captain credentials to the captain and co captain credentials to co captain
         try {
-          setIsLoading(true);
-          const res = await sendCredentials({variables: {eventId, teamId}});
-          console.log(res);
-          
+            setIsLoading(true);
+            const res = await sendCredentials({ variables: { eventId, teamId } });
+            if (fefetchFunc) await fefetchFunc();
+
         } catch (error) {
-          console.log(error);
-          
-        }finally{
-          setIsLoading(false);
+            console.log(error);
+
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -167,7 +167,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                 <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
                     <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} className='flex justify-start items-center gap-x-2' >
                         <span><Image width={20} height={20} src='/icons/edit.svg' alt='Edit-icon' className='svg-white' /></span>Edit</li>
-                    <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}  className='flex justify-start items-center gap-x-2' >
+                    <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)} className='flex justify-start items-center gap-x-2' >
                         <span><Image width={20} height={20} src='/icons/move.svg' alt='Edit-icon' className='svg-white' /></span> Move Team</li>
                     <li role="presentation" onClick={(e) => handleSendCredential(e, team._id)} className='flex justify-start items-center gap-x-2' >
                         <span><Image width={20} height={20} src='/icons/send-email.svg' alt='Edit-icon' className='svg-white' /></span> {team?.sendCredentials ? "Resend Credential" : "Send Credential"}</li>
@@ -176,10 +176,12 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                     {/* <li role="presentation" onClick={(e) => handleMakeInactive(e, team._id)} className='flex justify-start items-center gap-x-2' >
                         <span><Image width={20} height={20} src='/icons/edit.svg' alt='Edit-icon' className='svg-white' /></span>Make Inactive</li> */}
                 </ul>
-                <div className="w-1/12">
+                <div className="w-1/12 flex justify-center items-center flex-col gap-2">
                     <input type="checkbox" name="select-item" id="league-item" />
+                    <p className='w-8 h-8 rounded-full bg-yellow-logo flex justify-center items-center text-gray-900'>{team.num}</p>
                 </div>
                 <div className="w-5/12">
+
                     <Link href={`/${eventId}/teams/${team._id}`}>
                         <div className="brand flex gap-1 items-center">
                             {team.logo
