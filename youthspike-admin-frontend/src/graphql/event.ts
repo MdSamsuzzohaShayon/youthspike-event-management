@@ -123,4 +123,15 @@ mutation DeleteEvent($eventId: String!) {
 }
 `;
 
-export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT, DELETE_AN_EVENT };
+
+const SEND_CREDENTIALS= gql`
+mutation SendCredentials($eventId: String!, $teamId: String, $captain: String, $coCaptain: String) {
+  sendCredentials(eventId: $eventId, teamId: $teamId, captain: $captain, co_captain: $coCaptain) {
+    code
+    message
+    success
+  }
+}
+`;
+
+export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS };

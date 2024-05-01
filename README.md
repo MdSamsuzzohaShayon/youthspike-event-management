@@ -84,7 +84,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
  - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
  - When I login as captain, I should only see the matches that I am in. Moreover, I should only enter the matches that I am captain of.
- - 
+
+
+### Update - 3
+ - When I refresh it should take me to the round where I was before refreshing
 
 
  - **Team**
@@ -187,6 +190,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Issue with admin directing to event setting page (It is redirecting to /admin page)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - When saving a team and creating another team, it does not update the player list. That need to be updated properly
+ - [00:00](https://www.loom.com/share/c2b04e623a874cf5b647ef260d2bc20a) - After submitting lineup there should not be shown close button, fix that
+ - [02:35](https://www.loom.com/share/c2b04e623a874cf5b647ef260d2bc20a) - When selecting players, subbing sometime does not visiable, need to show which player is unselected - Bug- It's allowing me to assign the same person to more than one net.  See video
+ - Close button is not visiable when submitting players
+ - Bug- It allowed someone to sub twice in back to back rounds. it should only allow you to sub someone after everyone on the team has subbed at least once.
  
  
  - src/components/event/EventAddUpdate.tsx
@@ -202,6 +209,9 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Create reverse proxies (For nest-backend, admin-frontend, frontend, websocket)
  - Nginx GraphQL load balancing
  - Setup docker
+
+### Database Action
+ -  Set `sendCredentials` to `false` in all document of event and team
 
 
 ### Github action deployment

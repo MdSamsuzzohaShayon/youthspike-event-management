@@ -49,6 +49,10 @@ export class Team extends AppDocument {
   @Prop({ required: false, default: false })
   rankLock: boolean;
 
+  @Field({ nullable: true })
+  @Prop({ required: false, default: false })
+  sendCredentials: boolean;
+
   /**
    * Relations
    */

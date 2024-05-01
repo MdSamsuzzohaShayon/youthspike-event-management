@@ -71,6 +71,7 @@ export class TeamResolver {
         this.teamService.create({
           name: input.name,
           logo: logoUrl,
+          sendCredentials: false,
           captain: input.captain,
           event: input.event,
           division: input.division.trim().toLowerCase(),

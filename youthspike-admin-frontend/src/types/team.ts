@@ -7,6 +7,7 @@ export interface ITeam {
   logo?: string | null;
   rankLock: boolean;
   division: string;
+  sendCredentials: false;
   event: IEvent;
   players: IPlayerExpRel[];
   captain: IPlayerExpRel | null;

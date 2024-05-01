@@ -7,11 +7,13 @@ import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 import useClickOutside from '../../../hooks/useClickOutside';
 import TextImg from '../elements/TextImg';
+import Image from 'next/image';
 
 interface IEventCardProps {
     event: IEvent;
     copyEvent: (e: React.SyntheticEvent, eventId: string) => void;
     deleteEvent: (e: React.SyntheticEvent, eventId: string) => void;
+    sendCredentials: (eventId: string) => void;
     user: IUserContext | null;
     directorId: string | null;
 }
@@ -23,7 +25,7 @@ const monthNames: string[] = [
 ];
 
 
-function EventCard({ event, copyEvent, deleteEvent, user, directorId }: IEventCardProps) {
+function EventCard({ event, copyEvent, deleteEvent, user, directorId, sendCredentials }: IEventCardProps) {
 
     const [actionOpen, setActionOpen] = useState<boolean>(false);
     const ulEl = useRef<HTMLUListElement | null>(null);
@@ -44,6 +46,12 @@ function EventCard({ event, copyEvent, deleteEvent, user, directorId }: IEventCa
         deleteEvent(e, eventId);
     }
 
+    const handleSendCredential =(e: React.SyntheticEvent, eventId: string)=>{
+        e.preventDefault();
+        // Send captain credentials to the captain and co captain credentials to co captain
+        sendCredentials(eventId);
+    }
+
     const handleOpenAction = (e: React.SyntheticEvent) => {
         e.preventDefault();
         setActionOpen(prevState => !prevState);
@@ -58,9 +66,11 @@ function EventCard({ event, copyEvent, deleteEvent, user, directorId }: IEventCa
     return (
         <div key={event._id} className="event-card mb-1 p-2 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md relative">
             <ul ref={ulEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-                <li role="presentation" onClick={(e) => handleCopyEvent(e, event._id)} className='cursor-pointer'>Copy</li>
-                <li> <Link href={makeSettingUrl()} className='cursor-pointer' >Edit</Link></li>
-                <li role="presentation" onClick={(e) => handleDeleteEvent(e, event._id)} className='cursor-pointer'>Delete</li>
+                <li role="presentation" onClick={(e) => handleCopyEvent(e, event._id)} className='cursor-pointer flex justify-start items-center gap-x-2'><span><Image width={20} height={20} src='/icons/copy.svg' alt='Edit-icon' className='svg-white' /></span>Copy</li>
+                <li role="presentation" onClick={(e) => handleSendCredential(e, event._id)} className='cursor-pointer flex justify-start items-center gap-x-2' >
+                        <span><Image width={20} height={20} src='/icons/send-email.svg' alt='Edit-icon' className='svg-white' /></span> { event.sendCredentials ? "Resend Credential": "Send Credentials" }</li>
+                <li> <Link href={makeSettingUrl()} className='cursor-pointer flex justify-start items-center gap-x-2' > <span><Image width={20} height={20} src='/icons/edit.svg' alt='Edit-icon' className='svg-white' /></span>Edit</Link></li>
+                <li role="presentation" onClick={(e) => handleDeleteEvent(e, event._id)} className='cursor-pointer flex justify-start items-center gap-x-2'><span><Image width={20} height={20} src='/icons/delete.svg' alt='Edit-icon' className='svg-white' /></span>Delete</li>
             </ul>
             <div className="w-full flex justify-end">
                 <img src="/icons/dots-vertical.svg" alt="dot-vertical" role="presentation" onClick={handleOpenAction} className="w-4 svg-white" />

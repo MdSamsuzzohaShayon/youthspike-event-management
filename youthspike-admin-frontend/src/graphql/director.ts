@@ -16,6 +16,7 @@ const eventResponse = `
   nets
   rounds
   netVariance
+  sendCredentials
   rosterLock
   timeout
   sponsors {

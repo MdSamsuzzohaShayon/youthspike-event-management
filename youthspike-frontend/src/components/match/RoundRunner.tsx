@@ -31,17 +31,10 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
   const [otp, setOtp] = useState<EActionProcess>(EActionProcess.INITIATE); // otp = Oponent team process
 
   const renderActionBoxes = (): React.ReactNode | null => {
-    // let hasAction: boolean = false;
-
-    // // =====  Check if user has action =====
-    // if (user && user?.token && (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain)) {
-    //   hasAction = true;
-    // }
-    
 
     const lockedNets = currRoundNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
     if (currentRound?.num === roundList.length && currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamAProcess === EActionProcess.LINEUP && lockedNets.length <= 1) {
-      return <FinalRoundBox currRoom={currentRoom} socket={socket} otp={otp} myTeamE={myTeamE} />;
+      return <FinalRoundBox myTeamE={myTeamE} />;
     }
 
     if (currentRound?.completed) return <CompletedBox />;

@@ -59,6 +59,7 @@ type Team {
   active: Boolean!
   division: String!
   rankLock: Boolean
+  sendCredentials: Boolean
   captain: Player
   cocaptain: Player
   matches: [Match!]
@@ -134,6 +135,7 @@ type Event {
   startDate: Date!
   endDate: Date!
   active: Boolean!
+  sendCredentials: Boolean
   playerLimit: Int!
   ldo: LDO!
   players: [Player!]!
@@ -435,7 +437,7 @@ type Mutation {
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
-  sendCredentials(eventId: String, teamId: String, captain: String, co_captain: String): AppResponse!
+  sendCredentials(eventId: String!, teamId: String, captain: String, co_captain: String): AppResponse!
 }
 
 input UpdateUserArgs {

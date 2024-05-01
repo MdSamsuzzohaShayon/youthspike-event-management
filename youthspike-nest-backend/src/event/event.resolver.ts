@@ -138,6 +138,7 @@ export class EventResolver {
         ...args,
         ldo: findLdo._id,
         logo: logoUrl,
+        sendCredentials: false,
         sponsors: sponsorsIds,
         players: [],
         teams: [],

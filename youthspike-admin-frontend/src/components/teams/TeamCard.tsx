@@ -12,6 +12,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
 import Image from 'next/image';
+import { SEND_CREDENTIALS } from '@/graphql/event';
 
 interface TeamCardProps {
     eventId: string;
@@ -40,6 +41,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
     const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
     const [moveTeamMutation, { loading, data }] = useMutation(MOVE_TEAM);
     const [deleteTeam, { loading: dLoading, data: dData }] = useMutation(DELETE_TEAM);
+    const [sendCredentials]= useMutation(SEND_CREDENTIALS);
 
     useClickOutside(actionEl, () => {
         setActionOpen(false);
@@ -87,9 +89,20 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
         setOpenMoveTeam(prevState => !prevState);
     }
 
-    const handleSendCredential =(e: React.SyntheticEvent, teamId: string)=>{
+    const handleSendCredential =async (e: React.SyntheticEvent, teamId: string)=>{
         e.preventDefault();
         // Send captain credentials to the captain and co captain credentials to co captain
+        try {
+          setIsLoading(true);
+          const res = await sendCredentials({variables: {eventId, teamId}});
+          console.log(res);
+          
+        } catch (error) {
+          console.log(error);
+          
+        }finally{
+          setIsLoading(false);
+        }
     }
 
     const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {
@@ -157,7 +170,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                     <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)}  className='flex justify-start items-center gap-x-2' >
                         <span><Image width={20} height={20} src='/icons/move.svg' alt='Edit-icon' className='svg-white' /></span> Move Team</li>
                     <li role="presentation" onClick={(e) => handleSendCredential(e, team._id)} className='flex justify-start items-center gap-x-2' >
-                        <span><Image width={20} height={20} src='/icons/send-email.svg' alt='Edit-icon' className='svg-white' /></span> Send Credential</li>
+                        <span><Image width={20} height={20} src='/icons/send-email.svg' alt='Edit-icon' className='svg-white' /></span> {team?.sendCredentials ? "Resend Credential" : "Send Credential"}</li>
                     <li role="presentation" onClick={(e) => handleDeleteTeam(e, team._id)} className='flex justify-start items-center gap-x-2' >
                         <span><Image width={20} height={20} src='/icons/delete.svg' alt='Edit-icon' className='svg-white' /></span> Delete</li>
                     {/* <li role="presentation" onClick={(e) => handleMakeInactive(e, team._id)} className='flex justify-start items-center gap-x-2' >
