@@ -203,7 +203,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
 
                                 <div className="caption flex flex-col">
                                     <p className='uppercase text-xs'>Captain</p>
-                                    <h3 className='leading-none text-lg font-bold'>{team.captain?.firstName + " " + team.captain?.lastName}</h3>
+                                    <h3 className='leading-none text-lg font-bold capitalize'>{team.captain?.firstName + " " + team.captain?.lastName}</h3>
                                 </div>
                             </div>
                         )}

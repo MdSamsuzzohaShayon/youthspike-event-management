@@ -12,6 +12,7 @@ export interface ITeam {
   event: IEvent;
   players: IPlayerExpRel[];
   captain: IPlayerExpRel | null;
+  cocaptain: IPlayerExpRel | null;
   nets: INetRelatives[];
 }
 

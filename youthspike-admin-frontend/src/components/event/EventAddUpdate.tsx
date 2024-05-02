@@ -104,6 +104,25 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         }
     }
 
+    const handleNumberInputChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        try {
+            
+            const inputEl = e.target as HTMLInputElement;
+            let intVal = parseInt(inputEl.value, 10);
+            if(typeof intVal === 'number'){
+                if (!update) {
+                    setEventState((prevState) => ({ ...prevState, [inputEl.name]: intVal }));
+                } else {
+                    setUpdateEvent((prevState) => ({ ...prevState, [inputEl.name]: intVal }));
+                }
+            }
+        } catch (error) {
+            console.log(error);
+            
+        }
+    }
+
     const handleDivisionInputChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
@@ -287,9 +306,9 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             {/* Default setting  */}
             <h3 className='text-2xl capitalize mt-4'>Default setting</h3>
 
-            <NumberInput defaultValue={eventState.nets} handleInputChange={handleInputChange} lblTxt='Number of nets' name='nets' required={!update} />
-            <NumberInput defaultValue={eventState.rounds} handleInputChange={handleInputChange} lblTxt='Number of rounds' name='rounds' required={!update} />
-            <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleInputChange} lblTxt='Net Variance' name='netVariance' required={!update} />
+            <NumberInput defaultValue={eventState.nets} handleInputChange={handleNumberInputChange} lblTxt='Number of nets' name='nets' required={!update} />
+            <NumberInput defaultValue={eventState.rounds} handleInputChange={handleNumberInputChange} lblTxt='Number of rounds' name='rounds' required={!update} />
+            <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleNumberInputChange} lblTxt='Net Variance' name='netVariance' required={!update} />
 
             <SelectInput name='homeTeam' defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' />
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={eventState.autoAssign}

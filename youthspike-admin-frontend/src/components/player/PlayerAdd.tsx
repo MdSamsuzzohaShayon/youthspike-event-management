@@ -113,7 +113,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     const divisionExist = getDivisionFromStore();
     if (divisionExist) tdObj.division = divisionExist;
     setPlayerState((prevState) => ({ ...prevState, ...tdObj }));
-  }, []);  
+  }, []);
 
 
   return (
@@ -123,7 +123,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       </div>
       <TextInput name='firstName' lblTxt='First Name' defaultValue={playerState?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerState?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
-      {update && <TextInput name='username' defaultValue={playerState?.username} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' /> }
+      {update && playerState?.username && <TextInput name='username' defaultValue={playerState?.username} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />}
       <EmailInput name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
       <NumberInput name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>

@@ -2,7 +2,7 @@ import { ADD_EVENT_RAW, UPDATE_EVENT_RAW } from "@/graphql/event";
 import { IError, IEventAdd, IEventSponsorAdd } from "@/types";
 import React from "react";
 import { getCookie } from "../cookie";
-import { BACKEND_URL } from "../keys";
+import { APP_NAME, BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -28,7 +28,7 @@ interface IAddOrUpdateProps {
 
 }
 
-interface IInput{
+interface IInput {
     logo: string;
 }
 
@@ -69,8 +69,8 @@ async function addOrUpdateEvent({
 
     try {
 
-        const sponsorFileList: IEventSponsorAdd[] = [];
-        const sponsorStringList = [];
+        let sponsorFileList: IEventSponsorAdd[] = [];
+        const sponsorStringList: IEventSponsorAdd[] = [];
         sponsorImgList.forEach((sponsor) => {
             if (typeof sponsor.logo === "string") {
                 sponsorStringList.push(sponsor);
@@ -79,8 +79,11 @@ async function addOrUpdateEvent({
             }
         });
 
-        if(update && sponsorStringList.length > 0) mutationVariables.sponsorsStringInput = sponsorStringList;
-        if ((sponsorFileList.length > 0) || eventLogo.current) {
+        if(sponsorFileList.length === 1 && sponsorFileList[0].company === APP_NAME) sponsorFileList = [];
+
+        if (update && sponsorStringList.length > 0) mutationVariables.sponsorsStringInput = sponsorStringList;
+
+        if ((sponsorFileList.length > 0) || eventLogo.current ) {
 
             // Use FormData with fetch if there is a file to upload on the server
             const formData = new FormData();
