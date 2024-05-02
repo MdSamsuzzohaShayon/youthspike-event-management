@@ -72,14 +72,8 @@ function CompletedBox() {
           Next Round
         </button>
       </div>
-      <div className="w-1/6 hidden md:block">
-        <button className="btn-light" type="button">
-          Update Score
-        </button>
-      </div>
       <div className="w-2/6 hidden md:block">
         <h2 className="text-center">{`Round ${currentRound?.num} - Finished`}</h2>
-        {/* <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" /> */}
         <Image src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" height={30} width={30} />
       </div>
       <div className="w-1/6 hidden md:block">

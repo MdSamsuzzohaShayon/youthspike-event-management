@@ -6,6 +6,8 @@ const teamResponse = `
     name
     logo
     division
+    sendCredentials
+    num
     players {
       _id
       firstName

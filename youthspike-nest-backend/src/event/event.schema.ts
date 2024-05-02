@@ -25,8 +25,8 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   name: string;
 
-  @Field({nullable: true })
-  @Prop({ required: false})
+  @Field({ nullable: true })
+  @Prop({ required: false })
   logo?: string;
 
   @Field((type) => DateScalar)
@@ -40,6 +40,10 @@ export class Event extends AppDocument {
   @Field()
   @Prop({ required: true })
   active: boolean;
+
+  @Field({ nullable: true })
+  @Prop({ required: false, default: false })
+  sendCredentials: boolean;
 
   @Field((type) => Int)
   @Prop({ required: true })
@@ -114,7 +118,6 @@ export class Event extends AppDocument {
   @Field({ nullable: false })
   @Prop({ required: true })
   location: string;
-
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);

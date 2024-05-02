@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 
 // Redux
 import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
@@ -29,7 +29,7 @@ import PlayerScoreCard from './PlayerScoreCard';
 interface INetCardProps {
   screenWidth: number;
   boardHeight: number;
-  net?: INetRelatives | null | undefined;
+  net: INetRelatives | null;
 }
 
 // Constant
@@ -40,15 +40,12 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const dispatch = useAppDispatch();
   const user = useUser();
 
-  // const rightTopEl = useRef<HTMLDivElement | null>(null);
-  // const rightBottomEl = useRef<HTMLDivElement | null>(null);
-
   // Redux State
   const { currNetNum, currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
   const currentRoom = useAppSelector((state) => state.rooms.current);
-  const { teamA, teamB } = useAppSelector((state) => state.teams);
+  const { teamA } = useAppSelector((state) => state.teams);
   const { disabledPlayerIds, match: currMatch } = useAppSelector((state) => state.matches);
 
   // Local State
@@ -56,8 +53,6 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const [myPlayers, setMyPlayers] = useState<IPlayer[]>([]);
   const [opPlayers, setOpPlayers] = useState<IPlayer[]>([]); // Op = oponent
   const [myTeamE, setMyTeamE] = useState<ETeam>(ETeam.teamB);
-
-  // const [prevRoundNets, setPrevRoundNets] = useState<INetRelatives[]>([]);
 
   /**
    * Handle events
@@ -196,15 +191,15 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   }, [teamAPlayers, teamBPlayers, user]);
 
   useLayoutEffect(() => {
-    const rightTopEl = document.getElementById('top-team');
-    const rightBottomEl = document.getElementById('bottom-team');
-
-    if (rightTopEl) {
-      rightTopEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
-    }
-    if (rightBottomEl) {
-      rightBottomEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
-    }
+    // const rightTopEl = document.getElementById('top-team');
+    // const rightBottomEl = document.getElementById('bottom-team');
+    // console.log({boardHeight, rightTopEl, rightBottomEl});
+    // if (rightTopEl) {
+    //   rightTopEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
+    // }
+    // if (rightBottomEl) {
+    //   rightBottomEl.style.minHeight = `${boardHeight / 2 + EXTRA_HEIGHT / 2}px`;
+    // }
   }, [screenWidth, boardHeight]);
 
   /**
@@ -255,6 +250,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
     return (
       <div
         id={refId}
+        style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
         className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-gray-100' : 'flex-col-reverse bg-gray-100 text-gray-900'} border ${
           border.light
         } items-center justify-start`}
@@ -273,7 +269,12 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   };
 
   return (
-    <div className="net-detail w-full h-full relative flex justify-center items-center flex-col" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div
+      className="net-detail w-full h-full relative flex justify-center items-center flex-col"
+      style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Net top section start  */}
       {/* Assuming renderTeamSection renders content */}
       {renderTeamSection(ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, true, 'top-team')}

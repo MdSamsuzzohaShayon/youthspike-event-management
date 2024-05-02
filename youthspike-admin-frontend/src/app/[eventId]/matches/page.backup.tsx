@@ -1,10 +1,5 @@
 'use client'
 
-// React.js and Next.js
-import { useLazyQuery, useQuery } from '@apollo/client';
-import React, { useEffect, useState } from 'react';
-
-// Components
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import SelectInput from '@/components/elements/forms/SelectInput';
@@ -12,8 +7,6 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import UserMenuList from '@/components/layout/UserMenuList';
 import MatchAdd from '@/components/match/MatchAdd';
 import MatchList from '@/components/match/MatchList';
-
-// GraphQL, helpers, utils, types
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
 import { IError, IEventExpRel, IMatch, IMatchExpRel, IOption, IRoundRelatives, ITeam } from '@/types';
@@ -22,6 +15,8 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, getEventIdFromPath, isValidObjectId, rearrangeMenu } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import React, { useEffect, useState } from 'react';
 
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
@@ -213,4 +208,4 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   )
 }
 
-export default MatchesPage;
+export default MatchesPage

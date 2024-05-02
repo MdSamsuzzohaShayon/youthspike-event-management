@@ -40,6 +40,7 @@ export interface IEvent extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   sponsors: string[];
+  sendCredentials: boolean;
   autoAssignLogic: EAssignStrategies;
 }
 

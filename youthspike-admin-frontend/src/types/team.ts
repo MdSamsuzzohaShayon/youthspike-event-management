@@ -7,9 +7,12 @@ export interface ITeam {
   logo?: string | null;
   rankLock: boolean;
   division: string;
+  sendCredentials: false;
+  num: number;
   event: IEvent;
   players: IPlayerExpRel[];
   captain: IPlayerExpRel | null;
+  cocaptain: IPlayerExpRel | null;
   nets: INetRelatives[];
 }
 

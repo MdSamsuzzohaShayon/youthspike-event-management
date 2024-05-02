@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/lib/UserProvider';
-import { CLONE_EVENT, DELETE_AN_EVENT, GET_EVENTS } from '@/graphql/event';
+import { CLONE_EVENT, DELETE_AN_EVENT, GET_EVENTS, SEND_CREDENTIALS } from '@/graphql/event';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
@@ -47,11 +47,13 @@ function EventsPage() {
   const [ldoId, setLdoId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
   const filterListEl = useRef<HTMLDialogElement | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // GraphQL Queries
   const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
   const [cloneEvent] = useMutation(CLONE_EVENT);
   const [deleteEvent] = useMutation(DELETE_AN_EVENT);
+  const [sendCredentials]= useMutation(SEND_CREDENTIALS);
 
   // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
@@ -76,6 +78,20 @@ function EventsPage() {
   const handleRemoveFilter = (e: React.SyntheticEvent, iid: number) => {
     e.preventDefault();
     setFilteredItems(prevState => [...prevState.filter((fi) => fi.id !== iid)]);
+  }
+
+  const handleSendCredentials=async (eventId: string)=>{
+    try {
+      setIsLoading(true);
+      const res = await sendCredentials({variables: {eventId}});
+      console.log(res);
+      
+    } catch (error) {
+      console.log(error);
+      
+    }finally{
+      setIsLoading(false);
+    }
   }
 
 
@@ -181,7 +197,7 @@ function EventsPage() {
         </div>
 
         {eventList && eventList.length > 0 && eventList.map((event: IEvent) => (
-          <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} event={event} directorId={directorId} user={user} />
+          <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} directorId={directorId} user={user} />
         ))}
       </div>
     </div>

@@ -134,6 +134,12 @@ const teamResponse = `
         email
       }
     }
+    cocaptain {
+      _id
+      firstName
+      lastName
+      rank
+    }
 `;
 
 /**

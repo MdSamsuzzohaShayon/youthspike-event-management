@@ -1,28 +1,14 @@
 # Youthspike tournament
 
 ___
- - **Design**
+ - **Infrustructure**
  - [Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?type=design&node-id=27-5&t=Ucn2d4Li6ufI8Q7j-1&scaling=scale-down&page-id=0%3A1)
  - [Landscape Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
  - [Backend/admin panel prototype](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
  - [Action box design](https://www.canva.com/design/DAF-9-GdNuM/8rUTuBtKb2hCfzOlmx2jCQ/edit)
+ - [Todo] (https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576)
  
 ___
- - **Video Explanation**
-
- - [Explan previous project video 1](https://www.loom.com/share/de95f56de7274ebca60c4e0605523c82), [Explan previous project video 2(How the match works)](https://www.loom.com/share/142b7cc2efc64e208a3e6f6f0e779ffc), [Explanation video 3](https://www.loom.com/share/6c7397a3939c4896b090ff29275577da)
- - [Match explain](https://loom.com/share/679281f727f541b5a52b49ad755079ae)
-
- - [Explain action boxes](https://www.loom.com/share/1c0ddb26379b465a947958594a2252a5)
-
- - [Dashboard part 1](https://www.loom.com/share/e56a6f1caf114970b80c1f3aef218f19), [Dashboard part 2](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
- - [Director dashboard menu explain](https://www.loom.com/share/cbdfd52937474c6995391edf609a4b0c)
-
- - [Explain Prototype](https://www.loom.com/share/89dd7d2e95ee439ab3e89e331fb411c6)
- - [Explaning score](https://www.loom.com/share/2a6cd800d8414f06993896bf185e0dcb)
- - [Previous League App Dashboard](https://www.loom.com/share/c577d8301e8442ad9718209c83f18921)
- 
- - [Net variance explanation](https://www.loom.com/share/bfbb4baabdb2478aac6fa7c8b63f73f5), captain and coach are same, player list(team) means roster, league and event act as same with little bit of diffrence
 
  - **Testing**
  - [Edit event and navigation and moving a squad list](https://www.loom.com/share/5a4ca5cb6afe4351a2c06e4707d1b8f6)
@@ -86,9 +72,22 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Once a round is submitted that ranking should not be ever changed
 
 ### Update - 2
- - Score input cursor need to change roperly on mobile phone
- - Update score button need not to be on the action box
- - On the last round there will be a net worth 2 points, and the score should be calculated according to that
+ - Auto assign need to work properly
+ - We need to make sure captains can only be assigned if they have an email address. However it won’t be a unique filed. Someone can have the same email addresss.
+ - It just needs to be really really simple. We had 12 teams last weekend in our tournament and me having to go find usernames and email them was not easy or fun.
+ - Send email to coptains - Email them if the user has a email address
+ - Initially when we create a captain, and try to login it does not login properly, reassign a captain does allow him to login
+ - Username should be as short as possible, prefereable 4 digit code
+ - In the team page, there would be an option for sending email, a button saying send email, if the email is sent another icon will be shown
+ - Admin can not get into setting ot ldo, This need to be fixed
+ - In the event setting, there will be a fwango link. (https://fwango.io/), In the menu tournamant is the fwango link as well.
+ - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
+ - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
+ - When I login as captain, I should only see the matches that I am in. Moreover, I should only enter the matches that I am captain of.
+
+
+### Update - 3
+ - When I refresh it should take me to the round where I was before refreshing
 
 
  - **Team**
@@ -187,9 +186,14 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Bug Fixing
  - A team has submitted their lineup, and the other team could not submit their lineup, it skipped the process (No lineup setting for the other team) [00:00](https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb)
+ - [01:55](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) It is allowing a player to play with the player he played with in previous round
  - Issue with admin directing to event setting page (It is redirecting to /admin page)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
  - When saving a team and creating another team, it does not update the player list. That need to be updated properly
+ - [00:00](https://www.loom.com/share/c2b04e623a874cf5b647ef260d2bc20a) - After submitting lineup there should not be shown close button, fix that
+ - [02:35](https://www.loom.com/share/c2b04e623a874cf5b647ef260d2bc20a) - When selecting players, subbing sometime does not visiable, need to show which player is unselected - Bug- It's allowing me to assign the same person to more than one net.  See video
+ - Close button is not visiable when submitting players
+ - Bug- It allowed someone to sub twice in back to back rounds. it should only allow you to sub someone after everyone on the team has subbed at least once.
  
  
  - src/components/event/EventAddUpdate.tsx
@@ -205,6 +209,22 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Create reverse proxies (For nest-backend, admin-frontend, frontend, websocket)
  - Nginx GraphQL load balancing
  - Setup docker
+
+### Database Action
+ -  Set `sendCredentials` to `false` in all document of event and team
+ - Set num in teams
+ ```
+ const cursor = db.teams.find()
+ let num = 1
+ while (cursor.hasNext()) {
+  let doc = cursor.next()
+  db.teams.updateOne(
+    { _id: doc._id }, // Match the document by its _id
+    { $set: { num: num } } // Set the 'num' field to the current counter value
+  )
+  num++ // Increment the counter for the next document
+}
+ ```
 
 
 ### Github action deployment

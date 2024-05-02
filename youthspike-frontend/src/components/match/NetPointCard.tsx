@@ -31,7 +31,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
   const { nets: allNets, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const teamA = useAppSelector((state) => state.teams.teamA);
 
-  const handlePointChange = (e: React.SyntheticEvent, netId: string | undefined, teamAorB: string) => {
+  const handlePointChange = (e: React.SyntheticEvent, netId: string | null, teamAorB: string) => {
     /**
      * Set team a score and team b score for specific net
      */
@@ -94,9 +94,27 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
   return (
     <div className="absolute z-10 w-11/12 left-2 bg-yellow-400 flex flex-col justify-around items-center p-1 rounded-lg top-1/2 transform -translate-y-1/2">
       {user && teamACapOrCo ? (
-        <TeamScoreInput key={`${1}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />
+        <TeamScoreInput
+          key={`${1}-${net?._id}`}
+          currRound={currRound}
+          net={net ?? null}
+          user={user}
+          teamName="teamAScore"
+          screenWidth={screenWidth}
+          handlePointChange={handlePointChange}
+          teamE={ETeam.teamB}
+        />
       ) : (
-        <TeamScoreInput key={`${2}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />
+        <TeamScoreInput
+          key={`${2}-${net?._id}`}
+          currRound={currRound}
+          net={net ?? null}
+          user={user}
+          teamName="teamAScore"
+          screenWidth={screenWidth}
+          handlePointChange={handlePointChange}
+          teamE={ETeam.teamA}
+        />
       )}
       <div className="net-card flex justify-around items-center w-full py-1">
         <Image
@@ -118,9 +136,27 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         <Image width={50} height={30} src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 svg-white" />
       </div>
       {user && teamACapOrCo ? (
-        <TeamScoreInput key={`${3}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamA} />
+        <TeamScoreInput
+          key={`${3}-${net?._id}`}
+          currRound={currRound}
+          net={net ?? null}
+          user={user}
+          teamName="teaBAScore"
+          screenWidth={screenWidth}
+          handlePointChange={handlePointChange}
+          teamE={ETeam.teamA}
+        />
       ) : (
-        <TeamScoreInput key={`${4}-${net?._id}`} currRound={currRound} net={net} user={user} screenWidth={screenWidth} handlePointChange={handlePointChange} teamE={ETeam.teamB} />
+        <TeamScoreInput
+          key={`${4}-${net?._id}`}
+          currRound={currRound}
+          net={net ?? null}
+          user={user}
+          teamName="teaBAScore"
+          screenWidth={screenWidth}
+          handlePointChange={handlePointChange}
+          teamE={ETeam.teamB}
+        />
       )}
     </div>
   );

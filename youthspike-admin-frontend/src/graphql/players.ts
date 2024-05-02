@@ -23,6 +23,7 @@ const playerResponse = `
   _id
   firstName
   lastName
+  username
   profile
   email
   rank

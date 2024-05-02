@@ -26,9 +26,11 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
   if (loading || isLoading || eventLoading) return <Loader />;
 
   const prevPlayer = data?.getPlayer?.data;
+  
 
   const teamList = eventData?.getEvent?.data?.teams ? eventData?.getEvent?.data?.teams : [];
 
+  
   return (
     <div className='container mx-auto px-2 min-h-screen'>
       <h1>Player Update</h1>

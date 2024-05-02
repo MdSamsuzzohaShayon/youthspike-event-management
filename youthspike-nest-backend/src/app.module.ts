@@ -20,6 +20,7 @@ import { LdoModule } from './ldo/ldo.module';
 import { PlayerModule } from './player/player.module';
 import { SponsorModule } from './sponsor/sponsor.module';
 import { RoomModule } from './room/room.module';
+import { EmailsenderModule } from './emailsender/emailsender.module';
 
 @Module({
   imports: [
@@ -66,6 +67,8 @@ import { RoomModule } from './room/room.module';
     SponsorModule,
 
     RoomModule,
+
+    EmailsenderModule,
 
   ],
   controllers: [AppController],
