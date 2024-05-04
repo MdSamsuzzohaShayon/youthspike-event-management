@@ -291,19 +291,18 @@ export class MyGatWay implements OnModuleInit {
       // make players subbed for all next rounds
       if (submitLineup.subbedPlayers.length > 0) {
         updatePromises.push(
-          this.roundService.updateMany(
-            { num: { $gte: currRoundObj.num }, match: submitLineup.match },
-            { $set: { subs: submitLineup.subbedPlayers } },
-          ),
+          this.roundService.updateOne({ _id: currRoundObj._id }, { $set: { subs: submitLineup.subbedPlayers } }),
         );
       }
 
-      updatePromises.push(
-        this.teamService.updateMany(
-          { _id: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
-          { $set: { rankLock: true } },
-        ),
-      );
+      if (currRoundObj.num === 1) {
+        updatePromises.push(
+          this.teamService.updateMany(
+            { _id: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
+            { $set: { rankLock: true } },
+          ),
+        );
+      }
       // update rank lock in the team
       await Promise.all(updatePromises);
 

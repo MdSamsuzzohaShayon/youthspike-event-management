@@ -7,6 +7,7 @@ import { ETieBreaker } from '@/types/net';
 import { EActionProcess, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
 import { ISubmitLineupProps, ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from '@/types/socket';
 import { ETeam } from '@/types/team';
+import { setMatch } from '../localStorage';
 
 function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
   if (!socket || !userInfo || !userToken) return;
@@ -116,15 +117,16 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
   const roundObj: IRoundRelatives = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess, subs: subbedPlayers };
 
   // Set subbed players
-  const updatedRoundList = [...roundList.filter((r) => r._id !== currRound?._id), roundObj];
-  const newRoundList = [];
-  for (let rI = 0; rI < updatedRoundList.length; rI += 1) {
-    const nrlObj = { ...updatedRoundList[rI] };
-    if (nrlObj.num >= (currRound?.num || 0)) {
-      nrlObj.subs = subbedPlayers;
-    }
-    newRoundList.push(nrlObj);
-  }
+  // const updatedRoundList = [...roundList.filter((r) => r._id !== currRound?._id), roundObj];
+  // for (let rI = 0; rI < updatedRoundList.length; rI += 1) {
+  //   const nrlObj = { ...updatedRoundList[rI] };
+  //   if (nrlObj.num >= (currRound?.num || 0)) {
+  //     nrlObj.subs = subbedPlayers;
+  //   }
+  //   newRoundList.push(nrlObj);
+  // }
+  const newRoundList = [{ ...roundList[cri], subs: subbedPlayers }, ...roundList.filter((r) => r._id !== currRound?._id)];
+
   dispatch(setRoundList(newRoundList));
   dispatch(setCurrentRound(roundObj));
   dispatch(setVerifyLineup(false));
@@ -143,7 +145,7 @@ function changeTheRound({ roundList, dispatch, allNets, newRoundIndex, myTeamE }
   } else {
     newRoundObj.teamBProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
   }
-
+  setMatch(newRoundObj.match, newRoundObj._id);
   dispatch(setCurrentRound(newRoundObj));
   const newRoundList = roundList.filter((r) => r._id !== newRoundObj._id);
   newRoundList.push(newRoundObj);

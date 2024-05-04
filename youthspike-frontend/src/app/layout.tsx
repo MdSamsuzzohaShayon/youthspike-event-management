@@ -16,11 +16,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <title>Youthspike - Running the match</title>
-        <meta name="description" content="Welcome to Youthspike, where sports enthusiasts and teams unite for an unparalleled sports management experience! Youthspike is a comprehensive platform designed to enhance the way you organize, participate in, and enjoy sports events. From leagues and tournaments to player management and match coordination, Youthspike simplifies the complexities of sports administration, bringing a new level of efficiency and excitement to your sporting endeavors." />
+        <meta
+          name="description"
+          content="Welcome to Youthspike, where sports enthusiasts and teams unite for an unparalleled sports management experience! Youthspike is a comprehensive platform designed to enhance the way you organize, participate in, and enjoy sports events. From leagues and tournaments to player management and match coordination, Youthspike simplifies the complexities of sports administration, bringing a new level of efficiency and excitement to your sporting endeavors."
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {/* <link rel="icon" href="/favicon.ico" sizes="any" /> */}
       </head>
-      <body className={`${inter.className} bg-gray-800 text-gray-100`}>
+      <body className={`${inter.className} bg-gray-900 text-gray-100`}>
         <SocketProvider>
           <ApolloWrapper>
             <UserProvider>

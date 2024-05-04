@@ -220,7 +220,7 @@ export class EventResolver {
       };
 
       // ===== Upload Sponsors =====
-      if (sponsorsInput.length > 0 || sponsorsStringInput.length > 0) {
+      if ((sponsorsInput && sponsorsInput.length > 0) || (sponsorsStringInput && sponsorsStringInput.length > 0)) {
         const prevSponsors = eventExist.sponsors;
         const newSponsorIds = [];
 
@@ -252,7 +252,7 @@ export class EventResolver {
         for (const ps of prevSponsors) {
           if (!newSponsorIds.includes(ps.toString())) deleteSponsors.push(ps);
         }
-        if (deleteSponsors.length > 0) await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
+        if (deleteSponsors && deleteSponsors.length > 0) await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
       }
 
       // ===== Update logo =====
@@ -322,7 +322,7 @@ export class EventResolver {
         const coCapUserIds = coCapUsers.map((u) => u._id);
         userIds.push(...coCapUserIds);
 
-        if (userIds.length > 0) {
+        if (userIds && userIds.length > 0) {
           const salt = await bcrypt.genSalt(10);
           const hashedPassword = await bcrypt.hash(eventData.coachPassword, salt);
 

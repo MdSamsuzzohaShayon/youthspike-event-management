@@ -5,10 +5,10 @@ import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
-import { store } from '@/redux/store';
 import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
+import { getMatch } from '../localStorage';
 
 /**
  * Set initial state for current match
@@ -129,12 +129,18 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
 
   dispatch(setNets(formattedNets));
   dispatch(setRoundList(formattedRounds));
+  let selectedRound = formattedRounds[0];
   if (formattedRounds.length > 0) {
-    dispatch(setCurrentRound(formattedRounds[0]));
+    const matchRound = getMatch(matchData._id);
+    if (matchRound) {
+      const findRound = formattedRounds.find((fr) => fr._id === matchRound.roundId);
+      if (findRound) selectedRound = findRound;
+    }
+    dispatch(setCurrentRound(selectedRound));
   }
 
   if (formattedNets.length > 0 && formattedRounds.length > 0) {
-    const filteredNets = formattedNets.filter((net) => net.round === formattedRounds[0]._id);
+    const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
     dispatch(setCurrentRoundNets(filteredNets));
   }
 

@@ -47,18 +47,25 @@ import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
 /**
  * Test Match
  *
- * Real Madrid
+ * Borussia Dortmund
  * Captain
+ * pfn826
+ * Co-captains
+ * pfn526
+ *
+ *
+ * Bayern Munich FC
+ * Captain
+ * pfn125
+ * Co-captains
  * p3e1@e.com
- * Co-captains
- * p4e2@e.com
  *
  *
- * FC Barcelona
+ * RB Leipzig
  * Captain
- * p9e1@e.com
- * Co-captains
- * p11e1@e.com
+ * pfn1627
+ * Co-captain
+ * pfn1727
  */
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // ===== Hooks =====
@@ -136,6 +143,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId });
       listenSocketEvents({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, user, teamA, teamB, roundList]);
 
   // ===== Subbed & Inactive players =====
@@ -173,14 +181,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   return (
     <Suspense fallback={<Loader />}>
-      <div className="h-full relative bg-gray-100 text-gray-800" ref={mainEl}>
-        <div className="container mx-auto px-4">
+      <div className="h-full relative bg-gray-100 text-gray-900" ref={mainEl}>
+        <div className="container mx-auto px-4 bg-gray-900">
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
         </div>
 
         <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
-          {' '}
           Button
         </button>
 
@@ -189,7 +196,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">
             <div className="container px-4 mx-auto ">
               <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
-            </div>{' '}
+            </div>
           </div>
         )}
 

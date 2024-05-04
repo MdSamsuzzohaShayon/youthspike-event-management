@@ -35,6 +35,7 @@ function VerifyLineup() {
 
   function IdToPlayer(playerId: string | null | undefined, teamPlayerList: IPlayer[]): IPlayer | null | undefined {
     if (!playerId) return null;
+    // eslint-disable-next-line react/destructuring-assignment
     const findPlayer = teamPlayerList.find((p) => p._id === playerId);
     return findPlayer;
   }

@@ -41,13 +41,13 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
 
     switch (mtp) {
       case EActionProcess.INITIATE:
-        return <InitializeBox currRoom={currentRoom} socket={socket} user={user} currRound={currentRound} roundList={roundList} mtp={mtp} otp={otp} />;
+        return <InitializeBox currRoom={currentRoom} socket={socket} user={user} currRound={currentRound} roundList={roundList} mtp={mtp} />;
 
       case EActionProcess.CHECKIN:
-        return <CheckInBox currRoom={currentRoom} user={user} socket={socket} roundList={roundList} mtp={mtp} otp={otp} />;
+        return <CheckInBox currRoom={currentRoom} otp={otp} />;
 
       case EActionProcess.LINEUP:
-        return <LineupBox currRoom={currentRoom} socket={socket} otp={otp} />;
+        return <LineupBox otp={otp} />;
 
       default:
         break;

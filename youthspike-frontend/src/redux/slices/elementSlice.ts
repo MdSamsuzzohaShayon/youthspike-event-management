@@ -4,7 +4,6 @@ import { EAssignStrategies, EMenuTitle } from '@/types/elements';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-
 export interface ElementState {
   screenWidth: number;
   playerAssignStrategy: EAssignStrategies[];
@@ -17,11 +16,11 @@ export interface ElementState {
 const initialStrategyList = [EAssignStrategies.ANCHOR, EAssignStrategies.RANDOM, EAssignStrategies.HIERARCHY];
 
 const initialColMenu = [
-  {id: 1, title: EMenuTitle.FWANGO},
-  {id: 2, title: EMenuTitle.EDIT_MATCH},
-  {id: 3, title: EMenuTitle.EDIT_ROSTER},
-  {id: 4, title: EMenuTitle.DASHBOARD},
-  {id: 5, title: EMenuTitle.FIND_MATCHES},
+  { id: 1, title: EMenuTitle.FWANGO, link:`https://fwango.io/` },
+  { id: 2, title: EMenuTitle.EDIT_MATCH },
+  { id: 3, title: EMenuTitle.EDIT_ROSTER },
+  { id: 4, title: EMenuTitle.DASHBOARD },
+  { id: 5, title: EMenuTitle.FIND_MATCHES },
 ];
 
 const initialState: ElementState = {
@@ -31,7 +30,6 @@ const initialState: ElementState = {
   actErr: null,
   colMenus: initialColMenu,
   selectedColItem: null,
-
 };
 
 export const elementSlice = createSlice({

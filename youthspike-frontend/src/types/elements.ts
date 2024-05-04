@@ -1,5 +1,7 @@
-import React from "react";
-import { IUserContext } from ".";
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
+import React from 'react';
+import { IUserContext } from '.';
 
 export interface IMenuItem {
   id: number;
@@ -8,23 +10,24 @@ export interface IMenuItem {
   link: string;
 }
 
-export enum EAssignStrategies{
-  RANDOM = "RANDOM",
-  ANCHOR = "ANCHOR",
-  HIERARCHY = "HIERARCHY",
+export enum EAssignStrategies {
+  RANDOM = 'RANDOM',
+  ANCHOR = 'ANCHOR',
+  HIERARCHY = 'HIERARCHY',
 }
 
-export enum EMenuTitle{
-  FWANGO = "FWANGO",
-  EDIT_MATCH = "EDIT MATCH",
-  EDIT_ROSTER = "EDIT ROSTER",
-  DASHBOARD = "DASHBOARD",
-  FIND_MATCHES = "FIND MATCHES",
+export enum EMenuTitle {
+  FWANGO = 'FWANGO',
+  EDIT_MATCH = 'EDIT MATCH',
+  EDIT_ROSTER = 'EDIT ROSTER',
+  DASHBOARD = 'DASHBOARD',
+  FIND_MATCHES = 'FIND MATCHES',
 }
 
 export interface IColMenu {
   id: number;
   title: EMenuTitle;
+  link?: string;
 }
 
 export interface ITextInputProps {
@@ -120,9 +123,8 @@ export interface IMenuArrangeProps {
 export interface IError {
   message?: string;
   name?: string;
-  main?: any
+  main?: any;
 }
-
 
 export interface ILoginProps {
   handleLogin: (e: React.SyntheticEvent) => void;
@@ -132,7 +134,6 @@ export interface ILoginProps {
   setPassword: (state: string) => void;
 }
 
-
-export enum EActionTexts{
-  INITIALIZE = ''
+export enum EActionTexts {
+  INITIALIZE = '',
 }

@@ -19,8 +19,10 @@ const netSize = {
 // Net Card
 const EXTRA_HEIGHT: number = 40;
 
+// Local Storage Names
 const MUSIC_TIME_PASSED = 'MUSIC_TIME_PASSED';
+const MATCHES_LS = 'MATCHES_LS';
 
 
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS };

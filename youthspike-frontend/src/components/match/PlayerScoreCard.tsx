@@ -1,34 +1,35 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react/require-default-props */
 import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 import { useAppSelector } from '@/redux/hooks';
-import { IPlayer, IRoom } from '@/types';
+import { IPlayer } from '@/types';
 import { ETeamPlayer } from '@/types/net';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { netSize, screen } from '@/utils/constant';
+import { screen } from '@/utils/constant';
 import { fsToggle } from '@/utils/helper';
 import { AdvancedImage } from '@cloudinary/react';
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-
 
 interface IPlayerScoreCard {
   player: IPlayer | null;
-  teamPlayer?: ETeamPlayer;
-  evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
-  dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
   dark: boolean;
   screenWidth: number;
   myTeamE: ETeam;
+  cpsca: boolean; // CPSCA = Close Player Score Card Available
+  teamPlayer?: ETeamPlayer;
+  // eslint-disable-next-line no-unused-vars
+  evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
+  // eslint-disable-next-line no-unused-vars
+  dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
 }
 
-function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE }: IPlayerScoreCard) {
+function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE, cpsca }: IPlayerScoreCard) {
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { current: currentRound } = useAppSelector((state) => state.rounds);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
-
 
   const [fillNets, setFillNets] = useState<boolean>(false);
 
@@ -53,45 +54,40 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
 
   useEffect(() => {
     let fn = true;
-    for (let i = 0; i < currentRoundNets.length; i++) {
+    // Check all nets fills or not
+    for (let i = 0; i < currentRoundNets.length; i += 1) {
       if (myTeamE === ETeam.teamA) {
         if (!currentRoundNets[i].teamAPlayerA || !currentRoundNets[i].teamAPlayerB) {
           fn = false;
         }
-      } else {
-        if (!currentRoundNets[i].teamBPlayerA || !currentRoundNets[i].teamBPlayerB) {
-          fn = false;
-        }
+      } else if (!currentRoundNets[i].teamBPlayerA || !currentRoundNets[i].teamBPlayerB) {
+        fn = false;
       }
     }
     setFillNets(fn);
   }, [currentRoundNets]);
 
   return (
-    <React.Fragment>
+    <>
       <div className={`p-img-wrap relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
         {shouldShowEvacuateButton && (
           <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full">
-            {myTeamE === ETeam.teamA && !fillNets && !dark
-              ? (!currentRound.teamAScore && (
-                <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
-              ))
-              : !currentRound.teamBScore && !fillNets && !dark && (
-                <img src="/icons/close.svg" className='w-full h-full svg-white' alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
-              )}
+            {myTeamE === ETeam.teamA && cpsca && !dark
+              ? !currentRound?.teamAScore && (
+                  <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
+                )
+              : !currentRound?.teamBScore &&
+                cpsca &&
+                !dark && (
+                  <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
+                )}
           </div>
         )}
 
         {player?.profile ? (
           <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} />
         ) : (
-          <img
-            src="/empty-img.jpg"
-            alt="random-img"
-            className="w-full h-full object-center object-cover"
-            role="presentation"
-            onClick={handleDropDown}
-          />
+          <Image width={100} height={100} src="/empty-img.jpg" alt="random-img" className="w-full h-full object-center object-cover" role="presentation" onClick={handleDropDown} />
         )}
       </div>
 
@@ -103,7 +99,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
           {!player ? 'N/A' : `${player?.firstName} ${player?.lastName}`}
         </p>
       </div>
-    </React.Fragment>
+    </>
   );
 }
 
