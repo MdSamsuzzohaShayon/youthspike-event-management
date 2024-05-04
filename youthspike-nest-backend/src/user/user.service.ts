@@ -10,6 +10,7 @@ import { TeamService } from 'src/team/team.service';
 import { ResolveField } from '@nestjs/graphql';
 import { Player } from 'src/player/player.schema';
 import { Event } from 'src/event/event.schema';
+import { Team } from 'src/team/team.schema';
 
 @Injectable()
 export class UserService {
@@ -40,10 +41,11 @@ export class UserService {
     playerExist: Player,
     playerUserExist: User | null,
     eventExist: Event,
+    playerUsername: string,
     role: UserRole,
   ): Promise<User> {
     const userObj = {
-      email: playerExist.email,
+      email: playerUsername,
       password: eventExist.coachPassword,
       firstName: playerExist.firstName,
       lastName: playerExist.lastName,

@@ -11,7 +11,7 @@ import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 // Components
 import { INetRelatives, IPlayer } from '@/types';
 import { useUser } from '@/lib/UserProvider';
-import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
+import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import { ETeamPlayer, INetUpdate } from '@/types/net';
@@ -34,17 +34,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
   const [boardHeight, setBoardHeight] = useState<number>(0);
 
-  // Elements references for styling
-  // const leftEl = useRef<null | HTMLDivElement>(null);
-  // const leftTempEl = useRef<null | HTMLDivElement>(null);
-  // const leftTopEl = useRef<null | HTMLDivElement>(null);
-  // const leftBottomEl = useRef<null | HTMLDivElement>(null);
-  // const rightEl = useRef<null | HTMLDivElement>(null);
-
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match } = useAppSelector(
+  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match, closePSCAvailable } = useAppSelector(
     (state) => state.matches,
   );
 
@@ -134,6 +127,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     // @ts-ignore
     let dpi = [teamPlayerId, ...disabledPlayerIds]; // dpi = disabled players ids
     if (enablePlayerId) dpi = dpi.filter((d) => d !== enablePlayerId);
+    if (!closePSCAvailable) dispatch(setclosePSCAvailable(true));
     dispatch(setDisabledPlayerIds(dpi));
     dispatch(setOutOfRange([]));
   };
@@ -165,22 +159,21 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     // Use layout effect to measure the element after render
     const leftFullEl = document.getElementById('left-round-detail');
     const rightFullEl = document.getElementById('right-net-card');
-    const leftTopEl = document.getElementById('left-top');
-    const leftBottomEl = document.getElementById('left-bottom');
-    const leftddEl = document.getElementById('left-drop-down');
     if (rightFullEl && leftFullEl) {
       const fullHeight = rightFullEl.clientHeight > leftFullEl.clientHeight ? rightFullEl.clientHeight : leftFullEl.clientHeight;
       setBoardHeight(fullHeight);
 
-      // Modify styles based on the measured height
-      if (leftddEl) leftddEl.style.height = `${fullHeight + EXTRA_HEIGHT}px`;
+      // console.log({ fullHeight });
 
-      if (leftTopEl) {
-        leftTopEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
-      }
-      if (leftBottomEl) {
-        leftBottomEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
-      }
+      // Modify styles based on the measured height
+      // if (leftddEl) leftddEl.style.height = `${fullHeight + EXTRA_HEIGHT}px`;
+
+      // if (leftTopEl) {
+      //   leftTopEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
+      // }
+      // if (leftBottomEl) {
+      //   leftBottomEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
+      // }
     }
   }, []); // Add dependencies that might affect the height measurement
 
@@ -265,15 +258,18 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {!showTeamPlayers ? (
         <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
-          <div id="left-top" className="round-top w-full overflow-x-scroll bg-gradient-dark px-2 flex flex-col items-center justify-between">
+          <div
+            id="left-top"
+            style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
+            className="round-top w-full overflow-x-scroll bg-gradient-dark px-2 flex flex-col items-center justify-between"
+          >
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
 
             <div className="round-nums flex flex-wrap w-full justify-start gap-1 items-center">
               {roundList.map((round) => (
                 <button
-                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-gray-100'} py-1 text-center cursor-pointer ${
-                    screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
-                  } rounded-lg`}
+                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-gray-100'} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
+                    } rounded-lg`}
                   type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}
@@ -287,7 +283,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Top Side End  */}
 
           {/* Bottom Side Start  */}
-          <div id="left-bottom" className={`round-bottom w-full overflow-x-scroll border ${border.light} px-2 flex flex-col items-center justify-between`}>
+          <div
+            id="left-bottom"
+            style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
+            className={`round-bottom w-full overflow-x-scroll border ${border.light} px-2 flex flex-col items-center justify-between`}
+          >
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
               <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />

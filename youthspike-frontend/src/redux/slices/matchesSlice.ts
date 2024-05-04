@@ -1,17 +1,12 @@
 /* eslint-disable no-param-reassign */
 import { IMatchRelatives, ITeam, IPlayer } from '@/types';
 import { ETeamPlayer, INetRelatives } from '@/types/net';
-import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-interface INetProps {
-  net?: INetRelatives | null | undefined;
-}
-
 interface MatchesState {
-  match: IMatchRelatives,
+  match: IMatchRelatives;
   myTeam: null | ITeam;
   opTeam: null | ITeam;
   myPlayers: IPlayer[];
@@ -22,13 +17,14 @@ interface MatchesState {
   // For drop down selections
   showTeamPlayers: boolean;
   netTeamPlayer: ETeamPlayer | null;
-  availablePlayerIds: string[],
-  disabledPlayerIds: string[],
-  selectedPlayerSpot: ETeamPlayer | null,
-  selectedNet: INetRelatives | null,
+  availablePlayerIds: string[];
+  disabledPlayerIds: string[];
+  selectedPlayerSpot: ETeamPlayer | null;
+  selectedNet: INetRelatives | null;
   prevPartner: null | string;
   outOfRange: string[];
   verifyLineup: boolean; // Temporary
+  closePSCAvailable: boolean; // PSC = Player Score Card 
 }
 
 const initialState: MatchesState = {
@@ -66,11 +62,11 @@ const initialState: MatchesState = {
   selectedNet: null,
   verifyLineup: false,
 
-
   availablePlayerIds: [],
   disabledPlayerIds: [],
   prevPartner: null,
   outOfRange: [], // Net Variance
+  closePSCAvailable: false,
 };
 
 export const matchesSlice = createSlice({
@@ -93,20 +89,18 @@ export const matchesSlice = createSlice({
     setOpPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.opPlayers = action.payload;
     },
-    setTeamE: (state, action: PayloadAction<{ myTeamE: ETeam, opTeamE: ETeam }>) => {
+    setTeamE: (state, action: PayloadAction<{ myTeamE: ETeam; opTeamE: ETeam }>) => {
       state.myTeamE = action.payload.myTeamE;
       state.opTeamE = action.payload.opTeamE;
     },
-
 
     // Match Submit Lineup
     setShowTeamPlayers: (state, action: PayloadAction<boolean>) => {
       state.showTeamPlayers = action.payload;
     },
-    setVerifyLineup:(state, action: PayloadAction<boolean>)=>{
+    setVerifyLineup: (state, action: PayloadAction<boolean>) => {
       state.verifyLineup = action.payload;
     },
-
 
     setNetTeamPlayers: (state, action: PayloadAction<ETeamPlayer>) => {
       state.netTeamPlayer = action.payload;
@@ -125,22 +119,37 @@ export const matchesSlice = createSlice({
     setSelectedNet: (state, action: PayloadAction<INetRelatives | null>) => {
       state.selectedNet = action.payload;
     },
-    setPrevPartner:(state, action: PayloadAction<string | null>)=>{
+    setPrevPartner: (state, action: PayloadAction<string | null>) => {
       state.prevPartner = action.payload;
     },
 
-    setOutOfRange: (state, action: PayloadAction<string[]>)=>{
+    setOutOfRange: (state, action: PayloadAction<string[]>) => {
       state.outOfRange = action.payload;
+    },
+    setclosePSCAvailable: (state, action: PayloadAction<boolean>)=>{
+      state.closePSCAvailable = action.payload;
     }
-
   },
 });
 
 // Action creators are generated for each case reducer function
 export const {
-  setMatchInfo, setMyTeam, setOpTeam, setMyPlayers, setOpPlayers, setTeamE,
-  setShowTeamPlayers, setNetTeamPlayers, setAvailablePlayers, setDisabledPlayerIds, setPlayerSpot, setSelectedNet,
-  setPrevPartner, setOutOfRange, setVerifyLineup
+  setMatchInfo,
+  setMyTeam,
+  setOpTeam,
+  setMyPlayers,
+  setOpPlayers,
+  setTeamE,
+  setShowTeamPlayers,
+  setNetTeamPlayers,
+  setAvailablePlayers,
+  setDisabledPlayerIds,
+  setPlayerSpot,
+  setSelectedNet,
+  setPrevPartner,
+  setOutOfRange,
+  setVerifyLineup,
+  setclosePSCAvailable,
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

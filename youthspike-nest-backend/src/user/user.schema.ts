@@ -22,25 +22,23 @@ registerEnumType(UserRole, {
   name: 'UserRole',
 });
 
-
-
 /**
  * User
  */
 @ObjectType()
-export class UserBase extends AppDocument{
+export class UserBase extends AppDocument {
   @Field()
   @Prop({ required: true })
   firstName: string;
-  
+
   @Field()
   @Prop({ required: true })
   lastName: string;
-  
+
   @Field((type) => UserRole)
   @Prop({ required: true, enum: UserRole })
   role: UserRole;
-  
+
   @Field((type) => Player, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   captainplayer?: Player | string;
@@ -48,12 +46,11 @@ export class UserBase extends AppDocument{
   @Field((type) => Player, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   cocaptainplayer?: Player | string;
-  
-  @Field({nullable: true})
+
+  @Field({ nullable: true })
   @Prop({ required: false })
   email: string;
-  
-  
+
   @Field({ nullable: false })
   @Prop({ required: true })
   active: boolean;
@@ -70,7 +67,6 @@ export class User extends UserBase {
 export type UserDocument = User & Document;
 export const UserSchema = SchemaFactory.createForClass(User);
 export const UserSchemaFactory = async () => {
-
   /*
   UserSchema.pre('save', async function () {
     if (this?.password && (this.isNew || this.isModified('password'))) {

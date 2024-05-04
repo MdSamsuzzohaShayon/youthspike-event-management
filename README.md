@@ -69,17 +69,12 @@ ___
 Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 ### Update - 1
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
- - Once a round is submitted that ranking should not be ever changed
 
 ### Update - 2
  - Auto assign need to work properly
- - We need to make sure captains can only be assigned if they have an email address. However it won’t be a unique filed. Someone can have the same email addresss.
  - It just needs to be really really simple. We had 12 teams last weekend in our tournament and me having to go find usernames and email them was not easy or fun.
- - Send email to coptains - Email them if the user has a email address
- - Initially when we create a captain, and try to login it does not login properly, reassign a captain does allow him to login
  - Username should be as short as possible, prefereable 4 digit code
- - In the team page, there would be an option for sending email, a button saying send email, if the email is sent another icon will be shown
- - Admin can not get into setting ot ldo, This need to be fixed
+ - Admin can not get into setting or ldo, This need to be fixed
  - In the event setting, there will be a fwango link. (https://fwango.io/), In the menu tournamant is the fwango link as well.
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
  - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
@@ -212,6 +207,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Database Action
  -  Set `sendCredentials` to `false` in all document of event and team
+```
+db.events.updateMany({}, { $set: { sendCredentials: false } });
+db.teams.updateMany({}, { $set: { sendCredentials: false } });
+```
  - Set num in teams
  ```
  const cursor = db.teams.find()
@@ -223,7 +222,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
     { $set: { num: num } } // Set the 'num' field to the current counter value
   )
   num++ // Increment the counter for the next document
-}
+  }
  ```
 
 
@@ -249,16 +248,8 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 
 ### Ask
- - You reported an issue that after checkin both teams the submit line up button does not appear. Same thing happended to me, I have noticed I created multiple matches and both captain entered into diffrent match. I recommend you to verify that since in all matches looks similer
- - Should I send a notification (as text) saying that team A has submitted their line up for round 1?
- - I have modified the login system for player where firstname as username for a player and a player can login via username and password. A user can change his username. Is it okay to you?
+ - I have a bit confusion with subbing players. If I am a captain of a team and I have 8 players and 6 of them are assigned to different nets and 2 of the players are left behind, those 2 players are subbed players for all of next rounds. If I go to the next round I need to remove him from subbed player and let him play, only in that way we can get back the player. But I may be missed that point that a player can not sub off multiple times. However, if you create a video explaining the whole process of subbing off  if would be better for me to understand.
 
-### Database operations 
- - to fix username issues
-```
-spikeball-matches> db.players.updateMany({ username: { $exists: false } }, [{$set: { username: { $concat: ["$firstName", "_",{ $toString: { $add: [ { $toInt: { $multiply: [ { $rand: {} }, 1000 ] } },100 ] } } ]}}}]);
-
-```
 
 
 

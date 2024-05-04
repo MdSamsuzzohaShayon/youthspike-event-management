@@ -155,13 +155,15 @@ export class TeamResolver {
       // ===== Update captain =====
       if (input.captain) {
         const playerExist = await this.playerService.findById(input.captain.toString());
-
+        
         if (playerExist) {
-          const playerUserExist = await this.userService.findOne({ email: playerExist.email });
+          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num;
+          const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,
             eventExist,
+            newUsername,
             UserRole.captain,
           );
           const newCaptainUserId = createOrUpdatePlayer._id;
@@ -173,18 +175,14 @@ export class TeamResolver {
               updatePromises.push(
                 this.playerService.updateOne(
                   { _id: teamExist.captain.toString() },
-                  { $pull: { captainofteams: teamExist._id.toString() }, captainuser: null },
+                  { $pull: { captainofteams: teamExist._id.toString() }, captainuser: null, newUsername: null },
                 ),
               );
-              updatePromises.push(
-                this.userService.delete({
-                  $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }],
-                }),
-              );
+              updatePromises.push(this.userService.deleteOne({ _id: prevCaptain?.captainuser?.toString() }));
               updatePromises.push(
                 this.playerService.updateOne(
                   { _id: input.captain.toString() },
-                  { $push: { captainofteams: teamId }, captainuser: newCaptainUserId },
+                  { $push: { captainofteams: teamId }, captainuser: newCaptainUserId, username: newUsername },
                 ),
               );
             }
@@ -192,7 +190,7 @@ export class TeamResolver {
             updatePromises.push(
               this.playerService.updateOne(
                 { _id: input.captain.toString() },
-                { $push: { captainofteams: teamId }, captainuser: newCaptainUserId },
+                { $push: { captainofteams: teamId }, captainuser: newCaptainUserId, username: newUsername },
               ),
             );
           }
@@ -203,11 +201,13 @@ export class TeamResolver {
       if (input.cocaptain) {
         const playerExist = await this.playerService.findById(input.cocaptain.toString());
         if (playerExist) {
-          const playerUserExist = await this.userService.findOne({ email: playerExist.email });
+          const playerUserExist = await this.userService.findOne({ email: playerExist.username });
+          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num;
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,
             eventExist,
+            newUsername,
             UserRole.co_captain,
           );
           const newCaptainUserId = createOrUpdatePlayer._id;
@@ -216,21 +216,20 @@ export class TeamResolver {
             // ===== make prev co captain null =====
             const prevCaptain = await this.playerService.findById(teamExist.cocaptain.toString());
             if (input.cocaptain !== teamExist.cocaptain.toString()) {
+              // Update previous player
               updatePromises.push(
                 this.playerService.updateOne(
                   { _id: teamExist.cocaptain.toString() },
-                  { $pull: { cocaptainofteams: teamExist._id.toString() }, cocaptainuser: null },
+                  { $pull: { cocaptainofteams: teamExist._id.toString() }, cocaptainuser: null, username: null },
                 ),
               );
-              updatePromises.push(
-                this.userService.delete({
-                  $or: [{ email: prevCaptain.email }, { _id: prevCaptain?.captainuser?.toString() }],
-                }),
-              );
+              // Delete previous user
+              updatePromises.push(this.userService.deleteOne({ _id: prevCaptain?.cocaptainuser?.toString() }));
+              // Update new player
               updatePromises.push(
                 this.playerService.updateOne(
                   { _id: input.cocaptain.toString() },
-                  { $push: { cocaptainofteams: teamId }, cocaptainuser: newCaptainUserId },
+                  { $push: { cocaptainofteams: teamId }, cocaptainuser: newCaptainUserId, username: newUsername },
                 ),
               );
             }
@@ -238,7 +237,7 @@ export class TeamResolver {
             updatePromises.push(
               this.playerService.updateOne(
                 { _id: input.cocaptain.toString() },
-                { $push: { cocaptainofteams: teamId }, cocaptainuser: newCaptainUserId },
+                { $push: { cocaptainofteams: teamId }, cocaptainuser: newCaptainUserId, username: newUsername },
               ),
             );
           }
