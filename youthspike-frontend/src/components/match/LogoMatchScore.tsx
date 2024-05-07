@@ -9,11 +9,12 @@ import TextImg from '../elements/TextImg';
 
 interface ILogoMatchScoreProps {
   dark: boolean;
-  team?: ITeam | null;
   roundList: IRoundRelatives[];
   teamE: ETeam;
   screenWidth: number;
   allNets: INetRelatives[];
+  // eslint-disable-next-line react/require-default-props
+  team?: ITeam | null;
 }
 
 function LogoMatchScore({ dark, team, roundList, teamE, screenWidth, allNets }: ILogoMatchScoreProps) {
@@ -29,17 +30,19 @@ function LogoMatchScore({ dark, team, roundList, teamE, screenWidth, allNets }: 
     return { ts: totalScore, pms };
   };
 
+  const calculatedScore = calcTeamScore();
+
   return (
-    <div className={`logo-match-score flex w-full ${dark ? 'text-gray-100 flex-col' : 'text-gray-900 flex-col-reverse'} gap-1`}>
+    <div className={`logo-match-score flex w-full ${dark ? 'text-white flex-col' : 'text-gray-900 flex-col-reverse'} gap-1`}>
       <div className="w-full flex justify-between items-center pt-4 gap-1">
         {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-2/6" /> : <TextImg fullText={team?.name} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} />}
         <h3 className="break-words w-2/6 leading-4" style={headingStyle(screenWidth)}>
           Match Score
         </h3>
         <div className={`score-box w-2/6 border ${dark ? border.dark : border.light} ${screenWidth > screen.xs ? '' : 'p-2'} flex justify-center items-center text-center flex-col rounded-lg`}>
-          <p style={textStyle(screenWidth)}>{calcTeamScore().ts}</p>
-          <p style={textStyle(screenWidth)} className={calcTeamScore().pms > 0 ? `text-green-600` : `text-red-600`}>
-            {calcTeamScore().pms > 0 ? `+${calcTeamScore().pms}` : `${calcTeamScore().pms}`}
+          <p style={textStyle(screenWidth)}>{calculatedScore.ts}</p>
+          <p style={textStyle(screenWidth)} className={calculatedScore.pms > 0 ? `text-green-600` : `text-red-600`}>
+            {calculatedScore.pms > 0 ? `+${calculatedScore.pms}` : `${calculatedScore.pms}`}
           </p>
         </div>
       </div>

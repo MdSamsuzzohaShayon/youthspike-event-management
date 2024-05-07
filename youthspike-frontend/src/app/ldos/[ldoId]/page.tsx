@@ -2,16 +2,14 @@
 
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
-import EventCard from '@/components/event/EventCard';
 import EventList from '@/components/event/EventList';
 import DirectorDetail from '@/components/ldo/DirectorDetail';
 import { GET_LDO } from '@/graphql/ldo';
 import useResizeObserver from '@/hooks/useResizeObserver';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { useAppDispatch } from '@/redux/hooks';
 import { setScreenSize } from '@/redux/slices/elementSlice';
-import { IEvent } from '@/types';
-import { useApolloClient, useLazyQuery, useQuery } from '@apollo/client';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@apollo/client';
+import React, { useCallback, useState } from 'react';
 
 function LDOSingle({ params }: { params: { ldoId: string } }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);

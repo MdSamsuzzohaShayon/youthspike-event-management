@@ -7,8 +7,7 @@ export class CreateMatchInput {
 
   @Field({ nullable: false })
   date: string;
-  
-  
+
   @Field({ nullable: true })
   teamA: string;
 
@@ -16,22 +15,22 @@ export class CreateMatchInput {
   teamB: string;
 
   // Default properties
-  @Field({nullable: true})
+  @Field({ nullable: true })
   division?: string;
-  
+
   @Field({ nullable: true })
   numberOfNets?: number;
 
   @Field({ nullable: true })
   numberOfRounds?: number;
-  
-  @Field(() => Int, {nullable: true})
+
+  @Field(() => Int, { nullable: true })
   playerLimit?: number;
 
-  @Field(() => Int, {nullable: true})
+  @Field(() => Int, { nullable: true })
   netVariance?: number;
 
-  @Field(()=> String, {nullable: true})
+  @Field(() => String, { nullable: true })
   homeTeam?: string;
 
   @Field({ nullable: true })
@@ -47,15 +46,14 @@ export class CreateMatchInput {
   timeout?: number;
 
   @Field({ nullable: false })
-  location?: string;
+  description?: string;
 }
 
 @InputType()
 export class UpdateMatchInput extends PartialType(CreateMatchInput) {}
 
-
 @InputType()
-export class FilterQueryInput{
+export class FilterQueryInput {
   @Field({ nullable: true })
   _id?: string;
 
@@ -69,22 +67,22 @@ export class FilterQueryInput{
   teamB?: string;
 
   // Default properties
-  @Field({nullable: true})
+  @Field({ nullable: true })
   divisions?: string;
-  
+
   @Field({ nullable: true })
   numberOfNets?: number;
 
   @Field({ nullable: true })
   numberOfRounds?: number;
-  
-  @Field(() => Int, {nullable: true})
+
+  @Field(() => Int, { nullable: true })
   playerLimit?: number;
 
-  @Field(() => Int, {nullable: true})
+  @Field(() => Int, { nullable: true })
   netVariance?: number;
 
-  @Field(()=> String, {nullable: true})
+  @Field(() => String, { nullable: true })
   homeTeam?: string;
 
   @Field({ nullable: true })
@@ -100,5 +98,5 @@ export class FilterQueryInput{
   timeout?: number;
 
   @Field({ nullable: true })
-  location?: string;
+  description?: string;
 }

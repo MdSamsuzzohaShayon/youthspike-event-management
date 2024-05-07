@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { ETeam } from '@/types/team';
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { ETieBreaker, INetRelatives } from '@/types/net';
 import { setNotTieBreakerNetId } from '@/redux/slices/netSlice';
@@ -111,7 +112,7 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
         )}
       </div>
       <div className="hidden md:block w-2/6">
-        <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+        <Image width={300} height={300} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
       </div>
     </div>
   );

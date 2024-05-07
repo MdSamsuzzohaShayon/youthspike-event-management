@@ -27,6 +27,7 @@ import AnyFileInput from '../elements/forms/AnyFileInput';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
 import { APP_NAME } from '@/utils/keys';
+import TextareaInput from '../elements/forms/TextareaInput';
 
 
 // Select Input Options
@@ -48,7 +49,7 @@ const initialEvent: IEventAdd = {
     active: true,
     timeout: 3,
     coachPassword: 'Spikeball',
-    location: 'USA',
+    description: 'USA',
 };
 
 const initialCurrSponsor = { logo: null, company: '' };
@@ -318,7 +319,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
             <NumberInput required lblTxt='Sub Clock' name='timeout' defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
 
             <TextInput handleInputChange={handleInputChange} lblTxt='Coach Password' name='coachPassword' required defaultValue={eventState.coachPassword} rw='w-3/6' lw='w-3/6' />
-            <TextInput handleInputChange={handleInputChange} name='location' required defaultValue={eventState.location} rw='w-3/6' lw='w-3/6' />
+            <TextareaInput handleInputChange={handleInputChange} name='description' vertical required defaultValue={eventState.description} rw='w-3/6' lw='w-3/6' />
 
             {/* File upload start  */}
             <dialog ref={addSponsorDialogEl} >

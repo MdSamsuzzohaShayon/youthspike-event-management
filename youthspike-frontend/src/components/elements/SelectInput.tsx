@@ -1,37 +1,50 @@
+/* eslint-disable react/require-default-props */
 import { IOption } from '@/types';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
-export interface ISelectInputProps {
-    lw?: string;
-    rw?: string;
-    extraCls?: string;
-    lblTxt?: string;
-    name: string;
-    vertical?: boolean;
-    optionList: IOption[];
-    defaultValue?: string | number;
-    handleSelect: (e: React.SyntheticEvent) => void;
-  }
+interface ISelectInputProps {
+  name: string;
+  optionList: IOption[];
+  // eslint-disable-next-line no-unused-vars
+  handleSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  defaultValue?: string | number;
+  vertical?: boolean;
+  lw?: string;
+  rw?: string;
+  extraCls?: string;
+  lblTxt?: string;
+}
 
-const SelectInput = (props: ISelectInputProps) => {
-    const selectStyle: React.CSSProperties = {};
-    const [defaultSelected, setDefaultSelected] = useState<string>(props.optionList.length > 0 ? props.optionList[0].value : '');
+function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name, vertical = false, optionList, defaultValue, handleSelect }: ISelectInputProps) {
+  const selectStyle: React.CSSProperties = !rw ? { width: '19%' } : {};
 
-    if (!props.rw) selectStyle.width = '19%';
-    return (
-        <div className={`input-group mt-4 w-full flex ${props.vertical ? "flex-col" : "flex-row"} justify-between items-center ${props.extraCls}`}>
-            <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>{props.lblTxt ? props.lblTxt : props.name}</label>
-            <select onChange={props.handleSelect} name={props.name} id={props.name} defaultValue={props.defaultValue ? props.defaultValue : defaultSelected}
-                className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw} max-w-full`} style={!props.vertical ? selectStyle : {}} >
-                <option value="" defaultChecked >
-                    Select an option
-                </option>
-                {props.optionList.map((o, i) => (
-                    <option value={o.value} key={i} className='bg-gray-500 text-gray-900'>{o.text ? o.text : o.value}</option>
-                ))}
-            </select>
-        </div>
-    )
+  // eslint-disable-next-line no-unused-vars
+  const [defaultSelected, setDefaultSelected] = useState<string>(() => {
+    return optionList.length > 0 ? optionList[0].value : '';
+  });
+
+  return (
+    <div className={`input-group mt-4 w-full flex ${vertical ? 'flex-col' : 'flex-row'} justify-between items-center ${extraCls}`}>
+      <label htmlFor={name} className={`capitalize ${vertical ? 'w-full' : ''} ${lw}`}>
+        {lblTxt || name}
+      </label>
+      <select
+        onChange={handleSelect}
+        name={name}
+        id={name}
+        defaultValue={defaultValue || defaultSelected}
+        className={`form-control capitalize ${vertical ? 'w-full' : ''} ${rw} max-w-full`}
+        style={vertical ? {} : selectStyle}
+      >
+        <option value="">Select an option</option>
+        {optionList.map((o) => (
+          <option value={o.value} key={o.value} className="bg-gray-500 text-gray-900">
+            {o.text || o.value}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 export default SelectInput;

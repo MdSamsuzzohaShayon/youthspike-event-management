@@ -4,6 +4,8 @@ import { netSize, screen } from './constant';
 const border = {
   dark: 'border-gray-700',
   light: 'border-gray-300',
+  green: 'border-green-600',
+  red: 'border-red-600',
 };
 
 // Match style

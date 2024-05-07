@@ -1,4 +1,5 @@
-import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor } from "./event";
+/* eslint-disable import/no-cycle */
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor } from './event';
 import {
   ITextInputProps,
   IError,
@@ -12,17 +13,17 @@ import {
   IFileFileProps,
   ILoginProps,
   IColMenu,
-} from "./elements";
-import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
-import { ILDO, ILDOItem, ILdoUpdate } from "./ldo";
-import { IPlayer } from "./player";
-import { ITeam } from "./team";
-import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from "./match";
-import { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse} from "./net";
-import { IRoundBase, IRoundExpRel, IRoundRelatives } from "./round";
-import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNetType, IRoomNets, IRoomRoundProcess, ICheckInAction} from "./room";
+} from './elements';
+import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
+import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
+import { IPlayer } from './player';
+import { ITeam } from './team';
+import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from './match';
+import { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse } from './net';
+import { IRoundBase, IRoundExpRel, IRoundRelatives } from './round';
+import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNetType, IRoomNets, IRoomRoundProcess, ICheckInAction, IMatchComplete } from './room';
 
-import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps, INotTwoPointNetProps } from "./socket";
+import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps, INotTwoPointNetProps, ICompleteMatchProps } from './socket';
 
 export type {
   // Elements
@@ -41,27 +42,22 @@ export type {
   IDefaultEventMatch,
   IEventSponsor,
 
-
   // User
   IUser,
   IDirector,
   IDirectorItem,
   IUserContext,
 
-
   // Event director organization
   ILDO,
   ILDOItem,
   ILdoUpdate,
 
-
   // Player
   IPlayer,
 
-
   // Team
   ITeam,
-
 
   // Match
   IAddMatch,
@@ -91,10 +87,17 @@ export type {
   IRoomNets,
   IRoomRoundProcess,
   ICheckInAction,
-
+  IMatchComplete,
 
   // socket
   IListenSocketProps,
-  IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, INotTwoPointNetProps,
-  ICheckInToLineupProps, 
+  IJoinTheRoomProps,
+  IStatusChange,
+  ICommonProps,
+  INextRoundProps,
+  ICanGoProps,
+  INotTwoPointNetProps,
+  ICheckInToLineupProps,
+  ICompleteMatchProps,
+  
 };

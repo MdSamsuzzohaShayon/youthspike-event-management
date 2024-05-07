@@ -14,6 +14,7 @@ import {
   IDateinputProps,
   IAnyFileFileProps,
   IPlayerSelectProps,
+  ITextareaInputProps,
 } from "./elements";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
@@ -39,6 +40,7 @@ export type {
   IDateinputProps,
   IAnyFileFileProps,
   IPlayerSelectProps,
+  ITextareaInputProps,
 
   // Event
   IEvent,

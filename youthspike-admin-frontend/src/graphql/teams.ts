@@ -66,7 +66,7 @@ const eventResponse = `
     divisions
     endDate
     homeTeam
-    location
+    description
     netVariance
     playerLimit
     rosterLock

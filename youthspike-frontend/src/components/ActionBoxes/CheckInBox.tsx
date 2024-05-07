@@ -154,7 +154,7 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
         ) : currRound?.num === 1 ? (
           <>
             <h2 className="uppercase font-black text-start">Waiting for the other squad to check in.</h2>
-            <button type="button" className="btn-light">
+            <button type="button" className="btn-success">
               You are checked in
             </button>
           </>

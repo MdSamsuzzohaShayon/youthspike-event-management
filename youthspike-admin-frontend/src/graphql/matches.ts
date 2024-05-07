@@ -10,7 +10,7 @@ const eventResponse = `
     divisions
     endDate
     homeTeam
-    location
+    description
     name
     netVariance
     playerLimit
@@ -50,7 +50,7 @@ const matchResponse = `
     autoAssignLogic
     rosterLock
     timeout
-    location
+    description
     rounds {
       _id
       num

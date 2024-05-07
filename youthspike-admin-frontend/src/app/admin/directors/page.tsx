@@ -16,7 +16,11 @@ function DirectorPage() {
   /**
    * Show list of directors
    */
-  const { data, loading, error } = useQuery(GET_LDOS);
+  const { data, loading, error, refetch } = useQuery(GET_LDOS);
+
+  const referchFunc=async ()=>{
+    await refetch();
+  }
   
   if (loading || isLoading) return <Loader />;
 
@@ -28,7 +32,7 @@ function DirectorPage() {
       {addNewDirector 
       ? <DirectorAdd setIsLoading={setIsLoading} update={false} setActErr={setActErr} setAddNetDirector={setAddNetDirector} /> 
       : (<React.Fragment>
-        <DirectorList ldoList={data?.getEventDirectors?.data} />
+        <DirectorList ldoList={data?.getEventDirectors?.data} setIsLoading={setIsLoading} referchFunc={referchFunc} />
         <button className="btn-info mt-4" type='button' onClick={() => setAddNetDirector(true)}>Add New</button>
       </React.Fragment>)}
     </div>

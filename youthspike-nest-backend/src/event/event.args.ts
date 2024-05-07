@@ -74,7 +74,7 @@ export class CreateEventInput {
   coachPassword: string;
 
   @Field({ nullable: true })
-  location: string;
+  description: string;
 
   @Field()
   ldo?: string;

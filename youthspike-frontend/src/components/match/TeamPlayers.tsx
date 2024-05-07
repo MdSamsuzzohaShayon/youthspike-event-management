@@ -2,10 +2,10 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React from 'react';
 import { IPlayer } from '@/types';
-import PlayerScoreCard from './PlayerScoreCard';
 import { ETeamPlayer } from '@/types/net';
 import { screen } from '@/utils/constant';
 import { useAppSelector } from '@/redux/hooks';
+import PlayerScoreCard from './PlayerScoreCard';
 
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[];
@@ -18,7 +18,6 @@ const touchThreshold: number = 50;
 const initialStartTrim: number = 0;
 
 function TeamPlayers({ teamPlayers, screenWidth }: ITeamPlayersProps) {
-
   // Global States
   const { myTeamE } = useAppSelector((state) => state.matches);
 
@@ -28,12 +27,11 @@ function TeamPlayers({ teamPlayers, screenWidth }: ITeamPlayersProps) {
   const [trimPlayers, setTrimPlayers] = React.useState<IPlayer[]>([]);
   const [startPosX, setStartPosX] = React.useState<number>(0);
 
-
   React.useEffect(() => {
     if (teamPlayers.length > 0) {
       setCloneTeamPlayers(teamPlayers.slice());
       setTrimPlayers(teamPlayers.slice(initialStartTrim, playersLimit));
-    };
+    }
   }, [teamPlayers]);
 
   /**
@@ -68,25 +66,28 @@ function TeamPlayers({ teamPlayers, screenWidth }: ITeamPlayersProps) {
     }
   };
 
-
   return (
-    <div className="bg-gray-900 text-gray-100 py-4">
+    <div className="bg-gray-900 text-white py-4">
       <div className="container px-4 mx-auto">
         <div className="player-list flex justify-between items-center">
-          {screenWidth > screen.xs && (<button type="button" className="bg-transparent border-o h-full" onClick={shiftLeft}>
-            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" style={{ transform: 'scaleX(-1)' }} />
-          </button>)}
+          {screenWidth > screen.xs && (
+            <button type="button" className="bg-transparent border-o h-full" onClick={shiftLeft}>
+              <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" style={{ transform: 'scaleX(-1)' }} />
+            </button>
+          )}
 
-          {trimPlayers && trimPlayers.map((player) => (
-            // @ts-ignore
-            <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-              <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
-            </div>
-          ))}
-          {screenWidth > screen.xs && (<button type="button" className="bg-transparent border-o h-full" onClick={shiftRight}>
-            <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" />
-          </button>)}
-
+          {trimPlayers &&
+            trimPlayers.map((player) => (
+              // @ts-ignore
+              <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
+                <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
+              </div>
+            ))}
+          {screenWidth > screen.xs && (
+            <button type="button" className="bg-transparent border-o h-full" onClick={shiftRight}>
+              <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" />
+            </button>
+          )}
         </div>
       </div>
     </div>

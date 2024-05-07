@@ -34,7 +34,7 @@ function SubbedPlayerCard({ player, currRound, roundList, subControl }: ISubbedP
       )}
 
       {showAction && subControl && (
-        <ul className="absolute actionBox bg-gray-900 text-gray-100 p-2 right-3">
+        <ul className="absolute actionBox bg-gray-900 text-white p-2 right-3">
           <li role="presentation" onClick={handleRemovePlayer} className="cursor-pointer">
             Remove
           </li>

@@ -38,6 +38,8 @@ export class TeamService {
   async create(team: Team) {
     // const lastTeam = await this.teamModel.findOne({}, {}, { sort: { num: -1 } });
     const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
+    console.log({lastTeam});
+    
     return this.teamModel.create({
       ...team,
       active: true,

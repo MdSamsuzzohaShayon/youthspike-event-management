@@ -33,6 +33,7 @@ const initialState: MatchesState = {
     teamA: '',
     teamB: '',
     event: '',
+    completed: false,
     date: new Date().toISOString(),
     location: '',
     numberOfNets: 0,

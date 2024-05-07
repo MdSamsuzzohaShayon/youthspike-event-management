@@ -20,6 +20,7 @@ import { NetService } from 'src/net/net.service';
 import { ETieBreaker } from 'src/net/net.schema';
 import { TeamService } from 'src/team/team.service';
 import { PlayerService } from 'src/player/player.service';
+import { MatchService } from 'src/match/match.service';
 
 @ObjectType()
 class RoomRoundProcess {
@@ -90,6 +91,7 @@ export class MyGatWay implements OnModuleInit {
     private readonly roundService: RoundService,
     private readonly netService: NetService,
     private readonly teamService: TeamService,
+    private readonly matchService: MatchService,
     private readonly playerService: PlayerService,
   ) {}
 
@@ -400,6 +402,15 @@ export class MyGatWay implements OnModuleInit {
       round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed },
     };
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
+  }
+
+  @SubscribeMessage('completed-match-from-client')
+  async onMatchComplete(client, { matchId }: { matchId: string }) {
+    const matchExist = await this.matchService.findById(matchId);
+    if (matchExist) {
+      await this.matchService.updateOne({ _id: matchId }, { $set: { completed: true } });
+      client.emit('completed-match-response', { matchId });
+    }
   }
 
   @SubscribeMessage('room-detail-client')

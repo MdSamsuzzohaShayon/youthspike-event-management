@@ -115,9 +115,9 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   coachPassword: string;
 
-  @Field({ nullable: false })
+  @Field({ nullable: true })
   @Prop({ required: true })
-  location: string;
+  description: string;
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);

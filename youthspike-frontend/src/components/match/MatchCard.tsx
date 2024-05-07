@@ -37,7 +37,7 @@ function MatchCard({ match }: MatchCardProps) {
           {team?.logo ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" /> : <Image src="/free-logo.png" className="w-full h-full" alt="free-logo" />}
         </div>
         <h3 className="capitalize">{team.name}</h3>
-        <h1 className="h-12 w-12 flex justify-center items-center rounded-full border border-gray-100">{pointsOfRound}</h1>
+        <h1 className="h-12 w-12 flex justify-center items-center rounded-full border border-white">{pointsOfRound}</h1>
       </>
     );
   };

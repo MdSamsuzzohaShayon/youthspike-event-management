@@ -2,6 +2,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { IRoom, IRoundRelatives, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { initToCheckIn } from '@/utils/match/emitSocketEvents';
+import Image from 'next/image';
 import React from 'react';
 import { Socket } from 'socket.io-client';
 import PointText from './PointText';
@@ -35,7 +36,7 @@ function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp }: IB
         )}
       </div>
       <div className="hidden md:block w-2/6">
-        <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+        <Image width={300} height={300} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
       </div>
     </div>
   );

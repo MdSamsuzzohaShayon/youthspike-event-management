@@ -1,2 +1,35 @@
-66224ccbc74def854fe56c21
-6622025ee36a54e35105e96b
+RB Leipzig Line Up for round 3
+==============================
+
+Net 1
+Pfn15 Pln15
+Pfn20 Pln20
+
+Net 2
+Pfn16 Pln16
+Pfn21 Pln21
+
+Net 3
+Pfn17 Pln17
+Pfn18 Pln18
+
+
+
+
+
+Bayern Munich Line Up for round 3
+==============================
+
+Net 1
+Pfn1 Pln1
+Pfn10 Pln10
+
+Net 2
+Pfn2 Pln2
+Pfn14 Pln14
+
+Net 3
+Pfn3 Pln3
+Pfn9 Pln9
+
+

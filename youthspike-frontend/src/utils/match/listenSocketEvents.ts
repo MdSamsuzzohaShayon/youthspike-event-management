@@ -2,10 +2,11 @@ import { IListenSocketProps, IRoundRelatives, IUpdateScoreResponse } from '@/typ
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
+import { IMatchComplete, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
 import { ETieBreaker } from '@/types/net';
+import { setMatchInfo } from '@/redux/slices/matchesSlice';
 
-const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
+const listenSocketEvents = ({ socket, user, match, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
   /**
    * Socket real time connection
    * After joining to the room action button will be visiable
@@ -172,6 +173,13 @@ const listenSocketEvents = ({ socket, user, teamA, dispatch, currentRound, currR
 
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedN));
+  });
+
+  socket.on('update-net-response', (data: IMatchComplete) => {
+    // Update current round nets and all nets
+    if (data.matchId === match._id) {
+      dispatch(setMatchInfo({ ...match, completed: true }));
+    }
   });
 };
 

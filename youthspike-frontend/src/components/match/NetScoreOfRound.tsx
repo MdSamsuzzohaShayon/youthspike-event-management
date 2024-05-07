@@ -37,9 +37,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match, closePSCAvailable } = useAppSelector(
-    (state) => state.matches,
-  );
+  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match, closePSCAvailable } =
+    useAppSelector((state) => state.matches);
 
   const [mutateRound] = useMutation(UPDATE_ROUND);
 
@@ -203,7 +202,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             role="presentation"
             onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)}
           >
-            <p className="w-6 h-6 text-gray-100 rounded-full bg-yellow-400 flex justify-center items-center">{teamPlayerList[i].rank}</p>
+            <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{teamPlayerList[i].rank}</p>
             <div className="advanced-img w-10 h-10 rounded-full border-2 border-gray-900 overflow-hidden">
               {teamPlayerList[i].profile ? (
                 <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
@@ -268,8 +267,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             <div className="round-nums flex flex-wrap w-full justify-start gap-1 items-center">
               {roundList.map((round) => (
                 <button
-                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-gray-100'} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
-                    } rounded-lg`}
+                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-white'} py-1 text-center cursor-pointer ${
+                    screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
+                  } rounded-lg`}
                   type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}
@@ -296,7 +296,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           {/* Bottom Side End  */}
         </div>
       ) : (
-        <div id="left-drop-down" className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-gray-100 border ${border.light}`}>
+        <div id="left-drop-down" className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-white border ${border.light}`}>
           <Image width={24} height={24} alt="close-button" src="/icons/close.svg" className="svg-black mx-2 mt-2" role="presentation" onClick={handleClosePlayers} />
           <div className="px-2 w-full" style={{ minHeight: 'fit-content' }}>
             <h3>Selected Net {selectedNet?.num}</h3>

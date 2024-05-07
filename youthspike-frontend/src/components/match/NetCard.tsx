@@ -46,7 +46,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { teamA } = useAppSelector((state) => state.teams);
-  const { disabledPlayerIds, match: currMatch, closePSCAvailable } = useAppSelector((state) => state.matches);
+  const { disabledPlayerIds, match: currMatch } = useAppSelector((state) => state.matches);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
@@ -239,34 +239,16 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       <div
         id={refId}
         style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
-        className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-gray-100' : 'flex-col-reverse bg-gray-100 text-gray-900'} border ${
+        className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-gray-900'} border ${
           border.light
         } items-center justify-start`}
       >
         <div className="player-pair flex justify-between w-full">
           <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? 'w-12' : 'w-16'} border ${!onTop && border.light}`}>
-            <PlayerScoreCard
-              dark={onTop}
-              teamPlayer={TPA}
-              player={playerA}
-              dropdownPlayer={handleDropdownPlayer}
-              evacuatePlayer={handleEvacuatePlayer}
-              screenWidth={screenWidth}
-              myTeamE={myTeamE}
-              cpsca={closePSCAvailable}
-            />
+            <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
           </div>
           <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? 'w-12' : 'w-16'} border ${!onTop && border.light}`}>
-            <PlayerScoreCard
-              dark={onTop}
-              teamPlayer={TPB}
-              player={playerB}
-              dropdownPlayer={handleDropdownPlayer}
-              evacuatePlayer={handleEvacuatePlayer}
-              screenWidth={screenWidth}
-              myTeamE={myTeamE}
-              cpsca={closePSCAvailable}
-            />
+            <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
           </div>
         </div>
         {playerARank && playerBRank && <h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>}

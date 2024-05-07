@@ -1,11 +1,11 @@
 import { setActErr } from '@/redux/slices/elementSlice';
-import { setVerifyLineup } from '@/redux/slices/matchesSlice';
+import { setMatchInfo, setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IJoinTheRoomProps, INextRoundProps, IStatusChange, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps } from '@/types';
 import { ETieBreaker } from '@/types/net';
 import { EActionProcess, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
-import { ISubmitLineupProps, ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from '@/types/socket';
+import { ICompleteMatchProps, ISubmitLineupProps, ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from '@/types/socket';
 import { ETeam } from '@/types/team';
 import { setMatch } from '../localStorage';
 
@@ -152,6 +152,11 @@ function changeTheRound({ roundList, dispatch, allNets, newRoundIndex, myTeamE }
   dispatch(setRoundList(newRoundList));
 }
 
+function completeMatch({ socket, dispatch, match }: ICompleteMatchProps) {
+  dispatch(setMatchInfo({ ...match, completed: false }));
+  if (socket) socket.emit('completed-match-from-client', { match: match._id });
+}
+
 function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets }: ISubmitUpdatePointsProps) {
   const netPointsList = [];
   // eslint-disable-next-line no-restricted-syntax
@@ -245,4 +250,4 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, all
   if (socket) socket.emit('update-net-from-client', actionData);
 }
 
-export { joinTheRoom, checkInToLineup, initToCheckIn, changeTheRound, lineupToUpdatePoints, updateMultiplePoints, notTwoPointNet };
+export { joinTheRoom, checkInToLineup, initToCheckIn, changeTheRound, lineupToUpdatePoints, updateMultiplePoints, notTwoPointNet, completeMatch };
