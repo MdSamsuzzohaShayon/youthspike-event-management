@@ -87,7 +87,7 @@ dialog::backdrop {
 
 
 .btn-light {
-  @apply px-3 py-2 bg-green-50 text-green-600 rounded-full hover:bg-green-100 font-black text-xl;
+  @apply px-3 py-2 bg-green-50 text-green-600 rounded-full hover:bg-white font-black text-xl;
 }
 
 .btn-light-outline {
@@ -95,7 +95,7 @@ dialog::backdrop {
 }
 
 .btn-info {
-  @apply px-3 py-2 bg-yellow-400 text-yellow-100 rounded-full hover:bg-yellow-700 font-bold text-xl;
+  @apply px-3 py-2 bg-yellow-400 text-white rounded-full hover:bg-yellow-700 font-bold text-xl;
 }
 
 
@@ -104,7 +104,7 @@ dialog::backdrop {
 }
 
 .btn-danger {
-  @apply px-3 py-2 bg-red-500 text-red-100 rounded-md hover:bg-red-700 font-bold text-xl;
+  @apply px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 font-bold text-xl;
 }
 
 .btn-success {

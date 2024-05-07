@@ -7,14 +7,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 
-const DirectorRow = ({ ldo }: { ldo: ILDOItem }) => {
-    const router = useRouter();
-    const [deleteDirector, { data }] = useMutation(DELETE_DIRECTOR);
-
-    const handleDeleteLDO = (e: React.SyntheticEvent, ldoId: string) => {
-        e.preventDefault();
-        deleteDirector({ variables: { dId: ldoId } });
-    }
+interface IDeleteRowProps{
+    ldo: ILDOItem;
+    handleDeleteLDO: (e: React.SyntheticEvent, ldoId: string)=> void;
+}
+const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
+    
 
     return (
         <tr className='border-b border-gray-800 hover:bg-gray-800'  >

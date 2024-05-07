@@ -77,6 +77,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
  - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
  - When I login as captain, I should only see the matches that I am in. Moreover, I should only enter the matches that I am captain of.
+ - Bug- It allowed someone to sub twice in back to back rounds. it should only allow you to sub someone after everyone on the team has subbed at least once.
 
 
 
