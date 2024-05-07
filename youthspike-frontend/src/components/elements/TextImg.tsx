@@ -1,40 +1,36 @@
+/* eslint-disable react/require-default-props */
 import React from 'react';
 
-interface ITextImg{
-    className: string;
-    fullText?: string;
-    fText?: string;
-    lText?: string;
-    txtCls?: string;
-    style?: React.CSSProperties;
+interface ITextImg {
+  className: string;
+  fullText?: string;
+  fText?: string;
+  lText?: string;
+  txtCls?: string;
+  style?: React.CSSProperties;
 }
 
-function TextImg({className, fullText, fText, lText, txtCls, style}: ITextImg) {
-
-  const initFromFull=(ft: string)=>{
-    let initial= `${ft[0]}${ft[ft.length - 1]}`;
-    if(ft.trim().includes(' ')){
+function TextImg({ className, fullText, fText, lText, txtCls, style }: ITextImg) {
+  const initFromFull = (ft: string) => {
+    let initial = `${ft[0]}${ft[ft.length - 1]}`;
+    if (ft.trim().includes(' ')) {
       initial = '';
-      const wl = ft.split(' ');// wl = word list
-      
-      for (let i = 0; i < wl.length; i++) {
-        if(wl[i].trim() !== ''){
+      const wl = ft.split(' '); // wl = word list
+
+      for (let i = 0; i < wl.length; i += 1) {
+        if (wl[i].trim() !== '') {
           initial += wl[i][0];
         }
       }
     }
     return initial;
-  }
+  };
 
   return (
-    <div className={`text-black bg-yellow-400 flex justify-center items-center rounded-full ${className}`} style={style} >
-        <p className={`uppercase ${txtCls ? txtCls : ''}`}>
-            {fullText 
-            ? initFromFull(fullText)
-            : (fText && lText && `${fText[0]}${lText[0]}`)}
-        </p>
+    <div className={`text-black bg-yellow-400 flex justify-center items-center rounded-full ${className}`} style={style}>
+      <p className={`uppercase ${txtCls || ''}`}>{fullText ? initFromFull(fullText) : fText && lText && `${fText[0]}${lText[0]}`}</p>
     </div>
-  )
+  );
 }
 
 export default TextImg;

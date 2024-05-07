@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 const eventResponse = `
   _id
@@ -11,7 +11,7 @@ const eventResponse = `
   coachPassword
   divisions
   homeTeam
-  location
+  description
   nets
   rounds
   netVariance

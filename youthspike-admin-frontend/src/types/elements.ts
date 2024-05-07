@@ -14,7 +14,7 @@ export interface IMenuItem {
   link: string;
 }
 
-export interface ITextInputProps {
+export interface ITextCommon{
   lw?: string;
   rw?: string;
   vertical?: boolean;
@@ -25,6 +25,12 @@ export interface ITextInputProps {
   defaultValue?: string | null | undefined;
   readOnly?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
+}
+
+export interface ITextInputProps extends ITextCommon{
+}
+
+export interface ITextareaInputProps extends ITextCommon{
 }
 
 export interface IPlayerSelectProps{

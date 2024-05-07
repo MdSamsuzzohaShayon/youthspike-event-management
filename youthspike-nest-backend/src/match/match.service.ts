@@ -62,6 +62,10 @@ export class MatchService {
     return this.matchModel.updateMany(filter, matchObj);
   }
 
+  async updateOne(filter: FilterQuery<Match>, matchObj: UpdateQuery<Match>) {
+    return this.matchModel.updateOne(filter, matchObj);
+  }
+
   async delete(filter: FilterQuery<Match>) {
     return this.matchModel.deleteMany(filter);
   }

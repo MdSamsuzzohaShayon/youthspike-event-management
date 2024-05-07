@@ -12,7 +12,7 @@ const eventResponse = `
   coachPassword
   divisions
   homeTeam
-  location
+  description
   nets
   rounds
   netVariance

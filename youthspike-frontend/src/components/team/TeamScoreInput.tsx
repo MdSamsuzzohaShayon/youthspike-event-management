@@ -2,7 +2,6 @@ import { INetRelatives, IRoundRelatives, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
-import { screen } from '@/utils/constant';
 import { fsToggle } from '@/utils/helper';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -32,34 +31,7 @@ function TeamScoreInput({ net, teamE, screenWidth, teamName, user, currRound, ha
     setDefaultVal(teamE === ETeam.teamB ? net?.teamBScore?.toString() || '' : net?.teamAScore?.toString() || '');
   }, [net]);
 
-  // eslint-disable-next-line consistent-return
-  useEffect(() => {
-    // Check if the input element reference exists
-    if (inputRef.current && screenWidth <= screen.xs) {
-      // Add focus event listener to the input element
 
-      const handleFocus = () => {
-        if (inputRef.current) {
-          // Temporarily change the input type to 'text' to enable text selection
-          inputRef.current.type = 'text';
-          inputRef.current.setSelectionRange(0, inputRef.current.value.length);
-
-          // Set a timeout to revert the input type back to 'number'
-          setTimeout(() => {
-            if (inputRef.current && screenWidth <= screen.xs) inputRef.current.type = 'number';
-          }, 0);
-        }
-      };
-
-      // Attach the focus event listener
-      inputRef.current.addEventListener('focus', handleFocus);
-
-      // Clean up by removing the event listener on component unmount
-      return () => {
-        if (inputRef.current) inputRef.current.removeEventListener('focus', handleFocus);
-      };
-    }
-  }, []); // Run this effect once on component mount
 
   return (
     <div className="score-card-in-net w-full text-center">
@@ -70,7 +42,7 @@ function TeamScoreInput({ net, teamE, screenWidth, teamName, user, currRound, ha
         onChange={(e) => handlePointChange(e, net?._id ?? null, teamE)}
         defaultValue={defaultVal}
         style={fsToggle(screenWidth)}
-        className="w-4/6 bg-gray-100 text-gray-900 p-1 text-center outline-none"
+        className="w-4/6 bg-white text-gray-900 p-1 text-center outline-none"
         readOnly={inputReadonly()}
       />
     </div>

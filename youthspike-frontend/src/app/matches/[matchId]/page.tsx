@@ -3,7 +3,6 @@
 'use client';
 
 /* eslint-disable no-unused-vars */
-import Head from 'next/head';
 import React, { useEffect, useCallback, Suspense, useState, useRef } from 'react';
 
 // Hooks
@@ -84,7 +83,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, opTeamE, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
+  const { myPlayers, opPlayers, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
   // ===== GraphAL =====
@@ -141,7 +140,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       const userToken = getCookie('token');
 
       joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId });
-      listenSocketEvents({ socket, user, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
+      listenSocketEvents({ socket, user, match: currMatch, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, user, teamA, teamB, roundList]);
@@ -181,7 +180,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   return (
     <Suspense fallback={<Loader />}>
-      <div className="h-full relative bg-gray-100 text-gray-900" ref={mainEl}>
+      <div className="h-full relative bg-white text-gray-900" ref={mainEl}>
         <div className="container mx-auto px-4 bg-gray-900">
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
@@ -193,7 +192,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
         {/* ===== Show oponent subbed players ===== */}
         {opSubbedPlayers && opSubbedPlayers.length > 0 && (
-          <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">
+          <div className="subbed-wrapper pt-4 bg-gray-900 text-white">
             <div className="container px-4 mx-auto ">
               <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
             </div>
@@ -240,7 +239,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
         {/* // Show subbed players  */}
         {mySubbedPlayers && mySubbedPlayers.length > 0 && (
-          <div className="subbed-wrapper pt-4 bg-gray-900 text-gray-100">
+          <div className="subbed-wrapper pt-4 bg-gray-900 text-white">
             <div className="container px-4 mx-auto">
               <SubbedPlayerList teamPlayers={mySubbedPlayers} currRound={currentRound} roundList={roundList} subControl />
             </div>

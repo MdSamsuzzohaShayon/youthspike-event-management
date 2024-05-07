@@ -72,17 +72,12 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Update - 2
  - Auto assign need to work properly
- - It just needs to be really really simple. We had 12 teams last weekend in our tournament and me having to go find usernames and email them was not easy or fun.
- - Username should be as short as possible, prefereable 4 digit code
  - Admin can not get into setting or ldo, This need to be fixed
  - In the event setting, there will be a fwango link. (https://fwango.io/), In the menu tournamant is the fwango link as well.
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
  - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
  - When I login as captain, I should only see the matches that I am in. Moreover, I should only enter the matches that I am captain of.
 
-
-### Update - 3
- - When I refresh it should take me to the round where I was before refreshing
 
 
  - **Team**
@@ -206,6 +201,8 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Setup docker
 
 ### Database Action
+ -  Change `location` to `description` in all document of match and event
+ -  Set `completed` to `false` in all document of match
  -  Set `sendCredentials` to `false` in all document of event and team
 ```
 db.events.updateMany({}, { $set: { sendCredentials: false } });

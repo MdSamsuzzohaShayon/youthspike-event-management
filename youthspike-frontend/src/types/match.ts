@@ -1,6 +1,7 @@
-import { IEvent, IRoom, IRoundExpRel, ITeam } from ".";
+/* eslint-disable import/no-cycle */
+import { IEvent, IRoom, IRoundExpRel, ITeam } from '.';
 
-export interface IDefaultMatch{
+export interface IDefaultMatch {
   division: string;
   netVariance: number;
   homeTeam: string;
@@ -17,27 +18,27 @@ export interface IDefaultMatchProps extends IDefaultMatch {
   numberOfRounds: number;
 }
 
-
-interface IMatchBase extends Partial<IDefaultMatchProps>{
+interface IMatchBase extends Partial<IDefaultMatchProps> {
   date: string;
 }
 
-export interface IAddMatch extends IMatchBase{
+export interface IAddMatch extends IMatchBase {
   teamA: string;
   teamB: string;
 }
 
-
-export interface IMatchRelatives extends IMatchBase{
+export interface IMatchRelatives extends IMatchBase {
   _id: string;
+  completed: boolean;
   event: string;
   teamA: string;
   teamB: string;
   rounds: string[];
 }
 
-export interface IMatchExpRel extends IMatchBase{
+export interface IMatchExpRel extends IMatchBase {
   _id: string;
+  completed: boolean;
   event: IEvent;
   teamA: ITeam;
   teamB: ITeam;

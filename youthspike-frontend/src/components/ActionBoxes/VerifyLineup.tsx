@@ -67,7 +67,7 @@ function VerifyLineup() {
     );
   };
   return (
-    <div className="w-full bg-gray-100 text-gray-900 z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
+    <div className="w-full bg-white text-gray-900 z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
       <div className="container p-4 mx-auto ">
         <Image src="/icons/close.svg" alt="close icon picture" className="svg-black mb-4" role="presentation" onClick={handleCloseLineup} width={8} height={8} />
         <h3 className="mb-4">Assigned Nets</h3>

@@ -10,6 +10,7 @@ interface IteamCaptain extends ITeam {
 
 interface ITeamListProps {
   divisions: string;
+  // eslint-disable-next-line react/require-default-props
   teamList?: IteamCaptain[];
 }
 

@@ -18,7 +18,7 @@ function EventMainPage() {
   const dispatch = useDispatch();
 
   // ===== GraphQL =====
-  const [getEvents, { loading, refetch }] = useLazyQuery(GET_EVENTS, { fetchPolicy: 'network-only' });
+  const [getEvents, { loading }] = useLazyQuery(GET_EVENTS, { fetchPolicy: 'network-only' });
 
   // ===== Redux =====
   const { eventList } = useAppSelector((state) => state.events);
@@ -26,37 +26,6 @@ function EventMainPage() {
   // ===== Local State =====
   const [filteredEventList, setFilteredEventList] = useState<IEvent[]>([]);
   const [listStart, setListStart] = useState<number>(0);
-
-  /*
-    const dummyEvents = (): IEvent[] => {
-        const el: IEvent[] = [];
-        // Create dummy list
-        for (let i = 0; i < EVENT_PAGE_LIMIT * 6; i++) {
-            const eventElement: IEvent = {
-                _id: crypto.randomUUID(),
-                name: `Event ${i + 1}`,
-                active: true,
-                autoAssign: true,
-                autoAssignLogic: '',
-                coachPassword: '1234',
-                divisions: 'd1, d2, d3',
-                startDate: new Date().toISOString(),
-                endDate: new Date().toISOString(),
-                playerLimit: 1,
-                sponsors: [],
-                nets: 1,
-                rounds: 1,
-                netVariance: 1,
-                homeTeam: 'string',
-                rosterLock: 'string',
-                timeout: 1,
-                location: 'string',
-            };
-            el.push(eventElement);
-        }
-        return el;
-    }
-    */
 
   useEffect(() => {
     (async () => {

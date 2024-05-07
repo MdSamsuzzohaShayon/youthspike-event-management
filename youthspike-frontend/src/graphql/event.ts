@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 const roundResponse = `
 rounds {
@@ -65,7 +65,7 @@ matches {
       email
     }
   }
-  location
+  description
 }
 `;
 
@@ -96,7 +96,7 @@ players {
 }
 `;
 
-const sponsorResponse= `
+const sponsorResponse = `
 sponsors{
   _id
   company
@@ -120,7 +120,7 @@ ldo {
 }
 divisions
 homeTeam
-location
+description
 nets
 rounds
 netVariance
@@ -150,7 +150,6 @@ query GetEvent($eventId: String!) {
   }
 }`;
 
-
 /**
  * Mutation
  * =========================================================================================================================================
@@ -166,7 +165,5 @@ query GetEvents {
   }
 }
 `;
-
-
 
 export { GET_AN_EVENT, GET_EVENTS };

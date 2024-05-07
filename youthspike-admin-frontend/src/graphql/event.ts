@@ -17,7 +17,7 @@ ldo {
 }
 divisions
 homeTeam
-location
+description
 nets
 rounds
 netVariance

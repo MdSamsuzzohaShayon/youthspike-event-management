@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useAppSelector } from '@/redux/hooks';
 import { EActionProcess } from '@/types/room';
 import React, { useEffect, useState } from 'react';
@@ -46,7 +47,7 @@ function LineupBox({ otp }: IBoxProps) {
         )}
       </div>
       <div className="hidden md:block w-2/6">
-        <img src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+      <Image width={300} height={300} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
       </div>
     </div>
   );

@@ -76,6 +76,10 @@ export interface ITeiBreakerAction extends IActionCommon {
   nets: IRoomNetType[];
 }
 
+export interface IMatchComplete {
+  matchId: string;
+}
+
 export interface ISubmitLineup {
   room: string;
   round: string;

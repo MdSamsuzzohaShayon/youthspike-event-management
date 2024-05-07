@@ -6,10 +6,12 @@ import type { IRoom } from './room';
 import type { IRoundRelatives } from './round';
 import type { ETeam, ITeam } from './team';
 import type { IUserContext } from './user';
+import { IMatchRelatives } from '.';
 
 export interface IListenSocketProps {
   socket: Socket;
   user: IUserContext;
+  match: IMatchRelatives;
   teamA?: ITeam | null;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   currentRound: IRoundRelatives | null;
@@ -71,6 +73,13 @@ export interface INextRoundProps {
   allNets: INetRelatives[];
   newRoundIndex: number;
   myTeamE: ETeam;
+}
+
+
+export interface ICompleteMatchProps {
+  socket: Socket | null;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  match: IMatchRelatives;
 }
 
 export interface ISubmitUpdatePointsProps {

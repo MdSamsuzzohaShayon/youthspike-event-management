@@ -88,7 +88,11 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  location?: string;
+  description?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  completed: boolean;
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);

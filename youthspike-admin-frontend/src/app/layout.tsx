@@ -25,7 +25,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-950 text-gray-100`} >
+      <body className={`${inter.className} bg-gray-950 text-white`} >
         <ApolloWrapper>
           <UserProvider>
             <Suspense fallback={<LoadingPage />}>

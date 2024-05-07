@@ -1,11 +1,12 @@
+/* eslint-disable no-unused-vars */
 import cld from '@/config/cloudinary.config';
 import { IEvent, IMatchExpRel, IPlayer, ITeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
+import { useUser } from '@/lib/UserProvider';
 import React, { useState } from 'react';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
 import PlayerList from '../player/PlayerList';
-import { useUser } from '@/lib/UserProvider';
 
 interface IteamCaptain extends ITeam {
   captain: IPlayer;
@@ -25,6 +26,7 @@ interface ITeamCaptain extends ITeam {
   captain: IPlayer;
 }
 
+// eslint-disable-next-line no-unused-vars, no-shadow
 enum EItem {
   PLAYER = 'PLAYER',
   MATCH = 'MATCH',

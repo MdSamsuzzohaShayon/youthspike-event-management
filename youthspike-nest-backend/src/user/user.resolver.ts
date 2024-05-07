@@ -77,16 +77,23 @@ export class UserResolver {
   ) {}
 
   @Mutation((returns) => LoginResponse)
+  @Mutation((returns) => LoginResponse)
   async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
     try {
-      const existingUser: any = await this.userService.findOne({ email });
-      if (!existingUser) return AppResponse.invalidCredentials();
+      const existingUser: any = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
+
+      if (!existingUser) {
+        return AppResponse.invalidCredentials();
+      }
+
       const passwordFromUser = existingUser.password;
       const passwordMatched = await bcrypt.compare(password, passwordFromUser);
-      if (!passwordMatched) return AppResponse.invalidCredentials();
 
-      const userObj = { ...existingUser._doc };
-      delete userObj.password;
+      if (!passwordMatched) {
+        return AppResponse.invalidCredentials();
+      }
+
+      const userObj = existingUser._doc;
 
       if (userObj.role === UserRole.captain && userObj.captainplayer) {
         const teamWithCaptain = await this.teamService.findOne({ captain: userObj.captainplayer.toString() });
@@ -109,13 +116,12 @@ export class UserResolver {
         email: existingUser.email,
         role: userObj.role,
       });
+
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A token has been issued successfully, you can login authenticate with this!',
         data: { token, user: userObj },
-
-        // data: user && user.length > 0 ? user[0] : null,
       };
     } catch (err) {
       return AppResponse.handleError(err);

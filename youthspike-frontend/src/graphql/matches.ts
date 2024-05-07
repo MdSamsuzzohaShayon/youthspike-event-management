@@ -40,12 +40,13 @@ query GetMatch($matchId: String!) {
     success
     data {
       _id
+      completed
       autoAssign
       autoAssignLogic
       date
       division
       homeTeam
-      location
+      description
       netVariance
       numberOfNets
       numberOfRounds

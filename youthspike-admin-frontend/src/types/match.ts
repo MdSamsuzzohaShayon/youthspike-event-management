@@ -7,7 +7,7 @@ export interface ICommonMatchEvent{
   autoAssignLogic: string;
   rosterLock: string;
   timeout: number;
-  location: string;
+  description: string;
 }
 
 export interface IDefaultMatch extends ICommonMatchEvent{

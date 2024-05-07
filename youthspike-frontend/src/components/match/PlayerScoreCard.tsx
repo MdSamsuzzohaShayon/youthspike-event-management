@@ -17,7 +17,6 @@ interface IPlayerScoreCard {
   dark: boolean;
   screenWidth: number;
   myTeamE: ETeam;
-  cpsca: boolean; // CPSCA = Close Player Score Card Available
   teamPlayer?: ETeamPlayer;
   // eslint-disable-next-line no-unused-vars
   evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
@@ -25,11 +24,12 @@ interface IPlayerScoreCard {
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
 }
 
-function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE, cpsca }: IPlayerScoreCard) {
+function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE }: IPlayerScoreCard) {
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { current: currentRound } = useAppSelector((state) => state.rounds);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
+  const { closePSCAvailable: cpsca } = useAppSelector((state) => state.matches); // CPSCA = Close Player Score Card Available
 
   const [fillNets, setFillNets] = useState<boolean>(false);
 
@@ -95,7 +95,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
         <div className="rank w-4 h-full bg-yellow-400 text-gray-900 text-lg flex justify-center items-center" style={fsToggle(screenWidth)}>
           {player ? player.rank : 0}
         </div>
-        <p className={`name flex justify-center items-center w-12 leading-3 capitalize break-words ${dark ? 'text-gray-100' : 'text-gray-900'}`} style={fsToggle(screenWidth)}>
+        <p className={`name flex justify-center items-center w-12 leading-3 capitalize break-words ${dark ? 'text-white' : 'text-gray-900'}`} style={fsToggle(screenWidth)}>
           {!player ? 'N/A' : `${player?.firstName} ${player?.lastName}`}
         </p>
       </div>

@@ -122,6 +122,11 @@ dialog::backdrop {
   @apply border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center;
 }
 
+.form-control-textarea {
+  @apply border border-gray-300 bg-transparent outline-none px-2 rounded-lg text-start;
+  min-height: 4rem;
+}
+
 /* Default styles for the input */
 .datetime-input {
   /* Add any other styles you want for the input */
