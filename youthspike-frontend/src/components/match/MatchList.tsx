@@ -1,4 +1,4 @@
-import { IMatchExpRel, IPlayer, IMatchRelatives, ITeam, IOption } from '@/types';
+import { IMatchExpRel, IPlayer, ITeam, IOption } from '@/types';
 import React, { useEffect, useState } from 'react';
 import { divisionsToOptionList } from '@/utils/helper';
 import MatchCard from './MatchCard';
@@ -15,6 +15,7 @@ interface IMatch extends IMatchExpRel {
 
 interface IMatchListProps {
   divisions: string;
+  // eslint-disable-next-line react/require-default-props
   matchList?: IMatch[];
 }
 

@@ -154,7 +154,7 @@ function changeTheRound({ roundList, dispatch, allNets, newRoundIndex, myTeamE }
 
 function completeMatch({ socket, dispatch, match }: ICompleteMatchProps) {
   dispatch(setMatchInfo({ ...match, completed: false }));
-  if (socket) socket.emit('completed-match-from-client', { match: match._id });
+  if (socket) socket.emit('completed-match-from-client', { matchId: match._id });
 }
 
 function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets }: ISubmitUpdatePointsProps) {

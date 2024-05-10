@@ -1,7 +1,7 @@
 import { EEventPeriod } from "@/types/event";
 
 function validateMatchDatetime(isoString: string | null): EEventPeriod {
-    if (!isoString || isoString === "") return EEventPeriod.PASSED;;
+    if (!isoString || isoString === "") return EEventPeriod.PAST;;
     const targetDate = new Date(isoString);
     const currDate = new Date();
 
@@ -9,7 +9,7 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
     currDate.setHours(0, 0, 0, 0);
 
     if (targetDate < currDate) {
-        return EEventPeriod.PASSED;
+        return EEventPeriod.PAST;
     } 
     // else if (targetDate > currDate) {
     //     return EEventPeriod.UPCOMING;

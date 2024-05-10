@@ -9,6 +9,8 @@ import { readDate, readTime } from '@/utils/datetime';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
+import { imgW } from '@/utils/constant';
+import PointsByRoundPublic from './PointsByRoundPublic';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -19,7 +21,6 @@ function MatchCard({ match }: MatchCardProps) {
   const [roundList, setRoundList] = useState<IRoundExpRel[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
-  
 
   const teamCard = (team: ITeam, teamE: ETeam) => {
     let pointsOfRound = 0;
@@ -58,7 +59,29 @@ function MatchCard({ match }: MatchCardProps) {
 
       {/* ===== LEVEL 3 START ===== */}
       <div className="lavel-3 w-full flex justify-center items-center px-2 md:px-6 mt-2 md:mt-6 gap-x-2">
-        <h1>VS</h1>
+        <div className="">
+          <Link href={`/${match.event}/matches/${match._id}`}>
+            <Image height={imgW.logo} width={imgW.logo} src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
+          </Link>
+        </div>
+        <div className="rounds flex flex-col justify-center items-center w-full ">
+          <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
+            {roundList.map((round) => (
+              <li key={round._id} className="w-12 flex justify-center items-center text-yellow-logo">
+                RD{round.num}
+              </li>
+            ))}
+          </ul>
+          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center">
+            <PointsByRoundPublic roundList={roundList} allNets={allNets} teamE={ETeam.teamA} />
+          </div>
+          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center mt-2">
+            <PointsByRoundPublic roundList={roundList} allNets={allNets} teamE={ETeam.teamB} dark />
+          </div>
+        </div>
+        <div className="">
+          <Image height={imgW.logo} width={imgW.logo} src="/icons/share.svg" alt="share-icon" className="w-6 svg-white" />
+        </div>
       </div>
       {/* ===== LEVEL 3 END ===== */}
 

@@ -28,6 +28,7 @@ import FileInput from '../elements/forms/FileInput';
 import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
 import { APP_NAME } from '@/utils/keys';
 import TextareaInput from '../elements/forms/TextareaInput';
+import ImageInput from '../elements/forms/ImageInput';
 
 
 // Select Input Options
@@ -218,12 +219,22 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         }
     }
 
+    /*
     const handleLogoChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const fileInputEl = e.target as HTMLInputElement;
         if (fileInputEl && fileInputEl.files && fileInputEl.files.length > 0) {
             eventLogo.current = fileInputEl.files[0];
+            console.log(fileInputEl.files[0]);
+            
         }
+    }
+    */
+
+    const handleLogoChange = ({uploadedImage}:{uploadedImage: File}) => {
+        console.log(uploadedImage);
+        
+        eventLogo.current = uploadedImage;
     }
 
     /**
@@ -292,7 +303,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         <form onSubmit={handleEventAdd} className='flex flex-col gap-2'>
             <TextInput required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt='Name' name='name' lw='w-2/6' rw='w-4/6' />
 
-            <FileInput defaultValue={eventState.logo} handleFileChange={handleLogoChange} name='logo' extraCls='md:w-5/12' />
+            <ImageInput defaultValue={eventState.logo} handleFileChange={handleLogoChange} name='logo' extraCls='md:w-5/12' />
 
             <DateInput required={!update} defaultValue={eventState.startDate} handleInputChange={handleInputChange} lblTxt='Start Date' name='startDate' lw='w-2/6' rw='w-4/6' />
             <DateInput required={!update} defaultValue={eventState.endDate} handleInputChange={handleInputChange} lblTxt='End Date' name='endDate' lw='w-2/6' rw='w-4/6' />

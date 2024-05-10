@@ -2,7 +2,7 @@ import { EAssignStrategies, IMenuItem } from "@/types/elements";
 import { EEventPeriod } from "@/types/event";
 
 const assignStrategies = [EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAssignStrategies.ANCHORING];
-const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PASSED,];
+const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST,];
 
 const initialUserMenuList: IMenuItem[] = [
     {

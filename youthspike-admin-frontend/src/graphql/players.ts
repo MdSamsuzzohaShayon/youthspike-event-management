@@ -9,7 +9,7 @@ const eventResponse = `
     divisions
     endDate
     homeTeam
-    location
+    description
     name
     netVariance
     playerLimit

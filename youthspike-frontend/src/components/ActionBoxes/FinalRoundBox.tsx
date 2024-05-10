@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { ETeam } from '@/types/team';
 import Image from 'next/image';
+import { imgW } from '@/utils/constant';
 import React, { useEffect, useState } from 'react';
 import { ETieBreaker, INetRelatives } from '@/types/net';
 import { setNotTieBreakerNetId } from '@/redux/slices/netSlice';
@@ -18,12 +19,14 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
   const [pTxt, setPTxt] = useState<string>('');
   const [bgBox, setBgBox] = useState<string>('box-danger');
   const [lockedNetId, setLockedNetId] = useState<string | null>(null);
+  const [lockedNetIds, setLockedNetIds] = useState<string[]>([]);
 
   const { currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { current: currentRound } = useAppSelector((state) => state.rounds);
 
   const handleSelectNet = (e: React.SyntheticEvent, netId: string) => {
     e.preventDefault();
+    if (lockedNetIds.length > 1) return;
     dispatch(setNotTieBreakerNetId(netId));
   };
 
@@ -31,10 +34,12 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
     let pt = '';
     let bb = 'box-danger';
     let lni = null;
+    const lockedIds: string[] = [];
 
     currRoundNets.forEach((n) => {
       if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) {
         lni = n._id;
+        lockedIds.push(n._id);
       }
     });
 
@@ -48,11 +53,13 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
     setLockedNetId(lni);
     setPTxt(pt);
     setBgBox(bb);
+    setLockedNetIds(lockedIds);
   }, [currentRound, myTeamE, currRoundNets]);
 
   useEffect(() => {}, [currRoundNets]);
 
   const netBtnRender = (net: INetRelatives | undefined) => {
+
     if (!net) return null;
     switch (net.netType) {
       case ETieBreaker.FINAL_ROUND_NET:
@@ -97,7 +104,7 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
             </h2>
 
             <div className="net-btns w-full flex justify-start items-start gap-x-1">
-              {!lockedNetId ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
+              {lockedNetIds.length > 1 ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
             </div>
           </>
         ) : (
@@ -112,7 +119,7 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
         )}
       </div>
       <div className="hidden md:block w-2/6">
-        <Image width={300} height={300} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+        <Image width={imgW.xs} height={imgW.xs} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
       </div>
     </div>
   );

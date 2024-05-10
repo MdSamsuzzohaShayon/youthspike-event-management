@@ -1,3 +1,4 @@
+/* eslint-disable import/no-mutable-exports */
 const NODE_ENV: string = 'development';
 // const NODE_ENV: string = 'production';
 

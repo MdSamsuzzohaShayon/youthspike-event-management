@@ -62,7 +62,7 @@ export interface IFileFileProps {
   lblTxt?: string;
   name: string;
   defaultValue?: string | undefined | null;
-  handleFileChange: (e: React.SyntheticEvent) => void;
+  handleFileChange: (uploadedImage:{uploadedImage:  File}) => void;
 }
 
 export interface IAnyFileFileProps {
