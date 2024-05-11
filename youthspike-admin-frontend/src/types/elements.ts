@@ -1,5 +1,6 @@
 import React from "react";
-import { IPlayer, IUserContext } from ".";
+import { IPlayer,  } from "./player";
+import { IUserContext } from "./user";
 
 export enum EAssignStrategies{
   RANDOM = "RANDOM",
@@ -62,7 +63,7 @@ export interface IFileFileProps {
   lblTxt?: string;
   name: string;
   defaultValue?: string | undefined | null;
-  handleFileChange: (uploadedImage:{uploadedImage:  File}) => void;
+  handleFileChange: (e: React.SyntheticEvent) => void;
 }
 
 export interface IAnyFileFileProps {

@@ -2,6 +2,8 @@
 const NODE_ENV: string = 'development';
 // const NODE_ENV: string = 'production';
 
+
+const APP_NAME = "American Spikers League";
 let FRONTEND_URL = 'http://localhost:3001';
 let ADMIN_FRONTEND_URL = 'http://localhost:3000';
 let BACKEND_URL: string = 'http://localhost:4000/graphql';
@@ -14,4 +16,4 @@ if (NODE_ENV === 'production') {
   ADMIN_FRONTEND_URL = 'http://admin.aslsquads.com';
 }
 
-export { BACKEND_URL, SOCKET_URL, FRONTEND_URL, ADMIN_FRONTEND_URL, NODE_ENV };
+export { BACKEND_URL, SOCKET_URL, FRONTEND_URL, ADMIN_FRONTEND_URL, NODE_ENV, APP_NAME };

@@ -11,6 +11,7 @@ import { LdoService } from 'src/ldo/ldo.service';
 import { UserService } from 'src/user/user.service';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Resolver()
 export class EmailsenderResolver {
@@ -21,6 +22,7 @@ export class EmailsenderResolver {
     private emailsenderService: EmailsenderService,
     private ldoService: LdoService,
     private userService: UserService,
+    private configService: ConfigService,
   ) {}
 
   /**
@@ -100,10 +102,14 @@ export class EmailsenderResolver {
       for (const recipient of recipients) {
         const player = await this.playerService.findById(recipient);
         if (player) {
+          const sendTo = [player.email];
+          if (this.configService.get<string>('NODE_ENV') === 'development') {
+            sendTo.push('mdsamsuzzoha5222@gmail.com');
+          }
           const eventDateFormatted = this.formatDateToCustomString(event.startDate);
           sendPromises.push(
             this.emailsenderService.sendHtmlEmail({
-              to: ['mdsamsuzzoha5222@gmail.com', player.email],
+              to: sendTo,
               subject,
               htmlFileName,
               player_username: player.username,

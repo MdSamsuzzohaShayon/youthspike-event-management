@@ -247,6 +247,7 @@ db.teams.updateMany({}, { $set: { sendCredentials: false } });
 
 ### Ask
  - I have a bit confusion with subbing players. If I am a captain of a team and I have 8 players and 6 of them are assigned to different nets and 2 of the players are left behind, those 2 players are subbed players for all of next rounds. If I go to the next round I need to remove him from subbed player and let him play, only in that way we can get back the player. But I may be missed that point that a player can not sub off multiple times. However, if you create a video explaining the whole process of subbing off  if would be better for me to understand.
+ - Some of the errors you have mention in the text document are confusing. It is really easier for me for you find any error and show me that error on your screen via screenshot or screen video. Any way possible If I can see on your screen something is wrong I can fix that easily
 
 
 

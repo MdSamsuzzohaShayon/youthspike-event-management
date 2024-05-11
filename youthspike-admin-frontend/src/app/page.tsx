@@ -14,12 +14,13 @@ import { GET_LDO } from '@/graphql/director';
 import cld from '@/config/cloudinary.config';
 import { AdvancedImage } from '@cloudinary/react';
 import { IError } from '@/types';
-import { UserRole } from '@/types/user';
+import { IUserContext, UserRole } from '@/types/user';
 import Link from 'next/link';
 import useClickOutside from '../../hooks/useClickOutside';
 import TextImg from '@/components/elements/TextImg';
 import { initialUserMenuList } from '@/utils/staticData';
 import { handleResponse } from '@/utils/handleError';
+import { getUserFromCookie } from '@/utils/cookie';
 
 interface IItem {
   id: number;
@@ -53,7 +54,7 @@ function EventsPage() {
   const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
   const [cloneEvent] = useMutation(CLONE_EVENT);
   const [deleteEvent] = useMutation(DELETE_AN_EVENT);
-  const [sendCredentials]= useMutation(SEND_CREDENTIALS);
+  const [sendCredentials] = useMutation(SEND_CREDENTIALS);
 
   // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
@@ -80,16 +81,16 @@ function EventsPage() {
     setFilteredItems(prevState => [...prevState.filter((fi) => fi.id !== iid)]);
   }
 
-  const handleSendCredentials=async (eventId: string)=>{
+  const handleSendCredentials = async (eventId: string) => {
     try {
       setIsLoading(true);
-      const res = await sendCredentials({variables: {eventId}});
+      const res = await sendCredentials({ variables: { eventId } });
       console.log(res);
-      
+
     } catch (error) {
       console.log(error);
-      
-    }finally{
+
+    } finally {
       setIsLoading(false);
     }
   }
@@ -111,14 +112,14 @@ function EventsPage() {
 
   const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
     e.preventDefault();
-    try {      
+    try {
       const eventResponse = await deleteEvent({ variables: { eventId } });
       if (eventResponse.data.deleteEvent.success !== true) {
         return setActErr({ code: eventResponse.data.deleteEvent.code, message: eventResponse.data.deleteEvent.message, success: false });
       }
     } catch (error) {
       console.log(error);
-      
+
     }
     await refetch();
   }
@@ -126,32 +127,33 @@ function EventsPage() {
 
   useEffect(() => {
     (async () => {
-      try {        
-        if (user.info?.role === UserRole.admin) {
+      try {
+        const instantUser: IUserContext = getUserFromCookie();
+        if (instantUser.info?.role === UserRole.admin) {
           const newLdoId = searchParams.get('ldoId');
           if (!newLdoId) return router.push('/admin');
           setLdoId(newLdoId);
           const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
           console.log({ ldoRes });
-  
-          const success = handleResponse({response: ldoRes?.data?.getEventDirector, setActErr});
+
+          const success = handleResponse({ response: ldoRes?.data?.getEventDirector, setActErr });
           if (success) {
             const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
             setDirectorId(newDirectorId);
           }
           if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
         } else {
-          setDirectorId(user.info?._id ? user.info._id : null);
+          setDirectorId(instantUser.info?._id ? instantUser.info._id : null);
           const ldoRes = await fetchLDO();
-          const success = handleResponse({response: ldoRes?.data?.getEventDirector, setActErr});
+          const success = handleResponse({ response: ldoRes?.data?.getEventDirector, setActErr });
           if (success) {
             if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
           }
-  
+
         }
       } catch (error) {
         console.log(error);
-        
+
       }
     })();
 
@@ -174,7 +176,9 @@ function EventsPage() {
       {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {newLdoData?.logo
-          ? <AdvancedImage className="w-28 h-28 rounded-full object-cover object-fill" cldImg={cld.image(newLdoData?.logo)} />
+          ? (<div className='w-28 h-28 advanced-img rounded-full'>
+            <AdvancedImage className="" cldImg={cld.image(newLdoData?.logo)} />
+          </div>)
           : <TextImg className="w-28 h-28 rounded-full object-cover object-fill" fullText={newLdoData ? newLdoData.name : 'LDO'} />}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>
