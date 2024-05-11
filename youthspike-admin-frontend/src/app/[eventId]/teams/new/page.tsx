@@ -106,13 +106,13 @@ function TeamsPage({ params }: ITeamsPageProps) {
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
-      <div className="mb-4 division-selection w-full">
-        <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-      </div>
       <h1 className='mb-8 text-center'>Teams</h1>
       {currEvent && (<CurrentEvent currEvent={currEvent} />)}
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
+      <div className="mt-2 division-selection w-full">
+        <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+      </div>
       <TeamAdd setIsLoading={setIsLoading} availablePlayers={filteredPlayers} handleClose={handleClose} eventId={params.eventId}
         setAvailablePlayers={setFilteredPlayers} setActErr={setActErr} currDivision={currDivision} teamAddCB={teamAddCB} />
     </div>

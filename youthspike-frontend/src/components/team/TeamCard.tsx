@@ -1,8 +1,10 @@
 import { IPlayer, ITeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
+import Link from 'next/link';
 import React from 'react';
 import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
+
 
 interface IteamCaptain extends ITeam {
   captain: IPlayer;
@@ -14,7 +16,7 @@ interface ITeamCardProps {
 
 function TeamCard({ team }: ITeamCardProps) {
   return (
-    <div className="team-card w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between">
+    <Link href={`/teams/${team._id}`} className="team-card w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between">
       <div className="w-6/12">
         <div className="brand flex gap-1 items-center">
           {team.logo ? (
@@ -49,7 +51,7 @@ function TeamCard({ team }: ITeamCardProps) {
           </p>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 

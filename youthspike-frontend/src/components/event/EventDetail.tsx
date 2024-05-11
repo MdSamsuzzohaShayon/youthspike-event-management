@@ -4,9 +4,12 @@ import { IEvent, IMatchExpRel, IPlayer, ITeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
 import { useUser } from '@/lib/UserProvider';
 import React, { useState } from 'react';
+import Image from 'next/image';
+import { imgW } from '@/utils/constant';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
 import PlayerList from '../player/PlayerList';
+import { APP_NAME } from '@/utils/keys';
 
 interface IteamCaptain extends ITeam {
   captain: IPlayer;
@@ -51,13 +54,22 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   };
 
   const renderSponsors = () => {
-    return event.sponsors?.map((sponsor, i) => <AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={i} className="w-20" />);
+    const sponsorList: React.ReactNode[] = [];
+    sponsorList.push(
+      <div className="w-20">
+        <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
+      </div>,
+    );
+    event.sponsors.forEach((sponsor) => {
+      sponsorList.push(<AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={sponsor._id} className="w-20" />);
+    });
+    return <React.Fragment key="render-sponsor">{sponsorList}</React.Fragment>;
   };
 
   return (
     <div className="w-full">
       <h1 className="my-4 text-center">{event.name}</h1>
-      {!user.token && event?.sponsors && event.sponsors.length > 0 && (
+      {!user.token && event?.sponsors && (
         <>
           <h3 className="mb-4">Sponsors</h3>
           <div className="sponsors w-full flex items-center justify-between md:justify-start flex-wrap gap-2 bg-gray-900">{renderSponsors()}</div>
@@ -66,15 +78,29 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
       <div className="flex flex-col md:flex-row mt-8 bg-gray-900 px-2">
         <div className="side-bar sticky top-0 w-full md:w-2/6 flex flex-row md:flex-col flex-wrap mb-2 ">
-          <li role="presentation" onClick={() => setSelectedItem(EItem.PLAYER)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.PLAYER ? 'font-bold bg-yellow-400' : 'bg-gray-900'}`}>
-            Players
-          </li>
-          <li role="presentation" onClick={() => setSelectedItem(EItem.TEAM)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? 'font-bold bg-yellow-400' : 'bg-gray-900'}`}>
-            Teams
-          </li>
-          <li role="presentation" onClick={() => setSelectedItem(EItem.MATCH)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.MATCH ? 'font-bold bg-yellow-400' : 'bg-gray-900'}`}>
-            Matches
-          </li>
+          {event.players?.length === 0 && event.teams?.length === 0 && event.matches?.length === 0 ? (
+            <h3>No matche, team, or, player is been created yet!</h3>
+          ) : (
+            <>
+              <li
+                role="presentation"
+                onClick={() => setSelectedItem(EItem.PLAYER)}
+                className={`list-none cursor-pointer p-2 ${selectedItem === EItem.PLAYER ? 'font-bold bg-yellow-400' : 'bg-gray-900'}`}
+              >
+                Players
+              </li>
+              <li role="presentation" onClick={() => setSelectedItem(EItem.TEAM)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? 'font-bold bg-yellow-400' : 'bg-gray-900'}`}>
+                Teams
+              </li>
+              <li
+                role="presentation"
+                onClick={() => setSelectedItem(EItem.MATCH)}
+                className={`list-none cursor-pointer p-2 ${selectedItem === EItem.MATCH ? 'font-bold bg-yellow-400' : 'bg-gray-900'}`}
+              >
+                Matches
+              </li>
+            </>
+          )}
         </div>
         <div className="w-full md:w-4/6 static">{renderContent()}</div>
       </div>

@@ -6,7 +6,7 @@ ___
  - [Landscape Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
  - [Backend/admin panel prototype](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
  - [Action box design](https://www.canva.com/design/DAF-9-GdNuM/8rUTuBtKb2hCfzOlmx2jCQ/edit)
- - [Todo] (https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576)
+ - [Todo](https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576)
  
 ___
 
@@ -247,6 +247,7 @@ db.teams.updateMany({}, { $set: { sendCredentials: false } });
 
 ### Ask
  - I have a bit confusion with subbing players. If I am a captain of a team and I have 8 players and 6 of them are assigned to different nets and 2 of the players are left behind, those 2 players are subbed players for all of next rounds. If I go to the next round I need to remove him from subbed player and let him play, only in that way we can get back the player. But I may be missed that point that a player can not sub off multiple times. However, if you create a video explaining the whole process of subbing off  if would be better for me to understand.
+ - Some of the errors you have mention in the text document are confusing. It is really easier for me for you find any error and show me that error on your screen via screenshot or screen video. Any way possible If I can see on your screen something is wrong I can fix that easily
 
 
 

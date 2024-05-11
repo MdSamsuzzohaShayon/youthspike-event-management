@@ -237,7 +237,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
 
-              <div className="advanced-img w-20 h-24 border border-yellow rounded-lg border-4">
+              <div className="advanced-img w-20 h-20 border border-yellow rounded-lg border-4">
                 {player.profile ? <AdvancedImage className="w-full h-full " cldImg={cld.image(player.profile)} />
                   : <img src="/icons/sports-man.svg" alt="" className="svg-white w-full h-full" />}
               </div>

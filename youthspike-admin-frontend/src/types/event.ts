@@ -8,7 +8,7 @@ import { ApolloClient } from "@apollo/client";
 export enum EEventPeriod{
   UPCOMING="UPCOMING",
   CURRENT="CURRENT",
-  PASSED="PASSED",
+  PAST="PAST",
 }
 
 

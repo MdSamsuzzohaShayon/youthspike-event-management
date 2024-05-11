@@ -103,7 +103,7 @@ function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: Mat
             <img src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
           </Link>
         </div>
-        <div className="rounds flex flex-col justify-center items-center w-full overflow-x-scroll">
+        <div className="rounds flex flex-col justify-center items-center w-full ">
           <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
             {roundList.map((round) => <li key={round._id} className='w-12 flex justify-center items-center text-yellow-logo'>RD{round.num}</li>)}
           </ul>
@@ -141,7 +141,7 @@ function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: Mat
         <div className="w-3/6 text-end">
           <p className='flex justify-start items-center gap-x-2'>
             <span><img src='/icons/location.svg' className='w-6 svg-white' /></span>
-            <span>{match.location}</span>
+            <span>{match.description}</span>
           </p>
         </div>
       </div>

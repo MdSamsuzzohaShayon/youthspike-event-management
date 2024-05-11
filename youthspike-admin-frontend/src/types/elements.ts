@@ -1,5 +1,6 @@
 import React from "react";
-import { IPlayer, IUserContext } from ".";
+import { IPlayer,  } from "./player";
+import { IUserContext } from "./user";
 
 export enum EAssignStrategies{
   RANDOM = "RANDOM",

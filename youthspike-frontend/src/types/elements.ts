@@ -122,8 +122,8 @@ export interface IMenuArrangeProps {
 
 export interface IError {
   message?: string;
-  name?: string;
-  main?: any;
+  success?: boolean;
+  code?: number;
 }
 
 export interface ILoginProps {

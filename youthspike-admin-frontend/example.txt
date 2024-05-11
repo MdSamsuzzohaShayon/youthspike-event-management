@@ -1,0 +1,17 @@
+
+/*
+ * AS Roma
+ * Captain
+ * Username: pfn129
+ * Password: Spikeball
+ * 
+ * Inter Milan
+ * Captain
+ * Username: pfn328
+ * Password: Spikeball
+ * 
+ * Juventus FC
+ * Captain
+ * Username: pfn430
+ * Password: Spikeball
+ */

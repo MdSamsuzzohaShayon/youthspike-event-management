@@ -31,16 +31,15 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
   const [otp, setOtp] = useState<EActionProcess>(EActionProcess.INITIATE); // otp = Oponent team process
 
   const renderActionBoxes = (): React.ReactNode | null => {
-    const isFinalRound = currentRound?.num === roundList.length;
-    const lockedNets = currRoundNets.filter((net) => net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    const lockedNets = currRoundNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    
 
-    if (isFinalRound && currentRound?.teamAProcess === EActionProcess.LINEUP && lockedNets.length < 1) {
+    if (currentRound?.num === roundList.length && currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamAProcess === EActionProcess.LINEUP && lockedNets.length < 1){
       return <FinalRoundBox myTeamE={myTeamE} />;
     }
 
-    if (currentRound?.completed) {
-      return <CompletedBox />;
-    }
+
+    if (currentRound?.completed) return <CompletedBox />;
 
     switch (mtp) {
       case EActionProcess.INITIATE:
@@ -53,8 +52,9 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
         return <LineupBox otp={otp} />;
 
       default:
-        return null;
+        break;
     }
+    return null;
   };
 
   useEffect(() => {

@@ -205,7 +205,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         </> : <>
           {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
           <br />
-          {filteredMatchList.length > 0 ? <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} setActErr={setActErr} refetchFunc={refetchFunc} /> : <p>No match created yet!</p>}
+          {filteredMatchList.length > 0 ? <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} /> : <p>No match created yet!</p>}
         </>}
       </div>
       <br />

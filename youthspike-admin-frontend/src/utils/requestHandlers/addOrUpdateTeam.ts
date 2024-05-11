@@ -27,13 +27,17 @@ interface IAddOrUpdateTeam {
 }
 
 async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
-    playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB }: IAddOrUpdateTeam) {
+    playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB }: IAddOrUpdateTeam): Promise<boolean> {
+        let success = true;
     try {
         // Validation
         setIsLoading(true);
         const teamObj = update && prevTeam ? { input: { ...updateTeamState }, teamId: prevTeam._id, eventId, logo: null } : { input: { ...teamState, players: playerIdList, event: eventId }, logo: null };
         if (!update) {
-            if (!currDivision) return setActErr({ name: "Invalid team!", message: "You must select a division" })
+            if (!currDivision) {
+                setActErr({message: "You must select a division", success: false })
+                return false;
+            }
             const teamInput = { ...teamObj.input };
             teamInput.division = currDivision;
             teamObj.input = teamInput;
@@ -44,6 +48,7 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
         delete inputObj.logo;
         teamObj.input = inputObj;
 
+        let statusCode = null
         if (uploadedLogo.current) {
             const formData = new FormData();
             formData.set('operations', JSON.stringify({
@@ -58,8 +63,11 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
             //     console.log(`${key}: ${value}`);
             // });
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
+            const jsonRes = await response.json();
+            statusCode = jsonRes?.data?.updateTeam?.code || jsonRes?.data?.createTeam?.code ;
 
             if (!response.ok) {
+                success = false;
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
         } else {
@@ -68,6 +76,7 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
                 teamRes = await mutateTeam({
                     variables: teamObj
                 });
+                statusCode = teamRes?.data?.updateTeam?.code ;
             } else {
                 teamRes = await addTeam({
                     variables: teamObj
@@ -75,18 +84,26 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
                 if (teamRes?.data?.createTeam?.data) {
                     if (teamAddCB) teamAddCB(teamRes.data.createTeam.data);
                 }
+                statusCode = teamRes?.data?.createTeam?.code ;
             }
+            
         }
         setAvailablePlayers((prevState) => [...prevState.filter((p) => !playerIdList.includes(p._id))]);
         setPlayerIdList([]);
-        setActErr(null);
+        if(statusCode !== 201 && statusCode !== 202){
+            success = false;
+        }else{
+            success = true;
+        }
 
     } catch (error) {
         console.log(error);
+        success = false;
     } finally {
         setIsLoading(false);
 
     }
+    return success;
 }
 
 export default addOrUpdateTeam;

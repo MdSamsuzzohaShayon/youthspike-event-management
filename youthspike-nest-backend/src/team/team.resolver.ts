@@ -82,7 +82,6 @@ export class TeamResolver {
         }),
         this.eventService.findById(input.event.toString()),
       ]);
-      console.log();
       
 
       // ===== Captain - User - Player - Team Relationship update =====

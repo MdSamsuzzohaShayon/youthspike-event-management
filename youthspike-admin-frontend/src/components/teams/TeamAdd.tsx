@@ -58,16 +58,18 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
     // Handle events
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateTeam({
+        const success = await addOrUpdateTeam({
             eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
             playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
         });
 
-        if (refetchFunc) await refetchFunc();
-        const formEl = e.target as HTMLFormElement;
-        formEl.reset();
-        handleClose(e);
-        router.push(`/${eventId}/teams`);
+        if(success){
+            if (refetchFunc) await refetchFunc();
+            const formEl = e.target as HTMLFormElement;
+            formEl.reset();
+            handleClose(e);
+            router.push(`/${eventId}/teams`);
+        }
     }
 
     const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
