@@ -5,7 +5,7 @@ import PlayerCard from './PlayerCard';
 import { EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { UPDATE_PLAYERS } from '@/graphql/players';
-import useScreenWidth from '../../../hooks/useScreenWidth';
+import useScreenWidth from '../../hooks/useScreenWidth';
 
 interface ISortableListProps {
     playerList: IPlayerExpRel[];

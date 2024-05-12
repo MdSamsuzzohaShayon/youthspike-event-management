@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, MOVE_TEAM } from '@/graphql/teams';
-import useClickOutside from '../../../hooks/useClickOutside';
+import useClickOutside from '../../hooks/useClickOutside';
 import { useRouter } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';

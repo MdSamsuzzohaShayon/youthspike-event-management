@@ -15,7 +15,7 @@ import { GET_LDO } from '@/graphql/director';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import CurrentEvent from '../event/CurrentEvent';
-import useClickOutside from '../../../hooks/useClickOutside';
+import useClickOutside from '../../hooks/useClickOutside';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { usePathname, useRouter } from 'next/navigation';
 import { initialUserMenuList } from '@/utils/staticData';

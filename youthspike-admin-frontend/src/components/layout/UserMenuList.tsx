@@ -26,7 +26,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
         // if (ldoIdParam) {
         //     setLdoId(ldoIdParam);
         // }
-    }, [pathname, location.search]);
+    }, [pathname]);
 
     // State to hold ldoId
     const [ldoId, setLdoId] = useState<string | null>(null);

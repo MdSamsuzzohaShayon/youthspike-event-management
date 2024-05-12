@@ -22,7 +22,7 @@ import DateInput from '../elements/forms/DateInput';
 import ShowDivisions from './ShowDivisions';
 import ShowSponsors from './ShowSponsors';
 import { assignStrategies } from '@/utils/staticData';
-import useClickOutside from '../../../hooks/useClickOutside';
+import useClickOutside from '../../hooks/useClickOutside';
 import AnyFileInput from '../elements/forms/AnyFileInput';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';

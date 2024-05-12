@@ -7,7 +7,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 import { readDate, readDatetime, readTime, validateMatchDatetime } from '@/utils/datetime';
-import useClickOutside from '../../../hooks/useClickOutside';
+import useClickOutside from '../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
 import TextImg from '../elements/TextImg';
