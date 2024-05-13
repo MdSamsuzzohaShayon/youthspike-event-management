@@ -13,9 +13,11 @@ interface IAddOrUpdatePlayer {
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     playerState: IPlayerAdd;
+    division?: string;
     eventId: string | null;
     uploadedProfile: React.RefObject<File | null>;
     playerUpdate: Partial<IPlayerAdd>;
+    prevPlayer?: IPlayer | null;
     updatePlayer: MutationFunction;
     addPlayer: MutationFunction;
     setPlayerState: React.Dispatch<React.SetStateAction<IPlayerAdd>>;
@@ -23,8 +25,6 @@ interface IAddOrUpdatePlayer {
     setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
     router: AppRouterInstance;
     e: React.SyntheticEvent;
-    prevPlayer?: IPlayer | null;
-    division?: string;
     playerAddCB?: (playerData: IPlayerExpRel) => void;
     playerUpdateCB?: (playerData: IPlayerExpRel) => void;
     update?: boolean;

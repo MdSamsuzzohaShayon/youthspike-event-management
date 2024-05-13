@@ -44,6 +44,7 @@ function MatchList({ matchList, divisions }: IMatchListProps) {
       setDivisionList(divOptionList);
     }
   }, [matchList, divisions]);
+  
   return (
     <div className="matchList w-full flex flex-col gap-1">
       <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6" />

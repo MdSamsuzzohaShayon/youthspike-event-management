@@ -145,15 +145,24 @@ export class PlayerResolver {
       }
 
       // ===== Check duplicate email =====
-      if (input.email) {
-        const duplicateExist = await this.playerService.findOne({ email: input.email });
-        if (duplicateExist && duplicateExist.email !== playerExist.email) {
+      if (input.username) {
+        const duplicateExist = await this.playerService.findOne({ username: input.username.toLowerCase() });
+        if (duplicateExist && duplicateExist.username !== playerExist.username) {
           return AppResponse.handleError({
-            name: 'Duplicate Email',
+            name: 'Duplicate username',
             statusCode: HttpStatus.NOT_ACCEPTABLE,
-            message: 'Use another valid and email in order to change the email',
+            message:
+              'Use another username in order to change the username, this username has been used by someone else.',
           });
         }
+
+        // Captain && Co captain to be updated
+        updatePromises.push(
+          this.userService.updateOne({ captainplayer: playerExist._id }, { email: input.username.toLowerCase() }),
+        );
+        updatePromises.push(
+          this.userService.updateOne({ cocaptainplayer: playerExist._id }, { email: input.username.toLowerCase() }),
+        );
       }
 
       // ===== Remove from Previous Team =====

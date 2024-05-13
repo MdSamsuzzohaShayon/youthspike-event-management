@@ -10,7 +10,7 @@ export interface IDefaultMatch {
   rosterLock: string;
   timeout: number;
   coachPassword: string;
-  location: string;
+  description: string;
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {

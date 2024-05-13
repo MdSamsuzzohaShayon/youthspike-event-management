@@ -70,10 +70,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
 
 ### Update - 2
- - We don't see the new userid. Just emails.
+ - We don't see the new userid. Just emails. (Prevent duplicate username when updating and assigning captain)
  - One the match filter, set current by default
- - Also, when we add a picture and update for a player, it is not showing on the player list unless we refresh. From the player table.
  - When you have the search box on matches. If you don't type the exact first letter of the first word of the description of the match nothing shows up. Can you change it to be any word or letters being searvhed? We also really love the search by opponent box. That will be awesome
+ - Also, when we add a picture and update for a player, it is not showing on the player list unless we refresh. From the player table.
  - In public view the match desciption is not showing.
  - when we got to the 2-point net selection. It says I was going to eliminate a net first but had no options to select
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
@@ -210,6 +210,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Database Action
  -  Change `location` to `description` in all document of match and event
+ ```
+ db.events.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
+ db.matches.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
+ ```
  -  Set `completed` to `false` in all document of match
  -  Set `sendCredentials` to `false` in all document of event and team
 ```

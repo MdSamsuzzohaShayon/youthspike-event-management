@@ -1,7 +1,5 @@
-import { useUser } from '@/lib/UserProvider';
-import { IMatchExpRel, INetRelatives, IRoundExpRel, IRoundRelatives } from '@/types';
+import { IMatchExpRel, INetRelatives, IRoundExpRel } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
-import { FRONTEND_URL } from '@/utils/keys';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import Link from 'next/link';
 import React, { useState } from 'react';
@@ -17,7 +15,6 @@ interface MatchCardProps {
 }
 
 function MatchCard({ match }: MatchCardProps) {
-  const user = useUser();
   const [roundList, setRoundList] = useState<IRoundExpRel[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
@@ -110,7 +107,7 @@ function MatchCard({ match }: MatchCardProps) {
             <span>
               <Image width={20} height={20} src="/icons/location.svg" className="w-6 svg-white" alt="location-logo" />
             </span>
-            <span>{match.location}</span>
+            <span>{match.description}</span>
           </p>
         </div>
       </div>

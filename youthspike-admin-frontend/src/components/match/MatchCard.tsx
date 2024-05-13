@@ -139,10 +139,12 @@ function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: Mat
           </p>
         </div>
         <div className="w-3/6 text-end">
-          <p className='flex justify-start items-center gap-x-2'>
-            <span><img src='/icons/location.svg' className='w-6 svg-white' /></span>
-            <span>{match.description}</span>
-          </p>
+          {match.description && (
+            <p className='flex justify-start items-center gap-x-2'>
+              <span><img src='/icons/location.svg' className='w-6 svg-white' /></span>
+              <span>{match.description}</span>
+            </p>
+          )}
         </div>
       </div>
       {/* ===== LEVEL 5 END ===== */}

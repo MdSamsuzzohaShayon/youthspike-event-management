@@ -6,6 +6,7 @@ import TextInput from '../elements/forms/TextInput';
 import { useUser } from '@/lib/UserProvider';
 import { eventPeriods } from '@/utils/staticData';
 import { validateMatchDatetime } from '@/utils/datetime';
+import { EEventPeriod } from '@/types/event';
 
 interface IMatchListProps {
   eventId: string;
@@ -30,7 +31,7 @@ const MatchList: React.FC<IMatchListProps> = ({
   setActErr,
   refetchFunc
 }) => {
-  const [filterParams, setFilterParams] = useState<IFilterParams>({});
+  const [filterParams, setFilterParams] = useState<IFilterParams>({date: EEventPeriod.CURRENT});
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
   const user = useUser();
 
@@ -68,9 +69,9 @@ const MatchList: React.FC<IMatchListProps> = ({
     }
 
     if (filterParams.description) {
-      // Filter by description text
+      const searchText = filterParams.description.trim().toLowerCase();
       filteredList = filteredList.filter((match) =>
-        match.description?.toLowerCase().includes(filterParams.description!)
+        match.description?.toLowerCase().includes(searchText)
       );
     }
 
@@ -84,8 +85,7 @@ const MatchList: React.FC<IMatchListProps> = ({
 
   const handleDescriptionChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    const value = inputEl.value.trim().toLowerCase();
-    setFilterParams((prevState) => ({ ...prevState, description: value }));
+    setFilterParams((prevState) => ({ ...prevState, description: inputEl.value }));
   };
 
   const handleOpponentChange = (e: React.SyntheticEvent) => {
@@ -108,12 +108,14 @@ const MatchList: React.FC<IMatchListProps> = ({
 
   return (
     <div className="matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap">
-      <div className="search-filter w-full">
+      <div className="search-filter w-full mb-8">
         <SelectInput
           name="period"
           optionList={eventPeriods.map((p) => ({ text: p, value: p }))}
           lblTxt="Date"
           rw="w-3/6"
+          vertical
+          defaultValue={EEventPeriod.CURRENT}
           handleSelect={handlePeriodChange}
         />
         <TextInput
@@ -130,6 +132,7 @@ const MatchList: React.FC<IMatchListProps> = ({
           }))}
           lblTxt="Opponent"
           rw="w-3/6"
+          vertical
           handleSelect={handleOpponentChange}
         />
       </div>

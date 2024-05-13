@@ -9,6 +9,9 @@ export class CreatePlayerInput {
   @Field()
   lastName: string;
 
+  @Field({ nullable: true })
+  username: string;
+
   @Field()
   event: string;
 

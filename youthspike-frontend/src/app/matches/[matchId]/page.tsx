@@ -57,7 +57,7 @@ import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
  * Captain
  * pfn125
  * Co-captains
- * p3e1@e.com
+ * pfn325
  *
  *
  * RB Leipzig
@@ -123,11 +123,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         if (result?.data?.getMatch?.data) {
           organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
         } else {
-          dispatch(setActErr({ name: 'Invalid Id', message: 'No data found with given ID!' }));
+          dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
         }
       })();
     } else {
-      dispatch(setActErr({ name: 'Invalid Id', message: 'Can not fetch data due to invalid event ObjectId!' }));
+      dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' }));
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

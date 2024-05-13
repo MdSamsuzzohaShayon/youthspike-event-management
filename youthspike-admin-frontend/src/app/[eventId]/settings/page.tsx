@@ -39,7 +39,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
         const user = getCookie('user')
         if (user) {
           const userRes = JSON.parse(user)
-          if (userRes.role === UserRole.captain) {
+          if (userRes.role === UserRole.captain || userRes.role === UserRole.co_captain) {
             if(userRes.captainplayer){
               fetchPlayer({ variables: { playerId: userRes.captainplayer } });
             }else if(userRes.cocaptainplayer){
@@ -62,6 +62,9 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   
   const prevEvent = data?.getEvent?.data;  
   const prevPlayer = playerData?.getPlayer?.data;
+
+  console.log({prevPlayer});
+  
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>

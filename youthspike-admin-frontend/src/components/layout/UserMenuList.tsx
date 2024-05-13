@@ -39,7 +39,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
                         href={{
                             pathname:
                                 item.id === 8 || item.id === 5 ? item.link : `/${eventId}${item.link}`,
-                            query: { ldoId }, // Include ldoId in query parameters
+                            // query: { ldoId }, // Include ldoId in query parameters
                         }}
                     >
                         {iIdx !== 0 && '|'} {item.text}

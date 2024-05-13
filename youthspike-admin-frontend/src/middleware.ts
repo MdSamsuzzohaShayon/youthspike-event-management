@@ -3,9 +3,9 @@ import type { NextRequest } from 'next/server';
 import { UserRole } from './types/user';
 
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new", '/account', '/newevent'];
-const captainAuthPages = ['/players', "/matches", "/settings"];
-const adminPages = ['/','/admin', '/directors',  "/settings"];
+const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/newevent'];
+const captainAuthPages = ['/players', '/matches', '/settings'];
+const adminPages = ['/', '/admin', '/directors', '/settings'];
 
 export const config = {
   matcher: [
@@ -18,13 +18,13 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token');
   const user = request.cookies.get('user');
 
-  console.log({ pathname, token: token?.value, user: user && user.value !== '' ? JSON.parse(user.value) : null });
+  console.log({ pathname, token: token?.value, user: user?.value ? JSON.parse(user.value) : null });
 
-  if (!token || !token.value || token.value === '' || !user || !user.value || user.value === '') {
+  if (!token?.value || !user?.value) {
     return handleUnauthenticated(request, pathname);
   }
 
-  const userObj = user?.value && user.value !== '' ? JSON.parse(user.value) : null;
+  const userObj = user?.value ? JSON.parse(user.value) : null;
 
   if (isUnauthenticatedPage(pathname)) {
     return handleUnauthenticatedPage(request);
@@ -42,11 +42,12 @@ export function middleware(request: NextRequest) {
 }
 
 function handleUnauthenticated(request: NextRequest, pathname: string) {
-  // @ts-ignore
   const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
+  
   if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url).toString());
   }
+
   return NextResponse.next();
 }
 
@@ -55,24 +56,25 @@ function isUnauthenticatedPage(pathname: string) {
 }
 
 function handleUnauthenticatedPage(request: NextRequest) {
-  return NextResponse.redirect(new URL('/', request.url));
+  return NextResponse.redirect(new URL('/', request.url).toString());
 }
 
 function isAuthenticatedPage(pathname: string, userObj: any) {
-  // @ts-ignore
-  const directorAndCaptainPages = [...new Set([...directorAuthPages, ...captainAuthPages])];
-  return directorAndCaptainPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname)) && userObj.role !== UserRole.admin;
+  const authorizedPages = [...directorAuthPages, ...captainAuthPages];
+
+  return authorizedPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname)) && userObj?.role !== UserRole.admin;
 }
 
 function handleAuthenticatedPage(request: NextRequest, pathname: string, userObj: any) {
-  if (userObj.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+  if (userObj?.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
     return NextResponse.next();
-  } else if ((userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain) && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
     return NextResponse.next();
-  } else if ((userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) && userObj.event) {
-    return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url));
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain) && userObj.event) {
+    return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url).toString());
   }
-  return NextResponse.redirect(new URL('/not-found/404', request.url));
+
+  return NextResponse.redirect(new URL('/not-found/404', request.url).toString());
 }
 
 function isAdminPage(pathname: string, userObj: any) {
@@ -80,8 +82,9 @@ function isAdminPage(pathname: string, userObj: any) {
 }
 
 function handleAdminPage(request: NextRequest, userObj: any) {
-  if (userObj && userObj.role === UserRole.admin) {
+  if (userObj?.role === UserRole.admin) {
     return NextResponse.next();
   }
-  return NextResponse.redirect(new URL('/', request.url));
+
+  return NextResponse.redirect(new URL('/', request.url).toString());
 }

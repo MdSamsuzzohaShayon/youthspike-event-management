@@ -46,13 +46,13 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_MATCHES_TEAMS, { variables: { eventId: params.eventId }, fetchPolicy: "network-only" });
 
 
-  
+
   const captainsMatches = (localUser: IUserContext, prevFilteredTeams: ITeam[], prevFilteredMatches: IMatchExpRel[]): IMatchExpRel[] => {
     let filteredMatches = [...prevFilteredMatches];
     let findTeam: ITeam | null = null;
     if (localUser.info?.role === UserRole.captain) {
       findTeam = prevFilteredTeams.find((team) => team.captain?._id === localUser.info?.captainplayer) ?? null;
-      
+
     }
     if (localUser.info?.role === UserRole.co_captain) {
       findTeam = prevFilteredTeams.find((team) => team.cocaptain?._id === localUser.info?.cocaptainplayer) ?? null;
@@ -182,11 +182,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />
       </div>
-      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-        <div className="mb-4 division-selection w-full">
-          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
-        </div>
-      )}
+
 
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
@@ -198,6 +194,10 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
             <React.Fragment>
               <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(false)}>Match List</button>
 
+              <div className="division-selection w-full">
+                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+              </div>
+
               <MatchAdd eventData={currEvent} teamList={filteredTeamList} eventId={params.eventId} addMatchCB={addMatchCB}
                 setActErr={setActErr} setIsLoading={setIsLoading} showAddMatch={setAddMatch} currDivision={currDivision} />
             </React.Fragment>
@@ -205,6 +205,11 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         </> : <>
           {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && <button type="button" className='btn-info mb-4' onClick={() => setAddMatch(true)}>Add Match</button>}
           <br />
+          {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+            <div className="division-selection w-full">
+              <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+            </div>
+          )}
           {filteredMatchList.length > 0 ? <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} /> : <p>No match created yet!</p>}
         </>}
       </div>
