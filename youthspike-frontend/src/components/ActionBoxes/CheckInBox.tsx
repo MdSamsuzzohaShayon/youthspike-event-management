@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import Image from 'next/image';
-import { IRoom } from '@/types';
+import { IRoom, IRoundRelatives } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import React, { useEffect, useState } from 'react';
@@ -28,8 +28,9 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
   const { currentRoundNets } = useAppSelector((state) => state.nets);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
 
-  const handleCheckInToLineup = (e: React.SyntheticEvent) => {
+  const handleSubmitLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
     if (!currRoom) return;
     // ===== Make sure all entes are filled with players =====
     let filled = true;
@@ -48,39 +49,48 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
       }
     }
 
-    // ===== Make sure did use previous subbed players =====
+    /**
+     * Make sure did use previous subbed players
+     * A player can be subbed only once in a match, exception below
+     * A player is only allowd to sub when all other player had been subbed for atleast once
+     */
     if (currRound?.num && currRound?.num > 1 && filled) {
-      const prevRound = roundList.find((r) => r.num === currRound.num - 1);
-      const dupSubPlayers = [];
-      if (prevRound) {
-        const subPlayers = new Set();
-        const myPlayerIds = myPlayers.map((p) => p._id);
-        for (let i = 0; i < prevRound.subs.length; i += 1) {
-          if (myPlayerIds.includes(prevRound.subs[i])) subPlayers.add(prevRound.subs[i]);
+      const myPlayerIds = myPlayers.map((p) => p._id);
+      const preSubbedPlayerIds: Set<string> = new Set<string>();
+      const subbedPlayerIds: Set<string> = new Set<string>();
+      roundList.forEach((rl: IRoundRelatives) => {
+        // @ts-ignore
+        if (rl.subs && rl.subs.length > 0) {
+          rl.subs.forEach((rls) => {
+            if (rls) preSubbedPlayerIds.add(rls); // This line will produce an error
+          });
         }
-        if (subPlayers.size > 0) {
-          // @ts-ignore
-          const subPlayersList = [...subPlayers];
-          // all subbed players must be inside selected player ids
-          for (let j = 0; j < subPlayersList.length; j += 1) {
-            if (!selectedPlayerIds.includes(subPlayersList[j])) dupSubPlayers.push(subPlayersList[j]);
-          }
-        }
+      });
+
+      // Subbed players of this round
+      for (let j = 0; j < myPlayerIds.length; j += 1) {
+        if (!selectedPlayerIds.includes(myPlayerIds[j])) subbedPlayerIds.add(myPlayerIds[j]);
       }
-      if (dupSubPlayers.length > 0) {
-        // Show error
+
+      // All player has not been subbed atleast for once
+      if (subbedPlayerIds.size < myPlayerIds.length) {
+        //   // Show error
         let errMsg = '';
-        dupSubPlayers.forEach((up) => {
-          const findPlayer = myPlayers.find((p) => p._id === up);
-          if (findPlayer) {
-            errMsg += `${findPlayer.firstName}, `;
+        let dupPlayerCount = 0;
+        subbedPlayerIds.forEach((up) => {
+          if (preSubbedPlayerIds.has(up)) {
+            const findPlayer = myPlayers.find((p) => p._id === up);
+            if (findPlayer) {
+              errMsg += `${findPlayer.firstName}, `;
+              dupPlayerCount += 1;
+            }
           }
         });
-
-        errMsg += `${dupSubPlayers.length > 1 ? 'were' : 'was'} subbed previous round, they must be selected in this round`;
-
-        dispatch(setActErr({ success: false, message: errMsg }));
-        return;
+        if (dupPlayerCount > 0) {
+          errMsg += `${dupPlayerCount > 1 ? 'were' : 'was'} subbed previously, ${dupPlayerCount > 1 ? 'they' : 'he'} must be selected in this round`;
+          dispatch(setActErr({ success: false, message: errMsg }));
+          return;
+        }
       }
     }
 
@@ -130,7 +140,7 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
         {myTeamE === currRound?.firstPlacing ? (
           <>
             <h2 className="font-black text-start">PLACING your lineup. Please assign 2 players to each net and SUBMIT your lineup. </h2>
-            <button className={`${fillNet ? 'btn-light-outline' : 'btn-light'}`} type="button" onClick={handleCheckInToLineup}>
+            <button className={`${fillNet ? 'btn-light-outline' : 'btn-light'}`} type="button" onClick={handleSubmitLineup}>
               Submit Lineup
             </button>
           </>
@@ -150,7 +160,7 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
         ) : otp === EActionProcess.LINEUP ? (
           <>
             <h2 className="font-black text-start">MATCHING your lineup. Please assign 2 players to each net and SUBMIT your lineup. </h2>
-            <button className={`${fillNet ? 'btn-light-outline' : 'btn-light'}`} type="button" onClick={handleCheckInToLineup}>
+            <button className={`${fillNet ? 'btn-light-outline' : 'btn-light'}`} type="button" onClick={handleSubmitLineup}>
               Submit Lineup
             </button>
           </>

@@ -21,6 +21,7 @@ import { ETieBreaker } from 'src/net/net.schema';
 import { TeamService } from 'src/team/team.service';
 import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
+import { EPlayerStatus } from 'src/player/player.schema';
 
 @ObjectType()
 class RoomRoundProcess {
@@ -249,11 +250,23 @@ export class MyGatWay implements OnModuleInit {
       if (roundI === -1) return;
 
       // update round to checkin
-      const currRoundObj = { ...roundList[roundI] };
+      const roundExist = await this.roundService.findById(submitLineup.round);
+      if (!roundExist) return;
+
+      const currRoundObj = {
+        ...roundList[roundI],
+        teamAProcess: roundExist.teamAProcess,
+        teamBProcess: roundExist.teamBProcess,
+      };
+      
       if (prevRoom.teamAClient === client.id) {
         currRoundObj.teamAProcess = EActionProcess.LINEUP;
       } else {
-        currRoundObj.teamBProcess = EActionProcess.LINEUP;
+        if (currRoundObj.teamBProcess === EActionProcess.LINEUP) {
+          currRoundObj.teamAProcess = EActionProcess.LINEUP;
+        } else {
+          currRoundObj.teamBProcess = EActionProcess.LINEUP;
+        }
       }
 
       // Update nets and round by assigning player to nets
@@ -293,7 +306,10 @@ export class MyGatWay implements OnModuleInit {
       // make players subbed for all next rounds
       if (submitLineup.subbedPlayers.length > 0) {
         updatePromises.push(
-          this.roundService.updateOne({ _id: currRoundObj._id }, { $set: { subs: submitLineup.subbedPlayers } }),
+          this.roundService.updateOne(
+            { _id: currRoundObj._id, status: EPlayerStatus.ACTIVE },
+            { $set: { subs: submitLineup.subbedPlayers } },
+          ),
         );
       }
 

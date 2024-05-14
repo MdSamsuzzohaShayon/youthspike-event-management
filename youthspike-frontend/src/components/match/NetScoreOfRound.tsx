@@ -236,7 +236,14 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         );
       }
     }
-    return <div className="player-list mt-4 w-full flex flex-col gap-1">{playerListEl}</div>;
+
+    if (playerListEl.length <= 0) return null;
+    return (
+      <div className="player-list mt-4 w-full flex flex-col gap-1">
+        <h3>Subbed Players</h3>
+        {playerListEl}
+      </div>
+    );
   };
 
   return (
@@ -288,7 +295,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           </div>
 
           <div className="px-2 w-full mt-4" style={{ minHeight: 'fit-content' }}>
-            <h3>Subbed Players</h3>
             {renderSubbedPlayers()}
           </div>
         </div>
