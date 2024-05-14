@@ -79,13 +79,16 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
 
         errMsg += `${dupSubPlayers.length > 1 ? 'were' : 'was'} subbed previous round, they must be selected in this round`;
 
-        dispatch(setActErr({ name: 'Unselected Previous Subbed Player', main: errMsg, message: errMsg }));
+        dispatch(setActErr({ success: false, message: errMsg }));
         return;
       }
     }
 
     if (closePSCAvailable) dispatch(setclosePSCAvailable(false));
-    if (filled) dispatch(setVerifyLineup(true));
+    if (filled) {
+      dispatch(setActErr(null));
+      dispatch(setVerifyLineup(true));
+    }
   };
 
   useEffect(() => {

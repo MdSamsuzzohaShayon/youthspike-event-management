@@ -34,7 +34,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
     const isFinalRound = currentRound?.num === roundList.length;
     const lockedNets = currRoundNets.filter((net) => net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
 
-    if (isFinalRound && currentRound?.teamAProcess === EActionProcess.LINEUP && lockedNets.length < 1) {
+    if (isFinalRound && currentRound?.teamAProcess === EActionProcess.LINEUP && lockedNets.length <= 1) {
       return <FinalRoundBox myTeamE={myTeamE} />;
     }
 

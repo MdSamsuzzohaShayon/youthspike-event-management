@@ -1,5 +1,8 @@
 /* eslint-disable import/no-cycle */
-import { IEvent, IRoom, IRoundExpRel, ITeam } from '.';
+import { IEvent } from './event';
+import { IRoom } from './room';
+import { IRoundExpRel } from './round';
+import { ITeam } from './team';
 
 export interface IDefaultMatch {
   division: string;

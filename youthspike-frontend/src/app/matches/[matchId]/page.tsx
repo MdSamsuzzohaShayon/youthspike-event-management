@@ -42,6 +42,9 @@ import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
+import { APP_NAME } from '@/utils/keys';
+import { imgW } from '@/utils/constant';
+import Image from 'next/image';
 
 /**
  * Test Match
@@ -228,9 +231,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
             <h3>Sponsors</h3>
             <div className="flex items-center justify-between flex-wrap w-full">
-              {eventSponsors.map((spon) => (
-                <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
-              ))}
+              {eventSponsors.map((spon) =>
+                spon.company === APP_NAME ? (
+                  <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
+                ) : (
+                  <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
+                ),
+              )}
             </div>
           </div>
         )}

@@ -1,11 +1,13 @@
-import React from "react";
-import { IPlayer,  } from "./player";
-import { IUserContext } from "./user";
+/* eslint-disable import/no-cycle */
+/* eslint-disable no-unused-vars */
+import React from 'react';
+import { IPlayer } from './player';
+import { IUserContext } from './user';
 
-export enum EAssignStrategies{
-  RANDOM = "RANDOM",
-  AUTO = "AUTO",
-  ANCHORING = "ANCHORING",
+export enum EAssignStrategies {
+  RANDOM = 'RANDOM',
+  AUTO = 'AUTO',
+  ANCHORING = 'ANCHORING',
 }
 
 export interface IMenuItem {
@@ -15,7 +17,7 @@ export interface IMenuItem {
   link: string;
 }
 
-export interface ITextCommon{
+export interface ITextCommon {
   lw?: string;
   rw?: string;
   vertical?: boolean;
@@ -28,13 +30,11 @@ export interface ITextCommon{
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
 
-export interface ITextInputProps extends ITextCommon{
-}
+export interface ITextInputProps extends ITextCommon {}
 
-export interface ITextareaInputProps extends ITextCommon{
-}
+export interface ITextareaInputProps extends ITextCommon {}
 
-export interface IPlayerSelectProps{
+export interface IPlayerSelectProps {
   extraCls?: string;
   name: string;
   defaultValue?: string[];
@@ -63,7 +63,7 @@ export interface IFileFileProps {
   lblTxt?: string;
   name: string;
   defaultValue?: string | undefined | null;
-  handleFileChange: (e: React.SyntheticEvent) => void;
+  handleFileChange: (uploadedFile: File) => void;
 }
 
 export interface IAnyFileFileProps {
@@ -121,7 +121,7 @@ export interface IButtonProps {
   text?: string;
 }
 
-export interface IMenuArrangeProps{
+export interface IMenuArrangeProps {
   eventId: null | string;
   closeMenuHandler: (e: React.SyntheticEvent) => void;
   renderMenuItems: (eventId: string, userMenuList: IMenuItem[]) => React.ReactNode;
@@ -135,7 +135,6 @@ export interface IError {
   success?: boolean;
   code?: number;
 }
-
 
 export interface ILoginProps {
   handleLogin: (e: React.SyntheticEvent) => void;

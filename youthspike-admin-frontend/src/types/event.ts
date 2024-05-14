@@ -1,34 +1,33 @@
-import React from "react";
-import { IError, ILDO, IPlayer, ITeam } from ".";
-import { IDocument } from "./document";
-import { ICommonMatchEvent, IDefaultMatch, IMatch } from "./match";
-import { EAssignStrategies } from "./elements";
-import { ApolloClient } from "@apollo/client";
+/* eslint-disable import/no-cycle */
+import React from 'react';
+import { ICommonMatchEvent, IMatch } from './match';
+import { EAssignStrategies, IError } from './elements';
+import { IPlayer } from './player';
+import { ITeam } from './team';
+import { ILDO } from './ldo';
 
-export enum EEventPeriod{
-  UPCOMING="UPCOMING",
-  CURRENT="CURRENT",
-  PAST="PAST",
+export enum EEventPeriod {
+  UPCOMING = 'UPCOMING',
+  CURRENT = 'CURRENT',
+  PAST = 'PAST',
 }
 
-
-export interface IEventSponsor{
+export interface IEventSponsor {
   _id: string;
   company: string;
   logo: string;
   event: string;
 }
 
-export interface IEventSponsorAdd{
+export interface IEventSponsorAdd {
   company: string;
-  logo: File | string | null ;
+  logo: File | string | null;
 }
 
 export interface IDefaultEventMatch extends ICommonMatchEvent {
   nets: number;
   rounds: number;
 }
-
 
 export interface IEvent extends IDefaultEventMatch {
   _id: string;
@@ -45,10 +44,10 @@ export interface IEvent extends IDefaultEventMatch {
 }
 
 export interface IEventExpRel extends IEvent {
-  matches: IMatch[],
-  players: IPlayer[],
-  teams: ITeam[],
-  ldo: ILDO
+  matches: IMatch[];
+  players: IPlayer[];
+  teams: ITeam[];
+  ldo: ILDO;
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

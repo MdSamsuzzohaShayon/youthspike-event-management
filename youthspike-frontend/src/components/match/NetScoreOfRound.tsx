@@ -50,7 +50,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
         const prevRound = roundList[targetRoundIndex - 1];
         if (!prevRound || !prevRound.completed) {
-          dispatch(setActErr({ name: 'Incomplete round!', message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
+          dispatch(setActErr({ success: false, message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
           return;
         }
         dispatch(setActErr(null));
@@ -161,18 +161,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     if (rightFullEl && leftFullEl) {
       const fullHeight = rightFullEl.clientHeight > leftFullEl.clientHeight ? rightFullEl.clientHeight : leftFullEl.clientHeight;
       setBoardHeight(fullHeight);
-
-      // console.log({ fullHeight });
-
-      // Modify styles based on the measured height
-      // if (leftddEl) leftddEl.style.height = `${fullHeight + EXTRA_HEIGHT}px`;
-
-      // if (leftTopEl) {
-      //   leftTopEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
-      // }
-      // if (leftBottomEl) {
-      //   leftBottomEl.style.minHeight = `${fullHeight / 2 + EXTRA_HEIGHT / 2}px`;
-      // }
     }
   }, []); // Add dependencies that might affect the height measurement
 
@@ -257,11 +245,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       {!showTeamPlayers ? (
         <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
-          <div
-            id="left-top"
-            style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
-            className="round-top w-full overflow-x-scroll bg-gradient-dark px-2 flex flex-col items-center justify-between"
-          >
+          <div id="left-top" style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
             <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
 
             <div className="round-nums flex flex-wrap w-full justify-start gap-1 items-center">
@@ -286,7 +270,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           <div
             id="left-bottom"
             style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
-            className={`round-bottom w-full overflow-x-scroll border ${border.light} px-2 flex flex-col items-center justify-between`}
+            className={`round-bottom w-full border ${border.light} px-2 flex flex-col items-center justify-between`}
           >
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">

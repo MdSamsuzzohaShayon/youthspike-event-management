@@ -1,14 +1,15 @@
-import React from "react";
-import { IError, ILDO, ITeam } from ".";
-import { IDocument } from "./document";
-import { IDefaultMatch } from "./match";
+/* eslint-disable import/no-cycle */
+import React from 'react';
+import { IError } from './elements';
+import { IDefaultMatch } from './match';
+import { ILDO } from './ldo';
 
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
   rounds: number;
 }
 
-export interface IEventSponsor{
+export interface IEventSponsor {
   _id: string;
   company: string;
   logo: string;

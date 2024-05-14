@@ -269,7 +269,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       {/* Net top section end  */}
 
       {/* Vertically centered NetPointCard component */}
-      <div className="flex-grow flex justify-center items-center">
+      <div className="flex-grow flex justify-center items-center cursor-pointer">
         <NetPointCard net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
       </div>
 
