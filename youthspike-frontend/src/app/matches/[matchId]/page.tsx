@@ -42,6 +42,9 @@ import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
+import { APP_NAME } from '@/utils/keys';
+import { imgW } from '@/utils/constant';
+import Image from 'next/image';
 
 /**
  * Test Match
@@ -57,7 +60,7 @@ import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
  * Captain
  * pfn125
  * Co-captains
- * p3e1@e.com
+ * pfn325
  *
  *
  * RB Leipzig
@@ -123,11 +126,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         if (result?.data?.getMatch?.data) {
           organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
         } else {
-          dispatch(setActErr({ name: 'Invalid Id', message: 'No data found with given ID!' }));
+          dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
         }
       })();
     } else {
-      dispatch(setActErr({ name: 'Invalid Id', message: 'Can not fetch data due to invalid event ObjectId!' }));
+      dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' }));
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,7 +143,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       const userToken = getCookie('token');
 
       joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId });
-      listenSocketEvents({ socket, user, match: currMatch, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
+      listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, user, teamA, teamB, roundList]);
@@ -167,7 +170,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       }
       setOpSubbedPlayers(nosp);
     }
-  }, [currentRound, myPlayers, opPlayers]);
+  }, [roundList, currentRound, myPlayers, opPlayers]);
 
   // ===== Click on DOM by default to get rid of error when playing audio =====
   useEffect(() => {
@@ -228,9 +231,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
             <h3>Sponsors</h3>
             <div className="flex items-center justify-between flex-wrap w-full">
-              {eventSponsors.map((spon) => (
-                <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
-              ))}
+              {eventSponsors.map((spon) =>
+                spon.company === APP_NAME ? (
+                  <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
+                ) : (
+                  <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
+                ),
+              )}
             </div>
           </div>
         )}

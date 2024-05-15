@@ -17,16 +17,20 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
   const [actErr, setActErr]= useState<IError | null>(null);
 
 
-  const { data, error, loading } = useQuery(GET_A_PLAYER, { variables: { playerId: params.playerId } });
+  const { data, error, loading, refetch } = useQuery(GET_A_PLAYER, { variables: { playerId: params.playerId } });
   const { data: eventData, error: eventErr, loading: eventLoading } = useQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
 
   // ======  Callback functions ====== 
   const playerUpdateCB = (playerData: IPlayerExpRel) => { }
+  
+  const refetchFunc= async ()=>{
+    await refetch();
+  }
 
   if (loading || isLoading || eventLoading) return <Loader />;
 
+
   const prevPlayer = data?.getPlayer?.data;
-  
 
   const teamList = eventData?.getEvent?.data?.teams ? eventData?.getEvent?.data?.teams : [];
 
@@ -36,7 +40,7 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
       <h1>Player Update</h1>
       {actErr && <Message error={actErr} />}
       {error && <Message error={error} />}
-      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} teamList={teamList} playerUpdateCB={playerUpdateCB} setActErr={setActErr} />}
+      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} refetchFunc={refetchFunc} teamList={teamList} playerUpdateCB={playerUpdateCB} setActErr={setActErr} />}
     </div>
   )
 }

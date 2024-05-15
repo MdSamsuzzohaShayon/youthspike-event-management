@@ -26,6 +26,9 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
 
   const handleSelectNet = (e: React.SyntheticEvent, netId: string) => {
     e.preventDefault();
+    if (myTeamE === currentRound?.firstPlacing && lockedNetIds.length === 1) {
+      return;
+    }
     if (lockedNetIds.length > 1) return;
     dispatch(setNotTieBreakerNetId(netId));
   };
@@ -59,7 +62,6 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
   useEffect(() => {}, [currRoundNets]);
 
   const netBtnRender = (net: INetRelatives | undefined) => {
-
     if (!net) return null;
     switch (net.netType) {
       case ETieBreaker.FINAL_ROUND_NET:
@@ -99,12 +101,13 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
           <>
             <h2 className="font-black text-start">
               {lockedNetId
-                ? 'The other squad is choosing which net they do NOT want to be worth 2 points.'
-                : 'One of the nets this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.'}
+                ? 'One of the nets this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.'
+                : 'The other squad is choosing which net they do NOT want to be worth 2 points.'}
             </h2>
 
             <div className="net-btns w-full flex justify-start items-start gap-x-1">
-              {lockedNetIds.length > 1 ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
+              {lockedNetIds.length <= 1 ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
+              {/* {!lockedNetId ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))} */}
             </div>
           </>
         ) : (

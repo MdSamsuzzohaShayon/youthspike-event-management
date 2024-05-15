@@ -104,6 +104,7 @@ export class UserResolver {
       }
 
       if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
+        // Fix updating co-captain and captain -> must have co-captain as co-captain player
         const teamWithCoCaptain = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer.toString() });
         if (teamWithCoCaptain) {
           userObj.event = teamWithCoCaptain.event;

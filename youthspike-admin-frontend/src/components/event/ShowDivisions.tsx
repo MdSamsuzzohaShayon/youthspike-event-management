@@ -4,7 +4,7 @@ import TextInput from '../elements/forms/TextInput';
 import { ApolloClient, useApolloClient, useMutation } from '@apollo/client';
 import { GET_A_EVENT, UPDATE_EVENT } from '@/graphql/event';
 import { clickedInside } from '@/utils/helper';
-import useClickOutside from '../../../hooks/useClickOutside';
+import useClickOutside from '../../hooks/useClickOutside';
 
 
 interface IShowDivisionsProps {

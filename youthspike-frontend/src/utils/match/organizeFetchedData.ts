@@ -9,6 +9,7 @@ import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser } from '@/
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { getMatch } from '../localStorage';
+import { APP_NAME } from '../keys';
 
 /**
  * Set initial state for current match
@@ -19,7 +20,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
    * Set action box values
    */
 
-  const { _id, location, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed } = matchData;
+  const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed } = matchData;
 
   // Setting teams
   dispatch(setTeamA({ ...teamAF }));
@@ -37,7 +38,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
         email: player.email,
         status: player.status,
         rank: player.rank,
-        team: teamAF._id,
+        teams: [teamAF._id],
         event: event._id,
         captainofteams: player.captainofteams,
         profile: player.profile,
@@ -55,7 +56,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
         email: player.email,
         status: player.status,
         rank: player.rank,
-        team: teamBF._id,
+        teams: [teamBF._id],
         event: event._id,
         captainofteams: player.captainofteams,
         profile: player.profile,
@@ -76,7 +77,12 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
   }
 
   // Event Sponsors
-  dispatch(setEventSponsors(event.sponsors));
+  const defaultSponsor = {
+    _id: 'default-sponsor-id',
+    company: APP_NAME,
+    logo: 'free-logo.png',
+  };
+  dispatch(setEventSponsors([defaultSponsor, ...event.sponsors]));
 
   // Setting Rounds
   const formattedRounds: IRoundRelatives[] = [];
@@ -151,7 +157,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
       setCurrentRoom({
         _id: matchData.room._id,
         match: _id,
-        round: formattedRounds[0]._id,
+        rounds: formattedRounds[0]._id,
         teamA: teamAF?._id ? teamAF._id : null,
         teamAClient: null,
         teamAProcess: formattedRounds[0].teamAProcess,
@@ -168,7 +174,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
       _id,
       date,
       completed,
-      location,
+      description,
       numberOfNets,
       numberOfRounds,
       teamA: teamAF._id,

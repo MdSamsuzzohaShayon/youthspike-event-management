@@ -6,10 +6,10 @@ import { useUser } from '@/lib/UserProvider';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { imgW } from '@/utils/constant';
+import { APP_NAME } from '@/utils/keys';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
 import PlayerList from '../player/PlayerList';
-import { APP_NAME } from '@/utils/keys';
 
 interface IteamCaptain extends ITeam {
   captain: IPlayer;
@@ -65,6 +65,8 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     });
     return <React.Fragment key="render-sponsor">{sponsorList}</React.Fragment>;
   };
+
+  console.log({ event });
 
   return (
     <div className="w-full">

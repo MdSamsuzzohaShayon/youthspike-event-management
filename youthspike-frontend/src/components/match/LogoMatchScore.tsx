@@ -33,7 +33,7 @@ function LogoMatchScore({ dark, team, roundList, teamE, screenWidth, allNets }: 
   const calculatedScore = calcTeamScore();
 
   return (
-    <div className={`logo-match-score flex w-full ${dark ? 'text-white flex-col' : 'text-gray-900 flex-col-reverse'} gap-1`}>
+    <div className={`logo-match-score py-2 flex w-full ${dark ? 'text-white flex-col' : 'text-gray-900 flex-col-reverse'} gap-1`}>
       <div className="w-full flex justify-between items-center pt-4 gap-1">
         {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-2/6" /> : <TextImg fullText={team?.name} className="w-2/6" style={{ height: `${netSize.tlh}rem` }} />}
         <h3 className="break-words w-2/6 leading-4" style={headingStyle(screenWidth)}>

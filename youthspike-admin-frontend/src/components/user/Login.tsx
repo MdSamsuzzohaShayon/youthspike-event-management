@@ -2,6 +2,7 @@ import { ILoginProps } from '@/types';
 import EmailInput from '../elements/forms/EmailInput';
 import PasswordInput from '../elements/forms/PasswordInput';
 import TextInput from '../elements/forms/TextInput';
+import Image from 'next/image';
 
 
 function Login({ handleLogin, email, setEmail, password, setPassword }: ILoginProps) {
@@ -27,6 +28,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword }: ILoginPr
                 <div className="w-full px-2 md:w-4/6 md:px-0">
                     <h1 className="text-3xl text-center font-bold p-2">Login</h1>
                     <form onSubmit={handleLoginLocal} className='w-full flex flex-col justify-center items-center gap-4 text-center'>
+                        <Image alt="American Spikers Logo" src="/free-logo.png" width={100} height={100} className='w-32 text-center' />
                         <TextInput name='email' vertical defaultValue={email} lblTxt='Email Address' handleInputChange={handleSetEmail} required />
                         <PasswordInput name='password' vertical defaultValue={password} lblTxt='Password' handleInputChange={handleSetPassword} required />
                         <button className="btn-primary" type="submit"> Submit</button>

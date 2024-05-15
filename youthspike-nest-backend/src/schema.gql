@@ -609,6 +609,7 @@ input UpdateDirectorArgs {
 input CreatePlayerInput {
   firstName: String!
   lastName: String!
+  username: String
   event: String!
   division: String!
   email: String
@@ -620,6 +621,7 @@ input CreatePlayerInput {
 input UpdatePlayerInput {
   firstName: String
   lastName: String
+  username: String
   event: String
   division: String
   email: String
@@ -633,6 +635,7 @@ input UpdatePlayerInput {
 input UpdatePlayersInput {
   firstName: String
   lastName: String
+  username: String
   event: String
   division: String
   email: String

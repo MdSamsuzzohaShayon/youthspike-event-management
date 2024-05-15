@@ -1,12 +1,13 @@
 # Youthspike tournament
 
 ___
- - **Infrustructure**
+ - **Design**
  - [Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?type=design&node-id=27-5&t=Ucn2d4Li6ufI8Q7j-1&scaling=scale-down&page-id=0%3A1)
  - [Landscape Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
  - [Backend/admin panel prototype](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
  - [Action box design](https://www.canva.com/design/DAF-9-GdNuM/8rUTuBtKb2hCfzOlmx2jCQ/edit)
  - [Todo](https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576)
+ - [Redesign](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=514%3A336&type=design&node-id=514-337&viewport=720%2C444%2C0.16&t=eolk3WEtglEtDIz0-1&scaling=min-zoom&no_third_party_tracking=true)
  
 ___
 
@@ -60,8 +61,6 @@ ___
 ### Requirements
 
  - Work with bulk actions
-
-
  - Next js testing with react testing library
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
@@ -71,6 +70,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
 
 ### Update - 2
+ - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
+ - Real Time Update when creating a match 
+ - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
+ - THen of course, a player can never sub out more than 1 time in a match unless every player on the team has subbed out at least one time. So when we play 6 round matches, some players will need to sub out a second time, this is when someone will have a scond sub number like SR1,6. Meaning they subbed round 1 and 6
  - Auto assign need to work properly
  - Admin can not get into setting or ldo, This need to be fixed
  - In the event setting, there will be a fwango link. (https://fwango.io/), In the menu tournamant is the fwango link as well.
@@ -203,6 +206,10 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Database Action
  -  Change `location` to `description` in all document of match and event
+ ```
+ db.events.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
+ db.matches.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
+ ```
  -  Set `completed` to `false` in all document of match
  -  Set `sendCredentials` to `false` in all document of event and team
 ```

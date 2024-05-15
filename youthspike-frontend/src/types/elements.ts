@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import { IUserContext } from '.';
+import { IUserContext } from './user';
 
 export interface IMenuItem {
   id: number;

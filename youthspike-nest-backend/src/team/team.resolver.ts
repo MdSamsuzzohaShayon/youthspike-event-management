@@ -82,7 +82,6 @@ export class TeamResolver {
         }),
         this.eventService.findById(input.event.toString()),
       ]);
-      
 
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
@@ -156,9 +155,10 @@ export class TeamResolver {
       // ===== Update captain =====
       if (input.captain) {
         const playerExist = await this.playerService.findById(input.captain.toString());
-        
+
         if (playerExist) {
-          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num;
+          const newUsername =
+            playerExist?.username?.toLowerCase() + teamExist.num || playerExist.firstName.toLowerCase() + teamExist.num;
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -195,6 +195,7 @@ export class TeamResolver {
               ),
             );
           }
+          teamObj.captain = playerExist._id;
         }
       }
 
@@ -242,6 +243,7 @@ export class TeamResolver {
               ),
             );
           }
+          teamObj.cocaptain = playerExist._id;
         }
       }
 

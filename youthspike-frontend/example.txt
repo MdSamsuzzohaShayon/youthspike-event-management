@@ -1,35 +1,31 @@
-RB Leipzig Line Up for round 3
+Subbed players for Borussia Dorttmund
 ==============================
 
-Net 1
-Pfn15 Pln15
-Pfn20 Pln20
+Round-1
+Pfn12
 
-Net 2
-Pfn16 Pln16
-Pfn21 Pln21
+Round-2
+Pfn13
 
-Net 3
-Pfn17 Pln17
-Pfn18 Pln18
+Round-3
+Pfn5
 
 
 
 
 
-Bayern Munich Line Up for round 3
+Subbed players for Bayern Munich
 ==============================
 
-Net 1
-Pfn1 Pln1
-Pfn10 Pln10
+Round-1
+Pfn1
 
-Net 2
-Pfn2 Pln2
-Pfn14 Pln14
+Round-2
+Pfn2
 
-Net 3
-Pfn3 Pln3
-Pfn9 Pln9
+Round-4
+Pfn4
+
+
 
 

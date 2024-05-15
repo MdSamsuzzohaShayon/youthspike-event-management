@@ -31,6 +31,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
   const { currentRoundNets } = useAppSelector((state) => state.nets);
   const { closePSCAvailable: cpsca } = useAppSelector((state) => state.matches); // CPSCA = Close Player Score Card Available
 
+  // eslint-disable-next-line no-unused-vars
   const [fillNets, setFillNets] = useState<boolean>(false);
 
   const handleDropDown = (e: React.SyntheticEvent) => {
@@ -69,7 +70,7 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
 
   return (
     <>
-      <div className={`p-img-wrap relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
+      <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
         {shouldShowEvacuateButton && (
           <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full">
             {myTeamE === ETeam.teamA && cpsca && !dark

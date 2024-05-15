@@ -11,6 +11,7 @@ import { lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
 import { useSocket } from '@/lib/SocketProvider';
 import { ETieBreaker } from '@/types/net';
 import Image from 'next/image';
+import { screen } from '@/utils/constant';
 import TeamScoreInput from '../team/TeamScoreInput';
 
 interface INetPointCardProps {
@@ -117,23 +118,27 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         />
       )}
       <div className="net-card flex justify-around items-center w-full py-1">
-        <Image
-          width={50}
-          height={30}
-          src="/icons/right-arrow.svg"
-          alt="right-arrow"
-          onKeyUp={handleKeyUp}
-          onClick={handleRightShift}
-          role="presentation"
-          className="w-4 svg-white transform scale-x-[-1]"
-        />
+        {screenWidth <= screen.xs && (
+          <Image
+            width={50}
+            height={30}
+            src="/icons/right-arrow.svg"
+            alt="right-arrow"
+            onKeyUp={handleKeyUp}
+            onClick={handleRightShift}
+            role="presentation"
+            className="w-4 svg-white transform scale-x-[-1]"
+          />
+        )}
         <div className="texts text-center">
           <h3 style={fsToggle(screenWidth)} className="leading-3">
             Net {net?.num}
           </h3>
           {net?.netType === ETieBreaker.TIE_BREAKER_NET && <p className="w-full">Worth 2 points</p>}
         </div>
-        <Image width={50} height={30} src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 svg-white" />
+        {screenWidth <= screen.xs && (
+          <Image width={50} height={30} src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 svg-white" />
+        )}
       </div>
       {user && teamACapOrCo ? (
         <TeamScoreInput

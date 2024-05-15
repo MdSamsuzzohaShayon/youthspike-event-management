@@ -93,7 +93,7 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
     };
   });
   if (!fillAllNets) {
-    dispatch(setActErr({ main: 'Invalid nets', message: 'Every nets must have players!' }));
+    dispatch(setActErr({ success: false, message: 'Every nets must have players!' }));
     return; // Return here to ensure the function always returns void
   }
   actionData.nets = roundNetAssign;

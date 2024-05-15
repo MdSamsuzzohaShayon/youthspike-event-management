@@ -5,7 +5,7 @@ import { UserRole } from '@/types/user';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
-import useClickOutside from '../../../hooks/useClickOutside';
+import useClickOutside from '../../hooks/useClickOutside';
 import TextImg from '../elements/TextImg';
 import Image from 'next/image';
 

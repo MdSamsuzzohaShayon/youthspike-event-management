@@ -16,7 +16,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import { IError } from '@/types';
 import { IUserContext, UserRole } from '@/types/user';
 import Link from 'next/link';
-import useClickOutside from '../../hooks/useClickOutside';
+import useClickOutside from '../hooks/useClickOutside';
 import TextImg from '@/components/elements/TextImg';
 import { initialUserMenuList } from '@/utils/staticData';
 import { handleResponse } from '@/utils/handleError';
@@ -51,7 +51,7 @@ function EventsPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // GraphQL Queries
-  const [fetchLDO, { loading: ldoLoading, error: ldoError, data: ldoData, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
+  const [getLDO, { loading: ldoLoading, error: ldoError, data: ldoData, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: "network-only" });
   const [cloneEvent] = useMutation(CLONE_EVENT);
   const [deleteEvent] = useMutation(DELETE_AN_EVENT);
   const [sendCredentials] = useMutation(SEND_CREDENTIALS);
@@ -121,41 +121,42 @@ function EventsPage() {
       console.log(error);
 
     }
-    await refetch();
+    await fetchLDO();
+  }
+
+  const fetchLDO=async ()=>{
+    try {
+      const instantUser: IUserContext = getUserFromCookie();
+      if (instantUser.info?.role === UserRole.admin) {
+        const newLdoId = searchParams.get('ldoId');
+        if (!newLdoId) return router.push('/admin');
+        setLdoId(newLdoId);
+        const ldoRes = await getLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
+
+        const success = handleResponse({ response: ldoRes?.data?.getEventDirector, setActErr });
+        if (success) {
+          const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
+          setDirectorId(newDirectorId);
+        }
+        if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+      } else {
+        setDirectorId(instantUser.info?._id ? instantUser.info._id : null);
+        const ldoRes = await getLDO();
+        const success = handleResponse({ response: ldoRes?.data?.getEventDirector, setActErr });
+        if (success) {
+          if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
+        }
+
+      }
+    } catch (error) {
+      console.log(error);
+
+    }
   }
 
 
   useEffect(() => {
-    (async () => {
-      try {
-        const instantUser: IUserContext = getUserFromCookie();
-        if (instantUser.info?.role === UserRole.admin) {
-          const newLdoId = searchParams.get('ldoId');
-          if (!newLdoId) return router.push('/admin');
-          setLdoId(newLdoId);
-          const ldoRes = await fetchLDO({ variables: { dId: newLdoId } }); // ldo id and director id Both will match     
-          console.log({ ldoRes });
-
-          const success = handleResponse({ response: ldoRes?.data?.getEventDirector, setActErr });
-          if (success) {
-            const newDirectorId = ldoRes?.data?.getEventDirector?.data?.director?._id;
-            setDirectorId(newDirectorId);
-          }
-          if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-        } else {
-          setDirectorId(instantUser.info?._id ? instantUser.info._id : null);
-          const ldoRes = await fetchLDO();
-          const success = handleResponse({ response: ldoRes?.data?.getEventDirector, setActErr });
-          if (success) {
-            if (ldoRes?.data?.getEventDirector?.data?.events) setEventList(ldoRes.data.getEventDirector.data.events);
-          }
-
-        }
-      } catch (error) {
-        console.log(error);
-
-      }
-    })();
+    fetchLDO();
 
   }, [router, user]);
 

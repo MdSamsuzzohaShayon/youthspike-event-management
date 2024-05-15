@@ -4,13 +4,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { FilterQuery, Model, ObjectId, UpdateQuery } from 'mongoose';
 import { AppResponse } from 'src/shared/response';
-import { User, UserDocument, UserRole } from './user.schema';
+import { User, UserRole } from './user.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
-import { ResolveField } from '@nestjs/graphql';
 import { Player } from 'src/player/player.schema';
 import { Event } from 'src/event/event.schema';
-import { Team } from 'src/team/team.schema';
 
 @Injectable()
 export class UserService {
@@ -30,9 +28,7 @@ export class UserService {
     const password = userObj.password;
     const hashedPassword = await bcrypt.hash(password, 10);
     userObj.password = hashedPassword;
-    const existing = await this.userModel.findOne({ email: user.email });
 
-    if (existing) throw AppResponse.notFound('user');
     return this.userModel.create({ ...userObj });
   }
 
