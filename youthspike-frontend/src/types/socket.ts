@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { Socket } from 'socket.io-client';
 import React from 'react';
 // import { INetRelatives, IRoom, IRoundRelatives, ITeam, IUserContext } from '.';
@@ -6,13 +7,11 @@ import type { IRoom } from './room';
 import type { IRoundRelatives } from './round';
 import type { ETeam, ITeam } from './team';
 import type { IUserContext } from './user';
-import { IMatchRelatives } from '.';
+import { IMatchRelatives } from './match';
 
 export interface IListenSocketProps {
   socket: Socket;
-  user: IUserContext;
   match: IMatchRelatives;
-  teamA?: ITeam | null;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   currentRound: IRoundRelatives | null;
   currRoundNets: INetRelatives[];

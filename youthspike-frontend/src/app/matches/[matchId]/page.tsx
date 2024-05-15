@@ -143,7 +143,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       const userToken = getCookie('token');
 
       joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId });
-      listenSocketEvents({ socket, user, match: currMatch, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
+      listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, user, teamA, teamB, roundList]);
@@ -170,7 +170,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       }
       setOpSubbedPlayers(nosp);
     }
-  }, [currentRound, myPlayers, opPlayers]);
+  }, [roundList, currentRound, myPlayers, opPlayers]);
 
   // ===== Click on DOM by default to get rid of error when playing audio =====
   useEffect(() => {

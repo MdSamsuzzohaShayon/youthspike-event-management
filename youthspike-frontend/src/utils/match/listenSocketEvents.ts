@@ -6,7 +6,7 @@ import { IMatchComplete, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction 
 import { ETieBreaker } from '@/types/net';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
 
-const listenSocketEvents = ({ socket, user, match, teamA, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
+const listenSocketEvents = ({ socket, match, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
   /**
    * Socket real time connection
    * After joining to the room action button will be visiable
@@ -14,7 +14,7 @@ const listenSocketEvents = ({ socket, user, match, teamA, dispatch, currentRound
 
   // Listen to events
   socket.on('join-room-response', (data: IRoom) => {
-    const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+    // const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
     const extranctedData = { ...data };
     dispatch(setCurrentRoom(extranctedData));
   });
@@ -80,14 +80,14 @@ const listenSocketEvents = ({ socket, user, match, teamA, dispatch, currentRound
           const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
           if (roundObj) {
             const properRoundObj = { ...roundObj };
-            if (roundList[i].num >= data.subbedRound) {
+            if (roundList[i]._id >= data.subbedRound) {
               properRoundObj.subs = data.subbedPlayers;
             }
             // @ts-ignore
             updatedRoundList.push({ ...properRoundObj, ...teamProcessObj });
             if (roomRounds[i]._id === currentRound?._id) {
               // @ts-ignore
-              currRoundObj = { ...currentRound, ...teamProcessObj };
+              currRoundObj = { ...properRoundObj, ...teamProcessObj };
             }
           }
         }

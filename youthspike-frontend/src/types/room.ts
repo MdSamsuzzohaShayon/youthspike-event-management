@@ -31,7 +31,7 @@ export interface IRoom {
 
 export interface IRoomNets extends IRoom {
   nets: INetPlayers[];
-  subbedRound: number;
+  subbedRound: string;
   subbedPlayers: string[];
 }
 

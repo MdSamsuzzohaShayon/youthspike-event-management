@@ -71,7 +71,7 @@ class RoomLocalWithNets {
   subbedPlayers: string[];
 
   @Field((type) => Int, { nullable: false })
-  subbedRound: number;
+  subbedRound: string;
 }
 
 @ObjectType()
@@ -258,7 +258,7 @@ export class MyGatWay implements OnModuleInit {
         teamAProcess: roundExist.teamAProcess,
         teamBProcess: roundExist.teamBProcess,
       };
-      
+
       if (prevRoom.teamAClient === client.id) {
         currRoundObj.teamAProcess = EActionProcess.LINEUP;
       } else {
@@ -299,7 +299,7 @@ export class MyGatWay implements OnModuleInit {
       const roomDataWithNets: RoomLocalWithNets = {
         ...roomData,
         nets: submitLineup.nets,
-        subbedRound: currRoundObj.num,
+        subbedRound: submitLineup.round,
         subbedPlayers: submitLineup.subbedPlayers,
       };
 
