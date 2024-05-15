@@ -4,7 +4,7 @@ import { UserRole } from '@/types/user';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { DELETE_TEAM, MOVE_TEAM } from '@/graphql/teams';
+import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { useRouter } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
@@ -40,7 +40,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
   const [divisionOptions, setDivisionOptions] = useState<IOption[]>([]);
 
   const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
-  const [moveTeamMutation] = useMutation(MOVE_TEAM);
+  const [moveTeamMutation] = useMutation(UPDATE_TEAM);
   const [deleteTeam] = useMutation(DELETE_TEAM);
   const [sendCredentials] = useMutation(SEND_CREDENTIALS);
 
@@ -136,8 +136,9 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
       if (moveTeam.event === '' || moveTeam.division === '') {
         console.log(moveTeam);
       } else {
-        const moveTeamRes = await moveTeamMutation({ variables: { eventId: moveTeam.event, division: moveTeam.division, teamId: team._id } });
+        const moveTeamRes = await moveTeamMutation({ variables: { eventId: moveTeam.event, input: {division: moveTeam.division}, teamId: team._id } });
         console.log(moveTeamRes);
+        if(fefetchFunc)await fefetchFunc();
       }
     } catch (error) {
       console.log(error);

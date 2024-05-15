@@ -2,6 +2,11 @@ import { Field, InputType, ObjectType, PartialType } from '@nestjs/graphql';
 import { IsOptional, IsNotEmpty } from 'class-validator';
 import { ETieBreaker } from 'src/net/net.schema';
 
+export enum ETeam {
+  teamA = 'teamA',
+  teamB = 'teamB',
+}
+
 @InputType()
 export class JoinRoomInput {
   @Field({ nullable: false })
@@ -113,6 +118,9 @@ export class SubmitLineupInput {
 
   @Field({ nullable: false })
   round: string;
+
+  @Field({ nullable: false })
+  teamE: ETeam;
 
   @Field({ nullable: false })
   match: string;

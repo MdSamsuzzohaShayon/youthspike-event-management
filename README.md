@@ -206,6 +206,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 ### Database Action
  -  Change `location` to `description` in all document of match and event
+ - Allow duplicate email for a player `db.players.dropIndex("email_1");`
  ```
  db.events.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
  db.matches.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );

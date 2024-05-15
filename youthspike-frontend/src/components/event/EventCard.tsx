@@ -26,7 +26,7 @@ function EventCard({ event }: IEventCardProps) {
             {`${monthNames[new Date(event.startDate).getMonth()]} ${new Date(event.startDate).getDate()}, ${new Date(event.startDate).getFullYear()} `} -{' '}
             {`${monthNames[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}
           </p>
-          <p>Idaho, Fall, ID</p>
+          {event.description && <p>{event.description}</p> }
         </div>
       </Link>
     </div>

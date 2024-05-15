@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
 import React from 'react';
 import { IError } from './elements';
@@ -34,7 +35,7 @@ export interface IEvent {
   rosterLock: string;
   timeout: number;
   coachPassword: string;
-  location: string;
+  description: string;
 }
 
 export interface IEventAdd extends IDefaultEventMatch {
@@ -52,4 +53,11 @@ export interface IEventAddProps {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
+}
+
+// eslint-disable-next-line no-shadow
+export enum EEventPeriod {
+  UPCOMING = 'UPCOMING',
+  CURRENT = 'CURRENT',
+  PAST = 'PAST',
 }

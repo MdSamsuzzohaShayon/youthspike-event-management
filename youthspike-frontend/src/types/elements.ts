@@ -30,16 +30,30 @@ export interface IColMenu {
   link?: string;
 }
 
+
+// export interface ITextCommon {
+//   lw?: string;
+//   rw?: string;
+//   vertical?: boolean;
+//   extraCls?: string;
+//   lblTxt?: string;
+//   name: string;
+//   required: boolean;
+//   defaultValue?: string | null | undefined;
+//   readOnly?: boolean;
+//   handleInputChange: (e: React.SyntheticEvent) => void;
+// }
+
 export interface ITextInputProps {
+  name: string;
+  handleInputChange: (e: React.SyntheticEvent) => void;
   lw?: string;
   rw?: string;
   vertical?: boolean;
   extraCls?: string;
   lblTxt?: string;
-  name: string;
-  required: boolean;
-  defaultValue: string | null | undefined;
-  handleInputChange: (e: React.SyntheticEvent) => void;
+  required?: boolean;
+  defaultValue?: string | null | undefined;
 }
 
 export interface IDateinputProps {
@@ -137,3 +151,6 @@ export interface ILoginProps {
 export enum EActionTexts {
   INITIALIZE = '',
 }
+
+
+

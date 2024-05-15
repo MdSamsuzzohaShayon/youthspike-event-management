@@ -1,5 +1,6 @@
 import { INetPlayers } from '.';
 import { ETieBreaker } from './net';
+import { ETeam } from './team';
 
 export enum EActionProcess {
   INITIATE = 'INITIATE',
@@ -70,6 +71,7 @@ export interface ISubmitLineupAction extends ICheckInAction {
   teamBId: string;
   match: string | null;
   subbedPlayers: string[];
+  teamE: ETeam;
 }
 
 export interface ITeiBreakerAction extends IActionCommon {

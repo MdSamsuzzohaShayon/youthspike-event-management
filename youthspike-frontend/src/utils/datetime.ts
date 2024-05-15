@@ -2,6 +2,8 @@
 //     // Convert ISO string to Date object
 //     const date = new Date(isoString);
 
+import { EEventPeriod } from '@/types/event';
+
 //     // Format the date using Intl.DateTimeFormat with only date options
 //     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
 //     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
@@ -28,4 +30,21 @@ function readTime(isoTimeString: string) {
   return new Intl.DateTimeFormat('en-US', options).format(date);
 }
 
-export { readDate, readTime };
+function validateMatchDatetime(isoString: string | null): EEventPeriod {
+  if (!isoString || isoString === '') return EEventPeriod.PAST;
+  const targetDate = new Date(isoString);
+  const currDate = new Date();
+
+  targetDate.setHours(0, 0, 0, 0);
+  currDate.setHours(0, 0, 0, 0);
+
+  if (targetDate < currDate) {
+    return EEventPeriod.PAST;
+  }
+  // else if (targetDate > currDate) {
+  //     return EEventPeriod.UPCOMING;
+  // }
+  return EEventPeriod.CURRENT;
+}
+
+export { readDate, readTime, validateMatchDatetime };
