@@ -201,22 +201,6 @@ const UPDATE_TEAM_RAW = `
 const UPDATE_TEAM = gql`${UPDATE_TEAM_RAW}`;
 
 
-const MOVE_TEAM = gql`
-  mutation MoveTeam($eventId: String!, $teamId: String!, $division: String!) {
-    moveTeam(eventId: $eventId, teamId: $teamId, division: $division) {
-      code
-      success
-      message
-      data {
-        _id
-        active
-        division
-        name
-      }
-    }
-  }
-`;
-
 
 const DELETE_TEAM = gql`
 mutation DeleteTeam($teamId: String!) {
@@ -228,4 +212,4 @@ mutation DeleteTeam($teamId: String!) {
 }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, MOVE_TEAM, DELETE_TEAM };
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM };

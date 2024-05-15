@@ -33,6 +33,7 @@ nano .env
 npm install
 nano src/main.ts
 npm run build
+export NODE_ENV="production"
 pm2 start ecosystem.config.js
 
 

@@ -64,6 +64,7 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
     teamBId: teamB?._id ? teamB?._id : 'NO_ID_FOUND',
     subbedPlayers: [],
     nets: [],
+    teamE: myTeamE,
   };
   if (isTeamACaptain || isTeamACoCaptain) {
     actionData.teamAProcess = EActionProcess.LINEUP;

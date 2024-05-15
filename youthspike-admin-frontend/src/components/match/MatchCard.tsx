@@ -83,7 +83,7 @@ function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: Mat
         <input type="checkbox" name="match-select" id="option" className='w-4' />
         <div className="w-10/12 flex items-center justify-center">
           {/* <h2>Match Name</h2> */}
-          <Link href={`${FRONTEND_URL}/matches/${match._id}`} target='_blink' className='btn-info' >Enter</Link>
+          <Link href={`${FRONTEND_URL}/matches/${match._id}`} className='btn-info' >Enter</Link>
         </div>
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 md:h-10 svg-white' role="presentation" onClick={handleOpenAction} />
       </div>

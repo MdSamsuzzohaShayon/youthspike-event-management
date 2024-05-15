@@ -2,18 +2,17 @@
 
 import { GET_EVENTS } from '@/graphql/event';
 import { useLazyQuery } from '@apollo/client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setEventList } from '@/redux/slices/eventSlice';
 import { useAppSelector } from '@/redux/hooks';
-import { IEvent } from '@/types';
+import { imgW } from '@/utils/constant';
+import { APP_NAME } from '@/utils/keys';
+import Image from 'next/image';
 import EventList from './EventList';
 import Loader from '../elements/Loader';
-import EventPagination from './EventPagination';
 
 function EventMainPage() {
-  const EVENT_PAGE_LIMIT = 10;
-
   // ===== Hooks =====
   const dispatch = useDispatch();
 
@@ -24,18 +23,12 @@ function EventMainPage() {
   const { eventList } = useAppSelector((state) => state.events);
 
   // ===== Local State =====
-  const [filteredEventList, setFilteredEventList] = useState<IEvent[]>([]);
-  const [listStart, setListStart] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
       const res = await getEvents();
       if (res?.data?.getEvents?.data) {
-        // dispatch(setEventList(res.data.getEvents.data));
-
-        // const dummyEventList = dummyEvents();
         dispatch(setEventList(res.data.getEvents.data));
-        setFilteredEventList(res.data.getEvents.data.slice(listStart, EVENT_PAGE_LIMIT));
       }
     })();
   }, []);
@@ -44,12 +37,12 @@ function EventMainPage() {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      <h1>Events</h1>
-      <div className="event-list mt-4">{filteredEventList && filteredEventList.length > 0 && <EventList eventList={filteredEventList} />}</div>
-
-      <div className="psgination-wrapper w-full mt-4 ">
-        <EventPagination EVENT_PAGE_LIMIT={EVENT_PAGE_LIMIT} listStart={listStart} eventList={eventList} setListStart={setListStart} setFilteredEventList={setFilteredEventList} />
+      <div className="logo-wrapper w-full flex items-center justify-center mt-4">
+        <Image src="/free-logo.png" height={imgW.xs} width={imgW.xs} alt={APP_NAME} className="w-32" />
       </div>
+      <h1 className="mt-8">Events</h1>
+
+      <div className="event-list mt-4">{eventList && eventList.length > 0 && <EventList eventList={eventList} />}</div>
     </div>
   );
 }

@@ -1,19 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor } from './event';
-import {
-  ITextInputProps,
-  IError,
-  IOption,
-  ISelectInputProps,
-  INumberInputProps,
-  IToggleInputProps,
-  IButtonProps,
-  IMenuItem,
-  IMenuArrangeProps,
-  IFileFileProps,
-  ILoginProps,
-  IColMenu,
-} from './elements';
+import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps } from './elements';
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
 import { IPlayer } from './player';
@@ -34,6 +21,7 @@ export type {
   IMenuArrangeProps,
   ILoginProps,
   IColMenu,
+  ITextInputProps,
 
   // Event
   IEvent,
@@ -99,5 +87,4 @@ export type {
   INotTwoPointNetProps,
   ICheckInToLineupProps,
   ICompleteMatchProps,
-  
 };

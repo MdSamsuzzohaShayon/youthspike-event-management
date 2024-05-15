@@ -12,6 +12,7 @@ import {
   RoundChangeInput,
   TieBreakerInput,
   NetTieBreaker,
+  ETeam,
 } from './gateway.input';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
@@ -261,11 +262,29 @@ export class MyGatWay implements OnModuleInit {
 
       if (prevRoom.teamAClient === client.id) {
         currRoundObj.teamAProcess = EActionProcess.LINEUP;
+      } else if (prevRoom.teamBClient === client.id) {
+        currRoundObj.teamBProcess = EActionProcess.LINEUP;
       } else {
-        if (currRoundObj.teamBProcess === EActionProcess.LINEUP) {
+        /**
+         * Check the team is it team A or team B -> check it properly
+         * Check They filled the net or not
+         */
+        if (submitLineup.teamE === ETeam.teamA) {
+          let filled = true;
+          for (let nI = 0; nI < submitLineup.nets.length; nI += 1) {
+            if (!submitLineup.nets[nI].teamAPlayerA || !submitLineup.nets[nI].teamAPlayerB) filled = false;
+          }
+          if (!filled) return;
           currRoundObj.teamAProcess = EActionProcess.LINEUP;
-        } else {
+        } else if (submitLineup.teamE === ETeam.teamB) {
+          let filled = true;
+          for (let nI = 0; nI < submitLineup.nets.length; nI += 1) {
+            if (!submitLineup.nets[nI].teamBPlayerA || !submitLineup.nets[nI].teamBPlayerB) filled = false;
+          }
+          if (!filled) return;
           currRoundObj.teamBProcess = EActionProcess.LINEUP;
+        } else {
+          return;
         }
       }
 

@@ -11,6 +11,7 @@ import { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, UPDATE_MATCH } from '@/grap
 import { assignStrategies } from '@/utils/staticData';
 import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
+import { useRouter } from 'next/navigation';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -68,7 +69,9 @@ function MatchAdd({ eventId,
 
     // GraphQL
     const [createMatch, { client }] = useMutation(CREATE_MATCH);
-    const [mutateMatch, { client: updateClient }] = useMutation(UPDATE_MATCH)
+    const [mutateMatch, { client: updateClient }] = useMutation(UPDATE_MATCH);
+
+    const router = useRouter();
 
     /**
      * Input change
@@ -120,7 +123,7 @@ function MatchAdd({ eventId,
      */
     const handleAddMatch = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, addMatchCB });
+        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB });
     }
 
     /**

@@ -1,3 +1,5 @@
+import { EEventPeriod } from "@/types/event";
+
 const screen = {
   xs: 500,
 };
@@ -32,6 +34,8 @@ const imgW ={
   xxl: 1400,
 };
 
+const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST,];
+
 
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods };

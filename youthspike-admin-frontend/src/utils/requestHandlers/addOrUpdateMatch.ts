@@ -1,6 +1,7 @@
 import { GET_EVENT_WITH_MATCHES_TEAMS } from "@/graphql/matches";
 import { IAddMatch, IError, IMatch, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
+import { Router } from "next/router";
 import React from "react";
 
 interface IAddOrUpdateMatchProps {
@@ -15,10 +16,11 @@ interface IAddOrUpdateMatchProps {
     matchId?: string;
     update?: boolean;
     showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
+    router?: Router;
     addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
-async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, addMatchCB }: IAddOrUpdateMatchProps) {
+async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
     try {
         setIsLoading(true);
         let matchRes = null;
@@ -47,6 +49,11 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             setActErr(null);
         }
         if (showAddMatch) showAddMatch(false);
+        if(update && router){
+            if(matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299){
+                router.push(`/${eventId}/matches`);
+            }
+        }
     } catch (error) {
         console.log(error);
     } finally {

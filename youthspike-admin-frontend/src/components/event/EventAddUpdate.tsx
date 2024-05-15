@@ -254,8 +254,16 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     }
     */
 
-  const handleLogoChange = (uploadedFile: File) => {
-    eventLogo.current = uploadedFile;
+  // const handleLogoChange = (uploadedFile: File) => {
+  //   eventLogo.current = uploadedFile;
+  // };
+
+  const handleLogoChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    if(inputEl.files && inputEl.files.length > 0){
+      eventLogo.current = inputEl.files[0];
+    }
   };
 
   /**
