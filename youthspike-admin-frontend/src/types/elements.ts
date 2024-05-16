@@ -24,7 +24,7 @@ export interface ITextCommon {
   extraCls?: string;
   lblTxt?: string;
   name: string;
-  required: boolean;
+  required?: boolean;
   defaultValue?: string | null | undefined;
   readOnly?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
@@ -63,7 +63,7 @@ export interface IFileFileProps {
   lblTxt?: string;
   name: string;
   defaultValue?: string | undefined | null;
-  handleFileChange: (uploadedFile: File) => void;
+  handleFileChange: (e: React.SyntheticEvent) => void;
 }
 
 export interface IAnyFileFileProps {

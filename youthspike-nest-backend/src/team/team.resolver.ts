@@ -252,6 +252,11 @@ export class TeamResolver {
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
       if (logoUrl) teamObj.logo = logoUrl;
 
+      if (input.event && input.event !== teamExist.event.toString()) {
+        updatePromises.push(this.eventService.updateOne({ _id: eventId }, { $pull: { teams: [teamId] } })); // Previous event
+        updatePromises.push(this.eventService.updateOne({ _id: input.event }, { $push: { teams: [teamId] } })); // New event
+      }
+
       // =====  Update players =====
       const players = input.players ? input.players : [];
       const prevPlayerIds = teamExist.players.map((pId) => pId.toString());
@@ -279,7 +284,6 @@ export class TeamResolver {
       return AppResponse.handleError(err);
     }
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)

@@ -23,6 +23,7 @@ rounds
 netVariance
 rosterLock
 timeout
+fwango
 sponsors {
   _id
   company

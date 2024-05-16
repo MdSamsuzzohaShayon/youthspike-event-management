@@ -41,7 +41,7 @@ import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
-import { hasTimePassed, setMusicPlayedTime } from '@/utils/localStorage';
+import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
 import { APP_NAME } from '@/utils/keys';
 import { imgW } from '@/utils/constant';
 import Image from 'next/image';
@@ -86,11 +86,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, myTeamE, myTeam, opTeam, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
+  const { myPlayers, opPlayers, myTeamE, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
   // ===== GraphAL =====
-  const [fetchMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
+  const [getMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -122,8 +122,10 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
     if (isValidObjectId(params.matchId)) {
       (async () => {
-        const result = await fetchMatch({ variables: { matchId: params.matchId } });
+        const result = await getMatch({ variables: { matchId: params.matchId } });
         if (result?.data?.getMatch?.data) {
+          if (result.data.getMatch.data?.event?._id) setEvent(result.data.getMatch.data.event._id);
+
           organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
         } else {
           dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
@@ -133,8 +135,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' }));
     }
 
+    return ()=>{
+      removeEvent();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.getMatch?.data, fetchMatch, params.matchId]); // props, client
+  }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
 
   // ===== Web Socket Real Time connection =====
   useEffect(() => {

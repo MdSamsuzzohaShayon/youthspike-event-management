@@ -59,16 +59,16 @@ export class EmailsenderResolver {
   ): Promise<AppResponse> {
     try {
       const sendPromises: Promise<void>[] = [];
-      const subject = 'Credentials for Your Event';
-      const htmlFileName = 'send-credentials.html';
 
       // Retrieve event details
-      const event = await this.eventService.findById(eventId);
-      if (!event) {
+      const eventExist = await this.eventService.findById(eventId);
+      if (!eventExist) {
         return AppResponse.notFound('Event');
       }
+      const subject = `Credentials for ${eventExist.name}`;
+      const htmlFileName = 'send-credentials.html';
 
-      const ldo = await this.ldoService.findByDirectorId(event.ldo.toString());
+      const ldo = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
       const director = await this.userService.findById(ldo.director.toString());
 
       // Prepare list of recipients based on specified parameters
@@ -87,7 +87,7 @@ export class EmailsenderResolver {
         }
       } else {
         // Send credentials to captains and co-captains of all teams in the event
-        const teams = await this.teamService.query({ _id: { $in: event.teams } });
+        const teams = await this.teamService.query({ _id: { $in: eventExist.teams } });
         for (const team of teams) {
           if (team.captain) {
             recipients.push(team.captain.toString());
@@ -106,18 +106,19 @@ export class EmailsenderResolver {
           if (this.configService.get<string>('NODE_ENV') === 'development') {
             sendTo.push('mdsamsuzzoha5222@gmail.com');
           }
-          const eventDateFormatted = this.formatDateToCustomString(event.startDate);
+          const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
           sendPromises.push(
             this.emailsenderService.sendHtmlEmail({
               to: sendTo,
               subject,
               htmlFileName,
               player_username: player.username,
-              coach_password: event.coachPassword,
+              coach_password: eventExist.coachPassword,
               ldo_name: ldo.name,
               director_email: director.email,
               captain_name: player.firstName,
               event_date: eventDateFormatted,
+              fwango_link: eventExist.fwango,
             }),
           );
         }

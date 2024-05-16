@@ -20,7 +20,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
    * Set action box values
    */
 
-  const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed } = matchData;
+  const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed, fwango } = matchData;
 
   // Setting teams
   dispatch(setTeamA({ ...teamAF }));
@@ -177,6 +177,7 @@ const organizeFetchedData = (matchData: IMatchExpRel, token: string | null, user
       description,
       numberOfNets,
       numberOfRounds,
+      fwango,
       teamA: teamAF._id,
       teamB: teamBF._id,
       event: event._id,

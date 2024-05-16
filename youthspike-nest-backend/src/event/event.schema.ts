@@ -49,6 +49,11 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   playerLimit?: number;
 
+  // fwango
+  @Field({ nullable: true })
+  @Prop({ required: false, })
+  fwango?: string;
+
   /**
    * Database Relationship
    */

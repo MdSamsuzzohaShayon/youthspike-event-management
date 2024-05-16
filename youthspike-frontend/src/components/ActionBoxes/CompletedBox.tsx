@@ -22,6 +22,7 @@ function CompletedBox() {
   // ===== Redux State =====
   const [teamAPoints, setTeamAPoints] = useState<number>(0);
   const [teamBPoints, setTeamBPoints] = useState<number>(0);
+  const [winningTeam, setWinningTeam] = useState<string | null>(null);
 
   // ===== Redux State =====
   const { match, myTeamE } = useAppSelector((state) => state.matches);
@@ -52,19 +53,46 @@ function CompletedBox() {
   useEffect(() => {
     let tap = 0;
     let tbp = 0;
-    for (let i = 0; i < currRoundNets.length; i += 1) {
-      // @ts-ignore
-      if (currRoundNets[i].teamAScore > currRoundNets[i].teamBScore) {
-        tap += currRoundNets[i].points;
-      } else {
-        tbp += currRoundNets[i].points;
+    // All rounds, current rounds
+
+    const roundPlayedTill = roundList.filter((rp) => rp.num <= (currentRound?.num || 1));
+    for (let rI = 0; rI < roundPlayedTill.length; rI += 1) {
+      const netsPlayedInThisRound = allNets.filter((an) => an.round === roundPlayedTill[rI]._id);
+
+      for (let i = 0; i < netsPlayedInThisRound.length; i += 1) {
+        if ((netsPlayedInThisRound[i].teamAScore || 0) > (netsPlayedInThisRound[i].teamBScore || 0)) {
+          tap += netsPlayedInThisRound[i].points;
+        } else {
+          tbp += netsPlayedInThisRound[i].points;
+        }
       }
+    }
+
+    if (tap > tbp) {
+      setWinningTeam(teamA?._id || '');
+    } else if (tap < tbp) {
+      setWinningTeam(teamB?._id || '');
+    } else {
+      setWinningTeam(null);
     }
     setTeamAPoints(tap);
     setTeamBPoints(tbp);
   }, [currRoundNets]);
 
   const teamScoreBoard = ({ team, teamPoints }: ITeamScoreBoard) => {
+    let bgColor = 'bg-white';
+    let textColor = 'text-black';
+
+    if (winningTeam) {
+      if (winningTeam === team?._id) {
+        bgColor = 'bg-white';
+        textColor = 'text-black';
+      } else {
+        bgColor = 'bg-green-500';
+        textColor = 'text-white';
+      }
+    }
+
     return (
       <div className="w-full flex justify-center items-center flex-col">
         {team?.logo ? (
@@ -75,7 +103,7 @@ function CompletedBox() {
           <TextImg fullText={team?.name} className="w-20 h-20" />
         )}
         <h2>{team?.name}</h2>
-        <div className="h-24 w-24 bg-white text-gray-900 rounded-lg flex justify-center items-center">
+        <div className={`h-24 w-24 ${bgColor} ${textColor} rounded-lg flex justify-center items-center`}>
           <h2>{teamPoints}</h2>
         </div>
       </div>
@@ -92,9 +120,14 @@ function CompletedBox() {
       <div className="w-2/6 flex justify-center items-center flex-col gap-y-2">
         {roundList.length === currentRound?.num ? (
           <>
-            <h2>Both team have completed their rounds!</h2>
+            {winningTeam && (
+              <>
+                <h2 className="uppercase">{winningTeam === teamA?._id ? teamA.name : teamB?.name}</h2>
+                <h2 className="uppercase">Wins the match</h2>
+              </>
+            )}
             <Link href={`${ADMIN_FRONTEND_URL}/${match.event}/matches`} className="btn-success">
-              Matches
+              Next Match
             </Link>
           </>
         ) : (

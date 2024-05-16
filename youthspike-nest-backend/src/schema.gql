@@ -120,6 +120,7 @@ type Match {
   rosterLock: String
   timeout: Float
   description: String
+  fwango: String
   completed: Boolean
 }
 
@@ -139,6 +140,7 @@ type Event {
   active: Boolean!
   sendCredentials: Boolean
   playerLimit: Int!
+  fwango: String
   ldo: LDO!
   players: [Player!]!
   teams: [Team!]!
@@ -474,9 +476,9 @@ input CreateEventInput {
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
-  passcode: String
-  coachPassword: String
-  description: String
+  coachPassword: String!
+  fwango: String
+  description: String!
   ldo: String!
   id: String
 }
@@ -496,8 +498,8 @@ input UpdateEventInput {
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
-  passcode: String
   coachPassword: String
+  fwango: String
   description: String
   ldo: String
   id: String
@@ -544,6 +546,7 @@ input CreateMatchInput {
   rosterLock: String
   timeout: Int
   description: String!
+  fwango: String!
 }
 
 input UpdateMatchInput {
@@ -562,6 +565,7 @@ input UpdateMatchInput {
   rosterLock: String
   timeout: Int
   description: String
+  fwango: String
 }
 
 input UpdateRoundInput {

@@ -67,13 +67,13 @@ export class CreateEventInput {
   @Field(() => Int, { nullable: true })
   timeout: number;
 
-  @Field({ nullable: true })
-  passcode: string;
-
-  @Field({ nullable: true })
+  @Field({ nullable: false })
   coachPassword: string;
 
   @Field({ nullable: true })
+  fwango?: string;
+
+  @Field({ nullable: false })
   description: string;
 
   @Field()

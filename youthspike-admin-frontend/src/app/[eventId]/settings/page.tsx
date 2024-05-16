@@ -62,8 +62,6 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   
   const prevEvent = data?.getEvent?.data;  
   const prevPlayer = playerData?.getPlayer?.data;
-
-  console.log({prevPlayer});
   
 
   return (

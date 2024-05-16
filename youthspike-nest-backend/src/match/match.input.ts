@@ -47,6 +47,9 @@ export class CreateMatchInput {
 
   @Field({ nullable: false })
   description?: string;
+
+  @Field({ nullable: false })
+  fwango?: string;
 }
 
 @InputType()

@@ -31,7 +31,7 @@ const MatchList: React.FC<IMatchListProps> = ({
   setActErr,
   refetchFunc
 }) => {
-  const [filterParams, setFilterParams] = useState<IFilterParams>({date: EEventPeriod.CURRENT});
+  const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
   const user = useUser();
 
@@ -118,12 +118,6 @@ const MatchList: React.FC<IMatchListProps> = ({
           defaultValue={EEventPeriod.CURRENT}
           handleSelect={handlePeriodChange}
         />
-        <TextInput
-          name="description"
-          vertical
-          required={false}
-          handleInputChange={handleDescriptionChange}
-        />
         <SelectInput
           name="opponent"
           optionList={getSelectableOpponents().map((t) => ({
@@ -135,6 +129,13 @@ const MatchList: React.FC<IMatchListProps> = ({
           vertical
           handleSelect={handleOpponentChange}
         />
+        <TextInput
+          name="description"
+          vertical
+          required={false}
+          handleInputChange={handleDescriptionChange}
+        />
+
       </div>
 
       {filteredMatchList.map((match: IMatchExpRel, i) => (

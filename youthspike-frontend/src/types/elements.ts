@@ -8,6 +8,7 @@ export interface IMenuItem {
   imgName: string;
   text: string;
   link: string;
+  admin: boolean;
 }
 
 export enum EAssignStrategies {

@@ -44,7 +44,7 @@ function EventList({ eventList }: { eventList: IEvent[] }) {
 
     if (filterParams.search) {
       const searchText = filterParams.search.trim().toLowerCase();
-      filteredList = filteredList.filter((match) => match.description?.toLowerCase().includes(searchText));
+      filteredList = filteredList.filter((event) => event.name?.toLowerCase().includes(searchText) || event.description?.toLowerCase().includes(searchText));
     }
 
     setFilteredEventList([...filteredList]);

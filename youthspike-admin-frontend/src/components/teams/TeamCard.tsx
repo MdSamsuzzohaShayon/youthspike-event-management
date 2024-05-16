@@ -136,7 +136,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
       if (moveTeam.event === '' || moveTeam.division === '') {
         console.log(moveTeam);
       } else {
-        const moveTeamRes = await moveTeamMutation({ variables: { eventId: moveTeam.event, input: {division: moveTeam.division}, teamId: team._id } });
+        const moveTeamRes = await moveTeamMutation({ variables: { eventId, input: {division: moveTeam.division, event: moveTeam.event}, teamId: team._id } });
         console.log(moveTeamRes);
         if(fefetchFunc)await fefetchFunc();
       }
