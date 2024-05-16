@@ -28,7 +28,6 @@ interface IMatchLS {
   date: string;
 }
 
-
 const expiredMatches = (matchList: IMatchLS[]): IMatchLS[] => {
   const newMatchList = [];
   const currentDate = new Date();
@@ -74,8 +73,6 @@ const setMatch = (matchId: string, roundId: string) => {
   localStorage.setItem(MATCHES_LS, JSON.stringify(validMatches));
 };
 
-
-
 const getMatch = (matchId: string): null | IMatchLS => {
   const matchesLs = localStorage.getItem(MATCHES_LS);
   if (!matchesLs) return null;
@@ -88,4 +85,17 @@ const getMatch = (matchId: string): null | IMatchLS => {
   return null;
 };
 
-export { hasTimePassed, setMusicPlayedTime, setMatch, getMatch };
+const setEvent = (eventId: string) => {
+  if (eventId) localStorage.setItem('eventId', eventId);
+};
+
+const getEvent = (): string | null => {
+  const eventId = localStorage.getItem('eventId');
+  return eventId ?? null;
+};
+
+const removeEvent = () => {
+  localStorage.removeItem('eventId');
+};
+
+export { hasTimePassed, setMusicPlayedTime, setMatch, getMatch, setEvent, getEvent, removeEvent };

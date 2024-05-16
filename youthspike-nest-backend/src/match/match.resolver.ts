@@ -70,6 +70,7 @@ export class MatchResolver {
       if (!matchObj.rosterLock) matchObj.rosterLock = eventExist.rosterLock;
       if (!matchObj.timeout) matchObj.timeout = eventExist.timeout;
       if (!matchObj.description) matchObj.description = eventExist.description;
+      if (!matchObj.fwango) matchObj.fwango = eventExist.fwango;
 
       const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB });
       const newMatch = await this.matchService.create({ ...matchObj, room: newRoom._id });

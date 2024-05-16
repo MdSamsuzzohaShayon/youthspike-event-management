@@ -155,6 +155,7 @@ function MatchAdd({ eventId,
                 mObj.rosterLock = eventData.rosterLock;
                 mObj.homeTeam = eventData.homeTeam;
                 mObj.description = eventData.description;
+                mObj.fwango = eventData?.fwango;
             }
         }
         setAddMatch(mObj);
@@ -182,6 +183,7 @@ function MatchAdd({ eventId,
             <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
             <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
+            <TextInput handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={addMatch.fwango} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} vertical extraCls='md:w-5/12' />
             <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
         </form>

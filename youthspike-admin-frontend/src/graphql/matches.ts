@@ -17,6 +17,7 @@ const eventResponse = `
     rosterLock
     timeout
     startDate
+    fwango
 `;
 
 const roundResponse = `

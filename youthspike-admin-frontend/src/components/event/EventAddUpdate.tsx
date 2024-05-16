@@ -17,10 +17,6 @@ import SelectInput from '../elements/forms/SelectInput';
 import TextInput from '../elements/forms/TextInput';
 import NumberInput from '../elements/forms/NumberInput';
 
-// Utils/Config
-
-// TypeScript
-
 import staticData from '../../lib/data.json';
 import DateInput from '../elements/forms/DateInput';
 import ShowDivisions from './ShowDivisions';
@@ -29,8 +25,6 @@ import useClickOutside from '../../hooks/useClickOutside';
 import AnyFileInput from '../elements/forms/AnyFileInput';
 import FileInput from '../elements/forms/FileInput';
 import TextareaInput from '../elements/forms/TextareaInput';
-import ImageInput from '../elements/forms/ImageInput';
-
 // Select Input Options
 const { homeTeamStrategy, rosterLockList } = staticData;
 
@@ -49,6 +43,7 @@ const initialEvent: IEventAdd = {
   playerLimit: 10,
   active: true,
   timeout: 3,
+  fwango: null,
   coachPassword: 'Spikeball',
   description: 'USA',
 };
@@ -206,18 +201,13 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
   const handleFileNameChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
-    // if (!update) {
-    //     setCurrSponsor((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    // } else {
-    //     setEventState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    // }
-
     setCurrSponsor((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
   };
 
   const handleFileChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const fileInputEl = e.target as HTMLInputElement;
+    // @ts-ignore
     sponsorInputEl.current = fileInputEl;
     if (!fileInputEl.files || fileInputEl.files.length === 0) return;
 
@@ -312,6 +302,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
 
         if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
           for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
+            // @ts-ignore
             sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
           }
         }
@@ -322,6 +313,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
         // If fetching fails, fall back to using the previous event sponsors
         if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
           for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
+            // @ts-ignore
             sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
           }
         }
@@ -387,6 +379,9 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       <NumberInput required lblTxt="Sub Clock" name="timeout" defaultValue={eventState.timeout} handleInputChange={handleInputChange} />
 
       <TextInput handleInputChange={handleInputChange} lblTxt="Coach Password" name="coachPassword" required defaultValue={eventState.coachPassword} rw="w-3/6" lw="w-3/6" />
+
+      <TextInput handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={eventState.fwango} rw="w-3/6" lw="w-3/6" />
+
       <TextareaInput handleInputChange={handleInputChange} name="description" vertical required defaultValue={eventState.description} rw="w-3/6" lw="w-3/6" />
 
       {/* File upload start  */}

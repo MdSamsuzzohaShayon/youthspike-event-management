@@ -92,6 +92,10 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true })
   @Prop({ required: false })
+  fwango?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
   completed: boolean;
 }
 

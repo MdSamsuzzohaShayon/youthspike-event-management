@@ -4,7 +4,7 @@ import { IMatchRelatives, ITeam } from '@/types';
 import { readDate } from '@/utils/datetime';
 import { AdvancedImage } from '@cloudinary/react';
 import React, { useRef } from 'react';
-import { EMenuTitle } from '@/types/elements';
+import { EMenuTitle, IColMenu } from '@/types/elements';
 import { setSelectedColItem } from '@/redux/slices/elementSlice';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -43,14 +43,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
     dispatch(setSelectedColItem(menuItem));
   };
 
-  const renderMenuItem = (cm: any) => {
-    if (cm.link) {
-      return (
-        <Link href={cm.link} key={cm.id} target="_blink" className="item-link border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4">
-          {cm.title}{' '}
-        </Link>
-      );
-    }
+  const renderMenuItem = (cm: IColMenu) => {
     if (cm.title === EMenuTitle.EDIT_MATCH) {
       return (
         <Link href={`${ADMIN_FRONTEND_URL}/matches/${match._id}`} key={cm.id} target="_blink" className="item-link border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4">
@@ -75,10 +68,6 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
     );
   };
 
-
-
-
-
   return (
     <>
       <dialog ref={dialogSettingEl} className="w-5/6 bg-white text-gray-900 h-5/6">
@@ -99,7 +88,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
             <div className="detail m-2">
               <h3>{ldo?.name}</h3>
               <p>Date: {readDate(match.date)}</p>
-              <p>Location: {match.location}</p>
+              <p>Location: {match.description}</p>
             </div>
           </div>
 
@@ -125,6 +114,11 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
           )}
 
           {/* Render Menu Items */}
+          {match.fwango && (
+            <Link href={match.fwango} target="_blink" className="item-link uppercase border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4">
+              Fwang Link
+            </Link>
+          )}
           {colMenus.map((cm) => renderMenuItem(cm))}
         </div>
       </dialog>

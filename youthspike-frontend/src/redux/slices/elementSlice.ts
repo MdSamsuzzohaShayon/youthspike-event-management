@@ -16,7 +16,6 @@ export interface ElementState {
 const initialStrategyList = [EAssignStrategies.ANCHOR, EAssignStrategies.RANDOM, EAssignStrategies.HIERARCHY];
 
 const initialColMenu = [
-  { id: 1, title: EMenuTitle.FWANGO, link:`https://fwango.io/` },
   { id: 2, title: EMenuTitle.EDIT_MATCH },
   { id: 3, title: EMenuTitle.EDIT_ROSTER },
   { id: 4, title: EMenuTitle.DASHBOARD },

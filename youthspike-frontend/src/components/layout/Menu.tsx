@@ -7,26 +7,55 @@ import { IMenuItem } from '@/types';
 import Link from 'next/link';
 import { removeCookie, getCookie } from '@/utils/cookie';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
+import { useParams } from 'next/navigation';
 import MenuItem from './MenuItem';
+import { getEvent } from '@/utils/localStorage';
 
-const initialUserMenuList: IMenuItem[] = [
+const userMenuList: IMenuItem[] = [
   {
     id: 1,
     imgName: 'trophy',
     text: 'Home',
     link: '/', // // Event settings
+    admin: false,
   },
   {
     id: 2,
     imgName: 'teams',
     text: 'Events',
     link: '/events',
+    admin: false,
+  },
+];
+
+const adminMenuList: IMenuItem[] = [
+  {
+    id: 4,
+    imgName: 'trophy',
+    text: 'Matches',
+    link: '/matches', // // Event settings
+    admin: true,
   },
   {
-    id: 3,
+    id: 5,
+    imgName: 'trophy',
+    text: 'Teams',
+    link: '/teams', // // Event settings
+    admin: true,
+  },
+  {
+    id: 6,
+    imgName: 'trophy',
+    text: 'Players',
+    link: '/players', // // Event settings
+    admin: true,
+  },
+  {
+    id: 7,
     imgName: 'setting',
-    text: 'Dashboard',
-    link: '/dashboard',
+    text: 'Settings',
+    link: '/settings',
+    admin: true,
   },
 ];
 
@@ -42,10 +71,10 @@ const initialUser = {
 
 function Menu() {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
-  const [eventId, setEventId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
   const [user, setUser] = useState<ICookieUser>(initialUser);
+
+  const params = useParams();
 
   const openMenuHandler = () => {
     // eslint-disable-next-line no-unused-expressions
@@ -78,16 +107,21 @@ function Menu() {
     }
   }, []);
 
+
   // =====  Render sub components =====
-  const renderMenuItems = (eId: string | null, uml: IMenuItem[]) => {
-    // uml = user menu list
+  const renderMenuItems = () => {
+    const eventId = params?.eventId || getEvent() ;
+    
+    let itemList = userMenuList;
+    const instantToken = getCookie('token');
+    if (instantToken && eventId) {
+      itemList = [...userMenuList, ...adminMenuList];
+    }
     const menuItems: React.ReactNode[] = [];
-    for (let i = 0; i < uml.length; i+=1) {
-      let newLink: string = '';
-      if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) newLink = `/${eId}`;
-      menuItems.push(
-        <MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text} link={uml[i].id === 3 ? ADMIN_FRONTEND_URL : `${newLink}${uml[i].link}`} />,
-      );
+    for (let i = 0; i < itemList.length; i += 1) {
+      let newLink: string = itemList[i].link;
+      if (eventId && instantToken && itemList[i].admin) newLink = `${ADMIN_FRONTEND_URL}/${eventId}/${itemList[i].link}`;
+      menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={itemList[i].id} icon={`/icons/${itemList[i].imgName}.svg`} text={itemList[i].text} link={newLink} />);
     }
 
     return menuItems;
@@ -115,7 +149,7 @@ function Menu() {
             <p className="uppercase text-yellow-400 mt-1">{user.info?.role}</p>
           </div>
           <div className="league-director w-full flex justify-between items-center mb-8">{user?.info?.role === UserRole.admin && <h1 className="text-2xl">Admin</h1>}</div>
-          {eventId && (
+          {params?.eventId && (
             <div className="league mb-8 w-full">
               <Link href="/" className="text-2xl">
                 Event
@@ -123,7 +157,7 @@ function Menu() {
             </div>
           )}
           <ul className="menu-list flex justify-start flex-col gap-8">
-            {renderMenuItems(eventId, userMenuList)}
+            {renderMenuItems()}
             {user && user.token && user.token !== '' && (
               <li>
                 <button className="btn-danger" type="button" onClick={handleLogout}>

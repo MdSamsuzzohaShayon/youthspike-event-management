@@ -17,7 +17,7 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
   const [actErr, setActErr]= useState<IError | null>(null);
 
 
-  const { data, error, loading, refetch } = useQuery(GET_A_PLAYER, { variables: { playerId: params.playerId } });
+  const { data, error, loading, refetch } = useQuery(GET_A_PLAYER, { variables: { playerId: params.playerId }, fetchPolicy: "network-only" });
   const { data: eventData, error: eventErr, loading: eventLoading } = useQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
 
   // ======  Callback functions ====== 

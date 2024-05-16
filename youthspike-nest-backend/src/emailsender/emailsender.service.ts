@@ -3,11 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Player } from 'src/player/player.schema';
-import { Event } from 'src/event/event.schema';
-import { LDO } from 'src/ldo/ldo.schema';
-import { User } from 'src/user/user.schema';
-import { ObjectType } from '@nestjs/graphql';
 
 interface ITemplateParams {
   to: string[];
@@ -19,6 +14,7 @@ interface ITemplateParams {
   director_email: string;
   captain_name: string;
   event_date: string;
+  fwango_link?: string | null;
 }
 
 @Injectable()
@@ -44,15 +40,16 @@ export class EmailsenderService {
     director_email,
     captain_name,
     event_date,
+    fwango_link
   }: ITemplateParams) {
     try {
       const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
       const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
 
       const ADMIN_CLIENT_URL = this.configService.get<string>('CLIENT_URL');
-      const FWANGO_URL = this.configService.get<string>('FWANGO_URL');
+      const FWANGO_URL = fwango_link || this.configService.get<string>('FWANGO_URL');
       const AMERICAN_SPIKERS_URL = this.configService.get<string>('AMERICAN_SPIKERS_URL');
-      
+
       // Replace placeholders with actual values
       const replacedHtmlContent = htmlContent
         .replace('{{admin_client_url}}', ADMIN_CLIENT_URL)
@@ -68,7 +65,7 @@ export class EmailsenderService {
         .replace('{{captain}}', captain_name);
 
       await this.transporter.sendMail({
-        from: this.configService.get<string>('EMAIL_USER'),
+        from: `'American Spikers League <${this.configService.get<string>('EMAIL_USER')}>'`,
         to: to.join(', '),
         subject,
         html: replacedHtmlContent,
