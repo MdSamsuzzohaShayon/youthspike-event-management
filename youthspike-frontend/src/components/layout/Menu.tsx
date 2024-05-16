@@ -5,11 +5,11 @@ import React, { useState, useEffect } from 'react';
 import { IUser, UserRole } from '@/types/user';
 import { IMenuItem } from '@/types';
 import Link from 'next/link';
+import { getEvent } from '@/utils/localStorage';
 import { removeCookie, getCookie } from '@/utils/cookie';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { useParams } from 'next/navigation';
 import MenuItem from './MenuItem';
-import { getEvent } from '@/utils/localStorage';
 
 const userMenuList: IMenuItem[] = [
   {
@@ -31,21 +31,21 @@ const userMenuList: IMenuItem[] = [
 const adminMenuList: IMenuItem[] = [
   {
     id: 4,
-    imgName: 'trophy',
+    imgName: 'matches-white',
     text: 'Matches',
     link: '/matches', // // Event settings
     admin: true,
   },
   {
     id: 5,
-    imgName: 'trophy',
+    imgName: 'teams',
     text: 'Teams',
     link: '/teams', // // Event settings
     admin: true,
   },
   {
     id: 6,
-    imgName: 'trophy',
+    imgName: 'players',
     text: 'Players',
     link: '/players', // // Event settings
     admin: true,
