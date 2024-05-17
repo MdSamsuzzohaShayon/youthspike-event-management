@@ -39,6 +39,7 @@ export interface IDirector {
   email: string;
   password: string;
   confirmPassword: string;
+  phone?:string;
 }
 
 export interface IDirectorItem {

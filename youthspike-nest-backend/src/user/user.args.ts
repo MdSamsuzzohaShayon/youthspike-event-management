@@ -9,6 +9,9 @@ export class CreateDirectorArgs {
   @Field({ nullable: false })
   lastName: string;
 
+  @Field({ nullable: true })
+  phone: string;
+
   @Field({ nullable: false })
   email: string;
 

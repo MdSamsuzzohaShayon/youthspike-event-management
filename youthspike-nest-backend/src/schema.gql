@@ -18,6 +18,7 @@ type AppResponse {
 type LDO {
   _id: String
   name: String!
+  phone: String
   logo: String
   director: User
   events: [Event!]
@@ -447,6 +448,7 @@ type Mutation {
 input UpdateUserArgs {
   firstName: String
   lastName: String
+  phone: String
   email: String
   password: String
   name: String
@@ -596,6 +598,7 @@ input UpdateMultipleNetInput {
 input CreateDirectorArgs {
   firstName: String!
   lastName: String!
+  phone: String
   email: String!
   password: String!
   name: String
@@ -604,6 +607,7 @@ input CreateDirectorArgs {
 input UpdateDirectorArgs {
   firstName: String
   lastName: String
+  phone: String
   email: String
   password: String
   name: String

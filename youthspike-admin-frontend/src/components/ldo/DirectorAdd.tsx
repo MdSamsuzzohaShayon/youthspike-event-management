@@ -7,16 +7,11 @@ import { IDirector, ILDO, ILdoUpdate, IError } from '@/types';
 import EmailInput from '../elements/forms/EmailInput';
 import PasswordInput from '../elements/forms/PasswordInput';
 import FileInput from '../elements/forms/FileInput';
-import { getCookie, removeCookie } from '@/utils/cookie';
-import { ADMIN_URL, BACKEND_URL } from '@/utils/keys';
 import { UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW } from '@/graphql/director';
-import Message from '../elements/Message';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@/lib/UserProvider';
-import { UserRole } from '@/types/user';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
 import addOrUpdateDirector from '@/utils/requestHandlers/addOrUpdateDirector';
-import { randomKey } from '@/utils/helper';
+import NumberInput from '../elements/forms/NumberInput';
 
 interface DirectorAddProps {
     update: boolean;
@@ -43,7 +38,7 @@ const initialDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector, ldoId }: DirectorAddProps) {
+function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector, ldoId }: DirectorAddProps) {    
 
     // Hooks
     const user = useUser();
@@ -97,9 +92,11 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
      */
     const handleDirectorSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        addOrUpdateDirector({ directorUpdate, update, setActErr, directorState, ldoState,
+        addOrUpdateDirector({
+            directorUpdate, update, setActErr, directorState, ldoState,
             ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
-            initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, client, e, ldoId })
+            initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, client, e, ldoId
+        })
     };
 
     useEffect(() => {
@@ -109,9 +106,9 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
 
     useEffect(() => {
         if (error) {
-            setActErr({ name: error.name, message: error.message, main: error })
+            setActErr({ success: false, message: error.message })
         } else if (updateError) {
-            setActErr({ name: updateError.name, message: updateError.message, main: updateError })
+            setActErr({ success: false, message: updateError.message })
         }
     }, [error, updateError]);
 
@@ -126,6 +123,8 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             <TextInput vertical defaultValue={directorState.lastName} name='lastName' required={!update} lblTxt='Last Name'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
+            <NumberInput vertical defaultValue={ldoState.phone} name='phone' required={!update}
+                handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
             <EmailInput vertical name='email' required={!update} lblTxt='Email'
                 defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             {/* {update && (

@@ -4,6 +4,7 @@ import { IDirectorItem } from "./user";
 export interface ILDO {
   name: string;
   logo: string;
+  phone?: string;
   director?: IDirector;
   events?: IEvent[]
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react/require-default-props */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React from 'react';
@@ -10,6 +11,7 @@ import PlayerScoreCard from './PlayerScoreCard';
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[];
   screenWidth: number;
+  onTop?: boolean;
 }
 
 // Static variables
@@ -17,7 +19,7 @@ const playersLimit: number = 5;
 const touchThreshold: number = 50;
 const initialStartTrim: number = 0;
 
-function TeamPlayers({ teamPlayers, screenWidth }: ITeamPlayersProps) {
+function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
   // Global States
   const { myTeamE } = useAppSelector((state) => state.matches);
 
@@ -80,7 +82,7 @@ function TeamPlayers({ teamPlayers, screenWidth }: ITeamPlayersProps) {
             trimPlayers.map((player) => (
               // @ts-ignore
               <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-                <PlayerScoreCard player={player} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
+                <PlayerScoreCard player={player} textTop={onTop} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
               </div>
             ))}
           {screenWidth > screen.xs && (

@@ -68,8 +68,8 @@ export class EmailsenderResolver {
       const subject = `Credentials for ${eventExist.name}`;
       const htmlFileName = 'send-credentials.html';
 
-      const ldo = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
-      const director = await this.userService.findById(ldo.director.toString());
+      const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
+      const directorExist = await this.userService.findById(ldoExist.director.toString());
 
       // Prepare list of recipients based on specified parameters
       const recipients: string[] = [];
@@ -114,11 +114,12 @@ export class EmailsenderResolver {
               htmlFileName,
               player_username: player.username,
               coach_password: eventExist.coachPassword,
-              ldo_name: ldo.name,
-              director_email: director.email,
+              ldo_name: ldoExist.name,
+              director_email: directorExist.email,
               captain_name: player.firstName,
               event_date: eventDateFormatted,
               fwango_link: eventExist.fwango,
+              ldo_phone: ldoExist.phone
             }),
           );
         }
