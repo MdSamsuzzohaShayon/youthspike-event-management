@@ -270,10 +270,10 @@ export class LdoResolver {
             // teams, players, matches
             if (event.teams && event.teams.length > 0) {
               const teamIds = event.teams.map((team) => team.toString());
-              promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
+              promisesToDelete.push(this.teamService.delete({ event: event._id }));
 
               // captains
-              const teams = await this.teamService.query({ _id: { $in: teamIds } });
+              const teams = await this.teamService.find({ event: event._id });
               if (teams && teams.length > 0) {
                 const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
                 promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
@@ -285,10 +285,10 @@ export class LdoResolver {
             }
             if (event.matches && event.matches.length > 0) {
               const matchIds = event.matches.map((match) => match.toString());
-              promisesToDelete.push(this.matchService.delete({ _id: { $in: matchIds } }));
+              promisesToDelete.push(this.matchService.delete({ event: event._id }));
 
               // Rounds, nets
-              const matches = await this.matchService.query({ _id: { $in: matchIds } });
+              const matches = await this.matchService.query({ event: event._id });
               if (matches && matches.length > 0) {
                 for (const match of matches) {
                   const roundIds = match.rounds.map((r) => r.toString());
