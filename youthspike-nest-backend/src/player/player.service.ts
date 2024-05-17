@@ -22,32 +22,32 @@ export class PlayerService {
     return this.playerModel.create(inputObj);
   }
 
-  async createMany(input) {
-    const uniqueEmail: string[] = [];
-    const playerDocs = [];
+  async createMany(playerListInput) {
+    // const uniqueEmail: string[] = [];
+    // const playerDocs = [];
 
-    for (const p of input) {
-      if (
-        p.firstName &&
-        p.lastName &&
-        p.email &&
-        p.firstName !== '' &&
-        p.lastName !== '' &&
-        p.email !== '' &&
-        !uniqueEmail.includes(p.email)
-      ) {
-        playerDocs.push(p);
-        uniqueEmail.push(p.email);
-      }
-    }
+    // for (const p of playerListInput) {
+    //   if (
+    //     p.firstName &&
+    //     p.lastName &&
+    //     p.email &&
+    //     p.firstName !== '' &&
+    //     p.lastName !== '' &&
+    //     p.email !== '' &&
+    //     !uniqueEmail.includes(p.email)
+    //   ) {
+    //     playerDocs.push(p);
+    //     uniqueEmail.push(p.email);
+    //   }
+    // }
 
-    const playerList = await this.playerModel.find({ email: { $in: uniqueEmail } });
-    for (let i = 0; i < playerList.length; i++) {
-      const findIndex = playerDocs.findIndex((pd) => pd.email === playerList[i].email);
-      if (findIndex) playerDocs.splice(findIndex, 1);
-    }
+    // const playerList = await this.playerModel.find({ email: { $in: uniqueEmail } });
+    // for (let i = 0; i < playerList.length; i++) {
+    //   const findIndex = playerDocs.findIndex((pd) => pd.email === playerList[i].email);
+    //   if (findIndex) playerDocs.splice(findIndex, 1);
+    // }
 
-    return this.playerModel.insertMany(playerDocs);
+    return this.playerModel.insertMany(playerListInput);
   }
 
   async query(filter: FilterQuery<Player>) {
@@ -87,10 +87,10 @@ export class PlayerService {
 
           // Organize player
           let playerObj = null;
-          if (matchFN && matchLN && matchEmail) {
+          if (matchFN) {
             const [fnk, fnv] = matchFN;
-            const [lnk, lnv] = matchLN;
-            const [ek, ev] = matchEmail;
+            const [lnk, lnv] = matchLN ?? [null, null];
+            const [ek, ev] = matchEmail?? [null, null];;
             playerObj = {
               firstName: fnv,
               lastName: lnv,
@@ -109,14 +109,14 @@ export class PlayerService {
             if (findTeamI !== -1) {
               const newPlayers = [...teams[findTeamI].players];
               playerObj.rank = newPlayers.length === 0 ? 1 : newPlayers.length + 1;
-              if (playerObj && playerObj.email) newPlayers.push(playerObj);
+              if (playerObj) newPlayers.push(playerObj);
               teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
             } else {
               playerObj.rank = 1;
               const teamObj = {
                 name: tv,
                 active: true,
-                players: playerObj && playerObj.email ? [playerObj] : [],
+                players: playerObj ? [playerObj] : [],
                 division: division,
                 captain: null,
                 cocaptain: null,
@@ -125,7 +125,7 @@ export class PlayerService {
               teams.push(teamObj);
             }
           } else {
-            if (playerObj && playerObj.email) unassignedPlayers.push(playerObj);
+            if (playerObj) unassignedPlayers.push(playerObj);
           }
         })
 

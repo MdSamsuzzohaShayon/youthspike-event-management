@@ -31,7 +31,7 @@ export class Player extends AppDocument {
   username?: string;
 
   @Field({ nullable: true })
-  @Prop({ required: false, unique: true })
+  @Prop({ required: false })
   email?: string | null;
 
   @Field((_types) => EPlayerStatus, { nullable: false })
