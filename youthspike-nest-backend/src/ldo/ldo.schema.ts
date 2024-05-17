@@ -18,6 +18,10 @@ export class LDO extends AppDocument {
 
   @Prop({ required: false })
   @Field({ nullable: true })
+  phone?: string;
+
+  @Prop({ required: false })
+  @Field({ nullable: true })
   logo?: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })

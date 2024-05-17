@@ -158,6 +158,9 @@ dialog::backdrop {
 .border-light{
   @apply border border-gray-300
 }
+.border-yellow{
+  @apply border border-yellow-400
+}
 /* Borders end  */
 
 .advanced-img{

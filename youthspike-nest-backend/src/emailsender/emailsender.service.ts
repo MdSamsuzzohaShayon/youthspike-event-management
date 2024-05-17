@@ -15,6 +15,7 @@ interface ITemplateParams {
   captain_name: string;
   event_date: string;
   fwango_link?: string | null;
+  ldo_phone?:string | null;
 }
 
 @Injectable()
@@ -40,15 +41,22 @@ export class EmailsenderService {
     director_email,
     captain_name,
     event_date,
-    fwango_link
+    fwango_link,
+    ldo_phone
   }: ITemplateParams) {
     try {
       const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
       const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
 
-      const ADMIN_CLIENT_URL = this.configService.get<string>('CLIENT_URL');
+      const ADMIN_CLIENT_URL = this.configService.get<string>('ADMIN_CLIENT_URL');
       const FWANGO_URL = fwango_link || this.configService.get<string>('FWANGO_URL');
       const AMERICAN_SPIKERS_URL = this.configService.get<string>('AMERICAN_SPIKERS_URL');
+
+      // eslint-disable-next-line prefer-const, @typescript-eslint/no-inferrable-types
+      let organized_ldo_phone: string = '';
+      if(ldo_phone){
+        organized_ldo_phone = `Phone: ${ldo_phone}`;
+      }
 
       // Replace placeholders with actual values
       const replacedHtmlContent = htmlContent
@@ -58,7 +66,7 @@ export class EmailsenderService {
         .replace('{{ldo_name}}', ldo_name)
 
         .replace('{{ldo_email}}', director_email)
-        .replace('{{ldo_phone}}', '0008887634')
+        .replace('{{ldo_phone}}', organized_ldo_phone)
         .replace('{{event_date}}', event_date)
         .replace('{{fwango_url}}', FWANGO_URL)
         .replace('{{american_spikers_url}}', AMERICAN_SPIKERS_URL)

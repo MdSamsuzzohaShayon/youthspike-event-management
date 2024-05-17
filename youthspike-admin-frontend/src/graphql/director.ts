@@ -45,6 +45,7 @@ const eventResponseLight = `
 const ldoResponse = `
   _id
   name
+  phone
   logo
   director {
     _id

@@ -17,6 +17,7 @@ interface IPlayerScoreCard {
   dark: boolean;
   screenWidth: number;
   myTeamE: ETeam;
+  textTop?: boolean;
   teamPlayer?: ETeamPlayer;
   // eslint-disable-next-line no-unused-vars
   evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
@@ -24,7 +25,7 @@ interface IPlayerScoreCard {
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
 }
 
-function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE }: IPlayerScoreCard) {
+function PlayerScoreCard({ dark, player, textTop, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE }: IPlayerScoreCard) {
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { current: currentRound } = useAppSelector((state) => state.rounds);
@@ -69,38 +70,38 @@ function PlayerScoreCard({ dark, player, teamPlayer, evacuatePlayer, dropdownPla
   }, [currentRoundNets]);
 
   return (
-    <>
-      <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
-        {shouldShowEvacuateButton && (
-          <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full">
-            {myTeamE === ETeam.teamA && cpsca && !dark
-              ? !currentRound?.teamAScore && (
-                  <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
-                )
-              : !currentRound?.teamBScore &&
-                cpsca &&
-                !dark && (
-                  <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
-                )}
-          </div>
-        )}
-
-        {player?.profile ? (
-          <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} />
-        ) : (
-          <Image width={100} height={100} src="/empty-img.jpg" alt="random-img" className="w-full h-full object-center object-cover" role="presentation" onClick={handleDropDown} />
-        )}
-      </div>
-
-      <div className={`p-name-rank w-full flex ${screenWidth > screen.xs ? 'h-7' : 'h-9'}`}>
-        <div className="rank w-4 h-full bg-yellow-400 text-gray-900 text-lg flex justify-center items-center" style={fsToggle(screenWidth)}>
-          {player ? player.rank : 0}
-        </div>
-        <p className={`name flex justify-center items-center w-12 leading-3 capitalize break-words ${dark ? 'text-white' : 'text-gray-900'}`} style={fsToggle(screenWidth)}>
+    <div className="w-full h-full relative overflow-hidden">
+      <p className={`rank w-6 h-6 absolute ${textTop ? 'top-0' : 'bottom-0'} left-0 rounded-full bg-gray-100 text-black z-10 flex justify-center items-center border border-gray-900`}>5</p>
+      {/* {player ? player.rank : 0} */}
+      <div className={`wrapper mt-1 mx-1 border border-yellow rounded-lg overflow-hidden flex ${textTop ? 'flex-col' : 'flex-col-reverse'}`}>
+        <div className="p-name-rank bg-yellow-400 w-full h-8" style={fsToggle(screenWidth)}>
+        {/* flex justify-end items-center py-1 w-12 leading-3 capitalize break-words text-gray-900 h-8 w-5/5 */}
           {!player ? 'N/A' : `${player?.firstName} ${player?.lastName}`}
-        </p>
+        </div>
+
+        <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
+          {shouldShowEvacuateButton && (
+            <div className="absolute top-1 right-1 w-4 bg-gray-900 rounded-full">
+              {myTeamE === ETeam.teamA && cpsca && !dark
+                ? !currentRound?.teamAScore && (
+                    <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
+                  )
+                : !currentRound?.teamBScore &&
+                  cpsca &&
+                  !dark && (
+                    <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="cross" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
+                  )}
+            </div>
+          )}
+
+          {player?.profile ? (
+            <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} />
+          ) : (
+            <Image width={100} height={100} src="/empty-img.jpg" alt="random-img" className="w-full h-full object-center object-cover" role="presentation" onClick={handleDropDown} />
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

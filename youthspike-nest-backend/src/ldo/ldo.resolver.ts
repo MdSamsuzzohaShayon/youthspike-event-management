@@ -57,6 +57,12 @@ export class LdoResolver {
     private netService: NetService,
   ) {}
 
+  refineObject(obj: Record<string, any>): Record<string, any> {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, value]) => value !== undefined && value !== null && value !== ''),
+    );
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
   @Mutation((returns) => GetDirectorLDOResponse)
@@ -92,7 +98,7 @@ export class LdoResolver {
 
       // Update user -> set user id inside ldo
       const ldo = await this.ldoService.create(
-        { name: args.name, logo: logoUrl, events: [] },
+        { name: args.name, phone: args.phone, logo: logoUrl, events: [] },
         directorId,
         `${director.firstName} ${director.lastName} Event`,
       );
@@ -172,8 +178,9 @@ export class LdoResolver {
       updatePromises.push(this.userService.updateOne({ _id: updateUserId }, newUserObj));
 
       // Update user -> set user id inside ldo
-      const updateLdoObj: any = { name: args.name };
+      const updateLdoObj: Partial<LDO> = this.refineObject({ name: args.name, phone: args.phone });
       if (logoUrl) updateLdoObj.logo = logoUrl;
+      const refineLdo = {};
       updatePromises.push(this.ldoService.updateOne({ _id: ldoExist._id }, updateLdoObj));
 
       return {

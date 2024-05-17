@@ -243,12 +243,30 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
           border.light
         } items-center justify-start`}
       >
-        <div className="player-pair flex justify-between w-full">
-          <div className={`player-card team-a-player-1 ${screenWidth > screen.xs ? 'w-12' : 'w-16'} border ${!onTop && border.light}`}>
-            <PlayerScoreCard dark={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
+        <div className="player-pair flex justify-between w-full gap-x-1">
+          <div className="player-card team-a-player-1 w-11/12">
+            <PlayerScoreCard
+              textTop={onTop}
+              dark={onTop}
+              teamPlayer={TPA}
+              player={playerA}
+              dropdownPlayer={handleDropdownPlayer}
+              evacuatePlayer={handleEvacuatePlayer}
+              screenWidth={screenWidth}
+              myTeamE={myTeamE}
+            />
           </div>
-          <div className={`player-card team-a-player-2 ${screenWidth > screen.xs ? 'w-12' : 'w-16'} border ${!onTop && border.light}`}>
-            <PlayerScoreCard dark={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
+          <div className="player-card team-a-player-2 w-11/12">
+            <PlayerScoreCard
+              textTop={onTop}
+              dark={onTop}
+              teamPlayer={TPB}
+              player={playerB}
+              dropdownPlayer={handleDropdownPlayer}
+              evacuatePlayer={handleEvacuatePlayer}
+              screenWidth={screenWidth}
+              myTeamE={myTeamE}
+            />
           </div>
         </div>
         {playerARank && playerBRank && <h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>}

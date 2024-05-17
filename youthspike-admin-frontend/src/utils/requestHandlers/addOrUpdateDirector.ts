@@ -37,7 +37,7 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
     if (update) {
         if (directorUpdateObj.password && directorUpdateObj.password !== '') {
             if (directorUpdateObj.confirmPassword !== directorUpdateObj.password) {
-                return setActErr({ name: "Invalid Password", message: "Password did not match" });
+                return setActErr({ success: false, message: "Password did not match" });
             }
         } else {
             delete directorUpdateObj.password;
@@ -45,12 +45,12 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
         delete directorUpdateObj.confirmPassword;
     } else {
         if (directorState.password !== directorState.confirmPassword) {
-            return setActErr({ name: "Invalid Password", message: "Password did not match" });
+            return setActErr({ success: false, message: "Password did not match" });
         }
     }
 
     const formData = new FormData();
-    const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, email: directorState.email, password: directorState.password };
+    const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, phone: directorState.phone, email: directorState.email, password: directorState.password };
     const updateArgs = { ...ldoUpdate, ...directorUpdateObj };
 
     const updateVar = { args: updateArgs };

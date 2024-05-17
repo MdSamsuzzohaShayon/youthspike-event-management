@@ -63,12 +63,12 @@ function NotTieBreaker({ teamA, teamB, ntbnId, screenWidth, currRoundNets, socke
         <div className="team-players w-full flex justify-center items-center gap-x-8 ">
           {tpa && (
             <div className="player-a w-16">
-              <PlayerScoreCard key={`tb-${teamA?.name}-player-a`} player={pa} dark={false} teamPlayer={pae} screenWidth={screenWidth} myTeamE={myTeamE}/>
+              <PlayerScoreCard key={`tb-${teamA?.name}-player-a`} player={pa} dark={false} textTop teamPlayer={pae} screenWidth={screenWidth} myTeamE={myTeamE}/>
             </div>
           )}
           {tpb && (
             <div className="player-b w-16">
-              <PlayerScoreCard key={`tb-${teamA?.name}-player-b`} player={pb} dark={false} teamPlayer={pbe} screenWidth={screenWidth} myTeamE={myTeamE}/>
+              <PlayerScoreCard key={`tb-${teamA?.name}-player-b`} player={pb} dark={false} textTop={false} teamPlayer={pbe} screenWidth={screenWidth} myTeamE={myTeamE}/>
             </div>
           )}
         </div>

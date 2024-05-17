@@ -51,10 +51,10 @@ function VerifyLineup() {
           <div className={`w-full flex justify-between items-center border-t ${border.light}`}>
             <div className="players w-4/6 p-1 text-start flex justify-between items-center">
               <div className="player-wrapper w-3/6 px-1">
-                <PlayerScoreCard player={playerA || null} dark={false} screenWidth={screenWidth} myTeamE={myTeamE} />
+                <PlayerScoreCard textTop player={playerA || null} dark={false} screenWidth={screenWidth} myTeamE={myTeamE} />
               </div>
               <div className="player-wrapper w-3/6 px-1">
-                <PlayerScoreCard player={playerB || null} dark={false} screenWidth={screenWidth} myTeamE={myTeamE} />
+                <PlayerScoreCard textTop={false} player={playerB || null} dark={false} screenWidth={screenWidth} myTeamE={myTeamE} />
               </div>
             </div>
             <div className={`pair-score w-2/6 h-full p-1 border-l ${border.light}`}>
