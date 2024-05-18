@@ -70,6 +70,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
 
 ### Update - 2
+ - Sometime subbing a player from multiple rounds when players are submitted, fix it
  - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
  - Real Time Update when creating a match 
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.

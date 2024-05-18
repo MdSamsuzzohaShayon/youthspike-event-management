@@ -135,9 +135,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' }));
     }
 
-    return ()=>{
+    return () => {
       removeEvent();
-    }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
 
@@ -207,7 +207,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           </div>
         )}
 
-        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop={true} />
+        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop />
 
         {notTieBreakerNetId ? (
           <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} />
