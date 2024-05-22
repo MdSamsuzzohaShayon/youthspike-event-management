@@ -47,7 +47,7 @@ function TeamCard({ team }: ITeamCardProps) {
         {/* <p className='flex'><span><img src="/icons/telephone.svg" alt="telephone" className='w-6 svg-white' /></span>222-222-2222</p> */}
         {team?.players && (
           <p className="flex gap-1">
-            Active players <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">{team?.players?.length}</span>
+            Active players <span className="flex items-center justify-center w-6 h-6 rounded-full bg-black-logo">{team?.players?.length}</span>
           </p>
         )}
       </div>

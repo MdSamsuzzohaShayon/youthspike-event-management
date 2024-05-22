@@ -70,6 +70,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
 
 ### Update - 2
+ - Sometime subbing a player from multiple rounds when players are submitted, fix it
  - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
  - Real Time Update when creating a match 
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
@@ -137,7 +138,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Update score button should not be shown - it is irrelevent now
  - On matches page, we do not need upcomming, only current ande passed
  - No current or any text on yellow box of match card, instead just keep the date
- - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
+ - Design match list same as this - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
 
  - **Final Round**
  - 2 points net logic [04:20](https://www.loom.com/share/a39b08628d344b6588bd94d23e47ad8e) appear in the final round

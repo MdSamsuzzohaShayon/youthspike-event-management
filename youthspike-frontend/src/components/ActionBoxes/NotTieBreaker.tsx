@@ -1,14 +1,16 @@
 /* eslint-disable react/require-default-props */
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import Image from 'next/image';
 import { INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import { ITeam } from '@/types/team';
+import { imgW } from '@/utils/constant';
 import { notTwoPointNet } from '@/utils/match/emitSocketEvents';
 import { overflowNetH } from '@/utils/styles';
 import React, { useEffect, useState } from 'react';
 import { ETeamPlayer } from '@/types/net';
 import { setNotTieBreakerNetId } from '@/redux/slices/netSlice';
 import { Socket } from 'socket.io-client';
-import PlayerScoreCard from '../match/PlayerScoreCard';
+import PlayerScoreCard from '../player/PlayerScoreCard';
 
 interface INotTieBreakerProps {
   ntbnId: string; // notTieBreakerNetId
@@ -63,12 +65,12 @@ function NotTieBreaker({ teamA, teamB, ntbnId, screenWidth, currRoundNets, socke
         <div className="team-players w-full flex justify-center items-center gap-x-8 ">
           {tpa && (
             <div className="player-a w-16">
-              <PlayerScoreCard key={`tb-${teamA?.name}-player-a`} player={pa} dark={false} textTop teamPlayer={pae} screenWidth={screenWidth} myTeamE={myTeamE}/>
+              <PlayerScoreCard key={`tb-${teamA?.name}-player-a`} player={pa} teamPlayer={pae} screenWidth={screenWidth} myTeamE={myTeamE}/>
             </div>
           )}
           {tpb && (
             <div className="player-b w-16">
-              <PlayerScoreCard key={`tb-${teamA?.name}-player-b`} player={pb} dark={false} textTop={false} teamPlayer={pbe} screenWidth={screenWidth} myTeamE={myTeamE}/>
+              <PlayerScoreCard key={`tb-${teamA?.name}-player-b`} player={pb} teamPlayer={pbe} screenWidth={screenWidth} myTeamE={myTeamE}/>
             </div>
           )}
         </div>
@@ -87,9 +89,9 @@ function NotTieBreaker({ teamA, teamB, ntbnId, screenWidth, currRoundNets, socke
     );
 
   return (
-    <div className="w-full bg-white text-gray-900 z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
+    <div className="w-full bg-white text-black-logo z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
       <div className="container p-4 mx-auto ">
-        <img src="/icons/close.svg" className="svg-black w-8 h-8 mb-4" role="presentation" onClick={handleCloseLineup} />
+        <Image height={imgW.logo} width={imgW.logo} alt="close-icon" src="/icons/close.svg" className="svg-black w-8 h-8 mb-4" role="presentation" onClick={handleCloseLineup} />
         <h3 className="mb-4 text-center">Not 2 Points Net</h3>
         <div className="team-box">
           <div className="team-a text-center mb-8">{teamBox(selectedNet.teamAPlayerA, selectedNet.teamAPlayerB, ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, teamAPlayers, teamA)}</div>

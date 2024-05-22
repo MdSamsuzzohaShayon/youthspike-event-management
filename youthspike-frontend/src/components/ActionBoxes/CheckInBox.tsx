@@ -2,6 +2,7 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import Image from 'next/image';
 import { IRoom, IRoundRelatives } from '@/types';
+import { EPlayerStatus } from '@/types/player';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import React, { useEffect, useState } from 'react';
@@ -80,7 +81,7 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
         subbedPlayerIds.forEach((up) => {
           if (preSubbedPlayerIds.has(up)) {
             const findPlayer = myPlayers.find((p) => p._id === up);
-            if (findPlayer) {
+            if (findPlayer && findPlayer.status === EPlayerStatus.ACTIVE) {
               errMsg += `${findPlayer.firstName}, `;
               dupPlayerCount += 1;
             }

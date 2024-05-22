@@ -98,6 +98,14 @@ export interface IToggleInputProps {
   handleValueChange: (e: React.SyntheticEvent, stateName: string) => void;
 }
 
+export interface ICheckboxInputProps {
+  name: string;
+  _id: string;
+  handleInputChange: (e: React.SyntheticEvent, _id: string) => void;
+  defaultValue?: boolean;
+  extraCls?:string;
+}
+
 export interface IOption {
   value: string;
   text?: string;

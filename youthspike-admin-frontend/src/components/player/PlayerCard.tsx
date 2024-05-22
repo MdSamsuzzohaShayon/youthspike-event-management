@@ -2,11 +2,11 @@ import cld from '@/config/cloudinary.config';
 import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayerExpRel, EPlayerStatus } from '@/types/player';
-import { useMutation } from '@apollo/client';
+import { ApolloError, useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
-import { IOption, ITeam } from '@/types';
+import { IError, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
 import { useUser } from '@/lib/UserProvider';
@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import EmailInput from '../elements/forms/EmailInput';
 import SelectInput from '../elements/forms/SelectInput';
+import { handleError, handleResponse } from '@/utils/handleError';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -25,9 +26,11 @@ interface PlayerCardProps {
   divisionList?: IOption[];
   teamList?: ITeam[];
   refetchFunc?: () => void;
+  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr }: PlayerCardProps) {
+  
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
   const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
@@ -56,11 +59,13 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     try {
       setIsLoading(true);
       if (teamId && eventId) {
-        await mutateTeam({ variables: { input, teamId, eventId } });
+        const response = await mutateTeam({ variables: { input, teamId, eventId } });
+        const success = handleResponse({response: response.data.updatePlayer, setActErr});
+        if(!success) return;
         await client.refetchQueries({ include: [GET_A_TEAM] });
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      handleError({error, setActErr});
     } finally {
       setIsLoading(false);
     }
@@ -90,18 +95,21 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerInputObj.playerTeamId = teamExist._id;
         }
       }
-      await mutatePlayer({
+      const response = await mutatePlayer({
         variables: {
           input: playerInputObj,
           playerId,
         },
       });
 
+      const success = handleResponse({response: response.data.updatePlayer, setActErr});
+      if(!success) return;
+
       if (refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      handleError({error, setActErr});
     }
   };
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
@@ -109,16 +117,18 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
     setActionOpen((prevState) => !prevState);
     try {
-      await mutatePlayer({
+      const response  = await mutatePlayer({
         variables: {
           input: { status: newStatus, playerTeamId: teamId },
           playerId,
         },
       });
+      const success = handleResponse({response: response.data.updatePlayer, setActErr});
+      if(!success) return;
 
       if (refetchFunc) await refetchFunc();
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      handleError({error, setActErr});
     }
   };
   const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
@@ -126,14 +136,16 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     try {
       setActionOpen((prevState) => !prevState);
       setIsLoading(true);
-      await deleteAPlayer({ variables: { playerId } });
+      const response = await deleteAPlayer({ variables: { playerId } });
+      const success = handleResponse({response: response.data.updatePlayer, setActErr});
+      if(!success) return;
       if (refetchFunc) {
         await refetchFunc();
       } else {
         await client.refetchQueries({ include: [GET_A_TEAM] });
       }
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      handleError({error, setActErr});
     } finally {
       setIsLoading(false);
     }
@@ -186,8 +198,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         await makeCaptainOrCoCaptain(updateObj);
       }
       closeModal();
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      handleError({error, setActErr});
     }
   };
 

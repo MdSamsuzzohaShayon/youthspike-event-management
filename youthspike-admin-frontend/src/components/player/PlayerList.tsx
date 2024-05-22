@@ -1,4 +1,4 @@
-import { IOption, IPlayerExpRel, ITeam } from '@/types';
+import { IError, IOption, IPlayerExpRel, ITeam } from '@/types';
 import React, { useEffect, useRef } from 'react';
 import Sortable from 'sortablejs';
 import { EPlayerStatus } from '@/types/player';
@@ -17,6 +17,7 @@ interface ISortableListProps {
   rankControls?: boolean;
   teamId?: string;
   refetchFunc?: () => void;
+  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
 interface IPlayerRank {
@@ -24,7 +25,7 @@ interface IPlayerRank {
   rank: number;
 }
 
-function SortableList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId }: ISortableListProps) {
+function SortableList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, setActErr }: ISortableListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const screenWidth = useScreenWidth();
 
@@ -115,6 +116,7 @@ function SortableList({ playerList, eventId, setIsLoading, rankControls, refetch
             refetchFunc={refetchFunc}
             rankControls={rankControls}
             teamId={teamId}
+            setActErr={setActErr}
           />
         </li>
       ))}

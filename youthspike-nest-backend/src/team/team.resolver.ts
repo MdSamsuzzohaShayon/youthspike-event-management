@@ -6,7 +6,7 @@ import { UserService } from 'src/user/user.service';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { TeamService } from 'src/team/team.service';
-import { User, UserRole } from 'src/user/user.schema';
+import { UserRole } from 'src/user/user.schema';
 import { Team } from './team.schema';
 import { CreateTeamInput, UpdateTeamInput } from './team.args';
 import { Player } from 'src/player/player.schema';
@@ -14,12 +14,9 @@ import { PlayerService } from 'src/player/player.service';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
-import { ConfigService } from '@nestjs/config';
-import { Event } from 'src/event/event.schema';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
-import { UpdateQuery } from 'mongoose';
 import { NetService } from 'src/net/net.service';
 import { MatchService } from 'src/match/match.service';
 
@@ -52,6 +49,30 @@ export class TeamResolver {
     private netService: NetService,
     private matchService: MatchService,
   ) {}
+
+  async singleDelete(teamExist: Team) {
+    const teamPlayerIds = teamExist.players.map((p) => p.toString());
+    const teamNetIds = teamExist.nets.map((n) => n.toString());
+    const teamMatchIds = teamExist.matches.map((m) => m.toString());
+
+    const updatePromises = [];
+    updatePromises.push(
+      this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { team: teamPlayerIds } }),
+    );
+    updatePromises.push(this.netService.delete({ _id: { $in: teamNetIds } }));
+    if (teamExist.captain)
+      updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamExist._id } }));
+    if (teamExist.cocaptain)
+      updatePromises.push(
+        this.playerService.updateOne({ _d: teamExist.cocaptain }, { $pull: { teams: teamExist._id } }),
+      );
+    if (teamMatchIds.length > 0)
+      updatePromises.push(
+        this.matchService.updateMany({ _id: { $in: teamMatchIds } }, { $set: { teamA: null, teamB: null } }),
+      );
+    updatePromises.push(this.teamService.delete({ _id: teamExist._id }));
+    await Promise.all(updatePromises);
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -292,30 +313,40 @@ export class TeamResolver {
     try {
       const teamExist = await this.teamService.findById(teamId);
       if (!teamExist) return AppResponse.notFound('Team');
-
-      const teamPlayerIds = teamExist.players.map((p) => p.toString());
-      const teamNetIds = teamExist.nets.map((n) => n.toString());
-      const teamMatchIds = teamExist.matches.map((m) => m.toString());
-
-      const updatePromises = [];
-      updatePromises.push(
-        this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { team: teamPlayerIds } }),
-      );
-      updatePromises.push(this.netService.delete({ _id: { $in: teamNetIds } }));
-      if (teamExist.captain)
-        updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamId } }));
-      if (teamExist.cocaptain)
-        updatePromises.push(this.playerService.updateOne({ _d: teamExist.cocaptain }, { $pull: { teams: teamId } }));
-      if (teamMatchIds.length > 0)
-        updatePromises.push(
-          this.matchService.updateMany({ _id: { $in: teamMatchIds } }, { $set: { teamA: null, teamB: null } }),
-        );
-      updatePromises.push(this.teamService.delete({ _id: teamId }));
-      await Promise.all(updatePromises);
+      await this.singleDelete(teamExist);
       return {
         code: HttpStatus.NO_CONTENT,
         success: true,
         message: 'A team has been deleted successfully',
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((resolves) => CreateOrUpdateTeamResponse)
+  async deleteTeams(@Args('teamIds', { type: () => [String] }) teamIds: string[]): Promise<CreateOrUpdateTeamResponse> {
+    try {
+      const deletePromises = [];
+      for (let i = 0; i < teamIds.length; i++) {
+        try {
+          const teamExist = await this.teamService.findById(teamIds[i]);
+          if (teamExist) {
+            deletePromises.push(this.singleDelete(teamExist));
+          }
+        } catch (dltErr) {
+          console.log(dltErr);
+        }
+      }
+
+      await Promise.all(deletePromises);
+
+      return {
+        code: HttpStatus.NO_CONTENT,
+        success: true,
+        message: 'Teams have been deleted successfully',
       };
     } catch (err) {
       return AppResponse.handleError(err);

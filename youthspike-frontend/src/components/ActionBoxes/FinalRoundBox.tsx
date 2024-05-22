@@ -100,20 +100,20 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
         {myTeamE === currentRound?.firstPlacing ? (
           <>
             <h2 className="font-black text-start">
-              {lockedNetId
-                ? 'One of the nets this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.'
+              {lockedNetIds.length === 0
+                ? 'One of the net of this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.'
                 : 'The other squad is choosing which net they do NOT want to be worth 2 points.'}
             </h2>
 
             <div className="net-btns w-full flex justify-start items-start gap-x-1">
-              {lockedNetIds.length <= 1 ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
+              {lockedNetIds.length === 0 ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
               {/* {!lockedNetId ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))} */}
             </div>
           </>
         ) : (
           <>
             <h2 className="font-black text-start">
-              {lockedNetId
+              {lockedNetIds.length > 0
                 ? 'Which of the remaining nets  do you NOT want to be worth 2 points?'
                 : 'One of the nets this round will be worth 2 points. The other squad is choosing a net they do NOT want to be worth 2 points.'}
             </h2>

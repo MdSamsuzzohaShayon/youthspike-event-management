@@ -225,4 +225,14 @@ mutation DeleteMatch($matchId: String!) {
 }
 `;
 
-export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH };
+const DELETE_MATCHES = gql`
+mutation DeleteMatches($matchIds: [String!]!) {
+  deleteMatches(matchIds: $matchIds) {
+    code
+    success
+    message
+  }
+}
+`;
+
+export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES };

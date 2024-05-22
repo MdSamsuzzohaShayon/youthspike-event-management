@@ -191,7 +191,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)}
           >
             <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{teamPlayerList[i].rank}</p>
-            <div className="advanced-img w-10 h-10 rounded-full border-2 border-gray-900 overflow-hidden">
+            <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
               {teamPlayerList[i].profile ? (
                 <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
               ) : (
@@ -219,7 +219,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       if (availablePlayerIds.includes(teamPlayerList[i]._id) && subbedPlayers.includes(teamPlayerList[i]._id)) {
         playerListEl.push(
           <div key={i} className="border-b border-gray-300 flex justify-between items-center w-full cursor-pointer bg-transparent">
-            <div className="advanced-img w-10 h-10 rounded-full border-2 border-gray-900 overflow-hidden">
+            <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
               {teamPlayerList[i].profile ? (
                 <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
               ) : (
@@ -253,14 +253,14 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
           <div id="left-top" style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
-            <LogoMatchScore dark team={opTeam} roundList={roundList} teamE={opTeamE} screenWidth={screenWidth} allNets={allNets} />
+            <LogoMatchScore dark team={opTeam} teamE={opTeamE} screenWidth={screenWidth} />
 
-            <div className="round-nums flex flex-wrap w-full justify-start gap-1 items-center">
+            <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
               {roundList.map((round) => (
                 <button
                   className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-white'} py-1 text-center cursor-pointer ${
                     screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
-                  } rounded-lg`}
+                  } rounded-t-lg`}
                   type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}
@@ -281,13 +281,13 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           >
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
-              <LogoMatchScore dark={false} team={myTeam} roundList={roundList} teamE={myTeamE} screenWidth={screenWidth} allNets={allNets} />
+              <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} screenWidth={screenWidth} />
             </div>
           </div>
           {/* Bottom Side End  */}
         </div>
       ) : (
-        <div id="left-drop-down" className={`drop-down-select w-3/6 overflow-y-scroll text-gray-900 bg-white border ${border.light}`}>
+        <div id="left-drop-down" className={`drop-down-select w-3/6 overflow-y-scroll text-black-logo bg-white border ${border.light}`}>
           <Image width={24} height={24} alt="close-button" src="/icons/close.svg" className="svg-black mx-2 mt-2" role="presentation" onClick={handleClosePlayers} />
           <div className="px-2 w-full" style={{ minHeight: 'fit-content' }}>
             <h3>Selected Net {selectedNet?.num}</h3>

@@ -212,4 +212,15 @@ mutation DeleteTeam($teamId: String!) {
 }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM };
+
+const DELETE_MULTIPLE_TEAMS = gql`
+mutation DeleteTeams($teamIds: [String!]!) {
+  deleteTeams(teamIds: $teamIds) {
+    code
+    message
+    success
+  }
+}
+`;
+
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS};

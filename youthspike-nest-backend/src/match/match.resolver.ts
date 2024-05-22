@@ -39,6 +39,24 @@ export class MatchResolver {
     private netService: NetService,
     private roomService: RoomService,
   ) {}
+  // ===== Healper Functions =====
+  async deleteSingle(matchExist: Match) {
+    const updatePromises = [];
+    const roundIds = matchExist.rounds.map((m) => m.toString());
+    if (roundIds.length > 0) {
+      updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
+    }
+    const netIds = matchExist.nets.map((n) => n.toString());
+    if (netIds.length > 0) {
+      updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
+    }
+
+    updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
+    updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
+    updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
+    updatePromises.push(this.matchService.delete({ _id: matchExist._id }));
+    await Promise.all(updatePromises);
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -162,29 +180,41 @@ export class MatchResolver {
       const matchExist = await this.matchService.findById(matchId);
       if (!matchExist) return AppResponse.notFound('Match');
 
-      const updatePromises = [];
-      const roundIds = matchExist.rounds.map((m) => m.toString());
-      if (roundIds.length > 0) {
-        updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
-      }
-      const netIds = matchExist.nets.map((n) => n.toString());
-      if (netIds.length > 0) {
-        updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
-      }
-
-      updatePromises.push(
-        this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }),
-      );
-      updatePromises.push(
-        this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }),
-      );
-      updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
-      updatePromises.push(this.matchService.delete({ _id: matchId }));
-      await Promise.all(updatePromises);
+      await this.deleteSingle(matchExist);
       return {
         data: null,
         code: HttpStatus.NO_CONTENT,
         message: 'Match Deleted successfully!',
+        success: true,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns) => GetMatchResponse)
+  async deleteMatches(@Args('matchIds', { type: () => [String] }) matchIds: string[]) {
+    try {
+      const deletePromises = [];
+      for (let i = 0; i < matchIds.length; i += 1) {
+        try {
+          const matchExist = await this.matchService.findById(matchIds[i]);
+          if (matchExist) {
+            deletePromises.push(this.deleteSingle(matchExist));
+          }
+        } catch (dltErr) {
+          console.log(dltErr);
+        }
+      }
+
+      await Promise.all(deletePromises);
+
+      return {
+        data: null,
+        code: HttpStatus.NO_CONTENT,
+        message: 'Matches Deleted successfully!',
         success: true,
       };
     } catch (err) {

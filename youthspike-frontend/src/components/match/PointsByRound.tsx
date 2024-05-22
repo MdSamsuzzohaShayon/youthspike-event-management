@@ -56,7 +56,7 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
   };
 
   return (
-    <div className={`points-by-round flex flex-wrap justify-start items-center w-full ${dark ? 'text-white' : 'text-gray-900'} gap-1`}>
+    <div className={`points-by-round flex flex-wrap justify-center items-center w-full ${dark ? 'text-white' : 'text-black-logo'} gap-1`}>
       {roundList.map((round) => (
         <React.Fragment key={round._id}>{renderRoundBox(round)}</React.Fragment>
       ))}

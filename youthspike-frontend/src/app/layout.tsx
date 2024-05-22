@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
-      <body className={`${inter.className} bg-gray-900 text-white`}>
+      <body className={`${inter.className} bg-black-logo text-white`}>
         <SocketProvider>
           <ApolloWrapper>
             <UserProvider>

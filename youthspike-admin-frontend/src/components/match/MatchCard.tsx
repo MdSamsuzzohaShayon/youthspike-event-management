@@ -16,17 +16,19 @@ import { IError, INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import MatchAdd from './MatchAdd';
+import CheckboxInput from '../elements/forms/CheckboxInput';
 
 interface MatchCardProps {
   match: IMatchExpRel;
   sl: number;
   eventId: string;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  // setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  // setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   refetchFunc?: () => Promise<void>;
 }
 
-function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: MatchCardProps) {
+function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCardProps) {
 
   const actionItemEl = useRef<HTMLUListElement | null>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
@@ -80,7 +82,7 @@ function MatchCard({ match, setActErr, eventId, setIsLoading, refetchFunc }: Mat
 
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6">
-        <input type="checkbox" name="match-select" id="option" className='w-4' />
+        <CheckboxInput name='bulk-match' _id={match._id} handleInputChange={handleSelectMatch} />
         <div className="w-10/12 flex items-center justify-center">
           {/* <h2>Match Name</h2> */}
           <Link href={`${FRONTEND_URL}/matches/${match._id}`} className='btn-info' >Enter</Link>

@@ -70,6 +70,7 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
                 success = false;
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
+            setActErr(null);
         } else {
             let teamRes = null;
             if (update) {
@@ -93,6 +94,7 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
         if(statusCode !== 201 && statusCode !== 202){
             success = false;
         }else{
+            setActErr(null);
             success = true;
         }
 

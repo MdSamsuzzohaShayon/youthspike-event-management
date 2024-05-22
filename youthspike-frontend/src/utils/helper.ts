@@ -68,7 +68,7 @@ export const divisionsToOptionList = (divisions: string) => {
 };
 
 export const fsToggle = (screenWidth: number) => {
-  const fontStyle = { fontSize: screenWidth > screen.xs ? `${netSize.fsl}rem` : `${netSize.fsm}rem` };
+  const fontStyle = { fontSize: screenWidth > screen.xs ? `${netSize.hfm}rem` : `${netSize.fsm}rem` };
   return fontStyle;
 };
 

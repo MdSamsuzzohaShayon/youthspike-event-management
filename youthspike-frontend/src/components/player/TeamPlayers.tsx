@@ -69,7 +69,7 @@ function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
   };
 
   return (
-    <div className="bg-gray-900 text-white py-4">
+    <div className="bg-black-logo text-white py-4">
       <div className="container px-4 mx-auto">
         <div className="player-list flex justify-between items-center">
           {screenWidth > screen.xs && (
@@ -81,8 +81,8 @@ function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
           {trimPlayers &&
             trimPlayers.map((player) => (
               // @ts-ignore
-              <div className="player-card w-16" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
-                <PlayerScoreCard player={player} textTop={onTop} dark teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
+              <div className="player-card w-20" key={player._id} onTouchStart={touchStartHandler} onTouchEnd={touchEndHandler}>
+                <PlayerScoreCard player={player} onTop={onTop} teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} />
               </div>
             ))}
           {screenWidth > screen.xs && (

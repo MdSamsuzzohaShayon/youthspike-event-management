@@ -14,12 +14,14 @@ import { imgSize } from '@/utils/style';
 import TextImg from '../elements/TextImg';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
+import CheckboxInput from '../elements/forms/CheckboxInput';
 
 interface TeamCardProps {
   eventId: string;
   team: ITeam;
   eventList: IEvent[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   fefetchFunc?: () => Promise<void>;
 }
 
@@ -28,7 +30,7 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamCardProps) {
+function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, fefetchFunc }: TeamCardProps) {
   const user = useUser();
   const router = useRouter();
 
@@ -122,13 +124,6 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleMakeInactive = (e: React.SyntheticEvent, teamId: string) => {
-    e.preventDefault();
-    // Fetch team by team Id
-    setOpenMoveTeam((prevState) => !prevState);
-  };
-
   const handleMoveTeam = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     try {
@@ -146,6 +141,8 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
       setIsLoading(false);
     }
   };
+
+  
 
   useEffect(() => {
     if (eventList && eventList.length > 0) {
@@ -182,11 +179,9 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
             </span>{' '}
             Delete
           </li>
-          {/* <li role="presentation" onClick={(e) => handleMakeInactive(e, team._id)} className='flex justify-start items-center gap-x-2' >
-                        <span><Image width={imgSize.logo} height={imgSize.logo} src='/icons/edit.svg' alt='Edit-icon' className='svg-white' /></span>Make Inactive</li> */}
         </ul>
         <div className="w-1/12 flex justify-center items-center flex-col gap-2">
-          <input type="checkbox" name="select-item" id="league-item" />
+          <CheckboxInput _id={team._id} name='team-select' handleInputChange={handleCheckedTeam} />
           <p className="w-8 h-8 rounded-full bg-yellow-logo flex justify-center items-center text-gray-900">{team.num}</p>
         </div>
         <div className="w-5/12">
@@ -201,7 +196,6 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
               )}
               <h3 className="leading-none text-lg font-bold capitalize">{team.name}</h3>
             </div>
-            {/* <p>2-1 Record</p> */}
           </Link>
         </div>
         <div className="w-5/12">
@@ -222,7 +216,6 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
                 </div>
               </div>
             )}
-            {/* <p className='flex'><span><img src="/icons/telephone.svg" alt="telephone" className='w-6 svg-white' /></span>222-222-2222</p> */}
             <p className="flex gap-1">
               Active players <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">{team?.players?.length}</span>
             </p>
