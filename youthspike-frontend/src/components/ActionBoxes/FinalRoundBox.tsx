@@ -113,7 +113,9 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
         ) : (
           <>
             <h2 className="font-black text-start">
-              {lockedNetIds.length > 0 ? 'Which of the remaining nets  do you NOT want to be worth 2 points?' : 'The other squad is choosing which net they do NOT want to be worth 2 points.'}
+              {lockedNetIds.length > 0
+                ? 'Which of the remaining nets  do you NOT want to be worth 2 points?'
+                : 'One of the nets this round will be worth 2 points. The other squad is choosing a net they do NOT want to be worth 2 points.'}
             </h2>
             <div className="net-btns w-full flex justify-start items-start gap-x-1">{lockedNetId && currRoundNets.map((n) => netBtnRender(n))}</div>
           </>

@@ -8,7 +8,8 @@ import { checkInToLineup } from '@/utils/match/emitSocketEvents';
 import { border, overflowNetH } from '@/utils/styles';
 import React from 'react';
 import Image from 'next/image';
-import PlayerScoreCard from '../match/PlayerScoreCard';
+import { imgW } from '@/utils/constant';
+import PlayerScoreCard from '../player/PlayerScoreCard';
 
 function VerifyLineup() {
   const socket = useSocket();
@@ -47,14 +48,14 @@ function VerifyLineup() {
     return (
       <div className="net-box mb-4 flex justify-center items-center" key={crn._id}>
         <div className={`w-full border ${border.light}`}>
-          <h4>Net {crn.num}</h4>
+          <h4 className="text-center uppercase bg-gray-300 font-bold">Net {crn.num}</h4>
           <div className={`w-full flex justify-between items-center border-t ${border.light}`}>
-            <div className="players w-4/6 p-1 text-start flex justify-between items-center">
-              <div className="player-wrapper w-3/6 px-1">
-                <PlayerScoreCard textTop player={playerA || null} dark={false} screenWidth={screenWidth} myTeamE={myTeamE} />
+            <div className="players w-4/6 p-1 text-start flex md:justify-center justify-between items-center">
+              <div className="player-wrapper w-3/6 md:w-1/6 px-1">
+                <PlayerScoreCard onTop player={playerA || null} screenWidth={screenWidth} myTeamE={myTeamE} />
               </div>
-              <div className="player-wrapper w-3/6 px-1">
-                <PlayerScoreCard textTop={false} player={playerB || null} dark={false} screenWidth={screenWidth} myTeamE={myTeamE} />
+              <div className="player-wrapper w-3/6 md:w-1/6 px-1">
+                <PlayerScoreCard onTop player={playerB || null} screenWidth={screenWidth} myTeamE={myTeamE} />
               </div>
             </div>
             <div className={`pair-score w-2/6 h-full p-1 border-l ${border.light}`}>
@@ -67,9 +68,9 @@ function VerifyLineup() {
     );
   };
   return (
-    <div className="w-full bg-white text-gray-900 z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
+    <div className="w-full bg-white text-black-logo z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
       <div className="container p-4 mx-auto ">
-        <Image src="/icons/close.svg" alt="close icon picture" className="svg-black mb-4" role="presentation" onClick={handleCloseLineup} width={8} height={8} />
+        <Image src="/icons/close.svg" alt="close icon picture" className="svg-black mb-4" role="presentation" onClick={handleCloseLineup} width={imgW.logo} height={imgW.logo} />
         <h3 className="mb-4">Assigned Nets</h3>
         {currentRoundNets && currentRoundNets.length > 0 && currentRoundNets.map((crn) => (myTeamE === ETeam.teamA ? netBox(crn, teamAPlayers) : netBox(crn, teamBPlayers)))}
 

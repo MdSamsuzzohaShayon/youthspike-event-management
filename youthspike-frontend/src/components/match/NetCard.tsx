@@ -19,12 +19,12 @@ import { setDisabledPlayerIds, setSelectedNet, setPlayerSpot, setShowTeamPlayers
 import { ETeamPlayer } from '@/types/net';
 import findOutOfRange from '@/utils/match/findOutOfRange';
 import findPrevPartner from '@/utils/match/findPrevPartner';
-import { EXTRA_HEIGHT, screen } from '@/utils/constant';
+import { EXTRA_HEIGHT } from '@/utils/constant';
 import { border } from '@/utils/styles';
 import { calcPairScore } from '@/utils/scoreCalc';
 
 import NetPointCard from './NetPointCard';
-import PlayerScoreCard from './PlayerScoreCard';
+import PlayerScoreCard from '../player/PlayerScoreCard';
 
 interface INetCardProps {
   screenWidth: number;
@@ -239,37 +239,26 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       <div
         id={refId}
         style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
-        className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-gray-900'} border ${
+        className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${
           border.light
         } items-center justify-start`}
       >
         <div className="player-pair flex justify-between w-full gap-x-1">
-          <div className="player-card team-a-player-1 w-11/12">
-            <PlayerScoreCard
-              textTop={onTop}
-              dark={onTop}
-              teamPlayer={TPA}
-              player={playerA}
-              dropdownPlayer={handleDropdownPlayer}
-              evacuatePlayer={handleEvacuatePlayer}
-              screenWidth={screenWidth}
-              myTeamE={myTeamE}
-            />
+          <div className="player-card team-a-player-1 w-3/6 md:w-2/6">
+            <PlayerScoreCard onTop={onTop} teamPlayer={TPA} player={playerA} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
           </div>
-          <div className="player-card team-a-player-2 w-11/12">
-            <PlayerScoreCard
-              textTop={onTop}
-              dark={onTop}
-              teamPlayer={TPB}
-              player={playerB}
-              dropdownPlayer={handleDropdownPlayer}
-              evacuatePlayer={handleEvacuatePlayer}
-              screenWidth={screenWidth}
-              myTeamE={myTeamE}
-            />
+          <div className="player-card team-a-player-2 w-3/6 md:w-2/6">
+            <PlayerScoreCard onTop={onTop} teamPlayer={TPB} player={playerB} dropdownPlayer={handleDropdownPlayer} evacuatePlayer={handleEvacuatePlayer} screenWidth={screenWidth} myTeamE={myTeamE} />
           </div>
         </div>
-        {playerARank && playerBRank && <h3 style={fsToggle(screenWidth)}>Pair Score {pairScore}</h3>}
+        {playerARank && playerBRank && (
+          <div className="w-full flex flex-col items-center justify-center ">
+            <h3 className="w-fit leading-4" style={fsToggle(screenWidth)}>
+              Pair Score{' '}
+            </h3>
+            <div className="w-6 border border-black-logo bg-gray-100 text-black">{pairScore}</div>
+          </div>
+        )}
       </div>
     );
   };

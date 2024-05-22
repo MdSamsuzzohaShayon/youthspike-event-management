@@ -9,7 +9,7 @@ import React, { useEffect, useCallback, Suspense, useState, useRef } from 'react
 import useResizeObserver from '@/hooks/useResizeObserver';
 
 // Components
-import TeamPlayers from '@/components/match/TeamPlayers';
+import TeamPlayers from '@/components/player/TeamPlayers';
 import RoundRunner from '@/components/match/RoundRunner';
 import NetScoreOfRound from '@/components/match/NetScoreOfRound';
 import Loader from '@/components/elements/Loader';
@@ -45,6 +45,9 @@ import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/util
 import { APP_NAME } from '@/utils/keys';
 import { imgW } from '@/utils/constant';
 import Image from 'next/image';
+import { ETeam } from '@/types/team';
+import { calcRoundScore } from '@/utils/scoreCalc';
+import { setTeamScore } from '@/redux/slices/matchesSlice';
 
 /**
  * Test Match
@@ -86,7 +89,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { screenWidth, actErr } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
-  const { myPlayers, opPlayers, myTeamE, verifyLineup, match: currMatch } = useAppSelector((state) => state.matches);
+  const { myPlayers, opPlayers, myTeamE, verifyLineup, match: currMatch, teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
   // ===== GraphAL =====
@@ -125,8 +128,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         const result = await getMatch({ variables: { matchId: params.matchId } });
         if (result?.data?.getMatch?.data) {
           if (result.data.getMatch.data?.event?._id) setEvent(result.data.getMatch.data.event._id);
-
-          organizeFetchedData(result.data.getMatch.data, token, userInfo, params.matchId, dispatch);
+          // { matchData, token, userInfo, matchId, dispatch }
+          organizeFetchedData({ matchData: result.data.getMatch.data, token, userInfo, matchId: params.matchId, dispatch });
         } else {
           dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
         }
@@ -184,31 +187,74 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   }, [mainEl]);
 
+  useEffect(() => {
+    // const calcTeamScore = () => {
+    let teamATS = 0;
+    let teamAPMS = 0; // pms = plus minus score
+    let teamBTS = 0;
+    let teamBPMS = 0; // pms = plus minus score
+    for (let i = 0; i < roundList.length; i += 1) {
+      const netList = allNets.filter((n) => n.round === roundList[i]._id);
+      const { score: tas, plusMinusScore: tapms } = calcRoundScore(netList, roundList[i], ETeam.teamA);
+      teamATS += tas;
+      teamAPMS += tapms;
+
+      const { score: tbs, plusMinusScore: tbpms } = calcRoundScore(netList, roundList[i], ETeam.teamB);
+      teamBTS += tbs;
+      teamBPMS += tbpms;
+    }
+
+    dispatch(setTeamScore({ teamATotalScore: teamATS, teamBTotalScore: teamBTS, teamBPMScore: teamBPMS, teamAPMScore: teamAPMS }));
+  }, [roundList, currMatch, myTeamE, allNets, dispatch]);
+
   if (loading) return <Loader />;
+
+  const myTeam = myTeamE === ETeam.teamA ? teamA : teamB;
+  const opTeam = myTeamE === ETeam.teamA ? teamB : teamA;
+  const myS = myTeamE === ETeam.teamA ? teamATotalScore : teamBTotalScore;
+  const opS = myTeamE === ETeam.teamA ? teamBTotalScore : teamATotalScore;
 
   return (
     <Suspense fallback={<Loader />}>
-      <div className="h-full relative bg-white text-gray-900" ref={mainEl}>
-        <div className="container mx-auto px-4 bg-gray-900">
+      <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
+        {/* Level 1 start  */}
+        <div className="container mx-auto px-4 bg-black-logo">
           {error && <Message error={error} />}
           {actErr && <Message error={actErr} />}
         </div>
+        {/* Level 1 end  */}
 
+        {/* Level 2 start: hidden  */}
         <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
           Button
         </button>
+        {/* Level 2 end: hidden  */}
 
-        {/* ===== Show oponent subbed players ===== */}
+        {/* Level 3 start: sub of oponents  */}
         {opSubbedPlayers && opSubbedPlayers.length > 0 && (
-          <div className="subbed-wrapper pt-4 bg-gray-900 text-white">
+          <div className="subbed-wrapper pt-4 bg-black-logo text-white">
             <div className="container px-4 mx-auto ">
               <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
             </div>
           </div>
         )}
+        {/* Level 3 end: sub of oponents  */}
 
+        {/* Level 4 start: oponent rosters  */}
         <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop />
+        {/* Level 4 end: oponent rosters  */}
 
+        {/* Level 5 start: Oponent Team  */}
+        {currMatch.completed && (
+          <div className="container px-4 mx-auto text-center mt-4">
+            <div className={`w-full ${myS < opS ? 'bg-green-500 text-white' : ''}`}>
+              <h1 className="op-team-name border border-black-logo h1 uppercase ">{opTeam?.name}</h1>
+            </div>
+          </div>
+        )}
+        {/* Level 5 end: Oponent Team  */}
+
+        {/* Level 6 start: main match  */}
         {notTieBreakerNetId ? (
           <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} />
         ) : verifyLineup ? (
@@ -231,7 +277,19 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             )}
           </>
         )}
+        {/* Level 6 end: main match  */}
 
+        {/* Level 7 start: My Team  */}
+        {currMatch.completed && (
+          <div className="container px-4 mx-auto text-center mb-4">
+            <div className={`w-full ${myS > opS ? 'bg-green-500 text-white' : ''}`}>
+              <h1 className="op-team-name border border-black-logo h1 uppercase">{myTeam?.name}</h1>
+            </div>
+          </div>
+        )}
+        {/* Level 7 end: My Team  */}
+
+        {/* Level 8 start: Sponsors  */}
         {eventSponsors.length > 0 && (!user || !user.token) && (
           <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
             <h3>Sponsors</h3>
@@ -246,17 +304,19 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             </div>
           </div>
         )}
+        {/* Level 8 end: Sponsors  */}
 
-        {/* My Players  */}
+        {/* Level 9 start: My Rosters  */}
         <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
         {/* // Show subbed players  */}
         {mySubbedPlayers && mySubbedPlayers.length > 0 && (
-          <div className="subbed-wrapper pt-4 bg-gray-900 text-white">
+          <div className="subbed-wrapper pt-4 bg-black-logo text-white">
             <div className="container px-4 mx-auto">
               <SubbedPlayerList teamPlayers={mySubbedPlayers} currRound={currentRound} roundList={roundList} subControl />
             </div>
           </div>
         )}
+        {/* Level 9 end: My Rosters  */}
       </div>
     </Suspense>
   );

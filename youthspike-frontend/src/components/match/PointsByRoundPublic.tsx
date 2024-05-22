@@ -19,7 +19,7 @@ function PointsByRoundPublic({ roundList, dark, allNets, teamE }: IPointsByRound
       teamE,
     );
 
-    return <p className={`base-point h-8 w-8 ${dark ? 'bg-gray-100 text-gray-900' : 'border'} rounded-full text-center flex justify-center items-center`}>{score}</p>;
+    return <p className={`base-point h-8 w-8 ${dark ? 'bg-gray-100 text-black-logo' : 'border'} rounded-full text-center flex justify-center items-center`}>{score}</p>;
   };
 
   return (

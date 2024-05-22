@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
@@ -16,8 +16,7 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
   const dispatch = useAppDispatch();
   const { data, error, loading } = useQuery(GET_LDO, { variables: { dId: params.ldoId } });
 
-
-  // Resize window width 
+  // Resize window width
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
     dispatch(setScreenSize(entry.contentRect.width));
   }, []);
@@ -28,14 +27,13 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
   const ldo = data?.getEventDirector?.data;
 
   return (
-    <div className='container mx-auto px-2 min-h-screen' ref={mainEl}>
+    <div className="container mx-auto px-2 min-h-screen" ref={mainEl}>
       {error && <Message error={error} />}
       {ldo && <DirectorDetail ldo={ldo} />}
       <br />
       {ldo && ldo.events && ldo.events.length > 0 && <EventList eventList={ldo.events} />}
     </div>
-  )
+  );
 }
-
 
 export default LDOSingle;

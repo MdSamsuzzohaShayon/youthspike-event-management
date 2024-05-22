@@ -428,9 +428,11 @@ type Mutation {
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
+  deleteTeams(teamIds: [String!]!): CreateOrUpdateTeamResponse!
   createMatch(input: CreateMatchInput!): GetMatchResponse!
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
   deleteMatch(matchId: String!): GetMatchResponse!
+  deleteMatches(matchIds: [String!]!): GetMatchResponse!
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!

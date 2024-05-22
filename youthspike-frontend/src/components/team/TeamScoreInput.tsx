@@ -12,10 +12,11 @@ interface ITeamScoreInputProps {
   teamName: string;
   user: IUserContext | null;
   currRound: IRoundRelatives | null;
+  wTeam: ETeam | null;
   // eslint-disable-next-line no-unused-vars
   handlePointChange: (e: React.SyntheticEvent, netId: string | null, teamAorB: string) => void;
 }
-function TeamScoreInput({ net, teamE, screenWidth, teamName, user, currRound, handlePointChange }: ITeamScoreInputProps) {
+function TeamScoreInput({ net, teamE, wTeam , screenWidth, teamName, user, currRound, handlePointChange }: ITeamScoreInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [defaultVal, setDefaultVal] = useState<string>('');
 
@@ -28,10 +29,11 @@ function TeamScoreInput({ net, teamE, screenWidth, teamName, user, currRound, ha
   };
 
   useEffect(() => {
-    setDefaultVal(teamE === ETeam.teamB ? net?.teamBScore?.toString() || '' : net?.teamAScore?.toString() || '');
+    const TBS = net?.teamBScore?.toString() || '';
+    const TAS = net?.teamAScore?.toString() || '';
+
+    setDefaultVal(teamE === ETeam.teamB ? TBS : TAS);
   }, [net]);
-
-
 
   return (
     <div className="score-card-in-net w-full text-center">
@@ -42,7 +44,7 @@ function TeamScoreInput({ net, teamE, screenWidth, teamName, user, currRound, ha
         onChange={(e) => handlePointChange(e, net?._id ?? null, teamE)}
         defaultValue={defaultVal}
         style={fsToggle(screenWidth)}
-        className="w-4/6 bg-white text-gray-900 p-1 text-center outline-none"
+        className={`w-4/6 ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
         readOnly={inputReadonly()}
       />
     </div>

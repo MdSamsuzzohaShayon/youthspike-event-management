@@ -5,7 +5,14 @@ import { ETeam } from '@/types/team';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-interface MatchesState {
+interface ITeamScore {
+  teamATotalScore: number;
+  teamBTotalScore: number;
+  teamAPMScore: number; // plus minus score
+  teamBPMScore: number; // plus minus score
+}
+
+interface MatchesState extends ITeamScore {
   match: IMatchRelatives;
   myTeam: null | ITeam;
   opTeam: null | ITeam;
@@ -24,7 +31,7 @@ interface MatchesState {
   prevPartner: null | string;
   outOfRange: string[];
   verifyLineup: boolean; // Temporary
-  closePSCAvailable: boolean; // PSC = Player Score Card 
+  closePSCAvailable: boolean; // PSC = Player Score Card
 }
 
 const initialState: MatchesState = {
@@ -68,6 +75,12 @@ const initialState: MatchesState = {
   prevPartner: null,
   outOfRange: [], // Net Variance
   closePSCAvailable: false,
+
+  // Score
+  teamATotalScore: 0,
+  teamBTotalScore: 0,
+  teamAPMScore: 0, // plus minus score
+  teamBPMScore: 0, // plus minus score
 };
 
 export const matchesSlice = createSlice({
@@ -127,9 +140,30 @@ export const matchesSlice = createSlice({
     setOutOfRange: (state, action: PayloadAction<string[]>) => {
       state.outOfRange = action.payload;
     },
-    setclosePSCAvailable: (state, action: PayloadAction<boolean>)=>{
+    setclosePSCAvailable: (state, action: PayloadAction<boolean>) => {
       state.closePSCAvailable = action.payload;
-    }
+    },
+
+    // Team A & Team B Score
+    setTeamATotalScore: (state, action: PayloadAction<number>) => {
+      state.teamATotalScore = action.payload;
+    },
+    setTeamBTotalScore: (state, action: PayloadAction<number>) => {
+      state.teamBTotalScore = action.payload;
+    },
+    setTeamAPMScore: (state, action: PayloadAction<number>) => {
+      state.teamAPMScore = action.payload;
+    },
+    setTeamBPMScore: (state, action: PayloadAction<number>) => {
+      state.teamBPMScore = action.payload;
+    },
+
+    setTeamScore: (state, action: PayloadAction<ITeamScore>) => {
+      if (action.payload.teamATotalScore) state.teamATotalScore = action.payload.teamATotalScore;
+      if (action.payload.teamBTotalScore) state.teamBTotalScore = action.payload.teamBTotalScore;
+      if (action.payload.teamAPMScore) state.teamAPMScore = action.payload.teamAPMScore;
+      if (action.payload.teamBPMScore) state.teamBPMScore = action.payload.teamBPMScore;
+    },
   },
 });
 
@@ -151,6 +185,12 @@ export const {
   setOutOfRange,
   setVerifyLineup,
   setclosePSCAvailable,
+
+  setTeamATotalScore,
+  setTeamBTotalScore,
+  setTeamAPMScore,
+  setTeamBPMScore,
+  setTeamScore
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

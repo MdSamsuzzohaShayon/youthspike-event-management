@@ -85,11 +85,11 @@ function CompletedBox() {
 
     if (winningTeam) {
       if (winningTeam === team?._id) {
-        bgColor = 'bg-white';
-        textColor = 'text-black';
-      } else {
         bgColor = 'bg-green-500';
         textColor = 'text-white';
+      } else {
+        bgColor = 'bg-white';
+        textColor = 'text-black';
       }
     }
 
@@ -114,9 +114,6 @@ function CompletedBox() {
     <div className="flex py-2 w-full justify-between items-end gap-1 box-gradient">
       {/* Left side */}
       <div className="w-2/6 md:w-1/6">{teamScoreBoard({ team: teamA ?? null, teamPoints: teamAPoints })}</div>
-
-      {/* <div className="w-2/6 md:hidden">
-      </div> */}
       <div className="w-2/6 flex justify-center items-center flex-col gap-y-2">
         {roundList.length === currentRound?.num ? (
           <>
@@ -140,8 +137,6 @@ function CompletedBox() {
           </>
         )}
       </div>
-      {/* <div className="w-1/6 hidden md:block">
-      </div> */}
 
       {/* Right side */}
       <div className="w-2/6 md:w-1/6">{teamScoreBoard({ team: teamB ?? null, teamPoints: teamBPoints })}</div>

@@ -165,12 +165,13 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           teamList={filteredTeamList}
           divisionList={divisionList}
           showRank={showRank}
+          setActErr={setActErr}
         />
 
         {inactivePlayers.length > 0 && (
           <div className="w-full">
             <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+            <PlayerList eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} setActErr={setActErr} />
           </div>
         )}
       </>

@@ -27,7 +27,7 @@ const SelectInput = (props: ISelectInputProps) => {
       >
         <option value="" className='bg-gray-400 text-gray-700'>Select {props.name}</option>
         {props.optionList.map((o, i) => (
-          <option value={o.value} key={i} className='bg-white text-gray-900'>{o.text ? o.text : o.value}</option>
+          <option value={o.value} key={i} className='bg-white text-gray-900 capitalize'>{o.text ? o.text : o.value}</option>
         ))}
       </select>
     </div>

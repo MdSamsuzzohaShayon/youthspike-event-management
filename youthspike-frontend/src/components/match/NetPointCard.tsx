@@ -5,7 +5,7 @@ import { INetRelatives, IRoundRelatives } from '@/types';
 import { IRoom } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { fsToggle } from '@/utils/helper';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
 import { useSocket } from '@/lib/SocketProvider';
@@ -27,6 +27,8 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
   const user = useUser();
   const dispatch = useAppDispatch();
   const socket = useSocket();
+
+  const [wTeam, setWTeam] = useState<ETeam | null>(null);
 
   const { current: currRound } = useAppSelector((state) => state.rounds);
   const { nets: allNets, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
@@ -90,33 +92,37 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     e.preventDefault();
   };
 
+  useEffect(() => {
+    const TBS = net?.teamBScore?.toString() || '';
+    const TAS = net?.teamAScore?.toString() || '';
+    if (TAS && TAS !== '' && TBS && TBS !== '') {
+      if (parseInt(TAS, 10) > parseInt(TBS, 10)) {
+        setWTeam(ETeam.teamA);
+      } else if (parseInt(TAS, 10) < parseInt(TBS, 10)) {
+        setWTeam(ETeam.teamB);
+      } else {
+        setWTeam(null);
+      }
+    } else {
+      setWTeam(null);
+    }
+  }, [net]);
+
   const teamACapOrCo = user.info?.captainplayer === teamA?.captain?._id || user.info?.cocaptainplayer === teamA?.cocaptain?._id;
 
   return (
     <div className="absolute z-10 w-11/12 left-2 bg-yellow-400 flex flex-col justify-around items-center p-1 rounded-lg top-1/2 transform -translate-y-1/2">
-      {user && teamACapOrCo ? (
-        <TeamScoreInput
-          key={`${1}-${net?._id}`}
-          currRound={currRound}
-          net={net ?? null}
-          user={user}
-          teamName="teamAScore"
-          screenWidth={screenWidth}
-          handlePointChange={handlePointChange}
-          teamE={ETeam.teamB}
-        />
-      ) : (
-        <TeamScoreInput
-          key={`${2}-${net?._id}`}
-          currRound={currRound}
-          net={net ?? null}
-          user={user}
-          teamName="teamAScore"
-          screenWidth={screenWidth}
-          handlePointChange={handlePointChange}
-          teamE={ETeam.teamA}
-        />
-      )}
+      <TeamScoreInput
+        key={`${1}-${net?._id}`}
+        currRound={currRound}
+        net={net ?? null}
+        user={user}
+        teamName={`${user && teamACapOrCo ? 'teamBScore' : 'teamAScore'}`}
+        screenWidth={screenWidth}
+        handlePointChange={handlePointChange}
+        teamE={user && teamACapOrCo ? ETeam.teamB : ETeam.teamA}
+        wTeam={wTeam}
+      />
       <div className="net-card flex justify-around items-center w-full py-1">
         {screenWidth <= screen.xs && (
           <Image
@@ -131,7 +137,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
           />
         )}
         <div className="texts text-center">
-          <h3 style={fsToggle(screenWidth)} className="leading-3">
+          <h3 style={fsToggle(screenWidth)} className="leading-3 uppercase">
             Net {net?.num}
           </h3>
           {net?.netType === ETieBreaker.TIE_BREAKER_NET && <p className="w-full">Worth 2 points</p>}
@@ -140,29 +146,17 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
           <Image width={50} height={30} src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 svg-white" />
         )}
       </div>
-      {user && teamACapOrCo ? (
-        <TeamScoreInput
-          key={`${3}-${net?._id}`}
-          currRound={currRound}
-          net={net ?? null}
-          user={user}
-          teamName="teaBAScore"
-          screenWidth={screenWidth}
-          handlePointChange={handlePointChange}
-          teamE={ETeam.teamA}
-        />
-      ) : (
-        <TeamScoreInput
-          key={`${4}-${net?._id}`}
-          currRound={currRound}
-          net={net ?? null}
-          user={user}
-          teamName="teaBAScore"
-          screenWidth={screenWidth}
-          handlePointChange={handlePointChange}
-          teamE={ETeam.teamB}
-        />
-      )}
+      <TeamScoreInput
+        key={`${3}-${net?._id}`}
+        currRound={currRound}
+        net={net ?? null}
+        user={user}
+        teamName={`${user && teamACapOrCo ? 'teamAScore' : 'teamBScore'}`}
+        screenWidth={screenWidth}
+        handlePointChange={handlePointChange}
+        teamE={user && teamACapOrCo ? ETeam.teamA : ETeam.teamB}
+        wTeam={wTeam}
+      />
     </div>
   );
 }

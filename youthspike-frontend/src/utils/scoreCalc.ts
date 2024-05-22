@@ -1,4 +1,4 @@
-import { INetRelatives, IRoundExpRel, IRoundRelatives } from '@/types';
+import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 
 interface IReturnScore {
@@ -6,7 +6,7 @@ interface IReturnScore {
   plusMinusScore: number;
 }
 
-function calcRoundScore(findNets: INetRelatives[], round: IRoundExpRel, teamE: ETeam): IReturnScore {
+function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE: ETeam): IReturnScore {
   // Remove the teamE declaration here
   let score = 0;
   let plusMinusScore = 0;

@@ -10,10 +10,10 @@ const netSize = {
   mhm: 32,
 
   // Font seizes
-  fsl: 0.6, // large screen
-  fsm: 0.8, // small scrteen
-  hfl: 0.8,
-  hfm: 1.2,
+  fsl: 0.4, // large screen
+  fsm: 0.6, // small scrteen
+  hfl: 0.6,
+  hfm: 1,
 
   tlh: 3.5, // team logo height = 2rem
 };

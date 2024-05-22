@@ -138,7 +138,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - Update score button should not be shown - it is irrelevent now
  - On matches page, we do not need upcomming, only current ande passed
  - No current or any text on yellow box of match card, instead just keep the date
- - Design match list same as this -https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
+ - Design match list same as this - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
 
  - **Final Round**
  - 2 points net logic [04:20](https://www.loom.com/share/a39b08628d344b6588bd94d23e47ad8e) appear in the final round

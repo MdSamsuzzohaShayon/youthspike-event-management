@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* Dark color #232323 */
+
 /* Typography start  */
 h1,
 h2,
@@ -54,10 +57,10 @@ dialog {}
 
 dialog::backdrop {
   background-image: linear-gradient(45deg,
-      rgb(34, 34, 34),
-      rgb(34, 34, 34),
-      rgb(34, 34, 34),
-      rgb(34, 34, 34));
+      #232323,
+      #232323,
+      #232323,
+      #232323);
   opacity: 0.75;
 }
 
@@ -126,12 +129,14 @@ dialog::backdrop {
   @apply bg-red-500 text-white p-2 font-black;
 }
 .box-gradient{
-  @apply bg-gradient-to-r from-gray-500 via-gray-700 to-gray-900 text-gray-50
+  /* @apply bg-gradient-to-r from-gray-500 via-gray-700 to-gray-900 text-gray-50; */
+  background: linear-gradient(to right, #4b4a4a, #4b4a4a, #232323); /* gray-500, gray-700, gray-900 */
+  color: #F9FAFB; /* text-gray-50 */ 
 }
 /* Box design end */
 
 .bg-gradient-dark{
-  background: radial-gradient(circle, rgb(56, 64, 82) 0%, rgb(17, 24, 39) 100%);
+  background: radial-gradient(circle, #4b4a4a 0%, #232323 100%);
 }
 
 /* Loading animation  */
@@ -156,10 +161,10 @@ dialog::backdrop {
 
 /* Borders start  */
 .border-light{
-  @apply border border-gray-300
+  @apply border border-gray-300;
 }
 .border-yellow{
-  @apply border border-yellow-400
+  @apply border border-yellow-400;
 }
 /* Borders end  */
 
@@ -169,4 +174,14 @@ dialog::backdrop {
 .advanced-img img{
   object-position: center;
   object-fit: cover;
+}
+
+.bg-black-logo{
+  background-color: #232323;
+}
+.text-black-logo{
+  color: #232323;
+}
+.border-black-logo{
+  border-color: #232323;
 }

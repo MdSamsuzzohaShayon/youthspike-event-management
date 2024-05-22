@@ -38,7 +38,7 @@ function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name
       >
         <option value="">Select an option</option>
         {optionList.map((o) => (
-          <option value={o.value} key={o.value} className="bg-gray-500 text-gray-900">
+          <option value={o.value} key={o.value} className="bg-gray-500 text-black-logo">
             {o.text || o.value}
           </option>
         ))}

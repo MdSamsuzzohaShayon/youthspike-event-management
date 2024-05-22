@@ -123,11 +123,11 @@ function TeamCard({ team, eventId, eventList, setIsLoading, fefetchFunc }: TeamC
   };
 
   // eslint-disable-next-line no-unused-vars
-  const handleMakeInactive = (e: React.SyntheticEvent, teamId: string) => {
-    e.preventDefault();
-    // Fetch team by team Id
-    setOpenMoveTeam((prevState) => !prevState);
-  };
+  // const handleMakeInactive = (e: React.SyntheticEvent, teamId: string) => {
+  //   e.preventDefault();
+  //   // Fetch team by team Id
+  //   setOpenMoveTeam((prevState) => !prevState);
+  // };
 
   const handleMoveTeam = async (e: React.SyntheticEvent) => {
     e.preventDefault();

@@ -7,6 +7,9 @@ import { useUser } from '@/lib/UserProvider';
 import { eventPeriods } from '@/utils/staticData';
 import { validateMatchDatetime } from '@/utils/datetime';
 import { EEventPeriod } from '@/types/event';
+import { useMutation } from '@apollo/client';
+import { DELETE_MATCHES } from '@/graphql/matches';
+import { handleError, handleResponse } from '@/utils/handleError';
 
 interface IMatchListProps {
   eventId: string;
@@ -22,17 +25,26 @@ interface IFilterParams {
   opponent?: string;
   description?: string;
 }
+enum EMatchAction {
+  DELETE = "DELETE",
+  MOVE = "MOVE",
+}
 
-const MatchList: React.FC<IMatchListProps> = ({
-  eventId,
-  matchList,
-  teamList,
-  setIsLoading,
-  setActErr,
-  refetchFunc
-}) => {
+const actionList = [
+  { id: 1, action: EMatchAction.DELETE, },
+  { id: 2, action: EMatchAction.MOVE }
+]
+
+const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refetchFunc }: IMatchListProps) => {
+
   const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
+  const [bulkMatches, setBulkMatches] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<EMatchAction | null>(null);
+
+  const [deleteMultipleMatches] = useMutation(DELETE_MATCHES);
+
+
   const user = useUser();
 
   // Update filtered match list when matchList changes
@@ -101,6 +113,50 @@ const MatchList: React.FC<IMatchListProps> = ({
     );
   };
 
+  // ===== Bulk Action =====
+  const handleBulkAction = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    console.log(inputEl.value);
+    if (!inputEl.value || inputEl.value === '') {
+      setBulkAction(null);
+    } else {
+      // @ts-ignore
+      setBulkAction(inputEl.value);
+    }
+  }
+
+  const handleSelectMatch = (e: React.SyntheticEvent, _id: string) => {
+    const inputEl = e.target as HTMLInputElement;
+    console.log(bulkMatches);
+    if (inputEl.checked) {
+      if (!bulkMatches.includes(_id)) setBulkMatches((prevState) => [...prevState, _id]);
+      // setBulkMatches((prevState)=> [...new Set([...prevState, _id])]);
+    } else {
+      setBulkMatches((prevState) => prevState.filter((bm) => bm !== _id));
+    }
+    // e.preventDefault();
+  }
+
+  const handleConfirmBulk = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (!bulkAction) return;
+    if (bulkMatches.length <= 0) return;
+    try {
+      setIsLoading(true);
+      const response = await deleteMultipleMatches({ variables: { matchIds: bulkMatches } });
+      const success = handleResponse({ response: response.data.deleteMatches, setActErr });
+      if(!success) return;
+      setBulkMatches([]);
+      setBulkAction(null);
+      if(refetchFunc)await refetchFunc()
+    } catch (error: any) {
+      handleError({ error, setActErr })
+    }finally{
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     filterMatches();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,15 +194,21 @@ const MatchList: React.FC<IMatchListProps> = ({
 
       </div>
 
+      {bulkMatches.length > 0 && <div className="bulk-board w-full mt-4 flex justify-between items-center">
+        <div className="w-4/6">
+          <SelectInput name='bulk' handleSelect={handleBulkAction} optionList={actionList.map((a) => ({ value: a.action, text: a.action }))} key="bulk-action-key" vertical />
+        </div>
+        <button className="btn-info" onClick={handleConfirmBulk}>Ok</button>
+      </div>}
+
       {filteredMatchList.map((match: IMatchExpRel, i) => (
         <MatchCard
           key={match._id}
           eventId={eventId}
           match={match}
           sl={i + 1}
-          setIsLoading={setIsLoading}
-          setActErr={setActErr}
           refetchFunc={refetchFunc}
+          handleSelectMatch={handleSelectMatch}
         />
       ))}
     </div>
