@@ -51,8 +51,8 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
             // Handle unauthenticated error
             if (setActErr) {
                 setActErr({
-                    code: 401,
-                    message: unauthenticatedError.message,
+                    code:  401, // unauthenticatedError.extensions?.response?.statusCode ||
+                    message: unauthenticatedError.extensions?.response?.message || unauthenticatedError.message,
                     success: false,
                 });
             }
@@ -60,11 +60,25 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
             removeCookie("token");
             if (window) window.location.reload();
         } else {
-            // Handle other types of errors
-            console.log(error);
+            // Handle other types of GraphQL errors
+            if (setActErr) {
+                setActErr({
+                    code:  500, // error.graphQLErrors[0]?.extensions?.response?.statusCode ||
+                    message: error.graphQLErrors[0]?.extensions?.response?.message || error.message,
+                    success: false,
+                });
+            }
+            console.log("GraphQL Error: ", error);
         }
     } else {
-        console.log(error);
+        // Handle non-Apollo errors
+        console.log("Non-Apollo Error: ", error);
+        if (setActErr) {
+            setActErr({
+                code: 500,
+                message: "An unexpected error occurred",
+                success: false,
+            });
+        }
     }
-
 }

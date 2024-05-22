@@ -34,7 +34,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
   // Local State
   const importerEl = useRef<HTMLDialogElement | null>(null);
-  const [showFilter, setShowFilter] = useState<boolean>(false);
+  
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
@@ -44,7 +44,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   const [currDivision, setCurrDivision] = useState<string>('');
 
   // GraphQL
-  const [getEvent, { loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS);
+  const [getEvent, { loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS, {fetchPolicy: "network-only"});
   const { data: ldoData, loading: ldoLoading } = useQuery(GET_LDO);
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
@@ -78,10 +78,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     closeDialog();
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleFilter = (e: React.SyntheticEvent, filteredItemId: number) => {
-    e.preventDefault();
-  };
+  
 
   const fetchEvent = async () => {
     const eventResponse = await getEvent({ variables: { eventId }, fetchPolicy: 'network-only' });
@@ -168,26 +165,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         </button>
       </div>
       <div className="list-with-filter w-full relative">
-        <div className="action-section flex justify-between mb-4">
-          <div className="input-group flex items-center gap-2 justify-between">
-            <input type="checkbox" name="bulkaction" id="bulk-action" />
-            <label htmlFor="bulk-action">Bulk Action</label>
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
-          </div>
-          <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
-            <p>A-Z</p>
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
-          </div>
-          <ul className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-            <li role="presentation" onClick={(e) => handleFilter(e, 1)}>
-              Copy
-            </li>
-            <li role="presentation" onClick={(e) => handleFilter(e, 2)}>
-              Edit
-            </li>
-          </ul>
-        </div>
-        {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} />}
+        {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} setActErr={setActErr} fefetchFunc={fefetchFunc} />}
       </div>
     </div>
   );
