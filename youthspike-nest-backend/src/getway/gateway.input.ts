@@ -109,6 +109,9 @@ export class RoundUpdatedResponse {
 
   @Field({ nullable: false })
   room: string;
+
+  @Field({ nullable: false })
+  matchCompleted: boolean;
 }
 
 @InputType()

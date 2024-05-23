@@ -36,7 +36,7 @@ function TeamScoreInput({ net, teamE, wTeam , screenWidth, teamName, user, currR
   }, [net]);
 
   return (
-    <div className="score-card-in-net w-full text-center">
+    <div className="TeamScoreInput w-full text-center">
       <input
         type="number"
         ref={inputRef}
@@ -44,7 +44,7 @@ function TeamScoreInput({ net, teamE, wTeam , screenWidth, teamName, user, currR
         onChange={(e) => handlePointChange(e, net?._id ?? null, teamE)}
         defaultValue={defaultVal}
         style={fsToggle(screenWidth)}
-        className={`w-4/6 ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
+        className={`w-2/6 ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
         readOnly={inputReadonly()}
       />
     </div>

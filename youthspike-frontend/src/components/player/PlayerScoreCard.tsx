@@ -53,6 +53,16 @@ function PlayerScoreCard({ player, onTop, teamPlayer, evacuatePlayer, dropdownPl
       currentRound.teamAProcess === EActionProcess.CHECKIN ||
       currentRound.teamBProcess === EActionProcess.CHECKIN);
 
+  const shouldShowAddPlayer =
+    !player &&
+    user.token &&
+    evacuatePlayer &&
+    currentRoom &&
+    currentRound &&
+    ((currentRound.teamAProcess === EActionProcess.CHECKIN && currentRound.teamBProcess === EActionProcess.CHECKIN) ||
+      (currentRound.teamAProcess === EActionProcess.CHECKIN && currentRound.teamBProcess === EActionProcess.LINEUP) ||
+      (currentRound.teamAProcess === EActionProcess.LINEUP && currentRound.teamBProcess === EActionProcess.CHECKIN));
+
   useEffect(() => {
     let fn = true;
     // Check all nets fills or not
@@ -70,7 +80,7 @@ function PlayerScoreCard({ player, onTop, teamPlayer, evacuatePlayer, dropdownPl
 
   const renderSelectedPlayer = (p: IPlayer | null): React.ReactNode => {
     if (p && p?.profile) return <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(p.profile)} onClick={handleDropDown} />;
-    if (!p && dropdownPlayer)
+    if (!p && dropdownPlayer && shouldShowAddPlayer)
       return (
         <div className="w-full h-full flex justify-center items-center">
           <Image
@@ -95,10 +105,8 @@ function PlayerScoreCard({ player, onTop, teamPlayer, evacuatePlayer, dropdownPl
         </p>
       )}
       <div className={`wrapper mt-1 mx-1 border border-yellow rounded-lg overflow-hidden flex ${onTop ? 'flex-col' : 'flex-col-reverse'}`}>
-        <div className="p-name-rank bg-yellow-400 w-full flex flex-wrap items-center justify-end py-1">
-          <p className="uppercase leading-4 text-black-logo text-end pr-1" style={fsToggle(screenWidth)}>
-            {!player ? 'N/A' : `${player?.firstName} ${player?.lastName}`}
-          </p>
+        <div className="p-rank bg-yellow-400 w-full flex flex-wrap items-center justify-end py-1">
+          <p className="p-name text-c-sm uppercase leading-4 text-black-logo text-end font-bold mr-1">{!player ? 'N/A' : `${player?.firstName} ${player?.lastName}`}</p>
         </div>
 
         <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>

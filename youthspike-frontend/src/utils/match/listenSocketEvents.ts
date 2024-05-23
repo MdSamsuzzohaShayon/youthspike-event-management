@@ -133,6 +133,11 @@ const listenSocketEvents = ({ socket, match, dispatch, currentRound, currRoundNe
         dispatch(setCurrentRound(updatedRound));
       }
     }
+
+    // ===== Match Update =====
+    if (data.matchCompleted) {
+      dispatch(setMatchInfo({ ...match, completed: true }));
+    }
   });
 
   socket.on('update-net-response', (data: ITeiBreakerAction) => {

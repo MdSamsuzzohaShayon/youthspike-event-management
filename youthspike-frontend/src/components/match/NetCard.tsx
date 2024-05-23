@@ -127,10 +127,13 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
     if (findCRN !== -1) updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...netPlayerObj };
     const findAN = updatedAllNets.findIndex((n) => n._id === net._id);
     if (findAN !== -1) updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...netPlayerObj };
+
+    // ===== Update Nets, Disabled Player, Show Team Player, Out of range =====
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedAllNets));
-
     dispatch(setDisabledPlayerIds([...disabledPlayerIds.filter((dp) => dp !== evacuatedPlayerId)]));
+    dispatch(setShowTeamPlayers(false));
+    dispatch(setOutOfRange([]));
   };
 
   const handleDropdownPlayer = (e: React.SyntheticEvent, playerSpot: ETeamPlayer) => {
@@ -252,7 +255,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
           </div>
         </div>
         {playerARank && playerBRank && (
-          <div className="w-full flex flex-col items-center justify-center ">
+          <div className={`w-full flex ${onTop ? 'flex-col-reverse' : 'flex-col'} items-center justify-center `}>
             <h3 className="w-fit leading-4" style={fsToggle(screenWidth)}>
               Pair Score{' '}
             </h3>

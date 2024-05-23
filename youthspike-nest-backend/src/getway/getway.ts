@@ -95,7 +95,7 @@ export class MyGatWay implements OnModuleInit {
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
     private readonly playerService: PlayerService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
@@ -340,6 +340,7 @@ export class MyGatWay implements OnModuleInit {
           ),
         );
       }
+
       // update rank lock in the team
       await Promise.all(updatePromises);
 
@@ -401,6 +402,13 @@ export class MyGatWay implements OnModuleInit {
     const prevRoom = this.roomsLocal.get(updatePointsInput.room);
     if (!prevRoom) return;
 
+    const [roundList, roundExist] = await Promise.all([
+      this.roundService.find({ match: prevRoom.match }),
+      this.roundService.findById(updatePointsInput.round),
+    ]);
+
+    if (!roundList || !roundExist) return;
+
     // Update net score from database
     const updatePromises = [];
     for (const n of updatePointsInput.nets) {
@@ -428,14 +436,22 @@ export class MyGatWay implements OnModuleInit {
     }
 
     let completed = false;
-    if (teamAScore > 0 && teamBScore > 0) completed = true;
+    if (teamAScore && teamAScore > 0 && teamBScore && teamBScore > 0) completed = true;
     await this.roundService.update({ teamAScore, teamBScore, completed }, updatePointsInput.round);
 
     const pointsResponse: RoundUpdatedResponse = {
       nets: updatePointsInput.nets,
       room: updatePointsInput.room,
       round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed },
+      matchCompleted: false,
     };
+
+    // ===== Complete the match if score is updated in all nets  =====
+    if (roundExist.num === roundList.length && completed) {
+      await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
+      pointsResponse.matchCompleted = true;
+    }
+
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
   }
 
