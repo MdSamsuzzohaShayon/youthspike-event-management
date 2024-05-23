@@ -79,31 +79,15 @@ function Menu() {
     }
 
 
-    // ===== Logical functions =====
-    const hasValidUser = (): IUserContext => {
-        const instantToken = getCookie('token'); // Fetch again
-        const instantInfo = getCookie('user');
-
-        if (instantInfo && instantToken) {
-            if (!isAuthenticated) setIsAuthenticated(true); // 
-            if (instantToken) {
-                setUser((prevState) => ({ ...prevState, token: instantToken }))
-            }
-            if (instantInfo) {
-                setUser((prevState) => ({ ...prevState, info: JSON.parse(instantInfo) }))
-            }
-            fetchLDO();
-        }
-        return {
-            info: instantInfo ? JSON.parse(instantInfo) : null,
-            token: instantToken ? instantToken : null
-        }
-    }
-
 
     const makeMenuLink = (url: string) => {
-        let baseUrl = url;
-        if (user.info?.role === UserRole.admin && directorId)`${baseUrl}/?directorId=${directorId}`;
+        let baseUrl = url;   
+        const instantUser = getCookie('user');
+        if(instantUser && instantUser !== ''){
+            const userCtx: IUser = JSON.parse(instantUser);
+            const ldoId = searchParams.get("ldoId");
+            if (userCtx?.role === UserRole.admin && ldoId)baseUrl = `${baseUrl}?ldoId=${ldoId}`;
+        }
         return baseUrl;
     }
 
@@ -120,7 +104,7 @@ function Menu() {
             setEventId(eventPath);
 
             if (userDetail.info?.role === UserRole.admin) {
-                const newDirectorId = searchParams.get("directorId");
+                const newDirectorId = searchParams.get("ldoId");
                 if (newDirectorId) setDirectorId(newDirectorId);
             } else if (userDetail.info?.role === UserRole.director) {
                 setDirectorId(userDetail.info._id);
@@ -154,8 +138,11 @@ function Menu() {
                 newLink = `${FRONTEND_URL}/events/${eId}`
             }
 
+            const reformattedURL = makeMenuLink(`${newLink}${uml[i].link}`);
+            console.log({reformattedURL});
+            
             menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text}
-                link={makeMenuLink(`${newLink}${uml[i].link}`)} />);
+                link={reformattedURL} />);
 
         }
 

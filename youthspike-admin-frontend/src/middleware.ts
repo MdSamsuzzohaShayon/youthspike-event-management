@@ -13,37 +13,11 @@ export const config = {
   ],
 };
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const token = request.cookies.get('token');
-  const user = request.cookies.get('user');
-
-  console.log({ pathname, token: token?.value, user: user?.value ? JSON.parse(user.value) : null });
-
-  if (!token?.value || !user?.value) {
-    return handleUnauthenticated(request, pathname);
-  }
-
-  const userObj = user?.value ? JSON.parse(user.value) : null;
-
-  if (isUnauthenticatedPage(pathname)) {
-    return handleUnauthenticatedPage(request);
-  }
-
-  if (isAuthenticatedPage(pathname, userObj)) {
-    return handleAuthenticatedPage(request, pathname, userObj);
-  }
-
-  if (isAdminPage(pathname, userObj)) {
-    return handleAdminPage(request, userObj);
-  }
-
-  return NextResponse.next();
-}
 
 function handleUnauthenticated(request: NextRequest, pathname: string) {
+  // @ts-ignore
   const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
-  
+
   if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
     return NextResponse.redirect(new URL('/login', request.url).toString());
   }
@@ -88,3 +62,33 @@ function handleAdminPage(request: NextRequest, userObj: any) {
 
   return NextResponse.redirect(new URL('/', request.url).toString());
 }
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('token');
+  const user = request.cookies.get('user');
+
+  console.log({ pathname, token: token?.value, user: user?.value ? JSON.parse(user.value) : null });
+
+  if (!token?.value || !user?.value) {
+    return handleUnauthenticated(request, pathname);
+  }
+
+  const userObj = user?.value ? JSON.parse(user.value) : null;
+
+  if (isUnauthenticatedPage(pathname)) {
+    return handleUnauthenticatedPage(request);
+  }
+
+  if (isAuthenticatedPage(pathname, userObj)) {
+    return handleAuthenticatedPage(request, pathname, userObj);
+  }
+
+  if (isAdminPage(pathname, userObj)) {
+    return handleAdminPage(request, userObj);
+  }
+
+  return NextResponse.next();
+}
+
+

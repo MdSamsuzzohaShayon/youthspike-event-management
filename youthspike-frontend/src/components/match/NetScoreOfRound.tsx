@@ -9,14 +9,8 @@ import { setCurrNetNum } from '@/redux/slices/netSlice';
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 
 // Components
-import { IPlayer } from '@/types';
 import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
-import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
 import { changeTheRound } from '@/utils/match/emitSocketEvents';
-import { useMutation } from '@apollo/client';
-import { UPDATE_ROUND } from '@/graphql/round';
 import { border } from '@/utils/styles';
 import { setActErr } from '@/redux/slices/elementSlice';
 import MatchSetting from './MatchSetting';
@@ -24,6 +18,7 @@ import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
 import AvailablePlayers from '../player/AvailablePlayers';
+import SubbedPlayers from '../player/SubbedPlayers';
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const dispatch = useAppDispatch();
@@ -33,10 +28,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, myTeamE, opTeamE, match } =
-    useAppSelector((state) => state.matches);
-
-  const [mutateRound] = useMutation(UPDATE_ROUND);
+  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, myTeamE, opTeamE, match } = useAppSelector((state) => state.matches);
 
   // ===== Input Round Change =====
   const handleRoundChange = (e: React.SyntheticEvent, roundId: string) => {
@@ -58,24 +50,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     }
   };
 
-
-
-
   const handleClosePlayers = (e: React.SyntheticEvent) => {
     e.preventDefault();
     dispatch(setShowTeamPlayers(false));
     dispatch(setOutOfRange([]));
-  };
-
-  const handleRemoveSubb = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    await updateSubbedPlayer({
-      currRound: currentRound,
-      dispatch,
-      mutateRound,
-      playerId,
-      roundList,
-    });
   };
 
   useEffect(() => {
@@ -93,46 +71,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       setBoardHeight(fullHeight);
     }
   }, []); // Add dependencies that might affect the height measurement
-
-  
-
-  const renderSubbedPlayers = (): React.ReactNode => {
-    const playerListEl: React.ReactNode[] = [];
-    const teamPlayerList: IPlayer[] = myPlayers.slice();
-
-    const subbedPlayers = currentRound?.subs ?? [];
-
-    for (let i = 0; i < teamPlayerList.length; i += 1) {
-      // Inactive players should not be shown
-      if (availablePlayerIds.includes(teamPlayerList[i]._id) && subbedPlayers.includes(teamPlayerList[i]._id)) {
-        playerListEl.push(
-          <div key={i} className="border-b border-gray-300 flex justify-between items-center w-full cursor-pointer bg-transparent">
-            <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
-              {teamPlayerList[i].profile ? (
-                <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
-              ) : (
-                <Image width={24} height={24} src="/icons/sports-man.svg" alt="sports-man" className="svg-black w-full" />
-              )}
-            </div>
-            <p className="w-7/12 words-break capitalize">
-              {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
-            </p>
-            <div className="w-1/12">
-              <Image width={16} height={16} alt="close-button" src="/icons/close.svg" className="svg-black" role="presentation" onClick={(e) => handleRemoveSubb(e, teamPlayerList[i]._id)} />
-            </div>
-          </div>,
-        );
-      }
-    }
-
-    if (playerListEl.length <= 0) return null;
-    return (
-      <div className="player-list mt-4 w-full flex flex-col gap-1">
-        <h3>Subbed Players</h3>
-        {playerListEl}
-      </div>
-    );
-  };
 
   return (
     <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
@@ -183,7 +121,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           </div>
 
           <div className="px-2 w-full mt-4" style={{ minHeight: 'fit-content' }}>
-            {renderSubbedPlayers()}
+            <SubbedPlayers availablePlayerIds={availablePlayerIds} currentRound={currentRound} myPlayers={myPlayers} roundList={roundList} />
           </div>
         </div>
       )}

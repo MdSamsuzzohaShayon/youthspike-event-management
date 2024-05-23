@@ -10,7 +10,6 @@ interface IMenuItem {
 }
 
 function MenuItem({ icon, text, link, setOpenMenu }: IMenuItem) {
-    const router = useRouter();
 
     const pageRedirect = (e: React.SyntheticEvent) => {
         e.preventDefault();

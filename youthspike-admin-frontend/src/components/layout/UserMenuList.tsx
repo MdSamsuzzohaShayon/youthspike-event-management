@@ -20,12 +20,12 @@ function UserMenuList({ eventId }: { eventId: string }) {
         }
 
         // Get ldoId from query parameters and set state
-        // const searchParams = new URLSearchParams(location.search);
-        // const ldoIdParam = searchParams.get('ldoId');
+        const searchParams = new URLSearchParams(location.search);
+        const ldoIdParam = searchParams.get('ldoId');
 
-        // if (ldoIdParam) {
-        //     setLdoId(ldoIdParam);
-        // }
+        if (ldoIdParam) {
+            setLdoId(ldoIdParam);
+        }
     }, [pathname]);
 
     // State to hold ldoId

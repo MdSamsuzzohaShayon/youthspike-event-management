@@ -70,20 +70,11 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
 
 ### Update - 2 
- - When remove a assigned player close the roster box
- - Do not make match score green until match is completed
- - All nets of a round neet to get score in order to show winner or loser by green box
- - There will be always 2 line in player score card name, blod text
- - Reduce width of input field for match score
- - Make match score text bigger
- - Show team name
- - Sometime subbing a player from multiple rounds when players are submitted, fix it
  - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
  - Real Time Update when creating a match 
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
  - Auto assign need to work properly
  - Admin can not get into setting or ldo, This need to be fixed
- - In the event setting, there will be a fwango link. (https://fwango.io/), In the menu tournamant is the fwango link as well.
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
  - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
  - When I login as captain, I should only see the matches that I am in. Moreover, I should only enter the matches that I am captain of.

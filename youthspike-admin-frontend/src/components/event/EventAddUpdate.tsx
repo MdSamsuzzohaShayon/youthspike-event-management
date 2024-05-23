@@ -270,7 +270,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     }
     // Getting Director Id
     if (user.info?.role === UserRole.admin) {
-      const newDirectorId = searchParams.get('directorId');
+      const newDirectorId = searchParams.get('ldoId');
       if (!newDirectorId) {
         router.push('/admin');
         return;

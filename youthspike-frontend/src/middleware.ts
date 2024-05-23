@@ -6,8 +6,8 @@ import { UserRole } from './types/user';
 
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', "/settings", "/teams", "/new"];
-const captainAuthPages = ['/players', "/matches",  "/settings"];
+const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new'];
+const captainAuthPages = ['/players', '/matches', '/settings'];
 const adminPages = ['/admin', '/directors'];
 
 /**
@@ -22,7 +22,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api|static|.*\\..*|_next).*)",
+    '/((?!api|static|.*\\..*|_next).*)',
   ],
 };
 
@@ -54,5 +54,4 @@ export function middleware(request: NextRequest) {
     }
   }
   */
-
 }
