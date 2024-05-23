@@ -1,0 +1,19 @@
+
+/* PlayerScoreCard  */
+.p-rank {
+}
+
+.p-name{
+    min-height:1.8rem;
+    width: 70%;
+}
+
+.text-c-sm{
+    font-size: 0.9rem;
+}
+
+@media(max-width: 1024px){
+    .text-c-sm{
+        font-size: 0.7rem;
+    } 
+}

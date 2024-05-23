@@ -19,7 +19,7 @@ const netSize = {
 };
 
 // Net Card
-const EXTRA_HEIGHT: number = 40;
+const EXTRA_HEIGHT: number = 120;
 
 // Local Storage Names
 const MUSIC_TIME_PASSED = 'MUSIC_TIME_PASSED';

@@ -103,8 +103,8 @@ function CompletedBox() {
           <TextImg fullText={team?.name} className="w-20 h-20" />
         )}
         <h2>{team?.name}</h2>
-        <div className={`h-24 w-24 ${bgColor} ${textColor} rounded-lg flex justify-center items-center`}>
-          <h2>{teamPoints}</h2>
+        <div className={`h-20 w-20 ${bgColor} ${textColor} rounded-lg flex justify-center items-center`}>
+          <h2 className="text-4xl">{teamPoints}</h2>
         </div>
       </div>
     );

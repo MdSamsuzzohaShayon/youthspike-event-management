@@ -3,33 +3,29 @@ import Image from 'next/image';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setCurrNetNum } from '@/redux/slices/netSlice';
 
 // Utils
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 
 // Components
-import { INetRelatives, IPlayer } from '@/types';
-import { useUser } from '@/lib/UserProvider';
-import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
+import { IPlayer } from '@/types';
+import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
-import { ETeamPlayer, INetUpdate } from '@/types/net';
 import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
-import { ETeam } from '@/types/team';
 import { changeTheRound } from '@/utils/match/emitSocketEvents';
 import { useMutation } from '@apollo/client';
 import { UPDATE_ROUND } from '@/graphql/round';
 import { border } from '@/utils/styles';
-import { EPlayerStatus } from '@/types/player';
 import { setActErr } from '@/redux/slices/elementSlice';
 import MatchSetting from './MatchSetting';
 import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
+import AvailablePlayers from '../player/AvailablePlayers';
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
-  const user = useUser();
   const dispatch = useAppDispatch();
 
   const [boardHeight, setBoardHeight] = useState<number>(0);
@@ -37,7 +33,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
   const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, selectedPlayerSpot, myTeamE, opTeamE, prevPartner, outOfRange, match, closePSCAvailable } =
+  const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, myTeamE, opTeamE, match } =
     useAppSelector((state) => state.matches);
 
   const [mutateRound] = useMutation(UPDATE_ROUND);
@@ -62,74 +58,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     }
   };
 
-  const isValidNet = (net: INetRelatives) => net && net._id && net.round;
-  const createNetPlayerObject = (net: INetRelatives, teamPlayerId: string, playerSpot: ETeamPlayer, myTeamELocal: ETeam) => {
-    const netPlayerObj = {
-      _id: net._id,
-      teamAPlayerA: net.teamAPlayerA || null,
-      teamAPlayerB: net.teamAPlayerB || null,
-      teamBPlayerA: net.teamBPlayerA || null,
-      teamBPlayerB: net.teamBPlayerB || null,
-    };
 
-    let enablePlayerId = null;
-    if (playerSpot === ETeamPlayer.TA_PA || playerSpot === ETeamPlayer.TB_PA) {
-      if (myTeamELocal === ETeam.teamA) {
-        if (netPlayerObj.teamAPlayerA) enablePlayerId = netPlayerObj.teamAPlayerA;
-        netPlayerObj.teamAPlayerA = teamPlayerId;
-      } else {
-        if (netPlayerObj.teamBPlayerA) enablePlayerId = netPlayerObj.teamBPlayerA;
-        netPlayerObj.teamBPlayerA = teamPlayerId;
-      }
-    } else if (playerSpot === ETeamPlayer.TA_PB || playerSpot === ETeamPlayer.TB_PB) {
-      if (myTeamELocal === ETeam.teamA) {
-        if (netPlayerObj.teamAPlayerB) enablePlayerId = netPlayerObj.teamAPlayerB;
-        netPlayerObj.teamAPlayerB = teamPlayerId;
-      } else {
-        if (netPlayerObj.teamBPlayerB) enablePlayerId = netPlayerObj.teamBPlayerB;
-        netPlayerObj.teamBPlayerB = teamPlayerId;
-      }
-    }
 
-    return { netPlayerObj, enablePlayerId };
-  };
-  const handleSelectPlayer = (e: React.SyntheticEvent, teamPlayerId: string) => {
-    e.preventDefault();
-
-    // Check selected net already have a player or not, if there is already a player remove him from disabled player
-
-    // Vslidate selecting invalid players
-    const dpIds = [...disabledPlayerIds];
-    if (prevPartner) dpIds.push(prevPartner);
-    if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
-    const dtp = !!dpIds.includes(teamPlayerId); // dtp = disabled this player
-    if (dtp) return;
-
-    dispatch(setShowTeamPlayers(false));
-    if (!user || !user.token || !user.info) return;
-
-    if (!selectedNet || !selectedPlayerSpot || !isValidNet(selectedNet)) return;
-
-    const { netPlayerObj, enablePlayerId }: { netPlayerObj: INetUpdate; enablePlayerId: string | null } = createNetPlayerObject(selectedNet, teamPlayerId, selectedPlayerSpot, myTeamE);
-
-    // Update all nets and current round nets
-    const updatedCRN = [...currentRoundNets]; // crn = current round nets
-    const updatedAllNets = [...allNets];
-    const findCRN = updatedCRN.findIndex((n) => n._id === selectedNet._id);
-    if (findCRN !== -1) updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...netPlayerObj };
-    const findAN = updatedAllNets.findIndex((n) => n._id === selectedNet._id);
-    if (findAN !== -1) updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...netPlayerObj };
-    dispatch(setCurrentRoundNets(updatedCRN));
-    dispatch(setNets(updatedAllNets));
-
-    // Disabled players after selecting them
-    // @ts-ignore
-    let dpi = [teamPlayerId, ...disabledPlayerIds]; // dpi = disabled players ids
-    if (enablePlayerId) dpi = dpi.filter((d) => d !== enablePlayerId);
-    if (!closePSCAvailable) dispatch(setclosePSCAvailable(true));
-    dispatch(setDisabledPlayerIds(dpi));
-    dispatch(setOutOfRange([]));
-  };
 
   const handleClosePlayers = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -164,49 +94,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     }
   }, []); // Add dependencies that might affect the height measurement
 
-  const renderAvailablePlayers = (): React.ReactNode => {
-    /**
-     * Do not show the player who is already selected
-     * Do not show the player who played with the same team mate on previous round
-     * Which player to show that can be founded in Available Ids
-     */
-    const playerListEl: React.ReactNode[] = [];
-    const teamPlayerList: IPlayer[] = myPlayers.slice();
-
-    const subbedPlayers = currentRound?.subs ?? [];
-
-    for (let i = 0; i < teamPlayerList.length; i += 1) {
-      const dpIds = [...disabledPlayerIds];
-      if (prevPartner) dpIds.push(prevPartner);
-      if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
-      const dtp = !!dpIds.includes(teamPlayerList[i]._id); // dtp = disabled this player
-
-      // Inactive players should not be shown
-      if (availablePlayerIds.includes(teamPlayerList[i]._id) && teamPlayerList[i].status !== EPlayerStatus.INACTIVE && !subbedPlayers.includes(teamPlayerList[i]._id)) {
-        playerListEl.push(
-          <div
-            key={i}
-            className={`border-b border-gray-300 flex justify-between items-center w-full cursor-pointer ${dtp ? 'bg-gray-400' : 'bg-transparent'}`}
-            role="presentation"
-            onClick={(e) => handleSelectPlayer(e, teamPlayerList[i]._id)}
-          >
-            <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{teamPlayerList[i].rank}</p>
-            <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
-              {teamPlayerList[i].profile ? (
-                <AdvancedImage cldImg={cld.image(teamPlayerList[i].profile?.toString())} className="w-full overflow-hidden" />
-              ) : (
-                <Image width={24} height={24} src="/icons/sports-man.svg" alt="sports-man" className="svg-black w-full" />
-              )}
-            </div>
-            <p className=" w-7/12 words-break capitalize">
-              {teamPlayerList[i].firstName} {teamPlayerList[i].lastName}
-            </p>
-          </div>,
-        );
-      }
-    }
-    return <div className="player-list mt-4 w-full flex flex-col gap-1">{playerListEl}</div>;
-  };
+  
 
   const renderSubbedPlayers = (): React.ReactNode => {
     const playerListEl: React.ReactNode[] = [];
@@ -253,7 +141,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
           <div id="left-top" style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
-            <LogoMatchScore dark team={opTeam} teamE={opTeamE} screenWidth={screenWidth} />
+            <LogoMatchScore dark team={opTeam} teamE={opTeamE} screenWidth={screenWidth} completed={match.completed} />
 
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
               {roundList.map((round) => (
@@ -281,7 +169,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           >
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
-              <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} screenWidth={screenWidth} />
+              <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} screenWidth={screenWidth} completed={match.completed} />
             </div>
           </div>
           {/* Bottom Side End  */}
@@ -291,7 +179,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           <Image width={24} height={24} alt="close-button" src="/icons/close.svg" className="svg-black mx-2 mt-2" role="presentation" onClick={handleClosePlayers} />
           <div className="px-2 w-full" style={{ minHeight: 'fit-content' }}>
             <h3>Selected Net {selectedNet?.num}</h3>
-            {renderAvailablePlayers()}
+            <AvailablePlayers availablePlayerIds={availablePlayerIds} currentRound={currentRound} myPlayers={myPlayers} disabledPlayerIds={disabledPlayerIds} />
           </div>
 
           <div className="px-2 w-full mt-4" style={{ minHeight: 'fit-content' }}>

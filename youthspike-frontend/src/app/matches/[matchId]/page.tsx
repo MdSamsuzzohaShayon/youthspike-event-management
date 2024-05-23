@@ -49,6 +49,8 @@ import { ETeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import { setTeamScore } from '@/redux/slices/matchesSlice';
 
+import './Match.css';
+
 /**
  * Test Match
  *
@@ -245,13 +247,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         {/* Level 4 end: oponent rosters  */}
 
         {/* Level 5 start: Oponent Team  */}
-        {currMatch.completed && (
-          <div className="container px-4 mx-auto text-center mt-4">
-            <div className={`w-full ${myS < opS ? 'bg-green-500 text-white' : ''}`}>
-              <h1 className="op-team-name border border-black-logo h1 uppercase ">{opTeam?.name}</h1>
-            </div>
+        <div className="container px-4 mx-auto text-center mt-4">
+          <div className={`w-full ${myS < opS && currMatch.completed ? 'bg-green-500 text-white' : ''}`}>
+            <h1 className="op-team-name border border-black-logo h1 uppercase ">{opTeam?.name}</h1>
           </div>
-        )}
+        </div>
         {/* Level 5 end: Oponent Team  */}
 
         {/* Level 6 start: main match  */}
@@ -262,6 +262,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         ) : (
           <>
             {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+            
             <LineupStrategy
               myTeamE={myTeamE}
               currRound={currentRound}
@@ -280,13 +281,11 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         {/* Level 6 end: main match  */}
 
         {/* Level 7 start: My Team  */}
-        {currMatch.completed && (
-          <div className="container px-4 mx-auto text-center mb-4">
-            <div className={`w-full ${myS > opS ? 'bg-green-500 text-white' : ''}`}>
-              <h1 className="op-team-name border border-black-logo h1 uppercase">{myTeam?.name}</h1>
-            </div>
+        <div className="container px-4 mx-auto text-center my-4">
+          <div className={`w-full ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : ''}`}>
+            <h1 className="op-team-name border border-black-logo h1 uppercase">{myTeam?.name}</h1>
           </div>
-        )}
+        </div>
         {/* Level 7 end: My Team  */}
 
         {/* Level 8 start: Sponsors  */}
