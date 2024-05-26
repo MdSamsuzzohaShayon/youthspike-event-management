@@ -124,7 +124,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
       </dialog>
 
       {/* Setting Icon */}
-      <div className="img-holder p-2 w-8 absolute left-1 bg-white rounded-full cursor-pointer" style={{ top: '47%' }} role="presentation" onClick={handleSettingOpen} onKeyDown={() => {}}>
+      <div className="img-holder p-2 w-8 absolute left-1 bg-white rounded-full cursor-pointer z-20" style={{ top: '47%' }} role="presentation" onClick={handleSettingOpen} onKeyDown={() => {}}>
         <Image width={12} height={12} src="/icons/setting.svg" alt="setting" className="w-full" />
       </div>
     </>

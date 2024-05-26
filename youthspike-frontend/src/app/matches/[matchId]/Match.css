@@ -1,20 +1,26 @@
-
 /* PlayerScoreCard  */
-.p-rank {
+.p-rank {}
+
+.p-name {
+    min-height: 1.8rem;
 }
 
-.p-name{
-    min-height:1.8rem;
-    width: 70%;
-}
 
-.text-c-sm{
+.text-c-sm {
     font-size: 0.9rem;
 }
 
+.text-c-sm small {
+    font-size: 0.7rem;
+}
 
-@media(max-width: 1024px){
-    .text-c-sm{
+
+
+@media(max-width: 1024px) {
+    .text-c-sm {
         font-size: 0.7rem;
-    } 
+    }
+    .text-c-sm small {
+        font-size: 0.5rem;
+    }
 }

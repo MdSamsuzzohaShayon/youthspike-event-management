@@ -1,7 +1,7 @@
 import Loader from '@/components/elements/Loader';
 import React from 'react';
 
-function LoadingPage() {
+function Loading() {
   return (
     <div>
       <Loader />
@@ -9,4 +9,4 @@ function LoadingPage() {
   );
 }
 
-export default LoadingPage;
+export default Loading;

@@ -71,7 +71,7 @@ function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
   return (
     <div className="bg-black-logo text-white py-4">
       <div className="container px-4 mx-auto">
-        <div className="player-list flex justify-between items-center">
+        <div className="player-list flex justify-between items-center gap-x-1">
           {screenWidth > screen.xs && (
             <button type="button" className="bg-transparent border-o h-full" onClick={shiftLeft}>
               <img src="/icons/right-arrow.svg" alt="left-arrow" className="w-8 svg-white" style={{ transform: 'scaleX(-1)' }} />

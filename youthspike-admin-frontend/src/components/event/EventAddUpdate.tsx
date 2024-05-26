@@ -25,6 +25,7 @@ import useClickOutside from '../../hooks/useClickOutside';
 import AnyFileInput from '../elements/forms/AnyFileInput';
 import FileInput from '../elements/forms/FileInput';
 import TextareaInput from '../elements/forms/TextareaInput';
+import ImageInput from '../elements/forms/ImageInput';
 // Select Input Options
 const { homeTeamStrategy, rosterLockList } = staticData;
 
@@ -328,7 +329,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     <form onSubmit={handleEventAdd} className="flex flex-col gap-2">
       <TextInput required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt="Name" name="name" lw="w-2/6" rw="w-4/6" />
 
-      {/* <ImageInput /> */}
+      {/* <ImageInput  /> */}
       <FileInput defaultValue={eventState.logo} handleFileChange={handleLogoChange} name="logo" extraCls="md:w-5/12" />
 
       <DateInput required={!update} defaultValue={eventState.startDate} handleInputChange={handleInputChange} lblTxt="Start Date" name="startDate" lw="w-2/6" rw="w-4/6" />
