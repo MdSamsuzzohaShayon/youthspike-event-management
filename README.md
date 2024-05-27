@@ -65,11 +65,13 @@ ___
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
-Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 ### Update - 1
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
 
 ### Update - 2 
+ - Also, to ensure proper fitting. Can we make the last names of the players 2 font size smaller? ALso can we shrink the gab between first name and last name a little more?
+10:24 PM
+Also not sure if we can shrink the gaps between roster and team names and team names and the middle area?
  - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
  - Real Time Update when creating a match 
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
@@ -83,10 +85,7 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 
 
  - **Team**
- - Make mutation from frontend to delete team
- - Move team need to work properly - one division to another division
  - Add search function for player when creating a new team
- - Move team - when moving team to another event current event should not have that team
  - When we are in team, in the player list in the place of assigned it will say the name of the team that is assigned to
  - Moreover, the team name will be hyperlink
  - If there are no logo, do not put any text there
@@ -179,18 +178,8 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 ### Bug Fixing
  - A team has submitted their lineup, and the other team could not submit their lineup, it skipped the process (No lineup setting for the other team) [00:00](https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb)
  - [01:55](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) It is allowing a player to play with the player he played with in previous round
- - Issue with admin directing to event setting page (It is redirecting to /admin page)
  - Submit lineup is not properly sending data to other client, the other screen being blank - Need to organize rounds in ascending order from `submit-lineup-response`. When a team is updating in round 1 and another team is selecting players for the nets in round 2. When the first team has updated the score ther other team is been kicked out to round 1
- - When saving a team and creating another team, it does not update the player list. That need to be updated properly
- - [00:00](https://www.loom.com/share/c2b04e623a874cf5b647ef260d2bc20a) - After submitting lineup there should not be shown close button, fix that
- - [02:35](https://www.loom.com/share/c2b04e623a874cf5b647ef260d2bc20a) - When selecting players, subbing sometime does not visiable, need to show which player is unselected - Bug- It's allowing me to assign the same person to more than one net.  See video
- - Close button is not visiable when submitting players
- - Bug- It allowed someone to sub twice in back to back rounds. it should only allow you to sub someone after everyone on the team has subbed at least once.
  
- 
- - src/components/event/EventAddUpdate.tsx
- - src/app/[eventId]/settings/page.tsx
-
 
 
 ### Deployment
@@ -205,29 +194,29 @@ Till 17:00 - https://www.loom.com/share/67dab820e93e4a90b53995155a53d8bb
 ### Database Action
  -  Change `location` to `description` in all document of match and event
  - Allow duplicate email for a player `db.players.dropIndex("email_1");`
- ```
- db.events.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
- db.matches.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
- ```
+  ```
+  db.events.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
+  db.matches.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
+  ```
  -  Set `completed` to `false` in all document of match
  -  Set `sendCredentials` to `false` in all document of event and team
-```
-db.events.updateMany({}, { $set: { sendCredentials: false } });
-db.teams.updateMany({}, { $set: { sendCredentials: false } });
-```
+  ```
+  db.events.updateMany({}, { $set: { sendCredentials: false } });
+  db.teams.updateMany({}, { $set: { sendCredentials: false } });
+  ```
  - Set num in teams
- ```
- const cursor = db.teams.find()
- let num = 1
- while (cursor.hasNext()) {
-  let doc = cursor.next()
-  db.teams.updateOne(
-    { _id: doc._id }, // Match the document by its _id
-    { $set: { num: num } } // Set the 'num' field to the current counter value
-  )
-  num++ // Increment the counter for the next document
-  }
- ```
+  ```
+  const cursor = db.teams.find()
+  let num = 1
+  while (cursor.hasNext()) {
+    let doc = cursor.next()
+    db.teams.updateOne(
+      { _id: doc._id }, // Match the document by its _id
+      { $set: { num: num } } // Set the 'num' field to the current counter value
+    )
+    num++ // Increment the counter for the next document
+    }
+  ```
 
 
 ### Github action deployment

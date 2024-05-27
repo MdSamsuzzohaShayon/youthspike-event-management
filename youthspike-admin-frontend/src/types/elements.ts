@@ -66,6 +66,17 @@ export interface IFileFileProps {
   handleFileChange: (e: React.SyntheticEvent) => void;
 }
 
+export interface IImageFileProps {
+  lw?: string;
+  rw?: string;
+  vertical?: boolean;
+  extraCls?: string;
+  lblTxt?: string;
+  name: string;
+  defaultValue?: string | undefined | null;
+  handleFileChange: (uploadedFile: Blob | MediaSource) => void;
+}
+
 export interface IAnyFileFileProps {
   name: string;
   handleFileChange: (e: React.SyntheticEvent) => void;

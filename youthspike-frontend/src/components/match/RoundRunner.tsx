@@ -70,8 +70,8 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
 
   return (
     <div className="w-full">
-      <div className="container px-4 mx-auto my-4 text-center">
-        <div className="box w-full flex flex-col justify-center items-center py-2">{currentRoom && renderActionBoxes()}</div>
+      <div className="container px-4 mx-auto text-center">
+        <div className="box w-full flex flex-col justify-center items-center">{currentRoom && renderActionBoxes()}</div>
       </div>
     </div>
   );

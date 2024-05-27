@@ -16,6 +16,7 @@ import {
   IPlayerSelectProps,
   ITextareaInputProps,
   ICheckboxInputProps,
+  IImageFileProps,
 } from "./elements";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
@@ -33,6 +34,7 @@ export type {
   ITextInputProps,
   ISelectInputProps,
   IFileFileProps,
+  IImageFileProps,
   INumberInputProps,
   IToggleInputProps,
   IButtonProps,

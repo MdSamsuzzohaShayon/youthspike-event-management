@@ -73,10 +73,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   }, []); // Add dependencies that might affect the height measurement
 
   return (
-    <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative mt-4">
+    <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative">
       {/* Left side round detail start  */}
       {!showTeamPlayers ? (
-        <div id="left-round-detail" className={`round-detail border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
+        <div id="left-round-detail" className={`round-detail relative border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
           <div id="left-top" style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
             <LogoMatchScore dark team={opTeam} teamE={opTeamE} screenWidth={screenWidth} completed={match.completed} />
@@ -99,6 +99,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           </div>
           {/* Top Side End  */}
 
+          {match.completed && (
+            <p className="absolute w-full top-1/2 z-10 bg-white border border-black-logo text-center" style={{ transform: 'translate(0%, -50%)' }}>
+              Final Score
+            </p>
+          )}
           {/* Bottom Side Start  */}
           <div
             id="left-bottom"

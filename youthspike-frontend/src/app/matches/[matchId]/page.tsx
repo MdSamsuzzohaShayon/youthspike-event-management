@@ -217,107 +217,111 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const opS = myTeamE === ETeam.teamA ? teamBTotalScore : teamATotalScore;
 
   return (
-    <Suspense fallback={<Loader />}>
-      <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
-        {/* Level 1 start  */}
-        <div className="container mx-auto px-4 bg-black-logo">
-          {error && <Message error={error} />}
-          {actErr && <Message error={actErr} />}
-        </div>
-        {/* Level 1 end  */}
-
-        {/* Level 2 start: hidden  */}
-        <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
-          Button
-        </button>
-        {/* Level 2 end: hidden  */}
-
-        {/* Level 3 start: sub of oponents  */}
-        {opSubbedPlayers && opSubbedPlayers.length > 0 && (
-          <div className="subbed-wrapper pt-4 bg-black-logo text-white">
-            <div className="container px-4 mx-auto ">
-              <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
-            </div>
-          </div>
-        )}
-        {/* Level 3 end: sub of oponents  */}
-
-        {/* Level 4 start: oponent rosters  */}
-        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop />
-        {/* Level 4 end: oponent rosters  */}
-
-        {/* Level 5 start: Oponent Team  */}
-        <div className="container px-4 mx-auto text-center mt-4">
-          <div className={`w-full ${myS < opS && currMatch.completed ? 'bg-green-500 text-white' : ''}`}>
-            <h1 className="op-team-name border border-black-logo h1 uppercase ">{opTeam?.name}</h1>
-          </div>
-        </div>
-        {/* Level 5 end: Oponent Team  */}
-
-        {/* Level 6 start: main match  */}
-        {notTieBreakerNetId ? (
-          <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} />
-        ) : verifyLineup ? (
-          <VerifyLineup />
-        ) : (
-          <>
-            {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-            
-            <LineupStrategy
-              myTeamE={myTeamE}
-              currRound={currentRound}
-              myPlayers={myPlayers}
-              opPlayers={opPlayers}
-              currRoundNets={currRoundNets}
-              allNets={allNets}
-              roundList={roundList}
-              currMatch={currMatch}
-            />
-            {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
-              <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
-            )}
-          </>
-        )}
-        {/* Level 6 end: main match  */}
-
-        {/* Level 7 start: My Team  */}
-        <div className="container px-4 mx-auto text-center my-4">
-          <div className={`w-full ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : ''}`}>
-            <h1 className="op-team-name border border-black-logo h1 uppercase">{myTeam?.name}</h1>
-          </div>
-        </div>
-        {/* Level 7 end: My Team  */}
-
-        {/* Level 8 start: Sponsors  */}
-        {eventSponsors.length > 0 && (!user || !user.token) && (
-          <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
-            <h3>Sponsors</h3>
-            <div className="flex items-center justify-between flex-wrap w-full">
-              {eventSponsors.map((spon) =>
-                spon.company === APP_NAME ? (
-                  <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
-                ) : (
-                  <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
-                ),
-              )}
-            </div>
-          </div>
-        )}
-        {/* Level 8 end: Sponsors  */}
-
-        {/* Level 9 start: My Rosters  */}
-        <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
-        {/* // Show subbed players  */}
-        {mySubbedPlayers && mySubbedPlayers.length > 0 && (
-          <div className="subbed-wrapper pt-4 bg-black-logo text-white">
-            <div className="container px-4 mx-auto">
-              <SubbedPlayerList teamPlayers={mySubbedPlayers} currRound={currentRound} roundList={roundList} subControl />
-            </div>
-          </div>
-        )}
-        {/* Level 9 end: My Rosters  */}
+    <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
+      {/* Level 1 start  */}
+      <div className="container mx-auto px-4 bg-black-logo">
+        {error && <Message error={error} />}
+        {actErr && <Message error={actErr} />}
       </div>
-    </Suspense>
+      {/* Level 1 end  */}
+
+      {/* Level 2 start: hidden  */}
+      <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
+        Button
+      </button>
+      {/* Level 2 end: hidden  */}
+
+      {/* Level 3 start: sub of oponents  */}
+      {opSubbedPlayers && opSubbedPlayers.length > 0 && (
+        <div className="subbed-wrapper pt-4 bg-black-logo text-white">
+          <div className="container px-4 mx-auto ">
+            <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
+          </div>
+        </div>
+      )}
+      {/* Level 3 end: sub of oponents  */}
+
+      {/* Level 4 start: oponent rosters  */}
+      <div className="op-rosters-wrapper w-full">
+        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop />
+        <div className="op-team-bottom-wrapper h-4" /> {/* Placeholder */}
+        <div className="name-wrapper px-4">
+          <div className="container px-4 mx-auto text-center relative z-10">
+            <div className={`w-full bg-black-logo absolute bottom-0 left-0 ${myS < opS && currMatch.completed ? 'bg-green-500 text-white' : 'text-gray-100'}`}>
+              <h1 className="op-team-name h1 uppercase ">{opTeam?.name}</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Level 4 end: oponent rosters  */}
+
+      {/* Level 6 start: main match  */}
+      {notTieBreakerNetId ? (
+        <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} />
+      ) : verifyLineup ? (
+        <VerifyLineup />
+      ) : (
+        <>
+          {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
+
+          <LineupStrategy
+            myTeamE={myTeamE}
+            currRound={currentRound}
+            myPlayers={myPlayers}
+            opPlayers={opPlayers}
+            currRoundNets={currRoundNets}
+            allNets={allNets}
+            roundList={roundList}
+            currMatch={currMatch}
+          />
+          {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
+            <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
+          )}
+        </>
+      )}
+      {/* Level 6 end: main match  */}
+
+      {/* Level 7 start: My Rosters  */}
+      <div className="my-roster-wrapper w-full">
+        {/*  My Team  */}
+        <div className="name-wrapper px-4">
+          <div className="container mx-auto text-center  relative">
+            <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : ''}`}>
+              <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
+            </div>
+          </div>
+          <div className="my-team-top-wrapper h-5" /> {/* Placeholder */}
+        </div>
+        {/* My Team  */}
+        <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+      </div>
+      {/* // Show subbed players  */}
+      {mySubbedPlayers && mySubbedPlayers.length > 0 && (
+        <div className="subbed-wrapper pt-4 bg-black-logo text-white">
+          <div className="container px-4 mx-auto">
+            <SubbedPlayerList teamPlayers={mySubbedPlayers} currRound={currentRound} roundList={roundList} subControl={!currentRound?.completed} />
+          </div>
+        </div>
+      )}
+      {/* Level 7 end: My Rosters  */}
+
+      {/* Level 8 start: Sponsors  */}
+      {eventSponsors.length > 0 && (!user || !user.token) && (
+        <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
+          <h3>Sponsors</h3>
+          <div className="flex items-center justify-between flex-wrap w-full">
+            {eventSponsors.map((spon) =>
+              spon.company === APP_NAME ? (
+                <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
+              ) : (
+                <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
+              ),
+            )}
+          </div>
+        </div>
+      )}
+      {/* Level 8 end: Sponsors  */}
+    </div>
   );
 }
 
