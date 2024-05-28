@@ -203,7 +203,7 @@ function EventsPage() {
       <div className="events flex flex-wrap gap-2 justify-between">
         <div className="event-card mb-1 p-2 bg-yellow-logo rounded-lg">
           <Link
-            href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?directorId=${directorId}` : `/newevent`}
+            href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?ldoId=${directorId}` : `/newevent`}
             className="h-full w-full flex justify-center items-center flex-col gap-2 rounded-md"
           >
             <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />

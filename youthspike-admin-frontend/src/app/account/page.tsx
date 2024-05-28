@@ -24,11 +24,14 @@ function AccountPage() {
      * Fetch director
      */
     (async () => {
-      const { data } = await getLdo(); // Use dynamic id // use either ldoId or directorI      
+      const searchParams = new URLSearchParams(location.search);
+      const ldoIdParam = searchParams.get('ldoId');
+
+      const { data } = await getLdo({ variables: {dId: ldoIdParam} }); // Use dynamic id // use either ldoId or directorI      
       const ldoObj = data?.getEventDirector?.data;
-      const success = handleResponse({response: data?.getEventDirector, setActErr});
-      if(!success)return;
-      
+      const success = handleResponse({ response: data?.getEventDirector, setActErr });
+      if (!success) return;
+
 
       setLdoState({
         name: ldoObj?.name,
