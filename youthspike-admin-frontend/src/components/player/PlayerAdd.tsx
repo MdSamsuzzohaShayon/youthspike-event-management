@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { getDivisionFromStore, getTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import addOrUpdatePlayer from '@/utils/requestHandlers/addOrUpdatePlayer';
 import NumberInput from '../elements/forms/NumberInput';
+import ImageInput from '../elements/forms/ImageInput';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -64,12 +65,9 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     }
   }
 
-  const handleFileChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLInputElement;
-    if (inputEl.files && inputEl.files.length > 0) {
-      uploadedProfile.current = inputEl.files[0];
-    }
+  const handleFileChange = (uploadedFile: Blob | MediaSource) => {
+    // @ts-ignore
+    uploadedProfile.current = uploadedFile;
   }
 
   const handleTeamChange = (e: React.SyntheticEvent) => {
@@ -120,7 +118,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
   return (
     <form onSubmit={handleAddPlayer} className='flex justify-between items-center flex-wrap'>
       <div className="w-full">
-        <FileInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
+        <ImageInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
       </div>
       <TextInput name='firstName' lblTxt='First Name' defaultValue={playerState?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerState?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />

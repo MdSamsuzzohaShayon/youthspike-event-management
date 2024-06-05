@@ -156,14 +156,20 @@ query GetEvent($eventId: String!) {
  */
 
 const GET_EVENTS = gql`
-query GetEvents {
-  getEvents {
-    code
-    data {
-      ${eventResponse}
+  query GetEvents {
+    getEvents {
+      code
+      data {
+        _id
+        name
+        startDate
+        endDate
+        active
+        divisions
+        description
+      }
     }
   }
-}
 `;
 
 export { GET_AN_EVENT, GET_EVENTS };

@@ -286,7 +286,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         {/*  My Team  */}
         <div className="name-wrapper px-4">
           <div className="container mx-auto text-center  relative">
-            <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : ''}`}>
+            <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : 'bg-white text-black-logo'}`}>
               <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
             </div>
           </div>
@@ -307,16 +307,18 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
       {/* Level 8 start: Sponsors  */}
       {eventSponsors.length > 0 && (!user || !user.token) && (
-        <div className="sponsors w-full mt-2 container px-4 mx-auto mb-2">
-          <h3>Sponsors</h3>
-          <div className="flex items-center justify-between flex-wrap w-full">
-            {eventSponsors.map((spon) =>
-              spon.company === APP_NAME ? (
-                <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
-              ) : (
-                <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
-              ),
-            )}
+        <div className="sponsors w-full pt-2 mx-auto mb-2 bg-black-logo text-white">
+          <div className="container px-4 mx-auto">
+            <h2 className='mt-4'>Sponsors</h2>
+            <div className="flex items-center justify-between md:justify-start flex-wrap w-full">
+              {eventSponsors.map((spon) =>
+                spon.company === APP_NAME ? (
+                  <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
+                ) : (
+                  <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
+                ),
+              )}
+            </div>
           </div>
         </div>
       )}

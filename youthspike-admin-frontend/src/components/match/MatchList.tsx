@@ -117,7 +117,6 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
   const handleBulkAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLSelectElement;
-    console.log(inputEl.value);
     if (!inputEl.value || inputEl.value === '') {
       setBulkAction(null);
     } else {
@@ -128,7 +127,6 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
 
   const handleSelectMatch = (e: React.SyntheticEvent, _id: string) => {
     const inputEl = e.target as HTMLInputElement;
-    console.log(bulkMatches);
     if (inputEl.checked) {
       if (!bulkMatches.includes(_id)) setBulkMatches((prevState) => [...prevState, _id]);
       // setBulkMatches((prevState)=> [...new Set([...prevState, _id])]);

@@ -59,8 +59,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
   const pName = usePathname();
 
   // Local State
-  const eventLogo = useRef<null | File>(null);
-  const sponsorInputEl = useRef<HTMLInputElement>(null);
+  const eventLogo = useRef<null | MediaSource | Blob>(null);
   const addSponsorDialogEl = useRef<HTMLDialogElement | null>(null);
   const [currSponsor, setCurrSponsor] = useState<IEventSponsorAdd>(initialCurrSponsor);
 
@@ -90,7 +89,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       eventState,
       updateEvent,
       sponsorImgList,
-      sponsorInputEl,
       eventLogo,
       setActErr,
       eventUpdate,
@@ -208,8 +206,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
   const handleFileChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const fileInputEl = e.target as HTMLInputElement;
-    // @ts-ignore
-    sponsorInputEl.current = fileInputEl;
     if (!fileInputEl.files || fileInputEl.files.length === 0) return;
 
     const inputedFile = fileInputEl.files[0];
@@ -226,7 +222,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
   };
 
 
-  const handleLogoChange = (uploadedFile: File) => {
+  const handleLogoChange = (uploadedFile: MediaSource | Blob) => {
     eventLogo.current = uploadedFile;
   };
 

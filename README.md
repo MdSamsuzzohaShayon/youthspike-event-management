@@ -66,21 +66,24 @@ ___
  - Handle error just like uploading multiple player file error handling
 
 ### Update - 1
+ - Use date properly for USA when creating event and match (all inputed timne should be international time and output time should be local time)
+ - Sort matches numerically or alphabetically. Then put finished matches at the bottom and the first numer matches at the top. https://www.loom.com/share/810293f12ea84a44bb543ae26c7b5922
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
+ - Ranking are for the whole event. However once a player has been submitted on a round, that ranking can’t be changed even if his ranking is changed later for a different match.
+7:12 PM
+If a player is made inactive, that player does not have a ranking. When that player is made active again he is given the same ranking he had before. It’s ok if someone else has that ranking. There is a need sometimes to have two players with the same ranking.
+7:13 PM
+It might even be worth making it so we can manually change their ranking in their profile in addition to the sorting method
 
 ### Update - 2 
  - Also, to ensure proper fitting. Can we make the last names of the players 2 font size smaller? ALso can we shrink the gab between first name and last name a little more?
-10:24 PM
-Also not sure if we can shrink the gaps between roster and team names and team names and the middle area?
+ - Also not sure if we can shrink the gaps between roster and team names and team names and the middle area?
  - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
  - Real Time Update when creating a match 
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
  - Auto assign need to work properly
- - Admin can not get into setting or ldo, This need to be fixed
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
  - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
- - When I login as captain, I should only see the matches that I am in. Moreover, I should only enter the matches that I am captain of.
- - Bug- It allowed someone to sub twice in back to back rounds. it should only allow you to sub someone after everyone on the team has subbed at least once.
 
 
 
@@ -241,8 +244,9 @@ Also not sure if we can shrink the gaps between roster and team names and team n
 
 
 ### Ask
- - I have a bit confusion with subbing players. If I am a captain of a team and I have 8 players and 6 of them are assigned to different nets and 2 of the players are left behind, those 2 players are subbed players for all of next rounds. If I go to the next round I need to remove him from subbed player and let him play, only in that way we can get back the player. But I may be missed that point that a player can not sub off multiple times. However, if you create a video explaining the whole process of subbing off  if would be better for me to understand.
- - Some of the errors you have mention in the text document are confusing. It is really easier for me for you find any error and show me that error on your screen via screenshot or screen video. Any way possible If I can see on your screen something is wrong I can fix that easily
+ -  When he is inactive and make him active again his pair score and ranking was gone
+ - I have a confusion with ranking. You said when someone is inactive they won't have any ranking, furthermore, when he is active again he will get a ranking again. That is how I made it. When someonw active again how to you expect to rank? How this works? Explain littloe bit more. This ranking is currently for the whole event. Do you want the ranking for specific match? 
+ - 
 
 
 

@@ -25,6 +25,8 @@ function UserMenuList({ eventId }: { eventId: string }) {
             let menuItemList = rearrangeMenu(userDetail, eventPath);
             if (userDetail.info?.role === UserRole.admin && ldoIdParam) {
                 menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id >= 5 ? `${mi.link}${mi.id > 5 ? "" : "?ldoId=" + ldoIdParam}` : `/${eventId}/${mi.link}?ldoId=${ldoIdParam}` }));
+            }else{
+                menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id === 5 ? mi.link : `/${eventId}/${mi.link}` }));
             }
             setUserMenuList(menuItemList);
         }

@@ -50,11 +50,13 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
     user.token &&
     evacuatePlayer &&
     currentRoom &&
-    currentRound &&
+    currentRound 
+    &&
     (currentRound.teamAProcess === EActionProcess.LINEUP ||
       currentRound.teamBProcess === EActionProcess.LINEUP ||
       currentRound.teamAProcess === EActionProcess.CHECKIN ||
       currentRound.teamBProcess === EActionProcess.CHECKIN);
+
 
   const shouldShowAddPlayer =
     !player &&
@@ -102,11 +104,15 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
 
   return (
     <div className="w-full h-full relative overflow-hidden">
+      {/* Level 1: rank start  */}
       {player && !onTop && renderRank()}
+      {/* Level 1: rank end  */}
+
+      {/* Lavel 2: player start  */}
       <div className={`wrapper w-full border border-yellow rounded-lg overflow-hidden flex ${onTop ? 'flex-col' : 'flex-col-reverse'}`}>
         <div className="p-rank bg-yellow-400 w-full flex flex-wrap items-center justify-center">
           <p className="p-name text-c-sm uppercase text-black-logo text-center font-bold leading-3 pt-1">
-            {player ? player.firstName : 'N/A'}
+            {player ? player.firstName : ''}
             {player?.lastName && (
               <>
                 <br />
@@ -129,7 +135,11 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
           {renderPlayerImage()}
         </div>
       </div>
+      {/* Lavel 2: player end  */}
+
+      {/* Lavel 3: rank start  */}
       {player && onTop && renderRank()}
+      {/* Lavel 3: rank end  */}
     </div>
   );
 }

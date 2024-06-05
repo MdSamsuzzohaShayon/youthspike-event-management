@@ -22,6 +22,17 @@ function handleUnauthenticated(request: NextRequest, pathname: string) {
     return NextResponse.redirect(new URL('/login', request.url).toString());
   }
 
+
+  // if (protectedPages.some(page => new RegExp(`(?:^|\\/|\\/)${page}(?:\\/|$)`, 'i').test(pathname))) {
+  //   return NextResponse.redirect(new URL('/login', request.url).toString());
+  // }
+
+  /**
+   *    (?:^|\\/|\\/) matches the start of the string or a / before the page.
+   *    ${page} matches the specific page pattern.
+   *    (?:\\/|$) matches the end of the string or a / after the page.
+   */
+
   return NextResponse.next();
 }
 

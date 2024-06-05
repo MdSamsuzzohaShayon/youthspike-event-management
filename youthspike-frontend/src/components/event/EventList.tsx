@@ -74,7 +74,7 @@ function EventList({ eventList }: { eventList: IEvent[] }) {
         {filteredEventList.length > 0 && filteredEventList.map((event: IEvent) => <EventCard key={event._id} event={event} />)}
       </div>
       <div className="psgination-wrapper w-full mt-4 ">
-        <EventPagination EVENT_PAGE_LIMIT={EVENT_PAGE_LIMIT} listStart={listStart} eventList={cloneEventList} setListStart={setListStart} setFilteredEventList={setCloneEventList} />
+        <EventPagination EVENT_PAGE_LIMIT={EVENT_PAGE_LIMIT} listStart={listStart} eventList={filteredEventList} setListStart={setListStart} setFilteredEventList={setCloneEventList} />
       </div>
     </div>
   );

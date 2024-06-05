@@ -94,11 +94,10 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
       <h1 className="uppercase text-center">{event?.name}</h1>
 
       {/* Team detail  */}
-      <div className="team-detail mt-8 w-full flex justify-center flex-col items-center">
-        {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-20" /> : <TextImg className="w-20 h-20" fullText={team.name} txtCls="text-2xl" />}
-
-        <h3 className="capitalize">{team && team.name}</h3>
-        <div className="navigator w-full flex justify-center items-center gap-x-2 flex-wrap">
+      <div className="team-detail mt-4 w-full flex justify-center flex-col items-center">
+        {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-20 md:w-32" /> : <TextImg className="w-20 md:w-32 h-20 md:h-32" fullText={team.name} txtCls="text-2xl" />}
+        <h1 className="capitalize">{team && team.name}</h1>
+        <div className="navigator w-full flex justify-center items-center gap-x-2 flex-wrap mt-4">
           {userMenuList.map((item, iIdx) => (
             <Link key={item.id} href={item.id === 8 || item.id === 5 ? `${item.link}` : `/${eventId}${item.link}`}>
               {iIdx !== 0 && '|'} {item.text}
