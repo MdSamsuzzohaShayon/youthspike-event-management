@@ -20,6 +20,7 @@ import Link from 'next/link';
 import TextImg from '@/components/elements/TextImg';
 import { handleResponse } from '@/utils/handleError';
 import { getUserFromCookie } from '@/utils/cookie';
+import { getDivisionFromStore, removeDivisionFromStore } from '@/utils/localStorage';
 
 interface IItem {
   id: number;
@@ -150,6 +151,7 @@ function EventsPage() {
 
   useEffect(() => {
     fetchLDO();
+    removeDivisionFromStore();
   }, [router, user]);
 
   if (ldoLoading || isLoading) return <Loader />;

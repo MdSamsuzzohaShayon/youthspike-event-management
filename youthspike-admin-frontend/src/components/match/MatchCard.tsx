@@ -6,7 +6,7 @@ import { FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
-import { readDate, readDatetime, readTime, validateMatchDatetime } from '@/utils/datetime';
+import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
@@ -82,7 +82,10 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
 
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6">
-        <CheckboxInput name='bulk-match' _id={match._id} handleInputChange={handleSelectMatch} />
+        {user.info?.role === UserRole.admin || user.info?.role === UserRole.director
+          ? (<CheckboxInput name='bulk-match' _id={match._id} handleInputChange={handleSelectMatch} />)
+          : <div className='w-4' />}
+
         <div className="w-10/12 flex items-center justify-center">
           {/* <h2>Match Name</h2> */}
           <Link href={`${FRONTEND_URL}/matches/${match._id}`} className='btn-info' >Enter</Link>
@@ -135,10 +138,10 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
             <span><img src='/icons/clock.svg' className='w-6 svg-white' /></span>
             <span>{readDate(match.date)}</span>
           </p>
-          <p className='flex justify-start items-center gap-x-2'>
+          {/* <p className='flex justify-start items-center gap-x-2'>
             <span><img src='/icons/date.svg' className='w-6 svg-white' /></span>
             <span>Start {readTime(match.date)}</span>
-          </p>
+          </p> */}
         </div>
         <div className="w-3/6 text-end">
           {match.description && (

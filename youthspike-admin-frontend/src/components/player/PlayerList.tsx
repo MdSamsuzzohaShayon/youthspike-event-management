@@ -7,7 +7,7 @@ import { UPDATE_PLAYERS } from '@/graphql/players';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-interface ISortableListProps {
+interface IPlayerListProps {
   playerList: IPlayerExpRel[];
   eventId: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,7 +25,7 @@ interface IPlayerRank {
   rank: number;
 }
 
-function SortableList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, setActErr }: ISortableListProps) {
+function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, setActErr }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const screenWidth = useScreenWidth();
 
@@ -124,4 +124,4 @@ function SortableList({ playerList, eventId, setIsLoading, rankControls, refetch
   );
 }
 
-export default SortableList;
+export default PlayerList;

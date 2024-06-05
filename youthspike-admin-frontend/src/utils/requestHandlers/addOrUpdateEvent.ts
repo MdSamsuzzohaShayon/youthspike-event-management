@@ -17,8 +17,7 @@ interface IAddOrUpdateProps {
     eventState: IEventAdd;
     updateEvent: Partial<IEventAdd>;
     sponsorImgList: IEventSponsorAdd[];
-    sponsorInputEl: React.RefObject<HTMLInputElement>;
-    eventLogo: React.RefObject<null | File>;
+    eventLogo: React.RefObject<null | MediaSource | Blob>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     eventUpdate: MutationFunction;
     eventAdd: MutationFunction;
@@ -28,9 +27,6 @@ interface IAddOrUpdateProps {
 
 }
 
-interface IInput {
-    logo: string;
-}
 
 interface IMutationVariables {
     sponsorsInput: IEventSponsorAdd[];
@@ -44,7 +40,7 @@ interface IMutationVariables {
  */
 async function addOrUpdateEvent({
     e, update, eventId, directorId, setEventState, setIsLoading, eventState,
-    updateEvent, sponsorImgList, sponsorInputEl, eventLogo, setActErr, eventUpdate,
+    updateEvent, sponsorImgList, eventLogo, setActErr, eventUpdate,
     eventAdd, user, router, initialEvent }: IAddOrUpdateProps) {
     e.preventDefault();
 
@@ -62,6 +58,7 @@ async function addOrUpdateEvent({
     if (update) {
         mutationVariables.updateInput = inputData;
     } else {
+        // @ts-ignore
         mutationVariables.input = inputData
     }
     // @ts-ignore
@@ -81,6 +78,7 @@ async function addOrUpdateEvent({
 
         if(sponsorFileList.length === 1 && sponsorFileList[0].company === APP_NAME) sponsorFileList = [];
 
+        // @ts-ignore
         if (update && sponsorStringList.length > 0) mutationVariables.sponsorsStringInput = sponsorStringList;
 
         if ((sponsorFileList.length > 0) || eventLogo.current ) {

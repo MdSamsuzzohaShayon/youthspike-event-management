@@ -1,7 +1,7 @@
 import { IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
+import { setDisabledPlayerIds, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
 import findPrevPartner from '../match/findPrevPartner';
 
 interface IRandomAssignProps {
@@ -33,9 +33,9 @@ function getRandomPartner(shuffled: IPlayer[], excludeId: string | null, netVari
 }
 
 function findPairWithMaxScore(availablePlayers: IPlayer[], maxPairScore: number) {
-  for (let mI = 0; mI < availablePlayers.length; mI++) {
+  for (let mI = 0; mI < availablePlayers.length; mI+=1) {
     const tempRp1 = availablePlayers[mI];
-    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ++) {
+    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ+=1) {
       const tempRp2 = availablePlayers[mJ];
       const nps = (tempRp1?.rank || 0) + (tempRp2?.rank || 0);
       if (nps <= maxPairScore) {
@@ -47,9 +47,9 @@ function findPairWithMaxScore(availablePlayers: IPlayer[], maxPairScore: number)
 }
 
 function findPairWithMinScore(availablePlayers: IPlayer[], minPairScore: number) {
-  for (let mI = 0; mI < availablePlayers.length; mI++) {
+  for (let mI = 0; mI < availablePlayers.length; mI+=1) {
     const tempRp1 = availablePlayers[mI];
-    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ++) {
+    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ+=1) {
       const tempRp2 = availablePlayers[mJ];
       const nps = (tempRp1?.rank || 0) + (tempRp2?.rank || 0);
       if (nps >= minPairScore) {
@@ -60,13 +60,16 @@ function findPairWithMinScore(availablePlayers: IPlayer[], minPairScore: number)
   return [null, null];
 }
 
+
 function randomAssign(props: IRandomAssignProps) {
   const { currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch } = props;
   const newCurrRoundNets = [];
   const allNetsClone = allNets.slice();
   const selectedPlayerIds = new Set();
 
-  for (let i = 0; i < currRoundNets.length; i++) {
+  for (let i = 0; i < currRoundNets.length; i += 1) {
+
+    // ===== List of players that are not assigned in a net =====
     const availablePlayers = myPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.rank);
 
     if (availablePlayers.length < 2) {
@@ -74,16 +77,19 @@ function randomAssign(props: IRandomAssignProps) {
       break;
     }
 
+    // ===== Randomly selecting 2 players =====
     let [rp1, rp2] = getRandomPlayers(availablePlayers);
 
+    // ===== Check not previous partner =====
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
 
+    // ===== Change partner if if match with previous partner, therefore, 2 players can not play in 2 round in a row =====
     if (matchUp && prevPartnerId && rp2?._id === prevPartnerId) {
       rp2 = getRandomPartner(availablePlayers, prevPartnerId, currMatch.netVariance || 0, Infinity) || null;
     }
 
+    // ===== Check Net variance does not exceed =====
     const pairScore = (rp1?.rank || 0) + (rp2?.rank || 0);
-
     let op1;
     let op2;
     if (myTeamE === ETeam.teamA) {
@@ -108,6 +114,7 @@ function randomAssign(props: IRandomAssignProps) {
         }
       }
 
+      // ===== Set players to the net, if there is no player it will set null =====
       const netObj = { ...currRoundNets[i] };
       if (myTeamE === ETeam.teamA) {
         netObj.teamAPlayerA = rp1?._id || null;
@@ -119,9 +126,11 @@ function randomAssign(props: IRandomAssignProps) {
 
       newCurrRoundNets.push(netObj);
 
+      // ===== Adding player to selected players list =====
       if (rp1) selectedPlayerIds.add(rp1._id);
       if (rp2) selectedPlayerIds.add(rp2._id);
 
+      // ===== Update all nets =====
       const fni = allNetsClone.findIndex((n) => n._id === currRoundNets[i]._id);
       if (fni !== -1) {
         allNetsClone[fni] = netObj;
@@ -129,10 +138,13 @@ function randomAssign(props: IRandomAssignProps) {
     }
   }
 
+
+  // ===== Setting nets and disabled players =====
   dispatch(setCurrentRoundNets(newCurrRoundNets));
   dispatch(setNets(allNetsClone));
   // @ts-ignore
   dispatch(setDisabledPlayerIds([...selectedPlayerIds]));
+  dispatch(setclosePSCAvailable(true));
 }
 
 export default randomAssign;

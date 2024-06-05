@@ -24,7 +24,7 @@ import React, { useState, useEffect } from 'react';
  * Captain
  * pfn125
  * Co-captains
- * p3e1@e.com
+ * pfn325
  * 
  * 
  * RB Leipzig

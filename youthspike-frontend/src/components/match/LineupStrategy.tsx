@@ -34,6 +34,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
     // Check first assign or match up
     const matchUp = currRound?.firstPlacing !== myTeamE;
 
+    // Make sure selecting all players subbed previously
     switch (pas) {
       case EAssignStrategies.RANDOM:
         randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });

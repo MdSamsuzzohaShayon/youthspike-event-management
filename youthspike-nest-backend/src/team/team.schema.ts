@@ -8,26 +8,9 @@ import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
-import { User } from 'src/user/user.schema';
-
-const CounterSchema = new mongoose.Schema({
-  field: { type: String, required: true },
-  sequence: { type: Number, default: 0 },
-});
-
-const CounterModel = mongoose.model('Counter', CounterSchema);
-
-async function getNextSequence(fieldName: string): Promise<number> {
-  const counter = await CounterModel.findOneAndUpdate(
-    { field: fieldName },
-    { $inc: { sequence: 1 } },
-    { new: true, upsert: true }
-  );
-
-  return counter.sequence;
-}
 
 
+/*
 @ObjectType()
 @Schema()
 export class PlayerRanking {
@@ -39,6 +22,8 @@ export class PlayerRanking {
   @Prop({ required: true })
   player: string;
 }
+const PlayerRankingSchema = SchemaFactory.createForClass(PlayerRanking);
+*/
 
 /**
  * Event
@@ -100,6 +85,13 @@ export class Team extends AppDocument {
   @Field(() => [Net], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets?: Net[] | string[]; // Update the type of Nets to allow null values
+
+  /*
+  // Rank schema
+  @Field(() => [PlayerRanking], { nullable: true })
+  @Prop({ type: [PlayerRankingSchema], required: false })
+  ranks?: PlayerRanking[];
+  */
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

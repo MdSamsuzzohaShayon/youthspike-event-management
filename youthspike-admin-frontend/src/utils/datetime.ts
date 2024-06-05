@@ -1,5 +1,13 @@
 import { EEventPeriod } from "@/types/event";
 
+
+// Check - readDatetime, readTime, validateMatchDatetime
+// Array of month names
+const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+];
+
 function validateMatchDatetime(isoString: string | null): EEventPeriod {
     if (!isoString || isoString === "") return EEventPeriod.PAST;;
     const targetDate = new Date(isoString);
@@ -10,44 +18,29 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
 
     if (targetDate < currDate) {
         return EEventPeriod.PAST;
-    } 
+    }
     // else if (targetDate > currDate) {
     //     return EEventPeriod.UPCOMING;
     // }
     return EEventPeriod.CURRENT;
 }
 
-function readDatetime(isoString: string) {
-    const targetDate = new Date(isoString);
-
-    const formatter = new Intl.DateTimeFormat('en-US', {
-        year: '2-digit',
-        month: '2-digit',
-        day: '2-digit',
-    });
-
-    return formatter.format(targetDate);
-}
 
 function readDate(isoDateString: string) {
     const date = new Date(isoDateString);
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    // @ts-ignore
-    return new Intl.DateTimeFormat('en-US', options).format(date);
+
+
+    // Extract the month, date, and year
+    const month = monthNames[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+
+    // Format the date string
+    const formattedDate = `${month} ${day}, ${year}`;
+
+    return formattedDate;
 }
 
-function readTime(isoTimeString: string) {
-    const date = new Date(isoTimeString);
-    const options = {
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-        hour12: true // Ensure AM/PM format
-    };
-    // @ts-ignore
-    return new Intl.DateTimeFormat('en-US', options).format(date);
-
-}
 
 
 
@@ -73,4 +66,4 @@ function formatUSPhoneNumber(number: string) {
 
 
 
-export { validateMatchDatetime, readDatetime, defaultInputValue, readDate, readTime, formatUSPhoneNumber };
+export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber };

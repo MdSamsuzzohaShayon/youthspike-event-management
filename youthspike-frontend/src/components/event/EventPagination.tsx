@@ -33,7 +33,7 @@ function EventPagination({ eventList, EVENT_PAGE_LIMIT, listStart, setListStart,
   if (eventList.length <= EVENT_PAGE_LIMIT) return null;
 
   const pageButtons: React.ReactNode[] = [];
-  for (let i = 0; i < pages; i+=1) {
+  for (let i = 0; i < pages; i += 1) {
     if (i === 0) {
       pageButtons.push(
         <button key={`${i + 1}-previous`} className="btn-primary h-12" onClick={(e) => handlePagination(e, i, false)} type="button">
