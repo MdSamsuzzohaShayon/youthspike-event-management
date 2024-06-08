@@ -1,4 +1,4 @@
-import { IPlayer } from '.';
+import { IPlayer } from './player';
 
 export enum ETieBreaker {
   PREV_NET = 'PREV_NET',

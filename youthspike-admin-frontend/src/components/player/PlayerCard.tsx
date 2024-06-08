@@ -5,7 +5,7 @@ import { IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { ApolloError, useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IError, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
@@ -27,9 +27,10 @@ interface PlayerCardProps {
   teamList?: ITeam[];
   refetchFunc?: () => void;
   setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
+  rank?: number | null;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank }: PlayerCardProps) {
   
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -39,6 +40,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
   const [newEmail, setNewEmail] = useState<string>('');
   const dialogEl = useRef<HTMLDialogElement | null>(null);
+  const [ldoId, setLdoId] = useState<string>('');
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
@@ -60,7 +62,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setIsLoading(true);
       if (teamId && eventId) {
         const response = await mutateTeam({ variables: { input, teamId, eventId } });
-        const success = handleResponse({response: response.data.updatePlayer, setActErr});
+        const success = handleResponse({response: response.data.updateTeam, setActErr});
         if(!success) return;
         await client.refetchQueries({ include: [GET_A_TEAM] });
       }
@@ -224,6 +226,22 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     setNewTeamId(inputEl.value);
   };
 
+  const makePlayerEditUrl = (eId: string, pId: string) => {
+    // `/${eventId}/players/${player._id}`
+    let newUrl = `/${eId}/players/${pId}`;
+    if (user && user.info && user.info.role === UserRole.admin && ldoId !== '') newUrl += `/?ldoId=${ldoId}`;
+    return newUrl;
+  };
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const ldoIdParam = searchParams.get('ldoId');
+
+    if (ldoIdParam) {
+      setLdoId(ldoIdParam);
+    }
+  }, [window.location.search]);
+
   const renderTeam = () => {
     let teamFound = null;
     if (player?.teams && player?.teams.length > 0) {
@@ -262,9 +280,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             </div>
 
             <div className="text-box w-3/12 flex flex-col justify-center items-center">
-              {showRank && player?.rank && (
+              {showRank && rank && (
                 <div className="rank-box flex flex-col items-center rounded-lg">
-                  <h3 className="bg-yellow-logo text-gray-900 px-2 flex justify-center items-center text-base">{player?.rank}</h3>
+                  <h3 className="bg-yellow-logo text-gray-900 px-2 flex justify-center items-center text-base">{rank}</h3>
                   <p>Rank</p>
                 </div>
               )}
@@ -280,7 +298,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation">
             {' '}
-            <Link href={`/${eventId}/players/${player._id}`}>Edit</Link>
+            <Link href={makePlayerEditUrl(eventId, player._id)}>Edit</Link>
           </li>
           {rankControls && player.status === EPlayerStatus.ACTIVE && (
             <>

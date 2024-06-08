@@ -26,7 +26,6 @@ const playerResponse = `
   username
   profile
   email
-  rank
   status
   phone
   division

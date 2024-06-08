@@ -6,24 +6,9 @@ import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
+import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
-
-
-/*
-@ObjectType()
-@Schema()
-export class PlayerRanking {
-  @Field({ nullable: true })
-  @Prop({ required: false, default: null })
-  rank?: number | null;
-
-  @Field({ nullable: false })
-  @Prop({ required: true })
-  player: string;
-}
-const PlayerRankingSchema = SchemaFactory.createForClass(PlayerRanking);
-*/
 
 /**
  * Event
@@ -71,7 +56,7 @@ export class Team extends AppDocument {
   cocaptain?: Player | string; // Make the captain field nullable
 
   @Field((type) => [Match], { nullable: true })
-  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }]})
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
   matches?: Match[] | string[]; // Make the captain field nullable
 
   @Field((type) => Event, { nullable: false })
@@ -86,12 +71,9 @@ export class Team extends AppDocument {
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets?: Net[] | string[]; // Update the type of Nets to allow null values
 
-  /*
-  // Rank schema
-  @Field(() => [PlayerRanking], { nullable: true })
-  @Prop({ type: [PlayerRankingSchema], required: false })
-  ranks?: PlayerRanking[];
-  */
+  @Field((type) => [PlayerRanking], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' }] })
+  playerRankings?: PlayerRanking[] | string[];
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

@@ -14,12 +14,13 @@ export class TeamService {
     return this.teamModel.find(filter).sort({ name: 1 });
   }
 
-  async findById(id: string) {
-    if (!Types.ObjectId.isValid(id)) {
-      return null;
+  async findById(teamId: string): Promise<Team | null> {
+    try {
+      return await this.teamModel.findById(teamId).exec();
+    } catch (error) {
+      console.error('Error finding team by ID:', error);
+      throw error;
     }
-    // https://mongoosejs.com/docs/populate.html#population
-    return this.teamModel.findById(id);
   }
 
   async findByName(name: string) {
@@ -38,12 +39,12 @@ export class TeamService {
   async create(team: Team) {
     // const lastTeam = await this.teamModel.findOne({}, {}, { sort: { num: -1 } });
     const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
-    console.log({lastTeam});
+    const lastTeamNum: number = lastTeam?.num || 1;
     
     return this.teamModel.create({
       ...team,
       active: true,
-      num: lastTeam.num + 1,
+      num: lastTeamNum,
     });
   }
 

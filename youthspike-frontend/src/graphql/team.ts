@@ -15,7 +15,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
       email
       phone
       profile
@@ -43,7 +42,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
       profile
       captainofteams {
         _id

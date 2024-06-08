@@ -24,6 +24,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
 
   const { prevPartner, outOfRange, selectedPlayerSpot, closePSCAvailable, selectedNet, myTeamE } = useAppSelector((state) => state.matches);
   const { nets: allNets, currentRoundNets } = useAppSelector((state) => state.nets);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
   const isValidNet = (net: INetRelatives) => net && net._id && net.round;
   const createNetPlayerObject = (net: INetRelatives, teamPlayerId: string, playerSpot: ETeamPlayer, myTeamELocal: ETeam) => {
@@ -95,6 +96,11 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
     dispatch(setOutOfRange([]));
   };
 
+  const playerRank = (currPlayer: IPlayer): number => {
+    const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+    return rankings.find((p) => p.player._id === currPlayer?._id)?.rank || 0;
+  };
+
   const allDisabledIds = [...disabledPlayerIds, prevPartner, ...outOfRange].filter(Boolean);
   const subbedPlayers = currentRound?.subs ?? [];
 
@@ -111,7 +117,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
               role="presentation"
               onClick={(e) => handleSelectPlayer(e, player._id)}
             >
-              <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{player.rank}</p>
+              <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{playerRank(player)}</p>
               <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
                 {player.profile ? (
                   <AdvancedImage cldImg={cld.image(player.profile.toString())} className="w-full overflow-hidden" />

@@ -1,5 +1,5 @@
-import { INetPlayers } from '.';
-import { ETieBreaker } from './net';
+/* eslint-disable import/no-cycle */
+import { ETieBreaker, INetPlayers } from './net';
 import { ETeam } from './team';
 
 export enum EActionProcess {

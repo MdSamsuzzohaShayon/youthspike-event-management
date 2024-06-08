@@ -12,7 +12,6 @@ players {
   profile
   email
   status
-  rank
 }
 captain {
   _id
@@ -20,7 +19,6 @@ captain {
   lastName
   profile
   email
-  rank
 }
 cocaptain {
   _id
@@ -28,9 +26,23 @@ cocaptain {
   lastName
   profile
   email
-  rank
 }
         `;
+
+const teamRanking = `
+_id
+rankLock
+rankings {
+  _id
+  rank
+  player {
+    _id
+  }
+}
+`;
+
+const teamARanking = `teamARanking {${teamRanking}}`;
+const teamBRanking = `teamBRanking {${teamRanking}}`;
 
 const GET_MATCH_DETAIL = gql`
 query GetMatch($matchId: String!) {
@@ -40,6 +52,8 @@ query GetMatch($matchId: String!) {
     success
     data {
       _id
+      ${teamARanking}
+      ${teamBRanking}
       completed
       autoAssign
       autoAssignLogic

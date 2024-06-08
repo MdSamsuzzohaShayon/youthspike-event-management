@@ -53,6 +53,21 @@ enum ETeam {
   teamB
 }
 
+type PlayerRankingItem {
+  _id: String
+  rank: Int!
+  player: Player!
+  playerRanking: PlayerRanking!
+}
+
+type PlayerRanking {
+  _id: String
+  rankLock: Int!
+  rankings: [PlayerRankingItem!]
+  team: Team!
+  match: Match
+}
+
 type Team {
   _id: String
   name: String!
@@ -68,6 +83,10 @@ type Team {
   event: Event!
   players: [Player!]!
   nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  playerRanking: PlayerRanking!
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
 }
 
 type Net {
@@ -111,6 +130,8 @@ type Match {
   teamA: Team
   teamB: Team
   room: Room
+  teamARanking: PlayerRanking
+  teamBRanking: PlayerRanking
   division: String!
   numberOfNets: Int!
   numberOfRounds: Int!
@@ -167,7 +188,6 @@ type Player {
   username: String
   email: String
   status: EPlayerStatus!
-  rank: Int
   profile: String
   phone: String
   division: String!
@@ -379,6 +399,13 @@ type PlayersResponse {
   data: [Player!]
 }
 
+type PlayerRankingResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [PlayerRanking!]
+}
+
 """Date custom scalar type"""
 scalar Date
 
@@ -445,6 +472,7 @@ type Mutation {
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
   sendCredentials(eventId: String!, teamId: String, captain: String, co_captain: String): AppResponse!
+  updatePlayerRanking(teamId: [String!]!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
 }
 
 input UpdateUserArgs {
@@ -652,4 +680,9 @@ input UpdatePlayersInput {
   rank: Float
   team: String
   _id: String!
+}
+
+input UpdatePlayerRankingInput {
+  player: String
+  rank: Float
 }

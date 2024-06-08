@@ -1,7 +1,7 @@
 /* eslint-disable react/require-default-props */
 import { UPDATE_ROUND } from '@/graphql/round';
 import { useAppDispatch } from '@/redux/hooks';
-import { IPlayer, IRoundRelatives } from '@/types';
+import { IPlayer, IPlayerRankingExpRel, IRoundRelatives } from '@/types';
 import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
 import { useMutation } from '@apollo/client';
 import Image from 'next/image';
@@ -11,10 +11,12 @@ interface ISubbedPlayerCardProps {
   player: IPlayer;
   currRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
+  teamAPlayerRanking: IPlayerRankingExpRel | null;
+  teamBPlayerRanking: IPlayerRankingExpRel | null;
   subControl?: boolean;
 }
 
-function SubbedPlayerCard({ player, currRound, roundList, subControl }: ISubbedPlayerCardProps) {
+function SubbedPlayerCard({ player, currRound, roundList, subControl, teamAPlayerRanking, teamBPlayerRanking }: ISubbedPlayerCardProps) {
   const dispatch = useAppDispatch();
 
   const [showAction, setShowAction] = useState<boolean>(false);
@@ -26,9 +28,13 @@ function SubbedPlayerCard({ player, currRound, roundList, subControl }: ISubbedP
     e.preventDefault();
     await updateSubbedPlayer({ playerId: player._id, currRound, dispatch, mutateRound, roundList });
   };
+
+  const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+  const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
+
   return (
     <div className="small-player-card border-light p-1 flex items-center gap-x-1 relative">
-      <h4 className="capitalize">{`${player.rank}. ${player.firstName} ${player.lastName}`}</h4>
+      <h4 className="capitalize">{`${playerRank}. ${player.firstName} ${player.lastName}`}</h4>
       {subControl && (
         <Image alt="Option icon" className="svg-white cursor-pointer" src="/icons/dots-vertical.svg" width={16} height={16} role="presentation" onClick={() => setShowAction(!showAction)} />
       )}

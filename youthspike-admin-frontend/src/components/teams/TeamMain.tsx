@@ -13,7 +13,7 @@ import { IError, IEventExpRel, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
-import { usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { handleResponse } from '@/utils/handleError';
 import { GET_LDO } from '@/graphql/director';
 import Image from 'next/image';
@@ -31,6 +31,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   // Hooks
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Local State
   const importerEl = useRef<HTMLDialogElement | null>(null);
@@ -111,6 +112,14 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     await fetchEvent();
   };
 
+  console.log(searchParams);
+  
+
+  const makeUrl=(prevUrl: string): string=>{
+    if(searchParams.get('ldoId')) return `${prevUrl}?ldoId=${searchParams.get('ldoId')}`;
+    return prevUrl;
+  }
+
   // Do this for all event pages
   useEffect(() => {
     if (eventId) {
@@ -145,7 +154,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <div className="mb-8 make-team flex w-full justify-between">
-        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={`/${eventId}/teams/new`}>
+        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={makeUrl(`/${eventId}/teams/new`)}>
           <span>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/plus.svg" alt="plus" className="w-6 svg-black" />
           </span>

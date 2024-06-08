@@ -25,6 +25,7 @@ import { ITeam, ITeamAdd } from "./team";
 import { IAddMatch, IMatch, IDefaultMatchProps, IMatchRelatives, IMatchExpRel} from "./match";
 import { IRoundBase, IRoundRelatives, IRoundExpRel } from "./round";
 import { INetRelatives, INetBase, INetExpRel } from "./net";
+import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from "./playerRanking";
 
 export type {
   // Elements
@@ -97,4 +98,11 @@ export type {
   INetBase,
   INetRelatives,
   INetExpRel,
+
+
+  // Ranking
+  IPlayerRanking,
+  IPlayerRankingItem,
+  IPlayerRankingExpRel, 
+  IPlayerRankingItemExpRel,
 };

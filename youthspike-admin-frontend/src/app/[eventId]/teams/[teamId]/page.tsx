@@ -42,6 +42,8 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const divisionList = data?.getTeam?.data?.event?.divisions ? divisionsToOptionList(data?.getTeam?.data?.event?.divisions) : [];
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
+  const playerRanking = data?.getTeam?.data?.playerRanking
+  
   
 
 
@@ -50,7 +52,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading} 
-      divisionList={divisionList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} playerList={playerList} />}
+      divisionList={divisionList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} />}
       
     </div>
   )

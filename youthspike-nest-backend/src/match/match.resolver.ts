@@ -16,6 +16,8 @@ import { ETieBreaker } from 'src/net/net.schema';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
+import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -38,6 +40,7 @@ export class MatchResolver {
     private roundService: RoundService,
     private netService: NetService,
     private roomService: RoomService,
+    private playerRankingService: PlayerRankingService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -70,6 +73,9 @@ export class MatchResolver {
       const roundIds = [];
       const playerIds = [];
 
+      const promisesAll = [];
+
+      // ===== Set Event default value ====
       const matchObj: any = {
         ...input,
         nets: netIds,
@@ -93,7 +99,52 @@ export class MatchResolver {
       const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB });
       const newMatch = await this.matchService.create({ ...matchObj, room: newRoom._id });
 
-      const promisesAll = [];
+      // ===== Create new ranking for team A and team B =====
+      const [teamARanking, teamBRanking] = await Promise.all([
+        this.playerRankingService.findOne({ team: input.teamA }),
+        this.playerRankingService.findOne({ team: input.teamB }),
+      ]);
+      if (!teamARanking || !teamBRanking) return AppResponse.notFound('Player Ranking');
+      const [teamAItems, teamBItems] = await Promise.all([
+        this.playerRankingService.findItems({ playerRanking: teamARanking._id }),
+        this.playerRankingService.findItems({ playerRanking: teamBRanking._id }),
+      ]);
+
+      const teamARankings = [],
+        teamBRankings = [];
+
+      for (let i = 0; i < teamAItems.length; i += 1) {
+        teamARankings.push({ player: teamAItems[i].player, rank: teamAItems[i].rank });
+      }
+
+      for (let i = 0; i < teamBItems.length; i += 1) {
+        teamBRankings.push({ player: teamBItems[i].player, rank: teamBItems[i].rank });
+      }
+
+      const [newTeamARanking, newTeamBRanking] = await Promise.all([
+        this.playerRankingService.create({
+          rankings: teamARankings,
+          rankLock: false,
+          team: input.teamA,
+          match: newMatch._id,
+        }),
+        this.playerRankingService.create({
+          rankings: teamBRankings,
+          rankLock: false,
+          team: input.teamB,
+          match: newMatch._id,
+        }),
+      ]);
+
+      await Promise.all([
+        this.teamService.updateOne({ _id: input.teamA }, { $addToSet: { playerRankings: newTeamARanking._id } }),
+        this.teamService.updateOne({ _id: input.teamB }, { $addToSet: { playerRankings: newTeamBRanking._id } }),
+        // Match update
+        this.matchService.updateOne(
+          { _id: newMatch._id },
+          { teamARanking: newTeamARanking._id, teamBRanking: newTeamBRanking._id },
+        ),
+      ]);
 
       let firstPlacing = ETeam.teamA;
       // ===== Create Round and nets inside a round =====
@@ -142,6 +193,7 @@ export class MatchResolver {
       promisesAll.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
       promisesAll.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
       promisesAll.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
+
       await Promise.all(promisesAll);
 
       return {
@@ -246,7 +298,7 @@ export class MatchResolver {
       return {
         code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: matchExist ? true : false,
-        message: 'No match found!',
+        message: matchExist ? 'Got the match' : 'No match found!',
         data: matchExist,
       };
     } catch (err) {
@@ -312,6 +364,28 @@ export class MatchResolver {
       const findRoom = await this.roomService.findOne({ _id: match.room.toString() });
       return findRoom;
     } catch {
+      return null;
+    }
+  }
+
+  @ResolveField(() => PlayerRanking)
+  async teamARanking(@Parent() match: Match): Promise<PlayerRanking> {
+    try {
+      const playerRanking = await this.playerRankingService.findOne({ _id: match.teamARanking });
+      return playerRanking;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  @ResolveField(() => PlayerRanking)
+  async teamBRanking(@Parent() match: Match): Promise<PlayerRanking> {
+    try {
+      const playerRanking = await this.playerRankingService.findOne({ _id: match.teamBRanking });
+      return playerRanking;
+    } catch (error) {
+      console.log(error);
       return null;
     }
   }

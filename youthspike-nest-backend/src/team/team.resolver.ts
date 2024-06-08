@@ -19,6 +19,8 @@ import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { NetService } from 'src/net/net.service';
 import { MatchService } from 'src/match/match.service';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -38,6 +40,11 @@ class GetTeamResponse extends AppResponse<Team> {
   data?: Team;
 }
 
+@ObjectType()
+class PlayerRankingItemResponse extends PlayerRankingItem {
+  playerRanking: PlayerRanking;
+}
+
 @Resolver((of) => Team)
 export class TeamResolver {
   constructor(
@@ -48,6 +55,7 @@ export class TeamResolver {
     private cloudinaryService: CloudinaryService,
     private netService: NetService,
     private matchService: MatchService,
+    private playerRankingService: PlayerRankingService,
   ) {}
 
   async singleDelete(teamExist: Team) {
@@ -100,18 +108,31 @@ export class TeamResolver {
           active: true,
           players,
           nets: [],
+          playerRankings: [],
         }),
         this.eventService.findById(input.event.toString()),
       ]);
 
+      // Create player ranking when creating match
+
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
       promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
+
+      const playerRankings = [];
       for (let i = 0; i < players.length; i += 1) {
-        promiseOperations.push(
-          this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id }, rank: i + 1 }),
-        );
+        promiseOperations.push(this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id } }));
+        // Create player ranking when creating team
+        playerRankings.push({ rank: i + 1, player: players[i] });
       }
+      const teamPlayerRanking = await this.playerRankingService.create({
+        rankings: playerRankings,
+        rankLock: false,
+        team: newTeam._id,
+      });
+      promiseOperations.push(
+        this.teamService.updateOne({ _id: newTeam._id }, { $addToSet: { playerRankings: teamPlayerRanking._id } }),
+      );
 
       if (input.captain) {
         // =====  Create new user for captain =====
@@ -178,8 +199,9 @@ export class TeamResolver {
         const playerExist = await this.playerService.findById(input.captain.toString());
 
         if (playerExist) {
-          const newUsername =
-            playerExist?.username?.toLowerCase() + teamExist.num || playerExist.firstName.toLowerCase() + teamExist.num;
+          // const newUsername =
+          //   playerExist?.username?.toLowerCase() + teamExist.num || playerExist.firstName.toLowerCase() + teamExist.num;
+          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num;
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -282,12 +304,7 @@ export class TeamResolver {
       const players = input.players ? input.players : [];
       const prevPlayerIds = teamExist.players.map((pId) => pId.toString());
       for (let i = 0; i < players.length; i += 1) {
-        updatePromises.push(
-          this.playerService.updateOne(
-            { _id: players[i] },
-            { $addToSet: { teams: teamExist._id }, rank: prevPlayerIds.length + i + 1 },
-          ),
-        );
+        updatePromises.push(this.playerService.updateOne({ _id: players[i] }, { $addToSet: { teams: teamExist._id } }));
       }
       teamObj.players = [...new Set([...prevPlayerIds, ...players])];
 
@@ -398,6 +415,46 @@ export class TeamResolver {
     } catch (error) {
       console.error(error);
       return [];
+    }
+  }
+
+  @ResolveField(() => PlayerRanking)
+  async playerRanking(@Parent() team: Team): Promise<PlayerRanking> {
+    try {
+      const playerRanking = await this.playerRankingService.findOne({ team: team._id, rankLock: false });
+      return playerRanking;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  @ResolveField(() => [PlayerRankingItem]) // Specify the return type as an array of PlayerRankingItem
+  async rankings(@Parent() team: Team): Promise<PlayerRankingItem[]> {
+    try {
+      const pr = await this.playerRankingService.findOne({ rankLock: false, team: team._id });
+      const rankingItems = await this.playerRankingService.findItems({ _id: { $in: pr.rankings } });
+
+      // Ensure rank is not null for any item
+      return rankingItems.map((item) => {
+        if (item.rank === null) {
+          item.rank = -1; // or some default value
+        }
+        return item;
+      });
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  @ResolveField(() => PlayerRankingItem) // Specify the return type as an array of PlayerRankingItem
+  async player(@Parent() pri: PlayerRankingItem): Promise<Player> {
+    try {
+      return this.playerService.findById(pri.player.toString());
+    } catch (error) {
+      console.log(error);
+      return null;
     }
   }
 

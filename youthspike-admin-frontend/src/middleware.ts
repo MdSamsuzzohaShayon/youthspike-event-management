@@ -15,7 +15,6 @@ export const config = {
 
 
 function handleUnauthenticated(request: NextRequest, pathname: string) {
-  // @ts-ignore
   const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
 
   if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {

@@ -108,7 +108,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
       captainofteams {
         _id
         name
@@ -123,7 +122,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
       captainofteams {
         _id
         name
@@ -139,7 +137,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
     }
 `;
 

@@ -12,6 +12,8 @@ import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNetType, IRoomNets
 
 import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps, INotTwoPointNetProps, ICompleteMatchProps } from './socket';
 
+import { IPlayerRankingExpRel, IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel } from './playerRanking';
+
 export type {
   // Elements
   IMenuItem,
@@ -87,4 +89,10 @@ export type {
   INotTwoPointNetProps,
   ICheckInToLineupProps,
   ICompleteMatchProps,
+
+  // Ranking
+  IPlayerRankingExpRel,
+  IPlayerRanking,
+  IPlayerRankingItem,
+  IPlayerRankingItemExpRel,
 };

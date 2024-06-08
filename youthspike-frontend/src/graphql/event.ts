@@ -162,6 +162,7 @@ const GET_EVENTS = gql`
       data {
         _id
         name
+        logo
         startDate
         endDate
         active

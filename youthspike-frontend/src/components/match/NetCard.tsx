@@ -47,6 +47,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const { teamA } = useAppSelector((state) => state.teams);
   const { disabledPlayerIds, match: currMatch } = useAppSelector((state) => state.matches);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
@@ -177,7 +178,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
     prevPartnerId ? dispatch(setPrevPartner(prevPartnerId)) : dispatch(setPrevPartner(null));
 
     // Disable players according to met variance
-    const inavalidPlayerIds = findOutOfRange({ currMatch, net, myPlayers, myTeamE, opPlayers, playerSpot });
+    const inavalidPlayerIds = findOutOfRange({ currMatch, net, myPlayers, myTeamE, opPlayers, playerSpot, teamAPlayerRanking, teamBPlayerRanking });
     if (inavalidPlayerIds.length > 0) dispatch(setOutOfRange(inavalidPlayerIds));
   };
 
@@ -235,8 +236,11 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const renderTeamSection = (TPA: ETeamPlayer, TPB: ETeamPlayer, onTop: boolean, refId: string): React.ReactNode => {
     const playerA = matchTPlayer(TPA);
     const playerB = matchTPlayer(TPB);
-    const playerARank = playerA?.rank;
-    const playerBRank = playerB?.rank;
+
+    const rankings = teamAPlayerRanking && teamBPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+    const playerARank = rankings.find((p)=> p.player._id === playerA?._id)?.rank || null;
+    const playerBRank = rankings.find((p)=> p.player._id === playerB?._id)?.rank || null;
+
     const pairScore = calcPairScore(playerARank, playerBRank);
     return (
       <div

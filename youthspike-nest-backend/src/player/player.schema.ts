@@ -38,9 +38,9 @@ export class Player extends AppDocument {
   @Prop({ required: true, enum: EPlayerStatus, default: EPlayerStatus.ACTIVE })
   status: EPlayerStatus;
 
-  @Field((_type) => Int, { nullable: true })
-  @Prop({ required: false })
-  rank?: number;
+  // @Field((_type) => Int, { nullable: true })
+  // @Prop({ required: false })
+  // rank?: number;
 
   @Prop({ required: false })
   @Field({ nullable: true })

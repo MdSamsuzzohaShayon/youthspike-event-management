@@ -30,6 +30,13 @@ import { Room, RoomSchemaFactory } from 'src/room/room.schema';
 import { RoomService } from 'src/room/room.service';
 import { EmailsenderResolver } from 'src/emailsender/emailsender.resolver';
 import { EmailsenderService } from 'src/emailsender/emailsender.service';
+import {
+  PlayerRanking,
+  PlayerRankingItem,
+  PlayerRankingItemSchemaFactory,
+  PlayerRankingSchemaFactory,
+} from 'src/player-ranking/player-ranking.schema';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 
 @Module({
   imports: [
@@ -83,12 +90,21 @@ import { EmailsenderService } from 'src/emailsender/emailsender.service';
       },
       {
         name: Sponsor.name,
-        useFactory: SponsorSchemaFactory
+        useFactory: SponsorSchemaFactory,
       },
       {
         name: Room.name,
-        useFactory: RoomSchemaFactory
-      }
+        useFactory: RoomSchemaFactory,
+      },
+
+      {
+        name: PlayerRanking.name,
+        useFactory: PlayerRankingSchemaFactory,
+      },
+      {
+        name: PlayerRankingItem.name,
+        useFactory: PlayerRankingItemSchemaFactory,
+      },
     ]),
 
     ConfigModule,
@@ -112,6 +128,7 @@ import { EmailsenderService } from 'src/emailsender/emailsender.service';
     // { provide: APP_GUARD, useClass: RolesGuard },
     RoomService,
     EmailsenderService,
+    PlayerRankingService,
   ],
   exports: [
     CloudinaryService,
@@ -127,6 +144,7 @@ import { EmailsenderService } from 'src/emailsender/emailsender.service';
     SponsorService,
     RoomService,
     EmailsenderService,
+    PlayerRankingService,
   ],
 })
 export class SharedModule {

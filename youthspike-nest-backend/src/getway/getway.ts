@@ -23,6 +23,7 @@ import { TeamService } from 'src/team/team.service';
 import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
 import { EPlayerStatus } from 'src/player/player.schema';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 
 @ObjectType()
 class RoomRoundProcess {
@@ -94,8 +95,9 @@ export class MyGatWay implements OnModuleInit {
     private readonly netService: NetService,
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
+    private readonly playerRankingService: PlayerRankingService,
     private readonly playerService: PlayerService,
-  ) { }
+  ) {}
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
@@ -241,6 +243,7 @@ export class MyGatWay implements OnModuleInit {
      */
     try {
       const updatePromises = [];
+      let currTeamId = null;
 
       // Validate and organize room data
       const prevRoom = this.roomsLocal.get(submitLineup.room);
@@ -262,8 +265,10 @@ export class MyGatWay implements OnModuleInit {
 
       if (prevRoom.teamAClient === client.id) {
         currRoundObj.teamAProcess = EActionProcess.LINEUP;
+        currTeamId = submitLineup.teamAId;
       } else if (prevRoom.teamBClient === client.id) {
         currRoundObj.teamBProcess = EActionProcess.LINEUP;
+        currTeamId = submitLineup.teamBId;
       } else {
         /**
          * Check the team is it team A or team B -> check it properly
@@ -276,6 +281,7 @@ export class MyGatWay implements OnModuleInit {
           }
           if (!filled) return;
           currRoundObj.teamAProcess = EActionProcess.LINEUP;
+          currTeamId = submitLineup.teamAId;
         } else if (submitLineup.teamE === ETeam.teamB) {
           let filled = true;
           for (let nI = 0; nI < submitLineup.nets.length; nI += 1) {
@@ -283,10 +289,19 @@ export class MyGatWay implements OnModuleInit {
           }
           if (!filled) return;
           currRoundObj.teamBProcess = EActionProcess.LINEUP;
+          currTeamId = submitLineup.teamBId;
         } else {
           return;
         }
       }
+
+      // Change ranking lock strategy
+      updatePromises.push(
+        this.playerRankingService.updateOne(
+          { match: submitLineup.match, team: currTeamId },
+          { $set: { rankLock: true } },
+        ),
+      );
 
       // Update nets and round by assigning player to nets
       updatePromises.push(

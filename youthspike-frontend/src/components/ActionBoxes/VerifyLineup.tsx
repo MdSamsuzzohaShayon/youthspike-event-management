@@ -23,6 +23,7 @@ function VerifyLineup() {
   const currRoom = useAppSelector((state) => state.rooms.current);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
   const { screenWidth } = useAppSelector((state) => state.elements);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
   const handleCloseLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -45,6 +46,10 @@ function VerifyLineup() {
     const playerA = myTeamE === ETeam.teamA ? IdToPlayer(crn.teamAPlayerA, teamPlayerList) : IdToPlayer(crn.teamBPlayerA, teamPlayerList);
     const playerB = myTeamE === ETeam.teamA ? IdToPlayer(crn.teamAPlayerB, teamPlayerList) : IdToPlayer(crn.teamBPlayerB, teamPlayerList);
 
+    const rankings = teamAPlayerRanking && teamBPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+    const playerARank = rankings.find((p)=> p.player._id === playerA?._id)?.rank || 0;
+    const playerBRank = rankings.find((p)=> p.player._id === playerB?._id)?.rank || 0;
+
     return (
       <div className="net-box mb-4 flex justify-center items-center" key={crn._id}>
         <div className={`w-full border ${border.light}`}>
@@ -60,7 +65,7 @@ function VerifyLineup() {
             </div>
             <div className={`pair-score w-2/6 h-full p-1 border-l ${border.light}`}>
               <p>Pair Score</p>
-              <p>{playerA && playerB && playerA.rank && playerB.rank && (playerA?.rank || 0) + (playerB?.rank || 0)}</p>
+              <p>{playerARank + playerBRank}</p>
             </div>
           </div>
         </div>
