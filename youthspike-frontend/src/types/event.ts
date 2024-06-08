@@ -24,6 +24,7 @@ export interface IEvent {
   endDate: string;
   playerLimit: number;
   active: boolean;
+  logo?:string;
   sponsors: IEventSponsor[];
   ldo?: ILDO;
   nets: number;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IError, IEvent, IMenuItem, IOption, IPlayer, ITeam } from '@/types';
+import { IError, IEvent, IMenuItem, IOption, IPlayer, IPlayerRanking, IPlayerRankingExpRel, ITeam } from '@/types';
 import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
@@ -25,10 +25,13 @@ interface ITeamDetailProps {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   refetchFunc?: () => Promise<void>;
   playerList: IPlayer[];
+  playerRanking: IPlayerRankingExpRel;
 }
 
-function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc, playerList }: ITeamDetailProps) {
+function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc, playerList, playerRanking }: ITeamDetailProps) {
   const pathname = usePathname();
+
+  
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -141,6 +144,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
               divisionList={divisionList}
               teamId={team._id}
               showRank
+              playerRanking={playerRanking}
             />
           </div>
 

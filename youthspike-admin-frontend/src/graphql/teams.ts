@@ -1,5 +1,19 @@
 import { gql } from "@apollo/client";
 
+const rankingResponse = `
+playerRanking {
+  _id
+  rankLock
+  rankings {
+    _id
+    rank
+    player {
+      _id
+    }
+  }
+}
+`;
+
 const teamResponse = `
     _id
     active
@@ -12,7 +26,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
       email
       phone
       profile
@@ -40,7 +53,6 @@ const teamResponse = `
       _id
       firstName
       lastName
-      rank
       profile
       captainofteams {
         _id
@@ -98,16 +110,18 @@ const GET_A_TEAM = gql`
   query GetTeam($teamId: String!) {
     getTeam(teamId: $teamId) {
       code
-      success
       message
+      success
       data {
-      ${teamResponse}
-      event{
-        ${eventResponse}
-      }
+        ${rankingResponse}
+        ${teamResponse}
+        event{
+          ${eventResponse}
+        }
       }
     }
   }
+  
 `;
 
 const GET_TEAMS_BY_EVENT = gql`

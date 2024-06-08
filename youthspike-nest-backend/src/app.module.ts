@@ -21,6 +21,7 @@ import { PlayerModule } from './player/player.module';
 import { SponsorModule } from './sponsor/sponsor.module';
 import { RoomModule } from './room/room.module';
 import { EmailsenderModule } from './emailsender/emailsender.module';
+import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 
 @Module({
   imports: [
@@ -69,6 +70,8 @@ import { EmailsenderModule } from './emailsender/emailsender.module';
     RoomModule,
 
     EmailsenderModule,
+
+    PlayerRankingModule,
 
   ],
   controllers: [AppController],

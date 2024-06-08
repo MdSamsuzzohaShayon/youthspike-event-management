@@ -1,4 +1,4 @@
-import { ITeam } from ".";
+import { ITeam } from "./team";
 import { IDocument } from "./document";
 
 /**
@@ -15,7 +15,6 @@ export interface IPlayerAdd {
   lastName: string;
   email: string;
   division: string;
-  rank?: string | null;
   event?: string;
   team?: string;
 }
@@ -25,7 +24,6 @@ export interface IPlayer extends IDocument {
   lastName: string;
   profile: string | null;
   email: string;
-  rank: number | null;
   status: EPlayerStatus,
   event?: string;
   teams?: ITeam[];

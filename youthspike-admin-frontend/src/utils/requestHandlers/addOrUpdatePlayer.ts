@@ -92,6 +92,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
         }
 
         if (playerRes && ((playerRes.data?.createPlayer?.code >= 200 && playerRes.data?.createPlayer?.code < 300) || (playerRes.data?.updatePlayer?.code >= 200 && playerRes.data?.updatePlayer?.code < 300))) {
+            setActErr(null);
             if (!update) {
                 setPlayerState(initialPlayerAdd);
                 const formEl = e.target as HTMLFormElement;

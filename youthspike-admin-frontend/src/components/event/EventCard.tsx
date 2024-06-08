@@ -56,7 +56,7 @@ function EventCard({ event, copyEvent, deleteEvent, user, directorId, sendCreden
 
   const makeSettingUrl = () => {
     let newUrl = `/${event._id}/settings`;
-    if (user && user.info && user.info.role === UserRole.admin) newUrl += `/?directorId=${directorId}`;
+    if (user && user.info && user.info.role === UserRole.admin) newUrl += `/?ldoId=${directorId}`;
     return newUrl;
   };
 

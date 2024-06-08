@@ -8,6 +8,7 @@ import roundSlice from './slices/roundSlice';
 import netSlice from './slices/netSlice';
 import elementSlice from './slices/elementSlice';
 import roomSlice from './slices/roomSlice';
+import playerRankingSlice from './slices/playerRankingSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     rounds: roundSlice,
     nets: netSlice,
     rooms: roomSlice,
+    playerRanking: playerRankingSlice,
     elements: elementSlice
   },
 });

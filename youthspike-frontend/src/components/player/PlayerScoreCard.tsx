@@ -29,6 +29,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
   const currentRound = useAppSelector((state) => state.rounds.current);
   const currentRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
   const cpsca = useAppSelector((state) => state.matches.closePSCAvailable);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
   const [fillNets, setFillNets] = useState<boolean>(false);
 
@@ -50,13 +51,11 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
     user.token &&
     evacuatePlayer &&
     currentRoom &&
-    currentRound 
-    &&
+    currentRound &&
     (currentRound.teamAProcess === EActionProcess.LINEUP ||
       currentRound.teamBProcess === EActionProcess.LINEUP ||
       currentRound.teamAProcess === EActionProcess.CHECKIN ||
       currentRound.teamBProcess === EActionProcess.CHECKIN);
-
 
   const shouldShowAddPlayer =
     !player &&
@@ -90,17 +89,24 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
     return <Image width={100} height={100} src="/empty-img.jpg" alt="No player" className="w-full h-full object-center object-cover" role="presentation" onClick={handleDropDown} />;
   };
 
-  const renderRank = () => (
-    <>
-      <div className="placeholder h-6" />
-      <p
-        className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-400 text-white z-10 flex justify-center items-center`}
-        style={{ transform: 'translate(-50%, -50%)' }}
-      >
-        {player ? player.rank : 0}
-      </p>
-    </>
-  );
+  const renderRank = () => {
+    // eslint-disable-next-line no-nested-ternary
+    // const rankings = myTeamE === ETeam.teamA ? (teamAPlayerRanking ? teamAPlayerRanking.rankings : []) : teamBPlayerRanking ? teamBPlayerRanking.rankings : [];
+    const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+    const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
+
+    return (
+      <>
+        <div className="placeholder h-6" />
+        <p
+          className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-400 text-white z-10 flex justify-center items-center`}
+          style={{ transform: 'translate(-50%, -50%)' }}
+        >
+          {playerRank}
+        </p>
+      </>
+    );
+  };
 
   return (
     <div className="w-full h-full relative overflow-hidden">

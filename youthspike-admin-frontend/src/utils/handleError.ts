@@ -21,6 +21,7 @@ interface IHandleApolloErrorProps {
 }
 
 export function handleResponse({ response, setActErr }: IHandleResponseProps): boolean {
+    if(!response) return false;
     let success = response.success;
     if (success) return success;
 

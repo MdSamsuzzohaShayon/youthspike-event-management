@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { Net } from 'src/net/net.schema';
+import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
+import { Player } from 'src/player/player.schema';
 import { Room } from 'src/room/room.schema';
 import { Round } from 'src/round/round.schema';
-import { DateScalar } from 'src/shared/date-scaler';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 
@@ -17,7 +17,7 @@ import { Team } from 'src/team/team.schema';
 @Schema({ timestamps: true })
 export class Match extends AppDocument {
 
-  
+
   @Field((type) => String)
   @Prop({ required: true })
   date: string;
@@ -48,6 +48,13 @@ export class Match extends AppDocument {
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Room' })
   room?: Room | string;
 
+  @Field((type) => PlayerRanking, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' })
+  teamARanking?: PlayerRanking | string;
+
+  @Field((type) => PlayerRanking, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' })
+  teamBRanking?: PlayerRanking | string;
 
   // Default properties
   @Field({ nullable: false })
@@ -97,6 +104,8 @@ export class Match extends AppDocument {
   @Field({ nullable: true })
   @Prop({ required: false })
   completed: boolean;
+
+
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);

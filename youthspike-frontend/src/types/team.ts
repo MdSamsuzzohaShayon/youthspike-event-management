@@ -1,4 +1,6 @@
-import { IEvent, IPlayer } from ".";
+/* eslint-disable import/no-cycle */
+import { IPlayer } from './player';
+import { IEvent } from './event';
 
 export interface ITeam {
   _id: string;
@@ -12,8 +14,7 @@ export interface ITeam {
   cocaptain: IPlayer | null;
 }
 
-
-export enum ETeam{
+export enum ETeam {
   teamA = 'teamA',
   teamB = 'teamB',
 }

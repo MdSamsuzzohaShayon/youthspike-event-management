@@ -5,6 +5,7 @@ import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setTeamAPlayerRanking, setTeamBPlayerRanking } from '@/redux/slices/playerRankingSlice';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser } from '@/types';
 // import { EActionProcess } from '@/types/room';
@@ -21,7 +22,7 @@ interface IOrganizeFetchedDataProps {
 };
 
 const organizeFetchedData = ({ matchData, token, userInfo, matchId, dispatch }: IOrganizeFetchedDataProps): void => {
-  const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed, fwango, room, netVariance } = matchData;
+  const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed, fwango, room, netVariance, teamARanking, teamBRanking } = matchData;
 
   // Setting teams
   dispatch(setTeamA({ ...teamAF }));
@@ -136,6 +137,10 @@ const organizeFetchedData = ({ matchData, token, userInfo, matchId, dispatch }: 
       netVariance,
     }),
   );
+
+  // Setting ranking
+  dispatch(setTeamAPlayerRanking(teamARanking));
+  dispatch(setTeamBPlayerRanking(teamBRanking));
 
   // Setting variables for team A and team B
   const isTeamACaptain = userInfo?.captainplayer === teamAF?.captain?._id || userInfo?.cocaptainplayer === teamAF?.cocaptain?._id;

@@ -18,14 +18,14 @@ function handleUnauthenticated(request: NextRequest, pathname: string) {
   // @ts-ignore
   const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
 
-  if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
-    return NextResponse.redirect(new URL('/login', request.url).toString());
-  }
-
-
-  // if (protectedPages.some(page => new RegExp(`(?:^|\\/|\\/)${page}(?:\\/|$)`, 'i').test(pathname))) {
+  // if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
   //   return NextResponse.redirect(new URL('/login', request.url).toString());
   // }
+
+
+  if (protectedPages.some(page => new RegExp(`(?:^|\\/|\\/)${page}(?:\\/|$)`, 'i').test(pathname))) {
+    return NextResponse.redirect(new URL('/login', request.url).toString());
+  }
 
   /**
    *    (?:^|\\/|\\/) matches the start of the string or a / before the page.
