@@ -43,6 +43,15 @@ export class PlayerRankingService {
     return this.playerRankingItem.find(filter);
   }
 
+  async insertManyItems(rankingItemData: PlayerRankingItem[]) {
+    const rankingsItems = await this.playerRankingItem.insertMany(rankingItemData);
+    const playerRankingId = rankingItemData[0].playerRanking;
+    await this.playerRanking.updateOne(
+      { _id: playerRankingId },
+      { $addToSet: { rankings: { $each: rankingsItems.map((ri) => ri._id.toString()) } } }
+    );
+  }
+
   async updateOneItem(filter: FilterQuery<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
     return this.playerRankingItem.updateOne(filter, updateObj);
   }

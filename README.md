@@ -66,6 +66,7 @@ ___
  - Handle error just like uploading multiple player file error handling
 
 ### Update - 1
+ - Update player ranking when adding and removing players from a team
  - All route and authenticating, when logout need to redirected to login page from protected page
  - Use date properly for USA when creating event and match (all inputed timne should be international time and output time should be local time)
  - Sort matches numerically or alphabetically. Then put finished matches at the bottom and the first numer matches at the top. https://www.loom.com/share/810293f12ea84a44bb543ae26c7b5922

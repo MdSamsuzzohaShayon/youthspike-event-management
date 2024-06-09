@@ -17,6 +17,7 @@ import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { UpdateQuery } from 'mongoose';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 
 @ObjectType()
 class PlayerResponse extends AppResponse<Player> {
@@ -38,6 +39,7 @@ export class PlayerResolver {
     private teamService: TeamService,
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
+    private playerRankingService: PlayerRankingService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -67,17 +69,38 @@ export class PlayerResolver {
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;
 
-      if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
-      if (input.team) {
-        const teamExist = await this.teamService.findById(input.team);
-        if (teamExist && teamExist.players) {
-          playerObj.rank = teamExist.players.length + 1;
-        }
-      }
+      // if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
+      // if (input.team) {
+      //   const teamExist = await this.teamService.findById(input.team);
+      //   if (teamExist && teamExist.players) {
+      //     playerObj.rank = teamExist.players.length + 1;
+      //   }
+      // }
 
       const newPlayer = await this.playerService.create(playerObj);
 
       if (input.team) {
+        // ===== Update Player Ranking =====
+        const [playerRankings, teamExist] = await Promise.all([
+          this.playerRankingService.find({ team: input.team, rankLock: false }),
+          this.teamService.findById(input.team),
+        ]);
+        if (playerRankings && playerRankings.length > 0) {
+          for (const pr of playerRankings) {
+            const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
+            const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
+
+            const itemsToInsert = [];
+            const playerIds = [...teamExist.players, newPlayer._id];
+            for (let i = 0; i < playerIds.length; i += 1) {
+              const findRank = rankings.find((r) => r.player.toString() === playerIds[i]);
+              if (!findRank) {
+                itemsToInsert.push({ player: playerIds[i], rank: highestRank + i + 1, playerRanking: pr._id });
+              }
+            }
+            await this.playerRankingService.insertManyItems(itemsToInsert);
+          }
+        }
         ensurePromises.push(this.teamService.update({ $addToSet: { players: newPlayer._id } }, { _id: input.team }));
       }
       ensurePromises.push(
@@ -273,7 +296,7 @@ export class PlayerResolver {
       );
       const playerIds = [];
       const teamIds = [];
-      const updatePlayers = [];
+      const promiseOperations = [];
       for (let i = 0; i < teams.length; i += 1) {
         try {
           const teamObj = { ...teams[i] };
@@ -288,7 +311,29 @@ export class PlayerResolver {
             this.eventService.findById(eventId),
           ]);
           teamIds.push(createTeam._id);
-          updatePlayers.push(
+
+          // ===== Create Ranking =====
+          const playerRankings = [];
+          for (let i = 0; i < teamPlayerIds.length; i += 1) {
+            promiseOperations.push(
+              this.playerService.updateOne({ _id: teamPlayerIds[i] }, { $addToSet: { teams: createTeam._id } }),
+            );
+            // Create player ranking when creating team
+            playerRankings.push({ rank: i + 1, player: teamPlayerIds[i] });
+          }
+          const teamPlayerRanking = await this.playerRankingService.create({
+            rankings: playerRankings,
+            rankLock: false,
+            team: createTeam._id,
+          });
+          promiseOperations.push(
+            this.teamService.updateOne(
+              { _id: createTeam._id },
+              { $addToSet: { playerRankings: teamPlayerRanking._id } },
+            ),
+          );
+
+          promiseOperations.push(
             this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $addToSet: { teams: createTeam._id } }),
           );
         } catch (dErrs) {
@@ -297,7 +342,7 @@ export class PlayerResolver {
       }
 
       const allPlayers = await this.playerService.createMany(unassignedPlayers);
-      await Promise.all(updatePlayers);
+      await Promise.all(promiseOperations);
       const unassignedPlayerIds = allPlayers.map((p) => p._id);
       playerIds.push(...unassignedPlayerIds);
       await this.eventService.update(

@@ -84,7 +84,7 @@ type Team {
   players: [Player!]!
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
-  playerRanking: PlayerRanking!
+  playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
 }
@@ -473,6 +473,7 @@ type Mutation {
   deletePlayer(playerId: String!): PlayersResponse!
   sendCredentials(eventId: String!, teamId: String, captain: String, co_captain: String): AppResponse!
   updatePlayerRanking(teamId: [String!]!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
+  resetAllPlayerRankings: PlayerRankingResponse!
 }
 
 input UpdateUserArgs {
