@@ -113,12 +113,12 @@ export class TeamResolver {
         this.eventService.findById(input.event.toString()),
       ]);
 
-      // Create player ranking when creating match
-
+      
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
       promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
-
+      
+      // Create player ranking when creating match
       const playerRankings = [];
       for (let i = 0; i < players.length; i += 1) {
         promiseOperations.push(this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id } }));
@@ -307,8 +307,25 @@ export class TeamResolver {
         updatePromises.push(this.playerService.updateOne({ _id: players[i] }, { $addToSet: { teams: teamExist._id } }));
       }
       teamObj.players = [...new Set([...prevPlayerIds, ...players])];
-
       updatePromises.push(this.teamService.update(teamObj, { _id: teamId }));
+
+      // ===== Update Player Ranking =====
+      const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
+      if (playerRankings && playerRankings.length > 0) {
+        for (const pr of playerRankings) {
+          const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
+          const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
+
+          const itemsToInsert = [];
+          for (let i = 0; i < teamObj.players.length; i += 1) {
+            const findRank = rankings.find((r) => r.player.toString() === teamObj.players[i]);
+            if (!findRank) {
+              itemsToInsert.push({ player: teamObj.players[i], rank: highestRank + i + 1, playerRanking: pr._id });
+            }
+          }
+          await this.playerRankingService.insertManyItems(itemsToInsert);
+        }
+      }
 
       await Promise.all(updatePromises);
       const updatedTeam = await this.teamService.findById(teamId);
@@ -418,7 +435,7 @@ export class TeamResolver {
     }
   }
 
-  @ResolveField(() => PlayerRanking)
+  @ResolveField(() => PlayerRanking, { nullable: true })
   async playerRanking(@Parent() team: Team): Promise<PlayerRanking> {
     try {
       const playerRanking = await this.playerRankingService.findOne({ team: team._id, rankLock: false });
