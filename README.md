@@ -66,8 +66,12 @@ ___
  - Handle error just like uploading multiple player file error handling
 
 ### Update - 1
+ - Make rosters in ascending order
  - Update player ranking when adding and removing players from a team
+ - Drag and drop is not working when ranking/sorting players on the Desktop
+ - Reload instantly after making captain
  - All route and authenticating, when logout need to redirected to login page from protected page
+ - Design everything properly
  - Use date properly for USA when creating event and match (all inputed timne should be international time and output time should be local time)
  - Sort matches numerically or alphabetically. Then put finished matches at the bottom and the first numer matches at the top. https://www.loom.com/share/810293f12ea84a44bb543ae26c7b5922
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
@@ -245,8 +249,6 @@ ___
 
 
 ### Ask
- -  When he is inactive and make him active again his pair score and ranking was gone
- - I have a confusion with ranking. You said when someone is inactive they won't have any ranking, furthermore, when he is active again he will get a ranking again. That is how I made it. When someonw active again how to you expect to rank? How this works? Explain littloe bit more. This ranking is currently for the whole event. Do you want the ranking for specific match? 
  - 
 
 

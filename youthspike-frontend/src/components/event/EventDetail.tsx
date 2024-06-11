@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-unused-vars */
 import cld from '@/config/cloudinary.config';
 import { IEvent, IMatchExpRel, IPlayer, ITeam } from '@/types';
@@ -66,8 +67,6 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     return <React.Fragment key="render-sponsor">{sponsorList}</React.Fragment>;
   };
 
-  console.log({ event });
-
   return (
     <div className="w-full">
       <h1 className="my-4 text-center">{event.name}</h1>
@@ -91,7 +90,11 @@ function EventDetail({ event }: { event: IEventRelatives }) {
               >
                 Players
               </li>
-              <li role="presentation" onClick={() => setSelectedItem(EItem.TEAM)} className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? 'font-bold bg-yellow-400' : 'bg-black-logo'}`}>
+              <li
+                role="presentation"
+                onClick={() => setSelectedItem(EItem.TEAM)}
+                className={`list-none cursor-pointer p-2 ${selectedItem === EItem.TEAM ? 'font-bold bg-yellow-400' : 'bg-black-logo'}`}
+              >
                 Teams
               </li>
               <li

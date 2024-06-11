@@ -18,6 +18,7 @@ import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { PlayerService } from 'src/player/player.service';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -40,6 +41,7 @@ export class MatchResolver {
     private roundService: RoundService,
     private netService: NetService,
     private roomService: RoomService,
+    private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
   ) {}
   // ===== Healper Functions =====
@@ -59,6 +61,41 @@ export class MatchResolver {
     updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
     updatePromises.push(this.matchService.delete({ _id: matchExist._id }));
     await Promise.all(updatePromises);
+  }
+
+  private async getTeamRanking(
+    match: Match,
+    teamId: string,
+    rankingId: string,
+    rankingField: string,
+  ): Promise<PlayerRanking> {
+    try {
+      let playerRanking = await this.playerRankingService.findOne({ _id: rankingId });
+      if (!playerRanking) {
+        const teamExist = await this.teamService.findOne({ _id: teamId });
+        const playerList = await this.playerService.find({ _id: { $in: teamExist.players } });
+        const rankingData = {
+          rankLock: false,
+          team: teamExist._id,
+          rankings: [],
+          match: match._id,
+        };
+        const rankings = [];
+        for (let pi = 0; pi < playerList.length; pi += 1) {
+          rankings.push({ player: playerList[pi]._id, rank: pi + 1 });
+        }
+        rankingData.rankings = rankings;
+        playerRanking = await this.playerRankingService.create(rankingData);
+        await Promise.all([
+          this.teamService.updateOne({ _id: teamExist._id }, { $addToSet: { playerRankings: playerRanking._id } }),
+          this.matchService.updateOne({ _id: match._id }, { $set: { [rankingField]: playerRanking._id } }),
+        ]);
+      }
+      return playerRanking;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -370,23 +407,11 @@ export class MatchResolver {
 
   @ResolveField(() => PlayerRanking)
   async teamARanking(@Parent() match: Match): Promise<PlayerRanking> {
-    try {
-      const playerRanking = await this.playerRankingService.findOne({ _id: match.teamARanking });
-      return playerRanking;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.getTeamRanking(match, match.teamA.toString(), match.teamARanking.toString(), 'teamARanking');
   }
 
   @ResolveField(() => PlayerRanking)
   async teamBRanking(@Parent() match: Match): Promise<PlayerRanking> {
-    try {
-      const playerRanking = await this.playerRankingService.findOne({ _id: match.teamBRanking });
-      return playerRanking;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.getTeamRanking(match, match.teamB.toString(), match.teamBRanking.toString(), 'teamBRanking');
   }
 }

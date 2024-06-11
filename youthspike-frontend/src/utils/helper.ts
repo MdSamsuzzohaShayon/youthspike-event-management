@@ -1,4 +1,4 @@
-import { IOption } from '@/types';
+import { IOption, IPlayer, IPlayerRankingItemExpRel } from '@/types';
 import { GraphQLError } from 'graphql';
 import { netSize, screen } from './constant';
 
@@ -53,6 +53,27 @@ export function handleError(error: any) {
     },
   ];
 }
+
+export const sortPlayerRanking = (pl: IPlayer[], rankings?: IPlayerRankingItemExpRel[]) => {
+  let sortedRankings: IPlayerRankingItemExpRel[] = [];
+  let sortedPlayers = [];
+  if (rankings && rankings.length > 0) {
+    sortedRankings = [...rankings].sort((a, b) => a.rank - b.rank);
+    const playerIds = new Set();
+
+    for (let i = 0; i < sortedRankings.length; i += 1) {
+      const findPlayer = pl.find((p) => p._id === sortedRankings[i].player._id);
+      if (findPlayer) {
+        playerIds.add(findPlayer._id);
+        sortedPlayers.push(findPlayer);
+      }
+    }
+  } else {
+    sortedPlayers = [...pl];
+  }
+
+  return { sortedRankings, sortedPlayers };
+};
 
 export const divisionsToOptionList = (divisions: string) => {
   const divs: IOption[] = [];

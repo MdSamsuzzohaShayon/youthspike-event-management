@@ -1,4 +1,4 @@
-import { IEvent, INetRelatives, IPlayer, IPlayerExpRel, IPlayerRanking } from ".";
+import { IEvent, INetRelatives, IPlayer, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel } from ".";
 
 export interface ITeam {
   _id: string;
@@ -14,7 +14,7 @@ export interface ITeam {
   captain: IPlayerExpRel | null;
   cocaptain: IPlayerExpRel | null;
   nets: INetRelatives[];
-  playerRankings: IPlayerRanking[];
+  playerRanking: IPlayerRankingExpRel;
 }
 
 

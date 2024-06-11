@@ -113,11 +113,10 @@ export class TeamResolver {
         this.eventService.findById(input.event.toString()),
       ]);
 
-      
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
       promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
-      
+
       // Create player ranking when creating match
       const playerRankings = [];
       for (let i = 0; i < players.length; i += 1) {
