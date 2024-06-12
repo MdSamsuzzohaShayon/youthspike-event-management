@@ -31,8 +31,6 @@ interface ITeamDetailProps {
 function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc, playerList, playerRanking }: ITeamDetailProps) {
   const pathname = usePathname();
 
-  
-
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [filteredPlayers, setFilteredPlayers] = useState<IPlayer[]>([]);
@@ -90,6 +88,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
   const activePlayers = team?.players ? team.players.filter((p) => p.status === EPlayerStatus.ACTIVE) : [];
   const inactivePlayers = team?.players ? team.players.filter((p) => p.status !== EPlayerStatus.ACTIVE) : [];
+  
 
   return (
     <>

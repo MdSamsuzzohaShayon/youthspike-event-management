@@ -29,7 +29,6 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
 function readDate(isoDateString: string) {
     const date = new Date(isoDateString);
 
-
     // Extract the month, date, and year
     const month = monthNames[date.getMonth()];
     const day = date.getDate();
@@ -64,6 +63,14 @@ function formatUSPhoneNumber(number: string) {
     return `(${areaCode}) ${prefix}-${lineNumber}`;
 }
 
+function getCurrentDate() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 
-export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber };
+
+export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate };

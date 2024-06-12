@@ -17,14 +17,24 @@ export const config = {
 function handleUnauthenticated(request: NextRequest, pathname: string) {
   const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
 
-  if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
-    return NextResponse.redirect(new URL('/login', request.url).toString());
-  }
+  // if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
+  //   return NextResponse.redirect(new URL('/login', request.url).toString());
+  // }
 
 
   // if (protectedPages.some(page => new RegExp(`(?:^|\\/|\\/)${page}(?:\\/|$)`, 'i').test(pathname))) {
   //   return NextResponse.redirect(new URL('/login', request.url).toString());
   // }
+
+  const redirectPageUrl = '/login';
+
+  let isMatch = false;
+  for(const page of protectedPages){
+    if(pathname.includes(page) && pathname !== redirectPageUrl) isMatch = true;
+  }
+  if(isMatch){
+    return NextResponse.redirect(new URL(redirectPageUrl, request.url).toString());
+  }
 
   /**
    *    (?:^|\\/|\\/) matches the start of the string or a / before the page.

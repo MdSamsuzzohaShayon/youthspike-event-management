@@ -37,10 +37,26 @@ export class PlayerRankingService {
     return this.playerRanking.updateOne(filter, updateObj);
   }
 
+  async deleteOne(filter: FilterQuery<PlayerRanking>) {
+    const deleteRanking = await this.playerRanking.findOne(filter);
+    await this.playerRankingItem.deleteMany({ playerRanking: deleteRanking._id });
+    return this.playerRanking.deleteOne(filter);
+  }
+
   // ===== Item =====
 
-  async findItems(filter: FilterQuery<PlayerRankingItem>) {
-    return this.playerRankingItem.find(filter);
+  async createAnItem(playerRankingItem: PlayerRankingItem) {
+    const newPlayerRankingItem = await this.playerRankingItem.create(playerRankingItem);
+    await this.playerRanking.updateOne(
+      { _id: playerRankingItem.playerRanking.toString() },
+      { $addToSet: { rankings: newPlayerRankingItem._id } },
+    );
+    return newPlayerRankingItem;
+  }
+
+  async findItems(filter: FilterQuery<PlayerRankingItem>): Promise<PlayerRankingItem[]> {
+    const rankingItemList = await this.playerRankingItem.find(filter);
+    return rankingItemList;
   }
 
   async insertManyItems(rankingItemData: PlayerRankingItem[]) {
@@ -48,7 +64,7 @@ export class PlayerRankingService {
     const playerRankingId = rankingItemData[0].playerRanking;
     await this.playerRanking.updateOne(
       { _id: playerRankingId },
-      { $addToSet: { rankings: { $each: rankingsItems.map((ri) => ri._id.toString()) } } }
+      { $addToSet: { rankings: { $each: rankingsItems.map((ri) => ri._id.toString()) } } },
     );
   }
 
@@ -58,5 +74,9 @@ export class PlayerRankingService {
 
   async updateManyItems(filter: FilterQuery<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
     return this.playerRankingItem.updateMany(filter, updateObj);
+  }
+
+  async deleteOneItem(filter: FilterQuery<PlayerRankingItem>) {
+    return this.playerRankingItem.deleteOne(filter);
   }
 }
