@@ -66,6 +66,7 @@ ___
  - Handle error just like uploading multiple player file error handling
 
 ### Update - 1
+ - Deleting player is not removing from the list immidiately
  - Update player ranking when adding and removing players from a team
  - Drag and drop is not working when ranking/sorting players on the Desktop
  - All route and authenticating, when logout need to redirected to login page from protected page
