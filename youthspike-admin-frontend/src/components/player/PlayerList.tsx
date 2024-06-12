@@ -16,10 +16,10 @@ interface IPlayerListProps {
   showRank?: boolean;
   teamList?: ITeam[];
   rankControls?: boolean;
-  teamId?: string;
+  teamId?: string | null;
   refetchFunc?: () => void;
   setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
-  playerRanking?: IPlayerRankingExpRel;
+  playerRanking?: IPlayerRankingExpRel | null;
 }
 
 interface IPlayerRank {
@@ -158,7 +158,7 @@ useEffect(() => {
 
 
 
-  const renderPlayerList = (pl: IPlayerExpRel[], prp?: IPlayerRankingExpRel) => {
+  const renderPlayerList = (pl: IPlayerExpRel[], prp?: IPlayerRankingExpRel | null) => {
     const playerListEl: React.ReactNode[] = [];
 
     let rankings: IPlayerRankingItemExpRel[] = [];

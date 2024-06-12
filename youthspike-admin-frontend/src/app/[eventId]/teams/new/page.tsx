@@ -4,6 +4,7 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import CurrentEvent from '@/components/event/CurrentEvent';
+import UserMenuList from '@/components/layout/UserMenuList';
 import TeamAdd from '@/components/teams/TeamAdd';
 import { GET_EVENT_WITH_PLAYERS, GET_PLAYERS } from '@/graphql/players';
 import { IError, IEventExpRel, IOption, ITeam } from '@/types';
@@ -108,6 +109,9 @@ function TeamsPage({ params }: ITeamsPageProps) {
     <div className='container mx-auto px-2 min-h-screen'>
       <h1 className='mb-8 text-center'>Teams</h1>
       {currEvent && (<CurrentEvent currEvent={currEvent} />)}
+      <div className="navigator mb-4">
+        <UserMenuList eventId={params.eventId} />
+      </div>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <div className="mt-2 division-selection w-full">

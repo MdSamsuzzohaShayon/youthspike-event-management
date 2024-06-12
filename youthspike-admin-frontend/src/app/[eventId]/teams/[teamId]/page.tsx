@@ -42,7 +42,10 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const divisionList = data?.getTeam?.data?.event?.divisions ? divisionsToOptionList(data?.getTeam?.data?.event?.divisions) : [];
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
-  const playerRanking = data?.getTeam?.data?.playerRanking
+  const playerRanking = data?.getTeam?.data?.playerRanking;
+
+  console.log(teamData);
+  
   
   
 

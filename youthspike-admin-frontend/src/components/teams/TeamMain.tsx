@@ -112,7 +112,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     await fetchEvent();
   };
 
-  console.log(searchParams);
   
 
   const makeUrl=(prevUrl: string): string=>{

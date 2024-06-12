@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IError, IOption, ITeam } from '@/types';
+import { IError, IOption, IPlayerRankingExpRel, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import CurrentEvent from '@/components/event/CurrentEvent';
@@ -35,6 +35,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
+  const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null)
 
   // ===== GraphQL =====
   const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
@@ -54,6 +56,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     const ntList: ITeam[] = playerRes?.data?.getEvent?.data?.teams ? playerRes?.data?.getEvent?.data?.teams : []; // Nt List = new team List
     let ftList = [...ntList]; // ft List = filtered team list
 
+
     const divs = playerRes?.data?.getEvent?.data?.divisions ? divisionsToOptionList(playerRes?.data?.getEvent?.data?.divisions) : []; // divs = divisions
     setDivisionList(divs);
 
@@ -67,7 +70,16 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         const teamId = playerExist.teams && playerExist.teams.length > 0 ? playerExist.teams[0]._id : null;
         if (teamId) {
           const teamExist = ntList.find((t) => t._id === teamId);
-          if (teamExist && teamExist.rankLock) setLockRank(true);
+          if (teamExist && teamExist) {
+            setTeamId(teamId)
+            if(teamExist.playerRanking){
+              // const singlerPlayerRanking = teamExist.playerRankings.find((pr)=> pr.team._id === teamId && !pr.match);
+              // if(singlerPlayerRanking){
+              //   if( singlerPlayerRanking.rankLock )setLockRank(true);
+              //   }
+              setTeamPlayerRanking(teamExist.playerRanking);
+              }
+            }
           npList = npList.filter((p): boolean => {
             if (p.teams && p.teams.length > 0) {
               const tIds = p.teams.map((t) => t._id);
@@ -166,6 +178,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           divisionList={divisionList}
           showRank={showRank}
           setActErr={setActErr}
+          playerRanking={teamPlayerRanking}
+          teamId={teamId}
         />
 
         {inactivePlayers.length > 0 && (

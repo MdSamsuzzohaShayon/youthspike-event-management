@@ -93,7 +93,7 @@ export class PlayerResolver {
             const itemsToInsert = [];
             const playerIds = [...teamExist.players, newPlayer._id];
             for (let i = 0; i < playerIds.length; i += 1) {
-              const findRank = rankings.find((r) => r.player.toString() === playerIds[i]);
+              const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
               if (!findRank) {
                 itemsToInsert.push({ player: playerIds[i], rank: highestRank + i + 1, playerRanking: pr._id });
               }
@@ -140,32 +140,6 @@ export class PlayerResolver {
       if (!playerExist) return AppResponse.notFound('Player');
 
       const updatePromises = [];
-      // ===== Rank Update if a player move from middle of the =====
-      if (input?.status && input.playerTeamId) {
-        const teamExist = await this.teamService.findById(input.playerTeamId);
-        if (!teamExist) return AppResponse.notFound('Team');
-        if (input?.status === EPlayerStatus.INACTIVE) {
-          playerObj.rank = null;
-        } else if (input?.status === EPlayerStatus.ACTIVE) {
-          // =====  Check how many active players =====
-          playerObj.rank = teamExist.players.length;
-        }
-      }
-
-      // ===== Move to New Team =====
-      if (input.team) {
-        const newTeamExist = await this.teamService.findById(input.team);
-        if (!newTeamExist) return AppResponse.notFound('Team');
-        updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
-
-        // First, add the new team if it doesn't exist
-        updatePromises.push(
-          this.playerService.updateOne(
-            { _id: playerId },
-            { $addToSet: { teams: input.team }, $set: { rank: newTeamExist.players.length + 1 } },
-          ),
-        );
-      }
 
       // ===== Check duplicate email =====
       if (input.username) {
@@ -195,16 +169,48 @@ export class PlayerResolver {
             name: 'Invalid team',
             message: 'New team and previous team both are same, therefore no need to change',
           });
+
+        const newTeamExist = await this.teamService.findById(input.team);
+        if (!newTeamExist) return AppResponse.notFound('Team');
+        updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
+
+        // First, add the new team if it doesn't exist
+        const currTeamPlayerRankings = await this.playerRankingService.find({ team: newTeamExist._id });
+        for (const playerRanking of currTeamPlayerRankings) {
+          const rankings = await this.playerRankingService.findItems({ playerRanking: playerRanking._id });
+          const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
+
+          updatePromises.push(
+            this.playerRankingService.createAnItem({
+              player: playerId,
+              rank: highestRank + 1,
+              playerRanking: playerRanking._id,
+            }),
+          );
+        }
+
+        // Prev team
         const prevTeamExist = await this.teamService.findById(input.playerTeamId);
         if (!prevTeamExist) return AppResponse.notFound('Team');
+
+        // Remove
+        const prevTeamPlayerRankings = await this.playerRankingService.find({ team: prevTeamExist._id });
+        for (const playerRanking of prevTeamPlayerRankings) {
+          updatePromises.push(
+            this.playerRankingService.deleteOneItem({ player: playerId, playerRanking: playerRanking._id }),
+          );
+        }
+
         const playerIds = prevTeamExist.players.map((p) => p.toString());
         const newPlayerIds = playerIds.filter((p) => p.toString() !== playerId);
         updatePromises.push(
           this.teamService.updateOne({ _id: input.playerTeamId }, { $set: { players: newPlayerIds } }),
         );
-        updatePromises.push(this.teamService.updateOne({ _id: input.playerTeamId }, { $pull: { players: playerId } }));
-        // Second, remove the old team
-        updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $pull: { teams: input.playerTeamId } }));
+        updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $pull: { teams: input.team } }));
+
+        // Add
+        updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $addToSet: { teams: input.team } }));
+        // updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
       }
 
       if (playerObj.team) delete playerObj.team;

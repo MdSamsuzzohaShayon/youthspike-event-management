@@ -56,14 +56,17 @@ export class TeamResolver {
     private netService: NetService,
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
 
   async singleDelete(teamExist: Team) {
     const teamPlayerIds = teamExist.players.map((p) => p.toString());
     const teamNetIds = teamExist.nets.map((n) => n.toString());
     const teamMatchIds = teamExist.matches.map((m) => m.toString());
 
+
     const updatePromises = [];
+    updatePromises.push(this.playerRankingService.deleteOne({ team: teamExist._id }));
+
     updatePromises.push(
       this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { team: teamPlayerIds } }),
     );
@@ -113,11 +116,10 @@ export class TeamResolver {
         this.eventService.findById(input.event.toString()),
       ]);
 
-      
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
       promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
-      
+
       // Create player ranking when creating match
       const playerRankings = [];
       for (let i = 0; i < players.length; i += 1) {
@@ -309,9 +311,9 @@ export class TeamResolver {
       teamObj.players = [...new Set([...prevPlayerIds, ...players])];
       updatePromises.push(this.teamService.update(teamObj, { _id: teamId }));
 
-      // ===== Update Player Ranking =====
+      // ===== Update Player Ranking (Make sure all players have ranking) =====
       const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
-      if (playerRankings && playerRankings.length > 0) {
+      if (playerRankings && playerRankings.length > 0 && players && players.length > 0) {
         for (const pr of playerRankings) {
           const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
           const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
@@ -323,7 +325,9 @@ export class TeamResolver {
               itemsToInsert.push({ player: teamObj.players[i], rank: highestRank + i + 1, playerRanking: pr._id });
             }
           }
-          await this.playerRankingService.insertManyItems(itemsToInsert);
+          if (itemsToInsert && itemsToInsert.length > 0) {
+            await this.playerRankingService.insertManyItems(itemsToInsert);
+          }
         }
       }
 

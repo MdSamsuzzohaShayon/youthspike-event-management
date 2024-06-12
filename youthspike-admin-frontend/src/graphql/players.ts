@@ -18,6 +18,20 @@ const eventResponse = `
     startDate
 `;
 
+const rankingResponse = `
+playerRanking {
+  _id
+  rankLock
+  rankings {
+    _id
+    rank
+    player {
+      _id
+    }
+  }
+}
+`;
+
 
 const playerResponse = `
   _id
@@ -83,6 +97,7 @@ query GetEvent($eventId: String!) {
           name
           division
           rankLock
+          ${rankingResponse}
         }
         ldo {
           _id

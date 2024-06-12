@@ -27,7 +27,7 @@ export class PlayerRankingResolver {
     private teamService: TeamService,
     private matchService: MatchService,
     private playerService: PlayerService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
@@ -97,7 +97,7 @@ export class PlayerRankingResolver {
           if (team.matches.length > 0) {
             for (const match of team.matches) {
               const matchExist = await this.matchService.findById(match.toString());
-              if (matchExist && matchExist.teamA.toString() === team._id) {
+              if (matchExist && matchExist?.teamA?.toString() === team._id) {
                 const teamAItems = await this.playerRankingService.findItems({ playerRanking: teamPlayerRanking._id });
 
                 const teamARankings = [];
@@ -119,7 +119,7 @@ export class PlayerRankingResolver {
                   // Match update
                   this.matchService.updateOne({ _id: match }, { teamARanking: newTeamARanking._id }),
                 ]);
-              } else if (matchExist.teamB.toString() === team._id) {
+              } else if (matchExist?.teamB?.toString() === team._id) {
                 const teamBItems = await this.playerRankingService.findItems({ playerRanking: teamPlayerRanking._id });
 
                 const teamBRankings = [];
@@ -146,7 +146,10 @@ export class PlayerRankingResolver {
           }
 
           promiseOperations.push(
-            this.teamService.updateOne({ _id: team._id }, { $addToSet: { playerRankings: { $each: teamPlayerRankingIds } } }),
+            this.teamService.updateOne(
+              { _id: team._id },
+              { $addToSet: { playerRankings: { $each: teamPlayerRankingIds } } },
+            ),
           );
         }
       }

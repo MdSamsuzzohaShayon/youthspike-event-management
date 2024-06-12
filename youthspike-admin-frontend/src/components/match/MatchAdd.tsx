@@ -12,6 +12,7 @@ import { assignStrategies } from '@/utils/staticData';
 import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
+import { getCurrentDate } from '@/utils/datetime';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -32,8 +33,10 @@ interface IMatchAddProps {
 }
 
 
+
+
 const initialAddMatch: IAddMatch = {
-    date: new Date().toISOString(),
+    date: getCurrentDate(),
     event: "",
     description: "",
     numberOfNets: 0,
@@ -163,7 +166,7 @@ function MatchAdd({ eventId,
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            <DateInput key={crypto.randomUUID()} handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
+            <DateInput handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
 
             {!update && (<>
                 <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(teamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />

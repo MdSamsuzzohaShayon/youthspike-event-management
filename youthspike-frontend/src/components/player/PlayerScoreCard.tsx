@@ -1,8 +1,8 @@
 /* eslint-disable react/require-default-props */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useUser } from '@/lib/UserProvider';
 import { useAppSelector } from '@/redux/hooks';
-import { IPlayer } from '@/types';
+import { IPlayer, IPlayerRankingExpRel } from '@/types';
 import { ETeamPlayer } from '@/types/net';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
@@ -15,6 +15,8 @@ interface IPlayerScoreCard {
   player: IPlayer | null;
   screenWidth: number;
   myTeamE: ETeam;
+  tapr: IPlayerRankingExpRel | null; // tapr= team A Player Ranking
+  tbpr: IPlayerRankingExpRel | null; // tbpr= team B Player Ranking
   onTop?: boolean;
   teamPlayer?: ETeamPlayer;
   // eslint-disable-next-line no-unused-vars
@@ -23,19 +25,18 @@ interface IPlayerScoreCard {
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
 }
 
-function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE }: IPlayerScoreCard) {
+function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking }: IPlayerScoreCard) {
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const currentRound = useAppSelector((state) => state.rounds.current);
   const currentRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
   const cpsca = useAppSelector((state) => state.matches.closePSCAvailable);
-  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
-  const [fillNets, setFillNets] = useState<boolean>(false);
+  // const [fillNets, setFillNets] = useState<boolean>(false);
 
   useEffect(() => {
-    const allNetsFilled = currentRoundNets.every((net) => (myTeamE === ETeam.teamA ? net.teamAPlayerA && net.teamAPlayerB : net.teamBPlayerA && net.teamBPlayerB));
-    setFillNets(allNetsFilled);
+    // const allNetsFilled = currentRoundNets.every((net) => (myTeamE === ETeam.teamA ? net.teamAPlayerA && net.teamAPlayerB : net.teamBPlayerA && net.teamBPlayerB));
+    // setFillNets(allNetsFilled);
   }, [currentRoundNets, myTeamE]);
 
   const handleDropDown = (e: React.SyntheticEvent) => {
@@ -92,7 +93,9 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
   const renderRank = () => {
     // eslint-disable-next-line no-nested-ternary
     // const rankings = myTeamE === ETeam.teamA ? (teamAPlayerRanking ? teamAPlayerRanking.rankings : []) : teamBPlayerRanking ? teamBPlayerRanking.rankings : [];
-    const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+    const rankings = [];
+    if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
+    if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
     const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
 
     return (

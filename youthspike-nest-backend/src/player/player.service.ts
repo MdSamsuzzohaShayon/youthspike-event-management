@@ -61,6 +61,9 @@ export class PlayerService {
   async findOne(filter: FilterQuery<Player>) {
     return this.playerModel.findOne(filter);
   }
+  async find(filter: FilterQuery<Player>) {
+    return this.playerModel.find(filter);
+  }
 
   async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>,) {
     return this.playerModel.updateOne(filter, player);

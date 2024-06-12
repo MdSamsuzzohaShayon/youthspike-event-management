@@ -39,7 +39,9 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' })
             const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision) addMatchObj.division = currDivision;
+            console.log({dateBefore: addMatchObj.date});
             addMatchObj.date = new Date(addMatchObj.date).toISOString();
+            console.log({dateAfter: addMatchObj.date});
             if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ code: 400, success: false, message: 'Teams can not be empty to unselected!' });
             if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' })
             // @ts-ignore
