@@ -46,9 +46,11 @@ function VerifyLineup() {
     const playerA = myTeamE === ETeam.teamA ? IdToPlayer(crn.teamAPlayerA, teamPlayerList) : IdToPlayer(crn.teamBPlayerA, teamPlayerList);
     const playerB = myTeamE === ETeam.teamA ? IdToPlayer(crn.teamAPlayerB, teamPlayerList) : IdToPlayer(crn.teamBPlayerB, teamPlayerList);
 
-    const rankings = teamAPlayerRanking && teamBPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
-    const playerARank = rankings.find((p)=> p.player._id === playerA?._id)?.rank || 0;
-    const playerBRank = rankings.find((p)=> p.player._id === playerB?._id)?.rank || 0;
+    const rankings = [];
+    if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
+    if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
+    const playerARank = rankings.find((p) => p.player._id === playerA?._id)?.rank || 0;
+    const playerBRank = rankings.find((p) => p.player._id === playerB?._id)?.rank || 0;
 
     return (
       <div className="net-box mb-4 flex justify-center items-center" key={crn._id}>
@@ -57,10 +59,10 @@ function VerifyLineup() {
           <div className={`w-full flex justify-between items-center border-t ${border.light}`}>
             <div className="players w-4/6 p-1 text-start flex md:justify-center justify-between items-center">
               <div className="player-wrapper w-3/6 md:w-1/6 px-1">
-                <PlayerScoreCard onTop player={playerA || null} screenWidth={screenWidth} myTeamE={myTeamE} />
+                <PlayerScoreCard onTop player={playerA || null} screenWidth={screenWidth} myTeamE={myTeamE} tapr={teamAPlayerRanking} tbpr={teamBPlayerRanking} />
               </div>
               <div className="player-wrapper w-3/6 md:w-1/6 px-1">
-                <PlayerScoreCard onTop player={playerB || null} screenWidth={screenWidth} myTeamE={myTeamE} />
+                <PlayerScoreCard onTop player={playerB || null} screenWidth={screenWidth} myTeamE={myTeamE} tapr={teamAPlayerRanking} tbpr={teamBPlayerRanking} />
               </div>
             </div>
             <div className={`pair-score w-2/6 h-full p-1 border-l ${border.light}`}>

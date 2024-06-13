@@ -37,7 +37,6 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
   }, [params.teamId]);
 
   const teamData = data?.getTeam?.data;
-  const divisions = data?.getTeam?.data?.event?.divisions;
 
   if(isLoading || loading) return <Loader />
 

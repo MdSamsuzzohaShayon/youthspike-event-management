@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
+import useLdoUrl from '@/hooks/useLdoUrl';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
@@ -42,6 +43,9 @@ const initialTeamState = {
 function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
+    const ldoUrl = useLdoUrl();
+
+
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
     const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
@@ -68,7 +72,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             const formEl = e.target as HTMLFormElement;
             formEl.reset();
             handleClose(e);
-            router.push(`/${eventId}/teams`);
+            router.push(`/${eventId}/teams/${ldoUrl}`);
         }
     }
 
@@ -134,7 +138,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
             {!update && (<div className="player-input mb-4">
-                <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />
+                <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' ldoUrl={ldoUrl} />
             </div>)}
             {playerIdList.length > 0 && !update && toBeCaptains()}
 

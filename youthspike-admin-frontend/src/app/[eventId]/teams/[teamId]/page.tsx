@@ -43,8 +43,6 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
   const playerRanking = data?.getTeam?.data?.playerRanking;
-
-  console.log(teamData);
   
   
   

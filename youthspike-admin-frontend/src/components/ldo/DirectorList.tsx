@@ -62,6 +62,7 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
                         <th className="py-2 px-4 uppercase" >Logo</th>
                         <th className="py-2 px-4 uppercase" >Director</th>
                         <th className="py-2 px-4 uppercase" >Director Email</th>
+                        <th className="py-2 px-4 uppercase" >Number</th>
                         <th className="py-2 px-4 uppercase" >Actions</th>
                     </tr>
                 </thead>

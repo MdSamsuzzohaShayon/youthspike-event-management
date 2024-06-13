@@ -22,6 +22,7 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
             </td>
             <td className="py-2 px-4 capitalize break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
             <td className="py-2 px-4 lowercase" >{ldo.director?.email}</td>
+            <td className="py-2 px-4 lowercase" >{ldo.num}</td>
             <td className="py-2 px-4 capitalize flex justify-center items-center gap-2" >
                 <Link href={`/?ldoId=${ldo._id}`}>
                     <img src='/icons/event.svg' alt='edit' className='w-6 svg-white' />

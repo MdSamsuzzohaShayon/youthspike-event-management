@@ -87,7 +87,7 @@ export class PlayerResolver {
             for (let i = 0; i < playerIds.length; i += 1) {
               const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
               if (!findRank) {
-                itemsToInsert.push({ player: playerIds[i], rank: highestRank + i + 1, playerRanking: pr._id });
+                itemsToInsert.push({ player: playerIds[i], rank: highestRank + 1, playerRanking: pr._id });
               }
             }
             await this.playerRankingService.insertManyItems(itemsToInsert);

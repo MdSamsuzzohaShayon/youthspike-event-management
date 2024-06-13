@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
@@ -20,6 +20,7 @@ interface TeamCardProps {
   eventId: string;
   team: ITeam;
   eventList: IEvent[];
+  ldoUrl: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   fefetchFunc?: () => Promise<void>;
@@ -30,7 +31,7 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, fefetchFunc }: TeamCardProps) {
+function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleCheckedTeam, fefetchFunc }: TeamCardProps) {
   const user = useUser();
   const router = useRouter();
 
@@ -109,7 +110,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, f
   const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {
     e.preventDefault();
     // Fetch team by team Id
-    router.push(`/${eventId}/teams/${teamId}/update`);
+    router.push(`/${eventId}/teams/${teamId}/update/${ldoUrl}`);
   };
 
   const handleDeleteTeam = async (e: React.SyntheticEvent, teamId: string) => {
@@ -153,7 +154,9 @@ function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, f
 
   return (
     <div className="team-card w-full">
+      {/* Level-1: Main component start  */}
       <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
+      {/* Level-1.1: action menu start  */}
         <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
           <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} className="flex justify-start items-center gap-x-2">
             <span>
@@ -180,12 +183,18 @@ function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, f
             Delete
           </li>
         </ul>
+      {/* Level-1.1: action menu start  */}
+
+       {/* Level-1.2: team team num start  */}
         <div className="w-1/12 flex justify-center items-center flex-col gap-2">
           <CheckboxInput _id={team._id} name='team-select' handleInputChange={handleCheckedTeam} />
           <p className="w-8 h-8 rounded-full bg-yellow-logo flex justify-center items-center text-gray-900">{team.num}</p>
         </div>
+       {/* Level-1.2: team team num end  */}
+       
+       {/* Level-1.3: team name start  */}
         <div className="w-5/12">
-          <Link href={`/${eventId}/teams/${team._id}`}>
+          <Link href={`/${eventId}/teams/${team._id}/${ldoUrl}`}>
             <div className="brand flex gap-1 items-center">
               {team.logo ? (
                 <div className="advanced-img w-12">
@@ -198,6 +207,10 @@ function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, f
             </div>
           </Link>
         </div>
+       {/* Level-1.3: team name end  */}
+       
+       
+       {/* Level-1.4: captain and active players start  */}
         <div className="w-5/12">
           <Link href={`/${eventId}/teams/${team._id}`}>
             {team.captain && (
@@ -221,10 +234,14 @@ function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, f
             </p>
           </Link>
         </div>
+       {/* Level-1.4: captain and active players end  */}
         <div className="w-1/12">
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation" onClick={handleOpenAction} className="w-6 svg-white" />
         </div>
       </div>
+      {/* Level-1: Main component end  */}
+
+      {/* Level-2: Moving component start  */}
       {openMoveTeam && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
         <div className="move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
           <button type="button" className="close" onClick={() => setOpenMoveTeam(false)}>
@@ -239,6 +256,7 @@ function TeamCard({ team, eventId, eventList, setIsLoading, handleCheckedTeam, f
           </form>
         </div>
       )}
+      {/* Level-2: Moving component end  */}
     </div>
   );
 }

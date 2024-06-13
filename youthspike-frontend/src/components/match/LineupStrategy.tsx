@@ -25,6 +25,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
   const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
 
   const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
+  const {teamAPlayerRanking, teamBPlayerRanking} = useAppSelector((state) => state.playerRanking);
 
   const handlePASSelect = (e: React.SyntheticEvent, pas: EAssignStrategies) => {
     // PAS = Player Assign Strategies
@@ -37,7 +38,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
     // Make sure selecting all players subbed previously
     switch (pas) {
       case EAssignStrategies.RANDOM:
-        randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });
+        randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
         break;
 
       case EAssignStrategies.ANCHOR:

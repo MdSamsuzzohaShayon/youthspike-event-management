@@ -83,7 +83,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
           {/* Box 1 - Event Logo and Details */}
           <div className="box-1 bg-black-logo text-white rounded-lg flex justify-between items-center">
             <div className="logo m-2">
-              {ldo?.logo ? <AdvancedImage cldImg={cld.image(ldo.logo)} className="w-16" alt={ldo.name} /> : <Image width={100} height={100} src="/free-logo.svg" className="w-16" alt="free-logo" />}
+              {ldo?.logo ? <AdvancedImage cldImg={cld.image(ldo.logo)} className="w-16" alt={ldo.name} /> : <Image width={100} height={100} src="/free-logo.png" className="w-16" alt="free-logo" />}
             </div>
             <div className="detail m-2">
               <h3>{ldo?.name}</h3>

@@ -29,7 +29,9 @@ function SubbedPlayerCard({ player, currRound, roundList, subControl, teamAPlaye
     await updateSubbedPlayer({ playerId: player._id, currRound, dispatch, mutateRound, roundList });
   };
 
-  const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+  const rankings = [];
+  if(teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
+  if(teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
   const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
 
   return (

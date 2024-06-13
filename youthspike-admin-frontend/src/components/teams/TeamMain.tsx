@@ -22,6 +22,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../hooks/useClickOutside';
 import UserMenuList from '../layout/UserMenuList';
+import useLdoUrl from '@/hooks/useLdoUrl';
 
 interface ITeamsOfEventPage {
   eventId: string;
@@ -31,7 +32,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   // Hooks
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const ldoUrl = useLdoUrl();
 
   // Local State
   const importerEl = useRef<HTMLDialogElement | null>(null);
@@ -43,6 +44,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
+  
 
   // GraphQL
   const [getEvent, { loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS, {fetchPolicy: "network-only"});
@@ -114,10 +116,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
   
 
-  const makeUrl=(prevUrl: string): string=>{
-    if(searchParams.get('ldoId')) return `${prevUrl}?ldoId=${searchParams.get('ldoId')}`;
-    return prevUrl;
-  }
 
   // Do this for all event pages
   useEffect(() => {
@@ -130,8 +128,12 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }
   }, [pathname, router, eventId]);
 
+  
+
   if (loading || isLoading || ldoLoading) return <Loader />;
   const eventList = ldoData?.getEventDirector?.data?.events;
+
+  
 
   return (
     <div className="TeamMain">
@@ -153,7 +155,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <div className="mb-8 make-team flex w-full justify-between">
-        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={makeUrl(`/${eventId}/teams/new`)}>
+        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={`/${eventId}/teams/new/${ldoUrl}`}>
           <span>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/plus.svg" alt="plus" className="w-6 svg-black" />
           </span>

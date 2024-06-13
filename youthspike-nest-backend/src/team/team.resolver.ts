@@ -21,6 +21,7 @@ import { NetService } from 'src/net/net.service';
 import { MatchService } from 'src/match/match.service';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
+import { LdoService } from 'src/ldo/ldo.service';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -56,13 +57,13 @@ export class TeamResolver {
     private netService: NetService,
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
-  ) { }
+    private ldoService: LdoService,
+  ) {}
 
   async singleDelete(teamExist: Team) {
     const teamPlayerIds = teamExist.players.map((p) => p.toString());
     const teamNetIds = teamExist.nets.map((n) => n.toString());
     const teamMatchIds = teamExist.matches.map((m) => m.toString());
-
 
     const updatePromises = [];
     updatePromises.push(this.playerRankingService.deleteOne({ team: teamExist._id }));
@@ -139,7 +140,7 @@ export class TeamResolver {
       if (input.captain) {
         // =====  Create new user for captain =====
         const findPlayer = await this.playerService.findById(input.captain.toString());
-        const username = findPlayer.firstName.toLowerCase() + newTeam.num;
+        const username = findPlayer.firstName.toLowerCase() + newTeam.num.toString();
         promiseOperations.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
         const rawPassword = findEvent.coachPassword;
         const captainUser = await this.userService.create({
@@ -198,12 +199,10 @@ export class TeamResolver {
 
       // ===== Update captain =====
       if (input.captain) {
-        const playerExist = await this.playerService.findById(input.captain.toString());
+        const playerExist= await this.playerService.findById(input.captain.toString());
 
         if (playerExist) {
-          // const newUsername =
-          //   playerExist?.username?.toLowerCase() + teamExist.num || playerExist.firstName.toLowerCase() + teamExist.num;
-          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num;
+          const newUsername = playerExist.firstName.toLowerCase()  + teamExist.num.toString();
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -246,10 +245,10 @@ export class TeamResolver {
 
       // ===== Update co-captain
       if (input.cocaptain) {
-        const playerExist = await this.playerService.findById(input.cocaptain.toString());
+        const playerExist = await this.playerService.findById(input.captain.toString());
         if (playerExist) {
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
-          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num;
+          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,

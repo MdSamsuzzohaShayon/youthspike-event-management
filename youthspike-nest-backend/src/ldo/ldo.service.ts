@@ -58,11 +58,11 @@ export class LdoService {
     });
   }
 
-  async findOne(filter: FilterQuery<LDO>){
+  async findOne(filter: FilterQuery<LDO>) {
     return this.ldoModel.findOne(filter);
   }
 
-  async find(filter: FilterQuery<LDO>){
+  async find(filter: FilterQuery<LDO>) {
     return this.ldoModel.find(filter);
   }
 

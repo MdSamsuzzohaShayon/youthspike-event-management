@@ -59,17 +59,17 @@ ___
 
 
 ### Requirements
-
- - Work with bulk actions
- - Next js testing with react testing library
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
+
+
+
+
 ### Update - 1
- - Deleting player is not removing from the list immidiately
- - Update player ranking when adding and removing players from a team
+ - When adding and removing player from a team, ranking need to be working properly
+ - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 
  - Drag and drop is not working when ranking/sorting players on the Desktop
- - All route and authenticating, when logout need to redirected to login page from protected page
  - Design everything properly
  - Use date properly for USA when creating event and match (all inputed timne should be international time and output time should be local time)
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
@@ -222,6 +222,7 @@ ___
 
   - **Update Ranking** 
   - Delete `rank` field from Player
+  - Set number for all documents `cursor.forEach((doc)=> {db.ldos.updateOne({_id: doc._id}, {$set:{num: counter}}); counter +=1;});`
 
 
 ### Github action deployment
@@ -243,16 +244,3 @@ ___
  - Traffic Distribution: If the requests are evenly distributed throughout the day, the server may handle the load better than if they come in large spikes. Implementing load balancing and CDN services can also help distribute the load.
  - Type of Application: Resource-intensive applications or those that require a lot of processing power may not perform as well on a $5 droplet. In such cases, you might need to consider a higher-tier droplet or other scaling strategies.
  - Scaling Options: DigitalOcean provides options to scale vertically (upgrading the droplet to a higher plan) or horizontally (adding more droplets). If you find that the $5 droplet is reaching its capacity, you can consider scaling up or out.
-
-
-### Ask
- - Hi, fixing time, need little bit help from you.
-  When you add a match and set date for the match but you get that date is incorrect at that time give me some informations:
-   1. What is the local time at the time when you create the match?
-   2. 
-
-
-
-
-
-

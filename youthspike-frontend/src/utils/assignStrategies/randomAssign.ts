@@ -1,8 +1,11 @@
-import { IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
+import React from 'react';
+import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IPlayerRankingItemExpRel, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setDisabledPlayerIds, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
+import { EPlayerStatus } from '@/types/player';
 import findPrevPartner from '../match/findPrevPartner';
+import { playerRankNum } from '../helper';
 
 interface IRandomAssignProps {
   matchUp: boolean;
@@ -15,6 +18,8 @@ interface IRandomAssignProps {
   myTeamE: ETeam;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   currMatch: IMatchRelatives;
+  tapr: IPlayerRankingExpRel | null; // Team A Player Ranking
+  tbpr: IPlayerRankingExpRel | null; // Team B Player Ranking
 }
 
 function getRandomPlayers(availablePlayers: IPlayer[]): [IPlayer | null, IPlayer | null] {
@@ -22,22 +27,25 @@ function getRandomPlayers(availablePlayers: IPlayer[]): [IPlayer | null, IPlayer
   return [shuffled.length > 0 ? shuffled[0] : null, shuffled.length > 1 ? shuffled[1] : null];
 }
 
-function getRandomPartner(shuffled: IPlayer[], excludeId: string | null, netVariance: number, targetScore: number): IPlayer | null {
+function getRandomPartner(shuffled: IPlayer[], excludeId: string | null, netVariance: number, targetScore: number, rankings: IPlayerRankingItemExpRel[]): IPlayer | null {
   return (
+    // eslint-disable-next-line array-callback-return, consistent-return
     shuffled.find((p) => {
-      if (p.rank && p._id !== excludeId && p.rank + netVariance <= targetScore) {
+      const playerRank = playerRankNum(rankings, p._id);
+      if (playerRank && p._id !== excludeId && playerRank + netVariance <= targetScore) {
         return p;
       }
     }) || null
   );
 }
 
-function findPairWithMaxScore(availablePlayers: IPlayer[], maxPairScore: number) {
-  for (let mI = 0; mI < availablePlayers.length; mI+=1) {
+function findPairWithMaxScore(availablePlayers: IPlayer[], maxPairScore: number, rankings: IPlayerRankingItemExpRel[]) {
+  for (let mI = 0; mI < availablePlayers.length; mI += 1) {
     const tempRp1 = availablePlayers[mI];
-    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ+=1) {
+    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ += 1) {
       const tempRp2 = availablePlayers[mJ];
-      const nps = (tempRp1?.rank || 0) + (tempRp2?.rank || 0);
+      const playerRank = playerRankNum(rankings, tempRp2._id);
+      const nps = (playerRank || 0) + (playerRank || 0);
       if (nps <= maxPairScore) {
         return [tempRp1, tempRp2];
       }
@@ -46,12 +54,12 @@ function findPairWithMaxScore(availablePlayers: IPlayer[], maxPairScore: number)
   return [null, null];
 }
 
-function findPairWithMinScore(availablePlayers: IPlayer[], minPairScore: number) {
-  for (let mI = 0; mI < availablePlayers.length; mI+=1) {
+function findPairWithMinScore(availablePlayers: IPlayer[], minPairScore: number, rankings: IPlayerRankingItemExpRel[]) {
+  for (let mI = 0; mI < availablePlayers.length; mI += 1) {
     const tempRp1 = availablePlayers[mI];
-    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ+=1) {
+    for (let mJ = mI + 1; mJ < availablePlayers.length; mJ += 1) {
       const tempRp2 = availablePlayers[mJ];
-      const nps = (tempRp1?.rank || 0) + (tempRp2?.rank || 0);
+      const nps = playerRankNum(rankings, tempRp1._id) + playerRankNum(rankings, tempRp2._id);
       if (nps >= minPairScore) {
         return [tempRp1, tempRp2];
       }
@@ -60,17 +68,16 @@ function findPairWithMinScore(availablePlayers: IPlayer[], minPairScore: number)
   return [null, null];
 }
 
-
 function randomAssign(props: IRandomAssignProps) {
-  const { currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch } = props;
+  const { currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr, tbpr } = props;
   const newCurrRoundNets = [];
   const allNetsClone = allNets.slice();
   const selectedPlayerIds = new Set();
 
   for (let i = 0; i < currRoundNets.length; i += 1) {
-
     // ===== List of players that are not assigned in a net =====
-    const availablePlayers = myPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.rank);
+
+    const availablePlayers = myPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
 
     if (availablePlayers.length < 2) {
       console.error('Not enough available players');
@@ -83,13 +90,19 @@ function randomAssign(props: IRandomAssignProps) {
     // ===== Check not previous partner =====
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
 
-    // ===== Change partner if if match with previous partner, therefore, 2 players can not play in 2 round in a row =====
-    if (matchUp && prevPartnerId && rp2?._id === prevPartnerId) {
-      rp2 = getRandomPartner(availablePlayers, prevPartnerId, currMatch.netVariance || 0, Infinity) || null;
+    // ===== Organize Ranking ===== 
+    const myRankings = [];
+    const opRankings = [];
+    if (myTeamE === ETeam.teamA) {
+      if (tapr) myRankings.push(...tapr.rankings);
+      if (tbpr) opRankings.push(...tbpr.rankings);
+    } else if (myTeamE === ETeam.teamB) {
+      if (tapr) opRankings.push(...tapr.rankings);
+      if (tbpr) myRankings.push(...tbpr.rankings);
     }
-
-    // ===== Check Net variance does not exceed =====
-    const pairScore = (rp1?.rank || 0) + (rp2?.rank || 0);
+    const myrp1 = rp1?._id ? playerRankNum(myRankings, rp1?._id) : 0;
+    const myrp2 = rp2?._id ? playerRankNum(myRankings, rp2?._id) : 0;
+    const pairScore = myrp1 + myrp2;
     let op1;
     let op2;
     if (myTeamE === ETeam.teamA) {
@@ -99,16 +112,26 @@ function randomAssign(props: IRandomAssignProps) {
       op1 = opPlayers.find((p) => p._id === currRoundNets[i].teamAPlayerA);
       op2 = opPlayers.find((p) => p._id === currRoundNets[i].teamAPlayerB);
     }
-    const opPairScore = (op1?.rank || 0) + (op2?.rank || 0);
+    const oprp1 = op1?._id ? playerRankNum(opRankings, op1?._id) : 0;
+    const oprp2 = op2?._id ? playerRankNum(opRankings, op2?._id) : 0;
+    const opPairScore = oprp1 + oprp2;
+
+    // ===== Change partner if if match with previous partner, therefore, 2 players can not play in 2 round in a row =====
+    if (matchUp && prevPartnerId && rp2?._id === prevPartnerId) {
+      rp2 = getRandomPartner(availablePlayers, prevPartnerId, currMatch.netVariance || 0, Infinity, opRankings) || null;
+    }
+
+    // ===== Check Net variance does not exceed =====
+    
 
     if (currMatch.netVariance) {
       const minPairScore = Math.max(0, opPairScore - currMatch.netVariance);
       const maxPairScore = opPairScore + currMatch.netVariance;
 
       if (pairScore > maxPairScore && matchUp) {
-        [rp1, rp2] = findPairWithMaxScore(availablePlayers, maxPairScore);
+        [rp1, rp2] = findPairWithMaxScore(availablePlayers, maxPairScore, opRankings);
       } else if (pairScore < minPairScore && matchUp) {
-        [rp1, rp2] = findPairWithMinScore(availablePlayers, minPairScore);
+        [rp1, rp2] = findPairWithMinScore(availablePlayers, minPairScore, opRankings);
         if (!rp1 || !rp2) {
           console.log({ pairScore, opPairScore, maxPairScore, minPairScore, msg: 'Less than minimum' });
         }
@@ -137,7 +160,6 @@ function randomAssign(props: IRandomAssignProps) {
       }
     }
   }
-
 
   // ===== Setting nets and disabled players =====
   dispatch(setCurrentRoundNets(newCurrRoundNets));
