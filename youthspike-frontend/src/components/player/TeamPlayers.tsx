@@ -30,7 +30,17 @@ function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
         rankings.push(...teamBPlayerRanking.rankings);
       }
       const { sortedPlayers: sortedPlayerList } = sortPlayerRanking(teamPlayers, rankings);
-      setSortedPlayers(sortedPlayerList);
+
+      // Remove duplicates
+      const newSortedPlayerList = [];
+      const playerIds = new Set();
+      for (let i = 0; i < sortedPlayerList.length; i += 1) {
+        if (!playerIds.has(sortedPlayerList[i]._id)) {
+          newSortedPlayerList.push(sortedPlayerList[i]);
+          playerIds.add(sortedPlayerList[i]._id);
+        }
+      }
+      setSortedPlayers(newSortedPlayerList);
     }
   }, [teamAPlayerRanking, teamBPlayerRanking, teamPlayers]);
 

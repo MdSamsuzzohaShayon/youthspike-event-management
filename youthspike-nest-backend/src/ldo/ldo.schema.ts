@@ -24,6 +24,7 @@ export class LDO extends AppDocument {
   @Field({ nullable: true })
   logo?: string;
 
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   @Field(() => User, { nullable: true })
   director?: User | string;

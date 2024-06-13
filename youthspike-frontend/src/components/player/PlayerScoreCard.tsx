@@ -15,8 +15,8 @@ interface IPlayerScoreCard {
   player: IPlayer | null;
   screenWidth: number;
   myTeamE: ETeam;
-  tapr: IPlayerRankingExpRel | null; // tapr= team A Player Ranking
-  tbpr: IPlayerRankingExpRel | null; // tbpr= team B Player Ranking
+  tapr?: IPlayerRankingExpRel | null; // tapr= team A Player Ranking
+  tbpr?: IPlayerRankingExpRel | null; // tbpr= team B Player Ranking
   onTop?: boolean;
   teamPlayer?: ETeamPlayer;
   // eslint-disable-next-line no-unused-vars
@@ -91,9 +91,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
   };
 
   const renderRank = () => {
-    // eslint-disable-next-line no-nested-ternary
-    // const rankings = myTeamE === ETeam.teamA ? (teamAPlayerRanking ? teamAPlayerRanking.rankings : []) : teamBPlayerRanking ? teamBPlayerRanking.rankings : [];
-    const rankings = [];
+   const rankings = [];
     if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
     if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
     const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
@@ -102,7 +100,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
       <>
         <div className="placeholder h-6" />
         <p
-          className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-400 text-white z-10 flex justify-center items-center`}
+          className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-400 text-black z-10 flex justify-center items-center`}
           style={{ transform: 'translate(-50%, -50%)' }}
         >
           {playerRank}
@@ -112,7 +110,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
   };
 
   return (
-    <div className="w-full h-full relative overflow-hidden">
+    <div className="w-full h-full relative overflow-hidden flex flex-col justify-end">
       {/* Level 1: rank start  */}
       {player && !onTop && renderRank()}
       {/* Level 1: rank end  */}

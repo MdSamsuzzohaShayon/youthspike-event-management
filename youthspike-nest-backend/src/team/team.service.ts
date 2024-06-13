@@ -37,14 +37,13 @@ export class TeamService {
   }
 
   async create(team: Team) {
-    // const lastTeam = await this.teamModel.findOne({}, {}, { sort: { num: -1 } });
     const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
     const lastTeamNum: number = lastTeam?.num || 1;
     
     return this.teamModel.create({
       ...team,
       active: true,
-      num: lastTeamNum,
+      num: lastTeamNum + 1,
     });
   }
 

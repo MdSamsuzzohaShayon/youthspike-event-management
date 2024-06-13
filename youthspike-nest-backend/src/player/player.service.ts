@@ -147,7 +147,8 @@ export class PlayerService {
   }
 
   async deleteOne(filter: FilterQuery<Player>) {
-    return this.playerModel.deleteOne(filter);
+    const deletePlayer = await this.playerModel.deleteOne(filter);
+    return deletePlayer;
   }
 
 }

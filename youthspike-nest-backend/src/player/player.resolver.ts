@@ -69,14 +69,6 @@ export class PlayerResolver {
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;
 
-      // if (playerObj.rank || playerObj.rank === 0) playerObj.rank = null;
-      // if (input.team) {
-      //   const teamExist = await this.teamService.findById(input.team);
-      //   if (teamExist && teamExist.players) {
-      //     playerObj.rank = teamExist.players.length + 1;
-      //   }
-      // }
-
       const newPlayer = await this.playerService.create(playerObj);
 
       if (input.team) {
@@ -95,7 +87,7 @@ export class PlayerResolver {
             for (let i = 0; i < playerIds.length; i += 1) {
               const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
               if (!findRank) {
-                itemsToInsert.push({ player: playerIds[i], rank: highestRank + i + 1, playerRanking: pr._id });
+                itemsToInsert.push({ player: playerIds[i], rank: highestRank + 1, playerRanking: pr._id });
               }
             }
             await this.playerRankingService.insertManyItems(itemsToInsert);
@@ -206,10 +198,18 @@ export class PlayerResolver {
         updatePromises.push(
           this.teamService.updateOne({ _id: input.playerTeamId }, { $set: { players: newPlayerIds } }),
         );
-        updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $pull: { teams: input.team } }));
 
         // Add
-        updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $addToSet: { teams: input.team } }));
+        updatePromises.push(
+          this.playerService.updateOne(
+            { _id: playerId },
+            {
+              $set: { teams: [input.team] },
+              // $addToSet: { teams: input.team },
+              // $pull: { teams: input.playerTeamId }
+            },
+          ),
+        );
         // updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
       }
 
@@ -394,6 +394,8 @@ export class PlayerResolver {
         updatePromises.push(
           this.teamService.updateOne({ _id: { $in: playerExist.teams } }, { $pull: { players: playerId } }),
         );
+
+        updatePromises.push(this.playerRankingService.deleteOneItem({ player: playerId }));
       }
 
       if (playerExist.captainofteams && playerExist.captainofteams.length > 0) {
@@ -421,7 +423,7 @@ export class PlayerResolver {
       await Promise.all(updatePromises);
 
       return {
-        code: HttpStatus.CREATED,
+        code: HttpStatus.NO_CONTENT,
         success: true,
         message: 'Player has been deleted successfully!',
       };

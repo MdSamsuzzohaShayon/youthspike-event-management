@@ -37,8 +37,7 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
   const [roundList, setRoundList] = useState<IRoundRelatives[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
-
-  // if (eventResponse?.data?.getEvent?.data?.matches?.rounds) setRoundList(eventResponse?.data?.getEvent?.data?.matches?.rounds);
+  
 
 
   useClickOutside(actionItemEl, () => {
@@ -70,7 +69,7 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
           ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" />
           : <img src='/free-logo.png' className='w-full h-full' />}
       </div>
-      <h3 className='capitalize'>{team.name}</h3>
+      <h3 className='capitalize'>{team?.name}</h3>
       <h1 className="h-12 w-12 flex justify-center items-center rounded-full border border-gray-100">{pointsOfRound}</h1>
     </React.Fragment>);
   }

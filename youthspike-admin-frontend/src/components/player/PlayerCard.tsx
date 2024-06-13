@@ -139,7 +139,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setActionOpen((prevState) => !prevState);
       setIsLoading(true);
       const response = await deleteAPlayer({ variables: { playerId } });
-      const success = handleResponse({response: response.data.updatePlayer, setActErr});
+      const success = handleResponse({response: response.data.deletePlayer, setActErr});
       if(!success) return;
       if (refetchFunc) {
         await refetchFunc();

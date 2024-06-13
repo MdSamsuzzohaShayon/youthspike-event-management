@@ -13,6 +13,7 @@ export interface ILDOItem {
   _id: string;
   name: string;
   logo: string;
+  num: number;
   director?: IDirectorItem;
 }
 

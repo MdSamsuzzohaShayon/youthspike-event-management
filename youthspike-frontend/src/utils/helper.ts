@@ -97,3 +97,8 @@ export const setNetH = (screenWidth: number) => {
   const hStyle = { height: screenWidth > screen.xs ? `${netSize.mhl}rem` : `${netSize.mhm}rem` };
   return hStyle;
 };
+
+export const playerRankNum = (rankings: IPlayerRankingItemExpRel[], playerId: string): number => {
+  const playerRank = rankings.find((p) => p.player._id === playerId)?.rank || 0;
+  return playerRank;
+};

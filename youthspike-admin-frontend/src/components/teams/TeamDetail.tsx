@@ -14,6 +14,7 @@ import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
+import useLdoUrl from '@/hooks/useLdoUrl';
 
 interface ITeamDetailProps {
   event: IEvent;
@@ -30,6 +31,7 @@ interface ITeamDetailProps {
 
 function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc, playerList, playerRanking }: ITeamDetailProps) {
   const pathname = usePathname();
+  const ldoUrl = useLdoUrl();
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -117,7 +119,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
             </button>
           </div>
           <form onSubmit={handleAddPlayersToTeam} className="mb-4">
-            <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
+            <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" ldoUrl={ldoUrl} />
             <button type="submit" className="btn-primary mt-4">
               Add
             </button>

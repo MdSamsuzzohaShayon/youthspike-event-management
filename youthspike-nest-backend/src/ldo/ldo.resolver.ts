@@ -24,12 +24,6 @@ import { MatchService } from 'src/match/match.service';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 
-// @ObjectType()
-// class GetPlayerResponse extends AppResponse<User> {
-//   @Field((type) => User, { nullable: true })
-//   data?: User;
-// }
-
 @ObjectType()
 class GetDirectorLDOResponse extends AppResponse<LDO> {
   @Field((type) => LDO, { nullable: true })
@@ -98,7 +92,7 @@ export class LdoResolver {
 
       // Update user -> set user id inside ldo
       const ldo = await this.ldoService.create(
-        { name: args.name, phone: args.phone, logo: logoUrl, events: [] },
+        { name: args.name, phone: args.phone, logo: logoUrl, events: []},
         directorId,
         `${director.firstName} ${director.lastName} Event`,
       );
