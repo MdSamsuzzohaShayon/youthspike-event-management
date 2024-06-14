@@ -57,6 +57,7 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
       handleFileChange(inputEl.files[0]);
 
       const uploadedImgUrl = await fileToImgSrc(inputEl.files[0]);
+      // @ts-ignore
       if (uploadedImgUrl) setSrcUncropped(uploadedImgUrl);
 
       openModal();
@@ -164,7 +165,7 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
       <dialog ref={dialogEl} className='w-10/12'>
         <div className="px-2 flex flex-col items-center justify-center gap-2">
           {srcUncropped && (
-            <ReactCrop crop={crop} onChange={handleCropChange} onComplete={onCropComplete} maxHeight={200} >
+            <ReactCrop crop={crop} onChange={handleCropChange} onComplete={onCropComplete} >
               <img id="img-to-crop" src={srcUncropped} alt="file-upload h-32" ref={imgCropEl} />
             </ReactCrop>
           )}

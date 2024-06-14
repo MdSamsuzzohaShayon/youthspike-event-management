@@ -64,6 +64,7 @@ ___
 
 
 ### Update - 1
+ - Players are locking before the match started
  - Duplicating players on the roster on the match page - https://www.loom.com/share/980573fc994347e49bb69fe36fc24375
  - When adding and removing player from a team, ranking need to be working properly
  - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 
