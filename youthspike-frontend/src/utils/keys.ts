@@ -2,8 +2,7 @@
 const NODE_ENV: string = 'development';
 // const NODE_ENV: string = 'production';
 
-
-const APP_NAME = "American Spikers League";
+const APP_NAME = 'American Spikers League';
 let FRONTEND_URL = 'http://localhost:3001';
 let ADMIN_FRONTEND_URL = 'http://localhost:3000';
 let BACKEND_URL: string = 'http://localhost:4000/graphql';
