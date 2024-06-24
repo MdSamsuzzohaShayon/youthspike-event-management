@@ -243,3 +243,7 @@ ___
  - Traffic Distribution: If the requests are evenly distributed throughout the day, the server may handle the load better than if they come in large spikes. Implementing load balancing and CDN services can also help distribute the load.
  - Type of Application: Resource-intensive applications or those that require a lot of processing power may not perform as well on a $5 droplet. In such cases, you might need to consider a higher-tier droplet or other scaling strategies.
  - Scaling Options: DigitalOcean provides options to scale vertically (upgrading the droplet to a higher plan) or horizontally (adding more droplets). If you find that the $5 droplet is reaching its capacity, you can consider scaling up or out.
+
+
+### Ask
+ I am also struggling with date. I need your help with it. When you create a match with date I want you to let me know your local date, and with what date it is changed when you to into that specific date. This issue is because of timezone, therefore, I need to know your timezone. It would be easy if you connect me via teamviewer when you are facing this issue. 

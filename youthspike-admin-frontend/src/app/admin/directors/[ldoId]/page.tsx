@@ -10,8 +10,12 @@ import { IError } from '@/types';
 
 function LDOSingle({ params }: { params: { ldoId: string } }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { data, error, loading } = useQuery(GET_LDO, { variables: { dId: params.ldoId } });
+  const { data, error, loading, refetch } = useQuery(GET_LDO, { variables: { dId: params.ldoId } });
   const [actErr, setActErr] = useState<IError | null>(null);
+
+  const refetchFunc=async ()=>{
+    await refetch();
+  }
 
   if (loading || isLoading) return <Loader />;
   const prevLdo = data?.getEventDirector?.data;
@@ -21,7 +25,7 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
     <div className='container mx-auto px-2 min-h-screen'>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={prevLdo} setActErr={setActErr} ldoId={params.ldoId} />
+      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={prevLdo} setActErr={setActErr} ldoId={params.ldoId} refetchFunc={refetchFunc} />
     </div>
   )
 }

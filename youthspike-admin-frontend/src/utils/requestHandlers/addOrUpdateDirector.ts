@@ -24,14 +24,14 @@ interface IAddUpdateDirectorProps {
     initialLdo: ILDO;
     setLdoState: React.Dispatch<React.SetStateAction<ILDO>>;
     setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
-    client: ApolloClient<any>;
     e: React.SyntheticEvent;
     ldoId?: string;
+    refetchFunc?:()=> Promise<void>;
 }
 
 async function addOrUpdateDirector({ directorUpdate, update, setActErr, directorState, ldoState,
     ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
-    initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, client, e, ldoId }: IAddUpdateDirectorProps) {
+    initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc }: IAddUpdateDirectorProps) {
 
     const directorUpdateObj = { ...directorUpdate };
     if (update) {
@@ -106,9 +106,7 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
             }
         }
         setActErr(null);
-        await client.refetchQueries({
-            include: [GET_LDOS],
-        });
+        if(refetchFunc) await refetchFunc();
         if (setAddNetDirector) setAddNetDirector(false);
     } catch (error: any) {
         console.error('Error during GraphQL mutation:', error);

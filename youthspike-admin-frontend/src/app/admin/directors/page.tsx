@@ -30,7 +30,7 @@ function DirectorPage() {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {addNewDirector 
-      ? <DirectorAdd setIsLoading={setIsLoading} update={false} setActErr={setActErr} setAddNetDirector={setAddNetDirector} /> 
+      ? <DirectorAdd setIsLoading={setIsLoading} update={false} setActErr={setActErr} setAddNetDirector={setAddNetDirector} refetchFunc={referchFunc} /> 
       : (<React.Fragment>
         <DirectorList ldoList={data?.getEventDirectors?.data} setIsLoading={setIsLoading} referchFunc={referchFunc} />
         <button className="btn-info mt-4" type='button' onClick={() => setAddNetDirector(true)}>Add New</button>

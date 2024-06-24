@@ -15,11 +15,12 @@ import NumberInput from '../elements/forms/NumberInput';
 
 interface DirectorAddProps {
     update: boolean;
-    prevLdo?: null | ILDO | undefined;
-    ldoId?: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    prevLdo?: null | ILDO | undefined;
+    ldoId?: string;
     setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
+    refetchFunc?:()=> Promise<void>;
 }
 
 const initialLdo: ILDO = {
@@ -38,7 +39,7 @@ const initialDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector, ldoId }: DirectorAddProps) {    
+function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector, ldoId, refetchFunc }: DirectorAddProps) {    
 
     // Hooks
     const user = useUser();
@@ -51,7 +52,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
     const uploadedLogo = useRef<File | null>(null);
 
     // Graphql
-    const [registerDirector, { loading, error, client }] = useMutation(ADD_DIRECTOR);
+    const [registerDirector, { loading, error }] = useMutation(ADD_DIRECTOR);
     const [updateDirector, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_DIRECTOR);
     const [mutateUser, { loading: capLoading, error: capErr }] = useMutation(UPDATE_CAPTAIN);
 
@@ -95,7 +96,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
         addOrUpdateDirector({
             directorUpdate, update, setActErr, directorState, ldoState,
             ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
-            initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, client, e, ldoId
+            initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc
         })
     };
 
