@@ -580,6 +580,7 @@ input CreateMatchInput {
   timeout: Int
   description: String!
   fwango: String
+  localLocation: String
 }
 
 input UpdateMatchInput {
@@ -599,6 +600,7 @@ input UpdateMatchInput {
   timeout: Int
   description: String
   fwango: String
+  localLocation: String
 }
 
 input UpdateRoundInput {

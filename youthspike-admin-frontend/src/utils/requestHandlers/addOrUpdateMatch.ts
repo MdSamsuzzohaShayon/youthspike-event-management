@@ -20,12 +20,40 @@ interface IAddOrUpdateMatchProps {
     addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
+function getLocation() {
+    return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude  = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    resolve(`Latitude: ${latitude} °, Longitude: ${longitude} °`);
+                },
+                (error) => {
+                    reject('Unable to retrieve your location');
+                }
+            );
+        } else {
+            reject('Geolocation is not supported by your browser');
+        }
+    });
+}
+
 async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
     try {
         setIsLoading(true);
         let matchRes = null;
+
+        // Debuging
+        const locationString = await getLocation();
+        const debugObj = {
+            // localTime: new Date().toLocaleDateString(),
+            // localTimeISO: new Date().toLocaleDateString(),
+            localLocation: locationString,
+        }
+
         if (update) {
-            const updateMatchObj = { ...updateMatch, event: eventId };
+            const updateMatchObj = { ...updateMatch, event: eventId, ...debugObj };
             if (updateMatchObj.date) {
                 updateMatchObj.date = new Date(updateMatchObj.date).toISOString();
             }
@@ -37,7 +65,7 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             // Get updated match
         } else {
             if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' })
-            const addMatchObj = { ...addMatch, event: eventId };
+            const addMatchObj = { ...addMatch, event: eventId, ...debugObj };
             if (currDivision) addMatchObj.division = currDivision;
             console.log({dateBefore: addMatchObj.date});
             addMatchObj.date = new Date(addMatchObj.date).toISOString();

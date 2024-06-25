@@ -47,7 +47,7 @@ function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
   return (
     <div className="bg-black-logo text-white py-4">
       <div className="container px-4 mx-auto">
-        <div className="player-list flex items-center justify-between overflow-x-auto gap-x-1">
+        <div className={`player-list flex ${onTop ? 'items-end' : 'items-start'} justify-between overflow-x-auto gap-x-1`}>
           {sortedPlayers.map((player) => (
             <div className="player-card w-20 flex-shrink-0" key={player._id}>
               <PlayerScoreCard player={player} onTop={onTop} teamPlayer={ETeamPlayer.TA_PA} screenWidth={screenWidth} myTeamE={myTeamE} tapr={teamAPlayerRanking} tbpr={teamBPlayerRanking} />

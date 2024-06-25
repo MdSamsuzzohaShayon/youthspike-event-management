@@ -43,11 +43,8 @@ ___
 ### Running
  - Style according to Figma - Make color scheme same
  - https://www.loom.com/share/4d8d6caf06144ce1a734f23c8758a127
- - When click on input field to update score it should highlight the whole number
-
  - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
  - Moreover, the team name will be hyperlink
- - Change redial nevy blue color to black gradient
  - Move team need to work properly - one division to another division
  - If there are no logo, do not put any text there
  - Design match list same as this - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
@@ -64,14 +61,13 @@ ___
 
 
 ### Update - 1
- - Players are locking before the match started
- - Duplicating players on the roster on the match page - https://www.loom.com/share/980573fc994347e49bb69fe36fc24375
  - When adding and removing player from a team, ranking need to be working properly
  - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 
  - Drag and drop is not working when ranking/sorting players on the Desktop
  - Design everything properly
  - Use date properly for USA when creating event and match (all inputed timne should be international time and output time should be local time)
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
+ - Check all matches date in the server
 
 ### Update - 2 
  - Also, to ensure proper fitting. Can we make the last names of the players 2 font size smaller? ALso can we shrink the gab between first name and last name a little more?

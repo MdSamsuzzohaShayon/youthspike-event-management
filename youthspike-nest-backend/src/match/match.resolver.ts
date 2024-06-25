@@ -19,6 +19,7 @@ import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
+import { EmailsenderService } from 'src/emailsender/emailsender.service';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -43,6 +44,7 @@ export class MatchResolver {
     private roomService: RoomService,
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
+    private emailsenderService: EmailsenderService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -110,7 +112,7 @@ export class MatchResolver {
       const roundIds = [];
       const playerIds = [];
 
-      const promisesAll = [];
+      const createPromises = [];
 
       // ===== Set Event default value ====
       const matchObj: any = {
@@ -119,6 +121,9 @@ export class MatchResolver {
         rounds: roundIds,
         players: playerIds,
       };
+
+      if (input.localLocation) delete matchObj.localLocation;
+
       if (!matchObj.division || !eventExist.divisions.toLowerCase().includes(matchObj.division.trim().toLowerCase()))
         return AppResponse.notFound('Event');
       if (!matchObj.numberOfNets) matchObj.numberOfNets = eventExist.nets;
@@ -223,15 +228,36 @@ export class MatchResolver {
         netIds.push(...netIdsOfRound);
 
         // Update the nets field in the created round
-        promisesAll.push(this.roundService.update({ nets: netIdsOfRound }, round._id));
+        createPromises.push(this.roundService.update({ nets: netIdsOfRound }, round._id));
       }
-      promisesAll.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamA }));
-      promisesAll.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamB }));
-      promisesAll.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
-      promisesAll.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
-      promisesAll.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
+      createPromises.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamA }));
+      createPromises.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamB }));
+      createPromises.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
+      createPromises.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
+      createPromises.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
 
-      await Promise.all(promisesAll);
+      // Debuging
+      const dt = new Date();
+      const inputedDate = new Date(input.date);
+      const debugObj = {
+        matchId: newMatch._id,
+        inputedDate: input.date,
+        localDate: inputedDate.getDate(),
+        localTimeISO: inputedDate.toISOString(),
+        localLocation: input.localLocation,
+        serverTime: dt.toString(),
+        operation: 'Create Match',
+      };
+      createPromises.push(
+        this.emailsenderService.sendHtmlEmailInfo({
+          to: ['mdsamsuzzoha5222@gmail.com'],
+          subject: 'Sending informations about date',
+          htmlFileName: 'send-informations.html',
+          info: debugObj,
+        }),
+      );
+
+      await Promise.all(createPromises);
 
       return {
         data: newMatch,
@@ -332,6 +358,26 @@ export class MatchResolver {
   async getMatch(@Args('matchId') matchId: string) {
     try {
       const matchExist = await this.matchService.findById(matchId);
+
+      // Debuging
+      const dt = new Date();
+      const inputedDate = new Date(matchExist.date);
+      const debugObj = {
+        matchId: matchExist._id,
+        inputedDate: matchExist.date,
+        localDate: inputedDate.getDate(),
+        localTimeISO: inputedDate.toISOString(),
+        localLocation: 'Using server',
+        serverTime: dt.toString(),
+        operation: 'Get a Match',
+      };
+      await this.emailsenderService.sendHtmlEmailInfo({
+        to: ['mdsamsuzzoha5222@gmail.com'],
+        subject: 'Sending informations about date',
+        htmlFileName: 'send-informations.html',
+        info: debugObj,
+      });
+
       return {
         code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: matchExist ? true : false,

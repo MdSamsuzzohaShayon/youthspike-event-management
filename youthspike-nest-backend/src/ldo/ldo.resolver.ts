@@ -136,7 +136,7 @@ export class LdoResolver {
         updateUserId = loggedUser._id;
         ldoExist = await this.ldoService.findOne({ director: loggedUser._id.toString() });
       } else if (loggedUser.role === UserRole.admin && dId && dId !== '') {
-        ldoExist = await this.ldoService.findOne({ director: dId.toString() });
+        ldoExist = await this.ldoService.findOne({ _id: dId.toString() });
         updateUserId = ldoExist.director.toString();
       }
       if (!ldoExist) return AppResponse.notFound('LDO');

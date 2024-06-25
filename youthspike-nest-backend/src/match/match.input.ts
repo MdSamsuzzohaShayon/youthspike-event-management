@@ -50,6 +50,17 @@ export class CreateMatchInput {
 
   @Field({ nullable: true })
   fwango?: string;
+
+
+  // Debuging
+  // @Field({ nullable: false })
+  // localTime?: string;
+
+  // @Field({ nullable: true })
+  // localTimeISO?: string;
+
+  @Field({ nullable: true })
+  localLocation?: string;
 }
 
 @InputType()

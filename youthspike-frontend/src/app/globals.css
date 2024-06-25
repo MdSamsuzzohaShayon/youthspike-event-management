@@ -130,13 +130,13 @@ dialog::backdrop {
 }
 .box-gradient{
   /* @apply bg-gradient-to-r from-gray-500 via-gray-700 to-gray-900 text-gray-50; */
-  background: linear-gradient(to right, #4b4a4a, #4b4a4a, #232323); /* gray-500, gray-700, gray-900 */
+  background: linear-gradient(to right, #4b4a4a, #4b4a4a, #000000); /* gray-500, gray-700, gray-900 */
   color: #F9FAFB; /* text-gray-50 */ 
 }
 /* Box design end */
 
 .bg-gradient-dark{
-  background: radial-gradient(circle, #4b4a4a 0%, #232323 100%);
+  background: radial-gradient(circle, #4b4a4a 0%, #000000 100%);
 }
 
 /* Loading animation  */
@@ -177,28 +177,31 @@ dialog::backdrop {
 }
 
 .bg-black-logo{
-  background-color: #232323;
+  /* background-color: #232323; */
+  background-color: #000000;
 }
 .text-black-logo{
   color: #232323;
 }
 .border-black-logo{
-  border-color: #232323;
+  /* border-color: #232323; */
+  border-color: #000000;
 }
 
 /* Custom Design  */
- 
-/* Track */
-::-webkit-scrollbar-track {
-  background: #212de2 !important;
+/* Customize scrollbar track */
+::-webkit-scrollbar {
+  width: 12px; /* width of the scrollbar */
+  height: 6px;
 }
 
-/* Handle */
+/* Customize scrollbar thumb */
 ::-webkit-scrollbar-thumb {
-  background: #cc1111 !important;
+  background-color: #F9FAFB; /* color of the scrollbar thumb */
+  border-radius: 6px; /* roundness of the scrollbar thumb */
 }
 
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #42ce0a !important;
+/* Customize scrollbar track */
+::-webkit-scrollbar-track {
+  background: transparent; /* color of the scrollbar track */
 }

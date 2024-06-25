@@ -245,6 +245,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       {/* Level 4 start: oponent rosters  */}
       <div className="op-rosters-wrapper w-full">
         <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop />
+        {/* Level 4.1 start: oponent team name  */}
         <div className="op-team-bottom-wrapper h-4" /> {/* Placeholder */}
         <div className="name-wrapper px-4">
           <div className="container px-4 mx-auto text-center relative z-10">
@@ -253,6 +254,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
             </div>
           </div>
         </div>
+        {/* Level 4.1 end: oponent team name  */}
       </div>
       {/* Level 4 end: oponent rosters  */}
 
@@ -284,7 +286,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
       {/* Level 7 start: My Rosters  */}
       <div className="my-roster-wrapper w-full">
-        {/*  My Team  */}
+        {/*  Level 7.1 start: My Team name  */}
         <div className="name-wrapper px-4">
           <div className="container mx-auto text-center  relative">
             <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : 'bg-white text-black-logo'}`}>
@@ -293,7 +295,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           </div>
           <div className="my-team-top-wrapper h-5" /> {/* Placeholder */}
         </div>
-        {/* My Team  */}
+        {/*  Level 7.1 start: My Team name  */}
         <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
       </div>
       {/* // Show subbed players  */}

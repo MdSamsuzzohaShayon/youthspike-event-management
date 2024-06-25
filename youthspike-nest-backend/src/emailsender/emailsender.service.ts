@@ -15,7 +15,14 @@ interface ITemplateParams {
   captain_name: string;
   event_date: string;
   fwango_link?: string | null;
-  ldo_phone?:string | null;
+  ldo_phone?: string | null;
+}
+
+interface ITemplateInfoParams {
+  to: string[];
+  subject: string;
+  htmlFileName: string;
+  info: Record<string, any>;
 }
 
 @Injectable()
@@ -42,7 +49,7 @@ export class EmailsenderService {
     captain_name,
     event_date,
     fwango_link,
-    ldo_phone
+    ldo_phone,
   }: ITemplateParams) {
     try {
       const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
@@ -54,7 +61,7 @@ export class EmailsenderService {
 
       // eslint-disable-next-line prefer-const, @typescript-eslint/no-inferrable-types
       let organized_ldo_phone: string = '';
-      if(ldo_phone){
+      if (ldo_phone) {
         organized_ldo_phone = `Phone: ${ldo_phone}`;
       }
 
@@ -71,6 +78,28 @@ export class EmailsenderService {
         .replace('{{fwango_url}}', FWANGO_URL)
         .replace('{{american_spikers_url}}', AMERICAN_SPIKERS_URL)
         .replace('{{captain}}', captain_name);
+
+      await this.transporter.sendMail({
+        from: `'American Spikers League <${this.configService.get<string>('EMAIL_USER')}>'`,
+        to: to.join(', '),
+        subject,
+        html: replacedHtmlContent,
+      });
+
+      console.log('HTML Email sent successfully');
+    } catch (error) {
+      console.error('Error sending HTML email:', error);
+      throw new Error('Failed to send HTML email');
+    }
+  }
+
+  async sendHtmlEmailInfo({ to, subject, htmlFileName, info }: ITemplateInfoParams) {
+    try {
+      const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
+      const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
+
+      // Replace placeholders with actual values
+      const replacedHtmlContent = htmlContent.replace('{{informations}}', JSON.stringify(info));
 
       await this.transporter.sendMail({
         from: `'American Spikers League <${this.configService.get<string>('EMAIL_USER')}>'`,
