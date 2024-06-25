@@ -2,13 +2,12 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react';
-import { GET_EVENTS } from '@/graphql/event';
-import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
-import { IDirector, IError, ILDO } from '@/types';
+import { IError, ILDO } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 
 function AccountPage() {
@@ -16,34 +15,44 @@ function AccountPage() {
   const [ldoState, setLdoState] = useState<ILDO | null>(null);
   const [actErr, setActErr] = useState<IError | null>(null);
 
-  const [getLdo, { loading, error, data: ldoData }] = useLazyQuery(GET_LDO);
+  const [getLdo, { loading, error, data: ldoData, refetch }] = useLazyQuery(GET_LDO, {fetchPolicy: 'network-only'});
   // Query for director
+
+
+
+  const fetchLDO= async () => {
+    const searchParams = new URLSearchParams(location.search);
+    const ldoIdParam = searchParams.get('ldoId');
+
+    const { data } = await getLdo({ variables: {dId: ldoIdParam} }); // Use dynamic id // use either ldoId or directorI      
+    const ldoObj = data?.getEventDirector?.data;
+    const success = handleResponse({ response: data?.getEventDirector, setActErr });
+    if (!success) return;
+
+
+    setLdoState({
+      name: ldoObj?.name,
+      logo: ldoObj?.logo,
+      director: {
+        email: ldoObj?.director?.email,
+        firstName: ldoObj?.director?.firstName,
+        lastName: ldoObj?.director?.lastName,
+        password: '',
+        confirmPassword: '',
+      }
+    })
+  }
+
+  const refetchFunc= async ()=>{
+    await fetchLDO();
+  }
 
   useEffect(() => {
     /**
      * Fetch director
      */
-    (async () => {
-      const searchParams = new URLSearchParams(location.search);
-      const ldoIdParam = searchParams.get('ldoId');
-
-      const { data } = await getLdo({ variables: {dId: ldoIdParam} }); // Use dynamic id // use either ldoId or directorI      
-      const ldoObj = data?.getEventDirector?.data;
-      const success = handleResponse({ response: data?.getEventDirector, setActErr });
-      if (!success) return;
-
-
-      setLdoState({
-        name: ldoObj?.name,
-        logo: ldoObj?.logo,
-        director: {
-          email: ldoObj?.director?.email,
-          firstName: ldoObj?.director?.firstName,
-          lastName: ldoObj?.director?.lastName,
-          password: '',
-          confirmPassword: '',
-        }
-      })
+    (async ()=>{
+      await fetchLDO();
     })()
   }, []);
 
@@ -54,7 +63,7 @@ function AccountPage() {
       <h1 className='my-4 text-center'>Account Setting (LDO)</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={ldoState} setActErr={setActErr} />
+      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={ldoState} setActErr={setActErr} refetchFunc={refetchFunc} />
     </div>
   )
 }

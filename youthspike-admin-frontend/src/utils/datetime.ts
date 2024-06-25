@@ -27,17 +27,27 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
 
 
 function readDate(isoDateString: string) {
-    const date = new Date(isoDateString);
+    try {
+        
+        const newDate = isoDateString.split("T")[0].split("-")
+    
+        // Format the date string
+        const formattedDate = `${monthNames[parseInt(newDate[1], 10) - 1]} ${newDate[2]}, ${newDate[0]}`;
+        
+        return formattedDate;
+    } catch (error) {
+        const date = new Date(isoDateString);
+        
+        // Extract the month, date, and year
+        const month = monthNames[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        console.log(error);
+        const formattedDate = `${month} ${day}, ${year}`;
+        return formattedDate;
+        
+    }
 
-    // Extract the month, date, and year
-    const month = monthNames[date.getMonth()];
-    const day = date.getDate();
-    const year = date.getFullYear();
-
-    // Format the date string
-    const formattedDate = `${month} ${day}, ${year}`;
-
-    return formattedDate;
 }
 
 

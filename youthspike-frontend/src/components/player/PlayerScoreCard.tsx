@@ -91,7 +91,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
   };
 
   const renderRank = () => {
-   const rankings = [];
+    const rankings = [];
     if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
     if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
     const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
@@ -118,7 +118,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
       {/* Lavel 2: player start  */}
       <div className={`wrapper w-full border border-yellow rounded-lg overflow-hidden flex ${onTop ? 'flex-col' : 'flex-col-reverse'}`}>
         <div className="p-rank bg-yellow-400 w-full flex flex-wrap items-center justify-center">
-          <p className="p-name text-c-sm uppercase text-black-logo text-center font-bold leading-3 pt-1">
+          <p className="p-name max-three-line break-all text-c-sm uppercase text-black-logo text-center font-bold leading-3 pt-1">
             {player ? player.firstName : ''}
             {player?.lastName && (
               <>
@@ -126,7 +126,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
                 <small>{player.lastName}</small>
               </>
             )}
-          </p>
+          </p> 
         </div>
         <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
           {shouldShowEvacuateButton && (

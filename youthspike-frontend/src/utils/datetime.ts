@@ -11,11 +11,27 @@ import { EEventPeriod } from '@/types/event';
 //     return formattedDate;
 // }
 
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 function readDate(isoDateString: string) {
-  const date = new Date(isoDateString);
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  // @ts-ignore
-  return new Intl.DateTimeFormat('en-US', options).format(date);
+  try {
+    const newDate = isoDateString.split('T')[0].split('-');
+
+    // Format the date string
+    const formattedDate = `${monthNames[parseInt(newDate[1], 10) - 1]} ${newDate[2]}, ${newDate[0]}`;
+
+    return formattedDate;
+  } catch (error) {
+    const date = new Date(isoDateString);
+
+    // Extract the month, date, and year
+    const month = monthNames[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    console.log(error);
+    const formattedDate = `${month} ${day}, ${year}`;
+    return formattedDate;
+  }
 }
 
 function readTime(isoTimeString: string) {

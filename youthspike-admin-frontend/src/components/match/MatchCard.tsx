@@ -1,6 +1,6 @@
 import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
-import { IMatch, IMatchExpRel, IMatchRelatives } from '@/types/match';
+import { IMatchExpRel } from '@/types/match';
 import { UserRole } from '@/types/user';
 import { FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
@@ -10,12 +10,10 @@ import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
-import TextImg from '../elements/TextImg';
 import PointsByRound from './PointsByRound';
-import { IError, INetRelatives, IRoundRelatives } from '@/types';
+import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
-import MatchAdd from './MatchAdd';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 
 interface MatchCardProps {

@@ -49,7 +49,7 @@ export class LdoResolver {
     private matchService: MatchService,
     private roundsService: RoundService,
     private netService: NetService,
-  ) {}
+  ) { }
 
   refineObject(obj: Record<string, any>): Record<string, any> {
     return Object.fromEntries(
@@ -87,14 +87,14 @@ export class LdoResolver {
         password: hashPwd,
       };
 
-      const director = await this.userService.createOrUpdate(userObj);
-      const directorId = director._id;
+      const directorUser = await this.userService.createOrUpdate(userObj);
+      const directorId = directorUser._id;
 
       // Update user -> set user id inside ldo
       const ldo = await this.ldoService.create(
-        { name: args.name, phone: args.phone, logo: logoUrl, events: []},
+        { name: args.name, phone: args.phone, logo: logoUrl, events: [] },
         directorId,
-        `${director.firstName} ${director.lastName} Event`,
+        `${directorUser.firstName} ${directorUser.lastName} Event`,
       );
 
       return {
@@ -128,18 +128,18 @@ export class LdoResolver {
       const loggedUser = await this.userService.findById(userId);
       if (!loggedUser) return AppResponse.unauthorized();
 
-      const ldoExist = await this.ldoService.findOne({
-        $or: [{ director: dId.toString() }, { _id: dId.toString() }],
-      });
-      if (!ldoExist) return AppResponse.notFound('LDO');
+      let ldoExist = null;
 
       // If the user is admin we must need ldoId otherwise get id from token
       let updateUserId = null;
       if (loggedUser.role === UserRole.director) {
         updateUserId = loggedUser._id;
+        ldoExist = await this.ldoService.findOne({ director: loggedUser._id.toString() });
       } else if (loggedUser.role === UserRole.admin && dId && dId !== '') {
+        ldoExist = await this.ldoService.findOne({ _id: dId.toString() });
         updateUserId = ldoExist.director.toString();
       }
+      if (!ldoExist) return AppResponse.notFound('LDO');
 
       // Upload image to cloudinary
       let logoUrl: string | null = null;
@@ -174,8 +174,9 @@ export class LdoResolver {
       // Update user -> set user id inside ldo
       const updateLdoObj: Partial<LDO> = this.refineObject({ name: args.name, phone: args.phone });
       if (logoUrl) updateLdoObj.logo = logoUrl;
-      const refineLdo = {};
       updatePromises.push(this.ldoService.updateOne({ _id: ldoExist._id }, updateLdoObj));
+
+      await Promise.all(updatePromises);
 
       return {
         code: HttpStatus.ACCEPTED,
