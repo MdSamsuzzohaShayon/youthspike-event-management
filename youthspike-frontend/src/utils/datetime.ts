@@ -28,7 +28,6 @@ function readDate(isoDateString: string) {
     const month = monthNames[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
-    console.log(error);
     const formattedDate = `${month} ${day}, ${year}`;
     return formattedDate;
   }

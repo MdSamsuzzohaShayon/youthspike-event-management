@@ -50,6 +50,18 @@ function readDate(isoDateString: string) {
 
 }
 
+function readDateTemp(isoDateString: string) {
+    const date = new Date(isoDateString);
+    
+    // Extract the month, date, and year
+    const month = monthNames[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    const formattedDate = `${month} ${day}, ${year}`;
+    return formattedDate;
+
+}
+
 
 
 
@@ -83,4 +95,4 @@ function getCurrentDate() {
 
 
 
-export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate };
+export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp };

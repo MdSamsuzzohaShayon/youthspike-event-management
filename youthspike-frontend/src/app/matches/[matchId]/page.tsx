@@ -100,7 +100,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const timePassed = hasTimePassed(5);
+    const timePassed = hasTimePassed(5); // 5 seconds
     if (timePassed) {
       const audio = new Audio('/audio/notification.mp3');
       audio.play().catch((musicErr) => console.error(musicErr));

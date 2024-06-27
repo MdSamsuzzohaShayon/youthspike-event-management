@@ -46,9 +46,6 @@ ___
  - https://www.loom.com/share/34fb16bf594d405f81d8334b1bf399e8
  - Moreover, the team name will be hyperlink
  - Move team need to work properly - one division to another division
- - If there are no logo, do not put any text there
- - Design match list same as this - https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=145-1394&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1
- - Update player need to go to save and team page (if there is a team id) / player page
 
 ### Important
  - Removed someone from captain it erased  him off of his ldo account

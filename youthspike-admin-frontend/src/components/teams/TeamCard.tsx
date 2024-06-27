@@ -51,6 +51,8 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
     setActionOpen(false);
   });
 
+  console.log({eventList});
+  
   /**
    * Handle Events
    */

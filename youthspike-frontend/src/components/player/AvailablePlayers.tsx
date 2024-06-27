@@ -3,7 +3,7 @@ import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setDisabledPlayerIds, setOutOfRange, setShowTeamPlayers, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { INetRelatives, IPlayer, IRoundRelatives } from '@/types';
+import { INetRelatives, IPlayer, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItemExpRel, IRoundRelatives } from '@/types';
 import { ETeamPlayer, INetUpdate } from '@/types/net';
 import { EPlayerStatus } from '@/types/player';
 import { ETeam } from '@/types/team';
@@ -16,6 +16,9 @@ interface IAvailablePlayersProps {
   currentRound: IRoundRelatives | null;
   disabledPlayerIds: string[];
   availablePlayerIds: string[];
+}
+interface IPlayerWithRank extends IPlayer{
+  rank: number;
 }
 
 function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availablePlayerIds }: IAvailablePlayersProps) {
@@ -97,16 +100,33 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
   };
 
   const playerRank = (currPlayer: IPlayer): number => {
-    const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+    const rankings = [];
+    if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
+    if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
     return rankings.find((p) => p.player._id === currPlayer?._id)?.rank || 0;
   };
+
+  const playersAscendings = (playerList: IPlayer[]): IPlayer[] => {
+    const rankings: IPlayerRankingItemExpRel[] = [];
+    if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
+    if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
+    const sortedRankings = rankings.sort((a, b)=> a.rank - b.rank);
+    const sortedPlayers: IPlayer[] = [];
+    sortedRankings.forEach((pr)=> {
+      const findPlayer = playerList.find((pi) => pr.player._id === pi._id);
+      if(findPlayer){
+        sortedPlayers.push(findPlayer);
+      }
+    });
+    return sortedPlayers;
+  }
 
   const allDisabledIds = [...disabledPlayerIds, prevPartner, ...outOfRange].filter(Boolean);
   const subbedPlayers = currentRound?.subs ?? [];
 
   return (
     <div className="player-list mt-4 w-full flex flex-col gap-1">
-      {myPlayers
+      {playersAscendings(myPlayers)
         .filter((player) => availablePlayerIds.includes(player._id) && player.status !== EPlayerStatus.INACTIVE && !subbedPlayers.includes(player._id))
         .map((player) => {
           const isDisabled = allDisabledIds.includes(player._id);
@@ -118,6 +138,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
               onClick={(e) => handleSelectPlayer(e, player._id)}
             >
               <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{playerRank(player)}</p>
+              <p>{player.rank}</p>
               <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
                 {player.profile ? (
                   <AdvancedImage cldImg={cld.image(player.profile.toString())} className="w-full overflow-hidden" />

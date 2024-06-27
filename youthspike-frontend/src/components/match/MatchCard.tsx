@@ -3,7 +3,7 @@ import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { readDate, readTime } from '@/utils/datetime';
+import { readDate } from '@/utils/datetime';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
@@ -99,7 +99,7 @@ function MatchCard({ match }: MatchCardProps) {
             <span>
               <Image width={20} height={20} src="/icons/date.svg" className="w-6 svg-white" alt="date-logo" />
             </span>
-            <span>Start {readTime(match.date)}</span>
+            {/* <span>Start {readTime(match.date)}</span> */}
           </p>
         </div>
         <div className="w-3/6 text-end">
