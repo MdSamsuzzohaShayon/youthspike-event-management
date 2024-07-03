@@ -43,12 +43,12 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
 
       case EAssignStrategies.ANCHOR:
         // Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and so on
-        anchorAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });
+        anchorAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
         break;
 
       case EAssignStrategies.HIERARCHY:
         // Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
-        hierarchyAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch });
+        hierarchyAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
         break;
 
       default:

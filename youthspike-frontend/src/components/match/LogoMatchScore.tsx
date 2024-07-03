@@ -8,13 +8,12 @@ import TextImg from '../elements/TextImg';
 interface ILogoMatchScoreProps {
   dark: boolean;
   teamE: ETeam;
-  screenWidth: number;
   completed: boolean;
   // eslint-disable-next-line react/require-default-props
   team?: ITeam | null;
 }
 
-function LogoMatchScore({ dark, team, teamE, screenWidth, completed }: ILogoMatchScoreProps) {
+function LogoMatchScore({ dark, team, teamE, completed }: ILogoMatchScoreProps) {
   const { teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
 
   const myS = teamE === ETeam.teamA ? teamATotalScore : teamBTotalScore;

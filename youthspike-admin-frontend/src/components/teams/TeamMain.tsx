@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
@@ -13,9 +13,9 @@ import { IError, IEvent, IEventExpRel, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
-import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { handleResponse } from '@/utils/handleError';
-import { GET_LDO, GET_LDO_EVENTS_LIGHT } from '@/graphql/director';
+import { GET_LDO_EVENTS_LIGHT } from '@/graphql/director';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import SelectInput from '../elements/forms/SelectInput';

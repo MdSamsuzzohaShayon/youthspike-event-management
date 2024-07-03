@@ -9,11 +9,11 @@ import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
 
-export enum ETieBreaker{
-  PREV_NET="PREV_NET",
-  FINAL_ROUND_NET="FINAL_ROUND_NET",
-  FINAL_ROUND_NET_LOCKED="FINAL_ROUND_NET_LOCKED",
-  TIE_BREAKER_NET="TIE_BREAKER_NET", // There will be only one tie breaker net in a round
+export enum ETieBreaker {
+  PREV_NET = 'PREV_NET',
+  FINAL_ROUND_NET = 'FINAL_ROUND_NET',
+  FINAL_ROUND_NET_LOCKED = 'FINAL_ROUND_NET_LOCKED',
+  TIE_BREAKER_NET = 'TIE_BREAKER_NET', // There will be only one tie breaker net in a round
 }
 
 registerEnumType(ETieBreaker, {
@@ -26,12 +26,9 @@ registerEnumType(ETieBreaker, {
 @ObjectType()
 @Schema({ timestamps: true })
 export class Net extends AppDocument {
-  
-  
-  @Field((type) => Int, {nullable: true})
+  @Field((type) => Int, { nullable: true })
   @Prop({ required: true, default: 1 })
   num: number;
-
 
   /**
    * Relationship
@@ -51,7 +48,6 @@ export class Net extends AppDocument {
   @Field((type) => Team, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
   teamB?: Team | string;
-
 
   /**
    * A team will have many players, In each net captain will choose 2 player to play on their net

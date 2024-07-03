@@ -38,7 +38,7 @@ ___
 
 
 ### Style
- - color pallete gray-100, gray-900, yellow-500, green-600
+ - Color pallete gray-100, gray-900, yellow-500, green-600
 
 ### Running
  - Style according to Figma - Make color scheme same
@@ -58,6 +58,8 @@ ___
 
 
 ### Update - 1
+ - And I think for right now, if there are four nets in a match, and each captain takes a turn selecting which net they don’t want to be the two-point net, then the computer automatically assigned one of the remaining 2 to be the two point net based off of some logic. The first logic is who has the lowest combined pair scores. and if it is tied, then it would go to another logic
+ - When adding a player to a team ranking them incorrectly
  - When adding and removing player from a team, ranking need to be working properly
  - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 
  - Drag and drop is not working when ranking/sorting players on the Desktop

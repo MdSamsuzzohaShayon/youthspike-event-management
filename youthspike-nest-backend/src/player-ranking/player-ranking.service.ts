@@ -79,4 +79,8 @@ export class PlayerRankingService {
   async deleteOneItem(filter: FilterQuery<PlayerRankingItem>) {
     return this.playerRankingItem.deleteOne(filter);
   }
+
+  async findOneItem(filter: FilterQuery<PlayerRankingItem>) {
+    return this.playerRankingItem.findOne(filter);
+  }
 }

@@ -79,7 +79,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         <div id="left-round-detail" className={`round-detail relative border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
           <div id="left-top" style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
-            <LogoMatchScore dark team={opTeam} teamE={opTeamE} screenWidth={screenWidth} completed={match.completed} />
+            <LogoMatchScore dark team={opTeam} teamE={opTeamE} completed={match.completed} />
 
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
               {roundList.map((round) => (
@@ -112,7 +112,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           >
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
-              <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} screenWidth={screenWidth} completed={match.completed} />
+              <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} completed={match.completed} />
             </div>
           </div>
           {/* Bottom Side End  */}
