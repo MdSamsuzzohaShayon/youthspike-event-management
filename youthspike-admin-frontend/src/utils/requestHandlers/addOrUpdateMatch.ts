@@ -46,14 +46,9 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
 
         // Debuging
         const locationString = await getLocation();
-        const debugObj = {
-            // localTime: new Date().toLocaleDateString(),
-            // localTimeISO: new Date().toLocaleDateString(),
-            localLocation: locationString,
-        }
 
         if (update) {
-            const updateMatchObj = { ...updateMatch, event: eventId, ...debugObj };
+            const updateMatchObj = { ...updateMatch, event: eventId };
             if (updateMatchObj.date) {
                 updateMatchObj.date = new Date(updateMatchObj.date).toISOString();
             }
@@ -65,7 +60,7 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             // Get updated match
         } else {
             if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' })
-            const addMatchObj = { ...addMatch, event: eventId, ...debugObj };
+            const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision) addMatchObj.division = currDivision;
             console.log({dateBefore: addMatchObj.date});
             addMatchObj.date = new Date(addMatchObj.date).toISOString();

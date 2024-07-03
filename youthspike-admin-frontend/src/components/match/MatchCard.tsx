@@ -5,8 +5,8 @@ import { UserRole } from '@/types/user';
 import { FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
-import React, { useRef, useState } from 'react';
-import { readDate } from '@/utils/datetime';
+import React, { useEffect, useRef, useState } from 'react';
+import { readDate, readDateTemp } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
@@ -53,6 +53,13 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
     await deleteMatch({ variables: { matchId } });
     if (refetchFunc) await refetchFunc();
   }
+
+  useEffect(()=>{
+    if(match.date){
+      console.log({iso: match.date, date: readDate(match.date), tempDate: readDateTemp(match.date)});
+
+    }
+  }, [match]);
 
 
   const teamCard = (team: ITeam, teamE: ETeam) => {

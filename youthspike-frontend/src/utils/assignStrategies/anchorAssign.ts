@@ -1,9 +1,10 @@
-import { IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
+import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
 import React from 'react';
 import findPrevPartner from '../match/findPrevPartner';
+import { EPlayerStatus } from '@/types/player';
 
 interface IanchorAssignProps {
   matchUp: boolean;
@@ -16,34 +17,42 @@ interface IanchorAssignProps {
   myTeamE: ETeam;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   currMatch: IMatchRelatives;
+  tapr: IPlayerRankingExpRel | null; // Team A Player Ranking
+  tbpr: IPlayerRankingExpRel | null; // Team B Player Ranking
 }
 
 function anchorAssign(props: IanchorAssignProps) {
-  const { currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch } = props;
+  const { currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr, tbpr } = props;
   const newCurrRoundNets = [];
   const allNetsClone = allNets.slice();
   const selectedPlayerIds = new Set();
 
   for (let i = 0; i < currRoundNets.length; i++) {
     // Make it asscending
-    const availablePlayers = myPlayers
-      .filter((player) => !selectedPlayerIds.has(player._id) && player.rank)
-      // @ts-ignore
-      .sort((a, b) => a.rank - b.rank);
+    const availablePlayers = myPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
 
     if (availablePlayers.length < 2) {
       console.error('Not enough available players');
       break;
     }
 
+
+
     // Get rank 1 and last rank player
     let rp1: null | undefined | IPlayer = availablePlayers[0];
     let rp2: null | undefined | IPlayer = availablePlayers[availablePlayers.length - 1];
 
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
+
+    // ===== Organize Ranking ===== 
+
+    // ===== Change partner if if match with previous partner, therefore, 2 players can not play in 2 round in a row =====
     if (matchUp && prevPartnerId && rp2?._id === prevPartnerId) {
       rp2 = availablePlayers[availablePlayers.length - 2] || null;
     }
+
+
+
 
     let op1;
     let op2;

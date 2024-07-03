@@ -122,8 +122,6 @@ export class MatchResolver {
         players: playerIds,
       };
 
-      if (input.localLocation) delete matchObj.localLocation;
-
       if (!matchObj.division || !eventExist.divisions.toLowerCase().includes(matchObj.division.trim().toLowerCase()))
         return AppResponse.notFound('Event');
       if (!matchObj.numberOfNets) matchObj.numberOfNets = eventExist.nets;
@@ -236,27 +234,6 @@ export class MatchResolver {
       createPromises.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
       createPromises.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
 
-      // Debuging
-      const dt = new Date();
-      const inputedDate = new Date(input.date);
-      const debugObj = {
-        matchId: newMatch._id,
-        inputedDate: input.date,
-        localDate: inputedDate.getDate(),
-        localTimeISO: inputedDate.toISOString(),
-        localLocation: input.localLocation,
-        serverTime: dt.toString(),
-        operation: 'Create Match',
-      };
-      createPromises.push(
-        this.emailsenderService.sendHtmlEmailInfo({
-          to: ['mdsamsuzzoha5222@gmail.com'],
-          subject: 'Sending informations about date',
-          htmlFileName: 'send-informations.html',
-          info: debugObj,
-        }),
-      );
-
       await Promise.all(createPromises);
 
       return {
@@ -358,25 +335,6 @@ export class MatchResolver {
   async getMatch(@Args('matchId') matchId: string) {
     try {
       const matchExist = await this.matchService.findById(matchId);
-
-      // Debuging
-      const dt = new Date();
-      const inputedDate = new Date(matchExist.date);
-      const debugObj = {
-        matchId: matchExist._id,
-        inputedDate: matchExist.date,
-        localDate: inputedDate.getDate(),
-        localTimeISO: inputedDate.toISOString(),
-        localLocation: 'Using server',
-        serverTime: dt.toString(),
-        operation: 'Get a Match',
-      };
-      await this.emailsenderService.sendHtmlEmailInfo({
-        to: ['mdsamsuzzoha5222@gmail.com'],
-        subject: 'Sending informations about date',
-        htmlFileName: 'send-informations.html',
-        info: debugObj,
-      });
 
       return {
         code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,

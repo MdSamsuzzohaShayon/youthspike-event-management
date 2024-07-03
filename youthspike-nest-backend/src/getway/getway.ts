@@ -96,7 +96,6 @@ export class MyGatWay implements OnModuleInit {
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
     private readonly playerRankingService: PlayerRankingService,
-    private readonly playerService: PlayerService,
   ) {}
 
   onModuleInit() {
@@ -406,6 +405,53 @@ export class MyGatWay implements OnModuleInit {
     }
 
     await Promise.all(updatePromises);
+
+    if (lockedNetIds.length > 1) {
+      // If there are more than 3 nets add logic according to them
+      // The first logic is who has the lowest combined pair scores. and if it is tied, then it would go to another logic
+      // Make sure to have only one tie breaker net
+      const netList = await this.netService.find({ round: netInputs.round });
+      if (netList.length > 3) {
+        const lockedNets = netList.filter((ni) => ni.netType === ETieBreaker.TIE_BREAKER_NET);
+        if (lockedNets.length > 1) {
+          let lowestCombinedPairScore = 0;
+          let lowestCombinedPairScoreNetId = null;
+
+          // Get players and their ranking for this
+          for (let i = 0; i < lockedNets.length; i += 1) {
+            try {
+              const [tApAr, tApBr, tBpAr, tBpBr] = await Promise.all([
+                this.playerRankingService.findOneItem({ player: lockedNets[i].teamAPlayerA }),
+                this.playerRankingService.findOneItem({ player: lockedNets[i].teamAPlayerB }),
+                this.playerRankingService.findOneItem({ player: lockedNets[i].teamBPlayerA }),
+                this.playerRankingService.findOneItem({ player: lockedNets[i].teamBPlayerB }),
+              ]);
+              const combinedScore = tApAr.rank + tApBr.rank + tBpAr.rank + tBpBr.rank;
+              if (lowestCombinedPairScore === 0 || combinedScore < lowestCombinedPairScore) {
+                lowestCombinedPairScore = combinedScore;
+                lowestCombinedPairScoreNetId = lockedNets[i]._id;
+              } else if (combinedScore === lowestCombinedPairScore) {
+                lowestCombinedPairScoreNetId = null;
+              }
+            } catch (errLocked) {
+              console.log(errLocked);
+            }
+          }
+
+          // f it is tied, then it would go to another logic
+          if (!lowestCombinedPairScoreNetId) {
+            // use another logic
+            console.log({ lowestCombinedPairScoreNetId });
+          } else {
+            // Lock the net
+            await this.netService.updateOne(
+              { _id: lowestCombinedPairScoreNetId },
+              { $set: { points: 1, netType: ETieBreaker.FINAL_ROUND_NET_LOCKED } },
+            );
+          }
+        }
+      }
+    }
 
     this.roomsLocal.set(netInputs.room, roomData);
     const roomDataWithNets: RoomLocalWithNetTypes = { ...roomData, nets: netInputs.nets };

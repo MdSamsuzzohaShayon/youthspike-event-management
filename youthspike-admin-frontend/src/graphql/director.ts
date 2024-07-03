@@ -110,6 +110,23 @@ const GET_LDO = gql`
   }
 `;
 
+const GET_LDO_EVENTS_LIGHT = gql`
+  query GetEventDirector($dId: String) {
+    getEventDirector(dId: $dId) {
+      code
+      success
+      message
+      data {
+        events {
+          _id
+          name
+          divisions
+        }
+      }
+    }
+  }
+`;
+
 /**
  * Mutations
  * ==========================================================================================================
@@ -160,4 +177,4 @@ mutation DeleteEventDirector($dId: String!) {
 }
 `;
 
-export { GET_LDO, GET_LDOS, GET_LDOS_LIGHT, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };
+export { GET_LDO, GET_LDOS, GET_LDOS_LIGHT, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR, GET_LDO_EVENTS_LIGHT };

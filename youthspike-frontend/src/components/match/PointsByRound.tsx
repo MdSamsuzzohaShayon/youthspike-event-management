@@ -23,23 +23,22 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
       teamE,
     );
 
-    const basePointBorderColor = (() => {
-      
-      if (plusMinusScore === 0) {
-        return dark ? border.dark : border.light;
-      }
-      if (plusMinusScore > 0) {
-        return border.green;
-      }
-      return border.red;
-    })();
+    // const basePointBorderColor = (() => {
+    //   if (plusMinusScore === 0) {
+    //     return dark ? border.dark : border.light;
+    //   }
+    //   if (plusMinusScore > 0) {
+    //     return border.green;
+    //   }
+    //   return border.red;
+    // })();
 
     const plusMinusColorClass = plusMinusScore >= 0 ? 'text-green-600' : 'text-red-600';
 
     return (
       <>
         <p className={`plus-minus w-full text-center h-6 ${plusMinusColorClass}`}>{plusMinusScore > 0 ? `+${plusMinusScore}` : plusMinusScore}</p>
-        <p className={`base-point h-10 w-full border ${basePointBorderColor} ${dark ? 'rounded-t-lg' : 'rounded-b-lg'} text-center flex justify-center items-center`}>{score}</p>
+        <p className={`base-point h-10 w-full border border-yellow ${dark ? 'rounded-t-lg' : 'rounded-b-lg'} text-center flex justify-center items-center`}>{score}</p>
       </>
     );
   };

@@ -45,6 +45,10 @@ export class NetService {
     });
   }
 
+  async find(filter: FilterQuery<Net>) {
+    return this.netModel.find(filter);
+  }
+
   async countDocuments(filter: FilterQuery<Net>) {
     return this.netModel.countDocuments(filter);
   }

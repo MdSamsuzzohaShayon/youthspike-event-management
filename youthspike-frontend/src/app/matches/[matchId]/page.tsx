@@ -100,7 +100,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const timePassed = hasTimePassed(5);
+    const timePassed = hasTimePassed(5); // 5 seconds
     if (timePassed) {
       const audio = new Audio('/audio/notification.mp3');
       audio.play().catch((musicErr) => console.error(musicErr));
@@ -266,19 +266,22 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       ) : (
         <>
           {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-
-          <LineupStrategy
-            myTeamE={myTeamE}
-            currRound={currentRound}
-            myPlayers={myPlayers}
-            opPlayers={opPlayers}
-            currRoundNets={currRoundNets}
-            allNets={allNets}
-            roundList={roundList}
-            currMatch={currMatch}
-          />
+          <div className="w-full line-up-starategy">
+            <LineupStrategy
+              myTeamE={myTeamE}
+              currRound={currentRound}
+              myPlayers={myPlayers}
+              opPlayers={opPlayers}
+              currRoundNets={currRoundNets}
+              allNets={allNets}
+              roundList={roundList}
+              currMatch={currMatch}
+            />
+          </div>
           {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
-            <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
+            <div className="my-round-runner w-full">
+              <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
+            </div>
           )}
         </>
       )}

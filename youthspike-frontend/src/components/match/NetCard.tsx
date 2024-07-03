@@ -283,7 +283,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
             <h3 className="w-fit leading-4" style={fsToggle(screenWidth)}>
               Pair Score{' '}
             </h3>
-            <div className="w-6 border border-black-logo bg-gray-100 text-black">{pairScore}</div>
+            <div className="w-6 rounded-lg border border-yellow bg-gray-100 text-black">{pairScore}</div>
           </div>
         )}
       </div>

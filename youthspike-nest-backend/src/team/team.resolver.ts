@@ -195,14 +195,20 @@ export class TeamResolver {
 
       const updatePromises = [];
       const teamObj: any = { ...input };
-      if (teamObj.division) teamObj.division = teamObj.division.toString().trim().toLowerCase();
+      if (teamObj.division) {
+        const newDivision = teamObj.division.toString().trim().toLowerCase();
+        teamObj.division = newDivision;
+        updatePromises.push(
+          this.playerService.updateMany({ teams: { $in: [teamExist._id] } }, { $set: { division: newDivision } }),
+        );
+      }
 
       // ===== Update captain =====
       if (input.captain) {
-        const playerExist= await this.playerService.findById(input.captain.toString());
+        const playerExist = await this.playerService.findById(input.captain.toString());
 
         if (playerExist) {
-          const newUsername = playerExist.firstName.toLowerCase()  + teamExist.num.toString();
+          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -297,8 +303,8 @@ export class TeamResolver {
       if (logoUrl) teamObj.logo = logoUrl;
 
       if (input.event && input.event !== teamExist.event.toString()) {
-        updatePromises.push(this.eventService.updateOne({ _id: eventId }, { $pull: { teams: [teamId] } })); // Previous event
-        updatePromises.push(this.eventService.updateOne({ _id: input.event }, { $push: { teams: [teamId] } })); // New event
+        updatePromises.push(this.eventService.updateOne({ _id: eventId }, { $pull: { teams: teamId } })); // Previous event
+        updatePromises.push(this.eventService.updateOne({ _id: input.event }, { $addToSet: { teams: teamId } })); // New event
       }
 
       // =====  Update players =====
