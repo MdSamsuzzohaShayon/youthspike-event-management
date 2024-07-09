@@ -107,7 +107,7 @@ dialog::backdrop {
 }
 
 .btn-danger {
-  @apply px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 font-bold text-xl;
+  @apply px-3 py-2 bg-red-500 text-white rounded-full hover:bg-red-700 font-bold text-xl;
 }
 
 .btn-success {
@@ -191,13 +191,13 @@ dialog::backdrop {
 /* Custom Design  */
 /* Customize scrollbar track */
 ::-webkit-scrollbar {
-  width: 12px; /* width of the scrollbar */
+  width: 6px; /* width of the scrollbar */
   height: 6px;
 }
 
 /* Customize scrollbar thumb */
 ::-webkit-scrollbar-thumb {
-  background-color: #F9FAFB; /* color of the scrollbar thumb */
+  background-color: #748514; /* color of the scrollbar thumb */
   border-radius: 6px; /* roundness of the scrollbar thumb */
 }
 

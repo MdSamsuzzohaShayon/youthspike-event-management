@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Field, ObjectType, Query, Resolver } from '@nestjs/graphql';
 
@@ -13,14 +12,13 @@ class AppAbout {
   @Field()
   author: string;
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
   mode?: string | null;
 }
 
 @Resolver()
 export class AboutResolver {
-
-  constructor(private configService: ConfigService){}
+  constructor(private configService: ConfigService) {}
 
   @Query((returns) => AppAbout)
   getAbout() {
@@ -29,7 +27,7 @@ export class AboutResolver {
       app: 'spikeball-game',
       version: '1.0.0',
       author: 'Md Samsuzzoha <mdsamsuzzoha5222@gmail.com>',
-      mode: null
+      mode: null,
     };
   }
 }
