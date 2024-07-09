@@ -260,7 +260,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
       {/* Level 6 start: main match  */}
       {notTieBreakerNetId ? (
-        <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} screenWidth={screenWidth} currRound={currentRound} socket={socket} />
+        <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} currRound={currentRound} socket={socket} />
       ) : verifyLineup ? (
         <VerifyLineup />
       ) : (

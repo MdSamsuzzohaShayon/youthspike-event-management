@@ -70,7 +70,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
 
   const renderPlayerImage = (): React.ReactNode => {
     if (player && player.profile) {
-      return <AdvancedImage className="w-full h-full object-center object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} />;
+      return <AdvancedImage className="w-full h-full object-top object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} />;
     }
     if (!player && shouldShowAddPlayer) {
       return (
@@ -80,7 +80,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
             height={100}
             src="/icons/plus.svg"
             alt="Add player"
-            className={`${onTop ? 'svg-white' : 'svg-black'} w-5/6 md:h-full object-center object-cover`}
+            className={`${onTop ? 'svg-white' : 'svg-black'} w-5/6 md:h-full object-top object-cover`}
             role="presentation"
             onClick={handleDropDown}
           />
@@ -131,10 +131,10 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
         <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
           {shouldShowEvacuateButton && (
             <div className="absolute top-1 right-1 w-4 bg-black-logo rounded-full">
-              {myTeamE === ETeam.teamA && cpsca && !currentRound?.teamAScore && (
+              {!onTop && myTeamE === ETeam.teamA && cpsca && !currentRound?.teamAScore && (
                 <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="Remove player" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
               )}
-              {myTeamE === ETeam.teamB && cpsca && !currentRound?.teamBScore && (
+              {!onTop && myTeamE === ETeam.teamB && cpsca && !currentRound?.teamBScore && (
                 <Image width={12} height={12} src="/icons/close.svg" className="w-full h-full svg-white" alt="Remove player" role="presentation" onClick={(e) => handleEvacuatePlayer(e, player._id)} />
               )}
             </div>

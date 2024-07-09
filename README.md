@@ -58,9 +58,13 @@ ___
 
 
 ### Update - 1
- - And I think for right now, if there are four nets in a match, and each captain takes a turn selecting which net they don’t want to be the two-point net, then the computer automatically assigned one of the remaining 2 to be the two point net based off of some logic. The first logic is who has the lowest combined pair scores. and if it is tied, then it would go to another logic
+ - And I think for right now, if there are four nets in a match, and each captain takes a turn selecting which net they don’t want to be the two-point net, 
+ - then the computer automatically assigned one of the remaining 2 to be the two point net based off of some logic. 
+ - The first logic is who has the lowest combined pair scores. and if it is tied, then it would go to another logic
+ - Another logic is select a random net if conbined pair score is tied and select one net randomly
  - When adding a player to a team ranking them incorrectly
  - When adding and removing player from a team, ranking need to be working properly
+ - Add animation little bit with framer
  - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 
  - Drag and drop is not working when ranking/sorting players on the Desktop
  - Design everything properly
