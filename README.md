@@ -58,7 +58,6 @@ ___
 
 
 ### Update - 1
- - When adding a player to a team ranking them incorrectly
  - When adding and removing player from a team, ranking need to be working properly
  - Add animation little bit with framer
  - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 

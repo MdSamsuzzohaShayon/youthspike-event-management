@@ -36,18 +36,18 @@ function EventList({ eventList }: { eventList: IEventWMatch[] }) {
 
   const filterEvents = () => {
     const filteredList = [];
-  
+
     for (let i = 0; i < cloneEventList.length; i += 1) {
       const currEvent = cloneEventList[i];
       let matchFound = false;
-  
+
       // Check date filter
       if (filterParams.date) {
         if (currEvent.startDate && validateMatchDatetime(currEvent.startDate) === filterParams.date) {
           matchFound = true;
         } else if (currEvent.endDate && validateMatchDatetime(currEvent.endDate) === filterParams.date) {
           matchFound = true;
-        } else if(filterParams.date){
+        } else if (filterParams.date) {
           for (let j = 0; j < currEvent.matches.length; j += 1) {
             const currMatch = currEvent.matches[j];
             if (currMatch.date && validateMatchDatetime(currMatch.date) === filterParams.date) {
@@ -57,28 +57,24 @@ function EventList({ eventList }: { eventList: IEventWMatch[] }) {
           }
         }
       }
-  
+
       // Check search filter
       if (filterParams.search) {
         const searchText = filterParams.search.trim().toLowerCase();
-        if (
-          currEvent.name?.toLowerCase().includes(searchText) ||
-          currEvent.description?.toLowerCase().includes(searchText)
-        ) {
+        if (currEvent.name?.toLowerCase().includes(searchText) || currEvent.description?.toLowerCase().includes(searchText)) {
           matchFound = true;
         } else {
           matchFound = false;
         }
       }
-  
+
       if (matchFound) {
         filteredList.push(currEvent);
       }
     }
-  
+
     setFilteredEventList(filteredList);
   };
-  
 
   useEffect(() => {
     filterEvents();

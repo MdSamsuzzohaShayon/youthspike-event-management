@@ -5,10 +5,14 @@ import { AdvancedImage } from '@cloudinary/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { motion } from 'framer-motion';
+import { cardAnimate } from '@/utils/animation';
 
 interface IEventCardProps {
   event: IEvent;
 }
+
+const { initial, animate, exit, transition } = cardAnimate;
 
 // Create an array of month names
 const monthNames: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -17,7 +21,15 @@ function EventCard({ event }: IEventCardProps) {
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
 
   return (
-    <div key={event._id} style={{ width: screenWidth <= 768 ? '48.5%' : '24.6%' }} className="box mb-1 p-2 h-48 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md">
+    <motion.div
+      initial={initial}
+      animate={animate}
+      exit={exit}
+      transition={transition}
+      key={event._id}
+      style={{ width: screenWidth <= 768 ? '48.5%' : '24.6%' }}
+      className="box mb-1 p-2 h-48 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md"
+    >
       <Link href={`/events/${event._id}`}>
         <div className="img-wrapper w-full flex justify-center items-center">
           {event.logo ? <AdvancedImage className="w-12" cldImg={cld.image(event.logo)} alt={event.name} /> : <Image height={20} width={20} src="/free-logo.png" alt="plus" className="w-12" />}
@@ -32,7 +44,7 @@ function EventCard({ event }: IEventCardProps) {
           {event.description && <p>{event.description}</p>}
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }
 
