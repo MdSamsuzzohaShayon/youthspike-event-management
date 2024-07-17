@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor } from './event';
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, IEventWMatch } from './event';
 import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps } from './elements';
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
@@ -30,6 +30,7 @@ export type {
   IEventAdd,
   IEventAddProps,
   IDefaultEventMatch,
+  IEventWMatch,
   IEventSponsor,
 
   // User

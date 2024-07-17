@@ -1,13 +1,13 @@
 /* eslint-disable no-param-reassign */
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { IEvent, IEventSponsor, ILDO } from '@/types';
+import { IEvent, IEventSponsor, IEventWMatch, ILDO } from '@/types';
 
 export interface EventState {
   current?: IEvent | null;
   sponsors: IEventSponsor[];
   ldo?: ILDO | null;
-  eventList: IEvent[];
+  eventList: IEventWMatch[];
 }
 
 const initialState: EventState = {
@@ -21,7 +21,7 @@ export const eventSlice = createSlice({
   name: 'event',
   initialState,
   reducers: {
-    setCurrentEventInfo: (state, action: PayloadAction<IEvent>) => {
+    setCurrentEventInfo: (state, action: PayloadAction<IEventWMatch>) => {
       state.current = action.payload;
     },
     setEventSponsors: (state, action: PayloadAction<IEventSponsor[]>) => {
@@ -31,7 +31,7 @@ export const eventSlice = createSlice({
       state.ldo = action.payload;
     },
 
-    setEventList: (state, action: PayloadAction<IEvent[]>) => {
+    setEventList: (state, action: PayloadAction<IEventWMatch[]>) => {
       state.eventList = action.payload;
     },
   },

@@ -241,10 +241,6 @@ type LoginResponseData {
   user: LoginUser!
 }
 
-type ChangePWDData {
-  updated: Boolean!
-}
-
 type LoginResponse {
   code: Int!
   success: Boolean!

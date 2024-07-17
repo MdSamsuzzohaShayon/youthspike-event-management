@@ -1,12 +1,12 @@
-import { IEvent } from '@/types';
+import { IEventWMatch } from '@/types';
 import React from 'react';
 
 interface IEventPagination {
-  eventList: IEvent[];
+  eventList: IEventWMatch[];
   EVENT_PAGE_LIMIT: number;
   listStart: number;
   setListStart: React.Dispatch<React.SetStateAction<number>>;
-  setFilteredEventList: React.Dispatch<React.SetStateAction<IEvent[]>>;
+  setFilteredEventList: React.Dispatch<React.SetStateAction<IEventWMatch[]>>;
 }
 
 function EventPagination({ eventList, EVENT_PAGE_LIMIT, listStart, setListStart, setFilteredEventList }: IEventPagination) {

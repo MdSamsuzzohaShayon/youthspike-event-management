@@ -21,7 +21,6 @@ function VerifyLineup() {
   const currRoom = useAppSelector((state) => state.rooms.current);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
 
-
   const handleCloseLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
     dispatch(setVerifyLineup(false));
@@ -32,32 +31,30 @@ function VerifyLineup() {
     checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, currRoundNets: currentRoundNets, roundList, myPlayerIds: [...myPlayers.map((p) => p._id)], dispatch, myTeamE });
   };
 
-
-
-
-
-
-
-
   return (
     <div className="w-full bg-white text-black-logo z-20">
       <div className="container p-4 mx-auto ">
         <Image src="/icons/close.svg" alt="close icon picture" className="svg-black mb-4" role="presentation" onClick={handleCloseLineup} width={imgW.logo} height={imgW.logo} />
         <div className="w-full flex justify-start items-center flex-col">
           <h3 className="mb-4">Assigned Nets</h3>
-          {currentRoundNets && currentRoundNets.length > 0
-            && currentRoundNets.map((crn) => (myTeamE === ETeam.teamA
-              ? <NetBox crn={crn} myTeamE={myTeamE} teamPlayerList={teamAPlayers} />
-              : <NetBox crn={crn} myTeamE={myTeamE} teamPlayerList={teamBPlayers} />))}
+          {currentRoundNets &&
+            currentRoundNets.length > 0 &&
+            currentRoundNets.map((crn) =>
+              myTeamE === ETeam.teamA ? (
+                <NetBox key="net-team-a" crn={crn} myTeamE={myTeamE} teamPlayerList={teamAPlayers} />
+              ) : (
+                <NetBox key="net-team-b" crn={crn} myTeamE={myTeamE} teamPlayerList={teamBPlayers} />
+              ),
+            )}
 
-              <div className="buttons w-full flex justify-center items-center gap-x-2">
-          <button type="button" className="btn-secondary mb-4" onClick={handlePlayerSubmit}>
-            Submit
-          </button>
-          <button type="button" className="btn-danger mb-4" onClick={handleCloseLineup}>
-            Cancel
-          </button>
-              </div>
+          <div className="buttons w-full flex justify-center items-center gap-x-2">
+            <button type="button" className="btn-secondary mb-4" onClick={handlePlayerSubmit}>
+              Submit
+            </button>
+            <button type="button" className="btn-danger mb-4" onClick={handleCloseLineup}>
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>

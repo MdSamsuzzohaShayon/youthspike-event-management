@@ -25,7 +25,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
   const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
 
   const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
-  const {teamAPlayerRanking, teamBPlayerRanking} = useAppSelector((state) => state.playerRanking);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
   const handlePASSelect = (e: React.SyntheticEvent, pas: EAssignStrategies) => {
     // PAS = Player Assign Strategies

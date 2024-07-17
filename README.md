@@ -58,10 +58,6 @@ ___
 
 
 ### Update - 1
- - And I think for right now, if there are four nets in a match, and each captain takes a turn selecting which net they don’t want to be the two-point net, 
- - then the computer automatically assigned one of the remaining 2 to be the two point net based off of some logic. 
- - The first logic is who has the lowest combined pair scores. and if it is tied, then it would go to another logic
- - Another logic is select a random net if conbined pair score is tied and select one net randomly
  - When adding a player to a team ranking them incorrectly
  - When adding and removing player from a team, ranking need to be working properly
  - Add animation little bit with framer
@@ -245,4 +241,7 @@ ___
 
 
 ### Ask
- I am also struggling with date. I need your help with it. When you create a match with date I want you to let me know your local date, and with what date it is changed when you to into that specific date. This issue is because of timezone, therefore, I need to know your timezone. It would be easy if you connect me via teamviewer when you are facing this issue. 
+ - Can you see matches after creating it in the current when you are in admin area(admin.aslsquads.com)?
+ - Can you see matches after creating it in the home page of admin view(aslsquads.com)?
+ - There 2 different date? one for event and one for match of a event? When  you will be filtering an event current date is the date of the event, not the match. 
+ - Can you please create a video showing me what date is it showing in the match list (in both section, public or admin area) after you creating a match.
