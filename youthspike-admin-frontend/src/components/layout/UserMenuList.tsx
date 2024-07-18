@@ -5,8 +5,12 @@ import { initialUserMenuList } from '@/utils/staticData';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import { UserRole } from '@/types/user';
+
+import { motion } from 'framer-motion';
+import { liAnimate } from '@/utils/animation';
+
+const {initial: iInitial, animate: iAnimate, exit: iExit, transition: iTransition} = liAnimate;
 
 function UserMenuList({ eventId }: { eventId: string }) {
     const pathname = usePathname();
@@ -44,13 +48,13 @@ function UserMenuList({ eventId }: { eventId: string }) {
     return (
         <ul className="w-full flex justify-center items-center gap-x-2 flex-wrap">
             {userMenuList.map((item, iIdx) => (
-                <li key={item.id}>
+                <motion.li initial={iInitial} animate={iAnimate} exit={iExit} transition={iTransition} key={item.id}>
                     <Link
                         href={item.link}
                     >
                         {iIdx !== 0 && '|'} {item.text}
                     </Link>
-                </li>
+                </motion.li>
             ))}
         </ul>
     );

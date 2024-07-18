@@ -60,11 +60,6 @@ class UserResponse extends AppResponse<User> {
   data?: User;
 }
 
-@ObjectType()
-class ChangePWDDataRes extends AppResponse<ChangePWDData> {
-  @Field((type) => ChangePWDData, { nullable: true })
-  data?: ChangePWDData;
-}
 
 @Resolver((of) => User)
 export class UserResolver {

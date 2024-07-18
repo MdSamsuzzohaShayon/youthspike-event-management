@@ -1,4 +1,4 @@
-import { IEvent } from '@/types';
+import { IEvent, IEventWMatch } from '@/types';
 import React, { useEffect, useState } from 'react';
 import { eventPeriods } from '@/utils/constant';
 import { EEventPeriod } from '@/types/event';
@@ -15,11 +15,11 @@ interface IFilterParams {
   search?: string;
 }
 
-function EventList({ eventList }: { eventList: IEvent[] }) {
+function EventList({ eventList }: { eventList: IEventWMatch[] }) {
   const [listStart, setListStart] = useState<number>(0);
   const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
-  const [cloneEventList, setCloneEventList] = useState<IEvent[]>([...eventList]);
-  const [filteredEventList, setFilteredEventList] = useState<IEvent[]>([]);
+  const [cloneEventList, setCloneEventList] = useState<IEventWMatch[]>([...eventList]);
+  const [filteredEventList, setFilteredEventList] = useState<IEventWMatch[]>([]);
 
   const handleInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -35,19 +35,45 @@ function EventList({ eventList }: { eventList: IEvent[] }) {
   };
 
   const filterEvents = () => {
-    let filteredList = [...cloneEventList];
+    const filteredList = [];
 
-    if (filterParams.date) {
-      // Filter by selected date
-      filteredList = filteredList.filter((evt) => filterParams.date === validateMatchDatetime(evt.startDate));
+    for (let i = 0; i < cloneEventList.length; i += 1) {
+      const currEvent = cloneEventList[i];
+      let matchFound = false;
+
+      // Check date filter
+      if (filterParams.date) {
+        if (currEvent.startDate && validateMatchDatetime(currEvent.startDate) === filterParams.date) {
+          matchFound = true;
+        } else if (currEvent.endDate && validateMatchDatetime(currEvent.endDate) === filterParams.date) {
+          matchFound = true;
+        } else if (filterParams.date) {
+          for (let j = 0; j < currEvent.matches.length; j += 1) {
+            const currMatch = currEvent.matches[j];
+            if (currMatch.date && validateMatchDatetime(currMatch.date) === filterParams.date) {
+              matchFound = true;
+              break;
+            }
+          }
+        }
+      }
+
+      // Check search filter
+      if (filterParams.search) {
+        const searchText = filterParams.search.trim().toLowerCase();
+        if (currEvent.name?.toLowerCase().includes(searchText) || currEvent.description?.toLowerCase().includes(searchText)) {
+          matchFound = true;
+        } else {
+          matchFound = false;
+        }
+      }
+
+      if (matchFound) {
+        filteredList.push(currEvent);
+      }
     }
 
-    if (filterParams.search) {
-      const searchText = filterParams.search.trim().toLowerCase();
-      filteredList = filteredList.filter((event) => event.name?.toLowerCase().includes(searchText) || event.description?.toLowerCase().includes(searchText));
-    }
-
-    setFilteredEventList([...filteredList]);
+    setFilteredEventList(filteredList);
   };
 
   useEffect(() => {

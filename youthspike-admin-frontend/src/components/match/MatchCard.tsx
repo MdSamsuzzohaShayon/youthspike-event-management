@@ -82,7 +82,7 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
 
 
   return (
-    <div className='w-full md:w-5/12 bg-gray-700 flex flex-col justify-between items-center relative rounded-lg' style={{ minHeight: '6rem' }}>
+    <div className='w-full bg-gray-700 relative rounded-lg' style={{ minHeight: '6rem' }}>
 
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6">

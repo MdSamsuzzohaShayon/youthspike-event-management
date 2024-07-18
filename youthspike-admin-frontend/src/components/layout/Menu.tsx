@@ -14,6 +14,11 @@ import { FRONTEND_URL } from '@/utils/keys';
 import { removeDivisionFromStore, removeTeamFromStore } from '@/utils/localStorage';
 import { initialUserMenuList } from '@/utils/staticData';
 
+import { motion } from 'framer-motion';
+import { menuAnimate } from '@/utils/animation';
+
+const {initial: mInitial, animate: mAnimate, exit: mExit, transition: mTransition} = menuAnimate;
+
 
 
 
@@ -158,7 +163,7 @@ function Menu() {
             )}
 
             {openMenu && (
-                <div className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4" ref={menuEl}>
+                <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4" ref={menuEl}>
                     <div className="w-full flex justify-end items-center">
                         <button onClick={closeMenuHandler} className='close-button'>
                             <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />
@@ -181,7 +186,7 @@ function Menu() {
                         {renderMenuItems(eventId, userMenuList)}
                         {(user && user.token && user.token !== '') && <li><button className="btn-danger" type='button' onClick={handleLogout}>Logout</button></li>}
                     </ul>
-                </div>
+                </motion.div>
             )}
         </div>
     );

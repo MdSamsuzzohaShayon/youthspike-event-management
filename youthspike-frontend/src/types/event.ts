@@ -2,7 +2,7 @@
 /* eslint-disable import/no-cycle */
 import React from 'react';
 import { IError } from './elements';
-import { IDefaultMatch } from './match';
+import { IDefaultMatch, IMatchRelatives } from './match';
 import { ILDO } from './ldo';
 
 export interface IDefaultEventMatch extends IDefaultMatch {
@@ -37,6 +37,10 @@ export interface IEvent {
   timeout: number;
   coachPassword: string;
   description: string;
+}
+
+export interface IEventWMatch extends IEvent{
+  matches: IMatchRelatives[];
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

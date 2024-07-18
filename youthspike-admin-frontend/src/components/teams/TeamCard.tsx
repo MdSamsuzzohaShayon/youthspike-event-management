@@ -11,7 +11,6 @@ import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import { imgSize } from '@/utils/style';
-import TextImg from '../elements/TextImg';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
@@ -202,7 +201,7 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
                   <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
                 </div>
               ) : (
-                <TextImg className="w-12 h-12" fullText={team.name} />
+                <Image src="/icons/sports-man.svg" width={100} height={100} alt='sports-man-logo' className="w-12 h-12"/>
               )}
               <h3 className="leading-none text-lg font-bold capitalize">{team.name}</h3>
             </div>
@@ -221,7 +220,7 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
                     <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-full" />
                   </div>
                 ) : (
-                  <TextImg className="w-12 h-12 border-2 border-yellow-logo" fText={team.captain.firstName} lText={team.captain.lastName} />
+                  <Image src="/icons/sports-man.svg" width={100} height={100} alt='sports-man-logo' className="w-12 h-12 border-2 border-yellow-logo" />
                 )}
 
                 <div className="caption flex flex-col">

@@ -324,10 +324,16 @@ export class TeamResolver {
           const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
 
           const itemsToInsert = [];
+          let rankIncrement = 0;
           for (let i = 0; i < teamObj.players.length; i += 1) {
             const findRank = rankings.find((r) => r.player.toString() === teamObj.players[i]);
             if (!findRank) {
-              itemsToInsert.push({ player: teamObj.players[i], rank: highestRank + i + 1, playerRanking: pr._id });
+              itemsToInsert.push({
+                player: teamObj.players[i],
+                rank: highestRank + rankIncrement + 1,
+                playerRanking: pr._id,
+              });
+              rankIncrement += 1;
             }
           }
           if (itemsToInsert && itemsToInsert.length > 0) {

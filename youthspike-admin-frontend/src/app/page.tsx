@@ -21,6 +21,7 @@ import TextImg from '@/components/elements/TextImg';
 import { handleResponse } from '@/utils/handleError';
 import { getUserFromCookie } from '@/utils/cookie';
 import { getDivisionFromStore, removeDivisionFromStore } from '@/utils/localStorage';
+import Image from 'next/image';
 
 interface IItem {
   id: number;
@@ -177,7 +178,7 @@ function EventsPage() {
             <AdvancedImage className="" cldImg={cld.image(newLdoData?.logo)} />
           </div>
         ) : (
-          <TextImg className="w-28 h-28 rounded-full object-cover object-fill" fullText={newLdoData ? newLdoData.name : 'LDO'} />
+          <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 rounded-full object-cover object-fill" />
         )}
 
         <h1>{newLdoData ? newLdoData.name : ''}</h1>

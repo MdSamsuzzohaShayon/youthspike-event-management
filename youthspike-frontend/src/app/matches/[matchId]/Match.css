@@ -15,10 +15,10 @@
 }
 
 .max-three-line{
-    display: -webkit-box;
+    /* display: -webkit-box;
     -webkit-box-orient: vertical;
     overflow-x: hidden;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 3; */
 }
 
 

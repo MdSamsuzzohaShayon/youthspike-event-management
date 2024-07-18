@@ -168,6 +168,10 @@ const GET_EVENTS = gql`
         active
         divisions
         description
+        matches {
+          _id
+          date
+        }
       }
     }
   }

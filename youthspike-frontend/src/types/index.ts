@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor } from './event';
+import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, IEventWMatch } from './event';
 import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps } from './elements';
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
@@ -9,6 +9,7 @@ import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from './
 import { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse } from './net';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from './round';
 import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNetType, IRoomNets, IRoomRoundProcess, ICheckInAction, IMatchComplete } from './room';
+import { IMotionConfig, ITransition, IVariant } from './animation';
 
 import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps, INotTwoPointNetProps, ICompleteMatchProps } from './socket';
 
@@ -30,6 +31,7 @@ export type {
   IEventAdd,
   IEventAddProps,
   IDefaultEventMatch,
+  IEventWMatch,
   IEventSponsor,
 
   // User
@@ -95,4 +97,9 @@ export type {
   IPlayerRanking,
   IPlayerRankingItem,
   IPlayerRankingItemExpRel,
+
+  // Animation
+  IMotionConfig, 
+  ITransition, 
+  IVariant
 };

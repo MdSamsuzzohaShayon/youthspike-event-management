@@ -44,9 +44,6 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
         setIsLoading(true);
         let matchRes = null;
 
-        // Debuging
-        const locationString = await getLocation();
-
         if (update) {
             const updateMatchObj = { ...updateMatch, event: eventId };
             if (updateMatchObj.date) {
