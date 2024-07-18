@@ -26,6 +26,7 @@ import AnyFileInput from '../elements/forms/AnyFileInput';
 import FileInput from '../elements/forms/FileInput';
 import TextareaInput from '../elements/forms/TextareaInput';
 import ImageInput from '../elements/forms/ImageInput';
+import { useSocket } from '@/lib/SocketProvider';
 // Select Input Options
 const { homeTeamStrategy, rosterLockList } = staticData;
 
@@ -57,6 +58,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
   const user = useUser();
   const searchParams = useSearchParams();
   const pName = usePathname();
+  const socket = useSocket();
 
   // Local State
   const eventLogo = useRef<null | MediaSource | Blob>(null);
@@ -96,6 +98,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       user,
       router,
       initialEvent,
+      socket
     });
   };
 

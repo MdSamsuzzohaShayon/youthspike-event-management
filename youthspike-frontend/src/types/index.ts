@@ -11,7 +11,18 @@ import { IRoundBase, IRoundExpRel, IRoundRelatives } from './round';
 import { IRoom, ICheckIn, ISubmitLineup, IRoomNetAssign, IRoomNetType, IRoomNets, IRoomRoundProcess, ICheckInAction, IMatchComplete } from './room';
 import { IMotionConfig, ITransition, IVariant } from './animation';
 
-import { IListenSocketProps, IJoinTheRoomProps, IStatusChange, ICommonProps, INextRoundProps, ICanGoProps, ICheckInToLineupProps, INotTwoPointNetProps, ICompleteMatchProps } from './socket';
+import {
+  IListenSocketProps,
+  IJoinTheRoomProps,
+  IStatusChange,
+  ICommonProps,
+  INextRoundProps,
+  ICanGoProps,
+  ICheckInToLineupProps,
+  INotTwoPointNetProps,
+  ICompleteMatchProps,
+  IListenPublicSocketProps,
+} from './socket';
 
 import { IPlayerRankingExpRel, IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel } from './playerRanking';
 
@@ -91,6 +102,7 @@ export type {
   INotTwoPointNetProps,
   ICheckInToLineupProps,
   ICompleteMatchProps,
+  IListenPublicSocketProps,
 
   // Ranking
   IPlayerRankingExpRel,
@@ -99,7 +111,7 @@ export type {
   IPlayerRankingItemExpRel,
 
   // Animation
-  IMotionConfig, 
-  ITransition, 
-  IVariant
+  IMotionConfig,
+  ITransition,
+  IVariant,
 };

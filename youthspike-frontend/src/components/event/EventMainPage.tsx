@@ -7,18 +7,21 @@ import { useDispatch } from 'react-redux';
 import { setEventList } from '@/redux/slices/eventSlice';
 import { useAppSelector } from '@/redux/hooks';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useSocket } from '@/lib/SocketProvider';
 import { imgW } from '@/utils/constant';
 import { logoAnimate } from '@/utils/animation';
 import { APP_NAME } from '@/utils/keys';
 import Image from 'next/image';
 import EventList from './EventList';
 import Loader from '../elements/Loader';
+import { listenPublicSocketEvents } from '@/utils/match/listenSocketEvents';
 
 const { animate, initial, exit, transition} = logoAnimate;
 
 function EventMainPage() {
   // ===== Hooks =====
   const dispatch = useDispatch();
+  const socket = useSocket();
 
   // ===== GraphQL =====
   const [getEvents, { loading }] = useLazyQuery(GET_EVENTS, { fetchPolicy: 'network-only' });
@@ -36,6 +39,17 @@ function EventMainPage() {
       }
     })();
   }, []);
+
+  // ===== Web Socket Real Time connection =====
+  useEffect(() => {
+    if (socket ) {
+      // const userInfo = getCookie('user');
+      // const userToken = getCookie('token');
+
+      listenPublicSocketEvents({socket});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]);
 
   if (loading) return <Loader />;
 

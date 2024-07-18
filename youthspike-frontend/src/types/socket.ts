@@ -99,3 +99,8 @@ export interface ICanGoProps extends ICommonProps {
   targetRoundIndex: number;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
 }
+
+
+export interface IListenPublicSocketProps {
+  socket: Socket;
+}

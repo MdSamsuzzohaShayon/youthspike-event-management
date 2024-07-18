@@ -174,4 +174,12 @@ export class TieBreakerInput {
 }
 
 @InputType()
-export class UpdateRoomInput extends PartialType(JoinRoomInput) {}
+export class UpdateRoomInput extends PartialType(JoinRoomInput) { }
+
+
+// ===== Public  =====
+
+export class CreateEventInput {
+  @Field({ nullable: false })
+  eventId: string;
+}

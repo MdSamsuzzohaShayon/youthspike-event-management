@@ -6,6 +6,8 @@ import { APP_NAME, BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { createNewEvent } from "../emitSocketEvent";
+import { Socket } from "socket.io-client";
 
 interface IAddOrUpdateProps {
     e: React.SyntheticEvent;
@@ -24,6 +26,7 @@ interface IAddOrUpdateProps {
     user: IUserContext;
     router: AppRouterInstance;
     initialEvent: IEventAdd;
+    socket: Socket | null;
 
 }
 
@@ -39,10 +42,10 @@ interface IMutationVariables {
  * Add event mutation
  */
 async function addOrUpdateEvent({
-    e, update, eventId, directorId, setEventState, setIsLoading, eventState,
+    e,
+    update, eventId, directorId, setEventState, setIsLoading, eventState,
     updateEvent, sponsorImgList, eventLogo, setActErr, eventUpdate,
-    eventAdd, user, router, initialEvent }: IAddOrUpdateProps) {
-    e.preventDefault();
+    eventAdd, user, router, initialEvent, socket }: IAddOrUpdateProps) {
 
     setIsLoading(true);
     let newEventId = null;
@@ -178,6 +181,7 @@ async function addOrUpdateEvent({
         formEl.reset();
 
         if (newEventId) {
+            createNewEvent({socket, eventId: newEventId})
             let redirectUrl = `/${newEventId}`;
             if (user.info?.role === UserRole.admin) {
                 redirectUrl += `/?directorId=${directorId}`;

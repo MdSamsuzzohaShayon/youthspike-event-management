@@ -13,6 +13,7 @@ import {
   TieBreakerInput,
   NetTieBreaker,
   ETeam,
+  CreateEventInput,
 } from './gateway.input';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
@@ -528,5 +529,15 @@ export class MyGatWay implements OnModuleInit {
   async onRoomCheck(client, { roomId }: { roomId: string }) {
     const prevRoom = this.roomsLocal.get(roomId);
     client.emit('room-detail-response', prevRoom);
+  }
+
+  // ===== Public Events =====
+  // Method to handle event creation (example)
+  @SubscribeMessage('create-event-from-client')
+  async onCreateEvent(client: Socket, eventData: CreateEventInput) {
+    // Logic to create a new event in the database...
+
+    // Broadcast the new event to all connected clients
+    this.server.emit('event-created-from-server', eventData);
   }
 }
