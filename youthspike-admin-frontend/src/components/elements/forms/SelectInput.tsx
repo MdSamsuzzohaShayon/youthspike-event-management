@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ISelectInputProps } from '@/types';
+import { motion } from 'framer-motion';
+import { liAnimate } from '@/utils/animation';
+
+
+const {initial: iInitial, animate: iAnimate, exit: iExit, transition: iTransition} = liAnimate;
 
 const SelectInput = (props: ISelectInputProps) => {
   const selectStyle: React.CSSProperties = {};
@@ -25,9 +30,9 @@ const SelectInput = (props: ISelectInputProps) => {
         style={!props.vertical ? selectStyle : {}}
         defaultValue={props.defaultValue?.toString()}  // Use props.defaultValue directly
       >
-        <option value="" className='bg-gray-400 text-gray-700'>Select {props.name}</option>
+        <motion.option initial={iInitial} animate={iAnimate} exit={iExit} transition={iTransition} value="" className='bg-gray-400 text-gray-700'>Select {props.name}</ motion.option>
         {props.optionList.map((o, i) => (
-          <option value={o.value} key={i} className='bg-white text-gray-900 capitalize'>{o.text ? o.text : o.value}</option>
+          <motion.option initial={iInitial} animate={iAnimate} exit={iExit} transition={iTransition} value={o.value} key={i} className='bg-white text-gray-900 capitalize'>{o.text ? o.text : o.value}</motion.option>
         ))}
       </select>
     </div>

@@ -10,6 +10,10 @@ import { EEventPeriod } from '@/types/event';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCHES } from '@/graphql/matches';
 import { handleError, handleResponse } from '@/utils/handleError';
+import { motion } from 'framer-motion';
+import { cardAnimate } from '@/utils/animation';
+
+const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
 
 interface IMatchListProps {
   eventId: string;
@@ -144,13 +148,13 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
       setIsLoading(true);
       const response = await deleteMultipleMatches({ variables: { matchIds: bulkMatches } });
       const success = handleResponse({ response: response.data.deleteMatches, setActErr });
-      if(!success) return;
+      if (!success) return;
       setBulkMatches([]);
       setBulkAction(null);
-      if(refetchFunc)await refetchFunc()
+      if (refetchFunc) await refetchFunc()
     } catch (error: any) {
       handleError({ error, setActErr })
-    }finally{
+    } finally {
       setIsLoading(false);
     }
   }
@@ -199,16 +203,19 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
         <button className="btn-info" onClick={handleConfirmBulk}>Ok</button>
       </div>}
 
-      {filteredMatchList.map((match: IMatchExpRel, i) => (
-        <MatchCard
-          key={match._id}
-          eventId={eventId}
-          match={match}
-          sl={i + 1}
-          refetchFunc={refetchFunc}
-          handleSelectMatch={handleSelectMatch}
-        />
-      ))}
+      <div className="match-list w-full flex justify-between items-center flex-wrap">
+        {filteredMatchList.map((match: IMatchExpRel, i) => (
+          <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={cTransition} className="match-card w-full md:w-5/12 " key={match._id}>
+            <MatchCard
+              eventId={eventId}
+              match={match}
+              sl={i + 1}
+              refetchFunc={refetchFunc}
+              handleSelectMatch={handleSelectMatch}
+            />
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 };

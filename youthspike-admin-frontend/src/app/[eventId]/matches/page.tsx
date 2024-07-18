@@ -22,6 +22,13 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { motion } from 'framer-motion';
+
+import { headingAnimate, logoAnimate } from '@/utils/animation';
+
+const { animate: hAnimate, exit: hExit, initial: hInitial, transition: hTransition } = headingAnimate;
+const { animate: lAnimate, exit: lExit, initial: lInitial, transition: lTransition } = logoAnimate;
+const { animate: mAnimate, exit: mExit, initial: mInitial, transition: mTransition } = logoAnimate;
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
   // Local state
@@ -152,18 +159,20 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   }, [params.eventId]);
 
   if (loading || isLoading) return <Loader />;
-  
+
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      <h1 className="mb-8 text-center">Matches</h1>
+      <motion.h1 initial={hInitial} animate={hAnimate} exit={hExit} transition={{...hTransition, delay: 1.2}} className="mb-8 text-center">Matches</motion.h1>
       {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />
       </div>
 
-      {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
+      <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="msg w-full">
+        {error && <Message error={error} />}
+        {actErr && <Message error={actErr} />}
+      </motion.div>
 
       <div className="mt-4">
         {addMatch ? (

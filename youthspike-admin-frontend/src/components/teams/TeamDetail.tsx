@@ -11,10 +11,10 @@ import { usePathname } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import { EPlayerStatus } from '@/types/player';
 import cld from '@/config/cloudinary.config';
-import TextImg from '../elements/TextImg';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
 import useLdoUrl from '@/hooks/useLdoUrl';
+import Image from 'next/image';
 
 interface ITeamDetailProps {
   event: IEvent;
@@ -99,7 +99,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
       {/* Team detail  */}
       <div className="team-detail mt-4 w-full flex justify-center flex-col items-center">
-        {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-20 md:w-32" /> : <TextImg className="w-20 md:w-32 h-20 md:h-32" fullText={team.name} txtCls="text-2xl" />}
+        {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-20 md:w-32" /> : <Image src="/icons/sports-man.svg" width={100} height={100} alt='free-logo' className="w-20 md:w-32 h-20 md:h-32" />}
         <h1 className="capitalize">{team && team.name}</h1>
         <div className="navigator w-full flex justify-center items-center gap-x-2 flex-wrap mt-4">
           {userMenuList.map((item, iIdx) => (
