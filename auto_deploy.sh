@@ -32,6 +32,8 @@ git log --oneline -n 2
 # Backend
 echo "Installing dependencies for youthspike-nest-backend"
 cd /home/shayon/youthspike-event-management/youthspike-nest-backend
+# Set temporary development
+export NODE_ENV="development"
 nano .env
 npm install
 nano src/main.ts
@@ -42,6 +44,8 @@ pm2 start ecosystem.config.js
 
 echo "Installing dependencies for youthspike-admin-frontend"
 cd /home/shayon/youthspike-event-management/youthspike-admin-frontend
+# Set temporary development
+export NODE_ENV="development"
 npm install
 nano src/utils/keys.ts
 npm run build
@@ -49,6 +53,8 @@ pm2 start ecosystem.config.js
 
 echo "Installing dependencies for youthspike-frontend"
 cd /home/shayon/youthspike-event-management/youthspike-frontend
+# Set temporary development
+export NODE_ENV="development"
 npm install
 nano src/utils/keys.ts
 npm run build
