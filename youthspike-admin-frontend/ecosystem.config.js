@@ -11,7 +11,7 @@ module.exports = {
         env: {
           NODE_ENV: 'production',
           PORT: 3000, // Change this to the port your app listens on
-        },
+        }, // 
       },
     ],
   };

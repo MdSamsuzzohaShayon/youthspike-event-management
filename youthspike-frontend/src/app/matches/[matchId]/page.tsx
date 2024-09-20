@@ -54,25 +54,14 @@ import './Match.css';
 /**
  * Test Match
  *
- * Borussia Dortmund
+ * Bears-Jeremy
  * Captain
- * pfn826
- * Co-captains
- * pfn526
+ * trevor94
  *
- *
- * Bayern Munich FC
+ * Hawks-Cade Wallace
  * Captain
- * pfn125
- * Co-captains
- * pfn325
+ * aaron96
  *
- *
- * RB Leipzig
- * Captain
- * pfn1627
- * Co-captain
- * pfn1727
  * 
  */
 export function MatchPage({ params }: { params: { matchId: string } }) {

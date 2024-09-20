@@ -251,7 +251,7 @@ export class TeamResolver {
 
       // ===== Update co-captain
       if (input.cocaptain) {
-        const playerExist = await this.playerService.findById(input.captain.toString());
+        const playerExist = await this.playerService.findById(input.cocaptain.toString());
         if (playerExist) {
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
