@@ -1,4 +1,4 @@
-import { IListenSocketProps, IRoundRelatives, IUpdateScoreResponse } from '@/types';
+import { IListenPublicSocketProps, IListenSocketProps, IRoundRelatives, IUpdateScoreResponse } from '@/types';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
@@ -6,7 +6,7 @@ import { IMatchComplete, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction 
 import { ETieBreaker } from '@/types/net';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
 
-const listenSocketEvents = ({ socket, match, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
+export const listenSocketEvents = ({ socket, match, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
   /**
    * Socket real time connection
    * After joining to the room action button will be visiable
@@ -188,4 +188,13 @@ const listenSocketEvents = ({ socket, match, dispatch, currentRound, currRoundNe
   });
 };
 
-export default listenSocketEvents;
+interface ICreateEvent {
+  eventId: string;
+}
+
+export const listenPublicSocketEvents = ({ socket }: IListenPublicSocketProps) => {
+  // Listen to events
+  socket.on('event-created-from-server', (data: ICreateEvent) => {
+    console.log({ eventId: data.eventId, msg: 'Created a new event' });
+  });
+};

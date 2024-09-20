@@ -27,6 +27,7 @@ git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 # cd ..
 
 
+# Backend
 echo "Installing dependencies for youthspike-nest-backend"
 cd /home/shayon/youthspike-event-management/youthspike-nest-backend
 nano .env

@@ -33,13 +33,13 @@ import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
 import { handleError, isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import listenSocketEvents from '@/utils/match/listenSocketEvents';
 import { joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
+import { listenSocketEvents } from '@/utils/match/listenSocketEvents';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
 import { APP_NAME } from '@/utils/keys';
@@ -54,25 +54,14 @@ import './Match.css';
 /**
  * Test Match
  *
- * Borussia Dortmund
+ * Bears-Jeremy
  * Captain
- * pfn826
- * Co-captains
- * pfn526
+ * trevor94
  *
- *
- * Bayern Munich FC
+ * Hawks-Cade Wallace
  * Captain
- * pfn125
- * Co-captains
- * pfn325
+ * aaron96
  *
- *
- * RB Leipzig
- * Captain
- * pfn1627
- * Co-captain
- * pfn1727
  * 
  */
 export function MatchPage({ params }: { params: { matchId: string } }) {

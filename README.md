@@ -58,12 +58,6 @@ ___
 
 
 ### Update - 1
- - When adding and removing player from a team, ranking need to be working properly
- - Add animation little bit with framer
- - https://www.loom.com/share/f56395413d3c4504b6cb2187f699016 
- - Drag and drop is not working when ranking/sorting players on the Desktop
- - Design everything properly
- - Use date properly for USA when creating event and match (all inputed timne should be international time and output time should be local time)
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
  - Check all matches date in the server
 

@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer';
 import './globals.css';
 import { Suspense } from 'react';
 import LoadingPage from './loading';
+import SocketProvider from '@/lib/SocketProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,13 +28,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-gray-950 text-white`} >
         <ApolloWrapper>
-          <UserProvider>
-            <Suspense fallback={<LoadingPage />}>
-              <Menu />
-              {children}
-              <Footer />
-            </Suspense>
-          </UserProvider>
+          <SocketProvider>
+            <UserProvider>
+              <Suspense fallback={<LoadingPage />}>
+                <Menu />
+                {children}
+                <Footer />
+              </Suspense>
+            </UserProvider>
+          </SocketProvider>
         </ApolloWrapper>
       </body>
     </html>

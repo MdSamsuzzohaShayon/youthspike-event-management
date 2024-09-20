@@ -26,6 +26,7 @@ import { IAddMatch, IMatch, IDefaultMatchProps, IMatchRelatives, IMatchExpRel} f
 import { IRoundBase, IRoundRelatives, IRoundExpRel } from "./round";
 import { INetRelatives, INetBase, INetExpRel } from "./net";
 import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from "./playerRanking";
+import { ICreateNewEventProps } from "./socket";
 
 export type {
   // Elements
@@ -105,4 +106,7 @@ export type {
   IPlayerRankingItem,
   IPlayerRankingExpRel, 
   IPlayerRankingItemExpRel,
+
+  // Soicket
+  ICreateNewEventProps,
 };
