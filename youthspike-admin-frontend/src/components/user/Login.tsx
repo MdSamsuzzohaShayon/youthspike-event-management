@@ -37,7 +37,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword }: ILoginPr
                             <Image alt="American Spikers Logo" src="/free-logo.png" width={100} height={100} className='w-32 text-center' />
                         </motion.div>
                         <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={{...cTransition, delay: 0.8}} className='w-full'>
-                            <TextInput name='email' vertical defaultValue={email} lblTxt='Email Address' handleInputChange={handleSetEmail} required />
+                            <TextInput name='email' vertical defaultValue={email} lblTxt='Username' handleInputChange={handleSetEmail} required />
                         </motion.div>
                         <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={{...cTransition, delay: 1}} className='w-full'>
                             <PasswordInput name='password' vertical defaultValue={password} lblTxt='Password' handleInputChange={handleSetPassword} required />

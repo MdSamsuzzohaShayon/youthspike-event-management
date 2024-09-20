@@ -33,8 +33,8 @@ git log --oneline -n 2
 echo "Installing dependencies for youthspike-nest-backend"
 cd /home/shayon/youthspike-event-management/youthspike-nest-backend
 # Set temporary development
-export NODE_ENV="development"
-nano .env
+export // ="development"
+nano .e
 npm install
 nano src/main.ts
 npm run build

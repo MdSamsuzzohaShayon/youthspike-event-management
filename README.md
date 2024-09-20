@@ -182,7 +182,7 @@ ___
 
 ### Database Action
  -  Change `location` to `description` in all document of match and event
- - Allow duplicate email for a player `db.players.dropIndex("email_1");`
+ - Allow duplicate email for a player `db.players.getIndexes()` and delete `db.players.dropIndex("email_1");`
   ```
   db.events.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
   db.matches.updateMany( { location: { $exists: true } }, { $rename: { "location": "description" } } );
