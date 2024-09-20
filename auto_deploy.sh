@@ -20,6 +20,8 @@ rm -rf youthspike-event-management
 echo "Setup from stratch"
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
+cd youthspike-event-management
+git log --oneline -n 2
 
 # Temp (Version before EID)
 # cd /home/shayon/youthspike-event-management
