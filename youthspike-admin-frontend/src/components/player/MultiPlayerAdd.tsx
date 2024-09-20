@@ -73,7 +73,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
             const jsonRes = await response.json();
             await router.push(`/${eventId}/teams`);
             if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
-                setActErr({ name: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
+                setActErr({ code: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
             }
             window.location.reload();
             // Redirect to players page
@@ -103,7 +103,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
                 <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
                 <input type="file" ref={uploadFileEl} className='form-control w-full' onChange={handleInputChange} />
             </div>
-            <SelectInput key={crypto.randomUUID()} vertical handleSelect={handleDivisionChange} name='division' optionList={divisionList} defaultValue={selectedDivision} />
+            <SelectInput key="multi-player-add-select" vertical handleSelect={handleDivisionChange} name='division' optionList={divisionList} defaultValue={selectedDivision} />
             <div className="input-group mt-4">
                 <button type="submit" className="btn-info">Upload</button>
             </div>

@@ -12,10 +12,9 @@ type OptionalProps<T> = {
   [K in keyof T]?: T[K];
 };
 
-
 @Injectable()
 export class PlayerService {
-  constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>,) { }
+  constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>) {}
 
   async create(input: CreatePlayerInput) {
     const inputObj = rmInvalidProps(input);
@@ -65,7 +64,7 @@ export class PlayerService {
     return this.playerModel.find(filter);
   }
 
-  async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>,) {
+  async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>) {
     return this.playerModel.updateOne(filter, player);
   }
 
@@ -81,9 +80,14 @@ export class PlayerService {
       createReadStream()
         .pipe(Papa.parse(Papa.NODE_STREAM_INPUT, { header: true }))
         .on('data', (row: Player) => {
-
           // Organize Entries
           const matchTeam = Object.entries(row).find(([k, v]) => new RegExp(/team/, 'gi').test(k));
+          // if (!matchTeam && matchTeam.toString().trim().toUpperCase() !== 'team notes'.toUpperCase()) {
+          //   const matchSquad = Object.entries(row).find(([k, v]) => new RegExp(/squad/, 'gi').test(k));
+          //   if (matchSquad) {
+          //     matchTeam = matchSquad;
+          //   }
+          // }
           const matchFN = Object.entries(row).find(([k, v]) => new RegExp(/first?\s+name/, 'gi').test(k));
           const matchLN = Object.entries(row).find(([k, v]) => new RegExp(/last?\s+name/, 'gi').test(k));
           const matchEmail = Object.entries(row).find(([k, v]) => new RegExp(/email/, 'gi').test(k));
@@ -93,7 +97,7 @@ export class PlayerService {
           if (matchFN) {
             const [fnk, fnv] = matchFN;
             const [lnk, lnv] = matchLN ?? [null, null];
-            const [ek, ev] = matchEmail?? [null, null];;
+            const [ek, ev] = matchEmail ?? [null, null];
             playerObj = {
               firstName: fnv,
               lastName: lnv,
@@ -101,7 +105,7 @@ export class PlayerService {
               email: ev,
               division,
               events: [event],
-              teams: []
+              teams: [],
             };
           }
 
@@ -150,5 +154,4 @@ export class PlayerService {
     const deletePlayer = await this.playerModel.deleteOne(filter);
     return deletePlayer;
   }
-
 }
