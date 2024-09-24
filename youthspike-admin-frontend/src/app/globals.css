@@ -51,6 +51,18 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 } */
 
+input[type="number"] {
+  appearance: none; /* For most browsers */
+  -moz-appearance: textfield; /* For Firefox */
+}
+
+/* Hide arrows in WebKit browsers (Chrome, Safari) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Firefox */
 /* Firefox doesn't support changing the background color of autofill via CSS */
 
@@ -58,7 +70,7 @@ input:-webkit-autofill:focus {
 input:-ms-autofill,
 input:-ms-autofill:hover,
 input:-ms-autofill:focus {
-  -webkit-text-fill-color: white;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0);
   /* White text color for Edge */
   background-color: transparent;
   /* Transparent background color */

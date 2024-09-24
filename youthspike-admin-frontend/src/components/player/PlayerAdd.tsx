@@ -2,18 +2,17 @@ import React, { useEffect, useRef, useState } from 'react'
 import TextInput from '../elements/forms/TextInput';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IError, IOption, ITeam, ITeamAdd } from '@/types';
-import { RefetchQueriesFunction, gql, useMutation } from '@apollo/client';
-import { CREATE_PLAYER, GET_PLAYERS, CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW, UPDATE_PLAYER, GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
+import { IError, IOption, ITeam } from '@/types';
+import { useMutation } from '@apollo/client';
+import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import EmailInput from '../elements/forms/EmailInput';
-import FileInput from '../elements/forms/FileInput';
-import { getCookie } from '@/utils/cookie';
-import { BACKEND_URL } from '@/utils/keys';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getDivisionFromStore, getTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import addOrUpdatePlayer from '@/utils/requestHandlers/addOrUpdatePlayer';
 import NumberInput from '../elements/forms/NumberInput';
 import ImageInput from '../elements/forms/ImageInput';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -45,12 +44,15 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
 
   // React Hooks
   const router = useRouter();
+  const user = useUser();
+  const searchParams = useSearchParams();
 
   // ===== local States =====
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
   const uploadedProfile = useRef<File | null>(null);
+  const [directorId, setDirectorId] = useState<string | null>(null);
 
   const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
 
@@ -89,10 +91,11 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     e.preventDefault();
     addOrUpdatePlayer({
       setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-      prevPlayer, updatePlayer, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update, refetchFunc
+      prevPlayer, updatePlayer, directorId, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update, refetchFunc
     });
   }
 
+  // Setting default player initially when update
   useEffect(() => {
     if (update && prevPlayer) {
       const pObj = { ...initialPlayerAdd };
@@ -105,6 +108,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     }
   }, [update, prevPlayer]);
 
+  // Setting player with team and division from local storage
   useEffect(() => {
     const tdObj: { team?: string; division?: string } = {};
     const teamExist = getTeamFromStore();
@@ -113,6 +117,20 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     if (divisionExist) tdObj.division = divisionExist;
     setPlayerState((prevState) => ({ ...prevState, ...tdObj }));
   }, []);
+
+  // Setting director Id from query params
+  useEffect(() => {
+    if (user.info?.role === UserRole.admin) {
+      const newDirectorId = searchParams.get('ldoId');
+      if (!newDirectorId) {
+        router.push('/admin');
+        return;
+      }
+      setDirectorId(newDirectorId);
+    } else {
+      setDirectorId(user.info?._id ? user.info._id : null);
+    }
+  }, [eventId, user]);
 
 
   return (
@@ -123,7 +141,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       <TextInput name='firstName' lblTxt='First Name' defaultValue={playerState?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerState?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
       {update && <TextInput name='username' defaultValue={playerState?.username} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />}
-      <EmailInput name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
+      <EmailInput key="eml-pa-1" name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
       <NumberInput name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>
         <SelectInput key={crypto.randomUUID()} defaultValue={playerState.team} name='team' optionList={teamList.map((t): IOption => ({ text: t.name, value: t._id }))} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />

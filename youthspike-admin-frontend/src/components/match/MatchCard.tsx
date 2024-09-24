@@ -85,7 +85,7 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
     <div className='w-full bg-gray-700 relative rounded-lg' style={{ minHeight: '6rem' }}>
 
       {/* ===== LEVEL 1 START ===== */}
-      <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6">
+      <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6 md:py-4 py-2">
         {user.info?.role === UserRole.admin || user.info?.role === UserRole.director
           ? (<CheckboxInput name='bulk-match' _id={match._id} handleInputChange={handleSelectMatch} />)
           : <div className='w-4' />}
@@ -167,7 +167,7 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
       {/* ===== LEVEL 5 END ===== */}
 
       {/* Actions items start  */}
-      <ul ref={actionItemEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-26 right-6 md:right-8 z-10 rounded-lg`}>
+      <ul ref={actionItemEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-4 right-8 md:right-14 md:right-8 z-10 rounded-lg`}>
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
           <React.Fragment>
             <li className='cursor-pointer'> <Link href={`/${eventId}/matches/${match._id}`} >Edit</Link></li>

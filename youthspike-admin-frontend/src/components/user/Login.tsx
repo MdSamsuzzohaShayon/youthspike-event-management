@@ -1,5 +1,4 @@
 import { ILoginProps } from '@/types';
-import EmailInput from '../elements/forms/EmailInput';
 import PasswordInput from '../elements/forms/PasswordInput';
 import TextInput from '../elements/forms/TextInput';
 import Image from 'next/image';

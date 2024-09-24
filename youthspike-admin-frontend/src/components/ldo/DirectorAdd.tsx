@@ -117,26 +117,26 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
 
     return (
         <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
-            <TextInput vertical name='name' required={!update} lblTxt='LDO Name'
+            <TextInput key="txt-dn-da-1" vertical name='name' required={!update} lblTxt='LDO Name'
                 defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
 
-            <TextInput vertical defaultValue={directorState.firstName} name='firstName' required={!update} lblTxt='First Name'
+            <TextInput key="txt-fn-da-2" vertical defaultValue={directorState.firstName} name='firstName' required={!update} lblTxt='First Name'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <TextInput vertical defaultValue={directorState.lastName} name='lastName' required={!update} lblTxt='Last Name'
+            <TextInput key="txt-ln-da-3" vertical defaultValue={directorState.lastName} name='lastName' required={!update} lblTxt='Last Name'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             <NumberInput vertical defaultValue={ldoState.phone} name='phone' required={!update}
                 handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
-            <EmailInput vertical name='email' required={!update} lblTxt='Email'
+            <EmailInput key="eml-da-1" vertical name='email' required={!update} lblTxt='Email'
                 defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             {/* {update && (
                 <PasswordInput vertical name='oldPassword' required={!update} lblTxt="Old Password"
                     handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
             )} */}
-            <PasswordInput vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
+            <PasswordInput key="pwd-1-da-1" vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <PasswordInput vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
+            <PasswordInput key="pwd-2-da-2" vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
                 handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <FileInput defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
+            <FileInput key="fil-da-1" defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
             <div className="input-group w-full mt-4">
                 <button className="btn-info" type="submit">
                     {update ? 'Update' : 'Register'}

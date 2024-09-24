@@ -4,7 +4,6 @@ import { IPlayer, IPlayerAdd, IPlayerExpRel } from "@/types/player";
 import { getCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { MutationFunction } from "@apollo/client";
-import { Router } from "next/router";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { getTeamFromStore } from "../localStorage";
 import { handleResponse } from "../handleError";
@@ -24,6 +23,7 @@ interface IAddOrUpdatePlayer {
     router: AppRouterInstance;
     e: React.SyntheticEvent;
     prevPlayer?: IPlayer | null;
+    directorId?: string | null;
     division?: string;
     playerAddCB?: (playerData: IPlayerExpRel) => void;
     playerUpdateCB?: (playerData: IPlayerExpRel) => void;
@@ -32,9 +32,10 @@ interface IAddOrUpdatePlayer {
 }
 
 async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-    prevPlayer, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
+    prevPlayer, directorId, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
     const teamExist = getTeamFromStore();
     let success = true;
+    const newDirectorId = directorId && directorId !== '' ? `?ldoId=${directorId}` : '';
     try {
         setIsLoading(true);
         const playerAddObj = structuredClone(playerState);
@@ -84,7 +85,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
 
         if (!update && playerRes?.data?.createPlayer?.data) {
             if (playerAddCB) playerAddCB(playerRes.data.createPlayer.data);
-            if (teamExist) return router.push(`/${eventId}/teams/${teamExist}`);
+            if (teamExist) return router.push(`/${eventId}/teams/${teamExist}/${newDirectorId}`);
         } else {
             if (playerRes?.data?.updatePlayer?.data) {
                 if (playerUpdateCB) playerUpdateCB(playerRes?.data?.updatePlayer?.data);
@@ -109,9 +110,9 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
         setIsLoading(false);
         if (update && success) {
             if (teamExist) {
-                router.push(`/${eventId}/teams/${teamExist}`);
+                router.push(`/${eventId}/teams/${teamExist}/${newDirectorId}`);
             } else {
-                router.push(`/${eventId}/players`);
+                router.push(`/${eventId}/players/${newDirectorId}`);
             }
         }
     }

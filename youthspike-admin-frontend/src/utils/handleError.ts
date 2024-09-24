@@ -25,7 +25,7 @@ export function handleResponse({ response, setActErr }: IHandleResponseProps): b
     let success = response.success;
     if (success) return success;
 
-    if (response.message && setActErr) setActErr({ code: response.code, message: response.message, success });
+    if (response.message && setActErr) setActErr({ code: response.code, message: JSON.stringify(response), success });
     if (response.code === 401) {
         removeCookie("user");
         removeCookie("token");

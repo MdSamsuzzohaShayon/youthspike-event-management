@@ -23,21 +23,28 @@ export class EmailsenderResolver {
     private ldoService: LdoService,
     private userService: UserService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   /**
    * Format a date into a custom string.
    * @param date The input date to be formatted.
    * @returns A formatted date string (e.g., '01 January 2024').
    */
-  private formatDateToCustomString(date: Date): string {
+  private formatDateToCustomString(date: string): string {
+    // Create a Date object from the ISO string
+    const newDate = new Date(date);
+
+    // Options for formatting
     const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
+      year: 'numeric' as const,
+      month: 'long' as const,
+      day: '2-digit' as const
     };
 
-    return new Intl.DateTimeFormat('en-GB', options).format(date);
+    // Convert to formatted string
+    const formattedDate = newDate.toLocaleDateString('en-US', options);
+
+    return formattedDate;
   }
 
   /**

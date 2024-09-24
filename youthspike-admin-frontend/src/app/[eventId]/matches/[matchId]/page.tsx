@@ -13,28 +13,27 @@ import React, { useState, useEffect } from 'react';
 /**
  * Test Match
  * 
- * Borussia Dortmund
+ * FC Barcelona
  * Captain
- * pfn826
+ * pfn1193
  * Co-captains
- * pfn526
+ * pfn1393
  * 
  * 
  * Bayern Munich FC
  * Captain
- * pfn125
+ * pfn395
  * Co-captains
- * pfn325
+ * pfn295
  * 
  * 
- * RB Leipzig
+ * Real Madrid
  * Captain
- * pfn1627
+ * pfn1994
  * Co-captain
- * pfn1727
+ * pfn2094
  * 
  * 
- * pfn290 / pfn1290
  */
 
 interface MatchSingleProps {

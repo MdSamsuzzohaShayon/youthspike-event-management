@@ -45,12 +45,10 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
         const fileExtension = fileName.split('.').pop();
         // @ts-ignore
         if (!allowedFileTypes.includes(fileExtension)) {
-            // Display an error or perform any other actions for invalid file types
             alert('Invalid file type. Please select a CSV or XLSX file.')
             inputEl.value = ''; // Clear the input
             return;
         }
-        // Continue processing the file
     };
 
     const handleUploadMultiPlayers = async (e: React.SyntheticEvent) => {
@@ -76,9 +74,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
                 setActErr({ code: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
             }
             window.location.reload();
-            // Redirect to players page
             closeDialog();
-            // redirect(`/${eventId}/players`);
         } catch (error) {
             closeDialog();
             console.log(error);

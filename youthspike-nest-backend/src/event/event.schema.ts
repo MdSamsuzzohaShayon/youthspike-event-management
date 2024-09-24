@@ -29,13 +29,13 @@ export class Event extends AppDocument {
   @Prop({ required: false })
   logo?: string;
 
-  @Field((type) => DateScalar)
-  @Prop({ required: true, default: new Date() })
-  startDate: Date;
+  @Field((type) => String)
+  @Prop({ required: true })
+  startDate: string;
 
-  @Field((type) => DateScalar)
-  @Prop({ required: true, default: new Date() })
-  endDate: Date;
+  @Field((type) => String)
+  @Prop({ required: true })
+  endDate: string;
 
   @Field()
   @Prop({ required: true })

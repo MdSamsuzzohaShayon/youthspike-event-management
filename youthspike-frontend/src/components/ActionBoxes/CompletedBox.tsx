@@ -123,9 +123,9 @@ function CompletedBox() {
                 <h2 className="uppercase">Wins the match</h2>
               </>
             )}
-            <Link href={`${ADMIN_FRONTEND_URL}/${match.event}/matches`} className="btn-success">
+            <a href={`${ADMIN_FRONTEND_URL}/${match.event}/matches`} className="btn-success">
               Next Match
-            </Link>
+            </a>
           </>
         ) : (
           <>

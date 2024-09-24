@@ -339,7 +339,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
           <form onSubmit={handleCaptainEmail}>
             {/* @ts-ignore */}
-            <EmailInput name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} vertical />
+            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} vertical />
             <button className="btn-info mt-4" type="submit">
               Make Captain
             </button>

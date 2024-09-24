@@ -157,8 +157,8 @@ type Event {
   _id: String
   name: String!
   logo: String
-  startDate: Date!
-  endDate: Date!
+  startDate: String!
+  endDate: String!
   active: Boolean!
   sendCredentials: Boolean
   playerLimit: Int!
@@ -492,8 +492,8 @@ input EventSponsorInput {
 
 input CreateEventInput {
   name: String!
-  startDate: Date!
-  endDate: Date!
+  startDate: String!
+  endDate: String!
   active: Boolean!
   divisions: String!
   nets: Int!
@@ -514,8 +514,8 @@ input CreateEventInput {
 
 input UpdateEventInput {
   name: String
-  startDate: Date
-  endDate: Date
+  startDate: String
+  endDate: String
   active: Boolean
   divisions: String
   nets: Int
