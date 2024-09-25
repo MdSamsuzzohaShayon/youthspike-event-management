@@ -4,7 +4,6 @@ import { AdvancedImage } from '@cloudinary/react';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import cld from '@/config/cloudinary.config';
 import { ITeam } from '@/types';
-import Link from 'next/link';
 import { setActErr } from '@/redux/slices/elementSlice';
 import { changeTheRound } from '@/utils/match/emitSocketEvents';
 import { setDisabledPlayerIds, setPrevPartner } from '@/redux/slices/matchesSlice';

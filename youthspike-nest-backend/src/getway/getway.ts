@@ -155,7 +155,6 @@ export class MyGatWay implements OnModuleInit {
     return tiedNetIdList[randomIndex];
   }
 
-
   // Event for real time connection
   onModuleInit() {
     this.server.on('connection', (socket) => {
@@ -482,6 +481,7 @@ export class MyGatWay implements OnModuleInit {
 
     // Calculate and update score for all nets of a round
     const findNets = await this.netService.query({ round: updatePointsInput.round });
+    // Update score in round
     let teamAScore = null;
     let teamBScore = null;
     let i = 0;
@@ -508,9 +508,11 @@ export class MyGatWay implements OnModuleInit {
     };
 
     // ===== Complete the match if score is updated in all nets  =====
-    if (roundExist.num === roundList.length && completed) {
+    if (completed) {
       await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
-      pointsResponse.matchCompleted = true;
+      if (roundExist.num === roundList.length) {
+        pointsResponse.matchCompleted = true;
+      }
     }
 
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);

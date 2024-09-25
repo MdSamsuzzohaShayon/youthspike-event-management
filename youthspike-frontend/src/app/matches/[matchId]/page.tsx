@@ -54,16 +54,29 @@ import './Match.css';
 /**
  * Test Match
  *
- * Bears-Jeremy
+ * FC Barcelona
  * Captain
- * trevor94
+ * pfn1193
+ * Co-captains
+ * pfn1393
  *
- * Hawks-Cade Wallace
+ *
+ * Bayern Munich FC
  * Captain
- * aaron96
+ * pfn395
+ * Co-captains
+ * pfn295
  *
- * 
+ *
+ * Real Madrid
+ * Captain
+ * pfn1994
+ * Co-captain
+ * pfn2094
+ *
+ *
  */
+
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // ===== Hooks =====
   const dispatch = useAppDispatch();
@@ -304,7 +317,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       {eventSponsors.length > 0 && (!user || !user.token) && (
         <div className="sponsors w-full pt-2 mx-auto mb-2 bg-black-logo text-white">
           <div className="container px-4 mx-auto">
-            <h2 className='mt-4'>Sponsors</h2>
+            <h2 className="mt-4">Sponsors</h2>
             <div className="flex items-center justify-between md:justify-start flex-wrap w-full">
               {eventSponsors.map((spon) =>
                 spon.company === APP_NAME ? (

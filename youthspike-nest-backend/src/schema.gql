@@ -124,14 +124,6 @@ type Room {
 type Match {
   _id: String
   date: String!
-  event: Event!
-  nets: [Net!]!
-  rounds: [Round!]!
-  teamA: Team
-  teamB: Team
-  room: Room
-  teamARanking: PlayerRanking
-  teamBRanking: PlayerRanking
   division: String!
   numberOfNets: Int!
   numberOfRounds: Int!
@@ -144,6 +136,14 @@ type Match {
   description: String
   fwango: String
   completed: Boolean
+  event: Event!
+  nets: [Net!]!
+  rounds: [Round!]!
+  teamA: Team
+  teamB: Team
+  room: Room
+  teamARanking: PlayerRanking
+  teamBRanking: PlayerRanking
 }
 
 type Sponsor {
