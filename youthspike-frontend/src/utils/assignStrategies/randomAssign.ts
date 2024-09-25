@@ -22,27 +22,44 @@ interface IRandomAssignProps {
   tbpr: IPlayerRankingExpRel | null; // Team B Player Ranking
 }
 
-function getRandomPlayers(availablePlayers: IPlayer[]): [IPlayer | null, IPlayer | null] {
-  // Shuffle array using Fisher-Yates shuffle algorithm
-  const shuffled = availablePlayers.slice();
-  for (let i = shuffled.length - 1; i > 0; i-=1) {
+// function getRandomPlayers(availablePlayers: IPlayer[]): [IPlayer | null, IPlayer | null] {
+//   // Shuffle array using Fisher-Yates shuffle algorithm
+//   const shuffled = availablePlayers.slice();
+//   for (let i = shuffled.length - 1; i > 0; i-=1) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+//   }
+//   return [shuffled.length > 0 ? shuffled[0] : null, shuffled.length > 1 ? shuffled[1] : null];
+// }
+
+// Fisher-Yates (Knuth) shuffle algorithm
+function getRandomPlayers(ap: IPlayer[]): IPlayer[] {
+  // Create a copy of the array to avoid modifying the original array
+  const apClone = [...ap]; // or use array.slice() for older JS versions
+
+  // Loop through the array from the last element to the second element
+  for (let i = apClone.length - 1; i > 0; i--) {
+    // Generate a random index from 0 to i
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+
+    // Swap element at i with element at j
+    [apClone[i], apClone[j]] = [apClone[j], apClone[i]];
   }
-  return [shuffled.length > 0 ? shuffled[0] : null, shuffled.length > 1 ? shuffled[1] : null];
+  return apClone;
 }
+
 
 function findPairWithScore(availablePlayers: IPlayer[], targetScore: number, rankingsMap: Map<string, number>, minMax: 'max' | 'min'): [IPlayer | null, IPlayer | null] {
   let bestPair: [IPlayer | null, IPlayer | null] = [null, null];
   let bestScore = minMax === 'max' ? -Infinity : Infinity;
 
-  for (let i = 0; i < availablePlayers.length; i+=1) {
+  for (let i = 0; i < availablePlayers.length; i += 1) {
     const playerA = availablePlayers[i];
-    for (let j = i + 1; j < availablePlayers.length; j+=1) {
+    for (let j = i + 1; j < availablePlayers.length; j += 1) {
       const playerB = availablePlayers[j];
       const score = playerRankNum(rankingsMap, playerA._id) + playerRankNum(rankingsMap, playerB._id);
       if ((minMax === 'max' && score <= targetScore && score > bestScore) ||
-          (minMax === 'min' && score >= targetScore && score < bestScore)) {
+        (minMax === 'min' && score >= targetScore && score < bestScore)) {
         bestPair = [playerA, playerB];
         bestScore = score;
       }
@@ -62,15 +79,18 @@ function randomAssign(props: IRandomAssignProps) {
   const myRankingsMap = new Map<string, number>(myRankings.map(item => [item.player._id, item.rank]));
   const opRankingsMap = new Map<string, number>(opRankings.map(item => [item.player._id, item.rank]));
 
-  for (let i = 0; i < currRoundNets.length; i+=1) {
-    const availablePlayers = myPlayers.filter(player => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
+  const ramdomizeMyPlayers = getRandomPlayers(myPlayers);
+
+  for (let i = 0; i < currRoundNets.length; i += 1) {
+    const availablePlayers = ramdomizeMyPlayers.filter(player => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
 
     if (availablePlayers.length < 2) {
       console.error('Not enough available players');
       break;
     }
 
-    let [rp1, rp2] = getRandomPlayers(availablePlayers);
+    let rp1 = availablePlayers[0];
+    let rp2 = availablePlayers[1];
 
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
 
@@ -86,18 +106,34 @@ function randomAssign(props: IRandomAssignProps) {
       rp2 = newRp2 || rp2;
     }
 
-    const myrp1 = rp1?._id ? myRankingsMap.get(rp1._id) || 0 : 0;
-    const myrp2 = rp2?._id ? myRankingsMap.get(rp2._id) || 0 : 0;
-    const pairScore = myrp1 + myrp2;
+    let myrp1 = rp1?._id ? myRankingsMap.get(rp1._id) || 0 : 0;
+    let myrp2 = rp2?._id ? myRankingsMap.get(rp2._id) || 0 : 0;
+    let pairScore = myrp1 + myrp2;
 
     if (currMatch.netVariance && opPairScore !== null) {
       const minPairScore = Math.max(0, opPairScore - currMatch.netVariance);
       const maxPairScore = opPairScore + currMatch.netVariance;
 
       if (pairScore > maxPairScore && matchUp) {
-        [rp1, rp2] = findPairWithScore(availablePlayers, maxPairScore, opRankingsMap, 'max');
+        // [rp1, rp2] = findPairWithScore(availablePlayers, maxPairScore, opRankingsMap, 'max');
+        for (const ap of availablePlayers) {
+          const aps = playerRankNum(myRankingsMap, ap._id);
+          if (myrp1 + aps <= maxPairScore) {
+            rp2 = ap;
+            myrp2 = aps;
+            break;
+          }
+        }
       } else if (pairScore < minPairScore && matchUp) {
-        [rp1, rp2] = findPairWithScore(availablePlayers, minPairScore, opRankingsMap, 'min');
+        // [rp1, rp2] = findPairWithScore(availablePlayers, minPairScore, opRankingsMap, 'min');
+        for (const ap of availablePlayers) {
+          const aps = playerRankNum(myRankingsMap, ap._id);
+          if (myrp1 + aps >= minPairScore) {
+            rp2 = ap;
+            myrp2 = aps;
+            break;
+          }
+        }
       }
     }
 

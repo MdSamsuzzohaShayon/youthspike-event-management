@@ -41,9 +41,9 @@ function VerifyLineup() {
             currentRoundNets.length > 0 &&
             currentRoundNets.map((crn) =>
               myTeamE === ETeam.teamA ? (
-                <NetBox key="net-team-a" crn={crn} myTeamE={myTeamE} teamPlayerList={teamAPlayers} />
+                <NetBox crn={crn} myTeamE={myTeamE} teamPlayerList={teamAPlayers} />
               ) : (
-                <NetBox key="net-team-b" crn={crn} myTeamE={myTeamE} teamPlayerList={teamBPlayers} />
+                <NetBox crn={crn} myTeamE={myTeamE} teamPlayerList={teamBPlayers} />
               ),
             )}
 

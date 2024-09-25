@@ -54,12 +54,12 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
     if (refetchFunc) await refetchFunc();
   }
 
-  useEffect(()=>{
-    if(match.date){
-      console.log({iso: match.date, date: readDate(match.date), tempDate: readDateTemp(match.date)});
+  // useEffect(()=>{
+  //   if(match.date){
+  //     console.log({iso: match.date, date: readDate(match.date), tempDate: readDateTemp(match.date)});
 
-    }
-  }, [match]);
+  //   }
+  // }, [match]);
 
 
   const teamCard = (team: ITeam, teamE: ETeam) => {
