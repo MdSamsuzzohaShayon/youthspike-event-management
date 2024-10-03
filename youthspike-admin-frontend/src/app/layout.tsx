@@ -9,6 +9,8 @@ import { Suspense } from 'react';
 import LoadingPage from './loading';
 import SocketProvider from '@/lib/SocketProvider';
 
+import "../utils/polyfills";
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {

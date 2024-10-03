@@ -1,6 +1,7 @@
 import { Field, InputType, ObjectType, PartialType } from '@nestjs/graphql';
 import { IsOptional, IsNotEmpty } from 'class-validator';
 import { ETieBreaker } from 'src/net/net.schema';
+import { UserRole } from 'src/user/user.schema';
 
 export enum ETeam {
   teamA = 'teamA',
@@ -8,7 +9,18 @@ export enum ETeam {
 }
 
 @InputType()
-export class JoinRoomInput {
+export class UserInput {
+  // Additional
+  @Field({ nullable: false })
+  userRole: UserRole;
+
+  // Additional
+  @Field({ nullable: true })
+  userId?: string;
+}
+
+@InputType()
+export class JoinRoomInput extends UserInput {
   @Field({ nullable: false })
   @IsNotEmpty({ message: 'Either match or at least one team (teamA or teamB) must be present' })
   match: string;
@@ -22,7 +34,7 @@ export class JoinRoomInput {
 }
 
 @InputType()
-export class CheckInInput {
+export class CheckInInput extends UserInput {
   @Field({ nullable: false })
   room: string;
 
@@ -34,6 +46,9 @@ export class CheckInInput {
 
   @Field({ nullable: true })
   teamBProcess: string;
+
+  @Field({ nullable: true })
+  teamE: ETeam;
 }
 
 @InputType()
@@ -115,7 +130,7 @@ export class RoundUpdatedResponse {
 }
 
 @InputType()
-export class SubmitLineupInput {
+export class SubmitLineupInput extends UserInput {
   @Field({ nullable: false })
   room: string;
 
@@ -174,8 +189,7 @@ export class TieBreakerInput {
 }
 
 @InputType()
-export class UpdateRoomInput extends PartialType(JoinRoomInput) { }
-
+export class UpdateRoomInput extends PartialType(JoinRoomInput) {}
 
 // ===== Public  =====
 

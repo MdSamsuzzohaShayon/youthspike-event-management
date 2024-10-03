@@ -27,11 +27,11 @@ export class CreateEventInput {
   @Field()
   name: string;
 
-  @Field(() => DateScalar)
-  startDate: Date;
+  @Field(() => String)
+  startDate: string;
 
-  @Field(() => DateScalar)
-  endDate: Date;
+  @Field(() => String)
+  endDate: string;
 
   @Field()
   active: boolean;

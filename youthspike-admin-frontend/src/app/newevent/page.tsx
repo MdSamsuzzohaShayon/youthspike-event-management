@@ -15,8 +15,10 @@ function EventNewPage() {
   return (
     <div className="container mx-auto px-2 min-h-screen">
       <h1 className="my-4 text-center">New Event</h1>
-      {actErr && <Message error={actErr} />}
-      <EventAddUpdate update={false} setActErr={setActErr} setIsLoading={setIsLoading} />
+      <div className="new-event-wrapper mb-5">
+        {actErr && <Message error={actErr} />}
+        <EventAddUpdate update={false} setActErr={setActErr} setIsLoading={setIsLoading} />
+      </div>
     </div>
   );
 }

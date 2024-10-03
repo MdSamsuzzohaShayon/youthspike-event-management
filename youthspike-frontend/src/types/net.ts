@@ -1,5 +1,3 @@
-import { IPlayer } from './player';
-
 export enum ETieBreaker {
   PREV_NET = 'PREV_NET',
   FINAL_ROUND_NET = 'FINAL_ROUND_NET',
@@ -61,10 +59,8 @@ interface INetPlayers {
 }
 
 export enum ETeamPlayer {
-  TA_PA = 'teamAPlayerA',
-  TA_PB = 'teamAPlayerB',
-  TB_PA = 'teamBPlayerA',
-  TB_PB = 'teamBPlayerB',
+  PLAYER_A = 'PLAYER_A',
+  PLAYER_B = 'PLAYER_B',
 }
 
 export type { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse };

@@ -17,6 +17,7 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import { handleResponse } from '@/utils/handleError';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
   // ===== hooks =====
@@ -36,7 +37,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
-  const [teamId, setTeamId] = useState<string | null>(null)
+  const [teamId, setTeamId] = useState<string | null>(null);
 
   // ===== GraphQL =====
   const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
@@ -72,14 +73,10 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           const teamExist = ntList.find((t) => t._id === teamId);
           if (teamExist && teamExist) {
             setTeamId(teamId)
-            if(teamExist.playerRanking){
-              // const singlerPlayerRanking = teamExist.playerRankings.find((pr)=> pr.team._id === teamId && !pr.match);
-              // if(singlerPlayerRanking){
-              //   if( singlerPlayerRanking.rankLock )setLockRank(true);
-              //   }
+            if (teamExist.playerRanking) {
               setTeamPlayerRanking(teamExist.playerRanking);
-              }
             }
+          }
           npList = npList.filter((p): boolean => {
             if (p.teams && p.teams.length > 0) {
               const tIds = p.teams.map((t) => t._id);
@@ -138,6 +135,12 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     setFilteredPlayerList((prevState) => [...prevState, playerData]);
   };
 
+
+  /**
+ * Lifecycle hooks
+ * Getting and setting event ID & director ID
+ * Fetching players
+ */
   useEffect(() => {
     if (params.eventId && user.token) {
       if (isValidObjectId(params.eventId)) {
@@ -146,7 +149,9 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' });
       }
     }
-  }, [params.eventId, user, data]);
+  }, [params.eventId, user]);
+
+
 
   const renderActiveInactive = (filteredPlayers: IPlayerExpRel[]): React.ReactNode => {
     const activePlayers: IPlayerExpRel[] = [];

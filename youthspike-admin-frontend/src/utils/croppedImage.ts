@@ -41,7 +41,7 @@ export async function handleScaleImage(file: File, maxWidth: number, maxHeight: 
       let height = scaledImg.height;
 
       // Log original dimensions
-      console.log(`Original image dimensions: ${width}x${height}`);
+      // console.log(`Original image dimensions: ${width}x${height}`);
 
       // Calculate the aspect ratio
       const aspectRatio = width / height;
@@ -58,7 +58,7 @@ export async function handleScaleImage(file: File, maxWidth: number, maxHeight: 
       }
 
       // Log new dimensions
-      console.log(`Resized image dimensions: ${width}x${height}`);
+      // console.log(`Resized image dimensions: ${width}x${height}`);
 
       // Create a canvas to draw the resized image
       const canvas = document.createElement('canvas');

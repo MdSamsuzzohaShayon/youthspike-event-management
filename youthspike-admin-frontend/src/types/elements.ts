@@ -27,12 +27,13 @@ export interface ITextCommon {
   required?: boolean;
   defaultValue?: string | null | undefined;
   readOnly?: boolean;
+  placeholder?: string;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
 
-export interface ITextInputProps extends ITextCommon {}
+export interface ITextInputProps extends ITextCommon { }
 
-export interface ITextareaInputProps extends ITextCommon {}
+export interface ITextareaInputProps extends ITextCommon { }
 
 export interface IPlayerSelectProps {
   name: string;
@@ -53,7 +54,7 @@ export interface IDateinputProps {
   name: string;
   required: boolean;
   defaultValue: string;
-  handleInputChange: (e: React.SyntheticEvent) => void;
+  handleDateChange: ({ name, value }: { name: string, value: string }) => void;
 }
 
 export interface IFileFileProps {
@@ -115,7 +116,7 @@ export interface ICheckboxInputProps {
   _id: string;
   handleInputChange: (e: React.SyntheticEvent, _id: string) => void;
   defaultValue?: boolean;
-  extraCls?:string;
+  extraCls?: string;
 }
 
 export interface IOption {

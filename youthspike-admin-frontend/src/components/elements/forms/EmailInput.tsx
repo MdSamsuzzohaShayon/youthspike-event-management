@@ -9,7 +9,7 @@ const EmailInput = (props: ITextInputProps) => {
             <input onChange={props.handleInputChange}
                 id={props.name} name={props.name}
                 className={`${props.vertical ? 'w-full': ''} border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center ${props.rw ? props.rw : "w-20"}`} type="email"
-                defaultValue={defaultInputVal} required={props.required} />
+                placeholder={props.placeholder ?? ''} defaultValue={defaultInputVal} required={props.required} />
         </div>
     )
 }

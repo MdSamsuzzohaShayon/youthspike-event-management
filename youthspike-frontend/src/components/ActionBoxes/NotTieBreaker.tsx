@@ -56,13 +56,11 @@ function NotTieBreaker({ ntbnId, currRoundNets, socket, currRound, teamA, teamB 
     );
 
   return (
-    <div className="w-full bg-white text-black-logo z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
+    <div className="w-full z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
       <div className="container p-4 mx-auto ">
         <Image height={imgW.logo} width={imgW.logo} alt="close-icon" src="/icons/close.svg" className="svg-black w-8 h-8 mb-4" role="presentation" onClick={handleCloseLineup} />
         <h3 className="mb-4 text-center">Not 2 Points Net</h3>
         <div className="team-box">
-          {/* <div className="team-a text-center mb-8">{teamBox(selectedNet.teamAPlayerA, selectedNet.teamAPlayerB, ETeamPlayer.TA_PA, ETeamPlayer.TA_PB, teamAPlayers, teamA)}</div>
-          <div className="team-b text-center mb-8">{teamBox(selectedNet.teamBPlayerA, selectedNet.teamBPlayerB, ETeamPlayer.TB_PA, ETeamPlayer.TB_PB, teamBPlayers, teamB)}</div> */}
           <NetBox crn={selectedNet} myTeamE={ETeam.teamA} teamPlayerList={teamAPlayers} netTitle={teamA?.name} />
           <NetBox crn={selectedNet} myTeamE={ETeam.teamB} teamPlayerList={teamBPlayers} netTitle={teamB?.name} />
         </div>

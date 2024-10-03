@@ -124,14 +124,6 @@ type Room {
 type Match {
   _id: String
   date: String!
-  event: Event!
-  nets: [Net!]!
-  rounds: [Round!]!
-  teamA: Team
-  teamB: Team
-  room: Room
-  teamARanking: PlayerRanking
-  teamBRanking: PlayerRanking
   division: String!
   numberOfNets: Int!
   numberOfRounds: Int!
@@ -144,6 +136,14 @@ type Match {
   description: String
   fwango: String
   completed: Boolean
+  event: Event!
+  nets: [Net!]!
+  rounds: [Round!]!
+  teamA: Team
+  teamB: Team
+  room: Room
+  teamARanking: PlayerRanking
+  teamBRanking: PlayerRanking
 }
 
 type Sponsor {
@@ -157,8 +157,8 @@ type Event {
   _id: String
   name: String!
   logo: String
-  startDate: Date!
-  endDate: Date!
+  startDate: String!
+  endDate: String!
   active: Boolean!
   sendCredentials: Boolean
   playerLimit: Int!
@@ -221,6 +221,7 @@ enum UserRole {
   director
   captain
   co_captain
+  public
 }
 
 type LoginUser {
@@ -492,8 +493,8 @@ input EventSponsorInput {
 
 input CreateEventInput {
   name: String!
-  startDate: Date!
-  endDate: Date!
+  startDate: String!
+  endDate: String!
   active: Boolean!
   divisions: String!
   nets: Int!
@@ -514,8 +515,8 @@ input CreateEventInput {
 
 input UpdateEventInput {
   name: String
-  startDate: Date
-  endDate: Date
+  startDate: String
+  endDate: String
   active: Boolean
   divisions: String
   nets: Int

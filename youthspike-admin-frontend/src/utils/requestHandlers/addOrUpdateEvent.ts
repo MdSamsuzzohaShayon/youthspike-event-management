@@ -184,7 +184,7 @@ async function addOrUpdateEvent({
             createNewEvent({socket, eventId: newEventId})
             let redirectUrl = `/${newEventId}`;
             if (user.info?.role === UserRole.admin) {
-                redirectUrl += `/?directorId=${directorId}`;
+                redirectUrl += `/?ldoId=${directorId}`;
             }
             router.push(redirectUrl);
         };

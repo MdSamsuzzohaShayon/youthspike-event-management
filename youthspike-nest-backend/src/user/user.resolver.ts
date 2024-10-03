@@ -9,7 +9,7 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import { UpdateDirectorArgs, UpdateUserArgs } from './user.args';
+import { UpdateUserArgs } from './user.args';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -120,6 +120,7 @@ export class UserResolver {
         data: { token, user: userObj },
       };
     } catch (err) {
+      
       return AppResponse.handleError(err);
     }
   }

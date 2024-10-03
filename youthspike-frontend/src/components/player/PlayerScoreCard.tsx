@@ -18,6 +18,7 @@ interface IPlayerScoreCard {
   tapr?: IPlayerRankingExpRel | null; // tapr= team A Player Ranking
   tbpr?: IPlayerRankingExpRel | null; // tbpr= team B Player Ranking
   onTop?: boolean;
+  playerRankExist?: number | null;
   teamPlayer?: ETeamPlayer;
   // eslint-disable-next-line no-unused-vars
   evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string) => void;
@@ -25,7 +26,18 @@ interface IPlayerScoreCard {
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
 }
 
-function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dropdownPlayer, screenWidth, myTeamE, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking }: IPlayerScoreCard) {
+function PlayerScoreCard({
+  player,
+  onTop = false,
+  playerRankExist,
+  teamPlayer,
+  evacuatePlayer,
+  dropdownPlayer,
+  screenWidth,
+  myTeamE,
+  tapr: teamAPlayerRanking,
+  tbpr: teamBPlayerRanking,
+}: IPlayerScoreCard) {
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const currentRound = useAppSelector((state) => state.rounds.current);
@@ -91,10 +103,15 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
   };
 
   const renderRank = () => {
-    const rankings = [];
-    if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
-    if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
-    const playerRank: number = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
+    let playerRank = 0;
+    if (playerRankExist) {
+      playerRank = playerRankExist;
+    } else {
+      const rankings = [];
+      if (teamAPlayerRanking) rankings.push(...teamAPlayerRanking.rankings);
+      if (teamBPlayerRanking) rankings.push(...teamBPlayerRanking.rankings);
+      playerRank = rankings.find((p) => p.player._id === player?._id)?.rank || 0;
+    }
 
     return (
       <>
@@ -126,7 +143,7 @@ function PlayerScoreCard({ player, onTop = false, teamPlayer, evacuatePlayer, dr
                 <small>{player.lastName}</small>
               </>
             )}
-          </p> 
+          </p>
         </div>
         <div className={`p-img-wrap cursor-pointer relative w-full ${screenWidth > screen.xs ? 'h-20' : 'h-24 '}`}>
           {shouldShowEvacuateButton && (

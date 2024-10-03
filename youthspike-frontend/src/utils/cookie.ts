@@ -1,3 +1,4 @@
+import { IUserContext } from '@/types';
 import { FRONTEND_URL, NODE_ENV } from './keys';
 
 // Function to get a specific cookie by name
@@ -41,4 +42,14 @@ function removeCookie(name: string): void {
   document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/;`;
 }
 
-export { getCookie, setCookie, removeCookie };
+// ===== Logical functions =====
+function getUserFromCookie(): IUserContext {
+  const instantToken = getCookie('token'); // Fetch again
+  const instantInfo = getCookie('user');
+  return {
+    info: instantInfo ? JSON.parse(instantInfo) : null,
+    token: instantToken || null,
+  };
+}
+
+export { getCookie, setCookie, removeCookie, getUserFromCookie };

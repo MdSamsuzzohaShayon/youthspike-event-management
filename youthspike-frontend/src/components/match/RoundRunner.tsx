@@ -58,15 +58,14 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
   };
 
   useEffect(() => {
-    const teamACapOrCoCap = user.info?.captainplayer === teamA?.captain?._id || user.info?.cocaptainplayer === teamA?.cocaptain?._id;
-    if (user && user.info && teamACapOrCoCap) {
+    if (ETeam.teamA === myTeamE) {
       if (currentRound?.teamAProcess) setMtp(currentRound.teamAProcess);
       if (currentRound?.teamBProcess) setOtp(currentRound.teamBProcess);
     } else {
       if (currentRound?.teamBProcess) setMtp(currentRound.teamBProcess);
       if (currentRound?.teamAProcess) setOtp(currentRound.teamAProcess);
     }
-  }, [currentRound, user, teamA]);
+  }, [currentRound, user, teamA, myTeamE]);
 
   return (
     <div className="w-full">

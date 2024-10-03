@@ -22,15 +22,15 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   // ===== Local State =====
   const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [teamList, setTeamList] =useState<ITeam[]>([]);
+  const [teamList, setTeamList] = useState<ITeam[]>([]);
 
   // =====Read query from cache or fetch data from server =====
-  const [fetchEvent, { data, loading, error, client }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } }); 
+  const [fetchEvent, { data, loading, error, client }] = useLazyQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
   const [fetchPlayer, { data: playerData, error: playerErr, loading: playerLoading }] = useLazyQuery(GET_A_PLAYER);
 
 
-  const playerUpdateCB=()=>{
-    
+  const playerUpdateCB = () => {
+
   }
 
   useEffect(() => {
@@ -40,9 +40,9 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
         if (user) {
           const userRes = JSON.parse(user)
           if (userRes.role === UserRole.captain || userRes.role === UserRole.co_captain) {
-            if(userRes.captainplayer){
+            if (userRes.captainplayer) {
               fetchPlayer({ variables: { playerId: userRes.captainplayer } });
-            }else if(userRes.cocaptainplayer){
+            } else if (userRes.cocaptainplayer) {
               fetchPlayer({ variables: { playerId: userRes.cocaptainplayer } });
             }
           } else {
@@ -56,13 +56,13 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   }, [params.eventId]);
 
 
-  
+
 
   if (loading || isLoading || playerLoading) return <Loader />;
-  
-  const prevEvent = data?.getEvent?.data;  
+
+  const prevEvent = data?.getEvent?.data;
   const prevPlayer = playerData?.getPlayer?.data;
-  
+
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>
@@ -75,9 +75,11 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
 
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain
-        ? (prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} teamList={teamList} playerUpdateCB={playerUpdateCB} setActErr={setActErr} />)
-        : (prevEvent && <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />)}
+      <div className="event-player-action mb-5">
+        {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain
+          ? (prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} teamList={teamList} playerUpdateCB={playerUpdateCB} setActErr={setActErr} />)
+          : (prevEvent && <EventAddUpdate update setIsLoading={setIsLoading} setActErr={setActErr} prevEvent={prevEvent} />)}
+      </div>
 
     </div>
   )

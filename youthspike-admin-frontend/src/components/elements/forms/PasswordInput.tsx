@@ -21,6 +21,7 @@ const PasswordInput = (props: ITextInputProps) => {
                     className={`${props.vertical ? 'w-full' : ''} form-control ${props.rw ? props.rw : "w-20"} pr-10`}
                     type={showPassword ? 'text' : 'password'}
                     defaultValue={dv}
+                    placeholder={props.placeholder ?? ''}
                     required={props.required}
                 />
                 <button

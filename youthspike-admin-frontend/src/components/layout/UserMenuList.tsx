@@ -16,6 +16,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
     const pathname = usePathname();
     const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
     const [ldoId, setLdoId] = useState<string | null>(null);
+    
 
     useEffect(() => {
         const userDetail = getUserFromCookie();
@@ -23,10 +24,11 @@ function UserMenuList({ eventId }: { eventId: string }) {
         // Get ldoId from query parameters and set state
         const searchParams = new URLSearchParams(location.search);
         const ldoIdParam = searchParams.get('ldoId') || '';
-
+        
         if (userDetail) {
             const eventPath = getEventIdFromPath(pathname);
             let menuItemList = rearrangeMenu(userDetail, eventPath);
+            
             if (userDetail.info?.role === UserRole.admin && ldoIdParam) {
                 menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id >= 5 ? `${mi.link}${mi.id > 5 ? "" : "?ldoId=" + ldoIdParam}` : `/${eventId}/${mi.link}?ldoId=${ldoIdParam}` }));
             }else{

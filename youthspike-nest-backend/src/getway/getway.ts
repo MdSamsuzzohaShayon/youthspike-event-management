@@ -9,7 +9,6 @@ import {
   NetAssign,
   UpdatePointsInput,
   RoundUpdatedResponse,
-  RoundChangeInput,
   TieBreakerInput,
   NetTieBreaker,
   ETeam,
@@ -21,10 +20,10 @@ import { EActionProcess } from 'src/round/round.schema';
 import { NetService } from 'src/net/net.service';
 import { ETieBreaker, Net } from 'src/net/net.schema';
 import { TeamService } from 'src/team/team.service';
-import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
 import { EPlayerStatus } from 'src/player/player.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { UserRole } from 'src/user/user.schema';
 
 @ObjectType()
 class RoomRoundProcess {
@@ -65,6 +64,19 @@ class RoomLocal {
   rounds: RoomRoundProcess[];
 }
 
+// No Admin or co captain
+@ObjectType()
+class GeneralClient {
+  @Field({ nullable: false })
+  _id: string;
+
+  @Field({ nullable: false })
+  userRole: UserRole;
+
+  @Field((_type) => [String], { nullable: true })
+  matches: string[]; // which specific match he has entered
+}
+
 @ObjectType()
 class RoomLocalWithNets {
   @Field((type) => [NetAssign], { nullable: false })
@@ -89,6 +101,7 @@ export class MyGatWay implements OnModuleInit {
   server: Server;
 
   private roomsLocal = new Map<string, RoomLocal>(); // Map to store room information
+  private clientList = new Map<string, GeneralClient>(); // List all the players that joined our system
 
   constructor(
     private readonly roomService: RoomService,
@@ -155,6 +168,64 @@ export class MyGatWay implements OnModuleInit {
     return tiedNetIdList[randomIndex];
   }
 
+  // Submit lineup function start
+  // Check if all players are filled for a specific team
+  private arePlayersFilled(team: ETeam, submitLineup: SubmitLineupInput): boolean {
+    return submitLineup.nets.every((net) =>
+      team === ETeam.teamA ? net.teamAPlayerA && net.teamAPlayerB : net.teamBPlayerA && net.teamBPlayerB,
+    );
+  }
+
+  // Process lineup for a specific team
+  private processLineup(
+    team: ETeam,
+    submitLineup: SubmitLineupInput,
+    currRoundObj: RoomRoundProcess,
+    currTeamId: string | null,
+  ): string | null {
+    if (!this.arePlayersFilled(team, submitLineup)) return null;
+
+    if (team === ETeam.teamA) {
+      currRoundObj.teamAProcess = EActionProcess.LINEUP;
+      currTeamId = submitLineup.teamAId;
+    } else {
+      currRoundObj.teamBProcess = EActionProcess.LINEUP;
+      currTeamId = submitLineup.teamBId;
+    }
+
+    return currTeamId;
+  }
+  // Submit lineup function ends
+
+  async emitToAllClients(
+    emitEvent: string,
+    client: Socket,
+    matchId: string,
+    actionData: Record<string, any>,
+  ): Promise<string[]> {
+    const clientIds: string[] = [];
+
+    for (const [clientIdKey, val] of this.clientList) {
+      // Ensure val.matches is an object and check for the existence of matchId
+      if (val.matches && val.matches.length > 0) {
+        if (val.matches.includes(matchId)) {
+          if (clientIdKey !== client.id) {
+            this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
+            clientIds.push(clientIdKey);
+          }
+        }
+      }
+    }
+
+    // this.server.emit('check-in-response-to-all', actionData);
+
+    // Check if there are no clients to notify
+    if (clientIds.length === 0) {
+      throw new Error('No client to send message to!'); // Use Error for better error handling
+    }
+
+    return clientIds; // Return the client IDs
+  }
 
   // Event for real time connection
   onModuleInit() {
@@ -165,6 +236,12 @@ export class MyGatWay implements OnModuleInit {
 
   handleConnection(client: Socket, ...args: any[]) {
     console.log('Client connected:', client.id);
+    // Connecting client
+    const clientExist = this.clientList.get(client.id);
+    if (!clientExist) {
+      // Create new client
+      this.clientList.set(client.id, { _id: null, matches: [], userRole: UserRole.public });
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -182,6 +259,8 @@ export class MyGatWay implements OnModuleInit {
         this.roomsLocal.set(rk, roomData);
       }
     }
+
+    this.clientList.delete(client.id);
   }
 
   @SubscribeMessage('join-room-from-client')
@@ -198,7 +277,7 @@ export class MyGatWay implements OnModuleInit {
     ]);
     if (!roomExist || !roundExist || !roundsOfTheMatch || roundsOfTheMatch.length === 0) return;
 
-    client.join(roomExist._id.toString());
+    if (joinData.userId) client.join(roomExist._id.toString()); // Join in the room
 
     // Set room data initially
     let roomData = {
@@ -227,10 +306,12 @@ export class MyGatWay implements OnModuleInit {
     roomData.rounds = roundsProcess;
 
     // Set team and client Id for my team
-    if (joinData.team === roomExist.teamA.toString()) {
-      roomData = { ...roomData, teamA: roomExist.teamA.toString(), teamAClient: client.id };
-    } else if (joinData.team === roomExist.teamB.toString()) {
-      roomData = { ...roomData, teamB: roomExist.teamB.toString(), teamBClient: client.id };
+    if (joinData.team) {
+      if (joinData.team === roomExist.teamA.toString()) {
+        roomData = { ...roomData, teamA: roomExist.teamA.toString(), teamAClient: client.id };
+      } else if (joinData.team === roomExist.teamB.toString()) {
+        roomData = { ...roomData, teamB: roomExist.teamB.toString(), teamBClient: client.id };
+      }
     }
 
     if (!this.roomsLocal.has(roomExist._id.toString())) {
@@ -242,16 +323,31 @@ export class MyGatWay implements OnModuleInit {
       // roomData = { ...prevRoom };
       if (joinData.team === roomExist.teamA.toString()) {
         roomData.teamA = roomExist.teamA.toString();
-        roomData.teamAClient = client.id;
+        roomData.teamAClient = joinData.team ? client.id : null;
         roomData.teamBClient = prevRoom.teamBClient;
       } else if (joinData.team === roomExist.teamB.toString()) {
         roomData.teamB = roomExist.teamB.toString();
-        roomData.teamBClient = client.id;
+        roomData.teamBClient = joinData.team ? client.id : null;
         roomData.teamAClient = prevRoom.teamAClient;
       }
       this.roomsLocal.set(roomExist._id.toString(), roomData);
     }
 
+    // For director, admin, and public they do not need to join the room but they need to update their data
+    const clientExist = this.clientList.get(client.id);
+    if (!clientExist) {
+      this.clientList.set(client.id, {
+        _id: joinData.userId,
+        matches: [joinData.match],
+        userRole: joinData.userRole,
+      });
+    } else {
+      this.clientList.set(client.id, {
+        _id: joinData.userId ?? clientExist._id,
+        matches: [...new Set([...clientExist.matches, joinData.match])],
+        userRole: joinData.userRole ?? clientExist.userRole,
+      });
+    }
     // Response
     client.emit('join-room-response', roomData);
   }
@@ -274,7 +370,13 @@ export class MyGatWay implements OnModuleInit {
 
     // update round to checkin
     const currRoundObj = { ...roundList[roundI] };
-    if (prevRoom.teamAClient === client.id) {
+    if (checkIn.userRole === UserRole.director || checkIn.userRole === UserRole.admin) {
+      if (checkIn.teamE === ETeam.teamA) {
+        currRoundObj.teamAProcess = EActionProcess.CHECKIN;
+      } else {
+        currRoundObj.teamBProcess = EActionProcess.CHECKIN;
+      }
+    } else if (prevRoom.teamAClient === client.id) {
       currRoundObj.teamAProcess = EActionProcess.CHECKIN;
     } else if (prevRoom.teamBClient === client.id) {
       currRoundObj.teamBProcess = EActionProcess.CHECKIN;
@@ -289,7 +391,10 @@ export class MyGatWay implements OnModuleInit {
     roomData.rounds = roundList;
     this.roomsLocal.set(checkIn.room, roomData);
 
+    // Send message to specific room
     client.to(prevRoom._id).emit('check-in-response', roomData);
+    // Send this data to all the clients
+    const clientIds = await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
   }
 
   @SubscribeMessage('submit-lineup-from-client')
@@ -321,36 +426,42 @@ export class MyGatWay implements OnModuleInit {
         teamBProcess: roundExist.teamBProcess,
       };
 
-      if (prevRoom.teamAClient === client.id) {
+      const isAdminOrDirector = submitLineup.userRole === UserRole.admin || submitLineup.userRole === UserRole.director;
+      const isTeamA = submitLineup.teamE === ETeam.teamA;
+      const isTeamB = submitLineup.teamE === ETeam.teamB;
+
+      /*
+      if (isAdminOrDirector) {
+        if (isTeamA) {
+          currRoundObj.teamAProcess = EActionProcess.LINEUP;
+          currTeamId = this.processLineup(ETeam.teamA, submitLineup, currRoundObj, currTeamId);
+        } else if (isTeamB) {
+          currRoundObj.teamBProcess = EActionProcess.LINEUP;
+          currTeamId = this.processLineup(ETeam.teamB, submitLineup, currRoundObj, currTeamId);
+        }
+      } else if (prevRoom.teamAClient === client.id) {
         currRoundObj.teamAProcess = EActionProcess.LINEUP;
         currTeamId = submitLineup.teamAId;
       } else if (prevRoom.teamBClient === client.id) {
         currRoundObj.teamBProcess = EActionProcess.LINEUP;
         currTeamId = submitLineup.teamBId;
       } else {
-        /**
-         * Check the team is it team A or team B -> check it properly
-         * Check They filled the net or not
-         */
-        if (submitLineup.teamE === ETeam.teamA) {
-          let filled = true;
-          for (let nI = 0; nI < submitLineup.nets.length; nI += 1) {
-            if (!submitLineup.nets[nI].teamAPlayerA || !submitLineup.nets[nI].teamAPlayerB) filled = false;
-          }
-          if (!filled) return;
-          currRoundObj.teamAProcess = EActionProcess.LINEUP;
-          currTeamId = submitLineup.teamAId;
-        } else if (submitLineup.teamE === ETeam.teamB) {
-          let filled = true;
-          for (let nI = 0; nI < submitLineup.nets.length; nI += 1) {
-            if (!submitLineup.nets[nI].teamBPlayerA || !submitLineup.nets[nI].teamBPlayerB) filled = false;
-          }
-          if (!filled) return;
-          currRoundObj.teamBProcess = EActionProcess.LINEUP;
-          currTeamId = submitLineup.teamBId;
-        } else {
-          return;
+        if (isTeamA) {
+          currTeamId = this.processLineup(ETeam.teamA, submitLineup, currRoundObj, currTeamId);
+        } else if (isTeamB) {
+          currTeamId = this.processLineup(ETeam.teamB, submitLineup, currRoundObj, currTeamId);
         }
+      }
+        */
+      if (isTeamA) {
+        currRoundObj.teamAProcess = EActionProcess.LINEUP;
+        currTeamId = this.processLineup(ETeam.teamA, submitLineup, currRoundObj, currTeamId);
+      } else if (isTeamB) {
+        currRoundObj.teamBProcess = EActionProcess.LINEUP;
+        currTeamId = this.processLineup(ETeam.teamB, submitLineup, currRoundObj, currTeamId);
+      }
+      if (!currTeamId) {
+        throw new Error('Fill all the nets, and submit again!'); // Use Error for better error handling
       }
 
       // Change ranking lock strategy
@@ -418,11 +529,14 @@ export class MyGatWay implements OnModuleInit {
       await Promise.all(updatePromises);
 
       client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+      // Send this data to all the clients
+      await this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets);
     } catch (error) {
       console.log(error);
     }
   }
 
+  // For banning nets
   @SubscribeMessage('update-net-from-client')
   async onNetUpdate(client, netInputs: TieBreakerInput) {
     const prevRoom = this.roomsLocal.get(netInputs.room);
@@ -482,6 +596,7 @@ export class MyGatWay implements OnModuleInit {
 
     // Calculate and update score for all nets of a round
     const findNets = await this.netService.query({ round: updatePointsInput.round });
+    // Update score in round
     let teamAScore = null;
     let teamBScore = null;
     let i = 0;
@@ -496,6 +611,7 @@ export class MyGatWay implements OnModuleInit {
       i += 1;
     }
 
+    //
     let completed = false;
     if (teamAScore && teamAScore > 0 && teamBScore && teamBScore > 0) completed = true;
     await this.roundService.update({ teamAScore, teamBScore, completed }, updatePointsInput.round);
@@ -508,9 +624,11 @@ export class MyGatWay implements OnModuleInit {
     };
 
     // ===== Complete the match if score is updated in all nets  =====
-    if (roundExist.num === roundList.length && completed) {
+    if (completed) {
       await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
-      pointsResponse.matchCompleted = true;
+      if (roundExist.num === roundList.length) {
+        pointsResponse.matchCompleted = true;
+      }
     }
 
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);

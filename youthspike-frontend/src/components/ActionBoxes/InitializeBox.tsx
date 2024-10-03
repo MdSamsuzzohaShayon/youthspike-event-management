@@ -18,10 +18,11 @@ interface IBoxProps {
 function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp }: IBoxProps) {
   const dispatch = useAppDispatch();
   const { teamA } = useAppSelector((state) => state.teams);
+  const { myTeamE } = useAppSelector((state) => state.matches);
 
   const handleInitToCheckIn = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch });
+    initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch, teamE: myTeamE });
   };
   return (
     <div className="flex py-2 w-full justify-between items-center gap-1 box-success">

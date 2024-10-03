@@ -53,11 +53,20 @@ ___
 
 
 ### Requirements
+ - Live events are not working properly captain to admin
+ - When changing team, submit lineup, rosters netcard is not changing
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
+### Update
+ - If a captain enter into someone else's match he or she should not see any action box
+ - In public view show search filter (Search by team, date, match description)
+ - In public view need to show round score (In progress or final score) (winning team will have green circle)
+ - Show records (win loss) for a team during an event.  (Record win number - Loss number)
+ - Show final or in progress in last round
+ - Admin should be able to put score in
 
-### Update - 1
+<!-- ### Update - 1
  - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
  - Check all matches date in the server
 
@@ -69,7 +78,7 @@ ___
  - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
  - Auto assign need to work properly
  - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
- - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over
+ - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over -->
 
 
 

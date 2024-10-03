@@ -3,10 +3,10 @@ import { Socket } from 'socket.io-client';
 import React from 'react';
 // import { INetRelatives, IRoom, IRoundRelatives, ITeam, IUserContext } from '.';
 import type { INetRelatives } from './net';
-import type { IRoom } from './room';
+import type { EActionProcess, IRoom } from './room';
 import type { IRoundRelatives } from './round';
-import type { ETeam, ITeam } from './team';
-import type { IUserContext } from './user';
+import { ETeam, ITeam } from './team';
+import type { IUser, IUserContext, UserRole } from './user';
 import { IMatchRelatives } from './match';
 
 export interface IListenSocketProps {
@@ -22,7 +22,7 @@ export interface IListenSocketProps {
 
 export interface IJoinTheRoomProps {
   socket: Socket | null;
-  userInfo: string | null;
+  userInfo: IUser | null;
   userToken: string | null;
   teamA?: ITeam | null;
   teamB?: ITeam | null;
@@ -43,11 +43,12 @@ export interface INotTwoPointNetProps {
 export interface IStatusChange {
   socket: Socket | null;
   user: IUserContext | null;
-  teamA?: ITeam | null;
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
   dispatch: React.Dispatch<React.ReducerAction<any>>;
+  teamA?: ITeam | null;
+  teamE?: ETeam;
 }
 
 export interface ICheckInToLineupProps extends IStatusChange {
@@ -65,6 +66,24 @@ export interface ICommonProps {
   roundList: IRoundRelatives[];
 }
 
+export interface IJoinData {
+  match: string;
+  round: string;
+  userRole: UserRole;
+  userId?: string;
+  team?: string;
+}
+
+export interface ICheckInData {
+  room: string;
+  round: string;
+  teamAProcess: EActionProcess;
+  teamBProcess: EActionProcess;
+  userId: string;
+  userRole: UserRole;
+  teamE?: ETeam;
+}
+
 // roundList, dispatch, allNets, newRoundIndex, myTeamE
 export interface INextRoundProps {
   roundList: IRoundRelatives[];
@@ -73,7 +92,6 @@ export interface INextRoundProps {
   newRoundIndex: number;
   myTeamE: ETeam;
 }
-
 
 export interface ICompleteMatchProps {
   socket: Socket | null;
@@ -99,7 +117,6 @@ export interface ICanGoProps extends ICommonProps {
   targetRoundIndex: number;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
 }
-
 
 export interface IListenPublicSocketProps {
   socket: Socket;

@@ -22,14 +22,15 @@ function EventSingle({ params }: { params: { eventId: string } }) {
       if (isValidObjectId(params.eventId)) {
         fetchEvent({ variables: { eventId: params.eventId } });
       } else {
-        setActErr({ name: 'Invalid Id', message: 'Can not fetch data due to invalid event ObjectId!' });
+        setActErr({ message: 'Can not fetch data due to invalid event ObjectId!' });
       }
     }
-  }, [params.eventId]);
+  }, [fetchEvent, params.eventId]);
 
   if (loading || isLoading) return <Loader />;
 
-  const prevEvent = data?.getEvent?.data;
+  const prevEvent = data?.getEvent?.data; 
+  
 
 
   return <div className="container mx-auto px-2 min-h-screen">{prevEvent && <EventDetail event={prevEvent} />}</div>;

@@ -24,7 +24,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setActErr, setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
 
 // Utils
-import { getCookie } from '@/utils/cookie';
+import { getCookie, getUserFromCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
@@ -50,20 +50,36 @@ import { calcRoundScore } from '@/utils/scoreCalc';
 import { setTeamScore } from '@/redux/slices/matchesSlice';
 
 import './Match.css';
+import SelectTeam from '@/components/match/SelectTeam';
 
 /**
  * Test Match
  *
- * Bears-Jeremy
+ * FC Barcelona
  * Captain
- * trevor94
+ * pfn1193
+ * Co-captains
+ * pfn1393
  *
- * Hawks-Cade Wallace
+ *
+ * Bayern Munich FC
  * Captain
- * aaron96
+ * pfn395new
+ * Co-captains
+ * pfn295
+ *
+ *
+ * Real Madrid
+ * Captain
+ * pfn1994
+ * Co-captain
+ * pfn2094
+ *
  *
  * 
+ * http://localhost:3001/matches/66fadc13002cfc571836844a
  */
+
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // ===== Hooks =====
   const dispatch = useAppDispatch();
@@ -74,6 +90,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const audioPlayEl = useRef<HTMLButtonElement>(null);
   const [opSubbedPlayers, setOpSubbedPlayers] = useState<IPlayer[]>([]);
   const [mySubbedPlayers, setMySubbedPlayers] = useState<IPlayer[]>([]);
+  const [selectTeam, setSelectTeam] = useState<boolean>(false);
 
   // ===== Redux States =====
   const { teamA, teamB } = useAppSelector((state) => state.teams);
@@ -111,23 +128,21 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   // ===== Fetch Data =====
   useEffect(() => {
     // Get user info here
-    const token = !getCookie('token') || getCookie('token')?.trim() === '' ? null : getCookie('token');
-    const findUser = getCookie('user');
-    const userInfo = findUser && findUser.trim() !== '' ? JSON.parse(findUser) : null;
-
-    if (isValidObjectId(params.matchId)) {
-      (async () => {
-        const result = await getMatch({ variables: { matchId: params.matchId } });
-        if (result?.data?.getMatch?.data) {
-          if (result.data.getMatch.data?.event?._id) setEvent(result.data.getMatch.data.event._id);
-          // { matchData, token, userInfo, matchId, dispatch }
-          organizeFetchedData({ matchData: result.data.getMatch.data, token, userInfo, matchId: params.matchId, dispatch });
-        } else {
-          dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
-        }
-      })();
+    const userDetail = getUserFromCookie();
+    const fetchData = async () => {
+      const result = await getMatch({ variables: { matchId: params.matchId } });
+      if (result?.data?.getMatch?.data) {
+        if (result.data.getMatch.data?.event?._id) setEvent(result.data.getMatch.data.event._id);
+        // { matchData, token, userInfo, matchId, dispatch }
+        await organizeFetchedData({ matchData: result.data.getMatch.data, token: userDetail.token, userInfo: userDetail.info, matchId: params.matchId, dispatch });
+      } else {
+        dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
+      }
+    }
+    if (userDetail && isValidObjectId(params.matchId)) {
+      fetchData();
     } else {
-      dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' }));
+      dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId or Invalid token!' }));
     }
 
     return () => {
@@ -136,13 +151,14 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
 
+  // showTeamPlayers
+
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
     if (socket && roundList && roundList.length > 0) {
-      const userInfo = getCookie('user');
-      const userToken = getCookie('token');
+      const userDetail = getUserFromCookie();
 
-      joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound: currentRound, matchId: params.matchId });
+      joinTheRoom({ socket, userInfo: userDetail.info, userToken: userDetail.token, teamA, teamB, currRound: currentRound, matchId: params.matchId });
       listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -248,45 +264,74 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       {/* Level 4 end: oponent rosters  */}
 
       {/* Level 6 start: main match  */}
-      {notTieBreakerNetId ? (
-        <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} currRound={currentRound} socket={socket} />
-      ) : verifyLineup ? (
-        <VerifyLineup />
-      ) : (
-        <>
-          {currentRound && <NetScoreOfRound currRoundId={currentRound._id} />}
-          <div className="w-full line-up-starategy">
-            <LineupStrategy
-              myTeamE={myTeamE}
-              currRound={currentRound}
-              myPlayers={myPlayers}
-              opPlayers={opPlayers}
-              currRoundNets={currRoundNets}
-              allNets={allNets}
-              roundList={roundList}
-              currMatch={currMatch}
-            />
+      <div className="main-match-wrapper w-full">
+        {notTieBreakerNetId ? (
+          <div className="not-tie-breaker w-full bg-white text-black-logo ">
+            <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} currRound={currentRound} socket={socket} />
           </div>
-          {user && user.info && currRoom && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
-            <div className="my-round-runner w-full">
-              <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
-            </div>
-          )}
-        </>
-      )}
+        ) : (
+          <div className="verify-stategy-main-points">
+            {verifyLineup ? (
+              <VerifyLineup />
+            ) : (
+              <>
+                {currentRound && (
+                  <div className="net-score">
+                    <NetScoreOfRound currRoundId={currentRound._id} />
+                  </div>
+                )}
+                <div className="w-full line-up-starategy">
+                  <LineupStrategy
+                    myTeamE={myTeamE}
+                    currRound={currentRound}
+                    myPlayers={myPlayers}
+                    opPlayers={opPlayers}
+                    currRoundNets={currRoundNets}
+                    allNets={allNets}
+                    roundList={roundList}
+                    currMatch={currMatch}
+                  />
+                </div>
+                {user &&
+                  user.info &&
+                  currRoom &&
+                  (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain || user.info.role === UserRole.director || user.info.role === UserRole.admin) && (
+                    <div className="my-round-runner w-full">
+                      <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
+                    </div>
+                  )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
       {/* Level 6 end: main match  */}
 
       {/* Level 7 start: My Rosters  */}
       <div className="my-roster-wrapper w-full">
         {/*  Level 7.1 start: My Team name  */}
-        <div className="name-wrapper px-4">
-          <div className="container mx-auto text-center  relative">
-            <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : 'bg-white text-black-logo'}`}>
-              <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
+        <div className="team-name-selection">
+          {selectTeam && teamA && teamB ? (
+            <div className="w-full select-team-wrapper px-4">
+              <SelectTeam teamA={teamA} teamB={teamB} setSelectTeam={setSelectTeam} />
             </div>
-          </div>
-          <div className="my-team-top-wrapper h-5" /> {/* Placeholder */}
+          ) : (
+            <div className="name-wrapper px-4">
+              <div className="container mx-auto text-center  relative">
+                <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : 'bg-white text-black-logo'}`}>
+                  <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
+                  {(user.info?.role === UserRole.director || user.info?.role === UserRole.admin) && (
+                    <button className="absolute top-2 right-4 z-20" aria-label="select-team" type="button" onClick={() => setSelectTeam(true)}>
+                      <img src="/icons/dropdown.svg" className="w-6" alt="dowpdown-icon" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="my-team-top-wrapper h-5" /> {/* Placeholder */}
+            </div>
+          )}
         </div>
+
         {/*  Level 7.1 start: My Team name  */}
         <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
       </div>
@@ -304,7 +349,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       {eventSponsors.length > 0 && (!user || !user.token) && (
         <div className="sponsors w-full pt-2 mx-auto mb-2 bg-black-logo text-white">
           <div className="container px-4 mx-auto">
-            <h2 className='mt-4'>Sponsors</h2>
+            <h2 className="mt-4">Sponsors</h2>
             <div className="flex items-center justify-between md:justify-start flex-wrap w-full">
               {eventSponsors.map((spon) =>
                 spon.company === APP_NAME ? (

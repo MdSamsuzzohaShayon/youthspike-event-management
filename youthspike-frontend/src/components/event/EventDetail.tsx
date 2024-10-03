@@ -39,14 +39,14 @@ enum EItem {
 
 function EventDetail({ event }: { event: IEventRelatives }) {
   const [selectedItem, setSelectedItem] = useState<EItem>(EItem.MATCH);
-  const user = useUser();
+  const user = useUser();  
 
   const renderContent = () => {
     switch (selectedItem) {
       case EItem.PLAYER:
         return <PlayerList playerList={event.players} />;
       case EItem.TEAM:
-        return <TeamList teamList={event.teams} divisions={event.divisions} />;
+        return <TeamList teamList={event.teams} divisions={event.divisions} matchList={event.matches} />;
       case EItem.MATCH:
         return <MatchList matchList={event.matches} divisions={event.divisions} />;
       default:

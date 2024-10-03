@@ -1,3 +1,4 @@
+import { ETeam } from '@/types/team';
 import { MATCHES_LS, MUSIC_TIME_PASSED } from './constant';
 
 const hasTimePassed = (secondsPassed: number): boolean => {
@@ -98,4 +99,32 @@ const removeEvent = () => {
   localStorage.removeItem('eventId');
 };
 
-export { hasTimePassed, setMusicPlayedTime, setMatch, getMatch, setEvent, getEvent, removeEvent };
+const setLocalTeam = (teamE: ETeam): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    try {
+      // Ensure teamE is serialized to a string, e.g., using JSON if it's an object
+      localStorage.setItem('selectedTeamForAdmin', JSON.stringify(teamE));
+      resolve(true);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const getLocalTeam = (): Promise<ETeam | null> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const teamE = localStorage.getItem('selectedTeamForAdmin');
+      // If there's a stored value, parse it, otherwise return null
+      if (teamE) {
+        resolve(JSON.parse(teamE) as ETeam);
+      } else {
+        resolve(null);
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export { hasTimePassed, setMusicPlayedTime, setMatch, getMatch, setEvent, getEvent, removeEvent, setLocalTeam, getLocalTeam };
