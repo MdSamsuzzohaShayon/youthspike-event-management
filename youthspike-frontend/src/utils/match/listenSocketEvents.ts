@@ -12,13 +12,8 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
    * After joining to the room action button will be visiable
    */
 
-  // Listen to events
-  socket.on('join-room-response', (data: IRoom) => {
-    // const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-    const extranctedData = { ...data };
-    dispatch(setCurrentRoom(extranctedData));
-  });
-  socket.on('check-in-response', (data: IRoom) => {
+  const handleCheckInResponse = (data: IRoom) => {
+    
     restartAudio();
 
     // Set current round and round list
@@ -44,9 +39,9 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
       dispatch(setRoundList(updatedRoundList));
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
-  });
+  }
 
-  socket.on('submit-lineup-response', (data: IRoomNets) => {
+  const handleLineupResponse = (data: IRoomNets) => {
     restartAudio();
 
     // Set current round nets and all nets
@@ -100,7 +95,20 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
       dispatch(setCurrNetNum(1));
     }
+  }
+
+  // Listen to events
+  socket.on('join-room-response', (data: IRoom) => {
+    // const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+    const extranctedData = { ...data };
+    dispatch(setCurrentRoom(extranctedData));
   });
+
+  socket.on('check-in-response', handleCheckInResponse);
+  socket.on('check-in-response-to-all', handleCheckInResponse);
+
+  socket.on('submit-lineup-response', handleLineupResponse);
+  socket.on('submit-lineup-response-all', handleLineupResponse);
 
   socket.on('update-points-response', (data: IUpdateScoreResponse) => {
     // ===== set current round nets =====

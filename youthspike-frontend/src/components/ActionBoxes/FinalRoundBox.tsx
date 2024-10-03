@@ -59,7 +59,6 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
     setLockedNetIds(lockedIds);
   }, [currentRound, myTeamE, currRoundNets]);
 
-  useEffect(() => {}, [currRoundNets]);
 
   const netBtnRender = (net: INetRelatives | undefined) => {
     if (!net) return null;

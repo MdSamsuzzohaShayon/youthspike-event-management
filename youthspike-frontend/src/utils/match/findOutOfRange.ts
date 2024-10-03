@@ -54,14 +54,14 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
     let partnerRank = 0;
 
     if (myTeamE === ETeam.teamA) {
-      if ((playerSpot === ETeamPlayer.TA_PA || playerSpot === ETeamPlayer.TB_PA) && net?.teamAPlayerB) {
+      if (playerSpot === ETeamPlayer.PLAYER_A && net?.teamAPlayerB) {
         partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerB);
-      } else if ((playerSpot === ETeamPlayer.TA_PB || playerSpot === ETeamPlayer.TB_PB) && net?.teamAPlayerA) {
+      } else if (playerSpot === ETeamPlayer.PLAYER_B && net?.teamAPlayerA) {
         partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerA);
       }
-    } else if ((playerSpot === ETeamPlayer.TB_PA || playerSpot === ETeamPlayer.TA_PA) && net?.teamBPlayerB) {
+    } else if (playerSpot === ETeamPlayer.PLAYER_A && net?.teamBPlayerB) {
       partnerPlayer = myPlayers.find((p) => p._id === net.teamBPlayerB);
-    } else if ((playerSpot === ETeamPlayer.TB_PB || playerSpot === ETeamPlayer.TA_PB) && net?.teamBPlayerA) {
+    } else if (playerSpot === ETeamPlayer.PLAYER_B && net?.teamBPlayerA) {
       partnerPlayer = myPlayers.find((p) => p._id === net.teamBPlayerA);
     }
 

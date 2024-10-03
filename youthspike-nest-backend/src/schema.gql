@@ -221,6 +221,7 @@ enum UserRole {
   director
   captain
   co_captain
+  public
 }
 
 type LoginUser {

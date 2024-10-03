@@ -53,13 +53,14 @@ ___
 
 
 ### Requirements
+ - Live events are not working properly captain to admin
+ - When changing team, submit lineup, rosters netcard is not changing
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
 ### Update
- - Ranking team with records
- - Show team in public view
- - in public view show search filter (Search by team, date, match description)
+ - If a captain enter into someone else's match he or she should not see any action box
+ - In public view show search filter (Search by team, date, match description)
  - In public view need to show round score (In progress or final score) (winning team will have green circle)
  - Show records (win loss) for a team during an event.  (Record win number - Loss number)
  - Show final or in progress in last round

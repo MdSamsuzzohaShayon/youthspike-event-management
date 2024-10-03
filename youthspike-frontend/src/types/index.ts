@@ -22,6 +22,8 @@ import {
   INotTwoPointNetProps,
   ICompleteMatchProps,
   IListenPublicSocketProps,
+  IJoinData,
+  ICheckInData
 } from './socket';
 
 import { IPlayerRankingExpRel, IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel } from './playerRanking';
@@ -103,6 +105,8 @@ export type {
   ICheckInToLineupProps,
   ICompleteMatchProps,
   IListenPublicSocketProps,
+  IJoinData,
+  ICheckInData,
 
   // Ranking
   IPlayerRankingExpRel,

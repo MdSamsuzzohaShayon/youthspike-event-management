@@ -2,7 +2,8 @@ import { setActErr } from '@/redux/slices/elementSlice';
 import { setMatchInfo, setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IJoinTheRoomProps, INextRoundProps, IStatusChange, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps } from '@/types';
+import { IJoinTheRoomProps, INextRoundProps, IStatusChange, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps, IJoinData, ICheckInData } from '@/types';
+import { UserRole } from '@/types/user';
 import { ETieBreaker } from '@/types/net';
 import { EActionProcess, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
 import { ICompleteMatchProps, ISubmitLineupProps, ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from '@/types/socket';
@@ -10,32 +11,56 @@ import { ETeam } from '@/types/team';
 import { setMatch } from '../localStorage';
 
 function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
-  if (!socket || !userInfo || !userToken) return;
-  const parsedUser = JSON.parse(userInfo);
-  if ((!parsedUser.captainplayer && !parsedUser.cocaptainplayer) || !teamA || !teamB || (!teamA.captain && !teamA.cocaptain) || (!teamB.captain && !teamB.cocaptain) || !currRound) return;
+  if (!socket || !currRound) return;
+  const joinData: IJoinData = { match: matchId, round: currRound._id, userRole: UserRole.public };
+  if (!userToken || !userInfo) {
+    socket.emit('join-room-from-client', joinData);
+    return;
+  }
+  // if(!userInfo.captainplayer && !userInfo.cocaptainplayer)
+  if (userInfo.role !== UserRole.admin && userInfo.role !== UserRole.director && userInfo.role !== UserRole.captain && userInfo.role !== UserRole.co_captain) return;
+  if (!teamA || !teamB || (!teamA.captain && !teamA.cocaptain) || (!teamB.captain && !teamB.cocaptain) || !currRound) return;
 
   let userTeamId = null;
-  if ((teamA.captain && parsedUser.captainplayer === teamA.captain._id) || (teamA.cocaptain && parsedUser.cocaptainplayer === teamA.cocaptain._id)) {
+  if ((teamA.captain && userInfo.captainplayer === teamA.captain._id) || (teamA.cocaptain && userInfo.cocaptainplayer === teamA.cocaptain._id)) {
     userTeamId = teamA._id;
-  } else if ((teamB.captain && parsedUser.captainplayer === teamB.captain._id) || (teamB.cocaptain && parsedUser.cocaptainplayer === teamB.cocaptain._id)) {
+  } else if ((teamB.captain && userInfo.captainplayer === teamB.captain._id) || (teamB.cocaptain && userInfo.cocaptainplayer === teamB.cocaptain._id)) {
+    userTeamId = teamB._id;
+  } else if (userInfo.role === UserRole.admin || userInfo.role === UserRole.director) {
     userTeamId = teamB._id;
   } else {
     return;
   }
-  socket.emit('join-room-from-client', { match: matchId, team: userTeamId, round: currRound._id });
+  joinData.team = userTeamId;
+
+  if (userInfo) {
+    joinData.userRole = userInfo.role;
+    joinData.userId = userInfo._id;
+  }
+  socket.emit('join-room-from-client', joinData);
 }
 
-function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch }: IStatusChange) {
-  if (!currRoom) return;
+function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch, teamE }: IStatusChange) {
+  if (!currRoom || !currRound || !user || !user.info) return;
   const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
   const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
-  const actionData: any = {
+  const adminOrDirector = user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director;
+  const actionData: ICheckInData = {
     room: currRoom._id,
-    round: currRound?._id,
-    teamAProcess: currRound?.teamAProcess,
-    teamBProcess: currRound?.teamBProcess,
+    round: currRound._id,
+    teamAProcess: currRound.teamAProcess,
+    teamBProcess: currRound.teamBProcess,
+    userId: user.info._id,
+    userRole: user.info.role,
+    teamE,
   };
-  if (isTeamACaptain || isTeamACoCaptain) {
+  if (adminOrDirector) {
+    if (teamE === ETeam.teamA) {
+      actionData.teamAProcess = EActionProcess.CHECKIN;
+    } else {
+      actionData.teamBProcess = EActionProcess.CHECKIN;
+    }
+  } else if (isTeamACaptain || isTeamACoCaptain) {
     actionData.teamAProcess = EActionProcess.CHECKIN;
   } else {
     actionData.teamBProcess = EActionProcess.CHECKIN;
@@ -52,6 +77,7 @@ function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, di
 }
 
 function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, dispatch, myTeamE }: ISubmitLineupProps): void {
+  if (!user || !user.info || !user.token) return;
   const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
   const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
   const actionData: ISubmitLineupAction = {
@@ -65,6 +91,8 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
     subbedPlayers: [],
     nets: [],
     teamE: myTeamE,
+    userRole: user?.info?.role,
+    userId: user?.info?._id,
   };
   if (isTeamACaptain || isTeamACoCaptain) {
     actionData.teamAProcess = EActionProcess.LINEUP;
@@ -219,6 +247,7 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, all
   const nI = updatedNets.findIndex((n) => n._id === netId);
   const anI = updatedAllNets.findIndex((n) => n._id === netId);
   if (nI === -1 || anI === -1) return;
+  
   updatedAllNets[anI] = { ...updatedAllNets[anI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
   updatedNets[nI] = { ...updatedNets[nI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
 

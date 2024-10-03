@@ -9,7 +9,7 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import { UpdateDirectorArgs, UpdateUserArgs } from './user.args';
+import { UpdateUserArgs } from './user.args';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -76,7 +76,6 @@ export class UserResolver {
   async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
     try {
       const existingUser: any = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
-      console.log({line: 79, existingUser});
 
       if (!existingUser) {
         return AppResponse.invalidCredentials();
@@ -86,7 +85,6 @@ export class UserResolver {
       const passwordMatched = await bcrypt.compare(password, passwordFromUser);
 
       if (!passwordMatched) {
-        console.log({line: 89, password});
         return AppResponse.invalidCredentials();
       }
 
@@ -114,7 +112,6 @@ export class UserResolver {
         email: existingUser.email,
         role: userObj.role,
       });
-      console.log({line: 117, token});
 
       return {
         code: HttpStatus.ACCEPTED,
@@ -123,7 +120,6 @@ export class UserResolver {
         data: { token, user: userObj },
       };
     } catch (err) {
-      console.log({line: 126, err});
       
       return AppResponse.handleError(err);
     }

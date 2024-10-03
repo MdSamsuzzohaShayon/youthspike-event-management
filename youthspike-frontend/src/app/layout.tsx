@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import ApolloWrapper from '@/lib/ApolloWrapper';
 import ReduxProvider from '@/lib/ReduxProviders';
@@ -7,6 +7,7 @@ import Menu from '@/components/layout/Menu';
 import Footer from '@/components/layout/Footer';
 import UserProvider from '@/lib/UserProvider';
 import SocketProvider from '@/lib/SocketProvider';
+import Loader from '@/components/elements/Loader';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,17 +23,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body className={`${inter.className} bg-black-logo text-white`}>
-        <SocketProvider>
-          <ApolloWrapper>
-            <UserProvider>
-              <ReduxProvider>
-                <Menu />
-                {children}
-                <Footer />
-              </ReduxProvider>
-            </UserProvider>
-          </ApolloWrapper>
-        </SocketProvider>
+        <Suspense fallback={<Loader />}>
+          <SocketProvider>
+            <ApolloWrapper>
+              <UserProvider>
+                <ReduxProvider>
+                  <Menu />
+                  {children}
+                  <Footer />
+                </ReduxProvider>
+              </UserProvider>
+            </ApolloWrapper>
+          </SocketProvider>
+        </Suspense>
       </body>
     </html>
   );

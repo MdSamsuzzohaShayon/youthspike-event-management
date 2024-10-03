@@ -6,11 +6,12 @@ import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { setTeamAPlayerRanking, setTeamBPlayerRanking } from '@/redux/slices/playerRankingSlice';
+import { UserRole } from '@/types/user';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser, ITeam } from '@/types';
 // import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { getMatch } from '../localStorage';
+import { getLocalTeam, getMatch } from '../localStorage';
 import { APP_NAME } from '../keys';
 
 interface IOrganizeFetchedDataProps {
@@ -19,9 +20,29 @@ interface IOrganizeFetchedDataProps {
   userInfo: IUser | null;
   matchId: string;
   dispatch: React.Dispatch<React.SetStateAction<any>>;
+}
+
+interface ITeamDispatchProps {
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
+  myLocalTeam: ITeam;
+  opLocalTeam: ITeam;
+  myLocalPlayers: IPlayer[];
+  opLocalPlayers: IPlayer[];
+  myLocalTeamE: ETeam;
+  opLocalTeamE: ETeam;
+}
+
+// Helper function to handle dispatching team data
+const dispatchTeamData = ({ dispatch, myLocalTeam, opLocalTeam, myLocalPlayers, opLocalPlayers, myLocalTeamE, opLocalTeamE }: ITeamDispatchProps) => {
+  dispatch(setMyTeam(myLocalTeam));
+  dispatch(setOpTeam(opLocalTeam));
+  dispatch(setMyPlayers(myLocalPlayers));
+  dispatch(setOpPlayers(opLocalPlayers));
+  dispatch(setTeamE({ myTeamE: myLocalTeamE, opTeamE: opLocalTeamE }));
+  dispatch(setAvailablePlayers(myLocalPlayers.map((p) => p._id)));
 };
 
-const organizeFetchedData = ({ matchData, token, userInfo, matchId, dispatch }: IOrganizeFetchedDataProps): void => {
+const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispatch }: IOrganizeFetchedDataProps): Promise<void> => {
   const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed, fwango, room, netVariance, teamARanking, teamBRanking } = matchData;
 
   // Setting teams
@@ -104,18 +125,18 @@ const organizeFetchedData = ({ matchData, token, userInfo, matchId, dispatch }: 
   }
 
   // Setting room
-  if (!token || !userInfo) {
+  if (token && userInfo) {
     dispatch(
       setCurrentRoom({
         _id: room._id,
         match: _id,
-        rounds: formattedRounds[0]._id,
+        rounds: [], // [{_id, teamAProcess, teamBProcess}]
         teamA: teamAF?._id || null,
         teamAClient: null,
-        teamAProcess: formattedRounds[0].teamAProcess,
+        // teamAProcess: formattedRounds[0].teamAProcess,
         teamB: teamBF?._id || null,
         teamBClient: null,
-        teamBProcess: formattedRounds[0].teamBProcess,
+        // teamBProcess: formattedRounds[0].teamBProcess,
       }),
     );
   }
@@ -142,24 +163,25 @@ const organizeFetchedData = ({ matchData, token, userInfo, matchId, dispatch }: 
   dispatch(setTeamAPlayerRanking(teamARanking));
   dispatch(setTeamBPlayerRanking(teamBRanking));
 
+  
   // Setting variables for team A and team B
+
+  // Main logic
+  const isAdminDirector = userInfo?.role === UserRole.admin || userInfo?.role === UserRole.director;
+  const selectedTeam = await getLocalTeam();
   const isTeamACaptain = userInfo?.captainplayer === teamAF?.captain?._id || userInfo?.cocaptainplayer === teamAF?.cocaptain?._id;
 
-  if (isTeamACaptain) {
-    dispatch(setMyTeam(teamAF));
-    dispatch(setOpTeam(teamBF));
-    dispatch(setMyPlayers(teamAPlayers));
-    dispatch(setOpPlayers(teamBPlayers));
-    dispatch(setTeamE({ myTeamE: ETeam.teamA, opTeamE: ETeam.teamB }));
-    dispatch(setAvailablePlayers(teamAPlayers.map((p) => p._id)));
+  if (isAdminDirector && selectedTeam) {
+    if (selectedTeam === ETeam.teamA) {
+      dispatchTeamData({ dispatch, myLocalTeam: teamAF, opLocalTeam: teamBF, myLocalPlayers: teamAPlayers, opLocalPlayers: teamBPlayers, myLocalTeamE: ETeam.teamA, opLocalTeamE: ETeam.teamB });
+    } else {
+      dispatchTeamData({ dispatch, myLocalTeam: teamBF, opLocalTeam: teamAF, myLocalPlayers: teamBPlayers, opLocalPlayers: teamAPlayers, myLocalTeamE: ETeam.teamB, opLocalTeamE: ETeam.teamA });
+    }
+  } else if (isTeamACaptain) {
+    dispatchTeamData({ dispatch, myLocalTeam: teamAF, opLocalTeam: teamBF, myLocalPlayers: teamAPlayers, opLocalPlayers: teamBPlayers, myLocalTeamE: ETeam.teamA, opLocalTeamE: ETeam.teamB });
   } else {
-    dispatch(setMyTeam(teamBF));
-    dispatch(setOpTeam(teamAF));
-    dispatch(setMyPlayers(teamBPlayers));
-    dispatch(setOpPlayers(teamAPlayers));
-    dispatch(setAvailablePlayers(teamBPlayers.map((p) => p._id)));
+    dispatchTeamData({ dispatch, myLocalTeam: teamBF, opLocalTeam: teamAF, myLocalPlayers: teamBPlayers, opLocalPlayers: teamAPlayers, myLocalTeamE: ETeam.teamB, opLocalTeamE: ETeam.teamA });
   }
 };
 
 export default organizeFetchedData;
-

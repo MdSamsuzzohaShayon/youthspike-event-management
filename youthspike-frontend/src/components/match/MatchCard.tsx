@@ -20,22 +20,33 @@ function MatchCard({ match }: MatchCardProps) {
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
 
   const teamCard = (team: ITeam, teamE: ETeam) => {
-    let pointsOfRound = 0;
+    const oponentE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+    let teamScore = 0;
+    let oponentScore = 0;
+
     roundList.forEach((r) => {
-      const { score } = calcRoundScore(
+      const { score: ts } = calcRoundScore(
         allNets.filter((n) => n.round === r._id),
         r,
         teamE,
       );
-      pointsOfRound += score;
+      const { score: os } = calcRoundScore(
+        allNets.filter((n) => n.round === r._id),
+        r,
+        oponentE,
+      );
+      teamScore += ts;
+      oponentScore += os;
     });
+
+    const won = teamScore > oponentScore;
     return (
       <>
         <div className="advanced-img w-14">
           {team?.logo ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" /> : <Image src="/free-logo.png" className="w-full h-full" alt="free-logo" />}
         </div>
         <h3 className="capitalize">{team.name}</h3>
-        <h1 className="h-12 w-12 flex justify-center items-center rounded-full border border-white">{pointsOfRound}</h1>
+        <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border ${won ? 'bg-green-600' : ''}`}>{teamScore}</h1>
       </>
     );
   };
@@ -95,12 +106,12 @@ function MatchCard({ match }: MatchCardProps) {
             </span>
             <span>{readDate(match.date)}</span>
           </p>
-          <p className="flex justify-start items-center gap-x-2">
+          {/* <p className="flex justify-start items-center gap-x-2">
             <span>
               <Image width={20} height={20} src="/icons/date.svg" className="w-6 svg-white" alt="date-logo" />
             </span>
-            {/* <span>Start {readTime(match.date)}</span> */}
-          </p>
+            <span>Start {readTime(match.date)}</span>
+          </p> */}
         </div>
         <div className="w-3/6 text-end">
           <p className="flex justify-start items-center gap-x-2">

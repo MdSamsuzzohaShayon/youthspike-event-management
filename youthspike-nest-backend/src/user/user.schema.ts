@@ -17,6 +17,7 @@ export enum UserRole {
   'director' = 'director',
   'captain' = 'captain',
   'co_captain' = 'co_captain',
+  'public' = 'public',
 }
 registerEnumType(UserRole, {
   name: 'UserRole',

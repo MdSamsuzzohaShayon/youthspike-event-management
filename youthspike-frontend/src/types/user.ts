@@ -9,6 +9,7 @@ export enum UserRole {
   "co_captain" = "co_captain",
   "director" = "director",
   "player" = "player",
+  "public" = "public",
 }
 
 export interface ILogin{

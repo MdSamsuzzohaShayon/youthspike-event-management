@@ -9,6 +9,8 @@ import { setSelectedColItem } from '@/redux/slices/elementSlice';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
 import TeamInMatch from '../team/TeamInMatch';
 import CollapseContent from './CollapseContent';
 
@@ -20,6 +22,7 @@ interface IMatchSettingProps {
 
 function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
   const dispatch = useAppDispatch();
+  const user = useUser();
 
   const { ldo } = useAppSelector((state) => state.events);
   const { colMenus, selectedColItem } = useAppSelector((state) => state.elements);
@@ -44,13 +47,23 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
   };
 
   const renderMenuItem = (cm: IColMenu) => {
+    let ldoId = '';
+    if (user && user.info?.role === UserRole.admin && ldo) {
+      ldoId = `?ldoId=${ldo._id}`;
+    }
     if (cm.title === EMenuTitle.EDIT_MATCH) {
       return (
-        <Link href={`${ADMIN_FRONTEND_URL}/matches/${match._id}`} key={cm.id} target="_blink" className="item-link border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4">
+        <Link
+          href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${match._id}/${ldoId}`}
+          key={cm.id}
+          target="_blink"
+          className="item-link border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4"
+        >
           {cm.title}{' '}
         </Link>
       );
     }
+
     return (
       <React.Fragment key={cm.id}>
         <button type="button" className="collapse-trigger border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4" onClick={(e) => handleMenuItem(e, cm.title)}>
@@ -69,7 +82,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
   };
 
   return (
-    <>
+    <React.Fragment>
       <dialog ref={dialogSettingEl} className="w-5/6 bg-white text-black-logo h-5/6">
         {/* Dialog Header */}
         <div className="bg-black-logo w-full h-8 text-center px-2 flex justify-between items-center" onClick={handleSettingClose} role="presentation">
@@ -127,7 +140,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
       <div className="img-holder p-2 w-8 absolute left-1 bg-white rounded-full cursor-pointer z-20" style={{ top: '47%' }} role="presentation" onClick={handleSettingOpen} onKeyDown={() => {}}>
         <Image width={12} height={12} src="/icons/setting.svg" alt="setting" className="w-full" />
       </div>
-    </>
+    </React.Fragment>
   );
 }
 

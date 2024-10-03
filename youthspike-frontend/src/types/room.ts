@@ -1,6 +1,7 @@
 /* eslint-disable import/no-cycle */
 import { ETieBreaker, INetPlayers } from './net';
 import { ETeam } from './team';
+import { UserRole } from './user';
 
 export enum EActionProcess {
   INITIATE = 'INITIATE',
@@ -59,8 +60,8 @@ export interface IRoomNetType {
 interface IActionCommon {
   room: string | null;
   round: string | null;
-  teamAProcess: string | null;
-  teamBProcess: string | null;
+  teamAProcess: EActionProcess | null;
+  teamBProcess: EActionProcess | null;
 }
 export interface ICheckInAction extends IActionCommon {
   nets: IRoomNetAssign[];
@@ -72,6 +73,8 @@ export interface ISubmitLineupAction extends ICheckInAction {
   match: string | null;
   subbedPlayers: string[];
   teamE: ETeam;
+  userRole: UserRole;
+  userId?: string
 }
 
 export interface ITeiBreakerAction extends IActionCommon {

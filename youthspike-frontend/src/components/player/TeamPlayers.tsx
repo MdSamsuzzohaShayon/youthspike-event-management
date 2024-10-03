@@ -13,9 +13,11 @@ interface ITeamPlayersProps {
 }
 
 function TeamPlayers({ teamPlayers, screenWidth, onTop }: ITeamPlayersProps) {
+  
   const [sortedPlayers, setSortedPlayers] = useState<IPlayer[]>([]);
   // Global States
   const { myTeamE } = useAppSelector((state) => state.matches);
+  
 
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 

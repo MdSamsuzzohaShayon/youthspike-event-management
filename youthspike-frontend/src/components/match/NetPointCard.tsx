@@ -32,6 +32,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
 
   const { current: currRound } = useAppSelector((state) => state.rounds);
   const { nets: allNets, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
+  const { myTeamE, opTeamE } = useAppSelector((state) => state.matches);
   const teamA = useAppSelector((state) => state.teams.teamA);
 
   const handlePointChange = (e: React.SyntheticEvent, netId: string | null, teamAorB: string) => {
@@ -120,7 +121,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         teamName={`${user && teamACapOrCo ? 'teamBScore' : 'teamAScore'}`}
         screenWidth={screenWidth}
         handlePointChange={handlePointChange}
-        teamE={user && teamACapOrCo ? ETeam.teamB : ETeam.teamA}
+        teamE={opTeamE}
         wTeam={wTeam}
       />
       <div className="net-card flex justify-around items-center w-full py-1">
@@ -154,7 +155,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         teamName={`${user && teamACapOrCo ? 'teamAScore' : 'teamBScore'}`}
         screenWidth={screenWidth}
         handlePointChange={handlePointChange}
-        teamE={user && teamACapOrCo ? ETeam.teamA : ETeam.teamB}
+        teamE={myTeamE}
         wTeam={wTeam}
       />
     </div>
