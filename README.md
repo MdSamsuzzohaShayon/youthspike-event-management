@@ -53,8 +53,8 @@ ___
 
 
 ### Requirements
+ - Some issues with banning nets, neet to work more with that
  - Live events are not working properly captain to admin
- - When changing team, submit lineup, rosters netcard is not changing
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
