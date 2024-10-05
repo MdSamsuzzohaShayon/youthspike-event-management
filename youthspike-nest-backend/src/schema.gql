@@ -565,10 +565,9 @@ input CreateMatchInput {
   date: String!
   teamA: String
   teamB: String
-  division: String
+  division: String!
   numberOfNets: Float
   numberOfRounds: Float
-  playerLimit: Int
   netVariance: Int
   homeTeam: String
   autoAssign: Boolean
@@ -587,7 +586,6 @@ input UpdateMatchInput {
   division: String
   numberOfNets: Float
   numberOfRounds: Float
-  playerLimit: Int
   netVariance: Int
   homeTeam: String
   autoAssign: Boolean

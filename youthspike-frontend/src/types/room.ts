@@ -58,6 +58,7 @@ export interface IRoomNetType {
 }
 
 interface IActionCommon {
+  match?: string;
   room: string | null;
   round: string | null;
   teamAProcess: EActionProcess | null;
@@ -70,7 +71,6 @@ export interface ICheckInAction extends IActionCommon {
 export interface ISubmitLineupAction extends ICheckInAction {
   teamAId: string;
   teamBId: string;
-  match: string | null;
   subbedPlayers: string[];
   teamE: ETeam;
   userRole: UserRole;

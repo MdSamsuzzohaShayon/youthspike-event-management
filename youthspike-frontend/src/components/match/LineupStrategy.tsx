@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { setclosePSCAvailable } from '@/redux/slices/matchesSlice';
 import { IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import { EAssignStrategies } from '@/types/elements';
 import { EActionProcess } from '@/types/room';
@@ -54,6 +55,8 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
       default:
         break;
     }
+
+    dispatch(setclosePSCAvailable(true));
   };
 
   if (myTeamE === ETeam.teamA) {
@@ -80,7 +83,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
         </button>
       </div>
       {openPasControl && (
-        <ul className="player-select-strategy bg-gray-800 w-24 absolute bottom-6 inset-x-0 z-20" style={{ left: '50%', transform: 'translate(-50%)' }}>
+        <ul className="player-select-strategy bg-gray-800 w-fit absolute bottom-6 inset-x-0 z-20" style={{ left: '50%', transform: 'translate(-50%)' }}>
           {playerAssignStrategies.map((pas) => (
             <li className="p-2 border-b border-yellow-400 capitalize" key={pas} role="presentation" onClick={(e) => handlePASSelect(e, pas)}>
               {pas}

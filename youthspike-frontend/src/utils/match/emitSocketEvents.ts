@@ -235,6 +235,7 @@ function updateMultiplePoints({ socket, dispatch, allNets, currRoom, currRound, 
 
 function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, allNets, dispatch }: INotTwoPointNetProps) {
   const actionData: ITeiBreakerAction = {
+    match: currRound?.match,
     room: currRoom?._id ? currRoom?._id : null,
     round: currRound?._id ? currRound?._id : null,
     teamAProcess: currRound?.teamAProcess ? currRound?.teamAProcess : null,
@@ -247,7 +248,7 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, all
   const nI = updatedNets.findIndex((n) => n._id === netId);
   const anI = updatedAllNets.findIndex((n) => n._id === netId);
   if (nI === -1 || anI === -1) return;
-  
+
   updatedAllNets[anI] = { ...updatedAllNets[anI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
   updatedNets[nI] = { ...updatedNets[nI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
 

@@ -13,7 +13,7 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
    */
 
   const handleCheckInResponse = (data: IRoom) => {
-    
+
     restartAudio();
 
     // Set current round and round list
@@ -97,20 +97,8 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
     }
   }
 
-  // Listen to events
-  socket.on('join-room-response', (data: IRoom) => {
-    // const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-    const extranctedData = { ...data };
-    dispatch(setCurrentRoom(extranctedData));
-  });
 
-  socket.on('check-in-response', handleCheckInResponse);
-  socket.on('check-in-response-to-all', handleCheckInResponse);
-
-  socket.on('submit-lineup-response', handleLineupResponse);
-  socket.on('submit-lineup-response-all', handleLineupResponse);
-
-  socket.on('update-points-response', (data: IUpdateScoreResponse) => {
+  const handleUpdatePoints = (data: IUpdateScoreResponse) => {
     // ===== set current round nets =====
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
@@ -146,9 +134,9 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
     if (data.matchCompleted) {
       dispatch(setMatchInfo({ ...match, completed: true }));
     }
-  });
+  }
 
-  socket.on('update-net-response', (data: ITeiBreakerAction) => {
+  const handleUpdateNet = (data: ITeiBreakerAction) => {
     // Update current round nets and all nets
     const updatedCRN = [...currRoundNets];
     const updatedN = [...allNets];
@@ -184,16 +172,33 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
       }
     }
 
-    dispatch(setCurrentRoundNets(updatedCRN));
-    dispatch(setNets(updatedN));
-  });
-
-  socket.on('update-net-response', (data: IMatchComplete) => {
     // Update current round nets and all nets
-    if (data.matchId === match._id) {
+    if (data.match === match._id) {
       dispatch(setMatchInfo({ ...match, completed: true }));
     }
+
+    dispatch(setCurrentRoundNets(updatedCRN));
+    dispatch(setNets(updatedN));
+  }
+
+  // Listen to events
+  socket.on('join-room-response', (data: IRoom) => {
+    // const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
+    const extranctedData = { ...data };
+    dispatch(setCurrentRoom(extranctedData));
   });
+
+  socket.on('check-in-response', handleCheckInResponse); // For captain and co-captain only (temp)
+  socket.on('check-in-response-to-all', handleCheckInResponse);
+
+  socket.on('submit-lineup-response', handleLineupResponse); // For captain and co-captain only (temp)
+  socket.on('submit-lineup-response-all', handleLineupResponse);
+
+  socket.on('update-points-response', handleUpdatePoints); // For captain and co-captain only (temp)
+  socket.on('update-points-response-all', handleUpdatePoints);
+
+  socket.on('update-net-response', handleUpdateNet);
+  socket.on('update-net-response-all', handleUpdateNet);
 };
 
 interface ICreateEvent {

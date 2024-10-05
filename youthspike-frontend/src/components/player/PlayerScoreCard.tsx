@@ -124,7 +124,8 @@ function PlayerScoreCard({
         </p>
       </>
     );
-  };
+  }
+  
 
   return (
     <div className="w-full h-full relative overflow-hidden flex flex-col justify-end">

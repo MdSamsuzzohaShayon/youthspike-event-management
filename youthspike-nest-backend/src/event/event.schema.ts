@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Match } from 'src/match/match.schema';
 import { Player } from 'src/player/player.schema';
-import { DateScalar } from 'src/shared/date-scaler';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Team } from 'src/team/team.schema';

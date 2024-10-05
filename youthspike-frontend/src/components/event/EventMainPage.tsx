@@ -11,10 +11,10 @@ import { useSocket } from '@/lib/SocketProvider';
 import { imgW } from '@/utils/constant';
 import { logoAnimate } from '@/utils/animation';
 import { APP_NAME } from '@/utils/keys';
+import { listenPublicSocketEvents } from '@/utils/match/listenSocketEvents';
 import Image from 'next/image';
 import EventList from './EventList';
 import Loader from '../elements/Loader';
-import { listenPublicSocketEvents } from '@/utils/match/listenSocketEvents';
 
 const { animate, initial, exit, transition} = logoAnimate;
 

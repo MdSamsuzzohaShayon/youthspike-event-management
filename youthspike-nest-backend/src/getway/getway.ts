@@ -89,12 +89,6 @@ class RoomLocalWithNets {
   subbedRound: string;
 }
 
-@ObjectType()
-class RoomLocalWithNetTypes {
-  @Field((type) => [NetAssign], { nullable: false })
-  nets: NetTieBreaker[];
-}
-
 @WebSocketGateway({ cors: true, namespace: 'websocket' })
 export class MyGatWay implements OnModuleInit {
   @WebSocketServer()
@@ -394,7 +388,7 @@ export class MyGatWay implements OnModuleInit {
     // Send message to specific room
     client.to(prevRoom._id).emit('check-in-response', roomData);
     // Send this data to all the clients
-    const clientIds = await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
+    await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
   }
 
   @SubscribeMessage('submit-lineup-from-client')
@@ -430,29 +424,6 @@ export class MyGatWay implements OnModuleInit {
       const isTeamA = submitLineup.teamE === ETeam.teamA;
       const isTeamB = submitLineup.teamE === ETeam.teamB;
 
-      /*
-      if (isAdminOrDirector) {
-        if (isTeamA) {
-          currRoundObj.teamAProcess = EActionProcess.LINEUP;
-          currTeamId = this.processLineup(ETeam.teamA, submitLineup, currRoundObj, currTeamId);
-        } else if (isTeamB) {
-          currRoundObj.teamBProcess = EActionProcess.LINEUP;
-          currTeamId = this.processLineup(ETeam.teamB, submitLineup, currRoundObj, currTeamId);
-        }
-      } else if (prevRoom.teamAClient === client.id) {
-        currRoundObj.teamAProcess = EActionProcess.LINEUP;
-        currTeamId = submitLineup.teamAId;
-      } else if (prevRoom.teamBClient === client.id) {
-        currRoundObj.teamBProcess = EActionProcess.LINEUP;
-        currTeamId = submitLineup.teamBId;
-      } else {
-        if (isTeamA) {
-          currTeamId = this.processLineup(ETeam.teamA, submitLineup, currRoundObj, currTeamId);
-        } else if (isTeamB) {
-          currTeamId = this.processLineup(ETeam.teamB, submitLineup, currRoundObj, currTeamId);
-        }
-      }
-        */
       if (isTeamA) {
         currRoundObj.teamAProcess = EActionProcess.LINEUP;
         currTeamId = this.processLineup(ETeam.teamA, submitLineup, currRoundObj, currTeamId);
@@ -548,28 +519,41 @@ export class MyGatWay implements OnModuleInit {
 
     // Update nets and round by assigning player to nets
     const updatePromises = [];
-    const lockedNetIds = netInputs.nets
-      .filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED)
-      .map((n) => n._id);
-    netInputs.nets.forEach((n) => updatePromises.push(this.netService.update({ netType: n.netType }, n._id)));
-
-    // Handle multiple locked nets
-    if (lockedNetIds.length > 1) {
-      await this.netService.updateMany(
-        { _id: { $nin: lockedNetIds }, round: netInputs.round },
-        { points: 2, netType: ETieBreaker.TIE_BREAKER_NET },
+    const lockedNetIds = [];
+    for (const n of netInputs.nets) {
+      if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) lockedNetIds.push(n._id);
+      updatePromises.push(
+        this.netService.update(
+          {
+            netType: n.netType,
+          },
+          n._id,
+        ),
       );
+    }
 
-      const netList = await this.netService.find({ round: netInputs.round });
-      if (netList.length > 3) {
-        await this.handleTieBreakerNets(netList);
-      }
+    if (lockedNetIds.length > 1) {
+      // TIE_BREAKER_NET, worth 2 points
+      this.netService.updateMany(
+        {
+          _id: { $nin: lockedNetIds },
+          $and: [
+            { round: netInputs.round },
+            { round: { $exists: true } }, // Ensure that the round field exists
+          ],
+        },
+        {
+          $set: { points: 2, netType: ETieBreaker.TIE_BREAKER_NET },
+        },
+      );
     }
 
     await Promise.all(updatePromises);
 
     this.roomsLocal.set(netInputs.room, roomData);
-    client.to(prevRoom._id).emit('update-net-response', { ...roomData, nets: netInputs.nets });
+    const roomDataWithNets = { ...roomData, nets: netInputs.nets };
+    client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
+    await this.emitToAllClients('update-net-response-all', client, prevRoom.match, roomDataWithNets);
   }
 
   @SubscribeMessage('update-points-from-client')
@@ -611,7 +595,6 @@ export class MyGatWay implements OnModuleInit {
       i += 1;
     }
 
-    //
     let completed = false;
     if (teamAScore && teamAScore > 0 && teamBScore && teamBScore > 0) completed = true;
     await this.roundService.update({ teamAScore, teamBScore, completed }, updatePointsInput.round);
@@ -624,14 +607,14 @@ export class MyGatWay implements OnModuleInit {
     };
 
     // ===== Complete the match if score is updated in all nets  =====
-    if (completed) {
+    if (completed && roundExist.num === roundList.length) {
+      // Check all rounds
       await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
-      if (roundExist.num === roundList.length) {
-        pointsResponse.matchCompleted = true;
-      }
+      pointsResponse.matchCompleted = true;
     }
 
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
+    await this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse);
   }
 
   @SubscribeMessage('completed-match-from-client')
@@ -640,6 +623,7 @@ export class MyGatWay implements OnModuleInit {
     if (matchExist) {
       await this.matchService.updateOne({ _id: matchId }, { $set: { completed: true } });
       client.emit('completed-match-response', { matchId });
+      await this.emitToAllClients('completed-match-response-all', client, matchId, { matchId });
     }
   }
 

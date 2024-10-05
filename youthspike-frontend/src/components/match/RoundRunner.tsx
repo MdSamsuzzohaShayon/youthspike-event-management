@@ -33,6 +33,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
   const renderActionBoxes = (): React.ReactNode | null => {
     const isFinalRound = currentRound?.num === roundList.length;
     const lockedNets = currRoundNets.filter((net) => net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    console.log({ msg: 'When we ban a net we need to set that properly in both end through web socket!', currRoundNets });
 
     if (isFinalRound && currentRound?.teamAProcess === EActionProcess.LINEUP && currentRound?.teamBProcess === EActionProcess.LINEUP && lockedNets.length <= 1) {
       return <FinalRoundBox myTeamE={myTeamE} />;

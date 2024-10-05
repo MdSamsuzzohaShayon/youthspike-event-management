@@ -15,8 +15,8 @@ export class CreateMatchInput {
   teamB: string;
 
   // Default properties
-  @Field({ nullable: true })
-  division?: string;
+  @Field({ nullable: false })
+  division: string;
 
   @Field({ nullable: true })
   numberOfNets?: number;
@@ -24,8 +24,6 @@ export class CreateMatchInput {
   @Field({ nullable: true })
   numberOfRounds?: number;
 
-  @Field(() => Int, { nullable: true })
-  playerLimit?: number;
 
   @Field(() => Int, { nullable: true })
   netVariance?: number;

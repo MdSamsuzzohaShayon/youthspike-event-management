@@ -7,6 +7,7 @@ import { useUser } from '@/lib/UserProvider';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { imgW } from '@/utils/constant';
+import Link from 'next/link';
 import { APP_NAME } from '@/utils/keys';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
@@ -39,7 +40,7 @@ enum EItem {
 
 function EventDetail({ event }: { event: IEventRelatives }) {
   const [selectedItem, setSelectedItem] = useState<EItem>(EItem.MATCH);
-  const user = useUser();  
+  const user = useUser();
 
   const renderContent = () => {
     switch (selectedItem) {
@@ -68,8 +69,14 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   };
 
   return (
-    <div className="w-full">
-      <h1 className="my-4 text-center">{event.name}</h1>
+    <div className="w-full mb-8">
+      <div className="logo-with event my-4 text-center w-full flex items-center justify-center flex-col">
+        <Link href="/">
+          <Image height={100} width={100} src="/free-logo.png" alt="youthspike-logo" className="w-24" />
+        </Link>
+        <h1>{event.name}</h1>
+      </div>
+
       {!user.token && event?.sponsors && (
         <>
           <h3 className="mb-4">Sponsors</h3>

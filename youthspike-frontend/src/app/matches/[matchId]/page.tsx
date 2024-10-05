@@ -51,6 +51,7 @@ import { setTeamScore } from '@/redux/slices/matchesSlice';
 
 import './Match.css';
 import SelectTeam from '@/components/match/SelectTeam';
+import { imgSize } from '@/utils/styles';
 
 /**
  * Test Match
@@ -322,7 +323,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                   <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
                   {(user.info?.role === UserRole.director || user.info?.role === UserRole.admin) && (
                     <button className="absolute top-2 right-4 z-20" aria-label="select-team" type="button" onClick={() => setSelectTeam(true)}>
-                      <img src="/icons/dropdown.svg" className="w-6" alt="dowpdown-icon" />
+                      <Image height={imgSize.tiny.height} width={imgSize.tiny.width} src="/icons/dropdown.svg" className="w-6" alt="dowpdown-icon" />
                     </button>
                   )}
                 </div>

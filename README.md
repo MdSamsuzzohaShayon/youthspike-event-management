@@ -53,6 +53,7 @@ ___
 
 
 ### Requirements
+ - Test with public in the match 
  - Some issues with banning nets, neet to work more with that
  - Live events are not working properly captain to admin
  - Handling error properly
@@ -243,7 +244,9 @@ ___
 
 
 ### Ask
- - Can you see matches after creating it in the current when you are in admin area(admin.aslsquads.com)?
- - Can you see matches after creating it in the home page of admin view(aslsquads.com)?
- - There 2 different date? one for event and one for match of a event? When  you will be filtering an event current date is the date of the event, not the match. 
- - Can you please create a video showing me what date is it showing in the match list (in both section, public or admin area) after you creating a match.
+ Hi there, 
+ I have updated the server, this time admin or director can  play a match on behalf of a team. I had to do a lot of things to do this.
+ Now I am going to fix issue with refreshing and safari browser support. I think those 2 are most important right now. Furthermore we will walk though our document of to do list. 
+  
+ I have a confusion with notification. Our current notification system works in this way, if 2 teams play a match, both team's captains need to be in the match page in order to get notification of the match, if they are outside of the match page they may have multiple matches, if they get a notification they won't be sure for which match the notification is for. Can you think a better solution for this?
+ Thank You
