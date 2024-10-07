@@ -53,6 +53,9 @@ ___
 
 
 ### Requirements
+ - Getting issues with check (First change team for a director, then checkin with captain, then check in with with director)
+ - Solution: Fetch room data when join the room for all clients
+
  - Test with public in the match 
  - Some issues with banning nets, neet to work more with that
  - Live events are not working properly captain to admin

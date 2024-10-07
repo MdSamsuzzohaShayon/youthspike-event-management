@@ -196,29 +196,51 @@ export class MyGatWay implements OnModuleInit {
     client: Socket,
     matchId: string,
     actionData: Record<string, any>,
+    excludeSelf = true,
   ): Promise<string[]> {
-    const clientIds: string[] = [];
+    const clientsToSend: string[] = [];
 
+    let clientInside = false;
     for (const [clientIdKey, val] of this.clientList) {
-      // Ensure val.matches is an object and check for the existence of matchId
-      if (val.matches && val.matches.length > 0) {
-        if (val.matches.includes(matchId)) {
-          if (clientIdKey !== client.id) {
+      // Send everyone except myself
+      if (excludeSelf) {
+        if (clientIdKey !== client.id) {
+          // Ensure val.matches is an object and check for the existence of matchId
+          if (val.matches && val.matches.length > 0) {
+            if (val.matches.includes(matchId)) {
+              this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
+              clientsToSend.push(clientIdKey);
+            }
+          }
+        } else {
+          clientInside = true;
+        }
+      } else {
+        if (clientIdKey === client.id) {
+          clientInside = true;
+        }
+        if (val.matches && val.matches.length > 0) {
+          if (val.matches.includes(matchId)) {
             this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
-            clientIds.push(clientIdKey);
+            clientsToSend.push(clientIdKey);
           }
         }
       }
     }
 
+    // If the client with this action is not present in this match, or clientList add them
+    if (!clientInside) {
+      this.clientList.set(client.id, { _id: null, matches: [matchId], userRole: UserRole.captain }); // Change user role when reload the page
+    }
+
     // this.server.emit('check-in-response-to-all', actionData);
 
     // Check if there are no clients to notify
-    if (clientIds.length === 0) {
+    if (clientsToSend.length <= 0) {
       throw new Error('No client to send message to!'); // Use Error for better error handling
     }
 
-    return clientIds; // Return the client IDs
+    return clientsToSend; // Return the client IDs
   }
 
   // Event for real time connection
@@ -329,66 +351,66 @@ export class MyGatWay implements OnModuleInit {
 
     // For director, admin, and public they do not need to join the room but they need to update their data
     const clientExist = this.clientList.get(client.id);
-    if (!clientExist) {
-      this.clientList.set(client.id, {
-        _id: joinData.userId,
-        matches: [joinData.match],
-        userRole: joinData.userRole,
-      });
-    } else {
-      this.clientList.set(client.id, {
-        _id: joinData.userId ?? clientExist._id,
-        matches: [...new Set([...clientExist.matches, joinData.match])],
-        userRole: joinData.userRole ?? clientExist.userRole,
-      });
+    const clientObj = {
+      _id: joinData.userId,
+      matches: [joinData.match],
+      userRole: joinData.userRole,
+    };
+    if (clientExist) {
+      clientObj._id = joinData.userId ?? clientExist._id;
+      clientObj.matches = [...new Set([...clientExist.matches, joinData.match])];
+      clientObj.userRole = joinData.userRole ?? clientExist.userRole;
     }
+    this.clientList.set(client.id, clientObj);
     // Response
-    client.emit('join-room-response', roomData);
+    // client.emit('join-room-response', roomData);
+    await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData, false);
   }
 
   @SubscribeMessage('check-in-from-client')
   async onCheckIn(client, checkIn: CheckInInput) {
-    /**
-     * Find room from database by match
-     * Find room from local map
-     * Update process
-     */
+    try {
+      /**
+       * Find room from database by match
+       * Find room from local map
+       * Update process
+       */
 
-    // Validate and organize room data
-    const prevRoom = this.roomsLocal.get(checkIn.room);
-    if (!prevRoom) return;
-    const roomData = { ...prevRoom };
-    const roundList = [...roomData.rounds];
-    const roundI = roundList.findIndex((r) => r._id === checkIn.round);
-    if (roundI === -1) return;
+      // Validate and organize room data
+      const prevRoom = this.roomsLocal.get(checkIn.room);
+      if (!prevRoom) {
+        throw new Error('Room not found, Incorrect room ID!');
+      }
+      const roomData = { ...prevRoom };
+      const roundList = [...roomData.rounds];
+      const roundI = roundList.findIndex((r) => r._id === checkIn.round);
+      if (roundI === -1) {
+        throw new Error('Round not found, with that round ID!');
+      }
 
-    // update round to checkin
-    const currRoundObj = { ...roundList[roundI] };
-    if (checkIn.userRole === UserRole.director || checkIn.userRole === UserRole.admin) {
+      // update round to checkin
+      const currRoundObj = { ...roundList[roundI] };
       if (checkIn.teamE === ETeam.teamA) {
         currRoundObj.teamAProcess = EActionProcess.CHECKIN;
       } else {
         currRoundObj.teamBProcess = EActionProcess.CHECKIN;
       }
-    } else if (prevRoom.teamAClient === client.id) {
-      currRoundObj.teamAProcess = EActionProcess.CHECKIN;
-    } else if (prevRoom.teamBClient === client.id) {
-      currRoundObj.teamBProcess = EActionProcess.CHECKIN;
-    } else {
-      return;
-    }
-    await this.roundService.updateOne(
-      { _id: checkIn.round },
-      { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess },
-    );
-    roundList[roundI] = currRoundObj;
-    roomData.rounds = roundList;
-    this.roomsLocal.set(checkIn.room, roomData);
 
-    // Send message to specific room
-    client.to(prevRoom._id).emit('check-in-response', roomData);
-    // Send this data to all the clients
-    await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
+      await this.roundService.updateOne(
+        { _id: checkIn.round },
+        { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess },
+      );
+      roundList[roundI] = currRoundObj;
+      roomData.rounds = roundList;
+      this.roomsLocal.set(checkIn.room, roomData);
+
+      // Send message to specific room
+      // client.to(prevRoom._id).emit('check-in-response', roomData);
+      // Send this data to all the clients
+      await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   @SubscribeMessage('submit-lineup-from-client')
@@ -404,15 +426,21 @@ export class MyGatWay implements OnModuleInit {
 
       // Validate and organize room data
       const prevRoom = this.roomsLocal.get(submitLineup.room);
-      if (!prevRoom) return;
+      if (!prevRoom) {
+        throw new Error('Room not found, Incorrect room ID!');
+      }
       const roomData = { ...prevRoom };
       const roundList = [...roomData.rounds];
       const roundI = roundList.findIndex((r) => r._id === submitLineup.round);
-      if (roundI === -1) return;
+      if (roundI === -1) {
+        throw new Error('Round not found, with that round ID!');
+      }
 
       // update round to checkin
       const roundExist = await this.roundService.findById(submitLineup.round);
-      if (!roundExist) return;
+      if (!roundExist) {
+        throw new Error('Round not found in the Database, with that round ID!');
+      }
 
       const currRoundObj = {
         ...roundList[roundI],
@@ -420,7 +448,6 @@ export class MyGatWay implements OnModuleInit {
         teamBProcess: roundExist.teamBProcess,
       };
 
-      const isAdminOrDirector = submitLineup.userRole === UserRole.admin || submitLineup.userRole === UserRole.director;
       const isTeamA = submitLineup.teamE === ETeam.teamA;
       const isTeamB = submitLineup.teamE === ETeam.teamB;
 
@@ -499,7 +526,7 @@ export class MyGatWay implements OnModuleInit {
       // update rank lock in the team
       await Promise.all(updatePromises);
 
-      client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+      // client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
       // Send this data to all the clients
       await this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets);
     } catch (error) {
@@ -511,11 +538,15 @@ export class MyGatWay implements OnModuleInit {
   @SubscribeMessage('update-net-from-client')
   async onNetUpdate(client, netInputs: TieBreakerInput) {
     const prevRoom = this.roomsLocal.get(netInputs.room);
-    if (!prevRoom) return;
+    if (!prevRoom) {
+      throw new Error('Room not found, Incorrect room ID!');
+    }
     const roomData = { ...prevRoom };
 
     const roundExist = await this.roundService.findById(netInputs.round);
-    if (!roundExist) return;
+    if (!roundExist) {
+      throw new Error('Round not found in the Database, with that round ID!');
+    }
 
     // Update nets and round by assigning player to nets
     const updatePromises = [];
@@ -552,7 +583,8 @@ export class MyGatWay implements OnModuleInit {
 
     this.roomsLocal.set(netInputs.room, roomData);
     const roomDataWithNets = { ...roomData, nets: netInputs.nets };
-    client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
+
+    // client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
     await this.emitToAllClients('update-net-response-all', client, prevRoom.match, roomDataWithNets);
   }
 
@@ -566,7 +598,13 @@ export class MyGatWay implements OnModuleInit {
       this.roundService.findById(updatePointsInput.round),
     ]);
 
-    if (!roundList || !roundExist) return;
+    if (!roundList || !roundExist) {
+      throw new Error(
+        `Round List or Round Exist not found! Round List: ${JSON.stringify(roundList)}, Round Exist: ${JSON.stringify(
+          roundExist,
+        )}`,
+      );
+    }
 
     // Update net score from database
     const updatePromises = [];
@@ -613,7 +651,7 @@ export class MyGatWay implements OnModuleInit {
       pointsResponse.matchCompleted = true;
     }
 
-    client.to(prevRoom._id).emit('update-points-response', pointsResponse);
+    // client.to(prevRoom._id).emit('update-points-response', pointsResponse);
     await this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse);
   }
 
@@ -622,7 +660,7 @@ export class MyGatWay implements OnModuleInit {
     const matchExist = await this.matchService.findById(matchId);
     if (matchExist) {
       await this.matchService.updateOne({ _id: matchId }, { $set: { completed: true } });
-      client.emit('completed-match-response', { matchId });
+      // client.emit('completed-match-response', { matchId });
       await this.emitToAllClients('completed-match-response-all', client, matchId, { matchId });
     }
   }

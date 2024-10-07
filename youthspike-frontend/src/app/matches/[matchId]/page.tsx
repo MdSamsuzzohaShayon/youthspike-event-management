@@ -163,7 +163,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, user, teamA, teamB, roundList]);
+  }, [socket, user, teamA, teamB]);
 
   // ===== Subbed & Inactive players =====
   useEffect(() => {

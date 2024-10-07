@@ -40,11 +40,9 @@ function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, mat
   socket.emit('join-room-from-client', joinData);
 }
 
-function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch, teamE }: IStatusChange) {
+function initToCheckIn({ socket, user, currRoom, currRound, roundList, dispatch, myTeamE }: IStatusChange) {
   if (!currRoom || !currRound || !user || !user.info) return;
-  const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-  const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
-  const adminOrDirector = user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director;
+
   const actionData: ICheckInData = {
     room: currRoom._id,
     round: currRound._id,
@@ -52,15 +50,9 @@ function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, di
     teamBProcess: currRound.teamBProcess,
     userId: user.info._id,
     userRole: user.info.role,
-    teamE,
+    teamE: myTeamE,
   };
-  if (adminOrDirector) {
-    if (teamE === ETeam.teamA) {
-      actionData.teamAProcess = EActionProcess.CHECKIN;
-    } else {
-      actionData.teamBProcess = EActionProcess.CHECKIN;
-    }
-  } else if (isTeamACaptain || isTeamACoCaptain) {
+  if (myTeamE === ETeam.teamA) {
     actionData.teamAProcess = EActionProcess.CHECKIN;
   } else {
     actionData.teamBProcess = EActionProcess.CHECKIN;
@@ -78,12 +70,11 @@ function initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, di
 
 function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, dispatch, myTeamE }: ISubmitLineupProps): void {
   if (!user || !user.info || !user.token) return;
-  const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-  const isTeamACoCaptain = user?.info?.cocaptainplayer === teamA?.cocaptain?._id;
+
   const actionData: ISubmitLineupAction = {
     room: currRoom?._id ? currRoom?._id : null,
     round: currRound?._id ? currRound?._id : null,
-    match: currRoom?.match ?? null,
+    match: currRoom?.match,
     teamAProcess: currRound?.teamAProcess ? currRound?.teamAProcess : null,
     teamBProcess: currRound?.teamBProcess ? currRound?.teamBProcess : null,
     teamAId: teamA?._id ? teamA?._id : 'NO_ID_FOUND',
@@ -94,7 +85,8 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
     userRole: user?.info?.role,
     userId: user?.info?._id,
   };
-  if (isTeamACaptain || isTeamACoCaptain) {
+  
+  if (myTeamE === ETeam.teamA) {
     actionData.teamAProcess = EActionProcess.LINEUP;
   } else {
     actionData.teamBProcess = EActionProcess.LINEUP;

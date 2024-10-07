@@ -47,8 +47,7 @@ export interface IStatusChange {
   currRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
   dispatch: React.Dispatch<React.ReducerAction<any>>;
-  teamA?: ITeam | null;
-  teamE?: ETeam;
+  myTeamE: ETeam;
 }
 
 export interface ICheckInToLineupProps extends IStatusChange {
@@ -57,6 +56,7 @@ export interface ICheckInToLineupProps extends IStatusChange {
 }
 
 export interface ISubmitLineupProps extends ICheckInToLineupProps {
+  teamA?: ITeam | null;
   teamB?: ITeam | null;
   myPlayerIds: string[];
 }
