@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IError, IMatchExpRel, ITeam } from '@/types';
 import MatchCard from './MatchCard';
 import SelectInput from '../elements/forms/SelectInput';
@@ -12,6 +12,11 @@ import { DELETE_MATCHES } from '@/graphql/matches';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { motion } from 'framer-motion';
 import { cardAnimate } from '@/utils/animation';
+import Image from 'next/image';
+import { imgSize } from '@/utils/style';
+import useClickOutside from '@/hooks/useClickOutside';
+
+
 
 const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
 
@@ -29,27 +34,21 @@ interface IFilterParams {
   opponent?: string;
   description?: string;
 }
-enum EMatchAction {
-  DELETE = "DELETE",
-  MOVE = "MOVE",
-}
-
-const actionList = [
-  { id: 1, action: EMatchAction.DELETE, },
-  { id: 2, action: EMatchAction.MOVE }
-]
 
 const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refetchFunc }: IMatchListProps) => {
 
   const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
-  const [bulkMatches, setBulkMatches] = useState<string[]>([]);
-  const [bulkAction, setBulkAction] = useState<EMatchAction | null>(null);
+  const [showFilter, setShowFilter] = useState<boolean>(false);
+  const [checkedMatches, setCheckedMatches] = useState<Map<string, boolean>>(new Map());
+  const actionEl = useRef(null);
 
   const [deleteMultipleMatches] = useMutation(DELETE_MATCHES);
-
-
   const user = useUser();
+
+  useClickOutside(actionEl, () => {
+    setShowFilter(false);
+  });
 
   // Update filtered match list when matchList changes
   useEffect(() => {
@@ -117,46 +116,55 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
     );
   };
 
-  // ===== Bulk Action =====
-  const handleBulkAction = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLSelectElement;
-    if (!inputEl.value || inputEl.value === '') {
-      setBulkAction(null);
-    } else {
-      // @ts-ignore
-      setBulkAction(inputEl.value);
-    }
-  }
 
-  const handleSelectMatch = (e: React.SyntheticEvent, _id: string) => {
+  const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => {
     const inputEl = e.target as HTMLInputElement;
+    const newCheckedMatches: Map<string, boolean> = new Map(checkedMatches);
     if (inputEl.checked) {
-      if (!bulkMatches.includes(_id)) setBulkMatches((prevState) => [...prevState, _id]);
-      // setBulkMatches((prevState)=> [...new Set([...prevState, _id])]);
+      newCheckedMatches.set(matchId, true);
     } else {
-      setBulkMatches((prevState) => prevState.filter((bm) => bm !== _id));
+      newCheckedMatches.set(matchId, false);
     }
+    setCheckedMatches(newCheckedMatches);
     // e.preventDefault();
   }
 
-  const handleConfirmBulk = async (e: React.SyntheticEvent) => {
+
+  const handleCheckAllToggle = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    const newCheckedMatches: Map<string, boolean> = new Map();
+    if (inputEl.checked) {
+      matchList.forEach((m) => {
+        newCheckedMatches.set(m._id, true);
+      });
+      setCheckedMatches(newCheckedMatches);
+    } else {
+      setCheckedMatches(new Map());
+    }
+  }
+
+  const handleDeleteMatches = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (!bulkAction) return;
-    if (bulkMatches.length <= 0) return;
+    if (checkedMatches.size <= 0) return;
     try {
       setIsLoading(true);
-      const response = await deleteMultipleMatches({ variables: { matchIds: bulkMatches } });
+      const checkedMatchIds = Array.from(checkedMatches)
+        .filter(([_, isChecked]) => isChecked) // Filter for checked items
+        .map(([matchId]) => matchId); // Map to just the match IDs
+      const response = await deleteMultipleMatches({ variables: { matchIds: checkedMatchIds } });
       const success = handleResponse({ response: response.data.deleteMatches, setActErr });
       if (!success) return;
-      setBulkMatches([]);
-      setBulkAction(null);
+      setCheckedMatches(new Map());
       if (refetchFunc) await refetchFunc()
     } catch (error: any) {
       handleError({ error, setActErr })
     } finally {
       setIsLoading(false);
     }
+  }
+
+  const handleMoveMatches = (e: React.SyntheticEvent) => {
+    e.preventDefault();
   }
 
   useEffect(() => {
@@ -196,12 +204,29 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
 
       </div>
 
-      {bulkMatches.length > 0 && <div className="bulk-board w-full mt-4 flex justify-between items-center">
-        <div className="w-4/6">
-          <SelectInput name='bulk' handleSelect={handleBulkAction} optionList={actionList.map((a) => ({ value: a.action, text: a.action }))} key="bulk-action-key" vertical />
+      <div className="bulk-selection relative w-full flex justify-between">
+        <div className="input-group flex items-center gap-2 justify-between"  >
+          <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
+          <label htmlFor="bulk-action">Bulk Action</label>
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={() => setShowFilter((prevState) => !prevState)} />
         </div>
-        <button className="btn-info" onClick={handleConfirmBulk}>Ok</button>
-      </div>}
+        <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
+          <p>A-Z</p>
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+        </div>
+
+        {/* Bulk Action start  */}
+        <ul ref={actionEl} className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-14 z-10 rounded-lg`}>
+          <li role="presentation" className='capitalize' onClick={handleDeleteMatches}>
+            delete
+          </li>
+
+          <li role="presentation" className='capitalize' onClick={handleMoveMatches}>
+            Move
+          </li>
+        </ul>
+        {/* Bulk Action end  */}
+      </div>
 
       <div className="match-list w-full flex justify-between items-center flex-wrap">
         {filteredMatchList.map((match: IMatchExpRel, i) => (
@@ -209,6 +234,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
             <MatchCard
               eventId={eventId}
               match={match}
+              isChecked={checkedMatches.get(match._id) ?? false}
               sl={i + 1}
               refetchFunc={refetchFunc}
               handleSelectMatch={handleSelectMatch}

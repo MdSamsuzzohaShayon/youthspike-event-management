@@ -17,6 +17,7 @@ import {
   ITextareaInputProps,
   ICheckboxInputProps,
   IImageFileProps,
+  ICheckedInput
 } from "./elements";
 import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
@@ -109,4 +110,7 @@ export type {
 
   // Soicket
   ICreateNewEventProps,
+
+  // Input
+  ICheckedInput,
 };

@@ -78,7 +78,7 @@ export function rearrangeMenu(userDetail: IUserContext, eventPath: string | null
     if (userDetail.info?.role === UserRole.director) {
       menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id !== 6 && menuItem.id !== 7 && menuItem.id !== 9)]; // 2 = teams // 4 = matches
     } else if (userDetail.info?.role === UserRole.captain || userDetail.info?.role === UserRole.co_captain) {
-      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1 || menuItem.id === 9)]; // captain
+      menuList = [...initialUserMenuList.filter((menuItem) => menuItem.id === 3 || menuItem.id === 4 || menuItem.id === 1)]; // captain
     } else {
       menuList = initialUserMenuList;
     }

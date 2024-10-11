@@ -84,6 +84,19 @@ export interface ICheckInData {
   teamE?: ETeam;
 }
 
+interface INetPoints {
+  _id: string;
+  teamAScore: number;
+  teamBScore: number;
+}
+
+export interface IUpdatePointData {
+  nets: INetPoints[];
+  room: string;
+  round: string;
+  teamE: ETeam;
+}
+
 // roundList, dispatch, allNets, newRoundIndex, myTeamE
 export interface INextRoundProps {
   roundList: IRoundRelatives[];
@@ -104,6 +117,7 @@ export interface ISubmitUpdatePointsProps {
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   currRoundNets: INetRelatives[];
+  myTeamE: ETeam;
 }
 
 export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps {

@@ -164,3 +164,9 @@ export interface ILoginProps {
   password: string;
   setPassword: (state: string) => void;
 }
+
+
+export interface ICheckedInput{
+  _id: string;
+  checked: boolean;
+}

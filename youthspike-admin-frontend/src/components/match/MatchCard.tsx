@@ -20,13 +20,14 @@ interface MatchCardProps {
   match: IMatchExpRel;
   sl: number;
   eventId: string;
+  isChecked: boolean;
   // setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   // setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   refetchFunc?: () => Promise<void>;
 }
 
-function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCardProps) {
+function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }: MatchCardProps) {
 
   const actionItemEl = useRef<HTMLUListElement | null>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
@@ -87,7 +88,7 @@ function MatchCard({ match, eventId, handleSelectMatch, refetchFunc }: MatchCard
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6 md:py-4 py-2">
         {user.info?.role === UserRole.admin || user.info?.role === UserRole.director
-          ? (<CheckboxInput name='bulk-match' _id={match._id} handleInputChange={handleSelectMatch} />)
+          ? (<CheckboxInput name='bulk-match' defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />)
           : <div className='w-4' />}
 
         <div className="w-10/12 flex items-center justify-center">

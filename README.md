@@ -53,8 +53,10 @@ ___
 
 
 ### Requirements
- - Getting issues with check (First change team for a director, then checkin with captain, then check in with with director)
- - Solution: Fetch room data when join the room for all clients
+ - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
+ - Captain of a team must not be able to change the ranking of another team
+ - Captain should not see "tournament" menu item
+ - Getting two same player in a team when random assign.
 
  - Test with public in the match 
  - Some issues with banning nets, neet to work more with that
@@ -70,19 +72,6 @@ ___
  - Show final or in progress in last round
  - Admin should be able to put score in
 
-<!-- ### Update - 1
- - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
- - Check all matches date in the server
-
-### Update - 2 
- - Also, to ensure proper fitting. Can we make the last names of the players 2 font size smaller? ALso can we shrink the gab between first name and last name a little more?
- - Also not sure if we can shrink the gaps between roster and team names and team names and the middle area?
- - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
- - Real Time Update when creating a match 
- - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
- - Auto assign need to work properly
- - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
- - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over -->
 
 
 

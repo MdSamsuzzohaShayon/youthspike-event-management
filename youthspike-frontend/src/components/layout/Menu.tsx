@@ -46,7 +46,7 @@ const adminMenuList: IMenuItem[] = [
   {
     id: 6,
     imgName: 'players',
-    text: 'Players',
+    text: 'Rosters',
     link: '/players', // // Event settings
     admin: true,
   },

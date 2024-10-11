@@ -201,7 +201,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      <h1 className="mb-8 text-center">Players</h1>
+      <h1 className="mb-8 text-center">Roster</h1>
       {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />

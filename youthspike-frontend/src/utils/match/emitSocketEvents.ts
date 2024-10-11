@@ -2,7 +2,7 @@ import { setActErr } from '@/redux/slices/elementSlice';
 import { setMatchInfo, setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IJoinTheRoomProps, INextRoundProps, IStatusChange, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps, IJoinData, ICheckInData } from '@/types';
+import { IJoinTheRoomProps, INextRoundProps, IStatusChange, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps, IJoinData, ICheckInData, IUpdatePointData } from '@/types';
 import { UserRole } from '@/types/user';
 import { ETieBreaker } from '@/types/net';
 import { EActionProcess, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
@@ -85,7 +85,7 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
     userRole: user?.info?.role,
     userId: user?.info?._id,
   };
-  
+
   if (myTeamE === ETeam.teamA) {
     actionData.teamAProcess = EActionProcess.LINEUP;
   } else {
@@ -146,7 +146,7 @@ function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, curr
   //   }
   //   newRoundList.push(nrlObj);
   // }
-  const newRoundList = [{ ...roundList[cri], subs: subbedPlayers }, ...roundList.filter((r) => r._id !== currRound?._id)];
+  const newRoundList = [{ ...roundObj, subs: subbedPlayers }, ...roundList.filter((r) => r._id !== currRound?._id)];
 
   dispatch(setRoundList(newRoundList));
   dispatch(setCurrentRound(roundObj));
@@ -178,7 +178,11 @@ function completeMatch({ socket, dispatch, match }: ICompleteMatchProps) {
   if (socket) socket.emit('completed-match-from-client', { matchId: match._id });
 }
 
-function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets }: ISubmitUpdatePointsProps) {
+function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets, myTeamE }: ISubmitUpdatePointsProps) {
+  if (!currRoom || !currRound) {
+    console.log('No room or round found!');
+    return;
+  }
   const netPointsList = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const n of currRoundNets) {
@@ -190,7 +194,14 @@ function lineupToUpdatePoints({ socket, currRoom, currRound, currRoundNets }: IS
     netPointsList.push(nObj);
   }
 
-  if (socket) socket.emit('update-points-from-client', { nets: netPointsList, room: currRoom?._id, round: currRound?._id });
+  const actionData: IUpdatePointData = {
+    nets: netPointsList,
+    room: currRoom?._id ?? 'NO_ROOM_IDFOUND',
+    round: currRound?._id ?? 'NO_ROUND_ID_FOUND',
+    teamE: myTeamE,
+  };
+
+  if (socket) socket.emit('update-points-from-client', actionData);
 }
 
 function updateMultiplePoints({ socket, dispatch, allNets, currRoom, currRound, currRoundNets }: IUpdateMultiplePointsProps) {

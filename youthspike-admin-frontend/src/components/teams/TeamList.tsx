@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { IError, IEvent, ITeam } from '@/types';
+import React, { useRef, useState } from 'react';
+import { ICheckedInput, IError, IEvent, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -17,14 +17,16 @@ interface TeamListProps {
   fefetchFunc?: () => Promise<void>;
 }
 
+
 function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
 
   const ldoUrl = useLdoUrl()
 
-  const [bulkTeams, setBulkTeams] = useState<string[]>([]);
+  const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
+  // const [bulkTeams, setBulkTeams] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
-  const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
+  const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
 
   // eslint-disable-next-line no-unused-vars
   const handleFilter = (e: React.SyntheticEvent, filteredItemId: number) => {
@@ -34,11 +36,26 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
   // ===== Bulk Actions =====
   const handleCheckedTeam = (e: React.SyntheticEvent, teamId: string) => {
     const inputEl = e.target as HTMLInputElement;
+    const newCheckedItems: Map<string, boolean> = new Map(checkedTeams);
     if (inputEl.checked) {
-      // @ts-ignore
-      setBulkTeams((prevState) => ([...new Set([...prevState, teamId])]));
+      newCheckedItems.set(teamId, true);
     } else {
-      setBulkTeams((prevState) => prevState.filter((t) => t !== teamId));
+      newCheckedItems.set(teamId, false);
+    }
+    setCheckedTeams(newCheckedItems);
+  }
+
+
+  const handleCheckAllToggle = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    const newCheckedItems: Map<string, boolean> = new Map();
+    if (inputEl.checked) {
+      teamList.forEach((t) => {
+        newCheckedItems.set(t._id, true);
+      });
+      setCheckedTeams(newCheckedItems);
+    } else {
+      setCheckedTeams(new Map());
     }
   }
 
@@ -50,31 +67,34 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
   const handleBulkDelete = async (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    if(bulkTeams.length <= 0) return;
+    if (checkedTeams.size <= 0) return;
     try {
       setIsLoading(true);
-      const response = await deleteMultipleTeams({variables: {teamIds: bulkTeams}});
-      const success = await handleResponse({response: response.data.deleteTeams, setActErr});
-      if(success && fefetchFunc) await fefetchFunc();
+      const checkedTeamIds = Array.from(checkedTeams)
+        .filter(([_, isChecked]) => isChecked) // Filter for checked items
+        .map(([teamId]) => teamId); // Map to just the team IDs
+      const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
+      const success = await handleResponse({ response: response.data.deleteTeams, setActErr });
+      if (success && fefetchFunc) await fefetchFunc();
 
     } catch (error: any) {
-      handleError({error, setActErr});
-    }finally{
+      handleError({ error, setActErr });
+    } finally {
       setIsLoading(false);
     }
 
   }
 
-  const handleBulkCredentials= (e: React.SyntheticEvent) => {
+  const handleBulkCredentials = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    
+
   }
 
   return (
     <div className="team-list w-full">
       <div className="action-section flex justify-between mb-4">
         <div className="input-group flex items-center gap-2 justify-between">
-          <input type="checkbox" name="bulkaction" id="bulk-action" />
+          <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
           <label htmlFor="bulk-action">Bulk Action</label>
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={handleShowBulk} />
         </div>
@@ -110,7 +130,10 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
       </div>
       <div className="team-list-card flex flex-col justify-between items-center gap-3">
         {teamList.map((team) => (
-          <TeamCard key={team._id} team={team} eventId={eventId} eventList={eventList || []} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} handleCheckedTeam={handleCheckedTeam} ldoUrl={ldoUrl} />
+          <TeamCard key={team._id} team={team} eventId={eventId} eventList={eventList || []}
+            setIsLoading={setIsLoading} isChecked={checkedTeams.get(team._id) ?? false}
+            fefetchFunc={fefetchFunc} handleCheckedTeam={handleCheckedTeam} ldoUrl={ldoUrl} />
+          //  <input key={team._id} type="text" className='w-fit' defaultChecked={checkedTeams.get(team._id) ?? false} />
         ))}
       </div>
     </div>

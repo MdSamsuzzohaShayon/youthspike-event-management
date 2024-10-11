@@ -104,7 +104,7 @@ export class MyGatWay implements OnModuleInit {
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
     private readonly playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
 
   // Additional functions
   async handleTieBreakerNets(netList: Net[]) {
@@ -196,35 +196,22 @@ export class MyGatWay implements OnModuleInit {
     client: Socket,
     matchId: string,
     actionData: Record<string, any>,
-    excludeSelf = true,
   ): Promise<string[]> {
     const clientsToSend: string[] = [];
 
     let clientInside = false;
     for (const [clientIdKey, val] of this.clientList) {
       // Send everyone except myself
-      if (excludeSelf) {
-        if (clientIdKey !== client.id) {
-          // Ensure val.matches is an object and check for the existence of matchId
-          if (val.matches && val.matches.length > 0) {
-            if (val.matches.includes(matchId)) {
-              this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
-              clientsToSend.push(clientIdKey);
-            }
-          }
-        } else {
-          clientInside = true;
-        }
-      } else {
-        if (clientIdKey === client.id) {
-          clientInside = true;
-        }
+      if (clientIdKey !== client.id) {
+        // Ensure val.matches is an object and check for the existence of matchId
         if (val.matches && val.matches.length > 0) {
           if (val.matches.includes(matchId)) {
             this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
             clientsToSend.push(clientIdKey);
           }
         }
+      } else {
+        clientInside = true;
       }
     }
 
@@ -364,7 +351,7 @@ export class MyGatWay implements OnModuleInit {
     this.clientList.set(client.id, clientObj);
     // Response
     // client.emit('join-room-response', roomData);
-    await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData, false);
+    await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
   }
 
   @SubscribeMessage('check-in-from-client')
@@ -405,7 +392,7 @@ export class MyGatWay implements OnModuleInit {
       this.roomsLocal.set(checkIn.room, roomData);
 
       // Send message to specific room
-      // client.to(prevRoom._id).emit('check-in-response', roomData);
+      client.to(prevRoom._id).emit('check-in-response', roomData);
       // Send this data to all the clients
       await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
     } catch (error) {
@@ -526,7 +513,7 @@ export class MyGatWay implements OnModuleInit {
       // update rank lock in the team
       await Promise.all(updatePromises);
 
-      // client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+      client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
       // Send this data to all the clients
       await this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets);
     } catch (error) {
@@ -642,6 +629,8 @@ export class MyGatWay implements OnModuleInit {
       room: updatePointsInput.room,
       round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed },
       matchCompleted: false,
+      teamAProcess: roundExist.teamAProcess,
+      teamBProcess: roundExist.teamBProcess,
     };
 
     // ===== Complete the match if score is updated in all nets  =====
@@ -651,7 +640,7 @@ export class MyGatWay implements OnModuleInit {
       pointsResponse.matchCompleted = true;
     }
 
-    // client.to(prevRoom._id).emit('update-points-response', pointsResponse);
+    client.to(prevRoom._id).emit('update-points-response', pointsResponse);
     await this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse);
   }
 

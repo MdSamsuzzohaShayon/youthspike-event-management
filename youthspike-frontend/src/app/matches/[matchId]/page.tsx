@@ -47,11 +47,14 @@ import { imgW } from '@/utils/constant';
 import Image from 'next/image';
 import { ETeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
-import { setTeamScore } from '@/redux/slices/matchesSlice';
+import { setMatchInfo, setTeamScore } from '@/redux/slices/matchesSlice';
 
 import './Match.css';
 import SelectTeam from '@/components/match/SelectTeam';
 import { imgSize } from '@/utils/styles';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { IRoundRelatives, IUpdateScoreResponse } from '@/types';
 
 /**
  * Test Match
@@ -77,7 +80,7 @@ import { imgSize } from '@/utils/styles';
  * pfn2094
  *
  *
- * 
+ *
  * http://localhost:3001/matches/66fadc13002cfc571836844a
  */
 
@@ -139,7 +142,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       } else {
         dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
       }
-    }
+    };
     if (userDetail && isValidObjectId(params.matchId)) {
       fetchData();
     } else {
@@ -152,18 +155,22 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
 
-  // showTeamPlayers
 
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
-    if (socket && roundList && roundList.length > 0) {
-      const userDetail = getUserFromCookie();
+    console.log('Render Socket');
+    const userDetail = getUserFromCookie();
 
+    if (socket && roundList && roundList.length > 0) {
       joinTheRoom({ socket, userInfo: userDetail.info, userToken: userDetail.token, teamA, teamB, currRound: currentRound, matchId: params.matchId });
+      // Round list state is been updating, so we need to update roundlist without effecting current round list -> socket state change is not re-rendering
       listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
+
+      // Update points
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, user, teamA, teamB]);
+  }, [socket, user, teamA, teamB, currentRound, roundList]);
 
   // ===== Subbed & Inactive players =====
   useEffect(() => {

@@ -10,7 +10,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
 import { SEND_CREDENTIALS } from '@/graphql/event';
-import { imgSize } from '@/utils/style';
+import { cardHeight, imgSize } from '@/utils/style';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
@@ -20,6 +20,7 @@ interface TeamCardProps {
   team: ITeam;
   eventList: IEvent[];
   ldoUrl: string;
+  isChecked: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   fefetchFunc?: () => Promise<void>;
@@ -30,7 +31,7 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleCheckedTeam, fefetchFunc }: TeamCardProps) {
+function TeamCard({ team, eventId, eventList, ldoUrl, isChecked, setIsLoading, handleCheckedTeam, fefetchFunc }: TeamCardProps) {
   const user = useUser();
   const router = useRouter();
 
@@ -147,15 +148,15 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
 
   useEffect(() => {
     if (eventList && eventList.length > 0) {
-      const newEventList = eventList.filter((e) => e._id !== eventId).map((e) => ({ text: e.name, value: e._id }));
+      const newEventList = eventList.map((e) => ({ text: e.name, value: e._id }));
       setEventOptions(newEventList);
     }
   }, [eventList]);
 
   return (
-    <div className="team-card w-full">
+    <div className="team-card w-full" style={{height: cardHeight}}>
       {/* Level-1: Main component start  */}
-      <div className="w-full  p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
+      <div className="w-full h-full p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
       {/* Level-1.1: action menu start  */}
         <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
           <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} className="flex justify-start items-center gap-x-2">
@@ -186,14 +187,14 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
       {/* Level-1.1: action menu start  */}
 
        {/* Level-1.2: team team num start  */}
-        <div className="w-1/12 flex justify-center items-center flex-col gap-2">
-          <CheckboxInput _id={team._id} name='team-select' handleInputChange={handleCheckedTeam} />
-          <p className="w-8 h-8 rounded-full bg-yellow-logo flex justify-center items-center text-gray-900">{team.num}</p>
+        <div className="h-full w-1/12 flex justify-center items-center flex-col gap-y-4">
+          <CheckboxInput _id={team._id} name='team-select' defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+          <p className="w-4 h-4 rounded-full bg-yellow-logo flex justify-center items-center text-gray-900" style={{fontSize: "0.6rem"}}>{team.num}</p>
         </div>
        {/* Level-1.2: team team num end  */}
        
        {/* Level-1.3: team name start  */}
-        <div className="w-5/12">
+        <div className="h-full w-5/12 flex justify-start items-center">
           <Link href={`/${eventId}/teams/${team._id}/${ldoUrl}`}>
             <div className="brand flex gap-1 items-center">
               {team.logo ? (
@@ -211,7 +212,7 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
        
        
        {/* Level-1.4: captain and active players start  */}
-        <div className="w-5/12">
+        <div className="h-full w-5/12 flex justify-start items-center">
           <Link href={`/${eventId}/teams/${team._id}`}>
             {team.captain && (
               <div className="brand flex gap-1">
@@ -235,8 +236,11 @@ function TeamCard({ team, eventId, eventList, ldoUrl, setIsLoading, handleChecke
           </Link>
         </div>
        {/* Level-1.4: captain and active players end  */}
-        <div className="w-1/12">
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation" onClick={handleOpenAction} className="w-6 svg-white" />
+        <div className="h-full w-1/12 flex flex-col justify-center gap-y-4">
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation" 
+          onClick={handleOpenAction} className="w-6 svg-white" />
+          <Image role="presentation" onClick={(e) => handleSendCredential(e, team._id)} width={imgSize.logo} height={imgSize.logo} 
+          src="/icons/send-email.svg" alt="Edit-icon" className={team?.sendCredentials ? "svg-green" : "svg-white"} />
         </div>
       </div>
       {/* Level-1: Main component end  */}

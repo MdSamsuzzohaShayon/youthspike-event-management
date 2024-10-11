@@ -86,7 +86,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     dispatch(setRoundList(updatedRoundList));
 
     // Update to the server
-    lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN });
+    lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN, myTeamE });
   };
 
   const handleKeyUp = (e: React.SyntheticEvent) => {

@@ -2,7 +2,7 @@ import { IListenPublicSocketProps, IListenSocketProps, IRoundRelatives, IUpdateS
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IMatchComplete, IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
+import { IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
 import { ETieBreaker } from '@/types/net';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
 
@@ -41,8 +41,9 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
         }
       }
 
-      dispatch(setRoundList(updatedRoundList));
-      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+      // Temp - Creating an issue running this again and again
+      // dispatch(setRoundList(updatedRoundList));
+      // if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
   };
 
@@ -124,9 +125,16 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
     dispatch(setCurrentRoundNets(netsOfRound));
 
     // ===== update round =====
-    const findRound = roundList.find((r) => r._id === data.round._id);
+    const findRound: IRoundRelatives | undefined = roundList.find((r) => r._id === data.round._id);
     if (findRound) {
-      const updatedRound = { ...findRound, teamAScore: data.round.teamAScore, teamBScore: data.round.teamBScore, completed: data.round.completed };
+      const updatedRound = {
+        ...findRound,
+        teamAProcess: data.teamAProcess,
+        teamBProcess: data.teamBProcess,
+        teamAScore: data.round.teamAScore,
+        teamBScore: data.round.teamBScore,
+        completed: data.round.completed,
+      };
       const newRoundList = [updatedRound, ...roundList.filter((r) => r._id !== data.round._id)];
       dispatch(setRoundList(newRoundList));
       if (currentRound && findRound._id === currentRound._id) {
@@ -190,16 +198,16 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
   // check-in-response-to-all
   socket.on('join-room-response-all', handleJoinRoom);
 
-  socket.on('check-in-response', handleCheckInResponse); // For captain and co-captain only (temp)
+  // socket.on('check-in-response', handleCheckInResponse); // For captain and co-captain only (temp)
   socket.on('check-in-response-to-all', handleCheckInResponse);
 
-  socket.on('submit-lineup-response', handleLineupResponse); // For captain and co-captain only (temp)
+  // socket.on('submit-lineup-response', handleLineupResponse); // For captain and co-captain only (temp)
   socket.on('submit-lineup-response-all', handleLineupResponse);
 
-  socket.on('update-points-response', handleUpdatePoints); // For captain and co-captain only (temp)
+  // socket.on('update-points-response', handleUpdatePoints); // For captain and co-captain only (temp)
   socket.on('update-points-response-all', handleUpdatePoints);
 
-  socket.on('update-net-response', handleUpdateNet);
+  // socket.on('update-net-response', handleUpdateNet);
   socket.on('update-net-response-all', handleUpdateNet);
 };
 
