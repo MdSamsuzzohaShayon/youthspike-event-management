@@ -27,7 +27,7 @@ const teamSlice = createSlice({
     setTeamB: (state, action: PayloadAction<ITeam>) => {
       state.teamB = action.payload;
     },
-    setTeamList: (state, action:  PayloadAction<ITeam[]>)=>{
+    setTeamList: (state, action: PayloadAction<ITeam[]>) => {
       state.teamList = action.payload;
     },
   },

@@ -196,13 +196,26 @@ export class MyGatWay implements OnModuleInit {
     client: Socket,
     matchId: string,
     actionData: Record<string, any>,
+    excludeSender = true,
   ): Promise<string[]> {
     const clientsToSend: string[] = [];
 
     let clientInside = false;
     for (const [clientIdKey, val] of this.clientList) {
-      // Send everyone except myself
-      if (clientIdKey !== client.id) {
+      if (excludeSender) {
+        // Send everyone except myself
+        if (clientIdKey !== client.id) {
+          // Ensure val.matches is an object and check for the existence of matchId
+          if (val.matches && val.matches.length > 0) {
+            if (val.matches.includes(matchId)) {
+              this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
+              clientsToSend.push(clientIdKey);
+            }
+          }
+        } else {
+          clientInside = true;
+        }
+      } else {
         // Ensure val.matches is an object and check for the existence of matchId
         if (val.matches && val.matches.length > 0) {
           if (val.matches.includes(matchId)) {
@@ -210,9 +223,12 @@ export class MyGatWay implements OnModuleInit {
             clientsToSend.push(clientIdKey);
           }
         }
-      } else {
-        clientInside = true;
+        // Send everyone except myself
+        if (clientIdKey === client.id) {
+          clientInside = true;
+        }
       }
+
     }
 
     // If the client with this action is not present in this match, or clientList add them
@@ -351,7 +367,8 @@ export class MyGatWay implements OnModuleInit {
     this.clientList.set(client.id, clientObj);
     // Response
     // client.emit('join-room-response', roomData);
-    await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
+    // await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
+    await this.emitToAllClients('join-room-response-all', client, roomData.match, roomData, false);
   }
 
   @SubscribeMessage('check-in-from-client')
@@ -392,7 +409,7 @@ export class MyGatWay implements OnModuleInit {
       this.roomsLocal.set(checkIn.room, roomData);
 
       // Send message to specific room
-      client.to(prevRoom._id).emit('check-in-response', roomData);
+      // client.to(prevRoom._id).emit('check-in-response', roomData);
       // Send this data to all the clients
       await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
     } catch (error) {

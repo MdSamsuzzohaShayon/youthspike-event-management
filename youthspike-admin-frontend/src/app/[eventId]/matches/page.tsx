@@ -176,7 +176,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
       <div className="mt-4">
         {addMatch ? (
-          <>
+          <div className='match-add-wrapper w-full'>
             {/* Only director and admin can create match  */}
             {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
               <>
@@ -200,9 +200,9 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
                 />
               </>
             )}
-          </>
+          </div>
         ) : (
-          <>
+          <div className="match-list-wrapper w-full">
             {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
               <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(true)}>
                 Add Match
@@ -219,7 +219,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
             ) : (
               <p>No match created yet!</p>
             )}
-          </>
+          </div>
         )}
       </div>
       <br />

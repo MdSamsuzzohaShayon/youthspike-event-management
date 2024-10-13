@@ -15,6 +15,7 @@ import { cardAnimate } from '@/utils/animation';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
+import { getDivisionFromStore } from '@/utils/localStorage';
 
 
 
@@ -109,11 +110,15 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
   };
 
   const getSelectableOpponents = () => {
-    return teamList.filter(
-      (t) =>
-        t.captain?._id !== user.info?.captainplayer &&
-        t.cocaptain?._id !== user.info?.cocaptainplayer
-    );
+    const division = getDivisionFromStore();
+    const isDifferentCaptain = (t: ITeam) =>   t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
+  
+    return teamList.filter((t) => {
+      const sameDivision = division
+        ? t.division.toString().trim().toUpperCase() === division.toString().trim().toUpperCase()
+        : true;
+      return isDifferentCaptain(t) && sameDivision;
+    });
   };
 
 

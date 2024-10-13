@@ -30,8 +30,8 @@ const PasswordInput = (props: ITextInputProps) => {
                     className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-700"
                 >
                     {showPassword
-                        ? <Image src="/icons/eye-open.svg" alt='show-password' height={20} width={20} />
-                        : <Image src="/icons/eye-close.svg" alt='show-password' height={20} width={20} />}
+                        ? <Image className='svg-white' src="/icons/eye-open.svg" alt='show-password' height={20} width={20} />
+                        : <Image className='svg-white' src="/icons/eye-close.svg" alt='show-password' height={20} width={20} />}
                 </button>
             </div>
         </div>

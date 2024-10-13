@@ -3,7 +3,7 @@
 'use client';
 
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useCallback, Suspense, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 
 // Hooks
 import useResizeObserver from '@/hooks/useResizeObserver';
@@ -15,31 +15,28 @@ import NetScoreOfRound from '@/components/match/NetScoreOfRound';
 import Loader from '@/components/elements/Loader';
 
 // GraphQL
-import { useLazyQuery, useMutation } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { GET_MATCH_DETAIL } from '@/graphql/matches';
-import { UPDATE_NETS } from '@/graphql/net';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setActErr, setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
+import { setActErr, setScreenSize } from '@/redux/slices/elementSlice';
 
 // Utils
-import { getCookie, getUserFromCookie } from '@/utils/cookie';
+import { getUserFromCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
-import { handleError, isValidObjectId } from '@/utils/helper';
+import { isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import { joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
-import { listenSocketEvents } from '@/utils/match/listenSocketEvents';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
 import { APP_NAME } from '@/utils/keys';
@@ -47,14 +44,15 @@ import { imgW } from '@/utils/constant';
 import Image from 'next/image';
 import { ETeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
-import { setMatchInfo, setTeamScore } from '@/redux/slices/matchesSlice';
+import { setTeamScore } from '@/redux/slices/matchesSlice';
 
 import './Match.css';
 import SelectTeam from '@/components/match/SelectTeam';
 import { imgSize } from '@/utils/styles';
-import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IRoundRelatives, IUpdateScoreResponse } from '@/types';
+import { IRoom, IRoomNets, IUpdateScoreResponse } from '@/types';
+import EmitEvents from '@/utils/socket/EmitEvents';
+import SocketEventListener from '@/utils/socket/SocketEventListener';
+import { ITeiBreakerAction } from '@/types/room';
 
 /**
  * Test Match
@@ -118,10 +116,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   };
 
-  const restartAudio = () => {
-    if (audioPlayEl.current) audioPlayEl.current.click();
-  };
-
   // ===== Component resize =====
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
     dispatch(setScreenSize(entry.contentRect.width));
@@ -155,22 +149,53 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
 
-
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
-    console.log('Render Socket');
     const userDetail = getUserFromCookie();
 
-    if (socket && roundList && roundList.length > 0) {
-      joinTheRoom({ socket, userInfo: userDetail.info, userToken: userDetail.token, teamA, teamB, currRound: currentRound, matchId: params.matchId });
-      // Round list state is been updating, so we need to update roundlist without effecting current round list -> socket state change is not re-rendering
-      listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
+    // Initialize socket event listener with required props
+    let socketEventListener: SocketEventListener | null = null;
 
-      // Update points
+    if (socket && roundList?.length > 0) {
+      // Initialize emitEvents with the socket and dispatch props
+      const emitEvents = new EmitEvents(socket, dispatch);
+
+      // Emit join room event when the socket is available and round list has data
+      emitEvents.joinRoom({
+        user: userDetail,
+        teamA,
+        teamB,
+        currRound: currentRound,
+        matchId: params.matchId,
+      });
+
+      socketEventListener = new SocketEventListener(socket, dispatch, audioPlayEl);
+
+      // Listen to socket events for joining the room
+      socket.on('join-room-response-all', (joinData: IRoom) => socketEventListener?.handleJoinRoom(joinData, dispatch));
+      socket.on('check-in-response-to-all', (checkInData: IRoom) => socketEventListener?.handleCheckInResponse({ data: checkInData, dispatch, roundList, currentRound }));
+      socket.on('submit-lineup-response-all', (lineUpData: IRoomNets) => socketEventListener?.handleLineupResponse({ data: lineUpData, dispatch, currRoundNets, allNets, roundList, currentRound }));
+      socket.on(
+        'update-points-response-all',
+        (pointsData: IUpdateScoreResponse) => socketEventListener?.handleUpdatePoints({ data: pointsData, dispatch, currRoundNets, allNets, currentRound, roundList, match: currMatch }),
+      );
+      socket.on(
+        'update-net-response-all',
+        (lineUpData: ITeiBreakerAction) => socketEventListener?.handleUpdateNet({ data: lineUpData, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
+      );
     }
 
+    return () => {
+      // Clean up event listeners to avoid memory leaks
+      socket?.off('join-room-response-all');
+      socket?.off('check-in-response-to-all');
+      socket?.off('submit-lineup-response-all');
+      socket?.off('update-points-response-all');
+      socket?.off('update-net-response-all');
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, user, teamA, teamB, currentRound, roundList]);
+  }, [socket, user, teamA, teamB, currentRound, roundList, currRoundNets, params.matchId]);
 
   // ===== Subbed & Inactive players =====
   useEffect(() => {
@@ -203,8 +228,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   }, [mainEl]);
 
+
+  // Set team score
   useEffect(() => {
-    // const calcTeamScore = () => {
     let teamATS = 0;
     let teamAPMS = 0; // pms = plus minus score
     let teamBTS = 0;

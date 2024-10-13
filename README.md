@@ -55,7 +55,6 @@ ___
 ### Requirements
  - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
  - Captain of a team must not be able to change the ranking of another team
- - Captain should not see "tournament" menu item
  - Getting two same player in a team when random assign.
 
  - Test with public in the match 
