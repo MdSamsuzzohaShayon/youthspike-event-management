@@ -1,25 +1,75 @@
-import { IListenPublicSocketProps, IListenSocketProps, IRoundRelatives, IUpdateScoreResponse } from '@/types';
-import { setCurrentRoom } from '@/redux/slices/roomSlice';
-import { setCurrNetNum, setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IRoom, IRoomNets, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
-import { ETieBreaker } from '@/types/net';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
+import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRoom } from '@/redux/slices/roomSlice';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { IMatchRelatives, INetRelatives, IRoom, IRoomNets, IRoundRelatives, IUpdateScoreResponse } from '@/types';
+import { ETieBreaker } from '@/types/net';
+import { IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
+import React from 'react';
+import { Socket } from 'socket.io-client';
 
-export const listenSocketEvents = ({ socket, match, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio }: IListenSocketProps) => {
-  /**
-   * Socket real time connection
-   * After joining to the room action button will be visiable
-   */
+interface ICheckInResponse {
+  data: IRoom;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  roundList: IRoundRelatives[];
+  currentRound: IRoundRelatives | null;
+}
 
-  const handleJoinRoom = (data: IRoom) => {
-    // const isTeamACaptain = user?.info?.captainplayer === teamA?.captain?._id;
-    const extranctedData = { ...data };
-    dispatch(setCurrentRoom(extranctedData));
+interface ILineUpResponse {
+  data: IRoomNets;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  currentRound: IRoundRelatives | null;
+}
+
+interface IUpdatePointsResponse {
+  data: IUpdateScoreResponse;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  currentRound: IRoundRelatives | null;
+  match: IMatchRelatives;
+}
+
+interface IUpdateNetResponse {
+  data: ITeiBreakerAction;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  match: IMatchRelatives;
+}
+
+// Class to handle socket events
+class SocketEventListener {
+  socket: Socket | null;
+
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+
+  audioPlayEl: React.RefObject<HTMLElement | null>;
+
+  constructor(socket: Socket, dispatch: React.Dispatch<React.ReducerAction<any>>, audioPlayEl: React.RefObject<HTMLElement | null>) {
+    this.socket = socket;
+    this.dispatch = dispatch;
+    this.audioPlayEl = audioPlayEl;
+
+    this.restartAudio.bind(this);
+  }
+
+  handleJoinRoom(data: IRoom, dispatch: React.Dispatch<React.ReducerAction<any>>) {
+    this.dispatch = dispatch;
+    dispatch(setCurrentRoom(data));
+  }
+
+  restartAudio() {
+    if (this.audioPlayEl.current) this.audioPlayEl.current.click();
   };
 
-  const handleCheckInResponse = (data: IRoom) => {
-    restartAudio();
+  handleCheckInResponse({ data, dispatch, roundList, currentRound }: ICheckInResponse) {
+    this.restartAudio();
 
     // Set current round and round list
     const updatedRoundList: IRoundRelatives[] = [];
@@ -42,13 +92,13 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
       }
 
       // Temp - Creating an issue running this again and again
-      // dispatch(setRoundList(updatedRoundList));
-      // if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+      dispatch(setRoundList(updatedRoundList));
+      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }
-  };
+  }
 
-  const handleLineupResponse = (data: IRoomNets) => {
-    restartAudio();
+  handleLineupResponse({ data, dispatch, currRoundNets, allNets, roundList, currentRound }: ILineUpResponse) {
+    this.restartAudio();
 
     // Set current round nets and all nets
     const updatedCRN = [...currRoundNets]; // crn = current round nets
@@ -101,9 +151,10 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
       dispatch(setCurrNetNum(1));
     }
-  };
+  }
 
-  const handleUpdatePoints = (data: IUpdateScoreResponse) => {
+  handleUpdatePoints({ data, dispatch, currRoundNets, allNets, roundList, currentRound, match }: IUpdatePointsResponse) {
+    this.dispatch = dispatch;
     // ===== set current round nets =====
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
@@ -146,9 +197,10 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
     if (data.matchCompleted) {
       dispatch(setMatchInfo({ ...match, completed: true }));
     }
-  };
+  }
 
-  const handleUpdateNet = (data: ITeiBreakerAction) => {
+  handleUpdateNet({ data, dispatch, currRoundNets, allNets, roundList, match }: IUpdateNetResponse) {
+    this.dispatch = dispatch;
     // Update current round nets and all nets
     const updatedCRN = [...currRoundNets];
     const updatedN = [...allNets];
@@ -191,33 +243,18 @@ export const listenSocketEvents = ({ socket, match, dispatch, currentRound, curr
 
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedN));
-  };
-
-  // Listen to events
-
-  // check-in-response-to-all
-  socket.on('join-room-response-all', handleJoinRoom);
-
-  // socket.on('check-in-response', handleCheckInResponse); // For captain and co-captain only (temp)
-  socket.on('check-in-response-to-all', handleCheckInResponse);
-
-  // socket.on('submit-lineup-response', handleLineupResponse); // For captain and co-captain only (temp)
-  socket.on('submit-lineup-response-all', handleLineupResponse);
-
-  // socket.on('update-points-response', handleUpdatePoints); // For captain and co-captain only (temp)
-  socket.on('update-points-response-all', handleUpdatePoints);
-
-  // socket.on('update-net-response', handleUpdateNet);
-  socket.on('update-net-response-all', handleUpdateNet);
-};
-
-interface ICreateEvent {
-  eventId: string;
+  }
 }
 
-export const listenPublicSocketEvents = ({ socket }: IListenPublicSocketProps) => {
-  // Listen to events
-  socket.on('event-created-from-server', (data: ICreateEvent) => {
-    console.log({ eventId: data.eventId, msg: 'Created a new event' });
-  });
-};
+/*
+  export const listenSocketEvents = (props: IListenSocketProps) => {
+    new SocketEventListener(props);
+  };
+
+  export const listenPublicSocketEvents = ({ socket }: IListenPublicSocketProps) => {
+    socket.on('event-created-from-server', (data: ICreateEvent) => {
+      console.log({ eventId: data.eventId, msg: 'Created a new event' });
+    });
+  };
+*/
+export default SocketEventListener;

@@ -50,7 +50,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
     return (
         <ul className="w-full flex justify-center items-center gap-x-2 flex-wrap">
             {userMenuList.map((item, iIdx) => (
-                <motion.li initial={iInitial} animate={iAnimate} exit={iExit} transition={iTransition} key={item.id}>
+                <motion.li className='capitalize' initial={iInitial} animate={iAnimate} exit={iExit} transition={iTransition} key={item.id}>
                     <Link
                         href={item.link}
                     >

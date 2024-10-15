@@ -34,7 +34,7 @@ export interface IPlayerRankingItemExpRel extends IPlayerRankingItemCommon {
 export interface IPlayerRankingExpRel extends IPlayerRankingCommon {
   rankings: IPlayerRankingItemExpRel[];
 
-  // Make relationship with team(not nullable) and matc
+  // Make relationship with team(not nullable) and match
   team: ITeam;
   match?: IMatchRelatives;
 }

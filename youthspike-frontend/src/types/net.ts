@@ -1,3 +1,5 @@
+import { EActionProcess } from "./room";
+
 export enum ETieBreaker {
   PREV_NET = 'PREV_NET',
   FINAL_ROUND_NET = 'FINAL_ROUND_NET',
@@ -48,6 +50,8 @@ interface IUpdateScoreResponse {
   room: string;
   round: INetScoreUpdate;
   matchCompleted: boolean;
+  teamAProcess: EActionProcess; // Oponent Team
+  teamBProcess: EActionProcess; // My Team
 }
 
 interface INetPlayers {

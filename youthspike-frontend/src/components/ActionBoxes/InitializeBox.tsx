@@ -1,10 +1,10 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { IRoom, IRoundRelatives, IUserContext } from '@/types';
 import { EActionProcess } from '@/types/room';
-import { initToCheckIn } from '@/utils/match/emitSocketEvents';
 import Image from 'next/image';
 import React from 'react';
 import { Socket } from 'socket.io-client';
+import EmitEvents from '@/utils/socket/EmitEvents';
 import PointText from './PointText';
 
 interface IBoxProps {
@@ -17,12 +17,14 @@ interface IBoxProps {
 }
 function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp }: IBoxProps) {
   const dispatch = useAppDispatch();
-  const { teamA } = useAppSelector((state) => state.teams);
   const { myTeamE } = useAppSelector((state) => state.matches);
 
   const handleInitToCheckIn = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    initToCheckIn({ socket, user, teamA, currRoom, currRound, roundList, dispatch, teamE: myTeamE });
+    const emitEvents = new EmitEvents(socket, dispatch);
+
+    // Emit join room event when the socket is available and round list has data
+    emitEvents.checkIn({ currRoom, socket, currRound, dispatch, myTeamE, roundList, user });
   };
   return (
     <div className="flex py-2 w-full justify-between items-center gap-1 box-success">

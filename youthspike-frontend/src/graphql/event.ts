@@ -82,6 +82,17 @@ teams{
     email
     profile
   }
+  playerRanking {
+    _id
+    rankLock
+    rankings {
+      _id
+      rank
+      player {
+        _id
+      }
+    }
+  }
 }
 `;
 

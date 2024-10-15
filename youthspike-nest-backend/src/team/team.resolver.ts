@@ -453,7 +453,7 @@ export class TeamResolver {
   @ResolveField(() => PlayerRanking, { nullable: true })
   async playerRanking(@Parent() team: Team): Promise<PlayerRanking> {
     try {
-      const playerRanking = await this.playerRankingService.findOne({ team: team._id, rankLock: false });
+      const playerRanking = await this.playerRankingService.findOne({ team: team._id, rankLock: false }); // For secific match a rank will be locked
       return playerRanking;
     } catch (error) {
       console.log(error);

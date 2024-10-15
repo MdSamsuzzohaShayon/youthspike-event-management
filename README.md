@@ -53,32 +53,23 @@ ___
 
 
 ### Requirements
- - Some issues with banning nets, neet to work more with that
+ - Fixing issues with Safari
+ - Menu in the frontend -> to navigate to admin easily
+ - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
+ - Captain of a team must not be able to change the ranking of another team
+
+ - Test with public in the match 
  - Live events are not working properly captain to admin
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
 ### Update
- - If a captain enter into someone else's match he or she should not see any action box
  - In public view show search filter (Search by team, date, match description)
  - In public view need to show round score (In progress or final score) (winning team will have green circle)
  - Show records (win loss) for a team during an event.  (Record win number - Loss number)
  - Show final or in progress in last round
  - Admin should be able to put score in
 
-<!-- ### Update - 1
- - [05:50](https://www.loom.com/share/7mbba1631ca8d89e028a) - someone was ranked and his match is over, when he is inactive and make him active again his pair score and ranking was gone
- - Check all matches date in the server
-
-### Update - 2 
- - Also, to ensure proper fitting. Can we make the last names of the players 2 font size smaller? ALso can we shrink the gab between first name and last name a little more?
- - Also not sure if we can shrink the gaps between roster and team names and team names and the middle area?
- - Real time data update (Score update), save all user id who open up the tab as a public or general user, 
- - Real Time Update when creating a match 
- - Here is where we are currently at with the redesign. The green team name I’ll be what happens when the team wins. We will have a couple additions for the subbing solutions. But this is pretty close to our thoughts for this next version.
- - Auto assign need to work properly
- - In the setting dialog in a single match page, find matches will take back to all the matches, dashboard will take back to dashboard, 
- - [08:38](https://www.loom.com/share/ab1d7eebaf8246ea87f818428cf5e0d4) - Once the match is finished, there will be a summarize the match it would say the match is over -->
 
 
 
@@ -243,7 +234,9 @@ ___
 
 
 ### Ask
- - Can you see matches after creating it in the current when you are in admin area(admin.aslsquads.com)?
- - Can you see matches after creating it in the home page of admin view(aslsquads.com)?
- - There 2 different date? one for event and one for match of a event? When  you will be filtering an event current date is the date of the event, not the match. 
- - Can you please create a video showing me what date is it showing in the match list (in both section, public or admin area) after you creating a match.
+ Hi there, 
+ I have updated the server, this time admin or director can  play a match on behalf of a team. I had to do a lot of things to do this.
+ Now I am going to fix issue with refreshing and safari browser support. I think those 2 are most important right now. Furthermore we will walk though our document of to do list. 
+  
+ I have a confusion with notification. Our current notification system works in this way, if 2 teams play a match, both team's captains need to be in the match page in order to get notification of the match, if they are outside of the match page they may have multiple matches, if they get a notification they won't be sure for which match the notification is for. Can you think a better solution for this?
+ Thank You

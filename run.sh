@@ -13,20 +13,31 @@ sudo dnf update -y
 echo "============================================================"
 echo "=======================RUN BACKEND=========================="
 echo "============================================================"
+if [ ! -d "youthspike-nest-backend/node_modules" ]; then
+    echo "Installing packages"
+    npm install express --prefix youthspike-nest-backend
+fi
 gnome-terminal --tab --working-directory="/home/shayon/Documents/web/youthspike-event-management/youthspike-nest-backend/" --title="Backend" -- bash -c "code . && npm run dev"
 
 echo "============================================================"
 echo "=======================RUN FRONTEND ADMIN==================="
 echo "============================================================"
+if [ ! -d "youthspike-admin-frontend/node_modules" ]; then
+    echo "Installing packages"
+    npm install express --prefix youthspike-admin-frontend
+fi
 gnome-terminal --tab --working-directory="/home/shayon/Documents/web/youthspike-event-management/youthspike-admin-frontend/" --title="Admin Frontend" -- bash -c "code . && npm run dev"
 
 echo "============================================================"
 echo "=======================RUN FRONTEND ========================"
 echo "============================================================"
+if [ ! -d "youthspike-frontend/node_modules" ]; then
+    echo "Installing packages"
+    npm install express --prefix youthspike-frontend
+fi
 gnome-terminal --tab --working-directory="/home/shayon/Documents/web/youthspike-event-management/youthspike-frontend/" --title="Frontend" -- bash -c "code . && npm run dev"
 
 
-# gnome-terminal --tab is used to open a new tab in the terminal for each application.
-# --working-directory specifies the directory in which the terminal should start.
-# --title sets a title for each terminal tab (optional but helpful for organization).
-# -- is used to separate the gnome-terminal options from the command (npm run dev in this case).
+# code /home/shayon/Documents/web/youthspike-event-management/youthspike-nest-backend
+# code /home/shayon/Documents/web/youthspike-event-management/youthspike-admin-frontend
+# code /home/shayon/Documents/web/youthspike-event-management/youthspike-frontend

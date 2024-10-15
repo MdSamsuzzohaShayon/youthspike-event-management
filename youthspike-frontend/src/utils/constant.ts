@@ -1,4 +1,4 @@
-import { EEventPeriod } from "@/types/event";
+import { EEventPeriod } from '@/types/event';
 
 const screen = {
   xs: 500,
@@ -25,7 +25,7 @@ const EXTRA_HEIGHT: number = 120;
 const MUSIC_TIME_PASSED = 'MUSIC_TIME_PASSED';
 const MATCHES_LS = 'MATCHES_LS';
 
-const imgW ={
+const imgW = {
   logo: 20,
   xs: 200,
   sm: 576,
@@ -34,8 +34,9 @@ const imgW ={
   xxl: 1400,
 };
 
-const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST,];
+const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST];
 
+const EVENT_ITEM = 'event_item'; // Name of the query params
 
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM };

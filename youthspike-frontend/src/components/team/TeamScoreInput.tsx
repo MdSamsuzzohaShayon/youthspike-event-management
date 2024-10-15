@@ -44,7 +44,7 @@ function TeamScoreInput({ net, teamE, wTeam , screenWidth, teamName, user, currR
         onChange={(e) => handlePointChange(e, net?._id ?? null, teamE)}
         defaultValue={defaultVal}
         style={fsToggle(screenWidth)}
-        className={`w-2/6 ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
+        className={`w-2/6 rounded-lg ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
         readOnly={inputReadonly()}
       />
     </div>

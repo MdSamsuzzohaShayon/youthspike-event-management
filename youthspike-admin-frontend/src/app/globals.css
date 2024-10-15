@@ -97,6 +97,10 @@ dialog::backdrop {
   filter: grayscale(100%) brightness(0) invert(100%);
 }
 
+.svg-green {
+  filter: invert(43%) sepia(100%) saturate(800%) hue-rotate(90deg) brightness(90%) contrast(85%);
+}
+
 .svg-black {
   filter: grayscale(100%) brightness(0);
 }

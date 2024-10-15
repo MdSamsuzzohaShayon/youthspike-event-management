@@ -29,9 +29,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
 
   if (loading || isLoading) return <Loader />;
 
-  const prevEvent = data?.getEvent?.data; 
-  
-
+  const prevEvent = data?.getEvent?.data;
 
   return <div className="container mx-auto px-2 min-h-screen">{prevEvent && <EventDetail event={prevEvent} />}</div>;
 }

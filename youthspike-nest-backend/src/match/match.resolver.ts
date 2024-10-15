@@ -45,7 +45,7 @@ export class MatchResolver {
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
     private emailsenderService: EmailsenderService,
-  ) {}
+  ) { }
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
     const updatePromises = [];
@@ -114,30 +114,34 @@ export class MatchResolver {
 
       const createPromises = [];
 
+      if (!input.division || !eventExist.divisions.toLowerCase().includes(input.division.trim().toLowerCase()))
+        return AppResponse.notFound('Event');
+
       // ===== Set Event default value ====
-      const matchObj: any = {
+      // Prepare defaults based on the event
+      const matchObj: Match = {
         ...input,
-        nets: netIds,
-        rounds: roundIds,
-        players: playerIds,
+        completed: false,
+        nets: [],
+        rounds: [],
+        numberOfNets: input.numberOfNets ?? eventExist.nets,
+        numberOfRounds: input.numberOfRounds ?? eventExist.rounds,
+        netVariance: input.netVariance ?? eventExist.netVariance,
+        homeTeam: input.homeTeam ?? eventExist.homeTeam,
+        autoAssign: input.autoAssign ?? eventExist.autoAssign,
+        autoAssignLogic: input.autoAssignLogic ?? eventExist.autoAssignLogic,
+        rosterLock: input.rosterLock ?? eventExist.rosterLock,
+        timeout: input.timeout ?? eventExist.timeout,
+        description: input.description ?? eventExist.description,
+        fwango: input.fwango ?? eventExist.fwango,
       };
 
-      if (!matchObj.division || !eventExist.divisions.toLowerCase().includes(matchObj.division.trim().toLowerCase()))
-        return AppResponse.notFound('Event');
-      if (!matchObj.numberOfNets) matchObj.numberOfNets = eventExist.nets;
-      if (!matchObj.numberOfRounds) matchObj.numberOfRounds = eventExist.rounds;
-      if (!matchObj.playerLimit) matchObj.playerLimit = eventExist.playerLimit;
-      if (!matchObj.netVariance) matchObj.netVariance = eventExist.netVariance;
-      if (!matchObj.homeTeam) matchObj.homeTeam = eventExist.homeTeam;
-      if (!matchObj.autoAssign) matchObj.autoAssign = eventExist.autoAssign;
-      if (!matchObj.autoAssignLogic) matchObj.autoAssignLogic = eventExist.autoAssignLogic;
-      if (!matchObj.rosterLock) matchObj.rosterLock = eventExist.rosterLock;
-      if (!matchObj.timeout) matchObj.timeout = eventExist.timeout;
-      if (!matchObj.description) matchObj.description = eventExist.description;
-      if (!matchObj.fwango) matchObj.fwango = eventExist.fwango;
-
+      // Create a new room
       const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB });
-      const newMatch = await this.matchService.create({ ...matchObj, room: newRoom._id });
+      matchObj.room = newRoom._id;
+
+      // Create the match
+      const newMatch = await this.matchService.create(matchObj);
 
       // ===== Create new ranking for team A and team B =====
       const [teamARanking, teamBRanking] = await Promise.all([
@@ -145,11 +149,13 @@ export class MatchResolver {
         this.playerRankingService.findOne({ team: input.teamB }),
       ]);
       if (!teamARanking || !teamBRanking) return AppResponse.notFound('Player Ranking');
+
       const [teamAItems, teamBItems] = await Promise.all([
         this.playerRankingService.findItems({ playerRanking: teamARanking._id }),
         this.playerRankingService.findItems({ playerRanking: teamBRanking._id }),
       ]);
 
+      // Create rounds and nets
       const teamARankings = [],
         teamBRankings = [];
 
@@ -235,6 +241,8 @@ export class MatchResolver {
       createPromises.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
 
       await Promise.all(createPromises);
+
+      console.log({ msg: 'Creating a match - backend!', matchId: newMatch._id, date: newMatch.date });
 
       return {
         data: newMatch,

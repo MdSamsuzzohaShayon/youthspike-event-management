@@ -97,6 +97,9 @@ export class UpdatePointsInput {
 
   @Field({ nullable: false })
   room: string;
+
+  @Field({ nullable: false })
+  teamE: ETeam;
 }
 
 @ObjectType()
@@ -127,6 +130,12 @@ export class RoundUpdatedResponse {
 
   @Field({ nullable: false })
   matchCompleted: boolean;
+
+  @Field({ nullable: true })
+  teamAProcess: string;
+
+  @Field({ nullable: true })
+  teamBProcess: string;
 }
 
 @InputType()

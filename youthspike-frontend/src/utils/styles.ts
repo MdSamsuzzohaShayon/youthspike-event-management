@@ -14,4 +14,43 @@ const headingStyle = (screenWidth: number, h1: number = 0, h2: number = 0): CSSP
 
 const overflowNetH = 50; // rem
 
-export { border, textStyle, headingStyle, overflowNetH };
+// Define the type for image size properties
+interface IImageSize {
+  height: number;
+  width: number;
+}
+
+// Define the type for the imgSize object with different size options
+interface IImageSizes {
+  tiny: IImageSize;
+  small: IImageSize;
+  medium: IImageSize;
+  large: IImageSize;
+  extraLarge: IImageSize;
+}
+
+// Initialize the imgSize object with different sizes
+const imgSize: IImageSizes = {
+  tiny: {
+    height: 50,
+    width: 60,
+  },
+  small: {
+    height: 100,
+    width: 120,
+  },
+  medium: {
+    height: 200,
+    width: 240,
+  },
+  large: {
+    height: 400,
+    width: 480,
+  },
+  extraLarge: {
+    height: 800,
+    width: 960,
+  },
+};
+
+export { border, textStyle, headingStyle, overflowNetH, imgSize };

@@ -6,24 +6,16 @@ import type { INetRelatives } from './net';
 import type { EActionProcess, IRoom } from './room';
 import type { IRoundRelatives } from './round';
 import { ETeam, ITeam } from './team';
-import type { IUser, IUserContext, UserRole } from './user';
+import type { IUserContext, UserRole } from './user';
 import { IMatchRelatives } from './match';
 
 export interface IListenSocketProps {
-  socket: Socket;
-  match: IMatchRelatives;
+  socket: Socket | null;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
-  currentRound: IRoundRelatives | null;
-  currRoundNets: INetRelatives[];
-  allNets: INetRelatives[];
-  roundList: IRoundRelatives[];
-  restartAudio: () => void;
 }
 
 export interface IJoinTheRoomProps {
-  socket: Socket | null;
-  userInfo: IUser | null;
-  userToken: string | null;
+  user: IUserContext;
   teamA?: ITeam | null;
   teamB?: ITeam | null;
   currRound: IRoundRelatives | null;
@@ -47,8 +39,7 @@ export interface IStatusChange {
   currRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
   dispatch: React.Dispatch<React.ReducerAction<any>>;
-  teamA?: ITeam | null;
-  teamE?: ETeam;
+  myTeamE: ETeam;
 }
 
 export interface ICheckInToLineupProps extends IStatusChange {
@@ -57,6 +48,7 @@ export interface ICheckInToLineupProps extends IStatusChange {
 }
 
 export interface ISubmitLineupProps extends ICheckInToLineupProps {
+  teamA?: ITeam | null;
   teamB?: ITeam | null;
   myPlayerIds: string[];
 }
@@ -71,7 +63,7 @@ export interface IJoinData {
   round: string;
   userRole: UserRole;
   userId?: string;
-  team?: string;
+  team?: string | null;
 }
 
 export interface ICheckInData {
@@ -82,6 +74,19 @@ export interface ICheckInData {
   userId: string;
   userRole: UserRole;
   teamE?: ETeam;
+}
+
+interface INetPoints {
+  _id: string;
+  teamAScore: number;
+  teamBScore: number;
+}
+
+export interface IUpdatePointData {
+  nets: INetPoints[];
+  room: string;
+  round: string;
+  teamE: ETeam;
 }
 
 // roundList, dispatch, allNets, newRoundIndex, myTeamE
@@ -104,6 +109,7 @@ export interface ISubmitUpdatePointsProps {
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   currRoundNets: INetRelatives[];
+  myTeamE: ETeam;
 }
 
 export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps {

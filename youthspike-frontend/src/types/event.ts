@@ -66,3 +66,10 @@ export enum EEventPeriod {
   CURRENT = 'CURRENT',
   PAST = 'PAST',
 }
+
+// eslint-disable-next-line no-shadow
+export enum EEventItem {
+  PLAYER = 'PLAYER',
+  MATCH = 'MATCH',
+  TEAM = 'TEAM',
+}

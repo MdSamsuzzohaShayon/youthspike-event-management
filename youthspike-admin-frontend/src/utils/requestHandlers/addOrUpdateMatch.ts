@@ -1,7 +1,6 @@
-import { GET_EVENT_WITH_MATCHES_TEAMS } from "@/graphql/matches";
-import { IAddMatch, IError, IMatch, IMatchExpRel } from "@/types";
+import { IAddMatch, IError, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
-import { Router } from "next/router";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import React from "react";
 
 interface IAddOrUpdateMatchProps {
@@ -16,39 +15,21 @@ interface IAddOrUpdateMatchProps {
     matchId?: string;
     update?: boolean;
     showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-    router?: Router;
+    router?: AppRouterInstance;
     addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
-function getLocation() {
-    return new Promise((resolve, reject) => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const latitude  = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    resolve(`Latitude: ${latitude} °, Longitude: ${longitude} °`);
-                },
-                (error) => {
-                    reject('Unable to retrieve your location');
-                }
-            );
-        } else {
-            reject('Geolocation is not supported by your browser');
-        }
-    });
-}
 
 async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
     try {
         setIsLoading(true);
         let matchRes = null;
 
+        const dateObj = { msg: 'Creating a match - frontend!', matchId: "", date: "" }; // For debuging purpose
         if (update) {
             const updateMatchObj = { ...updateMatch, event: eventId };
-            if (updateMatchObj.date) {
-                updateMatchObj.date = new Date(updateMatchObj.date).toISOString();
-            }
+            dateObj.date = updateMatchObj.date || "";
+            dateObj.matchId = matchId || "";
             if (Object.entries(updateMatchObj).length <= 1) return setIsLoading(false); // Do not allow to update empty object
             // @ts-ignore
             if (updateMatchObj.teams) delete updateMatchObj.teams;
@@ -59,17 +40,18 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
             if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' })
             const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision) addMatchObj.division = currDivision;
-            console.log({dateBefore: addMatchObj.date});
-            addMatchObj.date = new Date(addMatchObj.date).toISOString();
-            console.log({dateAfter: addMatchObj.date});
             if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ code: 400, success: false, message: 'Teams can not be empty to unselected!' });
             if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' })
             // @ts-ignore
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });
             if (matchRes?.data?.createMatch?.data && addMatchCB) addMatchCB(matchRes?.data?.createMatch?.data);
+            dateObj.date = addMatchObj.date;
+            dateObj.matchId = matchRes?.data?.createMatch?.data?._id || "";
             setActErr(null);
         }
+        console.log(dateObj);
+        
         if (showAddMatch) showAddMatch(false);
         if(update && router){
             if(matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299){

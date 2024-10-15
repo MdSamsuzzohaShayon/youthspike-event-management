@@ -1,6 +1,6 @@
 /* eslint-disable react/require-default-props */
 import { useUser } from '@/lib/UserProvider';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { EActionProcess, IRoom } from '@/types/room';
 import { useSocket } from '@/lib/SocketProvider';
 import { INetRelatives, IRoundRelatives, ITeam } from '@/types';
@@ -30,9 +30,10 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
   const [otp, setOtp] = useState<EActionProcess>(EActionProcess.INITIATE); // otp = Oponent team process
 
-  const renderActionBoxes = (): React.ReactNode | null => {
+  const renderActionBoxes = useCallback((): React.ReactNode | null => {
     const isFinalRound = currentRound?.num === roundList.length;
     const lockedNets = currRoundNets.filter((net) => net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    console.log({ msg: 'When we ban a net we need to set that properly in both end through web socket!', currRoundNets });
 
     if (isFinalRound && currentRound?.teamAProcess === EActionProcess.LINEUP && currentRound?.teamBProcess === EActionProcess.LINEUP && lockedNets.length <= 1) {
       return <FinalRoundBox myTeamE={myTeamE} />;
@@ -55,7 +56,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
       default:
         return null;
     }
-  };
+  }, [currRoundNets, currentRoom, currentRound, mtp, myTeamE, otp, roundList, socket, user]);
 
   useEffect(() => {
     if (ETeam.teamA === myTeamE) {

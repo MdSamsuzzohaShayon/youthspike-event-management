@@ -3,7 +3,7 @@
 'use client';
 
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useCallback, Suspense, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 
 // Hooks
 import useResizeObserver from '@/hooks/useResizeObserver';
@@ -15,31 +15,28 @@ import NetScoreOfRound from '@/components/match/NetScoreOfRound';
 import Loader from '@/components/elements/Loader';
 
 // GraphQL
-import { useLazyQuery, useMutation } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { GET_MATCH_DETAIL } from '@/graphql/matches';
-import { UPDATE_NETS } from '@/graphql/net';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setActErr, setIsLoading, setScreenSize } from '@/redux/slices/elementSlice';
+import { setActErr, setScreenSize } from '@/redux/slices/elementSlice';
 
 // Utils
-import { getCookie, getUserFromCookie } from '@/utils/cookie';
+import { getUserFromCookie } from '@/utils/cookie';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
 import { useUser } from '@/lib/UserProvider';
 import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
-import { handleError, isValidObjectId } from '@/utils/helper';
+import { isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import { joinTheRoom } from '@/utils/match/emitSocketEvents';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
-import { listenSocketEvents } from '@/utils/match/listenSocketEvents';
 import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
 import { APP_NAME } from '@/utils/keys';
@@ -51,6 +48,11 @@ import { setTeamScore } from '@/redux/slices/matchesSlice';
 
 import './Match.css';
 import SelectTeam from '@/components/match/SelectTeam';
+import { imgSize } from '@/utils/styles';
+import { IRoom, IRoomNets, IUpdateScoreResponse } from '@/types';
+import EmitEvents from '@/utils/socket/EmitEvents';
+import SocketEventListener from '@/utils/socket/SocketEventListener';
+import { ITeiBreakerAction } from '@/types/room';
 
 /**
  * Test Match
@@ -76,7 +78,7 @@ import SelectTeam from '@/components/match/SelectTeam';
  * pfn2094
  *
  *
- * 
+ *
  * http://localhost:3001/matches/66fadc13002cfc571836844a
  */
 
@@ -114,10 +116,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   };
 
-  const restartAudio = () => {
-    if (audioPlayEl.current) audioPlayEl.current.click();
-  };
-
   // ===== Component resize =====
   const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
     dispatch(setScreenSize(entry.contentRect.width));
@@ -138,7 +136,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       } else {
         dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
       }
-    }
+    };
     if (userDetail && isValidObjectId(params.matchId)) {
       fetchData();
     } else {
@@ -151,18 +149,53 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
 
-  // showTeamPlayers
-
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
-    if (socket && roundList && roundList.length > 0) {
-      const userDetail = getUserFromCookie();
+    const userDetail = getUserFromCookie();
 
-      joinTheRoom({ socket, userInfo: userDetail.info, userToken: userDetail.token, teamA, teamB, currRound: currentRound, matchId: params.matchId });
-      listenSocketEvents({ socket, match: currMatch, dispatch, currentRound, currRoundNets, allNets, roundList, restartAudio });
+    // Initialize socket event listener with required props
+    let socketEventListener: SocketEventListener | null = null;
+
+    if (socket && roundList?.length > 0) {
+      // Initialize emitEvents with the socket and dispatch props
+      const emitEvents = new EmitEvents(socket, dispatch);
+
+      // Emit join room event when the socket is available and round list has data
+      emitEvents.joinRoom({
+        user: userDetail,
+        teamA,
+        teamB,
+        currRound: currentRound,
+        matchId: params.matchId,
+      });
+
+      socketEventListener = new SocketEventListener(socket, dispatch, audioPlayEl);
+
+      // Listen to socket events for joining the room
+      socket.on('join-room-response-all', (joinData: IRoom) => socketEventListener?.handleJoinRoom(joinData, dispatch));
+      socket.on('check-in-response-to-all', (checkInData: IRoom) => socketEventListener?.handleCheckInResponse({ data: checkInData, dispatch, roundList, currentRound }));
+      socket.on('submit-lineup-response-all', (lineUpData: IRoomNets) => socketEventListener?.handleLineupResponse({ data: lineUpData, dispatch, currRoundNets, allNets, roundList, currentRound }));
+      socket.on(
+        'update-points-response-all',
+        (pointsData: IUpdateScoreResponse) => socketEventListener?.handleUpdatePoints({ data: pointsData, dispatch, currRoundNets, allNets, currentRound, roundList, match: currMatch }),
+      );
+      socket.on(
+        'update-net-response-all',
+        (lineUpData: ITeiBreakerAction) => socketEventListener?.handleUpdateNet({ data: lineUpData, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
+      );
     }
+
+    return () => {
+      // Clean up event listeners to avoid memory leaks
+      socket?.off('join-room-response-all');
+      socket?.off('check-in-response-to-all');
+      socket?.off('submit-lineup-response-all');
+      socket?.off('update-points-response-all');
+      socket?.off('update-net-response-all');
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, user, teamA, teamB, roundList]);
+  }, [socket, user, teamA, teamB, currentRound, roundList, currRoundNets, params.matchId]);
 
   // ===== Subbed & Inactive players =====
   useEffect(() => {
@@ -195,8 +228,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   }, [mainEl]);
 
+  // Set team score
   useEffect(() => {
-    // const calcTeamScore = () => {
     let teamATS = 0;
     let teamAPMS = 0; // pms = plus minus score
     let teamBTS = 0;
@@ -292,10 +325,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                     currMatch={currMatch}
                   />
                 </div>
-                {user &&
-                  user.info &&
+                {/* Conditions:
+                There must be user
+                If the user is Director or Admin type he can access RoundRunner
+                if the user is captain or co captain he must be a captain or co-captain of a team */}
+                {user?.info &&
                   currRoom &&
-                  (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain || user.info.role === UserRole.director || user.info.role === UserRole.admin) && (
+                  (user.info.role === UserRole.director || user.info.role === UserRole.admin || user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
                     <div className="my-round-runner w-full">
                       <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
                     </div>
@@ -322,7 +358,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                   <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
                   {(user.info?.role === UserRole.director || user.info?.role === UserRole.admin) && (
                     <button className="absolute top-2 right-4 z-20" aria-label="select-team" type="button" onClick={() => setSelectTeam(true)}>
-                      <img src="/icons/dropdown.svg" className="w-6" alt="dowpdown-icon" />
+                      <Image height={imgSize.tiny.height} width={imgSize.tiny.width} src="/icons/dropdown.svg" className="w-6" alt="dowpdown-icon" />
                     </button>
                   )}
                 </div>

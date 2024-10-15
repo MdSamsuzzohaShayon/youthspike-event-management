@@ -18,7 +18,7 @@ function MenuItem({ icon, text, link, setOpenMenu }: IMenuItem) {
   };
 
   return (
-    <li className="text-2xl" role="presentation" onClick={pageRedirect}>
+    <li className="text-2xl capitalize" role="presentation" onClick={pageRedirect}>
       <Link href={link} className="flex justify-start items-center">
         <span>
           <Image height={20} width={20} src={icon} alt={text} className="w-6 svg-white mr-6" />

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
@@ -17,6 +17,7 @@ function SocketProvider({ children }: React.PropsWithChildren<{}>) {
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
+    console.log('Socket connected:', newSocket);
     setSocket(newSocket);
 
     return () => {

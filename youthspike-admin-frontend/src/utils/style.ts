@@ -7,5 +7,7 @@ const imgSize = {
     xxl: 1400,
 };
 
+const cardHeight = "6rem"; // rem
+
 // eslint-disable-next-line import/prefer-default-export
-export { imgSize };
+export { imgSize, cardHeight };

@@ -1,5 +1,5 @@
 import { IEvent, IEventWMatch } from '@/types';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { eventPeriods } from '@/utils/constant';
 import { EEventPeriod } from '@/types/event';
 import { validateMatchDatetime } from '@/utils/datetime';
@@ -34,7 +34,7 @@ function EventList({ eventList }: { eventList: IEventWMatch[] }) {
     setFilterParams({ date: inputEl.value });
   };
 
-  const filterEvents = () => {
+  const filterEvents = useCallback(() => {
     const filteredList = [];
 
     for (let i = 0; i < cloneEventList.length; i += 1) {
@@ -74,7 +74,7 @@ function EventList({ eventList }: { eventList: IEventWMatch[] }) {
     }
 
     setFilteredEventList(filteredList);
-  };
+  }, [cloneEventList, filterParams.date, filterParams.search]);
 
   useEffect(() => {
     filterEvents();

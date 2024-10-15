@@ -36,7 +36,7 @@ interface IMatchAddProps {
 
 
 const initialAddMatch: IAddMatch = {
-    date: getCurrentDate(),
+    date: new Date().toISOString(),
     event: "",
     description: "",
     numberOfNets: 0,
@@ -86,6 +86,14 @@ function MatchAdd({ eventId,
             setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
         } else {
             setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+        }
+    }
+
+    const handleDateChange =({name, value}: {name: string, value: string})=>{
+        if (update) {
+            setUpdateMatch((prevState) => ({ ...prevState, [name]: value }));
+        } else {
+            setAddMatch((prevState) => ({ ...prevState, [name]: value }));
         }
     }
 
@@ -166,7 +174,7 @@ function MatchAdd({ eventId,
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            <DateInput handleInputChange={handleInputChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
+            <DateInput handleDateChange={handleDateChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
 
             {!update && (<>
                 <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(teamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
