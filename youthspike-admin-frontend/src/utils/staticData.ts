@@ -26,7 +26,7 @@ const initialUserMenuList: IMenuItem[] = [
     {
         id: 3,
         imgName: 'players',
-        text: 'roster setting',
+        text: 'roster',
         link: '/players'
     },
     {

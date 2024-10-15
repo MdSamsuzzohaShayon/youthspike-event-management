@@ -53,18 +53,17 @@ ___
 
 
 ### Requirements
+ - Fixing issues with Safari
+ - Menu in the frontend -> to navigate to admin easily
  - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
  - Captain of a team must not be able to change the ranking of another team
- - Getting two same player in a team when random assign.
 
  - Test with public in the match 
- - Some issues with banning nets, neet to work more with that
  - Live events are not working properly captain to admin
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
 
 ### Update
- - If a captain enter into someone else's match he or she should not see any action box
  - In public view show search filter (Search by team, date, match description)
  - In public view need to show round score (In progress or final score) (winning team will have green circle)
  - Show records (win loss) for a team during an event.  (Record win number - Loss number)

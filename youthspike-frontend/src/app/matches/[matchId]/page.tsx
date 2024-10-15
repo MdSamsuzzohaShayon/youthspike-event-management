@@ -228,7 +228,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   }, [mainEl]);
 
-
   // Set team score
   useEffect(() => {
     let teamATS = 0;
@@ -326,10 +325,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                     currMatch={currMatch}
                   />
                 </div>
-                {user &&
-                  user.info &&
+                {/* Conditions:
+                There must be user
+                If the user is Director or Admin type he can access RoundRunner
+                if the user is captain or co captain he must be a captain or co-captain of a team */}
+                {user?.info &&
                   currRoom &&
-                  (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain || user.info.role === UserRole.director || user.info.role === UserRole.admin) && (
+                  (user.info.role === UserRole.director || user.info.role === UserRole.admin || user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
                     <div className="my-round-runner w-full">
                       <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
                     </div>

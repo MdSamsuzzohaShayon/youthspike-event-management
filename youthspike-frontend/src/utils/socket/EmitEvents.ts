@@ -11,12 +11,32 @@ import { Socket } from 'socket.io-client';
 import { getLocalTeam } from '../localStorage';
 
 class EmitEvents {
+  isAuthenticated: boolean;
+
+  isValidTeam: boolean;
+
+  teamIdStr: string | null;
+
+  roomNetAssign: boolean;
+
+  allNetsFilled: boolean;
+
+  hasSubbedPlayers: boolean;
+
   constructor(
     private socket: Socket | null,
     private dispatch: React.Dispatch<React.ReducerAction<any>>,
   ) {
     this.socket = socket;
     this.dispatch = dispatch;
+
+    // Just to fix error
+    this.isAuthenticated = false;
+    this.isValidTeam = false;
+    this.teamIdStr = null;
+    this.roomNetAssign = false;
+    this.allNetsFilled = false;
+    this.hasSubbedPlayers = false;
   }
 
   async joinRoom({ user, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
@@ -57,16 +77,36 @@ class EmitEvents {
   }
 
   submitLineup({ user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, myTeamE }: ISubmitLineupProps) {
-    if (!user?.info?.token) return;
+    if (!user || !user?.token || !teamA || !teamB || !currRoom || !currRound) {
+      console.error({ msg: 'Not provided required value', user, token: user?.token, teamA, teamB, currRoom, currRound });
+      return;
+    }
 
     const actionData: ISubmitLineupAction = this.prepareLineupActionData(user, teamA, teamB, currRoom, currRound, currRoundNets, myTeamE);
 
-    if (!this.isAllNetsFilled(currRoundNets, myTeamE)) {
+    const selectedPlayers = new Set();
+    let filledAllNets = true;
+    currRoundNets.forEach((crn) => {
+      if (myTeamE === ETeam.teamA) {
+        if (crn.teamAPlayerA && crn.teamAPlayerB) {
+          selectedPlayers.add(crn.teamAPlayerA);
+          selectedPlayers.add(crn.teamAPlayerB);
+        } else {
+          filledAllNets = false;
+        }
+      } else if (crn.teamBPlayerA && crn.teamBPlayerB) {
+        selectedPlayers.add(crn.teamBPlayerA);
+        selectedPlayers.add(crn.teamBPlayerB);
+      } else {
+        filledAllNets = false;
+      }
+    });
+    if (!filledAllNets) {
       this.dispatch(setActErr({ success: false, message: 'Every net must have players!' }));
       return;
     }
 
-    actionData.subbedPlayers = this.getSubbedPlayers(myPlayerIds, currRound);
+    actionData.subbedPlayers = this.getSubbedPlayers(myPlayerIds, currRound, selectedPlayers);
     this.updateRoundWithLineup(currRound, roundList, actionData);
     this.socket?.emit('submit-lineup-from-client', actionData);
   }
@@ -91,22 +131,27 @@ class EmitEvents {
   }
 
   private isAuthorized(userInfo: IUser): boolean {
+    this.isAuthenticated = false;
     return [UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain].includes(userInfo.role);
   }
 
   private isTeamValid(teamA: ITeam, teamB: ITeam): boolean {
-    return teamA && teamB && (teamA.captain || teamA.cocaptain) && (teamB.captain || teamB.cocaptain);
+    this.isValidTeam = !!(teamA && teamB && (teamA.captain || teamA.cocaptain) && (teamB.captain || teamB.cocaptain));
+    return this.isValidTeam;
   }
 
   private async getTeamId(userInfo: IUser, teamA: ITeam, teamB: ITeam): Promise<string | null> {
     if ((teamA.captain && userInfo.captainplayer === teamA.captain._id) || (teamA.cocaptain && userInfo.cocaptainplayer === teamA.cocaptain._id)) {
+      this.teamIdStr = teamA._id;
       return teamA._id;
     }
     if ((teamB.captain && userInfo.captainplayer === teamB.captain._id) || (teamB.cocaptain && userInfo.cocaptainplayer === teamB.cocaptain._id)) {
+      this.teamIdStr = teamB._id;
       return teamB._id;
     }
     if (userInfo.role === UserRole.admin || userInfo.role === UserRole.director) {
       const teamId = await getLocalTeam();
+      this.teamIdStr = teamId;
       return teamId === ETeam.teamA ? teamA._id : teamB._id;
     }
     return null;
@@ -132,13 +177,16 @@ class EmitEvents {
       subbedPlayers: [],
       nets: this.getRoomNetAssignments(currRoundNets, myTeamE),
       teamE: myTeamE,
-      userRole: user?.info?.role,
+      userRole: user?.info?.role ?? UserRole.public,
       userId: user?.info?._id,
     };
     return lineupData;
   }
 
   private getRoomNetAssignments(currRoundNets: INetRelatives[], myTeamE: ETeam): IRoomNetAssign[] {
+    this.roomNetAssign = true;
+    console.log({ myTeamE });
+
     return currRoundNets.map((net) => ({
       _id: net._id,
       teamAPlayerA: net.teamAPlayerA,
@@ -148,16 +196,12 @@ class EmitEvents {
     }));
   }
 
-  private isAllNetsFilled(currRoundNets: INetRelatives[], myTeamE: ETeam): boolean {
-    return currRoundNets.every((net) => {
-      if (myTeamE === ETeam.teamA) return net.teamAPlayerA && net.teamAPlayerB;
-      return net.teamBPlayerA && net.teamBPlayerB;
-    });
-  }
-
-  private getSubbedPlayers(myPlayerIds: string[], currRound: IRoundRelatives | null): string[] {
-    const subsOrRound = currRound?.subs ? [...currRound.subs] : [];
-    return [...new Set([...subsOrRound, ...myPlayerIds.filter((id) => !subsOrRound.includes(id))])];
+  // @ts-ignore
+  private getSubbedPlayers(myPlayerIds: string[], currRound: IRoundRelatives | null, selectedPlayers: Set<string, string>): string[] {
+    this.hasSubbedPlayers = true;
+    const subsOrRound = currRound?.subs ? [...currRound.subs, ...selectedPlayers] : [];
+    // @ts-ignore
+    return [...new Set([...myPlayerIds.filter((id) => !subsOrRound.includes(id))])];
   }
 
   private updateRoundWithLineup(currRound: IRoundRelatives | null, roundList: IRoundRelatives[], actionData: ISubmitLineupAction) {
@@ -166,12 +210,14 @@ class EmitEvents {
 
     const updatedRound: IRoundRelatives = {
       ...roundList[roundIndex],
+      // @ts-ignore
       teamAProcess: actionData.teamAProcess,
+      // @ts-ignore
       teamBProcess: actionData.teamBProcess,
       subs: actionData.subbedPlayers,
     };
 
-    const newRoundList = [{ ...updatedRound, subs: actionData.subbedPlayers }, ...roundList.filter((r) => r._id !== currRound._id)];
+    const newRoundList = [{ ...updatedRound, subs: actionData.subbedPlayers }, ...roundList.filter((r) => r._id !== currRound?._id)];
     this.dispatch(setRoundList(newRoundList));
     this.dispatch(setCurrentRound(updatedRound));
     this.dispatch(setVerifyLineup(false));

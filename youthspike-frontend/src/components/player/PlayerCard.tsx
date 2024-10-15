@@ -1,19 +1,27 @@
 import cld from '@/config/cloudinary.config';
+import { useUser } from '@/lib/UserProvider';
 import { IPlayer } from '@/types/player';
+import { imgW } from '@/utils/constant';
+import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useRef } from 'react';
 
 interface PlayerCardProps {
   player: IPlayer;
+  rank: number | null;
 }
 
-function PlayerCard({ player }: PlayerCardProps) {
+function PlayerCard({ player, rank }: PlayerCardProps) {
+  const params = useParams();
+  const user = useUser();
   const playerLiEl = useRef<HTMLLIElement | null>(null);
 
   return (
-    <li ref={playerLiEl} className="w-full bg-gray-700 py-2 flex justify-between items-center gap-2 rounded-md" style={{ minHeight: '6rem' }}>
-      <div className="px-2 w-full flex justify-between items-center">
+    <li ref={playerLiEl} className="player-card w-full bg-gray-700 py-2 flex justify-between items-center gap-2 rounded-md" style={{ minHeight: '6rem' }}>
+      <div className="w-10/12 px-2 flex justify-between items-center">
         <div className="w-5/6 flex justify-start gap-x-2 items-center">
           <div className="advanced-img w-20 h-24 border border-yellow rounded-lg border-4">
             {player.profile ? (
@@ -30,13 +38,20 @@ function PlayerCard({ player }: PlayerCardProps) {
         </div>
 
         <div className="rank-box h-10 w-1/12 flex flex-col">
-          {player?.rank && (
+          {rank && (
             <>
-              <h3 className="bg-yellow-400 w-8 h-8 flex justify-center items-center text-base">{player?.rank}</h3>
+              <h3 className="bg-yellow-400 w-8 h-8 flex justify-center items-center text-base">{rank}</h3>
               <p>Rank</p>
             </>
           )}
         </div>
+      </div>
+      <div className="w-2/12 pe-2">
+        {user.token && (
+          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/players/${player._id}`} className="pe-2 flex items-center justify-end">
+            <Image src="/icons/edit.svg" height={imgW.logo} width={imgW.logo} alt="Exit Button" className="svg-white" />
+          </Link>
+        )}
       </div>
     </li>
   );

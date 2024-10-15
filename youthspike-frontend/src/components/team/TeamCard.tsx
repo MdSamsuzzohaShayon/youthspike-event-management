@@ -3,9 +3,15 @@ import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import cld from '@/config/cloudinary.config';
-import TextImg from '../elements/TextImg';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import { ETeam } from '@/types/team';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
+import { ADMIN_FRONTEND_URL } from '@/utils/keys';
+import Image from 'next/image';
+import { imgW } from '@/utils/constant';
+import TextImg from '../elements/TextImg';
+import { useParams } from 'next/navigation';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -26,10 +32,11 @@ const calculateScores = (match: IMatch, team: ITeamCaptain) => {
   let teamScore = 0;
   let opponentScore = 0;
 
+  // @ts-ignore
   match.rounds.forEach((round: IRoundRelatives) => {
     if (!match.nets) return;
 
-    const netList = match.nets.filter(n => n.round._id === round._id);
+    const netList = match.nets.filter((n) => n.round?._id === round._id);
     const { score: myScore } = calcRoundScore(netList, round, team._id === match.teamA._id ? ETeam.teamA : ETeam.teamB);
     const { score: opScore } = calcRoundScore(netList, round, team._id === match.teamA._id ? ETeam.teamB : ETeam.teamA);
 
@@ -42,6 +49,8 @@ const calculateScores = (match: IMatch, team: ITeamCaptain) => {
 
 function TeamCard({ team, matchList = [] }: ITeamCardProps) {
   const [teamScores, setTeamScores] = useState({ myTeamScore: 0, opTeamScore: 0 });
+  const user = useUser();
+  const params = useParams();
 
   useEffect(() => {
     if (matchList.length === 0) return;
@@ -64,28 +73,28 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
   const { myTeamScore, opTeamScore } = teamScores;
 
   return (
-    <Link href={`/teams/${team._id}`} className="team-card w-full p-2 bg-gray-700 rounded-lg flex items-start justify-between">
-      <div className="w-6/12">
-        <div className="brand flex gap-1 items-center">
-          {team.logo ? (
-            <div className="advanced-img w-12">
-              <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
-            </div>
-          ) : (
-            <TextImg className="w-12 h-12" fullText={team.name} />
-          )}
-          <div className="name-record">
-            <h3 className="leading-none text-lg font-bold">{team.name}</h3>
-            {myTeamScore > 0 && (
-              <p>
-                Records {myTeamScore}-{opTeamScore}
-              </p>
+    <div className="team-card w-full flex justify-between items-center bg-gray-700 rounded-lg">
+      <Link href={`/teams/${team._id}`} className=" w-11/12 p-2 flex items-start justify-between">
+        <div className="w-6/12">
+          <div className="brand flex gap-1 items-center">
+            {team.logo ? (
+              <div className="advanced-img w-12">
+                <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
+              </div>
+            ) : (
+              <TextImg className="w-12 h-12" fullText={team.name} />
             )}
+            <div className="name-record">
+              <h3 className="leading-none text-lg font-bold">{team.name}</h3>
+              {myTeamScore > 0 && (
+                <p>
+                  Records {myTeamScore}-{opTeamScore}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div className="w-6/12">
-        <div className="brand flex gap-1">
+        <div className="w-6/12 brand flex gap-1">
           {team.captain?.profile && (
             <div className="advanced-img w-12 h-12 rounded-full border-2 border-yellow-logo">
               <AdvancedImage cldImg={cld.image(team.captain.profile)} alt={team.captain.firstName} className="w-full" />
@@ -94,19 +103,19 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
           {team.captain?.firstName && (
             <div className="caption flex flex-col">
               <p className="uppercase text-xs">Captain</p>
-              <h3 className="leading-none text-lg font-bold capitalize">
-                {`${team.captain.firstName} ${team.captain.lastName}`}
-              </h3>
+              <h3 className="leading-none text-lg font-bold capitalize">{`${team.captain.firstName} ${team.captain.lastName}`}</h3>
             </div>
           )}
         </div>
-        {team.players && (
-          <p className="flex gap-1">
-            Active players <span className="flex items-center justify-center w-6 h-6 rounded-full bg-black-logo">{team.players.length}</span>
-          </p>
+      </Link>
+      <div className="w-1/12">
+        {user.token && (
+          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/teams/${team._id}`} className="pe-2 flex items-center justify-end">
+            <Image src="/icons/edit.svg" height={imgW.logo} width={imgW.logo} alt="Exit Button" className="svg-white" />
+          </Link>
         )}
       </div>
-    </Link>
+    </div>
   );
 }
 

@@ -104,7 +104,7 @@ export class MyGatWay implements OnModuleInit {
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
     private readonly playerRankingService: PlayerRankingService,
-  ) { }
+  ) {}
 
   // Additional functions
   async handleTieBreakerNets(netList: Net[]) {
@@ -228,7 +228,6 @@ export class MyGatWay implements OnModuleInit {
           clientInside = true;
         }
       }
-
     }
 
     // If the client with this action is not present in this match, or clientList add them
@@ -481,6 +480,8 @@ export class MyGatWay implements OnModuleInit {
           submitLineup.round,
         ),
       );
+
+      const selectedPlayers = new Set();
       for (const n of submitLineup.nets) {
         updatePromises.push(
           this.netService.update(
@@ -493,6 +494,18 @@ export class MyGatWay implements OnModuleInit {
             n._id,
           ),
         );
+
+        selectedPlayers.add(n.teamAPlayerA);
+        selectedPlayers.add(n.teamAPlayerB);
+        selectedPlayers.add(n.teamBPlayerA);
+        selectedPlayers.add(n.teamBPlayerB);
+      }
+
+      const subbedPlayers = [];
+      for (let i = 0; i < submitLineup.subbedPlayers.length; i++) {
+        if (!selectedPlayers.has(submitLineup.subbedPlayers[i])) {
+          subbedPlayers.push(submitLineup.subbedPlayers[i]);
+        }
       }
 
       // Update room locally
@@ -505,15 +518,15 @@ export class MyGatWay implements OnModuleInit {
         ...roomData,
         nets: submitLineup.nets,
         subbedRound: submitLineup.round,
-        subbedPlayers: submitLineup.subbedPlayers,
+        subbedPlayers,
       };
 
       // make players subbed for all next rounds
-      if (submitLineup.subbedPlayers.length > 0) {
+      if (subbedPlayers.length > 0) {
         updatePromises.push(
           this.roundService.updateOne(
             { _id: currRoundObj._id, status: EPlayerStatus.ACTIVE },
-            { $set: { subs: submitLineup.subbedPlayers } },
+            { $set: { subs: subbedPlayers } },
           ),
         );
       }
@@ -530,7 +543,7 @@ export class MyGatWay implements OnModuleInit {
       // update rank lock in the team
       await Promise.all(updatePromises);
 
-      client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
+      // client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
       // Send this data to all the clients
       await this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets);
     } catch (error) {

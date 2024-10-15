@@ -478,7 +478,7 @@ export class EventResolver {
       return {
         code: findEvent ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: findEvent ? true : false,
-        data: findEvent,
+        data: findEvent ?? null,
       };
     } catch (err) {
       return AppResponse.handleError(err);

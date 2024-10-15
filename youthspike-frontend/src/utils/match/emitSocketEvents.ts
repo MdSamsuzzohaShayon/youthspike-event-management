@@ -2,71 +2,14 @@ import { setActErr } from '@/redux/slices/elementSlice';
 import { setMatchInfo, setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IJoinTheRoomProps, INextRoundProps, IStatusChange, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps, IJoinData, ICheckInData, IUpdatePointData } from '@/types';
-import { UserRole } from '@/types/user';
+import { INextRoundProps, IRoomNetAssign, IRoundRelatives, INotTwoPointNetProps, IUpdatePointData } from '@/types';
 import { ETieBreaker } from '@/types/net';
 import { EActionProcess, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
 import { ICompleteMatchProps, ISubmitLineupProps, ISubmitUpdatePointsProps, IUpdateMultiplePointsProps } from '@/types/socket';
 import { ETeam } from '@/types/team';
 import { setMatch } from '../localStorage';
 
-function joinTheRoom({ socket, userInfo, userToken, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
-  if (!socket || !currRound) return;
-  const joinData: IJoinData = { match: matchId, round: currRound._id, userRole: UserRole.public };
-  if (!userToken || !userInfo) {
-    socket.emit('join-room-from-client', joinData);
-    return;
-  }
-  // if(!userInfo.captainplayer && !userInfo.cocaptainplayer)
-  if (userInfo.role !== UserRole.admin && userInfo.role !== UserRole.director && userInfo.role !== UserRole.captain && userInfo.role !== UserRole.co_captain) return;
-  if (!teamA || !teamB || (!teamA.captain && !teamA.cocaptain) || (!teamB.captain && !teamB.cocaptain) || !currRound) return;
 
-  let userTeamId = null;
-  if ((teamA.captain && userInfo.captainplayer === teamA.captain._id) || (teamA.cocaptain && userInfo.cocaptainplayer === teamA.cocaptain._id)) {
-    userTeamId = teamA._id;
-  } else if ((teamB.captain && userInfo.captainplayer === teamB.captain._id) || (teamB.cocaptain && userInfo.cocaptainplayer === teamB.cocaptain._id)) {
-    userTeamId = teamB._id;
-  } else if (userInfo.role === UserRole.admin || userInfo.role === UserRole.director) {
-    userTeamId = teamB._id;
-  } else {
-    return;
-  }
-  joinData.team = userTeamId;
-
-  if (userInfo) {
-    joinData.userRole = userInfo.role;
-    joinData.userId = userInfo._id;
-  }
-  socket.emit('join-room-from-client', joinData);
-}
-
-function initToCheckIn({ socket, user, currRoom, currRound, roundList, dispatch, myTeamE }: IStatusChange) {
-  if (!currRoom || !currRound || !user || !user.info) return;
-
-  const actionData: ICheckInData = {
-    room: currRoom._id,
-    round: currRound._id,
-    teamAProcess: currRound.teamAProcess,
-    teamBProcess: currRound.teamBProcess,
-    userId: user.info._id,
-    userRole: user.info.role,
-    teamE: myTeamE,
-  };
-  if (myTeamE === ETeam.teamA) {
-    actionData.teamAProcess = EActionProcess.CHECKIN;
-  } else {
-    actionData.teamBProcess = EActionProcess.CHECKIN;
-  }
-
-  // Reset current round, and round list
-  const cri = roundList.findIndex((r) => r._id === currRound?._id); // vri = current round index
-  if (cri === -1) return;
-  const roundObj = { ...roundList[cri], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess };
-  dispatch(setRoundList([...roundList.filter((r) => r._id !== currRound?._id), roundObj]));
-  dispatch(setCurrentRound(roundObj));
-
-  if (socket) socket.emit('check-in-from-client', actionData);
-}
 
 function checkInToLineup({ socket, user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, dispatch, myTeamE }: ISubmitLineupProps): void {
   if (!user || !user.info || !user.token) return;
@@ -284,4 +227,4 @@ function notTwoPointNet({ socket, netId, currRoom, currRound, currRoundNets, all
   if (socket) socket.emit('update-net-from-client', actionData);
 }
 
-export { joinTheRoom, checkInToLineup, initToCheckIn, changeTheRound, lineupToUpdatePoints, updateMultiplePoints, notTwoPointNet, completeMatch };
+export { checkInToLineup, changeTheRound, lineupToUpdatePoints, updateMultiplePoints, notTwoPointNet, completeMatch };

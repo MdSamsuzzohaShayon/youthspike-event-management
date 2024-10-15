@@ -3,61 +3,14 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from 'react';
 import { IUser, UserRole } from '@/types/user';
-import { IMenuItem } from '@/types';
 import Link from 'next/link';
-import { getEvent } from '@/utils/localStorage';
 import { removeCookie, getCookie } from '@/utils/cookie';
-import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { useParams } from 'next/navigation';
+import { ADMIN_FRONTEND_URL } from '@/utils/keys';
+import { EVENT_ITEM } from '@/utils/constant';
+import { EEventItem } from '@/types/event';
+import { getEvent } from '@/utils/localStorage';
 import MenuItem from './MenuItem';
-
-const userMenuList: IMenuItem[] = [
-  {
-    id: 1,
-    imgName: 'trophy',
-    text: 'Home',
-    link: '/', // // Event settings
-    admin: false,
-  },
-  {
-    id: 2,
-    imgName: 'teams',
-    text: 'Events',
-    link: '/events',
-    admin: false,
-  },
-];
-
-const adminMenuList: IMenuItem[] = [
-  {
-    id: 4,
-    imgName: 'matches-white',
-    text: 'Matches',
-    link: '/matches', // // Event settings
-    admin: true,
-  },
-  {
-    id: 5,
-    imgName: 'teams',
-    text: 'Teams',
-    link: '/teams', // // Event settings
-    admin: true,
-  },
-  {
-    id: 6,
-    imgName: 'players',
-    text: 'Rosters',
-    link: '/players', // // Event settings
-    admin: true,
-  },
-  {
-    id: 7,
-    imgName: 'setting',
-    text: 'Settings',
-    link: '/settings',
-    admin: true,
-  },
-];
 
 interface ICookieUser {
   info: null | IUser;
@@ -71,14 +24,15 @@ const initialUser = {
 
 function Menu() {
   const [openMenu, setOpenMenu] = useState<boolean>(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<ICookieUser>(initialUser);
+  const [newEventId, setNewEventId] = useState<null | string>(null);
 
   const params = useParams();
 
   const openMenuHandler = () => {
     // eslint-disable-next-line no-unused-expressions
-    user.info && user.token && user.token !== '' ? setOpenMenu(true) : setOpenMenu(false);
+    // user.info && user.token && user.token !== '' ? setOpenMenu(true) : setOpenMenu(false);
+    setOpenMenu(true);
   };
 
   const closeMenuHandler = () => {
@@ -97,7 +51,6 @@ function Menu() {
     const instantToken = getCookie('token'); // Fetch again
     const instantInfo = getCookie('user');
     if (instantInfo && instantToken) {
-      setIsAuthenticated(true);
       if (instantToken) {
         setUser((prevState) => ({ ...prevState, token: instantToken }));
       }
@@ -107,33 +60,36 @@ function Menu() {
     }
   }, []);
 
+  useEffect(() => {
+    // @ts-ignore
+    const eventId: string | null = params?.eventId || getEvent();
+    setNewEventId(eventId);
+  }, [params]);
 
   // =====  Render sub components =====
-  const renderMenuItems = () => {
-    const eventId = params?.eventId || getEvent() ;
-    
-    let itemList = userMenuList;
-    const instantToken = getCookie('token');
-    if (instantToken && eventId) {
-      itemList = [...userMenuList, ...adminMenuList];
-    }
-    const menuItems: React.ReactNode[] = [];
-    for (let i = 0; i < itemList.length; i += 1) {
-      let newLink: string = itemList[i].link;
-      if (eventId && instantToken && itemList[i].admin) newLink = `${ADMIN_FRONTEND_URL}/${eventId}/${itemList[i].link}`;
-      menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={itemList[i].id} icon={`/icons/${itemList[i].imgName}.svg`} text={itemList[i].text} link={newLink} />);
-    }
+  // const renderMenuItems = () => {
+  //   const eventId = params?.eventId || getEvent();
 
-    return menuItems;
-  };
+  //   let itemList = userMenuList;
+  //   const instantToken = getCookie('token');
+  //   if (instantToken && eventId) {
+  //     itemList = [...userMenuList, ...adminMenuList];
+  //   }
+  //   const menuItems: React.ReactNode[] = [];
+  //   for (let i = 0; i < itemList.length; i += 1) {
+  //     let newLink: string = itemList[i].link;
+  //     if (eventId && instantToken && itemList[i].admin) newLink = `${ADMIN_FRONTEND_URL}/${eventId}/${itemList[i].link}`;
+  //     menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={itemList[i].id} icon={`/icons/${itemList[i].imgName}.svg`} text={itemList[i].text} link={newLink} />);
+  //   }
+
+  //   return menuItems;
+  // };
 
   return (
     <div className="container px-2 mx-auto text-white">
-      {isAuthenticated && (
-        <button type="button" onClick={openMenuHandler} className="menu-button">
-          <img src="/icons/menu.svg" className="w-10 mt-4 svg-white" alt="menu" />
-        </button>
-      )}
+      <button type="button" onClick={openMenuHandler} className="menu-button">
+        <img src="/icons/menu.svg" className="w-10 mt-4 svg-white" alt="menu" />
+      </button>
 
       {openMenu && (
         <div className="menu-content bg-gray-950 text-white w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-30 p-4">
@@ -143,11 +99,13 @@ function Menu() {
             </button>
           </div>
 
-          <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
-            <h1 className="capitalize">{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
-            {user.info?.team && <h3>{user.info?.team} </h3>}
-            <p className="uppercase text-yellow-400 mt-1">{user.info?.role}</p>
-          </div>
+          {user.info && (
+            <div className="user-info w-full mt-4 flex items-start justify-start flex-col">
+              <h1 className="capitalize">{`${user?.info?.firstName} ${user?.info?.lastName}`}</h1>
+              {user.info?.team && <h3>{user.info?.team} </h3>}
+              <p className="uppercase text-yellow-400 mt-1">{user.info?.role}</p>
+            </div>
+          )}
           <div className="league-director w-full flex justify-between items-center mb-8">{user?.info?.role === UserRole.admin && <h1 className="text-2xl">Admin</h1>}</div>
           {params?.eventId && (
             <div className="league mb-8 w-full">
@@ -157,7 +115,17 @@ function Menu() {
             </div>
           )}
           <ul className="menu-list flex justify-start flex-col gap-8">
-            {renderMenuItems()}
+            <MenuItem icon="/icons/trophy.svg" link="/" setOpenMenu={setOpenMenu} text="Home" key="umi-1" />
+            <MenuItem icon="/icons/teams.svg" link="/events" setOpenMenu={setOpenMenu} text="Events" key="umi-2" />
+            {newEventId && (
+              <>
+                <MenuItem icon="/icons/matches-white.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.MATCH}`} setOpenMenu={setOpenMenu} text="Matches" key="umi-3" />
+                <MenuItem icon="/icons/teams.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.TEAM}`} setOpenMenu={setOpenMenu} text="Teams" key="umi-4" />
+                <MenuItem icon="/icons/players.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.PLAYER}`} setOpenMenu={setOpenMenu} text="Roster" key="umi-5" />
+                <MenuItem icon="/icons/account.svg" link={`${ADMIN_FRONTEND_URL}/${newEventId}/settings`} setOpenMenu={setOpenMenu} text="Settings" key="umi-6" />
+              </>
+            )}
+            {user.token && <MenuItem icon="/icons/players.svg" link={ADMIN_FRONTEND_URL} setOpenMenu={setOpenMenu} text="Admin" key="umi-5" />}
             {user && user.token && user.token !== '' && (
               <li>
                 <button className="btn-danger" type="button" onClick={handleLogout}>

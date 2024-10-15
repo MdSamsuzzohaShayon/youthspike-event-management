@@ -1,14 +1,14 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 import React from 'react';
-import { IUserContext } from './user';
+import { IUserContext, UserRole } from './user';
 
 export interface IMenuItem {
   id: number;
   imgName: string;
   text: string;
   link: string;
-  admin: boolean;
+  role: UserRole[];
 }
 
 export enum EAssignStrategies {

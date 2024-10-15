@@ -2,13 +2,13 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { ITeam } from '@/types/team';
 
-export interface TeamsState {
+export interface ITeamsState {
   teamA?: ITeam | null;
   teamB?: ITeam | null;
   teamList: ITeam[];
 }
 
-const initialState: TeamsState = {
+const initialState: ITeamsState = {
   // For match
   teamA: null,
   teamB: null,
