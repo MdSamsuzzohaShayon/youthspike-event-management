@@ -53,10 +53,6 @@ ___
 
 
 ### Requirements
- - The link in the credential email
- - Change picture of players, team, and event prooperly
- - (Work with useRouter hook - change ldoIdUrl) Set ldoId in the frontend as well
- - Moving player is not working (Need a reloader)
  - Menu height need to have minimum height to make it more responsive on mobile devices
  - Use Emit Event class for emitting more socket events
  - Fixing issues with Safari
