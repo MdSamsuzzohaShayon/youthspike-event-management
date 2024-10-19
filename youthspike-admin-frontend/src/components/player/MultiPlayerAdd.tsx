@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
 import { getDivisionFromStore } from '@/utils/localStorage';
+import { useLdoId } from '@/lib/LdoProvider';
 
 type ApolloClientType = import('@apollo/client').ApolloClient<any>; // Replace 'any' with your specific schema types
 
@@ -23,9 +24,11 @@ interface IMultiPlayerAddProps {
 
 function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisionList }: IMultiPlayerAddProps) {
 
+    const router = useRouter();
+    const {ldoIdUrl} = useLdoId();
+
     const uploadFileEl = useRef<HTMLInputElement | null>(null);
     const [selectedDivision, setSelectedDivision] = useState<string>('');
-    const router = useRouter();
 
     const handleDivisionChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -69,7 +72,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisio
             const token = getCookie('token');
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
             const jsonRes = await response.json();
-            await router.push(`/${eventId}/teams`);
+            await router.push(`/${eventId}/teams/${ldoIdUrl}`);
             if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
                 setActErr({ code: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
             }

@@ -5,12 +5,11 @@ import { IError, IOption, IPlayer, ITeam, ITeamAdd } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
-import useLdoUrl from '@/hooks/useLdoUrl';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
@@ -43,7 +42,7 @@ const initialTeamState = {
 function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
-    const ldoUrl = useLdoUrl();
+    const {ldoIdUrl} = useLdoId();
 
 
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
@@ -72,7 +71,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             const formEl = e.target as HTMLFormElement;
             formEl.reset();
             handleClose(e);
-            router.push(`/${eventId}/teams/${ldoUrl}`);
+            router.push(`/${eventId}/teams/${ldoIdUrl}`);
         }
     }
 
@@ -138,7 +137,7 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
             {!update && (<div className="player-input mb-4">
-                <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' ldoUrl={ldoUrl} />
+                <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />
             </div>)}
             {playerIdList.length > 0 && !update && toBeCaptains()}
 

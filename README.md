@@ -53,6 +53,8 @@ ___
 
 
 ### Requirements
+ - Menu height need to have minimum height to make it more responsive on mobile devices
+ - Use Emit Event class for emitting more socket events
  - Fixing issues with Safari
  - Menu in the frontend -> to navigate to admin easily
  - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
@@ -234,9 +236,4 @@ ___
 
 
 ### Ask
- Hi there, 
- I have updated the server, this time admin or director can  play a match on behalf of a team. I had to do a lot of things to do this.
- Now I am going to fix issue with refreshing and safari browser support. I think those 2 are most important right now. Furthermore we will walk though our document of to do list. 
-  
- I have a confusion with notification. Our current notification system works in this way, if 2 teams play a match, both team's captains need to be in the match page in order to get notification of the match, if they are outside of the match page they may have multiple matches, if they get a notification they won't be sure for which match the notification is for. Can you think a better solution for this?
- Thank You
+ Currently, it takes us to the login page if someone is not logged in. Okay no problem, I will take them to matches page. I will create a system where you can edit email before sending it, but it will take little bit time, if you say, I will start working on that.

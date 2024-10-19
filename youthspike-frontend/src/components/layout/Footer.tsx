@@ -1,29 +1,46 @@
 'use client';
 
+import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
 import { EEventItem } from '@/types/event';
-import { EVENT_ITEM } from '@/utils/constant';
+import { EVENT_ITEM, LDO_ID } from '@/utils/constant';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
+import { getEvent } from '@/utils/localStorage';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 function Footer() {
-  const [newEventId, setNewEventId] = useState<null | string>(null);
   const user = useUser();
   const params = useParams();
+  const { ldoId, ldoIdUrl } = useLdoId();
+
+  const [newEventId, setNewEventId] = useState<null | string>(null);
+  const [newLdoUrl, setNewLdoUrl] = useState<string>('');
 
   useEffect(() => {
     if (params.eventId) {
       setNewEventId(params.eventId.toString());
+    } else {
+      const eventId = getEvent();
+      if (eventId && eventId !== '') {
+        setNewEventId(eventId);
+      }
     }
   }, [params]);
+
+  useEffect(() => {
+    if (ldoId && ldoId !== '') {
+      setNewLdoUrl(`&${LDO_ID}=${ldoId}`);
+    }
+  }, [ldoId]);
+
   return (
     <footer className="bg-black-logo text-white border-t border-gray-700">
       <div className="container mx-auto px-4 py-8">
         {/* Responsive Menu */}
         <nav className="flex flex-col md:flex-row justify-center items-center mb-4 space-y-4 md:space-y-0 md:space-x-8">
-          <Link href="/" className="hover:text-gray-400 transition-colors">
+          <Link href={`/${ldoIdUrl}`} className="hover:text-gray-400 transition-colors">
             Home
           </Link>
           {user.token && (
@@ -33,16 +50,16 @@ function Footer() {
           )}
           {newEventId && (
             <>
-              <Link href={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.TEAM}`} className="hover:text-gray-400 transition-colors">
+              <Link href={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.TEAM}${newLdoUrl}`} className="hover:text-gray-400 transition-colors">
                 Teams
               </Link>
-              <Link href={`/matches/${newEventId}/?${EVENT_ITEM}=${EEventItem.MATCH}`} className="hover:text-gray-400 transition-colors">
+              <Link href={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.MATCH}${newLdoUrl}`} className="hover:text-gray-400 transition-colors">
                 Matches
               </Link>
-              <Link href={`/players/${newEventId}/?${EVENT_ITEM}=${EEventItem.PLAYER}`} className="hover:text-gray-400 transition-colors">
+              <Link href={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.PLAYER}${newLdoUrl}`} className="hover:text-gray-400 transition-colors">
                 Roster
               </Link>
-              <Link href={`${ADMIN_FRONTEND_URL}/${newEventId}/settings`} className="hover:text-gray-400 transition-colors">
+              <Link href={`${ADMIN_FRONTEND_URL}/${newEventId}/settings/${ldoIdUrl}`} className="hover:text-gray-400 transition-colors">
                 Settings
               </Link>
             </>

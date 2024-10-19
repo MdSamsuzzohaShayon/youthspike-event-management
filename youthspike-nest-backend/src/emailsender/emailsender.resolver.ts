@@ -1,5 +1,5 @@
 import { HttpStatus, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -12,6 +12,7 @@ import { UserService } from 'src/user/user.service';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
+import { tokenToUser } from 'src/util/helper';
 
 @Resolver()
 export class EmailsenderResolver {
@@ -23,7 +24,7 @@ export class EmailsenderResolver {
     private ldoService: LdoService,
     private userService: UserService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   /**
    * Format a date into a custom string.
@@ -38,7 +39,7 @@ export class EmailsenderResolver {
     const options: Intl.DateTimeFormatOptions = {
       year: 'numeric' as const,
       month: 'long' as const,
-      day: '2-digit' as const
+      day: '2-digit' as const,
     };
 
     // Convert to formatted string
@@ -55,10 +56,11 @@ export class EmailsenderResolver {
    * @param co_captain (Optional) The email of the co-captain to send credentials to.
    * @returns An AppResponse indicating the result of the operation.
    */
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.admin, UserRole.director)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => AppResponse)
   async sendCredentials(
+    @Context() context: any,
     @Args('eventId') eventId: string,
     @Args('teamId', { nullable: true }) teamId?: string,
     @Args('captain', { nullable: true }) captain?: string,
@@ -77,6 +79,19 @@ export class EmailsenderResolver {
 
       const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
       const directorExist = await this.userService.findById(ldoExist.director.toString());
+
+      // Check user role
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userId = tokenToUser(context, secret);
+      if (!userId) return AppResponse.unauthorized();
+
+      const loggedUser = await this.userService.findById(userId);
+      if (!loggedUser) return AppResponse.unauthorized();
+      let ldoIdUrl = '';
+
+      if (loggedUser.role === UserRole.admin) {
+        ldoIdUrl = `?ldoId=${ldoExist.director.toString()}`;
+      }
 
       // Prepare list of recipients based on specified parameters
       const recipients: string[] = [];
@@ -126,7 +141,9 @@ export class EmailsenderResolver {
               captain_name: player.firstName,
               event_date: eventDateFormatted,
               fwango_link: eventExist.fwango,
-              ldo_phone: ldoExist.phone
+              ldo_phone: ldoExist.phone,
+              eventId: eventExist._id,
+              ldoIdUrl,
             }),
           );
         }

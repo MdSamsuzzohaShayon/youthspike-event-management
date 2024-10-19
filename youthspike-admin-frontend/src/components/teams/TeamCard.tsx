@@ -14,12 +14,12 @@ import { cardHeight, imgSize } from '@/utils/style';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
+import { useLdoId } from '@/lib/LdoProvider';
 
-interface TeamCardProps {
+interface ITeamCardProps {
   eventId: string;
   team: ITeam;
   eventList: IEvent[];
-  ldoUrl: string;
   isChecked: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
@@ -31,9 +31,10 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, ldoUrl, isChecked, setIsLoading, handleCheckedTeam, fefetchFunc }: TeamCardProps) {
+function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleCheckedTeam, fefetchFunc }: ITeamCardProps) {
   const user = useUser();
   const router = useRouter();
+  const {ldoIdUrl} = useLdoId();
 
   const actionEl = useRef<null | HTMLUListElement>(null);
 
@@ -111,7 +112,7 @@ function TeamCard({ team, eventId, eventList, ldoUrl, isChecked, setIsLoading, h
   const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {
     e.preventDefault();
     // Fetch team by team Id
-    router.push(`/${eventId}/teams/${teamId}/update/${ldoUrl}`);
+    router.push(`/${eventId}/teams/${teamId}/update/${ldoIdUrl}`);
   };
 
   const handleDeleteTeam = async (e: React.SyntheticEvent, teamId: string) => {
@@ -195,7 +196,7 @@ function TeamCard({ team, eventId, eventList, ldoUrl, isChecked, setIsLoading, h
        
        {/* Level-1.3: team name start  */}
         <div className="h-full w-5/12 flex justify-start items-center">
-          <Link href={`/${eventId}/teams/${team._id}/${ldoUrl}`}>
+          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
             <div className="brand flex gap-1 items-center">
               {team.logo ? (
                 <div className="advanced-img w-12">
@@ -213,7 +214,7 @@ function TeamCard({ team, eventId, eventList, ldoUrl, isChecked, setIsLoading, h
        
        {/* Level-1.4: captain and active players start  */}
         <div className="h-full w-5/12 flex justify-start items-center">
-          <Link href={`/${eventId}/teams/${team._id}`}>
+          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
             {team.captain && (
               <div className="brand flex gap-1">
                 {team.captain?.profile ? (

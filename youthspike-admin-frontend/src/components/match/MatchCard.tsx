@@ -15,6 +15,9 @@ import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
+import { useSearchParams } from 'next/navigation';
+import { LDO_ID } from '@/utils/constant';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -29,14 +32,16 @@ interface MatchCardProps {
 
 function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }: MatchCardProps) {
 
+  const user = useUser();
+  const { ldoIdUrl } = useLdoId();
+
   const actionItemEl = useRef<HTMLUListElement | null>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const user = useUser();
   const [deleteMatch, { loading }] = useMutation(DELETE_MATCH);
   const [roundList, setRoundList] = useState<IRoundRelatives[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
-  
+
 
 
   useClickOutside(actionItemEl, () => {
@@ -61,6 +66,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
   //   }
   // }, [match]);
+
 
 
   const teamCard = (team: ITeam, teamE: ETeam) => {
@@ -93,7 +99,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
         <div className="w-10/12 flex items-center justify-center">
           {/* <h2>Match Name</h2> */}
-          <Link href={`${FRONTEND_URL}/matches/${match._id}`} className='btn-info' >Enter</Link>
+          <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className='btn-info' >Enter</Link>
         </div>
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className='w-1/12 md:h-10 svg-white' role="presentation" onClick={handleOpenAction} />
       </div>
@@ -109,7 +115,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
       {/* ===== LEVEL 3 START ===== */}
       <div className="lavel-3 w-full flex justify-center items-center px-2 md:px-6 mt-2 md:mt-6 gap-x-2">
         <div className="">
-          <Link href={`/${eventId}/matches/${match._id}`}>
+          <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`}>
             <img src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
           </Link>
         </div>
@@ -171,11 +177,11 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
       <ul ref={actionItemEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-4 right-8 md:right-14 md:right-8 z-10 rounded-lg`}>
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
           <React.Fragment>
-            <li className='cursor-pointer'> <Link href={`/${eventId}/matches/${match._id}`} >Edit</Link></li>
+            <li className='cursor-pointer'> <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`} >Edit</Link></li>
             <li className='cursor-pointer'> <button type='button' onClick={(e) => handleDeleteMatch(e, match._id)}>Delete</button></li>
           </React.Fragment>
         )}
-        <li><Link href={`${FRONTEND_URL}/matches/${match._id}`}>View</Link> </li>
+        <li><Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`}>View</Link> </li>
       </ul>
       {/* Actions items end */}
     </div>

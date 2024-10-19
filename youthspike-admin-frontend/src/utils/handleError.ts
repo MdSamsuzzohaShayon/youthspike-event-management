@@ -16,7 +16,7 @@ interface IHandleResponseProps {
 }
 
 interface IHandleApolloErrorProps {
-    error: ApolloError;
+    error: ApolloError | Error[];
     setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
@@ -77,7 +77,7 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
         if (setActErr) {
             setActErr({
                 code: 500,
-                message: "An unexpected error occurred",
+                message: `An unexpected error occurred: ${JSON.stringify(error)}`,
                 success: false,
             });
         }

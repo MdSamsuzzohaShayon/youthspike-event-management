@@ -2,6 +2,7 @@ import React from 'react';
 import { IEvent, ITeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
+import { useLdoId } from '@/lib/LdoProvider';
 // import { initialUserMenuList } from '@/utils/staticData';
 import Link from 'next/link';
 import TextImg from '../elements/TextImg';
@@ -13,6 +14,8 @@ interface ITeamDetailProps {
 }
 
 function TeamDetail({ event, team }: ITeamDetailProps) {
+  const {ldoIdUrl} = useLdoId();
+
   // const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
 
   return (
@@ -32,7 +35,7 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
             </Link>
           ))}
         </div> */}
-        <Link className="btn-success" href={`/events/${team.event._id}`}>
+        <Link className="btn-success" href={`/events/${team.event._id}/${ldoIdUrl}`}>
           Main Event
         </Link>
       </div>

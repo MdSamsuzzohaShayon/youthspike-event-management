@@ -6,7 +6,6 @@ import { imgSize } from '@/utils/style';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useMutation } from '@apollo/client';
 import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
-import useLdoUrl from '@/hooks/useLdoUrl';
 
 interface TeamListProps {
   eventId: string;
@@ -19,9 +18,7 @@ interface TeamListProps {
 
 
 function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
-
-  const ldoUrl = useLdoUrl()
-
+  
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
   // const [bulkTeams, setBulkTeams] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
@@ -132,7 +129,7 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
         {teamList.map((team) => (
           <TeamCard key={team._id} team={team} eventId={eventId} eventList={eventList || []}
             setIsLoading={setIsLoading} isChecked={checkedTeams.get(team._id) ?? false}
-            fefetchFunc={fefetchFunc} handleCheckedTeam={handleCheckedTeam} ldoUrl={ldoUrl} />
+            fefetchFunc={fefetchFunc} handleCheckedTeam={handleCheckedTeam} />
           //  <input key={team._id} type="text" className='w-fit' defaultChecked={checkedTeams.get(team._id) ?? false} />
         ))}
       </div>

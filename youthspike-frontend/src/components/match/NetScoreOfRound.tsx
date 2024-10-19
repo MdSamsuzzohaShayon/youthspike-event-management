@@ -76,9 +76,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative">
       {/* Left side round detail start  */}
       {!showTeamPlayers ? (
-        <div id="left-round-detail" className={`round-detail relative border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
+        <div id="left-round-detail" style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }} className={`round-detail relative border ${border.light} ${screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'}`}>
           {/* Top Side Start  */}
-          <div id="left-top" style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
+          <div id="left-top" style={{ height: '50%' }} className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between">
             <LogoMatchScore dark team={opTeam} teamE={opTeamE} completed={match.completed} />
 
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
@@ -105,11 +105,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             </p>
           )}
           {/* Bottom Side Start  */}
-          <div
-            id="left-bottom"
-            style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
-            className={`round-bottom w-full border ${border.light} px-2 flex flex-col items-center justify-between`}
-          >
+          <div id="left-bottom" style={{ height: '50%' }} className={`round-bottom w-full border ${border.light} px-2 flex flex-col items-center justify-between`}>
             <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
             <div className="mb-2 w-full">
               <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} completed={match.completed} />

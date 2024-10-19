@@ -13,6 +13,7 @@ import NumberInput from '../elements/forms/NumberInput';
 import ImageInput from '../elements/forms/ImageInput';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -46,6 +47,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
   const router = useRouter();
   const user = useUser();
   const searchParams = useSearchParams();
+  const { ldoIdUrl } = useLdoId();
 
   // ===== local States =====
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
@@ -91,7 +93,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
     e.preventDefault();
     addOrUpdatePlayer({
       setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-      prevPlayer, updatePlayer, directorId, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update, refetchFunc
+      prevPlayer, updatePlayer, ldoIdUrl, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update, refetchFunc
     });
   }
 
@@ -144,7 +146,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       <EmailInput key="eml-pa-1" name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
       <NumberInput name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>
-        <SelectInput key={crypto.randomUUID()} defaultValue={playerState.team} name='team' optionList={teamList.map((t): IOption => ({ text: t.name, value: t._id }))} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+        <SelectInput key="player-add-1" defaultValue={playerState.team} name='team' optionList={teamList.map((t): IOption => ({ text: t.name, value: t._id }))} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
       </React.Fragment>)}
       <div className="input-group w-full mb-4">
         <button type="submit" className='btn-secondary mt-8'>{update ? "Save" : "Submit"}</button>

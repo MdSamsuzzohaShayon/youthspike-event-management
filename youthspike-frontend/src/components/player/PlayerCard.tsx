@@ -1,4 +1,5 @@
 import cld from '@/config/cloudinary.config';
+import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
 import { IPlayer } from '@/types/player';
 import { imgW } from '@/utils/constant';
@@ -15,6 +16,7 @@ interface PlayerCardProps {
 }
 
 function PlayerCard({ player, rank }: PlayerCardProps) {
+  const {ldoIdUrl} = useLdoId();
   const params = useParams();
   const user = useUser();
   const playerLiEl = useRef<HTMLLIElement | null>(null);
@@ -48,7 +50,7 @@ function PlayerCard({ player, rank }: PlayerCardProps) {
       </div>
       <div className="w-2/12 pe-2">
         {user.token && (
-          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/players/${player._id}`} className="pe-2 flex items-center justify-end">
+          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/players/${player._id}/${ldoIdUrl}`} className="pe-2 flex items-center justify-end">
             <Image src="/icons/edit.svg" height={imgW.logo} width={imgW.logo} alt="Exit Button" className="svg-white" />
           </Link>
         )}

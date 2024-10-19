@@ -15,6 +15,7 @@ import { imgSize } from '@/utils/style';
 import EmailInput from '../elements/forms/EmailInput';
 import SelectInput from '../elements/forms/SelectInput';
 import { handleError, handleResponse } from '@/utils/handleError';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -49,6 +50,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const playerLiEl = useRef<HTMLDivElement | null>(null);
 
   const user = useUser();
+  const {ldoIdUrl} = useLdoId();
 
   // ====== Actions for players  ======
   const handleOpenAction = (e: React.SyntheticEvent) => {
@@ -298,7 +300,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
           <li role="presentation">
             {' '}
-            <Link href={makePlayerEditUrl(eventId, player._id)}>Edit</Link>
+            <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
           </li>
           {rankControls && player.status === EPlayerStatus.ACTIVE && (
             <>

@@ -7,7 +7,6 @@ import { GET_A_ROUND } from '@/graphql/round';
 import { IError, IRoundRelatives } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
 
 interface IRoundSingleProps {

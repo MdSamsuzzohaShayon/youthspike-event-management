@@ -8,9 +8,8 @@ import { EMenuTitle, IColMenu } from '@/types/elements';
 import { setSelectedColItem } from '@/redux/slices/elementSlice';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLdoId } from '@/lib/LdoProvider';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import { useUser } from '@/lib/UserProvider';
-import { UserRole } from '@/types/user';
 import TeamInMatch from '../team/TeamInMatch';
 import CollapseContent from './CollapseContent';
 
@@ -22,7 +21,7 @@ interface IMatchSettingProps {
 
 function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
   const dispatch = useAppDispatch();
-  const user = useUser();
+  const {ldoIdUrl} = useLdoId();
 
   const { ldo } = useAppSelector((state) => state.events);
   const { colMenus, selectedColItem } = useAppSelector((state) => state.elements);
@@ -47,14 +46,10 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
   };
 
   const renderMenuItem = (cm: IColMenu) => {
-    let ldoId = '';
-    if (user && user.info?.role === UserRole.admin && ldo) {
-      ldoId = `?ldoId=${ldo._id}`;
-    }
     if (cm.title === EMenuTitle.EDIT_MATCH) {
       return (
         <Link
-          href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${match._id}/${ldoId}`}
+          href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${match._id}/${ldoIdUrl}`}
           key={cm.id}
           target="_blink"
           className="item-link border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4"

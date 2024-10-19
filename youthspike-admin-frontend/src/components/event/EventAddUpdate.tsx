@@ -27,6 +27,7 @@ import TextareaInput from '../elements/forms/TextareaInput';
 import ImageInput from '../elements/forms/ImageInput';
 
 import { useSocket } from '@/lib/SocketProvider';
+import { useLdoId } from '@/lib/LdoProvider';
 // Select Input Options
 const { homeTeamStrategy, rosterLockList } = staticData;
 
@@ -59,6 +60,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
   const searchParams = useSearchParams();
   const pName = usePathname();
   const socket = useSocket();
+  const {ldoIdUrl} = useLdoId();
 
   // Local State
   const eventLogo = useRef<null | MediaSource | Blob>(null);
@@ -95,10 +97,10 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       setActErr,
       eventUpdate,
       eventAdd,
-      user,
       router,
       initialEvent,
-      socket
+      socket,
+      ldoIdUrl
     });
   };
 

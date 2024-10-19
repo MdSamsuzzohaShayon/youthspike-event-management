@@ -1,9 +1,9 @@
 'use client'
 
 import Loader from '@/components/elements/Loader';
-import { GET_LDOS, GET_LDOS_LIGHT } from '@/graphql/director';
-import { ILDO, ILDOExpRel } from '@/types';
-import { gql, useQuery } from '@apollo/client';
+import { GET_LDOS_LIGHT } from '@/graphql/director';
+import { ILDOExpRel } from '@/types';
+import { useQuery } from '@apollo/client';
 import Link from 'next/link';
 import React from 'react';
 

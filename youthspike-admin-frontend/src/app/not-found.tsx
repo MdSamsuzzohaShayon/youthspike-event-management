@@ -1,3 +1,6 @@
+'use client'
+
+import { useLdoId } from '@/lib/LdoProvider'
 import Link from 'next/link'
 import React from 'react'
 

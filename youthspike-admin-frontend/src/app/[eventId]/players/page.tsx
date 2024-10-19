@@ -209,7 +209,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
       {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
         <div className="mb-4 division-selection w-full">
-          <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+          <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
         </div>
       )}
 

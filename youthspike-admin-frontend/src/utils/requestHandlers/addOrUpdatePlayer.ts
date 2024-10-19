@@ -23,7 +23,7 @@ interface IAddOrUpdatePlayer {
     router: AppRouterInstance;
     e: React.SyntheticEvent;
     prevPlayer?: IPlayer | null;
-    directorId?: string | null;
+    ldoIdUrl: string;
     division?: string;
     playerAddCB?: (playerData: IPlayerExpRel) => void;
     playerUpdateCB?: (playerData: IPlayerExpRel) => void;
@@ -32,10 +32,9 @@ interface IAddOrUpdatePlayer {
 }
 
 async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-    prevPlayer, directorId, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
+    prevPlayer, ldoIdUrl, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
     const teamExist = getTeamFromStore();
     let success = true;
-    const newDirectorId = directorId && directorId !== '' ? `?ldoId=${directorId}` : '';
     try {
         setIsLoading(true);
         const playerAddObj = structuredClone(playerState);
@@ -85,7 +84,7 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
 
         if (!update && playerRes?.data?.createPlayer?.data) {
             if (playerAddCB) playerAddCB(playerRes.data.createPlayer.data);
-            if (teamExist) return router.push(`/${eventId}/teams/${teamExist}/${newDirectorId}`);
+            if (teamExist) return router.push(`/${eventId}/teams/${teamExist}/${ldoIdUrl}`);
         } else {
             if (playerRes?.data?.updatePlayer?.data) {
                 if (playerUpdateCB) playerUpdateCB(playerRes?.data?.updatePlayer?.data);
@@ -110,9 +109,9 @@ async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, divisio
         setIsLoading(false);
         if (update && success) {
             if (teamExist) {
-                router.push(`/${eventId}/teams/${teamExist}/${newDirectorId}`);
+                router.push(`/${eventId}/teams/${teamExist}/${ldoIdUrl}`);
             } else {
-                router.push(`/${eventId}/players/${newDirectorId}`);
+                router.push(`/${eventId}/players/${ldoIdUrl}`);
             }
         }
     }

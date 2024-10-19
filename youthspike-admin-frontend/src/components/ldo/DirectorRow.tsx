@@ -1,11 +1,8 @@
-import cld from '@/config/cloudinary.config'
-import { DELETE_DIRECTOR } from '@/graphql/director'
-import { ILDO, ILDOItem } from '@/types'
-import { useMutation } from '@apollo/client'
-import { AdvancedImage } from '@cloudinary/react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import React from 'react'
+import cld from '@/config/cloudinary.config';
+import { ILDOItem } from '@/types';
+import { AdvancedImage } from '@cloudinary/react';
+import Link from 'next/link';
+import React from 'react';
 
 interface IDeleteRowProps{
     ldo: ILDOItem;

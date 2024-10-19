@@ -3,7 +3,6 @@ import { IError, IEvent, IMenuItem, IOption, IPlayer, IPlayerRanking, IPlayerRan
 import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import Link from 'next/link';
 import { initialUserMenuList } from '@/utils/staticData';
 import { getUserFromCookie } from '@/utils/cookie';
 import { getEventIdFromPath, rearrangeMenu } from '@/utils/helper';
@@ -13,7 +12,6 @@ import { EPlayerStatus } from '@/types/player';
 import cld from '@/config/cloudinary.config';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
-import useLdoUrl from '@/hooks/useLdoUrl';
 import Image from 'next/image';
 import UserMenuList from '../layout/UserMenuList';
 
@@ -32,7 +30,6 @@ interface ITeamDetailProps {
 
 function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc, playerList, playerRanking }: ITeamDetailProps) {
   const pathname = usePathname();
-  const ldoUrl = useLdoUrl();
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -116,7 +113,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
             </button>
           </div>
           <form onSubmit={handleAddPlayersToTeam} className="mb-4">
-            <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" ldoUrl={ldoUrl} />
+            <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
             <button type="submit" className="btn-primary mt-4">
               Add
             </button>

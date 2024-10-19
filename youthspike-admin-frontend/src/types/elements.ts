@@ -37,7 +37,6 @@ export interface ITextareaInputProps extends ITextCommon { }
 
 export interface IPlayerSelectProps {
   name: string;
-  ldoUrl: string;
   extraCls?: string;
   defaultValue?: string[];
   handleCheckboxChange: (pId: string, isChecked: boolean) => void;
