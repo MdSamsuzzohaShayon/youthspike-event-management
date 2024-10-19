@@ -185,7 +185,8 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
 
   return (
     <div
-      style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
+      // style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
+      style={{ minHeight: '50%' }}
       className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${border.light
         } items-center justify-start`}
     >

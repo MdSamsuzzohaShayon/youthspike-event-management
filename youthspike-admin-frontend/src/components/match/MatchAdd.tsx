@@ -13,6 +13,7 @@ import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
 import { getCurrentDate } from '@/utils/datetime';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface IMatchTeams extends IDefaultMatchProps {
     teams: ITeam[]; // add teams to IDefaultEventMatch
@@ -64,6 +65,9 @@ function MatchAdd({ eventId,
     eventData,
     showAddMatch,
     prevMatch, addMatchCB }: IMatchAddProps) {
+    const router = useRouter();
+    const { ldoIdUrl } = useLdoId();
+
     const { homeTeamStrategy, assignLogicList, rosterLockList } = staticData;
 
     // Local State
@@ -74,7 +78,6 @@ function MatchAdd({ eventId,
     const [createMatch, { client }] = useMutation(CREATE_MATCH);
     const [mutateMatch, { client: updateClient }] = useMutation(UPDATE_MATCH);
 
-    const router = useRouter();
 
     /**
      * Input change
@@ -89,7 +92,7 @@ function MatchAdd({ eventId,
         }
     }
 
-    const handleDateChange =({name, value}: {name: string, value: string})=>{
+    const handleDateChange = ({ name, value }: { name: string, value: string }) => {
         if (update) {
             setUpdateMatch((prevState) => ({ ...prevState, [name]: value }));
         } else {
@@ -134,7 +137,7 @@ function MatchAdd({ eventId,
      */
     const handleAddMatch = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB });
+        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB });
     }
 
     /**
@@ -186,7 +189,7 @@ function MatchAdd({ eventId,
             <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
-            
+
             <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
 
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}

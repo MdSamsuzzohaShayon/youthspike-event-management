@@ -10,6 +10,7 @@ import LoadingPage from './loading';
 import SocketProvider from '@/lib/SocketProvider';
 
 import "../utils/polyfills";
+import LdoProvider from '@/lib/LdoProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -32,11 +33,13 @@ export default function RootLayout({
         <ApolloWrapper>
           <SocketProvider>
             <UserProvider>
-              <Suspense fallback={<LoadingPage />}>
-                <Menu />
-                {children}
-                <Footer />
-              </Suspense>
+              <LdoProvider>
+                <Suspense fallback={<LoadingPage />}>
+                  <Menu />
+                  {children}
+                  <Footer />
+                </Suspense>
+              </LdoProvider>
             </UserProvider>
           </SocketProvider>
         </ApolloWrapper>

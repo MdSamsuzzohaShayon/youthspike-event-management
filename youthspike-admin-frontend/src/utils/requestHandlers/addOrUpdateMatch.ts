@@ -11,6 +11,7 @@ interface IAddOrUpdateMatchProps {
     addMatch: IAddMatch;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     updateMatch: Partial<IAddMatch>;
+    ldoIdUrl: string;
     currDivision?: string;
     matchId?: string;
     update?: boolean;
@@ -20,7 +21,7 @@ interface IAddOrUpdateMatchProps {
 }
 
 
-async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
+async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
     try {
         setIsLoading(true);
         let matchRes = null;
@@ -55,7 +56,7 @@ async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatc
         if (showAddMatch) showAddMatch(false);
         if(update && router){
             if(matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299){
-                router.push(`/${eventId}/matches`);
+                router.push(`/${eventId}/matches/${ldoIdUrl}`);
             }
         }
     } catch (error) {

@@ -23,10 +23,10 @@ interface IAddOrUpdateProps {
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     eventUpdate: MutationFunction;
     eventAdd: MutationFunction;
-    user: IUserContext;
     router: AppRouterInstance;
     initialEvent: IEventAdd;
     socket: Socket | null;
+    ldoIdUrl: string;
 
 }
 
@@ -45,7 +45,7 @@ async function addOrUpdateEvent({
     e,
     update, eventId, directorId, setEventState, setIsLoading, eventState,
     updateEvent, sponsorImgList, eventLogo, setActErr, eventUpdate,
-    eventAdd, user, router, initialEvent, socket }: IAddOrUpdateProps) {
+    eventAdd, router, initialEvent, socket, ldoIdUrl }: IAddOrUpdateProps) {
 
     setIsLoading(true);
     let newEventId = null;
@@ -182,13 +182,10 @@ async function addOrUpdateEvent({
 
         if (newEventId) {
             createNewEvent({socket, eventId: newEventId})
-            let redirectUrl = `/${newEventId}`;
-            if (user.info?.role === UserRole.admin) {
-                redirectUrl += `/?ldoId=${directorId}`;
-            }
-            router.push(redirectUrl);
+            router.push(`/${newEventId}/${ldoIdUrl}`);
         };
     } catch (error) {
+        // @ts-ignore
         setActErr({ message: error?.message || '', success: false });
     } finally {
         setIsLoading(false);

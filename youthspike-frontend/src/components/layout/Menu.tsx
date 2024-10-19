@@ -3,11 +3,12 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from 'react';
 import { IUser, UserRole } from '@/types/user';
+import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
 import { removeCookie, getCookie } from '@/utils/cookie';
 import { useParams } from 'next/navigation';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import { EVENT_ITEM } from '@/utils/constant';
+import { EVENT_ITEM, LDO_ID } from '@/utils/constant';
 import { EEventItem } from '@/types/event';
 import { getEvent } from '@/utils/localStorage';
 import MenuItem from './MenuItem';
@@ -23,15 +24,16 @@ const initialUser = {
 };
 
 function Menu() {
+  const params = useParams();
+  const {ldoId, ldoIdUrl} = useLdoId();
+
   const [openMenu, setOpenMenu] = useState<boolean>(false);
   const [user, setUser] = useState<ICookieUser>(initialUser);
   const [newEventId, setNewEventId] = useState<null | string>(null);
+  const [newLdoUrl, setNewLdoUrl] = useState<string>('');
 
-  const params = useParams();
 
   const openMenuHandler = () => {
-    // eslint-disable-next-line no-unused-expressions
-    // user.info && user.token && user.token !== '' ? setOpenMenu(true) : setOpenMenu(false);
     setOpenMenu(true);
   };
 
@@ -66,24 +68,12 @@ function Menu() {
     setNewEventId(eventId);
   }, [params]);
 
-  // =====  Render sub components =====
-  // const renderMenuItems = () => {
-  //   const eventId = params?.eventId || getEvent();
+  useEffect(() => {
+    if (ldoId && ldoId !== '') {
+      setNewLdoUrl(`&${LDO_ID}=${ldoId}`);
+    }
+  }, [ldoId]);
 
-  //   let itemList = userMenuList;
-  //   const instantToken = getCookie('token');
-  //   if (instantToken && eventId) {
-  //     itemList = [...userMenuList, ...adminMenuList];
-  //   }
-  //   const menuItems: React.ReactNode[] = [];
-  //   for (let i = 0; i < itemList.length; i += 1) {
-  //     let newLink: string = itemList[i].link;
-  //     if (eventId && instantToken && itemList[i].admin) newLink = `${ADMIN_FRONTEND_URL}/${eventId}/${itemList[i].link}`;
-  //     menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={itemList[i].id} icon={`/icons/${itemList[i].imgName}.svg`} text={itemList[i].text} link={newLink} />);
-  //   }
-
-  //   return menuItems;
-  // };
 
   return (
     <div className="container px-2 mx-auto text-white">
@@ -109,20 +99,20 @@ function Menu() {
           <div className="league-director w-full flex justify-between items-center mb-8">{user?.info?.role === UserRole.admin && <h1 className="text-2xl">Admin</h1>}</div>
           {params?.eventId && (
             <div className="league mb-8 w-full">
-              <Link href="/" className="text-2xl">
+              <Link href={`/${ldoIdUrl}`} className="text-2xl">
                 Event
               </Link>
             </div>
           )}
           <ul className="menu-list flex justify-start flex-col gap-8">
-            <MenuItem icon="/icons/trophy.svg" link="/" setOpenMenu={setOpenMenu} text="Home" key="umi-1" />
+            <MenuItem icon="/icons/trophy.svg" link={`/${ldoIdUrl}`} setOpenMenu={setOpenMenu} text="Home" key="umi-1" />
             <MenuItem icon="/icons/teams.svg" link="/events" setOpenMenu={setOpenMenu} text="Events" key="umi-2" />
             {newEventId && (
               <>
-                <MenuItem icon="/icons/matches-white.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.MATCH}`} setOpenMenu={setOpenMenu} text="Matches" key="umi-3" />
-                <MenuItem icon="/icons/teams.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.TEAM}`} setOpenMenu={setOpenMenu} text="Teams" key="umi-4" />
-                <MenuItem icon="/icons/players.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.PLAYER}`} setOpenMenu={setOpenMenu} text="Roster" key="umi-5" />
-                <MenuItem icon="/icons/account.svg" link={`${ADMIN_FRONTEND_URL}/${newEventId}/settings`} setOpenMenu={setOpenMenu} text="Settings" key="umi-6" />
+                <MenuItem icon="/icons/matches-white.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.MATCH}${newLdoUrl}`} setOpenMenu={setOpenMenu} text="Matches" key="umi-3" />
+                <MenuItem icon="/icons/teams.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.TEAM}${newLdoUrl}`} setOpenMenu={setOpenMenu} text="Teams" key="umi-4" />
+                <MenuItem icon="/icons/players.svg" link={`/events/${newEventId}/?${EVENT_ITEM}=${EEventItem.PLAYER}${newLdoUrl}`} setOpenMenu={setOpenMenu} text="Roster" key="umi-5" />
+                <MenuItem icon="/icons/account.svg" link={`${ADMIN_FRONTEND_URL}/${newEventId}/settings/${ldoIdUrl}`} setOpenMenu={setOpenMenu} text="Settings" key="umi-6" />
               </>
             )}
             {user.token && <MenuItem icon="/icons/players.svg" link={ADMIN_FRONTEND_URL} setOpenMenu={setOpenMenu} text="Admin" key="umi-5" />}

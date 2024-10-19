@@ -12,6 +12,7 @@ import { useAppDispatch } from '@/redux/hooks';
 import { EVENT_ITEM, imgW } from '@/utils/constant';
 import Link from 'next/link';
 import { APP_NAME } from '@/utils/keys';
+import { useLdoId } from '@/lib/LdoProvider';
 import { setRankingMap, setTeamsPlayerRanking } from '@/redux/slices/playerRankingSlice';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
@@ -40,10 +41,13 @@ interface ITeamCaptain extends ITeam {
 }
 
 function EventDetail({ event }: { event: IEventRelatives }) {
-  const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
   const user = useUser();
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
+  const { ldoIdUrl } = useLdoId();
+
+
+  const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
 
   // After redirecting set an item to select between playerList, teamList or match list of an event
   useEffect(() => {
@@ -115,7 +119,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   return (
     <div className="w-full mb-8">
       <div className="logo-with event my-4 text-center w-full flex items-center justify-center flex-col">
-        <Link href="/">
+        <Link href={`/${ldoIdUrl}`}>
           <Image height={100} width={100} src="/free-logo.png" alt="youthspike-logo" className="w-24" />
         </Link>
         <h1>{event.name}</h1>

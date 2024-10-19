@@ -16,6 +16,8 @@ import { initialUserMenuList } from '@/utils/staticData';
 
 import { motion } from 'framer-motion';
 import { menuAnimate } from '@/utils/animation';
+import { LDO_ID } from '@/utils/constant';
+import { useLdoId } from '@/lib/LdoProvider';
 
 const {initial: mInitial, animate: mAnimate, exit: mExit, transition: mTransition} = menuAnimate;
 
@@ -37,16 +39,15 @@ function Menu() {
     // ===== Hooks =====
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const menuEl = useRef<HTMLDivElement | null>(null);
-
+    const {ldoIdUrl} = useLdoId();
+    
     // ===== Local State =====
     const [openMenu, setOpenMenu] = useState<boolean>(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [eventId, setEventId] = useState<string | null>(null);
-    const [directorId, setDirectorId] = useState<string | null>(null);
     const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
     const [user, setUser] = useState<ICookieUser>(initialUser);
+    const menuEl = useRef<HTMLDivElement | null>(null);
 
     // ===== GraphQL =====
     const [fetchLDO, { data, error, loading }] = useLazyQuery(GET_LDO);
@@ -85,17 +86,6 @@ function Menu() {
 
 
 
-    const makeMenuLink = (url: string) => {
-        let baseUrl = url;   
-        const instantUser = getCookie('user');
-        if(instantUser && instantUser !== ''){
-            const userCtx: IUser = JSON.parse(instantUser);
-            const ldoId = searchParams.get("ldoId");
-            if (userCtx?.role === UserRole.admin && ldoId)baseUrl = `${baseUrl}?ldoId=${ldoId}`;
-        }
-        return baseUrl;
-    }
-
     // ===== Component Mount =====
     useEffect(() => {
         const userDetail = getUserFromCookie();
@@ -107,13 +97,6 @@ function Menu() {
             // ===== Check path has event Id or not
             const eventPath = getEventIdFromPath(pathname);
             setEventId(eventPath);
-
-            if (userDetail.info?.role === UserRole.admin) {
-                const newDirectorId = searchParams.get("ldoId");
-                if (newDirectorId) setDirectorId(newDirectorId);
-            } else if (userDetail.info?.role === UserRole.director) {
-                setDirectorId(userDetail.info._id);
-            }
 
             const menuItemList = rearrangeMenu(userDetail, eventPath);
             setUserMenuList(menuItemList);
@@ -135,18 +118,16 @@ function Menu() {
     // ===== Runder sub components =====
     const renderMenuItems = (eId: string | null, uml: IMenuItem[]) => {
         
-        const userDetail = getUserFromCookie();
         const menuItems: React.ReactNode[] = [];
         for (let i = 0; i < uml.length; i++) {
             let newLink: string = '';
             if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) {
                 newLink = '/' + eId;
             } else if (eId && eId !== '' && (uml[i].id === 9)) {
-
                 newLink = `${FRONTEND_URL}/events/${eId}`;
             }
 
-            const reformattedURL = makeMenuLink(`${newLink}${uml[i].link}`);
+            const reformattedURL = `${newLink}${uml[i].link}/${ldoIdUrl}`
             // console.log({reformattedURL});
             
             menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text}
@@ -178,13 +159,7 @@ function Menu() {
                         <p className='uppercase text-yellow-logo mt-1'>{user.info?.role}</p>
                         <br />
                     </div>
-                    {eventId ? (
-                        <div className="league mb-8 w-full">
-                            <Link href="/" className='text-2xl font-bold'>Event </Link>
-                        </div>
-                    ) : <div className="league mb-8 w-full">
-                        <Link href="/" className='text-2xl font-bold'>Events </Link>
-                    </div>}
+                    <Link href="/" className='text-2xl font-bold'>Home </Link>
                     <ul className='menu-list flex justify-start flex-col gap-8'>
                         {renderMenuItems(eventId, userMenuList)}
                         {(user && user.token && user.token !== '') && <li><button className="btn-danger" type='button' onClick={handleLogout}>Logout</button></li>}

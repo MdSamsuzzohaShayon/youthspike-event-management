@@ -14,6 +14,8 @@ interface ITemplateParams {
   director_email: string;
   captain_name: string;
   event_date: string;
+  eventId: string;
+  ldoIdUrl: string;
   fwango_link?: string | null;
   ldo_phone?: string | null;
 }
@@ -50,6 +52,8 @@ export class EmailsenderService {
     event_date,
     fwango_link,
     ldo_phone,
+    eventId,
+    ldoIdUrl,
   }: ITemplateParams) {
     try {
       const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
@@ -65,9 +69,11 @@ export class EmailsenderService {
         organized_ldo_phone = `Phone: ${ldo_phone}`;
       }
 
+      const clientUrl = `${ADMIN_CLIENT_URL}/${eventId}/matches/${ldoIdUrl}`;
+
       // Replace placeholders with actual values
       const replacedHtmlContent = htmlContent
-        .replace('{{admin_client_url}}', ADMIN_CLIENT_URL)
+        .replace('{{admin_client_url}}', clientUrl)
         .replace('{{player_username}}', player_username)
         .replace('{{player_password}}', coach_password)
         .replace('{{ldo_name}}', ldo_name)

@@ -8,6 +8,7 @@ import Footer from '@/components/layout/Footer';
 import UserProvider from '@/lib/UserProvider';
 import SocketProvider from '@/lib/SocketProvider';
 import Loader from '@/components/elements/Loader';
+import LdoProvider from '@/lib/LdoProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,9 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ApolloWrapper>
               <UserProvider>
                 <ReduxProvider>
-                  <Menu />
-                  {children}
-                  <Footer />
+                  <LdoProvider>
+                    <Menu />
+                    {children}
+                    <Footer />
+                  </LdoProvider>
                 </ReduxProvider>
               </UserProvider>
             </ApolloWrapper>

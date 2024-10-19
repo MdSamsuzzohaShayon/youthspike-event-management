@@ -17,11 +17,11 @@ import cld from '@/config/cloudinary.config';
 import { AdvancedImage } from '@cloudinary/react';
 import { IUserContext, UserRole } from '@/types/user';
 import Link from 'next/link';
-import TextImg from '@/components/elements/TextImg';
 import { handleResponse } from '@/utils/handleError';
 import { getUserFromCookie } from '@/utils/cookie';
-import { getDivisionFromStore, removeDivisionFromStore } from '@/utils/localStorage';
+import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface IItem {
   id: number;
@@ -40,6 +40,7 @@ function EventsPage() {
   const user = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const {ldoIdUrl} = useLdoId();
 
   // Local States
   const [filteredItems, setFilteredItems] = useState<IItem[]>([]);
@@ -133,7 +134,7 @@ function EventsPage() {
     if (eventResponse.data.cloneEvent.success !== true) {
       return setActErr({ code: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, success: false });
     }
-    return router.push(`/${eventResponse.data.cloneEvent.data._id}/settings`);
+    return router.push(`/${eventResponse.data.cloneEvent.data._id}/settings/${ldoIdUrl}`);
   };
 
   const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
@@ -206,7 +207,7 @@ function EventsPage() {
       <div className="events flex flex-wrap gap-2 justify-between">
         <div className="event-card mb-1 p-2 bg-yellow-logo rounded-lg">
           <Link
-            href={user.info?.role === UserRole.admin && ldoId ? `/newevent/?ldoId=${directorId}` : `/newevent`}
+            href={`/newevent/${ldoIdUrl}`}
             className="h-full w-full flex justify-center items-center flex-col gap-2 rounded-md"
           >
             <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />
@@ -217,7 +218,7 @@ function EventsPage() {
         {eventList &&
           eventList.length > 0 &&
           eventList.map((event: IEvent) => (
-            <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} directorId={directorId} user={user} />
+            <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} />
           ))}
       </div>
     </div>

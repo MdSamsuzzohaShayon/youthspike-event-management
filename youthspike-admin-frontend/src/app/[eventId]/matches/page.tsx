@@ -27,7 +27,6 @@ import { motion } from 'framer-motion';
 import { headingAnimate, logoAnimate } from '@/utils/animation';
 
 const { animate: hAnimate, exit: hExit, initial: hInitial, transition: hTransition } = headingAnimate;
-const { animate: lAnimate, exit: lExit, initial: lInitial, transition: lTransition } = logoAnimate;
 const { animate: mAnimate, exit: mExit, initial: mInitial, transition: mTransition } = logoAnimate;
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
@@ -185,7 +184,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
                 </button>
 
                 <div className="division-selection w-full">
-                  <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+                  <SelectInput key={"matches-si-1"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
                 </div>
 
                 <MatchAdd
@@ -211,7 +210,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
             <br />
             {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
               <div className="division-selection w-full">
-                <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+                <SelectInput key={"matches-si-2"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
               </div>
             )}
             {filteredMatchList.length > 0 ? (

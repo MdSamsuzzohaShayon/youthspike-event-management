@@ -23,9 +23,6 @@ interface IPlayerAddPageProps {
 function PlayerAddPage({ params }: IPlayerAddPageProps) {
 
   // ===== Local State ===== 
-  const router = useRouter();
-
-  // ===== Local State ===== 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
@@ -113,7 +110,7 @@ function PlayerAddPage({ params }: IPlayerAddPageProps) {
   return (
     <div className='container mx-auto px-2 min-h-screen'>
       <div className="mb-4 division-selection w-full">
-        <SelectInput key={crypto.randomUUID()} handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        <SelectInput key="player-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
       </div>
       <h1 className='mb-8 text-center'>Add Player</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}

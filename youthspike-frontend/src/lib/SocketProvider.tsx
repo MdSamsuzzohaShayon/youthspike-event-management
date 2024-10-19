@@ -17,7 +17,6 @@ function SocketProvider({ children }: React.PropsWithChildren<{}>) {
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
-    console.log('Socket connected:', newSocket);
     setSocket(newSocket);
 
     return () => {

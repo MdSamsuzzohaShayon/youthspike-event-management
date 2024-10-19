@@ -22,9 +22,9 @@ import SelectInput from '../elements/forms/SelectInput';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../hooks/useClickOutside';
 import UserMenuList from '../layout/UserMenuList';
-import useLdoUrl from '@/hooks/useLdoUrl';
 import { getUserFromCookie } from '@/utils/cookie';
 import { UserRole } from '@/types/user';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface ITeamsOfEventPage {
   eventId: string;
@@ -34,7 +34,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   // Hooks
   const pathname = usePathname();
   const router = useRouter();
-  const ldoUrl = useLdoUrl();
+  const {ldoIdUrl} = useLdoId();
   const searchParams = useSearchParams()
 
   // Local State
@@ -181,7 +181,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       <div className="mb-8 make-team flex w-full justify-between">
-        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={`/${eventId}/teams/new/${ldoUrl}`}>
+        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={`/${eventId}/teams/new/${ldoIdUrl}`}>
           <span>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/plus.svg" alt="plus" className="w-6 svg-black" />
           </span>

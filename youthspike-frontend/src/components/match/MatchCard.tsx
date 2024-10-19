@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { IMatchExpRel, INetRelatives, IRoundExpRel } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
@@ -12,6 +13,7 @@ import { useParams } from 'next/navigation';
 import { imgW } from '@/utils/constant';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
+import { useLdoId } from '@/lib/LdoProvider';
 import PointsByRoundPublic from './PointsByRoundPublic';
 
 interface MatchCardProps {
@@ -20,6 +22,9 @@ interface MatchCardProps {
 
 function MatchCard({ match }: MatchCardProps) {
   const params = useParams();
+  const {ldoIdUrl} = useLdoId();
+
+
   const [roundList, setRoundList] = useState<IRoundExpRel[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
@@ -33,11 +38,13 @@ function MatchCard({ match }: MatchCardProps) {
     roundList.forEach((r) => {
       const { score: ts } = calcRoundScore(
         allNets.filter((n) => n.round === r._id),
+        // @ts-ignore
         r,
         teamE,
       );
       const { score: os } = calcRoundScore(
         allNets.filter((n) => n.round === r._id),
+        // @ts-ignore
         r,
         oponentE,
       );
@@ -61,7 +68,7 @@ function MatchCard({ match }: MatchCardProps) {
     <div className="w-full bg-gray-700 flex flex-col justify-between items-center relative rounded-lg" style={{ minHeight: '6rem' }}>
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-center px-2 md:px-6 mt-2 md:mt-6">
-        <Link href={`/matches/${match._id}`} className="btn-info">
+        <Link href={`/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
           Enter
         </Link>
       </div>
@@ -75,7 +82,7 @@ function MatchCard({ match }: MatchCardProps) {
       <div className="lavel-3 w-full flex justify-center items-center px-2 md:px-6 mt-2 md:mt-6 gap-x-2">
         {user.info?.role === UserRole.admin ||
           (user.info?.role === UserRole.director && (
-            <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/matches/${match._id}`}>
+            <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/matches/${match._id}/${ldoIdUrl}`}>
               <Image height={imgW.logo} width={imgW.logo} src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
             </Link>
           ))}
@@ -88,9 +95,11 @@ function MatchCard({ match }: MatchCardProps) {
             ))}
           </ul>
           <div className="points-by-rounds w-full flex flex-wrap justify-center items-center">
+            {/* @ts-ignore */}
             <PointsByRoundPublic roundList={roundList} allNets={allNets} teamE={ETeam.teamA} />
           </div>
           <div className="points-by-rounds w-full flex flex-wrap justify-center items-center mt-2">
+            {/* @ts-ignore */}
             <PointsByRoundPublic roundList={roundList} allNets={allNets} teamE={ETeam.teamB} dark />
           </div>
         </div>
@@ -113,12 +122,6 @@ function MatchCard({ match }: MatchCardProps) {
             </span>
             <span>{readDate(match.date)}</span>
           </p>
-          {/* <p className="flex justify-start items-center gap-x-2">
-            <span>
-              <Image width={20} height={20} src="/icons/date.svg" className="w-6 svg-white" alt="date-logo" />
-            </span>
-            <span>Start {readTime(match.date)}</span>
-          </p> */}
         </div>
         <div className="w-3/6 text-end">
           <p className="flex justify-start items-center gap-x-2">

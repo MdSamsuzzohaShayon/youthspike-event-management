@@ -9,39 +9,24 @@ import { UserRole } from '@/types/user';
 
 import { motion } from 'framer-motion';
 import { liAnimate } from '@/utils/animation';
+import { useLdoId } from '@/lib/LdoProvider';
 
 const {initial: iInitial, animate: iAnimate, exit: iExit, transition: iTransition} = liAnimate;
 
 function UserMenuList({ eventId }: { eventId: string }) {
     const pathname = usePathname();
+    const {ldoIdUrl} = useLdoId();
     const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
-    const [ldoId, setLdoId] = useState<string | null>(null);
     
 
     useEffect(() => {
         const userDetail = getUserFromCookie();
-
         // Get ldoId from query parameters and set state
-        const searchParams = new URLSearchParams(location.search);
-        const ldoIdParam = searchParams.get('ldoId') || '';
+        const eventPath = getEventIdFromPath(pathname);
+        let menuItemList = rearrangeMenu(userDetail, eventPath);
         
-        if (userDetail) {
-            const eventPath = getEventIdFromPath(pathname);
-            let menuItemList = rearrangeMenu(userDetail, eventPath);
-            
-            if (userDetail.info?.role === UserRole.admin && ldoIdParam) {
-                menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id >= 5 ? `${mi.link}${mi.id > 5 ? "" : "?ldoId=" + ldoIdParam}` : `/${eventId}/${mi.link}?ldoId=${ldoIdParam}` }));
-            }else{
-                menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id === 5 ? mi.link : `/${eventId}/${mi.link}` }));
-            }
-            setUserMenuList(menuItemList);
-        }
-
-
-
-        if (ldoIdParam) {
-            setLdoId(ldoIdParam);
-        }
+        menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id === 5 ? mi.link : `/${eventId}/${mi.link}/${ldoIdUrl}` }));
+        setUserMenuList(menuItemList);
     }, [pathname]);
 
     // State to hold ldoId

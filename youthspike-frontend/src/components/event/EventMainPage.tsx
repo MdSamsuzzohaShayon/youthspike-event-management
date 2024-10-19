@@ -13,10 +13,11 @@ import { logoAnimate } from '@/utils/animation';
 import { APP_NAME } from '@/utils/keys';
 import { listenPublicSocketEvents } from '@/utils/match/listenSocketEvents';
 import Image from 'next/image';
+import { removeEvent } from '@/utils/localStorage';
 import EventList from './EventList';
 import Loader from '../elements/Loader';
 
-const { animate, initial, exit, transition} = logoAnimate;
+const { animate, initial, exit, transition } = logoAnimate;
 
 function EventMainPage() {
   // ===== Hooks =====
@@ -33,22 +34,20 @@ function EventMainPage() {
 
   useEffect(() => {
     (async () => {
+      // Remove specific event
+      removeEvent();
       const res = await getEvents();
       if (res?.data?.getEvents?.data) {
         dispatch(setEventList(res.data.getEvents.data));
       }
     })();
-  }, []);
+  }, [dispatch, getEvents]);
 
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
-    if (socket ) {
-      // const userInfo = getCookie('user');
-      // const userToken = getCookie('token');
-
-      listenPublicSocketEvents({socket});
+    if (socket) {
+      listenPublicSocketEvents({ socket });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
   if (loading) return <Loader />;

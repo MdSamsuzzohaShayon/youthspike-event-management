@@ -10,9 +10,11 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { setCookie, getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
+import { useLdoId } from '@/lib/LdoProvider';
 
 function LoginPage() {
   const router = useRouter();
+  const {ldoIdUrl} = useLdoId();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

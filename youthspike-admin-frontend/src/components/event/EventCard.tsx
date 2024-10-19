@@ -8,22 +8,23 @@ import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import useClickOutside from '../../hooks/useClickOutside';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface IEventCardProps {
   event: IEvent;
   copyEvent: (e: React.SyntheticEvent, eventId: string) => void;
   deleteEvent: (e: React.SyntheticEvent, eventId: string) => void;
   sendCredentials: (eventId: string) => void;
-  user: IUserContext | null;
-  directorId: string | null;
 }
 
 // Create an array of month names
 const monthNames: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function EventCard({ event, copyEvent, deleteEvent, user, directorId, sendCredentials }: IEventCardProps) {
+function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCardProps) {
+
+  const {ldoIdUrl} = useLdoId();
+
   const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const [ldoId, setLdoId] = useState<string>('');
   const ulEl = useRef<HTMLUListElement | null>(null);
 
   useClickOutside(ulEl, () => {
@@ -53,20 +54,9 @@ function EventCard({ event, copyEvent, deleteEvent, user, directorId, sendCreden
     setActionOpen((prevState) => !prevState);
   };
 
-  const makeSettingUrl = () => {
-    let newUrl = `/${event._id}/settings`;
-    if (user && user.info && user.info.role === UserRole.admin) newUrl += `/?ldoId=${directorId}`;
-    return newUrl;
-  };
 
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const ldoIdParam = searchParams.get('ldoId');
 
-    if (ldoIdParam) {
-      setLdoId(ldoIdParam);
-    }
-  }, [window.location.search]);
+
 
   return (
     <div key={event._id} className="event-card mb-1 p-2 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md relative">
@@ -85,7 +75,7 @@ function EventCard({ event, copyEvent, deleteEvent, user, directorId, sendCreden
         </li>
         <li>
           {' '}
-          <Link href={makeSettingUrl()} className="cursor-pointer flex justify-start items-center gap-x-2">
+          <Link href={`/${event._id}/settings/${ldoIdUrl}`} className="cursor-pointer flex justify-start items-center gap-x-2">
             {' '}
             <span>
               <Image width={20} height={20} src="/icons/edit.svg" alt="Edit-icon" className="svg-white" />
@@ -103,7 +93,7 @@ function EventCard({ event, copyEvent, deleteEvent, user, directorId, sendCreden
       <div className="w-full flex justify-end">
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" role="presentation" onClick={handleOpenAction} className="w-4 svg-white" />
       </div>
-      <Link href={`/${event._id}${ldoId && ldoId !== '' ? `/?ldoId=${ldoId}` : ''}`}>
+      <Link href={`/${event._id}/${ldoIdUrl}`}>
         <div className="img-wrapper w-full flex justify-center items-center">
           {event.logo ? <AdvancedImage cldImg={cld.image(event.logo)} alt="logo" className="w-12" /> : <Image src="/free-logo.png" width={20} height={20} alt='free-logo' className="w-12 h-12" />}
         </div>
