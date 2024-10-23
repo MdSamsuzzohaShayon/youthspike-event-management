@@ -4,11 +4,11 @@ import Image from 'next/image';
 import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { imgW } from '@/utils/constant';
-import { notTwoPointNet } from '@/utils/match/emitSocketEvents';
 import { overflowNetH } from '@/utils/styles';
 import React, { useEffect, useState } from 'react';
 import { setNotTieBreakerNetId } from '@/redux/slices/netSlice';
 import { Socket } from 'socket.io-client';
+import EmitEvents from '@/utils/socket/EmitEvents';
 import NetBox from '../net/NetBox';
 
 interface INotTieBreakerProps {
@@ -35,11 +35,11 @@ function NotTieBreaker({ ntbnId, currRoundNets, socket, currRound, teamA, teamB 
 
   const handleConfirmNet = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    notTwoPointNet({ socket, netId: ntbnId, currRoom, currRound, currRoundNets, dispatch, allNets });
+    // notTwoPointNet({ socket, netId: ntbnId, currRoom, currRound, currRoundNets, dispatch, allNets });
+    const emitEvents = new EmitEvents(socket, dispatch);
+    emitEvents.banANet({ netId: ntbnId, currRoom, currRound, currRoundNets, allNets });
     dispatch(setNotTieBreakerNetId(null));
   };
-
-
 
   useEffect(() => {
     if (ntbnId && currentRoundNets && currentRoundNets.length > 0) {

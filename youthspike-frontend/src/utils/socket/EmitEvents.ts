@@ -4,10 +4,12 @@ import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IJoinTheRoomProps, IStatusChange, IRoomNetAssign, IRoundRelatives, IJoinData, ICheckInData, IUpdatePointData, INetRelatives } from '@/types';
 import { IUser, IUserContext, UserRole } from '@/types/user';
-import { EActionProcess, IRoom, ISubmitLineupAction } from '@/types/room';
-import { ISubmitLineupProps, ISubmitUpdatePointsProps } from '@/types/socket';
+import { EActionProcess, IRoom, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
+import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps } from '@/types/socket';
 import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
+import { ETieBreaker } from '@/types/net';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { getLocalTeam } from '../localStorage';
 
 class EmitEvents {
@@ -39,6 +41,7 @@ class EmitEvents {
     this.hasSubbedPlayers = false;
   }
 
+  // Socket action function
   async joinRoom({ user, teamA, teamB, currRound, matchId }: IJoinTheRoomProps) {
     if (!this.socket || !currRound) return;
     const joinData: IJoinData = { match: matchId, round: currRound._id, userRole: UserRole.public };
@@ -112,7 +115,10 @@ class EmitEvents {
   }
 
   updatePoints({ currRoom, currRound, currRoundNets, myTeamE }: ISubmitUpdatePointsProps) {
-    if (!currRoom || !currRound) return;
+    if (!currRoom || !currRound) {
+      this.dispatch(setActErr({ success: false, message: 'No room or round found!' }));
+      return;
+    }
 
     const netPointsList = currRoundNets.map((net) => ({
       _id: net._id,
@@ -122,14 +128,63 @@ class EmitEvents {
 
     const actionData: IUpdatePointData = {
       nets: netPointsList,
-      room: currRoom?._id ?? 'NO_ROOM_ID_FOUND',
-      round: currRound?._id ?? 'NO_ROUND_ID_FOUND',
+      room: currRoom._id,
+      round: currRound._id,
       teamE: myTeamE,
     };
 
     this.socket?.emit('update-points-from-client', actionData);
   }
 
+  banANet({ netId, currRoom, currRound, currRoundNets, allNets }: INotTwoPointNetProps) {
+    const actionData: ITeiBreakerAction = {
+      match: currRound?.match,
+      room: currRoom?._id ? currRoom?._id : null,
+      round: currRound?._id ? currRound?._id : null,
+      teamAProcess: currRound?.teamAProcess ? currRound?.teamAProcess : null,
+      teamBProcess: currRound?.teamBProcess ? currRound?.teamBProcess : null,
+      nets: [],
+    };
+
+    const updatedAllNets = [...allNets];
+    const updatedNets = [...currRoundNets];
+    const nI = updatedNets.findIndex((n) => n._id === netId);
+    const anI = updatedAllNets.findIndex((n) => n._id === netId);
+    if (nI === -1 || anI === -1) return;
+
+    updatedAllNets[anI] = { ...updatedAllNets[anI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
+    updatedNets[nI] = { ...updatedNets[nI], netType: ETieBreaker.FINAL_ROUND_NET_LOCKED };
+
+    // ===== Create 2 Points Nets =====
+    const lockedNets = updatedNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    if (lockedNets.length > 1) {
+      const lnIds = lockedNets.map((n) => n._id);
+      for (let i = 0; i < updatedNets.length; i += 1) {
+        if (!lnIds.includes(updatedNets[i]._id) && updatedNets[i].round === currRound?._id) {
+          updatedNets[i] = { ...updatedNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
+        }
+      }
+
+      for (let i = 0; i < updatedAllNets.length; i += 1) {
+        if (!lnIds.includes(updatedAllNets[i]._id) && updatedAllNets[i].round === currRound?._id) {
+          updatedAllNets[i] = { ...updatedAllNets[i], points: 2, netType: ETieBreaker.TIE_BREAKER_NET };
+        }
+      }
+    }
+
+    this.dispatch(setCurrentRoundNets(updatedNets));
+    this.dispatch(setNets(updatedAllNets));
+
+    const roundNetAssign: IRoomNetType[] = updatedNets.map((net) => ({
+      _id: net._id,
+      netType: net.netType,
+    }));
+    actionData.nets = roundNetAssign;
+
+    if (this.socket) this.socket.emit('update-net-from-client', actionData);
+  }
+
+  // Helper functions
   private isAuthorized(userInfo: IUser): boolean {
     this.isAuthenticated = false;
     return [UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain].includes(userInfo.role);

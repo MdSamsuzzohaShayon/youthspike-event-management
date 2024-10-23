@@ -162,6 +162,7 @@ export interface ILoginProps {
   setEmail: (state: string) => void;
   password: string;
   setPassword: (state: string) => void;
+  actErr: IError | null;
 }
 
 
