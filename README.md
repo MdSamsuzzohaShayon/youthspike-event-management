@@ -50,12 +50,12 @@ ___
 ### Important
  - Removed someone from captain it erased  him off of his ldo account
  - Run the match 20 times and fix all the issues we got
-
+      
 
 ### Requirements
- - Menu height need to have minimum height to make it more responsive on mobile devices
+ - Some issues with banning nets, somehow players on the net are not working when banning a net
  - Use Emit Event class for emitting more socket events
- - Fixing issues with Safari
+ - Menu height need to have minimum height to make it more responsive on mobile devices
  - Menu in the frontend -> to navigate to admin easily
  - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
  - Captain of a team must not be able to change the ranking of another team

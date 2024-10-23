@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
 import { getDivisionFromStore } from '@/utils/localStorage';
+import { UserRole } from '@/types/user';
 
 
 
@@ -111,8 +112,8 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
 
   const getSelectableOpponents = () => {
     const division = getDivisionFromStore();
-    const isDifferentCaptain = (t: ITeam) =>   t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
-  
+    const isDifferentCaptain = (t: ITeam) => t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
+
     return teamList.filter((t) => {
       const sameDivision = division
         ? t.division.toString().trim().toUpperCase() === division.toString().trim().toUpperCase()
@@ -209,29 +210,31 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
 
       </div>
 
-      <div className="bulk-selection relative w-full flex justify-between">
-        <div className="input-group flex items-center gap-2 justify-between"  >
-          <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
-          <label htmlFor="bulk-action">Bulk Action</label>
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={() => setShowFilter((prevState) => !prevState)} />
-        </div>
-        <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
-          <p>A-Z</p>
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
-        </div>
+      {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+        <div className="bulk-selection relative w-full flex justify-between">
+          <div className="input-group flex items-center gap-2 justify-between"  >
+            <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
+            <label htmlFor="bulk-action">Bulk Action</label>
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={() => setShowFilter((prevState) => !prevState)} />
+          </div>
+          <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
+            <p>A-Z</p>
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+          </div>
 
-        {/* Bulk Action start  */}
-        <ul ref={actionEl} className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-14 z-10 rounded-lg`}>
-          <li role="presentation" className='capitalize' onClick={handleDeleteMatches}>
-            delete
-          </li>
+          {/* Bulk Action start  */}
+          <ul ref={actionEl} className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-14 z-10 rounded-lg`}>
+            <li role="presentation" className='capitalize' onClick={handleDeleteMatches}>
+              delete
+            </li>
 
-          <li role="presentation" className='capitalize' onClick={handleMoveMatches}>
-            Move
-          </li>
-        </ul>
-        {/* Bulk Action end  */}
-      </div>
+            <li role="presentation" className='capitalize' onClick={handleMoveMatches}>
+              Move
+            </li>
+          </ul>
+          {/* Bulk Action end  */}
+        </div>
+      )}
 
       <div className="match-list w-full flex justify-between items-center flex-wrap">
         {filteredMatchList.map((match: IMatchExpRel, i) => (

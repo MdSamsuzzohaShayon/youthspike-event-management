@@ -3,16 +3,19 @@ import Image from 'next/image';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrNetNum } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setCurrNetNum } from '@/redux/slices/netSlice';
 
 // Utils
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 
 // Components
 import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
-import { changeTheRound } from '@/utils/match/emitSocketEvents';
 import { border } from '@/utils/styles';
 import { setActErr } from '@/redux/slices/elementSlice';
+import { ETeam } from '@/types/team';
+import { EActionProcess } from '@/types/room';
+import { setMatch } from '@/utils/localStorage';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import MatchSetting from './MatchSetting';
 import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
@@ -30,6 +33,25 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
   const { myTeam, opTeam, showTeamPlayers, myPlayers, availablePlayerIds, disabledPlayerIds, selectedNet, myTeamE, opTeamE, match } = useAppSelector((state) => state.matches);
 
+  // Duplicate
+  const changeTheRound = (targetRoundIndex: number) => {
+    // ===== Current round, current round nets and round list properly =====
+    const newRoundObj = { ...roundList[targetRoundIndex] };
+    const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
+    dispatch(setCurrentRoundNets(filteredNets));
+
+    if (myTeamE === ETeam.teamA) {
+      newRoundObj.teamAProcess = newRoundObj.teamAProcess && newRoundObj.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamAProcess;
+    } else {
+      newRoundObj.teamBProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
+    }
+    setMatch(newRoundObj.match, newRoundObj._id);
+    dispatch(setCurrentRound(newRoundObj));
+    const newRoundList = roundList.filter((r) => r._id !== newRoundObj._id);
+    newRoundList.push(newRoundObj);
+    dispatch(setRoundList(newRoundList));
+  };
+
   // ===== Input Round Change =====
   const handleRoundChange = (e: React.SyntheticEvent, roundId: string) => {
     e.preventDefault();
@@ -44,7 +66,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         dispatch(setActErr(null));
       }
 
-      changeTheRound({ roundList, dispatch, allNets, newRoundIndex: targetRoundIndex, myTeamE });
+      changeTheRound(targetRoundIndex);
       dispatch(setDisabledPlayerIds([]));
       dispatch(setPrevPartner(null));
     }
@@ -84,9 +106,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
               {roundList.map((round) => (
                 <button
-                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-white'} py-1 text-center cursor-pointer ${
-                    screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
-                  } rounded-t-lg`}
+                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-white'} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
+                    } rounded-t-lg`}
                   type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}

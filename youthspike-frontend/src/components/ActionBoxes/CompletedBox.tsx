@@ -5,9 +5,15 @@ import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import cld from '@/config/cloudinary.config';
 import { ITeam } from '@/types';
 import { setActErr } from '@/redux/slices/elementSlice';
-import { changeTheRound } from '@/utils/match/emitSocketEvents';
+import { useLdoId } from '@/lib/LdoProvider';
+// import { changeTheRound } from '@/utils/match/emitSocketEvents';
 import { setDisabledPlayerIds, setPrevPartner } from '@/redux/slices/matchesSlice';
 import Image from 'next/image';
+import { setCurrentRoundNets } from '@/redux/slices/netSlice';
+import { ETeam } from '@/types/team';
+import { EActionProcess } from '@/types/room';
+import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setMatch } from '@/utils/localStorage';
 import TextImg from '../elements/TextImg';
 
 interface ITeamScoreBoard {
@@ -17,6 +23,7 @@ interface ITeamScoreBoard {
 
 function CompletedBox() {
   const dispatch = useAppDispatch();
+  const { ldoIdUrl } = useLdoId();
 
   // ===== Redux State =====
   const [teamAPoints, setTeamAPoints] = useState<number>(0);
@@ -28,6 +35,25 @@ function CompletedBox() {
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
+
+  // Duplicate
+  const changeTheRound = (targetRoundIndex: number) => {
+    // ===== Current round, current round nets and round list properly =====
+    const newRoundObj = { ...roundList[targetRoundIndex] };
+    const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
+    dispatch(setCurrentRoundNets(filteredNets));
+
+    if (myTeamE === ETeam.teamA) {
+      newRoundObj.teamAProcess = newRoundObj.teamAProcess && newRoundObj.teamAProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamAProcess;
+    } else {
+      newRoundObj.teamBProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
+    }
+    setMatch(newRoundObj.match, newRoundObj._id);
+    dispatch(setCurrentRound(newRoundObj));
+    const newRoundList = roundList.filter((r) => r._id !== newRoundObj._id);
+    newRoundList.push(newRoundObj);
+    dispatch(setRoundList(newRoundList));
+  };
 
   const handleNextRound = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -43,7 +69,7 @@ function CompletedBox() {
         dispatch(setActErr(null));
       }
 
-      changeTheRound({ roundList, dispatch, allNets, newRoundIndex: targetRoundIndex, myTeamE });
+      changeTheRound(targetRoundIndex);
       dispatch(setDisabledPlayerIds([]));
       dispatch(setPrevPartner(null));
     }
@@ -122,7 +148,7 @@ function CompletedBox() {
                 <h2 className="uppercase">Wins the match</h2>
               </>
             )}
-            <a href={`${ADMIN_FRONTEND_URL}/${match.event}/matches`} className="btn-success">
+            <a href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${ldoIdUrl}`} className="btn-success">
               Next Match
             </a>
           </>

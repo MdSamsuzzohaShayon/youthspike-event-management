@@ -7,8 +7,8 @@ import { ETeam } from '@/types/team';
 import { fsToggle } from '@/utils/helper';
 import React, { useEffect, useState } from 'react';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { lineupToUpdatePoints } from '@/utils/match/emitSocketEvents';
 import { useSocket } from '@/lib/SocketProvider';
+import EmitEvents from '@/utils/socket/EmitEvents';
 import { ETieBreaker } from '@/types/net';
 import Image from 'next/image';
 import { screen } from '@/utils/constant';
@@ -86,7 +86,9 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     dispatch(setRoundList(updatedRoundList));
 
     // Update to the server
-    lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN, myTeamE });
+    // lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN, myTeamE });
+    const emitEvents = new EmitEvents(socket, dispatch);
+    emitEvents.updatePoints({ currRoom, currRound, currRoundNets: updatedCRN, myTeamE });
   };
 
   const handleKeyUp = (e: React.SyntheticEvent) => {

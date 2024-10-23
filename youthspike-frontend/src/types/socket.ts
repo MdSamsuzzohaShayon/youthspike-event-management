@@ -23,13 +23,11 @@ export interface IJoinTheRoomProps {
 }
 
 export interface INotTwoPointNetProps {
-  socket: Socket | null;
   netId: string;
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   currRoundNets: INetRelatives[];
   allNets: INetRelatives[];
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
 }
 
 export interface IStatusChange {
@@ -90,10 +88,10 @@ export interface IUpdatePointData {
 }
 
 // roundList, dispatch, allNets, newRoundIndex, myTeamE
+// Unused
 export interface INextRoundProps {
   roundList: IRoundRelatives[];
   dispatch: React.Dispatch<React.ReducerAction<any>>;
-  allNets: INetRelatives[];
   newRoundIndex: number;
   myTeamE: ETeam;
 }
@@ -105,7 +103,6 @@ export interface ICompleteMatchProps {
 }
 
 export interface ISubmitUpdatePointsProps {
-  socket: Socket | null;
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   currRoundNets: INetRelatives[];
