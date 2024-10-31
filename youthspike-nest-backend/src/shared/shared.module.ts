@@ -28,7 +28,6 @@ import { SponsorService } from 'src/sponsor/sponsor.service';
 import { Sponsor, SponsorSchemaFactory } from 'src/sponsor/sponsor.schema';
 import { Room, RoomSchemaFactory } from 'src/room/room.schema';
 import { RoomService } from 'src/room/room.service';
-import { EmailsenderResolver } from 'src/emailsender/emailsender.resolver';
 import { EmailsenderService } from 'src/emailsender/emailsender.service';
 import {
   PlayerRanking,
@@ -37,6 +36,7 @@ import {
   PlayerRankingSchemaFactory,
 } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/emailsender/emailsender.schema';
 
 @Module({
   imports: [
@@ -104,6 +104,10 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
       {
         name: PlayerRankingItem.name,
         useFactory: PlayerRankingItemSchemaFactory,
+      },
+      {
+        name: EmailSenderTemplate.name,
+        useFactory: EmailSenderTemplateSchemaFactory,
       },
     ]),
 

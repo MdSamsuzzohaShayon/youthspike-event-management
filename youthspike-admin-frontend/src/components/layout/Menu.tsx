@@ -147,7 +147,7 @@ function Menu() {
             )}
 
             {openMenu && (
-                <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute h-full top-0 left-0 z-20 p-4" ref={menuEl}>
+                <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="menu-content bg-gray-700 w-5/6 md:w-3/6 absolute min-h-full top-0 left-0 z-20 p-4" ref={menuEl}>
                     <div className="w-full flex justify-end items-center">
                         <button onClick={closeMenuHandler} className='close-button'>
                             <img src='/icons/close.svg' className='w-10 svg-white' alt='close' />

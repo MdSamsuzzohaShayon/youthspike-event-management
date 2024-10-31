@@ -37,7 +37,9 @@ export default function RootLayout({
                 <Suspense fallback={<LoadingPage />}>
                   <Menu />
                   {children}
-                  <Footer />
+                  <div className="mt-6">
+                    <Footer />
+                  </div>
                 </Suspense>
               </LdoProvider>
             </UserProvider>

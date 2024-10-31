@@ -117,7 +117,7 @@ function PlayerScoreCard({
       <>
         <div className="placeholder h-6" />
         <p
-          className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-400 text-black z-10 flex justify-center items-center`}
+          className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-logo text-black z-10 flex justify-center items-center`}
           style={{ transform: 'translate(-50%, -50%)' }}
         >
           {playerRank}
@@ -135,7 +135,7 @@ function PlayerScoreCard({
 
       {/* Lavel 2: player start  */}
       <div className={`wrapper w-full border border-yellow rounded-lg overflow-hidden flex ${onTop ? 'flex-col' : 'flex-col-reverse'}`}>
-        <div className="p-rank bg-yellow-400 w-full flex flex-wrap items-center justify-center">
+        <div className="p-rank bg-yellow-logo w-full flex flex-wrap items-center justify-center">
           <p className="p-name max-three-line break-all text-c-sm uppercase text-black-logo text-center font-bold leading-3 pt-1">
             {player ? player.firstName : ''}
             {player?.lastName && (

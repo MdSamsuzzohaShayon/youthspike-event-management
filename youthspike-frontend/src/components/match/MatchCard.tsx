@@ -3,7 +3,7 @@ import { IMatchExpRel, INetRelatives, IRoundExpRel } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { readDate } from '@/utils/datetime';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
@@ -14,18 +14,18 @@ import { imgW } from '@/utils/constant';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
+import { EActionProcess } from '@/types/room';
 import PointsByRoundPublic from './PointsByRoundPublic';
 
 interface MatchCardProps {
   match: IMatchExpRel;
+  roundList: IRoundExpRel[];
 }
 
-function MatchCard({ match }: MatchCardProps) {
+function MatchCard({ match, roundList }: MatchCardProps) {
   const params = useParams();
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
 
-
-  const [roundList, setRoundList] = useState<IRoundExpRel[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
   const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
   const user = useUser();
@@ -64,20 +64,62 @@ function MatchCard({ match }: MatchCardProps) {
     );
   };
 
+  const messageCreate = useCallback(() => {
+    let runningRoundIndex: null | number = null;
+    let msg: string = '';
+
+    // make sure which round they are on
+    for (let i = 0; i < roundList.length; i += 1) {
+      const currRound = roundList[i];
+      if (currRound?.teamAProcess === EActionProcess.INITIATE || currRound?.teamBProcess === EActionProcess.INITIATE) {
+        msg = 'TILL NOT CHECKED IN TO PLAY';
+        runningRoundIndex = i;
+        // break round loop
+        break;
+      } else if (currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.CHECKIN) {
+        const currRoundNets = allNets.filter((n)=> n.round === roundList[i]._id);
+        for (let j = 0; currRoundNets && j < currRoundNets.length; j += 1) {
+          if (!currRoundNets[j].teamAScore || !currRoundNets[j].teamAScore) {
+            runningRoundIndex = i;
+            // Break net loop
+            break;
+          }
+        }
+
+        if (runningRoundIndex !== null) {
+          // break round loop
+          msg = `ASSINGING PLAYERS ROUND ${roundList[runningRoundIndex].num}`;
+          break;
+        }
+      } else if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
+        const currRoundNets = allNets.filter((n)=> n.round === roundList[i]._id);
+        for (let j = 0; currRoundNets && j < currRoundNets.length; j += 1) {
+          if (!currRoundNets[j].teamAScore || !currRoundNets[j].teamAScore) {
+            runningRoundIndex = i;
+            // Break net loop
+            break;
+          }
+        }
+        if (runningRoundIndex !== null) {
+          // break round loop
+          msg = `ROUND ${roundList[runningRoundIndex].num} IN ACTION `;
+          break;
+        }
+      }
+    }
+
+    return msg;
+  }, [roundList]);
+
   return (
     <div className="w-full bg-gray-700 flex flex-col justify-between items-center relative rounded-lg" style={{ minHeight: '6rem' }}>
       {/* ===== LEVEL 1 START ===== */}
-      <div className="level-1 w-full flex justify-center px-2 md:px-6 mt-2 md:mt-6">
-        <Link href={`/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
-          Enter
-        </Link>
-      </div>
+      <div className="level-1 w-full flex justify-center px-2 md:px-6 mt-2 md:mt-6 border-yellow border-b">{match.completed ? 'FINAL SCORE' : messageCreate()}</div>
+      {/* "ASSINGING PLAYERS ROUND 2" */}
       {/* ===== LEVEL 1 END ===== */}
-
       {/* ===== LEVEL 2 START ===== */}
       <div className="lavel-2 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">{teamCard(match?.teamA, ETeam.teamA)}</div>
       {/* ===== LEVEL 2 END ===== */}
-
       {/* ===== LEVEL 3 START ===== */}
       <div className="lavel-3 w-full flex justify-center items-center px-2 md:px-6 mt-2 md:mt-6 gap-x-2">
         {user.info?.role === UserRole.admin ||
@@ -108,13 +150,11 @@ function MatchCard({ match }: MatchCardProps) {
         </div>
       </div>
       {/* ===== LEVEL 3 END ===== */}
-
       {/* ===== LEVEL 4 START ===== */}
       <div className="lavel-4 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">{teamCard(match?.teamB, ETeam.teamB)}</div>
       {/* ===== LEVEL 4 END ===== */}
-
       {/* ===== LEVEL 5 START ===== */}
-      <div className="lavel-4 w-full flex justify-between items-start px-2 md:px-6 mt-2 md:mt-6 pb-2">
+      <div className="lavel-5 w-full flex justify-between items-start px-2 md:px-6 mt-2 md:mt-6 pb-2">
         <div className="w-3/6">
           <p className="flex justify-start items-center gap-x-2 mb-2">
             <span>
@@ -133,14 +173,20 @@ function MatchCard({ match }: MatchCardProps) {
         </div>
       </div>
       {/* ===== LEVEL 5 END ===== */}
-
       {/* ===== LEVEL 6 START ===== */}
       {/* <div className="lavel-6 w-full flex justify-between items-start border-t border-gray-500 px-2 md:px-6 mt-2 md:mt-6 pb-2">
         <h3>Match Setting</h3>
         {match && <MatchAdd prevMatch={match} eventId={match.event}
           setActErr={setActErr} setIsLoading={setIsLoading} update matchId={match._id} />}
       </div> */}
-      {/* ===== LEVEL 5 END ===== */}
+      {/* ===== LEVEL 6 END ===== */}
+      {/* ===== LEVEL 7 START ===== */}
+      <div className="lavel-7  w-full flex justify-center px-2 md:px-6 mt-2 md:mt-6 pb-2">
+        <Link href={`/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
+          Enter
+        </Link>
+      </div>
+      {/* ===== LEVEL 7 END ===== */}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { HttpStatus, UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, Field, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql';
+import htmlToText from 'html-to-text';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -13,6 +14,13 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
+import { EmailSenderTemplate } from './emailsender.schema';
+
+@ObjectType()
+class GetEmailTemplateResponse extends AppResponse<EmailSenderTemplate> {
+  @Field((type) => EmailSenderTemplate, { nullable: false })
+  data?: EmailSenderTemplate;
+}
 
 @Resolver()
 export class EmailsenderResolver {
@@ -20,11 +28,11 @@ export class EmailsenderResolver {
     private eventService: EventService,
     private teamService: TeamService,
     private playerService: PlayerService,
-    private emailsenderService: EmailsenderService,
+    private emailSenderService: EmailsenderService,
     private ldoService: LdoService,
     private userService: UserService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   /**
    * Format a date into a custom string.
@@ -130,7 +138,7 @@ export class EmailsenderResolver {
           }
           const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
           sendPromises.push(
-            this.emailsenderService.sendHtmlEmail({
+            this.emailSenderService.sendHtmlEmail({
               to: sendTo,
               subject,
               htmlFileName,
@@ -165,6 +173,93 @@ export class EmailsenderResolver {
       };
     } catch (error) {
       return AppResponse.handleError(error);
+    }
+  }
+
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.admin, UserRole.director)
+  @Query((_returns) => GetEmailTemplateResponse)
+  async getEmailTemplate(@Context() context: any, @Args('teamId') teamId: string) {
+    try {
+      // Retrieve event details
+      const teamExist = await this.teamService.findById(teamId);
+      if (!teamExist) {
+        return AppResponse.notFound('Team');
+      }
+      const eventExist = await this.eventService.findById(teamExist.event.toString());
+      if (!eventExist) {
+        return AppResponse.notFound('Event');
+      }
+      const subject = `Credentials for ${eventExist.name}`;
+      const htmlFileName = 'send-credentials.html';
+
+      // Find existing template
+      const emailTemplateExist = await this.emailSenderService.findOne({ team: teamExist._id.toString() });
+      if (emailTemplateExist) {
+        return {
+          code: HttpStatus.OK,
+          message: `Getting credential`,
+          success: true,
+          data: emailTemplateExist,
+        };
+      }
+
+      const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
+      const directorExist = await this.userService.findById(ldoExist.director.toString());
+
+      // Check user role
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userId = tokenToUser(context, secret);
+      if (!userId) return AppResponse.unauthorized();
+
+      const loggedUser = await this.userService.findById(userId);
+      if (!loggedUser) return AppResponse.unauthorized();
+      let ldoIdUrl = '';
+
+      if (loggedUser.role === UserRole.admin) {
+        ldoIdUrl = `?ldoId=${ldoExist.director.toString()}`;
+      }
+
+      // Prepare list of recipients based on specified parameters
+      if (teamExist.captain) {
+        // Team captain exist
+        const captainExist = await this.playerService.findById(teamExist.captain.toString());
+      }
+      if (teamExist.cocaptain) {
+        // Team co captain exist
+        const cocaptainExist = await this.playerService.findById(teamExist.cocaptain.toString());
+      }
+      const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
+
+      // Send emails to recipients
+
+      // const plainText = htmlToText.convert(generateEmail, {});
+
+
+
+      // If existing template is not found, return default one (Not saved in the database, when update, save it to the database)
+      const generateEmail = await this.emailSenderService.generateHtml({
+        htmlFileName,
+        player_username: 'player_username',
+        coach_password: eventExist.coachPassword,
+        ldo_name: ldoExist.name,
+        director_email: directorExist.email,
+        captain_name: 'captain_name',
+        event_date: eventDateFormatted,
+        fwango_link: eventExist.fwango,
+        ldo_phone: ldoExist.phone,
+        eventId: eventExist._id,
+        ldoIdUrl,
+      });
+
+      return {
+        code: HttpStatus.OK,
+        message: `Getting credential`,
+        success: true,
+        data: generateEmail
+      };
+    } catch (error) {
+      console.log(error);
     }
   }
 }

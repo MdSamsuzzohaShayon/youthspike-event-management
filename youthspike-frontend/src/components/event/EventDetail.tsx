@@ -22,8 +22,6 @@ interface IteamCaptain extends ITeam {
   captain: IPlayer;
 }
 
-type MapType = [string, number][];
-
 
 interface IMatchCaptain extends IMatchExpRel {
   teamA: ITeamCaptain;
@@ -141,21 +139,21 @@ function EventDetail({ event }: { event: IEventRelatives }) {
               <li
                 role="presentation"
                 onClick={() => setSelectedItem(EEventItem.PLAYER)}
-                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.PLAYER ? 'font-bold bg-yellow-400' : 'bg-black-logo'}`}
+                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.PLAYER ? 'font-bold bg-yellow-logo text-black' : 'bg-black-logo'}`}
               >
                 Players
               </li>
               <li
                 role="presentation"
                 onClick={() => setSelectedItem(EEventItem.TEAM)}
-                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.TEAM ? 'font-bold bg-yellow-400' : 'bg-black-logo'}`}
+                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.TEAM ? 'font-bold bg-yellow-logo text-black' : 'bg-black-logo'}`}
               >
                 Teams
               </li>
               <li
                 role="presentation"
                 onClick={() => setSelectedItem(EEventItem.MATCH)}
-                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.MATCH ? 'font-bold bg-yellow-400' : 'bg-black-logo'}`}
+                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.MATCH ? 'font-bold bg-yellow-logo text-black' : 'bg-black-logo'}`}
               >
                 Matches
               </li>

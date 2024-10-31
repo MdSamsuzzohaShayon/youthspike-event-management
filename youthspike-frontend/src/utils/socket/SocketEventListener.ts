@@ -2,9 +2,9 @@ import { setMatchInfo } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IMatchRelatives, INetRelatives, IRoom, IRoomNets, IRoundRelatives, IUpdateScoreResponse } from '@/types';
-import { ETieBreaker } from '@/types/net';
-import { IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
+import { IMatchExpRel, IMatchRelatives, INetRelatives, IPlayer, IRoom, IRoomNets, IRoundRelatives, ITeam, IUpdateScoreResponse } from '@/types';
+import { ETieBreaker, INetScoreUpdate } from '@/types/net';
+import { EActionProcess, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
 import React from 'react';
 import { Socket } from 'socket.io-client';
 
@@ -43,18 +43,53 @@ interface IUpdateNetResponse {
   match: IMatchRelatives;
 }
 
+interface IRoundMatchCommon {
+  _id: string;
+  match: string;
+}
+interface IRoundUpdateData extends IRoundMatchCommon {
+  teamAProcess: EActionProcess;
+  teamBProcess: EActionProcess;
+}
+
+interface INetUpdateData extends IRoundMatchCommon {
+  nets: INetScoreUpdate[];
+  matchCompleted: boolean;
+}
+
+interface ITeamCaptain extends ITeam {
+  captain: IPlayer;
+}
+
+interface IMatch extends IMatchExpRel {
+  teamA: ITeamCaptain;
+  teamB: ITeamCaptain;
+}
+
+interface IUpdateRound {
+  setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
+  actionData: IRoundUpdateData;
+  matchList: IMatch[];
+}
+
+interface IUpdateNet {
+  setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
+  actionData: INetUpdateData;
+  matchList: IMatch[];
+}
+
 // Class to handle socket events
 class SocketEventListener {
   socket: Socket | null;
 
   dispatch: React.Dispatch<React.ReducerAction<any>>;
 
-  audioPlayEl: React.RefObject<HTMLElement | null>;
+  audioPlayEl: React.RefObject<HTMLElement | null> | null;
 
-  constructor(socket: Socket, dispatch: React.Dispatch<React.ReducerAction<any>>, audioPlayEl: React.RefObject<HTMLElement | null>) {
+  constructor(socket: Socket, dispatch: React.Dispatch<React.ReducerAction<any>>, audioPlayEl?: React.RefObject<HTMLElement | null>) {
     this.socket = socket;
     this.dispatch = dispatch;
-    this.audioPlayEl = audioPlayEl;
+    this.audioPlayEl = audioPlayEl ?? null;
 
     this.restartAudio.bind(this);
   }
@@ -65,8 +100,8 @@ class SocketEventListener {
   }
 
   restartAudio() {
-    if (this.audioPlayEl.current) this.audioPlayEl.current.click();
-  };
+    if (this.audioPlayEl && this.audioPlayEl.current) this.audioPlayEl.current.click();
+  }
 
   handleCheckInResponse({ data, dispatch, roundList, currentRound }: ICheckInResponse) {
     this.restartAudio();
@@ -243,6 +278,69 @@ class SocketEventListener {
 
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedN));
+  }
+
+  handleUpdateRoundAllPages({ matchList, setMatchList, actionData }: IUpdateRound) {
+    // Find match index directly in the match list
+    const matchIndex = matchList.findIndex((m) => m._id === actionData.match);
+    if (matchIndex === -1) return;
+
+    // Directly clone the match object instead of the whole list
+    const matchObj = structuredClone(matchList[matchIndex]);
+
+    // If no rounds, initialize as empty; else shallow copy rounds
+    const roundList = matchObj.rounds || [];
+    const roundIndex = roundList.findIndex((r) => r._id === actionData._id);
+    if (roundIndex === -1) return;
+
+    // Update specific round's data
+    roundList[roundIndex] = { ...roundList[roundIndex], teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess };
+    matchObj.rounds = roundList;
+
+    // Set the updated match in a new match list to avoid re-rendering issues
+    const updatedMatchList = [...matchList];
+    updatedMatchList[matchIndex] = matchObj;
+    setMatchList(updatedMatchList);
+
+    console.log('round-update-all-pages ----> ', matchList, actionData);
+    this.dispatch(setRoundList([]));
+  }
+
+  handleUpdateNetAllPages({ matchList, setMatchList, actionData }: IUpdateNet) {
+    // Find match index directly in the match list
+    const matchIndex = matchList.findIndex((m) => m._id === actionData.match);
+    if (matchIndex === -1) return;
+
+    // Directly clone the match object instead of the whole list
+    const matchObj = structuredClone(matchList[matchIndex]);
+
+    // If no rounds, initialize as empty; else shallow copy rounds
+    const roundList = matchObj.rounds || [];
+    const roundIndex = roundList.findIndex((r) => r._id === actionData._id);
+    if (roundIndex === -1) return;
+
+    // Update specific nets's data
+    const allNets = [];
+    for (let i = 0; i < matchObj.nets.length; i += 1) {
+      const changedNetIndex = actionData.nets.findIndex((n) => n._id === matchObj.nets[i]._id);
+      if (changedNetIndex !== -1) {
+        allNets.push({ ...matchObj.nets[i], teamAScore: actionData.nets[changedNetIndex].teamAScore, teamBScore: actionData.nets[changedNetIndex].teamBScore });
+      } else {
+        allNets.push({ ...matchObj.nets[i] });
+      }
+    }
+    matchObj.nets = allNets;
+
+    // Set the updated match in a new match list to avoid re-rendering issues
+    const updatedMatchList = [...matchList];
+    if (actionData.matchCompleted) {
+      matchObj.completed = actionData.matchCompleted;
+    }
+    updatedMatchList[matchIndex] = matchObj;
+    setMatchList(updatedMatchList);
+
+    console.log('round-update-all-pages ----> ', matchList, actionData);
+    this.dispatch(setRoundList([]));
   }
 }
 

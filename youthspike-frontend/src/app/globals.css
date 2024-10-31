@@ -98,7 +98,7 @@ dialog::backdrop {
 }
 
 .btn-info {
-  @apply px-3 py-2 bg-yellow-400 text-white rounded-full hover:bg-yellow-700 font-bold text-xl;
+  @apply px-3 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-700 font-bold text-xl;
 }
 
 
@@ -197,7 +197,7 @@ dialog::backdrop {
 
 /* Customize scrollbar thumb */
 ::-webkit-scrollbar-thumb {
-  background-color: #748514; /* color of the scrollbar thumb */
+  background-color: #fce013; /* color of the scrollbar thumb */
   border-radius: 6px; /* roundness of the scrollbar thumb */
 }
 
@@ -205,3 +205,21 @@ dialog::backdrop {
 ::-webkit-scrollbar-track {
   background: transparent; /* color of the scrollbar track */
 }
+
+
+/* Custom Design */
+.text-yellow-logo{
+  color: #fce013;
+}
+
+.bg-yellow-logo{
+  background: #fce013;
+}
+.border-yellow-logo{
+  border-color: #fce013;
+}
+
+.border-yellow{
+  border-color: #fce013;
+}
+

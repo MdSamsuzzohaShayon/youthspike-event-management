@@ -14,14 +14,14 @@ export enum EActionProcess {
 
   LINEUP = 'LINEUP',
   LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
-  
+
   LOCKED = 'LOCKED',
   COMPLETED = 'COMPLETED',
-};
+}
 
-export enum ETeam{
-  teamA = "teamA",
-  teamB = "teamB",
+export enum ETeam {
+  teamA = 'teamA',
+  teamB = 'teamB',
 }
 
 registerEnumType(EActionProcess, {
@@ -38,7 +38,6 @@ registerEnumType(ETeam, {
 @ObjectType()
 @Schema({ timestamps: true })
 export class Round extends AppDocument {
-
   @Field((type) => Int)
   @Prop({ required: true, default: 1 })
   num: number;
@@ -78,9 +77,8 @@ export class Round extends AppDocument {
   teamBProcess: EActionProcess;
 
   @Field((type) => Boolean, { nullable: true })
-  @Prop({ required: false, default: false})
+  @Prop({ required: false, default: false })
   completed: boolean;
-
 
   @Field((type) => ETeam, { nullable: false })
   @Prop({ required: true, type: String, enum: ETeam })

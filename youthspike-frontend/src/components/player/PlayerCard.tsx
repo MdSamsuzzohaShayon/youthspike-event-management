@@ -42,7 +42,7 @@ function PlayerCard({ player, rank }: PlayerCardProps) {
         <div className="rank-box h-10 w-1/12 flex flex-col">
           {rank && (
             <>
-              <h3 className="bg-yellow-400 w-8 h-8 flex justify-center items-center text-base">{rank}</h3>
+              <h3 className="bg-yellow-logo text-black w-8 h-8 flex justify-center items-center text-base">{rank}</h3>
               <p>Rank</p>
             </>
           )}

@@ -107,7 +107,7 @@ export interface IToggleInputProps {
   lblTxt?: string;
   name: string;
   value: boolean | null | undefined;
-  handleValueChange: (e: React.SyntheticEvent, stateName: string) => void;
+  handleInputChange: (e: React.SyntheticEvent) => void;
 }
 
 export interface ICheckboxInputProps {

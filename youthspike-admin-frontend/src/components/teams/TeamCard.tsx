@@ -2,7 +2,7 @@ import { useUser } from '@/lib/UserProvider';
 import { IEvent, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -34,7 +34,7 @@ interface ITeamMove {
 function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleCheckedTeam, fefetchFunc }: ITeamCardProps) {
   const user = useUser();
   const router = useRouter();
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
 
   const actionEl = useRef<null | HTMLUListElement>(null);
 
@@ -42,6 +42,7 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
   const [openMoveTeam, setOpenMoveTeam] = useState<boolean>(false);
   const [eventOptions, setEventOptions] = useState<IOption[]>([]);
   const [divisionOptions, setDivisionOptions] = useState<IOption[]>([]);
+  const [cardResponsiveH, setCardResponsiveH] = useState<CSSProperties>({ height: cardHeight });
 
   const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
   const [moveTeamMutation] = useMutation(UPDATE_TEAM);
@@ -52,7 +53,7 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
     setActionOpen(false);
   });
 
-  
+
   /**
    * Handle Events
    */
@@ -134,9 +135,9 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
       if (moveTeam.event === '' || moveTeam.division === '') {
         console.log(moveTeam);
       } else {
-        const moveTeamRes = await moveTeamMutation({ variables: { eventId, input: {division: moveTeam.division, event: moveTeam.event}, teamId: team._id } });
+        const moveTeamRes = await moveTeamMutation({ variables: { eventId, input: { division: moveTeam.division, event: moveTeam.event }, teamId: team._id } });
         console.log(moveTeamRes);
-        if(fefetchFunc)await fefetchFunc();
+        if (fefetchFunc) await fefetchFunc();
       }
     } catch (error) {
       console.log(error);
@@ -145,7 +146,7 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
     }
   };
 
-  
+
 
   useEffect(() => {
     if (eventList && eventList.length > 0) {
@@ -154,11 +155,15 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
     }
   }, [eventList]);
 
+  useEffect(() => {
+    setCardResponsiveH(openMoveTeam ? { minHeight: cardHeight } : { height: cardHeight });
+  }, [openMoveTeam]);
+
   return (
-    <div className="team-card w-full" style={{height: cardHeight}}>
+    <div className="team-card w-full" style={cardResponsiveH}>
       {/* Level-1: Main component start  */}
       <div className="w-full h-full p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
-      {/* Level-1.1: action menu start  */}
+        {/* Level-1.1: action menu start  */}
         <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
           <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} className="flex justify-start items-center gap-x-2">
             <span>
@@ -185,16 +190,16 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
             Delete
           </li>
         </ul>
-      {/* Level-1.1: action menu start  */}
+        {/* Level-1.1: action menu start  */}
 
-       {/* Level-1.2: team team num start  */}
+        {/* Level-1.2: team team num start  */}
         <div className="h-full w-1/12 flex justify-center items-center flex-col gap-y-4">
           <CheckboxInput _id={team._id} name='team-select' defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-          <p className="w-4 h-4 rounded-full bg-yellow-logo flex justify-center items-center text-gray-900" style={{fontSize: "0.6rem"}}>{team.num}</p>
+          <p className="w-4 h-4 rounded-full bg-yellow-logo flex justify-center items-center text-black" style={{ fontSize: "0.6rem" }}>{team.num}</p>
         </div>
-       {/* Level-1.2: team team num end  */}
-       
-       {/* Level-1.3: team name start  */}
+        {/* Level-1.2: team team num end  */}
+
+        {/* Level-1.3: team name start  */}
         <div className="h-full w-5/12 flex justify-start items-center">
           <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
             <div className="brand flex gap-1 items-center">
@@ -203,16 +208,16 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
                   <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
                 </div>
               ) : (
-                <Image src="/icons/sports-man.svg" width={100} height={100} alt='sports-man-logo' className="w-12 h-12"/>
+                <Image src="/icons/sports-man.svg" width={100} height={100} alt='sports-man-logo' className="w-12 h-12" />
               )}
               <h3 className="leading-none text-lg font-bold capitalize">{team.name}</h3>
             </div>
           </Link>
         </div>
-       {/* Level-1.3: team name end  */}
-       
-       
-       {/* Level-1.4: captain and active players start  */}
+        {/* Level-1.3: team name end  */}
+
+
+        {/* Level-1.4: captain and active players start  */}
         <div className="h-full w-5/12 flex justify-start items-center">
           <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
             {team.captain && (
@@ -236,12 +241,12 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
             </p>
           </Link>
         </div>
-       {/* Level-1.4: captain and active players end  */}
+        {/* Level-1.4: captain and active players end  */}
         <div className="h-full w-1/12 flex flex-col justify-center gap-y-4">
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation" 
-          onClick={handleOpenAction} className="w-6 svg-white" />
-          <Image role="presentation" onClick={(e) => handleSendCredential(e, team._id)} width={imgSize.logo} height={imgSize.logo} 
-          src="/icons/send-email.svg" alt="Edit-icon" className={team?.sendCredentials ? "svg-green" : "svg-white"} />
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation"
+            onClick={handleOpenAction} className="w-6 svg-white" />
+          <Image role="presentation" onClick={(e) => handleSendCredential(e, team._id)} width={imgSize.logo} height={imgSize.logo}
+            src="/icons/send-email.svg" alt="Edit-icon" className={team?.sendCredentials ? "svg-green" : "svg-white"} />
         </div>
       </div>
       {/* Level-1: Main component end  */}

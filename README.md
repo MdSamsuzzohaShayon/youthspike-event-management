@@ -53,6 +53,13 @@ ___
       
 
 ### Requirements
+ - Updating a net still not working
+ - Add a place in the public view in the matches area to indicate where they are. Maybe move the  yellow "ENTER" Box to the bottom of the square, and  put this info at the top.
+ - For example if the match is completed, have it say FINAL SCORE. If they are in the assigning players stage of round 2, for example, it would say "ASSINGING PLAYERS ROUND 2". Then if they are playing the round and waiting for scores, it would say "ROUND 2 IN ACTION"
+ 
+ - Delete unnecessary code in email sender (do not need a collection *EmailSenderTemplate* in database )
+ - Record date and time for sending email (icon)
+ - Ranking player with a ranking icon
  - Some issues with banning nets, somehow players on the net are not working when banning a net
  - Use Emit Event class for emitting more socket events
  - Menu height need to have minimum height to make it more responsive on mobile devices
@@ -64,6 +71,7 @@ ___
  - Live events are not working properly captain to admin
  - Handling error properly
  - Handle error just like uploading multiple player file error handling
+ - Use www sub domain for both
 
 ### Update
  - In public view show search filter (Search by team, date, match description)

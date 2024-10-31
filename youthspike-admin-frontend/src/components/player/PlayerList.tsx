@@ -3,10 +3,10 @@ import React, { useEffect, useRef } from 'react';
 import Sortable from 'sortablejs';
 import { EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
-import { UPDATE_PLAYERS } from '@/graphql/players';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
+import { handleError } from '@/utils/handleError';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -35,7 +35,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   const [mutatePlayerRanking] = useMutation(UPDATE_PLAYER_RANKING);
 
 
-  const sortPlayerRanking=(pl: IPlayerExpRel[], rankings?: IPlayerRankingItemExpRel[] )=>{
+  const sortPlayerRanking = (pl: IPlayerExpRel[], rankings?: IPlayerRankingItemExpRel[]) => {
     let sortedRankings: IPlayerRankingItemExpRel[] = [];
     let sortedPlayers = [];
     if (rankings && rankings.length > 0) {
@@ -53,7 +53,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
       sortedPlayers = [...pl];
     }
 
-    return {sortedRankings, sortedPlayers}
+    return { sortedRankings, sortedPlayers }
   }
 
   // ====== Handle Events =====
@@ -63,13 +63,13 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     if (upr.length > 0) {
       try {
         setIsLoading(true);
-        // await rankPlayers({ variables: { input: upr } });
         await mutatePlayerRanking({ variables: { teamId, input: upr } });
         // Update rank players with match id and team id
         if (refetchFunc) await refetchFunc();
-        // if (setAddPlayer) setAddPlayer(false);
-      } catch (error) {
+      } catch (error: any) {
+        // if (setActErr) setActErr({ success: false, message: `Failed to update player: ${error?.message || JSON.stringify(error)}` });
         console.log(error);
+        handleError({ error, setActErr });
       } finally {
         setIsLoading(false);
       }
@@ -81,7 +81,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
 
     if (oldIndex !== undefined && newIndex !== undefined) {
       console.log(`Moved from ${oldIndex} to ${newIndex}`);
-      const {sortedPlayers, sortedRankings} = sortPlayerRanking( playerList, playerRanking?.rankings);
+      const { sortedPlayers } = sortPlayerRanking(playerList, playerRanking?.rankings);
       const activeList = [...sortedPlayers.filter((p) => p.status === EPlayerStatus.ACTIVE)];
 
       const [movedItem] = activeList.splice(oldIndex, 1);
@@ -100,9 +100,12 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   useEffect(() => {
     let sortableList: Sortable | null = null;
     if (listRef && rankControls) {
+      // For mobiloe devices
       if (screenWidth <= 768) {
         // Adjust behavior based on screen width
         sortableList = Sortable.create(listRef.current!, {
+          /*
+          // Previous code, manual
           animation: 150,
           easing: 'cubic-bezier(1, 0, 0, 1)',
           delay: 200, // Delay in milliseconds before sorting starts
@@ -111,6 +114,12 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
             // Workaround to prevent default behavior of long press on iOS
             evt.preventDefault();
           },
+          onEnd: handleSortEnd,
+          */
+          multiDrag: true, // Enable multi-drag
+          selectedClass: 'selected', // The class applied to the selected items
+          fallbackTolerance: 3, // So that we can select items on mobile
+          animation: 150,
           onEnd: handleSortEnd,
         });
       } else {
@@ -128,33 +137,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     };
   }, [playerList, screenWidth, rankControls]); // Re-run effect when playerList or screenWidth changes
 
-  /*
-useEffect(() => {
-  let sortableList: Sortable | null = null;
-  if (listRef.current && rankControls) {
-    const options: Sortable.Options = {
-      animation: 150,
-      easing: 'cubic-bezier(1, 0, 0, 1)',
-      onEnd: handleSortEnd,
-    };
-
-    if (screenWidth <= 768) {
-      options.delay = 200;
-      options.touchStartThreshold = 100;
-      options.onStart = (evt: Sortable.SortableEvent) => evt.preventDefault();
-    }
-
-    console.log('Creating Sortable with options:', options);
-    sortableList = Sortable.create(listRef.current, options);
-  }
-
-  return () => {
-    if (sortableList) {
-      sortableList.destroy();
-    }
-  };
-}, [playerList, screenWidth, rankControls]);
-*/
 
 
 
@@ -168,7 +150,7 @@ useEffect(() => {
     //   const findPR = sortedRankings.find((r)=> r.player._id === pl[i]._id);
     // });
 
-    const {sortedPlayers, sortedRankings} = sortPlayerRanking(pl, rankings);
+    const { sortedPlayers, sortedRankings } = sortPlayerRanking(pl, rankings);
 
     for (let i = 0; i < sortedPlayers.length; i += 1) {
       let pr = null;
@@ -201,7 +183,7 @@ useEffect(() => {
   }
 
   return (
-    <ul ref={listRef} className="w-full">
+    <ul ref={listRef}>
       {renderPlayerList(playerList, playerRanking)}
     </ul>
   );
