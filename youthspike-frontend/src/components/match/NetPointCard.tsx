@@ -114,7 +114,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
   const teamACapOrCo = user.info?.captainplayer === teamA?.captain?._id || user.info?.cocaptainplayer === teamA?.cocaptain?._id;
 
   return (
-    <div className="absolute z-10 w-11/12 left-2 bg-yellow-400 flex flex-col justify-around items-center p-1 rounded-lg top-1/2 transform -translate-y-1/2">
+    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo flex flex-col justify-around items-center p-1 rounded-lg top-1/2 transform -translate-y-1/2">
       <TeamScoreInput
         key={`${1}-${net?._id}`}
         currRound={currRound}
@@ -136,7 +136,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
             onKeyUp={handleKeyUp}
             onClick={handleRightShift}
             role="presentation"
-            className="w-4 svg-white transform scale-x-[-1]"
+            className="w-4 svg-black transform scale-x-[-1]"
           />
         )}
         <div className="texts text-center">
@@ -146,7 +146,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
           {net?.netType === ETieBreaker.TIE_BREAKER_NET && <p className="w-full">Worth 2 points</p>}
         </div>
         {screenWidth <= screen.xs && (
-          <Image width={50} height={30} src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 svg-white" />
+          <Image width={50} height={30} src="/icons/right-arrow.svg" alt="left-arrow" onKeyUp={handleKeyUp} onClick={handleLeftShift} role="presentation" className="w-4 svg-black" />
         )}
       </div>
       <TeamScoreInput

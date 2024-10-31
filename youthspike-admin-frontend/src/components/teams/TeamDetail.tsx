@@ -121,14 +121,14 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
         </>
       ) : (
         <div className="bulk-operations-players mt-8">
-          <div className="flex w-full justify-between items-center">
+          <div className="flex w-full justify-between items-center px-8 md:px-4">
             <h3 className="mt-4">Player List</h3>
             <button className="btn-info mt-4" type="button" onClick={() => setAddPlayer(true)}>
               Add Player to Team
             </button>
           </div>
 
-          <div className="sortable-active-player-list mt-4">
+          <div className="sortable-active-player-list mt-4 px-8 md:px-4">
             <PlayerList
               playerList={activePlayers}
               eventId={eventId}
@@ -144,7 +144,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
           </div>
 
           {inactivePlayers.length > 0 && (
-            <div className="sortable-inactive-player-list mt-4">
+            <div className="sortable-inactive-player-list mt-4 px-8">
               <h3 className="my-4">Inactive Player List</h3>
               <PlayerList
                 playerList={inactivePlayers}

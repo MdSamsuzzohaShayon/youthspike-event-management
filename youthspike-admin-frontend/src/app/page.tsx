@@ -211,7 +211,7 @@ function EventsPage() {
             className="h-full w-full flex justify-center items-center flex-col gap-2 rounded-md"
           >
             <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />
-            <p className="text-gray-900">Add New</p>
+            <p className="text-black">Add New</p>
           </Link>
         </div>
 

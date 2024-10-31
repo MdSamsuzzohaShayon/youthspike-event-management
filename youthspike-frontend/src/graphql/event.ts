@@ -6,6 +6,8 @@ rounds {
   num
   teamAScore
   teamBScore
+  teamAProcess
+  teamBProcess
   nets {
     _id
     num
@@ -39,6 +41,7 @@ matches {
   _id
   date
   division
+  completed
   teamA {
     _id
     name

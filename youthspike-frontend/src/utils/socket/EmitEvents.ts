@@ -184,6 +184,7 @@ class EmitEvents {
     if (this.socket) this.socket.emit('update-net-from-client', actionData);
   }
 
+
   // Helper functions
   private isAuthorized(userInfo: IUser): boolean {
     this.isAuthenticated = false;

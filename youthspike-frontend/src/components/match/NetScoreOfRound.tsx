@@ -106,7 +106,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
               {roundList.map((round) => (
                 <button
-                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-400' : 'bg-white'} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
+                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-logo' : 'bg-white'} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
                     } rounded-t-lg`}
                   type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}

@@ -32,7 +32,7 @@ interface PlayerCardProps {
 }
 
 function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank }: PlayerCardProps) {
-  
+
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
   const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
@@ -41,7 +41,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
   const [newEmail, setNewEmail] = useState<string>('');
   const dialogEl = useRef<HTMLDialogElement | null>(null);
-  const [ldoId, setLdoId] = useState<string>('');
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
@@ -50,7 +49,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const playerLiEl = useRef<HTMLDivElement | null>(null);
 
   const user = useUser();
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
 
   // ====== Actions for players  ======
   const handleOpenAction = (e: React.SyntheticEvent) => {
@@ -64,12 +63,12 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setIsLoading(true);
       if (teamId && eventId) {
         const response = await mutateTeam({ variables: { input, teamId, eventId } });
-        const success = handleResponse({response: response.data.updateTeam, setActErr});
-        if(!success) return;
+        const success = handleResponse({ response: response.data.updateTeam, setActErr });
+        if (!success) return;
         await client.refetchQueries({ include: [GET_A_TEAM] });
       }
     } catch (error: any) {
-      handleError({error, setActErr});
+      handleError({ error, setActErr });
     } finally {
       setIsLoading(false);
     }
@@ -106,14 +105,14 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         },
       });
 
-      const success = handleResponse({response: response.data.updatePlayer, setActErr});
-      if(!success) return;
+      const success = handleResponse({ response: response.data.updatePlayer, setActErr });
+      if (!success) return;
 
       if (refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
     } catch (error: any) {
-      handleError({error, setActErr});
+      handleError({ error, setActErr });
     }
   };
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
@@ -121,18 +120,18 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
     setActionOpen((prevState) => !prevState);
     try {
-      const response  = await mutatePlayer({
+      const response = await mutatePlayer({
         variables: {
           input: { status: newStatus, playerTeamId: teamId },
           playerId,
         },
       });
-      const success = handleResponse({response: response.data.updatePlayer, setActErr});
-      if(!success) return;
+      const success = handleResponse({ response: response.data.updatePlayer, setActErr });
+      if (!success) return;
 
       if (refetchFunc) await refetchFunc();
     } catch (error: any) {
-      handleError({error, setActErr});
+      handleError({ error, setActErr });
     }
   };
   const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
@@ -141,15 +140,15 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setActionOpen((prevState) => !prevState);
       setIsLoading(true);
       const response = await deleteAPlayer({ variables: { playerId } });
-      const success = handleResponse({response: response.data.deletePlayer, setActErr});
-      if(!success) return;
+      const success = handleResponse({ response: response.data.deletePlayer, setActErr });
+      if (!success) return;
       if (refetchFunc) {
         await refetchFunc();
       } else {
         await client.refetchQueries({ include: [GET_A_TEAM] });
       }
     } catch (error: any) {
-      handleError({error, setActErr});
+      handleError({ error, setActErr });
     } finally {
       setIsLoading(false);
     }
@@ -203,7 +202,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       }
       closeModal();
     } catch (error: any) {
-      handleError({error, setActErr});
+      handleError({ error, setActErr });
     }
   };
 
@@ -228,21 +227,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     setNewTeamId(inputEl.value);
   };
 
-  const makePlayerEditUrl = (eId: string, pId: string) => {
-    // `/${eventId}/players/${player._id}`
-    let newUrl = `/${eId}/players/${pId}`;
-    if (user && user.info && user.info.role === UserRole.admin && ldoId !== '') newUrl += `/?ldoId=${ldoId}`;
-    return newUrl;
-  };
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const ldoIdParam = searchParams.get('ldoId');
-
-    if (ldoIdParam) {
-      setLdoId(ldoIdParam);
-    }
-  }, [window.location.search]);
 
   const renderTeam = () => {
     let teamFound = null;
@@ -256,7 +240,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   return (
     <>
       <div
-        className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? 'bg-gray-700 ' : 'bg-gray-500'} py-2 relative rounded-md `}
+        className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? 'bg-gray-700 ' : 'bg-gray-500'} gap-y-2 relative rounded-md `}
         style={{ minHeight: '6rem' }}
       >
         {/* Draggable element start  */}
@@ -284,13 +268,15 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             <div className="text-box w-3/12 flex flex-col justify-center items-center">
               {showRank && rank && (
                 <div className="rank-box flex flex-col items-center rounded-lg">
-                  <h3 className="bg-yellow-logo text-gray-900 px-2 flex justify-center items-center text-base">{rank}</h3>
+                  <h3 className="bg-yellow-logo text-black px-2 flex justify-center items-center text-base">{rank}</h3>
                   <p>Rank</p>
                 </div>
               )}
-              <div className="flex flex-col justify-center items-center w-full text-center">
-                <p className="break-words">{player.phone ? formatUSPhoneNumber(player.phone) : 'Phone: N/A'}</p>
-              </div>
+              {player.phone && (
+                <div className="flex flex-col justify-center items-center w-full text-center">
+                  <p className="break-words">{formatUSPhoneNumber(player.phone)}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -333,7 +319,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             Delete
           </li>
         </ul>
-        <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dot-vertical" className="w-1/12 svg-white" role="presentation" onClick={handleOpenAction} />
+        <div className="dot-img-wrapper w-1/12 flex justify-end items-end">
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dot-vertical" className="w-8 svg-white" role="presentation" onClick={handleOpenAction} />
+        </div>
         {/* Operation menu ende  */}
 
         {/* Add email operation start  */}

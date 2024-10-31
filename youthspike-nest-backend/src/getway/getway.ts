@@ -13,6 +13,7 @@ import {
   NetTieBreaker,
   ETeam,
   CreateEventInput,
+  NetPointsAssign,
 } from './gateway.input';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
@@ -79,14 +80,39 @@ class GeneralClient {
 
 @ObjectType()
 class RoomLocalWithNets {
-  @Field((type) => [NetAssign], { nullable: false })
+  @Field((_type) => [NetAssign], { nullable: false })
   nets: NetAssign[];
 
-  @Field((type) => [String], { nullable: false })
+  @Field((_type) => [String], { nullable: false })
   subbedPlayers: string[];
 
-  @Field((type) => Int, { nullable: false })
+  @Field((_type) => Int, { nullable: false })
   subbedRound: string;
+}
+
+@ObjectType()
+class MatchRoundCommon {
+  @Field((_type) => String, { nullable: false })
+  _id: string;
+  @Field((_type) => String, { nullable: false })
+  match: string;
+}
+
+@ObjectType()
+class MatchRound extends MatchRoundCommon {
+  @Field((_type) => EActionProcess, { nullable: false })
+  teamAProcess: EActionProcess;
+  @Field((_type) => EActionProcess, { nullable: false })
+  teamBProcess: EActionProcess;
+}
+
+@ObjectType()
+class MatchRoundNet extends MatchRoundCommon {
+  @Field(() => [NetPointsAssign], { nullable: false })
+  nets: NetPointsAssign[];
+
+  @Field((_type) => Boolean, { nullable: true })
+  matchCompleted: boolean;
 }
 
 @WebSocketGateway({ cors: true, namespace: 'websocket' })
@@ -197,52 +223,37 @@ export class MyGatWay implements OnModuleInit {
     matchId: string,
     actionData: Record<string, any>,
     excludeSender = true,
+    toAll = false,
   ): Promise<string[]> {
     const clientsToSend: string[] = [];
-
     let clientInside = false;
+
     for (const [clientIdKey, val] of this.clientList) {
-      if (excludeSender) {
-        // Send everyone except myself
-        if (clientIdKey !== client.id) {
-          // Ensure val.matches is an object and check for the existence of matchId
-          if (val.matches && val.matches.length > 0) {
-            if (val.matches.includes(matchId)) {
-              this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
-              clientsToSend.push(clientIdKey);
-            }
-          }
-        } else {
-          clientInside = true;
-        }
-      } else {
-        // Ensure val.matches is an object and check for the existence of matchId
-        if (val.matches && val.matches.length > 0) {
-          if (val.matches.includes(matchId)) {
-            this.server.to(clientIdKey).emit(emitEvent, actionData); // Notify specific clients
-            clientsToSend.push(clientIdKey);
-          }
-        }
-        // Send everyone except myself
-        if (clientIdKey === client.id) {
-          clientInside = true;
-        }
+      const isSender = clientIdKey === client.id;
+      const isInMatch = val.matches?.includes(matchId);
+
+      if (toAll || (isInMatch && (!excludeSender || !isSender))) {
+        this.server.to(clientIdKey).emit(emitEvent, actionData);
+        clientsToSend.push(clientIdKey);
+      }
+
+      if (isSender) {
+        clientInside = true;
       }
     }
 
-    // If the client with this action is not present in this match, or clientList add them
-    if (!clientInside) {
-      this.clientList.set(client.id, { _id: null, matches: [matchId], userRole: UserRole.captain }); // Change user role when reload the page
+    // Add client to match if not already present and not sending to all
+    if (!clientInside && !toAll) {
+      this.clientList.set(client.id, { _id: null, matches: [matchId], userRole: UserRole.captain });
     }
 
-    // this.server.emit('check-in-response-to-all', actionData);
+    console.log({ emitEvent, clientsToSend });
 
-    // Check if there are no clients to notify
-    if (clientsToSend.length <= 0) {
-      throw new Error('No client to send message to!'); // Use Error for better error handling
+    if (clientsToSend.length === 0) {
+      throw new Error('No client to send message to!');
     }
 
-    return clientsToSend; // Return the client IDs
+    return clientsToSend;
   }
 
   // Event for real time connection
@@ -277,6 +288,9 @@ export class MyGatWay implements OnModuleInit {
         this.roomsLocal.set(rk, roomData);
       }
     }
+
+    // Delete public client
+    console.log('Client disconnected: ', client.id);
 
     this.clientList.delete(client.id);
   }
@@ -399,18 +413,20 @@ export class MyGatWay implements OnModuleInit {
         currRoundObj.teamBProcess = EActionProcess.CHECKIN;
       }
 
-      await this.roundService.updateOne(
-        { _id: checkIn.round },
-        { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess },
-      );
+      const updateRoundData = { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess };
+      await this.roundService.updateOne({ _id: checkIn.round }, updateRoundData);
       roundList[roundI] = currRoundObj;
       roomData.rounds = roundList;
       this.roomsLocal.set(checkIn.room, roomData);
 
+      const presizedRoundData: MatchRound = { ...updateRoundData, _id: checkIn.round, match: prevRoom.match };
       // Send message to specific room
       // client.to(prevRoom._id).emit('check-in-response', roomData);
-      // Send this data to all the clients
-      await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
+      await Promise.all([
+        // Send this data to all the clients
+        this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData),
+        this.emitToAllClients('round-update-all-pages', client, roomData.match, presizedRoundData, true, true),
+      ]);
     } catch (error) {
       console.log(error);
     }
@@ -474,12 +490,8 @@ export class MyGatWay implements OnModuleInit {
       );
 
       // Update nets and round by assigning player to nets
-      updatePromises.push(
-        this.roundService.update(
-          { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess },
-          submitLineup.round,
-        ),
-      );
+      const updateRoundData = { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess };
+      updatePromises.push(this.roundService.updateOne({ _id: submitLineup.round }, updateRoundData));
 
       const selectedPlayers = new Set();
       for (const n of submitLineup.nets) {
@@ -546,6 +558,15 @@ export class MyGatWay implements OnModuleInit {
       // client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
       // Send this data to all the clients
       await this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets);
+
+      const presizedRoundData: MatchRound = { ...updateRoundData, _id: submitLineup.round, match: prevRoom.match };
+      // Send message to specific room
+      // client.to(prevRoom._id).emit('check-in-response', roomData);
+      await Promise.all([
+        // Send this data to all the clients
+        this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets),
+        this.emitToAllClients('round-update-all-pages', client, roomData.match, presizedRoundData, true, true),
+      ]);
     } catch (error) {
       console.log(error);
     }
@@ -671,7 +692,17 @@ export class MyGatWay implements OnModuleInit {
     }
 
     client.to(prevRoom._id).emit('update-points-response', pointsResponse);
-    await this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse);
+    const presizedRoundData: MatchRoundNet = {
+      nets: updatePointsInput.nets,
+      _id: updatePointsInput.round,
+      match: prevRoom.match,
+      matchCompleted: pointsResponse.matchCompleted,
+    };
+
+    await Promise.all([
+      this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse),
+      this.emitToAllClients('net-update-all-pages', client, prevRoom.match, presizedRoundData, true, true),
+    ]);
   }
 
   @SubscribeMessage('completed-match-from-client')
@@ -690,7 +721,24 @@ export class MyGatWay implements OnModuleInit {
     client.emit('room-detail-response', prevRoom);
   }
 
-  // ===== Public Events =====
+  // This will be triggered in all pages except single match page
+  async updatedMatchStatus(matchId: string, roundList?: MatchRound[]): Promise<MatchRound[]> {
+    let cloneRoundList = [...roundList];
+    if (!cloneRoundList) {
+      const matchExist = await this.matchService.findById(matchId);
+      if (matchExist) {
+        const roundList = await this.roundService.find({ match: matchExist._id.toString() });
+        cloneRoundList = roundList.map((round) => ({
+          _id: round._id,
+          match: matchId,
+          teamAProcess: round.teamAProcess,
+          teamBProcess: round.teamBProcess,
+        }));
+      }
+    }
+    return cloneRoundList;
+  }
+
   // Method to handle event creation (example)
   @SubscribeMessage('create-event-from-client')
   async onCreateEvent(client: Socket, eventData: CreateEventInput) {

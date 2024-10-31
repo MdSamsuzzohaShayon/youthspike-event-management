@@ -151,18 +151,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
     }
   };
 
-  const handleToggleInput = (e: React.SyntheticEvent, stateName: string) => {
-    e.preventDefault();
-    if (!update) {
-      // @ts-ignore
-      const prevStateVal: boolean = eventState[stateName];
-      setEventState((prevState) => ({ ...prevState, [stateName]: !prevStateVal }));
-    } else {
-      // @ts-ignore
-      const prevStateVal: boolean = eventState[stateName] ? eventState[stateName] : false;
-      setUpdateEvent((prevState) => ({ ...prevState, [stateName]: !prevStateVal }));
-    }
-  };
 
   const handleImgRemove = (e: React.SyntheticEvent, companyName: string) => {
     e.preventDefault();
@@ -341,7 +329,9 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleNumberInputChange} lblTxt="Net Variance" name="netVariance" required={!update} />
 
       <SelectInput name="homeTeam" defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt="How is home team decided?" handleSelect={handleInputChange} rw="w-3/6" lw="w-3/6" />
-      <ToggleInput handleValueChange={handleToggleInput} lblTxt="Auto assign when clock runs out" value={eventState.autoAssign} name="autoAssign" />
+      <ToggleInput 
+      handleInputChange={handleInputChange}
+      lblTxt="Auto assign when clock runs out" value={eventState.autoAssign} name="autoAssign" />
       <SelectInput
         defaultValue={eventState.autoAssignLogic}
         name="autoAssignLogic"

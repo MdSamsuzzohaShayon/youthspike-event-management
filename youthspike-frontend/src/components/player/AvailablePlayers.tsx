@@ -134,7 +134,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
               role="presentation"
               onClick={(e) => handleSelectPlayer(e, player._id)}
             >
-              <p className="w-6 h-6 text-white rounded-full bg-yellow-400 flex justify-center items-center">{playerRank(player)}</p>
+              <p className="w-6 h-6 text-black rounded-full bg-yellow-logo flex justify-center items-center">{playerRank(player)}</p>
               <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
                 {player.profile ? (
                   <AdvancedImage cldImg={cld.image(player.profile.toString())} className="w-full overflow-hidden" />

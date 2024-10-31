@@ -3,10 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { InjectModel } from '@nestjs/mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { EmailSenderTemplate } from './emailsender.schema';
 
-interface ITemplateParams {
-  to: string[];
-  subject: string;
+interface ITemplateGenerateParams {
   htmlFileName: string;
   player_username: string;
   coach_password: string;
@@ -20,6 +21,11 @@ interface ITemplateParams {
   ldo_phone?: string | null;
 }
 
+interface ITemplateParams extends ITemplateGenerateParams {
+  to: string[];
+  subject: string;
+}
+
 interface ITemplateInfoParams {
   to: string[];
   subject: string;
@@ -30,7 +36,10 @@ interface ITemplateInfoParams {
 @Injectable()
 export class EmailsenderService {
   private transporter;
-  constructor(private configService: ConfigService) {
+  constructor(
+    @InjectModel(EmailSenderTemplate.name) private emailSenderTemplate: Model<EmailSenderTemplate>,
+    private configService: ConfigService,
+  ) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -38,6 +47,67 @@ export class EmailsenderService {
         pass: this.configService.get<string>('EMAIL_PASS'),
       },
     });
+  }
+
+  // Database operations
+  async create(emailSender: EmailSenderTemplate) {
+    const newEmail = await this.emailSenderTemplate.create(emailSender);
+    return newEmail;
+  }
+
+  async updateOne(filter: FilterQuery<EmailSenderTemplate>, emailSender: UpdateQuery<EmailSenderTemplate>) {
+    const updated = await this.emailSenderTemplate.updateOne(filter, emailSender);
+    return updated;
+  }
+
+  async findOne(filter: FilterQuery<EmailSenderTemplate>) {
+    const findEmail = await this.emailSenderTemplate.findOne(filter);
+    return findEmail;
+  }
+
+  // Helper functions
+  async generateHtml({
+    htmlFileName,
+    player_username,
+    coach_password,
+    ldo_name,
+    director_email,
+    captain_name,
+    event_date,
+    fwango_link,
+    ldo_phone,
+    eventId,
+    ldoIdUrl,
+  }: ITemplateGenerateParams): Promise<string> {
+    const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
+    const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
+
+    const ADMIN_CLIENT_URL = this.configService.get<string>('ADMIN_CLIENT_URL');
+    const FWANGO_URL = fwango_link || this.configService.get<string>('FWANGO_URL');
+    const AMERICAN_SPIKERS_URL = this.configService.get<string>('AMERICAN_SPIKERS_URL');
+
+    // eslint-disable-next-line prefer-const, @typescript-eslint/no-inferrable-types
+    let organized_ldo_phone: string = '';
+    if (ldo_phone) {
+      organized_ldo_phone = `Phone: ${ldo_phone}`;
+    }
+
+    const clientUrl = `${ADMIN_CLIENT_URL}/${eventId}/matches/${ldoIdUrl}`;
+
+    // Replace placeholders with actual values
+    const replacedHtmlContent = htmlContent
+      .replace('{{admin_client_url}}', clientUrl)
+      .replace('{{player_username}}', player_username)
+      .replace('{{player_password}}', coach_password)
+      .replace('{{ldo_name}}', ldo_name)
+
+      .replace('{{ldo_email}}', director_email)
+      .replace('{{ldo_phone}}', organized_ldo_phone)
+      .replace('{{event_date}}', event_date)
+      .replace('{{fwango_url}}', FWANGO_URL)
+      .replace('{{american_spikers_url}}', AMERICAN_SPIKERS_URL)
+      .replace('{{captain}}', captain_name);
+    return replacedHtmlContent;
   }
 
   async sendHtmlEmail({
@@ -56,40 +126,25 @@ export class EmailsenderService {
     ldoIdUrl,
   }: ITemplateParams) {
     try {
-      const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
-      const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
-
-      const ADMIN_CLIENT_URL = this.configService.get<string>('ADMIN_CLIENT_URL');
-      const FWANGO_URL = fwango_link || this.configService.get<string>('FWANGO_URL');
-      const AMERICAN_SPIKERS_URL = this.configService.get<string>('AMERICAN_SPIKERS_URL');
-
-      // eslint-disable-next-line prefer-const, @typescript-eslint/no-inferrable-types
-      let organized_ldo_phone: string = '';
-      if (ldo_phone) {
-        organized_ldo_phone = `Phone: ${ldo_phone}`;
-      }
-
-      const clientUrl = `${ADMIN_CLIENT_URL}/${eventId}/matches/${ldoIdUrl}`;
-
-      // Replace placeholders with actual values
-      const replacedHtmlContent = htmlContent
-        .replace('{{admin_client_url}}', clientUrl)
-        .replace('{{player_username}}', player_username)
-        .replace('{{player_password}}', coach_password)
-        .replace('{{ldo_name}}', ldo_name)
-
-        .replace('{{ldo_email}}', director_email)
-        .replace('{{ldo_phone}}', organized_ldo_phone)
-        .replace('{{event_date}}', event_date)
-        .replace('{{fwango_url}}', FWANGO_URL)
-        .replace('{{american_spikers_url}}', AMERICAN_SPIKERS_URL)
-        .replace('{{captain}}', captain_name);
+      const htmlContent = await this.generateHtml({
+        htmlFileName,
+        player_username,
+        coach_password,
+        ldo_name,
+        director_email,
+        captain_name,
+        event_date,
+        fwango_link,
+        ldo_phone,
+        eventId,
+        ldoIdUrl,
+      });
 
       await this.transporter.sendMail({
         from: `'American Spikers League <${this.configService.get<string>('EMAIL_USER')}>'`,
         to: to.join(', '),
         subject,
-        html: replacedHtmlContent,
+        html: htmlContent,
       });
 
       console.log('HTML Email sent successfully');
