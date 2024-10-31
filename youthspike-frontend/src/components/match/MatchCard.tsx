@@ -20,13 +20,14 @@ import PointsByRoundPublic from './PointsByRoundPublic';
 interface MatchCardProps {
   match: IMatchExpRel;
   roundList: IRoundExpRel[];
-  allNets: INetRelatives[];
 }
 
-function MatchCard({ match, roundList, allNets }: MatchCardProps) {
+function MatchCard({ match, roundList }: MatchCardProps) {
   const params = useParams();
   const { ldoIdUrl } = useLdoId();
 
+  // @ts-ignore
+  const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
   const user = useUser();
 
   const teamCard = (team: ITeam, teamE: ETeam) => {
@@ -76,7 +77,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         // break round loop
         break;
       } else if (currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.CHECKIN) {
-        const currRoundNets = currRound.nets;
+        const currRoundNets = allNets.filter((n)=> n.round === roundList[i]._id);
         for (let j = 0; currRoundNets && j < currRoundNets.length; j += 1) {
           if (!currRoundNets[j].teamAScore || !currRoundNets[j].teamAScore) {
             runningRoundIndex = i;
@@ -91,7 +92,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           break;
         }
       } else if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
-        const currRoundNets = currRound.nets;
+        const currRoundNets = allNets.filter((n)=> n.round === roundList[i]._id);
         for (let j = 0; currRoundNets && j < currRoundNets.length; j += 1) {
           if (!currRoundNets[j].teamAScore || !currRoundNets[j].teamAScore) {
             runningRoundIndex = i;
