@@ -36,7 +36,6 @@ import {
   PlayerRankingSchemaFactory,
 } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/emailsender/emailsender.schema';
 
 @Module({
   imports: [
@@ -104,11 +103,7 @@ import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/email
       {
         name: PlayerRankingItem.name,
         useFactory: PlayerRankingItemSchemaFactory,
-      },
-      {
-        name: EmailSenderTemplate.name,
-        useFactory: EmailSenderTemplateSchemaFactory,
-      },
+      }
     ]),
 
     ConfigModule,

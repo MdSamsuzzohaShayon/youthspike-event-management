@@ -126,8 +126,8 @@ mutation DeleteEvent($eventId: String!) {
 
 
 const SEND_CREDENTIALS= gql`
-mutation SendCredentials($eventId: String!, $teamId: String, $captain: String, $coCaptain: String) {
-  sendCredentials(eventId: $eventId, teamId: $teamId, captain: $captain, co_captain: $coCaptain) {
+mutation SendCredentials($eventId: String!, $teamIds: [String!], $captain: String, $coCaptain: String) {
+  sendCredentials(eventId: $eventId, teamIds: $teamIds, captain: $captain, co_captain: $coCaptain) {
     code
     message
     success

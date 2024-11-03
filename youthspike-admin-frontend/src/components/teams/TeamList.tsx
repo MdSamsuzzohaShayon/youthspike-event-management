@@ -6,6 +6,7 @@ import { imgSize } from '@/utils/style';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useMutation } from '@apollo/client';
 import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
+import { SEND_CREDENTIALS } from '@/graphql/event';
 
 interface TeamListProps {
   eventId: string;
@@ -18,12 +19,14 @@ interface TeamListProps {
 
 
 function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
-  
+
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
   // const [bulkTeams, setBulkTeams] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
   const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
+
+  const [sendCredentials, {data, error}] = useMutation(SEND_CREDENTIALS);
 
   // eslint-disable-next-line no-unused-vars
   const handleFilter = (e: React.SyntheticEvent, filteredItemId: number) => {
@@ -82,9 +85,34 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
 
   }
 
-  const handleBulkCredentials = (e: React.SyntheticEvent) => {
+  const handleBulkCredentials = async (e: React.SyntheticEvent) => {
     e.preventDefault();
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
 
+    // Send captain credentials to the captain and co captain credentials to co captain
+    try {
+      setIsLoading(true);
+      await sendCredentials({ variables: { eventId, teamIds: [...checkedTeamIds] } });
+      if (fefetchFunc) await fefetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleSendCredential=async (e: React.SyntheticEvent, teamId: string)=>{
+    try {
+      setIsLoading(true);
+      await sendCredentials({ variables: { eventId, teamIds: [teamId] } });
+      if (fefetchFunc) await fefetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -129,7 +157,7 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
         {teamList.map((team) => (
           <TeamCard key={team._id} team={team} eventId={eventId} eventList={eventList || []}
             setIsLoading={setIsLoading} isChecked={checkedTeams.get(team._id) ?? false}
-            fefetchFunc={fefetchFunc} handleCheckedTeam={handleCheckedTeam} />
+            fefetchFunc={fefetchFunc} handleSendCredential={handleSendCredential} handleCheckedTeam={handleCheckedTeam} />
           //  <input key={team._id} type="text" className='w-fit' defaultChecked={checkedTeams.get(team._id) ?? false} />
         ))}
       </div>

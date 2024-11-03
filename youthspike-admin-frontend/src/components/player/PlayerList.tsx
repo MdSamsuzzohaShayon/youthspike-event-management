@@ -141,16 +141,11 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
 
 
   const renderPlayerList = (pl: IPlayerExpRel[], prp?: IPlayerRankingExpRel | null) => {
+
     const playerListEl: React.ReactNode[] = [];
-
-    let rankings: IPlayerRankingItemExpRel[] = [];
-    if (prp) rankings = prp.rankings;
-
-    // const sortedPlayers = [...pl].sort((a, b)=> {
-    //   const findPR = sortedRankings.find((r)=> r.player._id === pl[i]._id);
-    // });
-
-    const { sortedPlayers, sortedRankings } = sortPlayerRanking(pl, rankings);
+    const { sortedPlayers, sortedRankings } = showRank || rankControls
+      ? sortPlayerRanking(pl, prp?.rankings)
+      : { sortedPlayers: [...pl].sort((a, b) => a.firstName.localeCompare(b.firstName)), sortedRankings: [] };
 
     for (let i = 0; i < sortedPlayers.length; i += 1) {
       let pr = null;

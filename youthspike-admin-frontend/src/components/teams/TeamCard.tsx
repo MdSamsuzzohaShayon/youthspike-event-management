@@ -23,6 +23,7 @@ interface ITeamCardProps {
   isChecked: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
+  handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
   fefetchFunc?: () => Promise<void>;
 }
 
@@ -31,7 +32,7 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleCheckedTeam, fefetchFunc }: ITeamCardProps) {
+function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, fefetchFunc }: ITeamCardProps) {
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -47,7 +48,7 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
   const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
   const [moveTeamMutation] = useMutation(UPDATE_TEAM);
   const [deleteTeam] = useMutation(DELETE_TEAM);
-  const [sendCredentials] = useMutation(SEND_CREDENTIALS);
+  
 
   useClickOutside(actionEl, () => {
     setActionOpen(false);
@@ -94,20 +95,6 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
     // Fetch team by team Id
     setActionOpen((prevState) => !prevState);
     setOpenMoveTeam((prevState) => !prevState);
-  };
-
-  const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
-    e.preventDefault();
-    // Send captain credentials to the captain and co captain credentials to co captain
-    try {
-      setIsLoading(true);
-      await sendCredentials({ variables: { eventId, teamId } });
-      if (fefetchFunc) await fefetchFunc();
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {

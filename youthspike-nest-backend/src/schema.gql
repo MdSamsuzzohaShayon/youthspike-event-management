@@ -256,14 +256,6 @@ type UserResponse {
   data: User
 }
 
-type EmailSenderTemplate {
-  _id: String
-  team: Team!
-  subject: String!
-  template: String!
-  send_date: String!
-}
-
 type CreateOrUpdateEventResponse {
   code: Int!
   success: Boolean!
@@ -404,13 +396,6 @@ type PlayersResponse {
   data: [Player!]
 }
 
-type GetEmailTemplateResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: EmailSenderTemplate!
-}
-
 type PlayerRankingResponse {
   code: Int!
   success: Boolean!
@@ -437,7 +422,6 @@ type Query {
   getEventDirectors: GetDirectorsLDOResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
-  getEmailTemplate(teamId: String!): GetEmailTemplateResponse!
 }
 
 input FilterQueryInput {
@@ -484,7 +468,7 @@ type Mutation {
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
-  sendCredentials(eventId: String!, teamId: String, captain: String, co_captain: String): AppResponse!
+  sendCredentials(eventId: String!, teamIds: [String!], captain: String, co_captain: String): AppResponse!
   updatePlayerRanking(teamId: [String!]!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
   resetAllPlayerRankings: PlayerRankingResponse!
 }
