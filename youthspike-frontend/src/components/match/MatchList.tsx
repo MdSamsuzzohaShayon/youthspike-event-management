@@ -73,7 +73,7 @@ function MatchList({ matchList, divisions }: IMatchListProps) {
       <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6" />
 
       {filteredMatchList.map((match) => (
-        <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} />
+        <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} allNets={match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []} />
       ))}
     </div>
   );

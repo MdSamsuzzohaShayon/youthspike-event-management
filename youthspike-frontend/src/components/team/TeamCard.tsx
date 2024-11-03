@@ -97,16 +97,16 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
             </div>
           </div>
         </div>
-        <div className="w-6/12 brand flex gap-1">
+        <div className="w-6/12 brand flex gap-2">
           {team.captain?.profile && (
             <div className="advanced-img w-12 h-12 rounded-full border-2 border-yellow-logo">
               <AdvancedImage cldImg={cld.image(team.captain.profile)} alt={team.captain.firstName} className="w-full" />
             </div>
           )}
           {team.captain?.firstName && (
-            <div className="caption flex flex-col">
-              <p className="uppercase text-xs">Captain</p>
+            <div className="caption flex flex-col justify-center">
               <h3 className="leading-none text-lg font-bold capitalize">{`${team.captain.firstName} ${team.captain.lastName}`}</h3>
+              <p className="uppercase text-xs">Captain</p>
             </div>
           )}
         </div>

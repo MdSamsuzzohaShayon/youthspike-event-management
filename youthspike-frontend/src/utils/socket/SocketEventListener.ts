@@ -307,6 +307,7 @@ class SocketEventListener {
   }
 
   handleUpdateNetAllPages({ matchList, setMatchList, actionData }: IUpdateNet) {
+
     // Find match index directly in the match list
     const matchIndex = matchList.findIndex((m) => m._id === actionData.match);
     if (matchIndex === -1) return;
@@ -339,7 +340,6 @@ class SocketEventListener {
     updatedMatchList[matchIndex] = matchObj;
     setMatchList(updatedMatchList);
 
-    console.log('round-update-all-pages ----> ', matchList, actionData);
     this.dispatch(setRoundList([]));
   }
 }

@@ -22,7 +22,6 @@ interface IteamCaptain extends ITeam {
   captain: IPlayer;
 }
 
-
 interface IMatchCaptain extends IMatchExpRel {
   teamA: ITeamCaptain;
   teamB: ITeamCaptain;
@@ -43,7 +42,6 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
-
 
   const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
 
@@ -72,14 +70,15 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const renderSponsors = () => {
     const sponsorList: React.ReactNode[] = [];
     sponsorList.push(
-      <div className="w-20">
+      <div className="w-20" key="default-logo">
         <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
       </div>,
     );
-    event.sponsors.forEach((sponsor) => {
-      sponsorList.push(<AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={sponsor._id} className="w-20" />);
+    event.sponsors.forEach((sponsor, index) => {
+      sponsorList.push(<AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={sponsor._id || `sponsor-${index}`} className="w-20" />);
     });
-    return <React.Fragment key="render-sponsor">{sponsorList}</React.Fragment>;
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <React.Fragment>{sponsorList}</React.Fragment>;
   };
 
   useEffect(() => {
@@ -112,7 +111,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
       dispatch(setTeamsPlayerRanking(teamsPlayerRanking));
       dispatch(setRankingMap(Array.from(rankingMap)));
     }
-  }, [event]);
+  }, [dispatch, event]);
 
   return (
     <div className="w-full mb-8">
