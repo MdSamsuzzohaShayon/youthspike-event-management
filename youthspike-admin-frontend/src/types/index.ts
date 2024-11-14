@@ -16,15 +16,18 @@ import {
   IPlayerSelectProps,
   ITextareaInputProps,
   ICheckboxInputProps,
+  IPasswordInputProps,
   IImageFileProps,
-  ICheckedInput
+  ICheckedInput,
+  ITeamSelectProps
 } from "./elements";
-import { IUser, IDirector, IUserContext, IDirectorItem } from "./user";
+import { IUser, IDirector, IAddDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
 import { IPlayer, IPlayerExpRel} from "./player";
 import { ITeam, ITeamAdd } from "./team";
 import { IAddMatch, IMatch, IDefaultMatchProps, IMatchRelatives, IMatchExpRel} from "./match";
 import { IRoundBase, IRoundRelatives, IRoundExpRel } from "./round";
+import { IGroupAdd, IGroup, IGroupExpRel, IGroupRelatives } from "./group";
 import { INetRelatives, INetBase, INetExpRel } from "./net";
 import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from "./playerRanking";
 import { ICreateNewEventProps } from "./socket";
@@ -48,6 +51,8 @@ export type {
   IPlayerSelectProps,
   ITextareaInputProps,
   ICheckboxInputProps,
+  IPasswordInputProps,
+  ITeamSelectProps,
 
   // Event
   IEvent,
@@ -62,6 +67,7 @@ export type {
   // User
   IUser,
   IDirector,
+  IAddDirector,
   IDirectorItem,
   IUserContext,
 
@@ -113,4 +119,7 @@ export type {
 
   // Input
   ICheckedInput,
+
+  // Group 
+  IGroupAdd, IGroup, IGroupExpRel, IGroupRelatives
 };

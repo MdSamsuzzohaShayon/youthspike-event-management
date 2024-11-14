@@ -1,5 +1,15 @@
 #!/bin/bash
 
+### Take backup of database
+FOLDER_NAME="db-backup"
+DB_NAME="spikeball-matches"
+mkdir -p "$FOLDER_NAME"
+# Export
+mongodump --db "$DB_NAME" --out ./"$FOLDER_NAME"
+ls -la ./${FOLDER_NAME}/"$DB_NAME"
+# Import
+# mongorestore --db "$DB_NAME" ./"$FOLDER_NAME"
+
 ### Clean up previous project
 pm2 stop nest_backend
 pm2 delete nest_backend

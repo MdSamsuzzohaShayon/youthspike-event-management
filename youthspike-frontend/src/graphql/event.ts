@@ -78,6 +78,11 @@ teams{
   name
   division
   logo
+  group{
+    _id
+    name
+    division
+  }
   captain {
     _id
     firstName
@@ -106,6 +111,7 @@ players {
   lastName
   profile
   email
+  division
   ${teamResponse}
 }
 `;
@@ -141,6 +147,11 @@ netVariance
 rosterLock
 timeout
 
+groups{
+  _id
+  name
+  division
+}
 
 ${matchResponse}
 ${playerResponse}

@@ -24,10 +24,11 @@ import {
   IListenPublicSocketProps,
   IJoinData,
   ICheckInData,
-  IUpdatePointData
+  IUpdatePointData,
 } from './socket';
 
 import { IPlayerRankingExpRel, IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel } from './playerRanking';
+import { IGroup, IGroupExpRel, IGroupRelatives } from './group';
 
 export type {
   // Elements
@@ -120,4 +121,9 @@ export type {
   IMotionConfig,
   ITransition,
   IVariant,
+
+  // Group
+  IGroup,
+  IGroupExpRel,
+  IGroupRelatives,
 };

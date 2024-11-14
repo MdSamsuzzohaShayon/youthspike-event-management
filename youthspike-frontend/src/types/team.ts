@@ -2,6 +2,7 @@
 import { IPlayer } from './player';
 import { IEvent } from './event';
 import { IPlayerRanking } from './playerRanking';
+import { IGroup } from './group';
 
 export interface ITeam {
   _id: string;
@@ -9,6 +10,7 @@ export interface ITeam {
   name: string;
   logo?: string | null;
   division: string;
+  group: IGroup;
   event: IEvent;
   players: IPlayer[];
   captain: IPlayer | null;

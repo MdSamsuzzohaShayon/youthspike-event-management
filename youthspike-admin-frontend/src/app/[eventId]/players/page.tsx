@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IError, IOption, IPlayerRankingExpRel, ITeam } from '@/types';
+import { IError, IEvent, IOption, IPlayerRankingExpRel, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import CurrentEvent from '@/components/event/CurrentEvent';
@@ -38,19 +38,20 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
+  const [currEvent, setCurrEvent] = useState<IEvent | null>(null);
 
   // ===== GraphQL =====
   const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
-
-  const refetchFunc = async () => {
-    await refetch();
-  };
 
   const fetchPlayer = async () => {
     const playerRes = await getEvent({ variables: { eventId: params.eventId } });
 
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
     if (!success) return;
+
+    if(playerRes?.data?.getEvent){
+      setCurrEvent(playerRes?.data?.getEvent.data);
+    }
 
     let npList: IPlayerExpRel[] = playerRes?.data?.getEvent?.data?.players ? playerRes?.data.getEvent.data.players : []; // Np list  = new players list
 
@@ -136,6 +137,13 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   };
 
 
+  const refetchFunc = async () => {
+    // await refetch();
+    // fetchPlayer();
+    window.location.reload();
+  };
+
+
   /**
  * Lifecycle hooks
  * Getting and setting event ID & director ID
@@ -185,12 +193,13 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
           setActErr={setActErr}
           playerRanking={teamPlayerRanking}
           teamId={teamId}
+          currEvent={currEvent}
         />
 
         {inactivePlayers.length > 0 && (
           <div className="w-full">
             <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} setActErr={setActErr} />
+            <PlayerList currEvent={currEvent} eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} setActErr={setActErr} />
           </div>
         )}
       </>
@@ -202,7 +211,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   return (
     <div className="container mx-auto px-2 min-h-screen">
       <h1 className="mb-8 text-center">Roster</h1>
-      {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
+      {currEvent && <CurrentEvent currEvent={currEvent} />}
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />
       </div>

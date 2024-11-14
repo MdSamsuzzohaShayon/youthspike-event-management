@@ -9,7 +9,7 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import TeamList from '@/components/teams/TeamList';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IError, IEvent, IEventExpRel, IOption, ITeam } from '@/types';
+import { IError, IEvent, IEventExpRel, IGroup, IOption, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
@@ -44,6 +44,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   const [actErr, setActErr] = useState<IError | null>(null);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [eventList, setEventList] = useState<IEvent[]>([]);
+  const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
@@ -97,6 +98,9 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     let newFilteredList = [...newTeamList];
     if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
+    // setGroupList
+    const newGroupList: ITeam[] = eventResponse?.data?.getEvent?.data?.groups ? eventResponse?.data.getEvent.data.groups : [];    
+
     // Division and team value
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
@@ -107,6 +111,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
     setTeamList(newTeamList);
     setFilteredlist(newFilteredList);
+    setGroupList(newGroupList);
 
     // Making divisions list
     const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
@@ -201,7 +206,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         </button>
       </div>
       <div className="list-with-filter w-full relative">
-        {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} setIsLoading={setIsLoading} setActErr={setActErr} fefetchFunc={fefetchFunc} />}
+        {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} groupList={groupList} setIsLoading={setIsLoading} setActErr={setActErr} fefetchFunc={fefetchFunc} />}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useUser } from '@/lib/UserProvider';
-import { IEvent, IOption, ITeam } from '@/types';
+import { IEvent, IGroup, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
@@ -15,14 +15,19 @@ import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
+import { divisionsToOptionList } from '@/utils/helper';
+import { UPDATE_GROUP } from '@/graphql/group';
+import { handleResponse } from '@/utils/handleError';
 
 interface ITeamCardProps {
   eventId: string;
   team: ITeam;
   eventList: IEvent[];
+  groupList: IGroup[];
   isChecked: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
+  handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
   fefetchFunc?: () => Promise<void>;
 }
 
@@ -31,7 +36,8 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleCheckedTeam, fefetchFunc }: ITeamCardProps) {
+function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, fefetchFunc }: ITeamCardProps) {
+
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -47,13 +53,14 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
   const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
   const [moveTeamMutation] = useMutation(UPDATE_TEAM);
   const [deleteTeam] = useMutation(DELETE_TEAM);
-  const [sendCredentials] = useMutation(SEND_CREDENTIALS);
+  const [updateGroup] = useMutation(UPDATE_GROUP);
+
 
   useClickOutside(actionEl, () => {
     setActionOpen(false);
   });
 
-
+  
   /**
    * Handle Events
    */
@@ -96,20 +103,6 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
     setOpenMoveTeam((prevState) => !prevState);
   };
 
-  const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
-    e.preventDefault();
-    // Send captain credentials to the captain and co captain credentials to co captain
-    try {
-      setIsLoading(true);
-      await sendCredentials({ variables: { eventId, teamId } });
-      if (fefetchFunc) await fefetchFunc();
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleEditTeam = (e: React.SyntheticEvent, teamId: string) => {
     e.preventDefault();
     // Fetch team by team Id
@@ -147,6 +140,27 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
   };
 
 
+  const handleGroupChange = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    try {
+      const inputEl = e.target as HTMLInputElement;
+      // updateGroup
+      // Just input will be teamId
+      const groupRes = await updateGroup({
+        variables: {
+          updateInput: { _id: inputEl.value, teams: [team._id] },
+          eventId
+        }
+      });
+      // console.log(groupRes);
+
+      // const success = handleResponse({response, setActErr});
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
+
 
   useEffect(() => {
     if (eventList && eventList.length > 0) {
@@ -160,113 +174,152 @@ function TeamCard({ team, eventId, eventList, isChecked, setIsLoading, handleChe
   }, [openMoveTeam]);
 
   return (
-    <div className="team-card w-full" style={cardResponsiveH}>
-      {/* Level-1: Main component start  */}
-      <div className="w-full h-full p-2 bg-gray-700 flex items-start justify-between relative rounded-lg">
-        {/* Level-1.1: action menu start  */}
-        <ul ref={actionEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-          <li role="presentation" onClick={(e) => handleEditTeam(e, team._id)} className="flex justify-start items-center gap-x-2">
-            <span>
-              <Image width={imgSize.logo} height={imgSize.logo} src="/icons/edit.svg" alt="Edit-icon" className="svg-white" />
-            </span>
-            Edit
+    <div className="team-card w-full bg-gray-800 text-white rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 relative">
+        {/* Action Menu */}
+        <ul
+          ref={actionEl}
+          className={`${actionOpen ? 'flex' : 'hidden'} absolute top-1/3 lg:top-6 lg:right-8 z-10 flex-col gap-3 p-4 bg-gray-900 rounded-lg shadow-lg`}
+        >
+          <li
+            onClick={(e) => handleEditTeam(e, team._id)}
+            className="flex items-center gap-2 text-sm cursor-pointer hover:text-yellow-400"
+          >
+            <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={16} height={16} /> Edit
           </li>
-          <li role="presentation" onClick={(e) => handleOpenMoveTeam(e, team._id)} className="flex justify-start items-center gap-x-2">
-            <span>
-              <Image width={imgSize.logo} height={imgSize.logo} src="/icons/move.svg" alt="Edit-icon" className="svg-white" />
-            </span>{' '}
-            Move Team
+          <li
+            onClick={(e) => handleOpenMoveTeam(e, team._id)}
+            className="flex items-center gap-2 text-sm cursor-pointer hover:text-yellow-400"
+          >
+            <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} /> Move Team
           </li>
-          <li role="presentation" onClick={(e) => handleSendCredential(e, team._id)} className="flex justify-start items-center gap-x-2">
-            <span>
-              <Image width={imgSize.logo} height={imgSize.logo} src="/icons/send-email.svg" alt="Edit-icon" className="svg-white" />
-            </span>{' '}
-            {team?.sendCredentials ? 'Resend Credential' : 'Send Credential'}
+          <li
+            onClick={(e) => handleSendCredential(e, team._id)}
+            className="flex items-center gap-2 text-sm cursor-pointer hover:text-yellow-400"
+          >
+            <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />{' '}
+            {team.sendCredentials ? 'Resend' : 'Send'} Credential
           </li>
-          <li role="presentation" onClick={(e) => handleDeleteTeam(e, team._id)} className="flex justify-start items-center gap-x-2">
-            <span>
-              <Image width={imgSize.logo} height={imgSize.logo} src="/icons/delete.svg" alt="Edit-icon" className="svg-white" />
-            </span>{' '}
-            Delete
+          <li
+            onClick={(e) => handleDeleteTeam(e, team._id)}
+            className="flex items-center gap-2 text-sm cursor-pointer text-red-500 hover:text-red-400"
+          >
+            <Image className="svg-red" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
           </li>
         </ul>
-        {/* Level-1.1: action menu start  */}
-
-        {/* Level-1.2: team team num start  */}
-        <div className="h-full w-1/12 flex justify-center items-center flex-col gap-y-4">
-          <CheckboxInput _id={team._id} name='team-select' defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-          <p className="w-4 h-4 rounded-full bg-yellow-logo flex justify-center items-center text-black" style={{ fontSize: "0.6rem" }}>{team.num}</p>
+  
+        {/* Team Selection and Number */}
+        <div className="flex flex-col items-center gap-2">
+          <CheckboxInput
+            _id={team._id}
+            name="team-select"
+            defaultValue={isChecked}
+            handleInputChange={handleCheckedTeam}
+          />
+          <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs">
+            {team.num}
+          </span>
         </div>
-        {/* Level-1.2: team team num end  */}
-
-        {/* Level-1.3: team name start  */}
-        <div className="h-full w-5/12 flex justify-start items-center">
-          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-            <div className="brand flex gap-1 items-center">
-              {team.logo ? (
-                <div className="advanced-img w-12">
-                  <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
+  
+        {/* Team Name and Logo */}
+        <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-2/3">
+          <div className="flex items-center gap-4">
+            {team.logo ? (
+              <div className="rounded-full overflow-hidden w-14 h-14 border border-yellow-400">
+                <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} />
+              </div>
+            ) : (
+              <Image
+                src="/icons/sports-man.svg"
+                width={56}
+                height={56}
+                alt="sports-man-logo"
+                className="rounded-full border border-yellow-400"
+              />
+            )}
+            <div className="flex flex-col text-center lg:text-left">
+              <h3 className="text-lg font-semibold">{team.name}</h3>
+              <SelectInput
+                name="group"
+                optionList={groupList.map((g) => ({
+                  value: g._id,
+                  text: g.name,
+                }))}
+                handleSelect={handleGroupChange}
+                vertical
+                defaultValue={team.group ? team.group._id : ''}
+              />
+            </div>
+          </div>
+        </div>
+  
+        {/* Captain Info and Active Players */}
+        <div className="flex flex-col lg:flex-row items-center gap-4 w-full">
+          {team.captain && (
+            <div className="flex flex-col lg:flex-row items-center gap-3">
+              {team.captain.profile ? (
+                <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden">
+                  <AdvancedImage cldImg={cld.image(team.captain.profile)} alt={team.captain.firstName} />
                 </div>
               ) : (
-                <Image src="/icons/sports-man.svg" width={100} height={100} alt='sports-man-logo' className="w-12 h-12" />
+                <Image
+                  src="/icons/sports-man.svg"
+                  width={48}
+                  height={48}
+                  alt="Captain"
+                  className="rounded-full border border-yellow-400"
+                />
               )}
-              <h3 className="leading-none text-lg font-bold capitalize">{team.name}</h3>
-            </div>
-          </Link>
-        </div>
-        {/* Level-1.3: team name end  */}
-
-
-        {/* Level-1.4: captain and active players start  */}
-        <div className="h-full w-5/12 flex justify-start items-center">
-          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-            {team.captain && (
-              <div className="brand flex gap-1">
-                {team.captain?.profile ? (
-                  <div className="advanced-img w-12 h-12 rounded-full border-2 border-yellow-logo">
-                    <AdvancedImage cldImg={cld.image(team.captain?.profile)} alt={team.captain.firstName} className="w-full" />
-                  </div>
-                ) : (
-                  <Image src="/icons/sports-man.svg" width={100} height={100} alt='sports-man-logo' className="w-12 h-12 border-2 border-yellow-logo" />
-                )}
-
-                <div className="caption flex flex-col">
-                  <p className="uppercase text-xs">Captain</p>
-                  <h3 className="leading-none text-lg font-bold capitalize">{`${team.captain?.firstName} ${team.captain?.lastName}`}</h3>
-                </div>
+              <div className="text-center lg:text-left">
+                <p className="text-xs text-gray-400 uppercase">Captain</p>
+                <h4 className="text-md font-semibold">
+                  {team.captain.firstName} {team.captain.lastName}
+                </h4>
               </div>
-            )}
-            <p className="flex gap-1">
-              Active players <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">{team?.players?.length}</span>
-            </p>
-          </Link>
+            </div>
+          )}
+          <p className="flex items-center text-sm mt-2 lg:mt-0">
+            Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team.players.length}</span>
+          </p>
         </div>
-        {/* Level-1.4: captain and active players end  */}
-        <div className="h-full w-1/12 flex flex-col justify-center gap-y-4">
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dots-vertical" role="presentation"
-            onClick={handleOpenAction} className="w-6 svg-white" />
-          <Image role="presentation" onClick={(e) => handleSendCredential(e, team._id)} width={imgSize.logo} height={imgSize.logo}
-            src="/icons/send-email.svg" alt="Edit-icon" className={team?.sendCredentials ? "svg-green" : "svg-white"} />
+  
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-4 lg:mt-0 lg:pr-2">
+          <Image
+            onClick={handleOpenAction}
+            src="/icons/dots-vertical.svg"
+            alt="Options"
+            width={20}
+            height={20}
+            className="cursor-pointer svg-white opacity-80 hover:opacity-100"
+          />
+          <Image
+            onClick={(e) => handleSendCredential(e, team._id)}
+            src="/icons/send-email.svg"
+            alt="Send Email"
+            width={20}
+            height={20}
+            className={`cursor-pointer ${team.sendCredentials ? 'text-green-400' : 'text-white'} opacity-80 hover:opacity-100`}
+          />
         </div>
       </div>
-      {/* Level-1: Main component end  */}
-
-      {/* Level-2: Moving component start  */}
+  
+      {/* Level-2: Moving component start */}
       {openMoveTeam && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-        <div className="move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
-          <button type="button" className="close" onClick={() => setOpenMoveTeam(false)}>
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="close-button" className="w-6 h-6 svg-white" />
+        <div className="move-team w-full p-4 bg-gray-800 rounded-lg mt-4 flex flex-col items-start relative">
+          <button type="button" className="absolute top-2 right-2 text-white" onClick={() => setOpenMoveTeam(false)}>
+            <Image width={24} height={24} src="/icons/close.svg" alt="close-button" className="svg-white" />
           </button>
           <form className="w-full" onSubmit={handleMoveTeam}>
             <SelectInput handleSelect={selectEventInputChange} vertical name="event" optionList={eventOptions} />
             <SelectInput handleSelect={selectInputChange} vertical name="division" optionList={divisionOptions} />
-            <button className="btn-info mt-4" type="submit">
+            <button className="btn-info mt-4 w-full lg:w-auto" type="submit">
               Move
             </button>
           </form>
         </div>
       )}
-      {/* Level-2: Moving component end  */}
+      {/* Level-2: Moving component end */}
     </div>
   );
 }

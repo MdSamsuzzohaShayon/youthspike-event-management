@@ -11,7 +11,10 @@ export class CreateTeamInput {
   @Field()
   division: string;
 
-  @Field({nullable: true})
+  @Field({ nullable: true })
+  group?: string;
+
+  @Field({ nullable: true })
   captain?: string;
 
   @Field()
@@ -21,12 +24,11 @@ export class CreateTeamInput {
   players?: string[];
 }
 
-
 @InputType()
 export class UpdateTeamInput extends PartialType(CreateTeamInput) {
-  @Field(type => String, { nullable: true })
+  @Field((type) => String, { nullable: true })
   cocaptain?: string;
 
-  @Field(type => String, { nullable: true })
+  @Field((type) => String, { nullable: true })
   email?: string;
 }

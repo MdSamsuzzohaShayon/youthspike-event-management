@@ -1,6 +1,5 @@
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { Args, Context, Field, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql';
-import htmlToText from 'html-to-text';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -14,13 +13,6 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
-import { EmailSenderTemplate } from './emailsender.schema';
-
-@ObjectType()
-class GetEmailTemplateResponse extends AppResponse<EmailSenderTemplate> {
-  @Field((type) => EmailSenderTemplate, { nullable: false })
-  data?: EmailSenderTemplate;
-}
 
 @Resolver()
 export class EmailsenderResolver {
@@ -32,7 +24,7 @@ export class EmailsenderResolver {
     private ldoService: LdoService,
     private userService: UserService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   /**
    * Format a date into a custom string.
@@ -70,7 +62,7 @@ export class EmailsenderResolver {
   async sendCredentials(
     @Context() context: any,
     @Args('eventId') eventId: string,
-    @Args('teamId', { nullable: true }) teamId?: string,
+    @Args({ name: 'teamIds', type: () => [String], nullable: true }) teamIds: string[],
     @Args('captain', { nullable: true }) captain?: string,
     @Args('co_captain', { nullable: true }) co_captain?: string,
   ): Promise<AppResponse> {
@@ -103,21 +95,24 @@ export class EmailsenderResolver {
 
       // Prepare list of recipients based on specified parameters
       const recipients: string[] = [];
-      if (teamId) {
+      if (teamIds && teamIds.length > 0) {
         // Send credentials to specific team
-        const team = await this.teamService.findById(teamId);
-        if (!team) {
-          return AppResponse.notFound('Team');
+        const teams = await this.teamService.find({ _id: { $in: teamIds } });
+        if (!teams || teams.length === 0) {
+          return AppResponse.notFound('Teams');
         }
-        if (team.captain) {
-          recipients.push(team.captain.toString());
-        }
-        if (team.cocaptain) {
-          recipients.push(team.cocaptain.toString());
+
+        for (const team of teams) {
+          if (team.captain) {
+            recipients.push(team.captain.toString());
+          }
+          if (team.cocaptain) {
+            recipients.push(team.cocaptain.toString());
+          }
         }
       } else {
         // Send credentials to captains and co-captains of all teams in the event
-        const teams = await this.teamService.query({ _id: { $in: eventExist.teams } });
+        const teams = await this.teamService.find({ _id: { $in: eventExist.teams } });
         for (const team of teams) {
           if (team.captain) {
             recipients.push(team.captain.toString());
@@ -158,8 +153,8 @@ export class EmailsenderResolver {
       }
 
       // Update event or team to mark credentials as sent
-      if (teamId) {
-        await this.teamService.updateOne({ _id: teamId }, { $set: { sendCredentials: true } });
+      if (teamIds && teamIds.length > 0) {
+        await this.teamService.updateOne({ _id: {$in : teamIds} }, { $set: { sendCredentials: true } });
       } else {
         await this.eventService.updateOne({ _id: eventId }, { $set: { sendCredentials: true } });
       }
@@ -173,93 +168,6 @@ export class EmailsenderResolver {
       };
     } catch (error) {
       return AppResponse.handleError(error);
-    }
-  }
-
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.admin, UserRole.director)
-  @Query((_returns) => GetEmailTemplateResponse)
-  async getEmailTemplate(@Context() context: any, @Args('teamId') teamId: string) {
-    try {
-      // Retrieve event details
-      const teamExist = await this.teamService.findById(teamId);
-      if (!teamExist) {
-        return AppResponse.notFound('Team');
-      }
-      const eventExist = await this.eventService.findById(teamExist.event.toString());
-      if (!eventExist) {
-        return AppResponse.notFound('Event');
-      }
-      const subject = `Credentials for ${eventExist.name}`;
-      const htmlFileName = 'send-credentials.html';
-
-      // Find existing template
-      const emailTemplateExist = await this.emailSenderService.findOne({ team: teamExist._id.toString() });
-      if (emailTemplateExist) {
-        return {
-          code: HttpStatus.OK,
-          message: `Getting credential`,
-          success: true,
-          data: emailTemplateExist,
-        };
-      }
-
-      const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
-      const directorExist = await this.userService.findById(ldoExist.director.toString());
-
-      // Check user role
-      const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
-      if (!userId) return AppResponse.unauthorized();
-
-      const loggedUser = await this.userService.findById(userId);
-      if (!loggedUser) return AppResponse.unauthorized();
-      let ldoIdUrl = '';
-
-      if (loggedUser.role === UserRole.admin) {
-        ldoIdUrl = `?ldoId=${ldoExist.director.toString()}`;
-      }
-
-      // Prepare list of recipients based on specified parameters
-      if (teamExist.captain) {
-        // Team captain exist
-        const captainExist = await this.playerService.findById(teamExist.captain.toString());
-      }
-      if (teamExist.cocaptain) {
-        // Team co captain exist
-        const cocaptainExist = await this.playerService.findById(teamExist.cocaptain.toString());
-      }
-      const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
-
-      // Send emails to recipients
-
-      // const plainText = htmlToText.convert(generateEmail, {});
-
-
-
-      // If existing template is not found, return default one (Not saved in the database, when update, save it to the database)
-      const generateEmail = await this.emailSenderService.generateHtml({
-        htmlFileName,
-        player_username: 'player_username',
-        coach_password: eventExist.coachPassword,
-        ldo_name: ldoExist.name,
-        director_email: directorExist.email,
-        captain_name: 'captain_name',
-        event_date: eventDateFormatted,
-        fwango_link: eventExist.fwango,
-        ldo_phone: ldoExist.phone,
-        eventId: eventExist._id,
-        ldoIdUrl,
-      });
-
-      return {
-        code: HttpStatus.OK,
-        message: `Getting credential`,
-        success: true,
-        data: generateEmail
-      };
-    } catch (error) {
-      console.log(error);
     }
   }
 }

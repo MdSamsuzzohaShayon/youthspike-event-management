@@ -15,15 +15,6 @@ type AppResponse {
   message: String
 }
 
-type LDO {
-  _id: String
-  name: String!
-  phone: String
-  logo: String
-  director: User
-  events: [Event!]
-}
-
 type Round {
   _id: String
   num: Int!
@@ -53,42 +44,6 @@ enum ETeam {
   teamB
 }
 
-type PlayerRankingItem {
-  _id: String
-  rank: Int!
-  player: Player!
-  playerRanking: PlayerRanking!
-}
-
-type PlayerRanking {
-  _id: String
-  rankLock: Int!
-  rankings: [PlayerRankingItem!]
-  team: Team!
-  match: Match
-}
-
-type Team {
-  _id: String
-  name: String!
-  logo: String
-  active: Boolean!
-  division: String!
-  rankLock: Boolean
-  sendCredentials: Boolean
-  num: Float
-  captain: Player
-  cocaptain: Player
-  matches: [Match!]
-  event: Event!
-  players: [Player!]!
-  nets: [Net!]!
-  playerRankings: [PlayerRanking!]
-  playerRanking: PlayerRanking
-  rankings: [PlayerRankingItem!]!
-  player: PlayerRankingItem!
-}
-
 type Net {
   _id: String
   num: Int
@@ -112,6 +67,21 @@ enum ETieBreaker {
   FINAL_ROUND_NET
   FINAL_ROUND_NET_LOCKED
   TIE_BREAKER_NET
+}
+
+type PlayerRankingItem {
+  _id: String
+  rank: Int!
+  player: Player!
+  playerRanking: PlayerRanking!
+}
+
+type PlayerRanking {
+  _id: String
+  rankLock: Int!
+  rankings: [PlayerRankingItem!]
+  team: Team!
+  match: Match
 }
 
 type Room {
@@ -146,6 +116,46 @@ type Match {
   teamBRanking: PlayerRanking
 }
 
+type Team {
+  _id: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  rankLock: Boolean
+  sendCredentials: Boolean
+  num: Float
+  captain: Player
+  cocaptain: Player
+  matches: [Match!]
+  event: Event!
+  players: [Player!]!
+  nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  group: Group
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
+type Group {
+  _id: String
+  name: String!
+  active: Boolean!
+  division: String!
+  teams: [Team!]!
+  event: Event!
+}
+
+type LDO {
+  _id: String
+  name: String!
+  phone: String
+  logo: String
+  director: User
+  events: [Event!]
+}
+
 type Sponsor {
   _id: String
   company: String!
@@ -167,6 +177,7 @@ type Event {
   players: [Player!]!
   teams: [Team!]!
   matches: [Match!]!
+  groups: [Group!]!
   sponsors: [Sponsor!]!
   divisions: String!
   nets: Float!
@@ -208,6 +219,7 @@ type User {
   _id: String
   firstName: String!
   lastName: String!
+  passcode: String
   role: UserRole!
   captainplayer: Player
   cocaptainplayer: Player
@@ -228,6 +240,7 @@ type LoginUser {
   _id: String
   firstName: String!
   lastName: String!
+  passcode: String
   role: UserRole!
   captainplayer: String
   cocaptainplayer: String
@@ -254,14 +267,6 @@ type UserResponse {
   success: Boolean!
   message: String
   data: User
-}
-
-type EmailSenderTemplate {
-  _id: String
-  team: Team!
-  subject: String!
-  template: String!
-  send_date: String!
 }
 
 type CreateOrUpdateEventResponse {
@@ -404,18 +409,25 @@ type PlayersResponse {
   data: [Player!]
 }
 
-type GetEmailTemplateResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: EmailSenderTemplate!
-}
-
 type PlayerRankingResponse {
   code: Int!
   success: Boolean!
   message: String
   data: [PlayerRanking!]
+}
+
+type GetGroupsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [Group!]!
+}
+
+type GetGroupResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Group!
 }
 
 """Date custom scalar type"""
@@ -437,7 +449,8 @@ type Query {
   getEventDirectors: GetDirectorsLDOResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
-  getEmailTemplate(teamId: String!): GetEmailTemplateResponse!
+  getGroups(eventId: String): GetGroupsResponse!
+  getGroup(eventId: String!): GetGroupResponse!
 }
 
 input FilterQueryInput {
@@ -459,8 +472,8 @@ input FilterQueryInput {
 }
 
 type Mutation {
-  login(email: String!, password: String!): LoginResponse!
-  updateUser(userId: String!, updateInput: UpdateUserArgs!, profile: Upload): UserResponse!
+  login(email: String!, password: String!, passcode: String): LoginResponse!
+  updateUser(userId: String!, updateInput: UpdateUser!, profile: Upload): UserResponse!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
   updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
@@ -476,25 +489,28 @@ type Mutation {
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
-  createDirector(args: CreateDirectorArgs!, logo: Upload): GetDirectorLDOResponse!
-  updateDirector(args: UpdateDirectorArgs!, logo: Upload, dId: String): GetDirectorLDOResponse!
+  createDirector(input: CreateDirector!, logo: Upload): GetDirectorLDOResponse!
+  updateDirector(input: UpdateDirector!, logo: Upload, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
-  sendCredentials(eventId: String!, teamId: String, captain: String, co_captain: String): AppResponse!
+  sendCredentials(eventId: String!, teamIds: [String!], captain: String, co_captain: String): AppResponse!
   updatePlayerRanking(teamId: [String!]!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
   resetAllPlayerRankings: PlayerRankingResponse!
+  createGroup(input: CreateGroupInput!): GetGroupResponse!
+  updateGroup(updateInput: UpdateGroupInput!, eventId: String): GetGroupResponse!
 }
 
-input UpdateUserArgs {
+input UpdateUser {
   firstName: String
   lastName: String
   phone: String
   email: String
   password: String
+  passcode: String
   name: String
   oldPassword: String
 }
@@ -560,6 +576,7 @@ input CreateTeamInput {
   name: String!
   active: Boolean!
   division: String!
+  group: String
   captain: String
   event: String!
   players: [ID!]
@@ -569,6 +586,7 @@ input UpdateTeamInput {
   name: String
   active: Boolean
   division: String
+  group: String
   captain: String
   event: String
   players: [ID!]
@@ -637,21 +655,23 @@ input UpdateMultipleNetInput {
   teamBScore: Int
 }
 
-input CreateDirectorArgs {
+input CreateDirector {
   firstName: String!
   lastName: String!
   phone: String
   email: String!
   password: String!
+  passcode: String!
   name: String
 }
 
-input UpdateDirectorArgs {
+input UpdateDirector {
   firstName: String
   lastName: String
   phone: String
   email: String
   password: String
+  passcode: String
   name: String
 }
 
@@ -697,4 +717,21 @@ input UpdatePlayersInput {
 input UpdatePlayerRankingInput {
   player: String
   rank: Float
+}
+
+input CreateGroupInput {
+  name: String!
+  active: Boolean!
+  division: String!
+  event: String!
+  teams: [String!]!
+}
+
+input UpdateGroupInput {
+  name: String
+  active: Boolean
+  division: String
+  event: String
+  teams: [String!]
+  _id: String!
 }

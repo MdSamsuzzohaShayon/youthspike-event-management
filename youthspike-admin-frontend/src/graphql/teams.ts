@@ -67,6 +67,36 @@ const teamResponse = `
     }
 `;
 
+const groupResponse = `
+_id
+name
+`;
+
+const teamResponseMin = `
+    _id
+    active
+    name
+    logo
+    division
+    sendCredentials
+    num
+    players {
+      _id
+      firstName
+      lastName
+    }
+    captain {
+      _id
+      firstName
+      lastName
+      profile
+    }
+    group {
+      _id
+      name
+    }
+`;
+
 const eventResponse = `
     _id
     name
@@ -137,6 +167,8 @@ const GET_TEAMS_BY_EVENT = gql`
   }
 `;
 
+
+
 const GET_EVENT_WITH_TEAMS = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
@@ -146,12 +178,16 @@ query GetEvent($eventId: String!) {
     data {
       ${eventResponse}
       teams {
-        ${teamResponse}
+        ${teamResponseMin}
       }
       ldo {
         _id
         name
         logo
+      }
+      groups{
+        _id
+        name
       }
     }
   }

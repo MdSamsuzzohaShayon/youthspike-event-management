@@ -1,6 +1,5 @@
-import { Args, Field, Mutation, ObjectType, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, Field, Mutation, ObjectType, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { PlayerRanking, PlayerRankingItem } from './player-ranking.schema';
-import { Team } from 'src/team/team.schema';
 import { PlayerRankingService } from './player-ranking.service';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -11,8 +10,10 @@ import { AppResponse } from 'src/shared/response';
 import { UpdatePlayerRankingInput } from './player-ranking.input';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
-import { Player } from 'src/player/player.schema';
-import { PlayerService } from 'src/player/player.service';
+import { ConfigService } from '@nestjs/config';
+import { tokenToUser } from 'src/util/helper';
+import { UserService } from 'src/user/user.service';
+import { EventService } from 'src/event/event.service';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
@@ -23,22 +24,54 @@ class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
 @Resolver((_of) => PlayerRanking)
 export class PlayerRankingResolver {
   constructor(
+    private configService: ConfigService,
     private playerRankingService: PlayerRankingService,
     private teamService: TeamService,
     private matchService: MatchService,
-    private playerService: PlayerService,
+    private userService: UserService,
+    private eventService: EventService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((_returns) => PlayerRankingResponse)
   async updatePlayerRanking(
+    @Context() context: any,
     @Args('teamId', { type: () => [String] }) teamId: string,
     @Args('input', { type: () => [UpdatePlayerRankingInput] }) input: UpdatePlayerRankingInput[],
   ) {
     try {
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userId = tokenToUser(context, secret);
+
+      // Get logged in user
+      const loggedUser = userId ? await this.userService.findById(userId) : null;
+
       const teamExist = await this.teamService.findById(teamId);
       if (!teamExist) return AppResponse.notFound('Team');
+
+      const eventExist = await this.eventService.findById(teamExist.event.toString());
+      if (!eventExist) return AppResponse.notFound('Event');
+
+      if (!loggedUser) {
+        return AppResponse.unauthorized();
+      }
+
+      if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
+        // Check date
+        const lastDate = new Date(eventExist.endDate);
+        const currentDateTime = new Date();
+        if (currentDateTime > lastDate) {
+          // if date has passed, check for passcode
+          const adminOrDirectorPasscode = 'KjhjSu23ii';
+          if (!adminOrDirectorPasscode) {
+            return AppResponse.handleError({
+              statusCode: HttpStatus.NOT_ACCEPTABLE,
+              message: 'Match date passed and you do not have passcode to re-rank',
+            });
+          }
+        }
+      }
 
       const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');

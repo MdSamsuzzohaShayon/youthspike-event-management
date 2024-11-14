@@ -20,14 +20,13 @@ import PointsByRoundPublic from './PointsByRoundPublic';
 interface MatchCardProps {
   match: IMatchExpRel;
   roundList: IRoundExpRel[];
+  allNets: INetRelatives[];
 }
 
-function MatchCard({ match, roundList }: MatchCardProps) {
+function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const params = useParams();
   const { ldoIdUrl } = useLdoId();
 
-  // @ts-ignore
-  const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
   const user = useUser();
 
   const teamCard = (team: ITeam, teamE: ETeam) => {

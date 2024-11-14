@@ -22,6 +22,7 @@ import { SponsorModule } from './sponsor/sponsor.module';
 import { RoomModule } from './room/room.module';
 import { EmailsenderModule } from './emailsender/emailsender.module';
 import { PlayerRankingModule } from './player-ranking/player-ranking.module';
+import { GroupModule } from './group/group.module';
 
 @Module({
   imports: [
@@ -73,8 +74,9 @@ import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 
     PlayerRankingModule,
 
+    GroupModule,
   ],
   controllers: [AppController],
   providers: [AppService, AboutResolver],
 })
-export class AppModule { }
+export class AppModule {}

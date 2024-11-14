@@ -4,6 +4,7 @@ import React from 'react';
 import { IError } from './elements';
 import { IDefaultMatch, IMatchRelatives } from './match';
 import { ILDO } from './ldo';
+import { IGroup } from './group';
 
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
@@ -27,6 +28,7 @@ export interface IEvent {
   logo?:string;
   sponsors: IEventSponsor[];
   ldo?: ILDO;
+  groups: IGroup[];
   nets: number;
   rounds: number;
   netVariance: number;

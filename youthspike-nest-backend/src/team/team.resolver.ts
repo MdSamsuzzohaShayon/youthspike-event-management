@@ -22,6 +22,7 @@ import { MatchService } from 'src/match/match.service';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { LdoService } from 'src/ldo/ldo.service';
+import { GroupService } from 'src/group/group.service';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -57,7 +58,7 @@ export class TeamResolver {
     private netService: NetService,
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
-    private ldoService: LdoService,
+    private groupService: GroupService,
   ) {}
 
   async singleDelete(teamExist: Team) {
@@ -100,20 +101,24 @@ export class TeamResolver {
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
+      const teamObj: Team = {
+        name: input.name,
+        logo: logoUrl,
+        sendCredentials: false,
+        captain: input.captain,
+        event: input.event,
+        division: input.division.trim().toLowerCase(),
+        rankLock: false,
+        active: true,
+        players,
+        nets: [],
+        playerRankings: [],
+      };
+      if (input.group) {
+        teamObj.group = input.group;
+      }
       const [newTeam, findEvent] = await Promise.all([
-        this.teamService.create({
-          name: input.name,
-          logo: logoUrl,
-          sendCredentials: false,
-          captain: input.captain,
-          event: input.event,
-          division: input.division.trim().toLowerCase(),
-          rankLock: false,
-          active: true,
-          players,
-          nets: [],
-          playerRankings: [],
-        }),
+        this.teamService.create(teamObj),
         this.eventService.findById(input.event.toString()),
       ]);
 
@@ -160,6 +165,12 @@ export class TeamResolver {
               captainuser: captainUser._id,
             },
           ),
+        );
+      }
+
+      if (input.group) {
+        promiseOperations.push(
+          this.groupService.updateOne({ _id: input.group }, { $addToSet: { teams: newTeam._id } }),
         );
       }
 
@@ -529,5 +540,11 @@ export class TeamResolver {
       console.log(error);
       return null;
     }
+  }
+
+  @ResolveField()
+  async group(@Parent() team: Team) {
+    const groupExist = await this.groupService.findOne({ _id: team.group });
+    return groupExist;
   }
 }

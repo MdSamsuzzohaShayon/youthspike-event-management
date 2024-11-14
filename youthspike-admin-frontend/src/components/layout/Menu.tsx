@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname} from 'next/navigation';
 import MenuItem from './MenuItem';
-import { IUser, IUserContext, UserRole } from '@/types/user';
+import { IUser } from '@/types/user';
 import { IMenuItem } from '@/types';
-import { useApolloClient, useLazyQuery } from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { GET_LDO } from '@/graphql/director';
 import Link from 'next/link';
 import { getCookie, getUserFromCookie, removeCookie } from '@/utils/cookie';
@@ -16,7 +16,6 @@ import { initialUserMenuList } from '@/utils/staticData';
 
 import { motion } from 'framer-motion';
 import { menuAnimate } from '@/utils/animation';
-import { LDO_ID } from '@/utils/constant';
 import { useLdoId } from '@/lib/LdoProvider';
 
 const {initial: mInitial, animate: mAnimate, exit: mExit, transition: mTransition} = menuAnimate;
@@ -127,8 +126,7 @@ function Menu() {
                 newLink = `${FRONTEND_URL}/events/${eId}`;
             }
 
-            const reformattedURL = `${newLink}${uml[i].link}/${ldoIdUrl}`
-            // console.log({reformattedURL});
+            const reformattedURL = `${newLink}${uml[i].link}/${uml[i].id !== 7 || uml[i].id !== 8 ? ldoIdUrl : ""}`;
             
             menuItems.push(<MenuItem setOpenMenu={setOpenMenu} key={uml[i].id} icon={`/icons/${uml[i].imgName}.svg`} text={uml[i].text}
                 link={reformattedURL} />);

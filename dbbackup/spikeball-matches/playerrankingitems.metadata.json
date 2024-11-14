@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"f75963e53a01425084e78b376daac5df","collectionName":"playerrankingitems","type":"collection"}

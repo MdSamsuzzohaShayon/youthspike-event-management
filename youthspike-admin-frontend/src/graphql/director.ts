@@ -54,6 +54,7 @@ const ldoResponse = `
     lastName
     role
     email
+    passcode
   }
   events {
     ${eventResponse}
@@ -132,24 +133,24 @@ const GET_LDO_EVENTS_LIGHT = gql`
  * ==========================================================================================================
  */
 const ADD_DIRECTOR_RAW = `
-mutation CreateDirector($args: CreateDirectorArgs!, $logo: Upload) {
-  createDirector(args: $args, logo: $logo) {
-      code
+mutation CreateDirector($input: CreateDirector!, $logo: Upload) {
+  createDirector(input: $input, logo: $logo) {
+     code
       success
       message
       data {
         ${ldoResponse}
       }
-    }
   }
+}
 `;
 const ADD_DIRECTOR = gql`
   ${ADD_DIRECTOR_RAW}
 `;
 
 const UPDATE_DIRECTOR_RAW = `
-mutation UpdateDirector($args: UpdateDirectorArgs!, $dId: String, $logo: Upload) {
-  updateDirector(args: $args, logo: $logo, dId: $dId) {
+mutation UpdateDirector($input: UpdateDirector!, $dId: String, $logo: Upload) {
+  updateDirector(input: $input, logo: $logo, dId: $dId) {
     code
     success
       message

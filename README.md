@@ -53,20 +53,27 @@ ___
       
 
 ### Requirements
- - Updating a net still not working
- - Add a place in the public view in the matches area to indicate where they are. Maybe move the  yellow "ENTER" Box to the bottom of the square, and  put this info at the top.
- - For example if the match is completed, have it say FINAL SCORE. If they are in the assigning players stage of round 2, for example, it would say "ASSINGING PLAYERS ROUND 2". Then if they are playing the round and waiting for scores, it would say "ROUND 2 IN ACTION"
- 
- - Delete unnecessary code in email sender (do not need a collection *EmailSenderTemplate* in database )
- - Record date and time for sending email (icon)
- - Ranking player with a ranking icon
- - Some issues with banning nets, somehow players on the net are not working when banning a net
- - Use Emit Event class for emitting more socket events
- - Menu height need to have minimum height to make it more responsive on mobile devices
- - Menu in the frontend -> to navigate to admin easily
- - (Teams page) - Email template should be edited for admin (email icon, date icon), show credential sent
- - Captain of a team must not be able to change the ranking of another team
+ - Watch them:
+ - **__https://www.loom.com/share/f221cae55313451cb1a0752dc7768ac4__**
+ - Creating groups, we have 112 teams, 50 of them will be in advanced, 60 of them will be in beginner, inside those 50, they all can not play each other.
+ - They are going to be groups of 5, so it will be 10 groups inside beginner, 10 groups of 5 teams, and they will play each other
+ - In public view, teams/ standings, division underneth of event name, if anyone select division, they should see groups, (left and right to go to the different groups)
+ - Inside a division, we should be able to create groups
+ - A dropdown box to change group of a team, moreover, in edit page of a group there will be option for group
+ - In teams page(admin), there will ba a group filter
+ - Move team, and assign group should have a bulk action
+ - Captain will see teams as standings
+ - Rank teams by match records, head to head, game points difference, 
+ - It should show standings, like this -> https://www.google.com/search?q=college+football+standings&oq=college+football+stand&gs_lcrp=EgZjaHJvbWUqBwgAEAAYgAQyBwgAEAAYgAQyBggBEEUYOTIHCAIQABiABDIHCAMQABiABDIHCAQQABiABDIHCAUQABiABDIHCAYQABiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBCDYwMjBqMGo0qAIAsAIB&sourceid=chrome&ie=UTF-8#sie=lg;/g/11vt06k5bq;6;/m/012hfxch;st;fp;1;;;
+ - **__https://www.loom.com/share/52d87d3bec864e64b83ab7affe7af326__** Till 3 minutes
+ - Move change nets like change rosters
+ - Teams name below the rosters
+ - Instead of rendering players seperately, change the rank box wider and make it say "subbed in the round 1 or 3"
+    - https://www.loom.com/share/da66732176474ed291c37312afe8b17f
 
+ - Updating a net still not working
+ - Ranking player with a ranking icon
+ - Captain of a team must not be able to change the ranking of another team
  - Test with public in the match 
  - Live events are not working properly captain to admin
  - Handling error properly
@@ -191,6 +198,10 @@ ___
  - Setup docker
 
 ### Database Action
+ - Set default passcode for all user
+ ```
+ db.users.updateMany({ role: { $in: ["admin", "director"] } },{ $set: { passcode: "Pass1234" } });
+ ```
  -  Change `location` to `description` in all document of match and event
  - Allow duplicate email for a player `db.players.getIndexes()` and delete `db.players.dropIndex("email_1");`
   ```

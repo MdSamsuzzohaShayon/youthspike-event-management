@@ -9,7 +9,7 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import { UpdateUserArgs } from './user.args';
+import { UpdateUser } from './user.input';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -17,6 +17,8 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import * as Upload from 'graphql-upload/Upload.js';
 import { rmInvalidProps } from 'src/util/helper';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
+import { EventService } from 'src/event/event.service';
+import { LdoService } from 'src/ldo/ldo.service';
 
 @ObjectType()
 class LoginUser extends UserBase {
@@ -60,20 +62,24 @@ class UserResponse extends AppResponse<User> {
   data?: User;
 }
 
-
 @Resolver((of) => User)
 export class UserResolver {
   constructor(
     private readonly userService: UserService,
     private playerService: PlayerService,
     private teamService: TeamService,
+    private eventService: EventService,
+    private ldoService: LdoService,
     private jwtService: JwtService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  @Mutation((returns) => LoginResponse)
-  @Mutation((returns) => LoginResponse)
-  async login(@Args('email') email: string, @Args('password') password: string): Promise<LoginResponse> {
+  @Mutation((_returns) => LoginResponse)
+  async login(
+    @Args('email') email: string,
+    @Args('password') password: string,
+    @Args('passcode', { nullable: true }) passcode?: string,
+  ): Promise<LoginResponse> {
     try {
       const existingUser: any = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
 
@@ -89,6 +95,7 @@ export class UserResolver {
       }
 
       const userObj = existingUser._doc;
+      delete userObj.password;
 
       if (userObj.role === UserRole.captain && userObj.captainplayer) {
         const teamWithCaptain = await this.teamService.findOne({ captain: userObj.captainplayer.toString() });
@@ -107,11 +114,43 @@ export class UserResolver {
         }
       }
 
-      const token = await this.jwtService.sign({
+      const payload = {
         _id: existingUser._id,
         email: existingUser.email,
         role: userObj.role,
-      });
+        passcode: null,
+      };
+
+      // Check ldo, event, and players relation
+      // Match passcode
+      if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
+        let captainOrCoCaptainId = null;
+        if (userObj.captainplayer) {
+          captainOrCoCaptainId = userObj.captainplayer;
+        } else if (userObj.cocaptainplayer) {
+          captainOrCoCaptainId = userObj.cocaptainplayer;
+        }
+        if (captainOrCoCaptainId && userObj.event) {
+          const eventExist = await this.eventService.findOne({ _id: userObj.event });
+          if (eventExist) {
+            // db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
+            const ldoExist = await this.ldoService.findOne({ _id: eventExist.ldo.toString() });
+            if (ldoExist) {
+              const directorUserExist = await this.userService.findOne({ _id: ldoExist.director.toString() });
+              if (
+                passcode &&
+                directorUserExist.passcode &&
+                directorUserExist.passcode.toUpperCase() === passcode.toUpperCase()
+              ) {
+                payload.passcode = passcode;
+                userObj.passcode = passcode; // Now, This is a player user but has access to director
+              }
+            }
+          }
+        }
+      }
+
+      const token = await this.jwtService.sign(payload);
 
       return {
         code: HttpStatus.ACCEPTED,
@@ -120,7 +159,6 @@ export class UserResolver {
         data: { token, user: userObj },
       };
     } catch (err) {
-      
       return AppResponse.handleError(err);
     }
   }
@@ -147,7 +185,7 @@ export class UserResolver {
   @Mutation((returns) => UserResponse)
   async updateUser(
     @Args({ name: 'userId', type: () => String, nullable: false }) userId: string,
-    @Args('updateInput') updateInput: UpdateUserArgs,
+    @Args('updateInput') updateInput: UpdateUser,
     @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
   ) {
     try {

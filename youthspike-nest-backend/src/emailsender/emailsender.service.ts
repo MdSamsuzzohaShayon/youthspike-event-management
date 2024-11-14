@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
-import { EmailSenderTemplate } from './emailsender.schema';
 
 interface ITemplateGenerateParams {
   htmlFileName: string;
@@ -37,7 +36,6 @@ interface ITemplateInfoParams {
 export class EmailsenderService {
   private transporter;
   constructor(
-    @InjectModel(EmailSenderTemplate.name) private emailSenderTemplate: Model<EmailSenderTemplate>,
     private configService: ConfigService,
   ) {
     this.transporter = nodemailer.createTransport({
@@ -47,22 +45,6 @@ export class EmailsenderService {
         pass: this.configService.get<string>('EMAIL_PASS'),
       },
     });
-  }
-
-  // Database operations
-  async create(emailSender: EmailSenderTemplate) {
-    const newEmail = await this.emailSenderTemplate.create(emailSender);
-    return newEmail;
-  }
-
-  async updateOne(filter: FilterQuery<EmailSenderTemplate>, emailSender: UpdateQuery<EmailSenderTemplate>) {
-    const updated = await this.emailSenderTemplate.updateOne(filter, emailSender);
-    return updated;
-  }
-
-  async findOne(filter: FilterQuery<EmailSenderTemplate>) {
-    const findEmail = await this.emailSenderTemplate.findOne(filter);
-    return findEmail;
   }
 
   // Helper functions

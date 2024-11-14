@@ -36,7 +36,8 @@ import {
   PlayerRankingSchemaFactory,
 } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/emailsender/emailsender.schema';
+import { Group, GroupSchemaFactory } from 'src/group/group.schema';
+import { GroupService } from 'src/group/group.service';
 
 @Module({
   imports: [
@@ -105,9 +106,10 @@ import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/email
         name: PlayerRankingItem.name,
         useFactory: PlayerRankingItemSchemaFactory,
       },
+
       {
-        name: EmailSenderTemplate.name,
-        useFactory: EmailSenderTemplateSchemaFactory,
+        name: Group.name,
+        useFactory: GroupSchemaFactory,
       },
     ]),
 
@@ -133,6 +135,7 @@ import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/email
     RoomService,
     EmailsenderService,
     PlayerRankingService,
+    GroupService,
   ],
   exports: [
     CloudinaryService,
@@ -149,6 +152,7 @@ import { EmailSenderTemplate, EmailSenderTemplateSchemaFactory } from 'src/email
     RoomService,
     EmailsenderService,
     PlayerRankingService,
+    GroupService,
   ],
 })
 export class SharedModule {
@@ -165,6 +169,7 @@ export class SharedModule {
         active: true,
         email: this.configService.get<string>('ADMIN_EMAIL'),
         password: hashedPassword,
+        passcode: this.configService.get<string>('ADMIN_PASSCODE'),
       });
     } catch (error) {
       console.log(error);

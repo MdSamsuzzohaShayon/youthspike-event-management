@@ -40,6 +40,7 @@ export class CreateEventInput {
   @Field()
   divisions: string;
 
+
   @Field(() => Int)
   nets: number;
 
