@@ -36,6 +36,8 @@ import {
   PlayerRankingSchemaFactory,
 } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { Group, GroupSchemaFactory } from 'src/group/group.schema';
+import { GroupService } from 'src/group/group.service';
 
 @Module({
   imports: [
@@ -103,7 +105,12 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
       {
         name: PlayerRankingItem.name,
         useFactory: PlayerRankingItemSchemaFactory,
-      }
+      },
+
+      {
+        name: Group.name,
+        useFactory: GroupSchemaFactory,
+      },
     ]),
 
     ConfigModule,
@@ -128,6 +135,7 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
     RoomService,
     EmailsenderService,
     PlayerRankingService,
+    GroupService,
   ],
   exports: [
     CloudinaryService,
@@ -144,6 +152,7 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
     RoomService,
     EmailsenderService,
     PlayerRankingService,
+    GroupService,
   ],
 })
 export class SharedModule {
@@ -160,6 +169,7 @@ export class SharedModule {
         active: true,
         email: this.configService.get<string>('ADMIN_EMAIL'),
         password: hashedPassword,
+        passcode: this.configService.get<string>('ADMIN_PASSCODE'),
       });
     } catch (error) {
       console.log(error);

@@ -5,7 +5,7 @@ import { LDO } from './ldo.schema';
 import { AppResponse } from 'src/shared/response';
 import { User } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
-import { CreateDirectorArgs, UpdateDirectorArgs } from 'src/user/user.args';
+import { CreateDirector, UpdateDirector } from 'src/user/user.input';
 import { UserRole } from 'src/user/user.schema';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
@@ -61,8 +61,7 @@ export class LdoResolver {
   @Roles(UserRole.admin)
   @Mutation((returns) => GetDirectorLDOResponse)
   async createDirector(
-    @Args('args') args: CreateDirectorArgs,
-    @Context() context: any,
+    @Args('input') input: CreateDirector,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ) {
     /**
@@ -76,15 +75,16 @@ export class LdoResolver {
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
       const salt = await bcrypt.genSalt(10);
-      const hashPwd = await bcrypt.hash(args.password, salt);
+      const hashPwd = await bcrypt.hash(input.password, salt);
 
       const userObj = {
-        firstName: args.firstName,
-        lastName: args.lastName,
+        firstName: input.firstName,
+        lastName: input.lastName,
         role: UserRole.director,
         active: true,
-        email: args.email,
+        email: input.email,
         password: hashPwd,
+        passcode: input.passcode,
       };
 
       const directorUser = await this.userService.createOrUpdate(userObj);
@@ -92,7 +92,7 @@ export class LdoResolver {
 
       // Update user -> set user id inside ldo
       const ldo = await this.ldoService.create(
-        { name: args.name, phone: args.phone, logo: logoUrl, events: [] },
+        { name: input.name, phone: input.phone, logo: logoUrl, events: [] },
         directorId,
         `${directorUser.firstName} ${directorUser.lastName} Event`,
       );
@@ -114,7 +114,7 @@ export class LdoResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((returns) => GetDirectorLDOResponse)
   async updateDirector(
-    @Args('args') args: UpdateDirectorArgs,
+    @Args('input') input: UpdateDirector,
     @Context() context: any,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
     logo?: Upload,
@@ -146,33 +146,34 @@ export class LdoResolver {
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
       const userObj = {
-        firstName: args.firstName,
-        lastName: args.lastName,
+        firstName: input.firstName,
+        lastName: input.lastName,
         role: UserRole.director,
+        passcode: input.passcode,
         active: true,
       };
       const newUserObj = rmInvalidProps(userObj);
-      if (args.password && args.password !== '') {
+      if (input.password && input.password !== '') {
         const salt = await bcrypt.genSalt(10);
-        newUserObj.password = await bcrypt.hash(args.password, salt);
+        newUserObj.password = await bcrypt.hash(input.password, salt);
       }
-      if (args.email || args?.email?.trim() === '') {
-        if (args.email.trim() === '') {
+      if (input.email || input?.email?.trim() === '') {
+        if (input.email.trim() === '') {
           return AppResponse.handleError({ msg: 'Email field can not be empty' });
         }
 
-        const directorExist = await this.userService.findOne({ email: args.email });
+        const directorExist = await this.userService.findOne({ email: input.email });
         if (directorExist) {
           return AppResponse.handleError({ msg: 'There is already a user with this email' });
         }
-        newUserObj.email = args.email;
+        newUserObj.email = input.email;
       }
 
       const updatePromises = [];
       updatePromises.push(this.userService.updateOne({ _id: updateUserId }, newUserObj));
 
       // Update user -> set user id inside ldo
-      const updateLdoObj: Partial<LDO> = this.refineObject({ name: args.name, phone: args.phone });
+      const updateLdoObj: Partial<LDO> = this.refineObject({ name: input.name, phone: input.phone });
       if (logoUrl) updateLdoObj.logo = logoUrl;
       updatePromises.push(this.ldoService.updateOne({ _id: ldoExist._id }, updateLdoObj));
 

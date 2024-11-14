@@ -25,7 +25,7 @@ export interface IUser extends IDocument {
   team?: string;
   role: UserRole;
   active: boolean;
-  login: ILogin;
+  passcode?: string | null;
   captainplayer?: string | null;
   cocaptainplayer?: string | null;
 }
@@ -37,9 +37,13 @@ export interface IDirector {
   firstName: string;
   lastName: string;
   email: string;
+  phone?:string;
+}
+
+export interface IAddDirector extends IDirector{
   password: string;
   confirmPassword: string;
-  phone?:string;
+  passcode: string;
 }
 
 export interface IDirectorItem {

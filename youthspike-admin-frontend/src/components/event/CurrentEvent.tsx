@@ -1,5 +1,5 @@
 import cld from '@/config/cloudinary.config';
-import { IEventExpRel } from '@/types';
+import { IEvent, IEventExpRel } from '@/types';
 import { ISOToReadableDate } from '@/utils/helper';
 import { AdvancedImage } from '@cloudinary/react';
 import React from 'react';
@@ -12,7 +12,7 @@ const {initial: lInitial, animate: lAnimate, exit: lExit, transition: lTransitio
 const {initial: hInitial, animate: hAnimate, exit: hExit, transition: hTransition} = headingAnimate;
 
 interface ICurrentEventProps {
-    currEvent: IEventExpRel;
+    currEvent: IEvent;
 }
 
 function CurrentEvent({ currEvent }: ICurrentEventProps) {

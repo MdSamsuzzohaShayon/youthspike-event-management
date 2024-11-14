@@ -36,8 +36,9 @@ const imgW = {
 
 const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST];
 
+const APP_NAME = "YouthSpike";
 const EVENT_ITEM = 'event_item'; // Name of the query params
 const LDO_ID = 'ldoId';
 
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME };

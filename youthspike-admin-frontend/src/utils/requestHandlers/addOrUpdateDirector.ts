@@ -1,16 +1,17 @@
 import { ADD_DIRECTOR_RAW, GET_LDOS, UPDATE_DIRECTOR_RAW } from "@/graphql/director";
-import { IDirector, IError, ILDO, ILdoUpdate } from "@/types";
+import { IAddDirector, IError, ILDO, ILdoUpdate } from "@/types";
 import React from "react";
 import { getCookie, removeCookie } from "../cookie";
 import { ADMIN_URL, BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
 import { ApolloClient, MutationFunction } from "@apollo/client";
+import { handleError } from "../handleError";
 
 interface IAddUpdateDirectorProps {
     directorUpdate: ILdoUpdate;
     update: boolean;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-    directorState: IDirector;
+    directorState: IAddDirector;
     ldoState: ILDO;
     ldoUpdate: ILdoUpdate;
     uploadedLogo: React.RefObject<File | null>;
@@ -19,8 +20,8 @@ interface IAddUpdateDirectorProps {
     mutateUser: MutationFunction;
     updateDirector: MutationFunction;
     registerDirector: MutationFunction;
-    initialDirector: IDirector;
-    setDirectorState: React.Dispatch<React.SetStateAction<IDirector>>;
+    initialDirector: IAddDirector;
+    setDirectorState: React.Dispatch<React.SetStateAction<IAddDirector>>;
     initialLdo: ILDO;
     setLdoState: React.Dispatch<React.SetStateAction<ILDO>>;
     setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -50,10 +51,10 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
     }
 
     const formData = new FormData();
-    const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, phone: directorState.phone, email: directorState.email, password: directorState.password };
+    const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, phone: directorState.phone, email: directorState.email, password: directorState.password, passcode: directorState.passcode };
     const updateArgs = { ...ldoUpdate, ...directorUpdateObj };
 
-    const updateVar = { args: updateArgs };
+    const updateVar = { input: updateArgs };
     // @ts-ignore
     if (user.info?.role === UserRole.admin) updateVar.dId = ldoId;
 
@@ -61,7 +62,7 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
 
     const addFileToFormData = () => {
         if (uploadedLogo.current) {
-            const variables = { args: update ? updateArgs : inputArgs, logo: null };
+            const variables = { input: update ? updateArgs : inputArgs, logo: null };
             // @ts-ignore
             if (update && user.info?.role === UserRole.admin) variables.dId = ldoId;
             formData.set('operations', JSON.stringify({
@@ -110,15 +111,7 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
         if (setAddNetDirector) setAddNetDirector(false);
     } catch (error: any) {
         console.error('Error during GraphQL mutation:', error);
-        if (error && error?.graphQLErrors && error.graphQLErrors?.length && error.graphQLErrors.length > 0) {
-            // Valid error
-            const invalidAuth = error.graphQLErrors.find((e: any) => e && e?.extensions && e.extensions?.response && e.extensions.response.statusCode === 401);
-            if (invalidAuth) {
-                // Delete cookies and redirect to login page
-                await Promise.all([removeCookie('token'), removeCookie('user')]);
-                window.location.href = `${ADMIN_URL}/login`
-            }
-        }
+        handleError(error);
         setActErr(error);
     } finally {
         setIsLoading(false);

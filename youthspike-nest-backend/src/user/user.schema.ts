@@ -36,15 +36,19 @@ export class UserBase extends AppDocument {
   @Prop({ required: true })
   lastName: string;
 
-  @Field((type) => UserRole)
+  @Field((_type) => String, { nullable: true })
+  @Prop({ required: false, type: String })
+  passcode?: string; // To give access to other
+
+  @Field((_type) => UserRole)
   @Prop({ required: true, enum: UserRole })
   role: UserRole;
 
-  @Field((type) => Player, { nullable: true })
+  @Field((_type) => Player, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   captainplayer?: Player | string;
 
-  @Field((type) => Player, { nullable: true })
+  @Field((_type) => Player, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   cocaptainplayer?: Player | string;
 

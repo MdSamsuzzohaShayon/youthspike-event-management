@@ -104,6 +104,11 @@ query GetEvent($eventId: String!) {
           name
           logo
         }
+        groups {
+          _id
+          name
+          division
+        }
      }
   }
 }

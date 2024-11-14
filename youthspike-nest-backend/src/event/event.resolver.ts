@@ -35,6 +35,7 @@ import { SponsorService } from 'src/sponsor/sponsor.service';
 import { FilterQuery } from 'mongoose';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
+import { GroupService } from 'src/group/group.service';
 
 @ObjectType()
 class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -67,6 +68,7 @@ export class EventResolver {
     private userService: UserService,
     private roundService: RoundService,
     private netService: NetService,
+    private groupService: GroupService,
     private sponsorService: SponsorService,
   ) {}
 
@@ -143,6 +145,7 @@ export class EventResolver {
         players: [],
         teams: [],
         matches: [],
+        groups: [],
       };
 
       const savedEvent = await this.eventService.create(eventData);
@@ -561,6 +564,12 @@ export class EventResolver {
   async teams(@Parent() event: Event) {
     const teamList = await this.teamService.query({ _id: { $in: event.teams } });
     return teamList;
+  }
+
+  @ResolveField()
+  async groups(@Parent() event: Event) {
+    const groupList = await this.groupService.find({ event: event._id.toString() });
+    return groupList;
   }
 
   @ResolveField()

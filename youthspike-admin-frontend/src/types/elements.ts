@@ -3,6 +3,7 @@
 import React from 'react';
 import { IPlayer } from './player';
 import { IUserContext } from './user';
+import { ITeam } from './team';
 
 export enum EAssignStrategies {
   RANDOM = 'RANDOM',
@@ -23,6 +24,7 @@ export interface ITextCommon {
   vertical?: boolean;
   extraCls?: string;
   lblTxt?: string;
+  tooltip?: string;
   name: string;
   required?: boolean;
   defaultValue?: string | null | undefined;
@@ -32,6 +34,9 @@ export interface ITextCommon {
 }
 
 export interface ITextInputProps extends ITextCommon { }
+export interface IPasswordInputProps extends ITextInputProps {
+  svgColor?: string;
+ }
 
 export interface ITextareaInputProps extends ITextCommon { }
 
@@ -41,6 +46,15 @@ export interface IPlayerSelectProps {
   defaultValue?: string[];
   handleCheckboxChange: (pId: string, isChecked: boolean) => void;
   availablePlayers: IPlayer[];
+  eventId: string;
+}
+
+export interface ITeamSelectProps {
+  name: string;
+  extraCls?: string;
+  defaultValue?: string[];
+  handleCheckboxChange: (pId: string, isChecked: boolean) => void;
+  teamList: ITeam[];
   eventId: string;
 }
 
@@ -159,9 +173,11 @@ export interface IError {
 export interface ILoginProps {
   handleLogin: (e: React.SyntheticEvent) => void;
   email: string;
-  setEmail: (state: string) => void;
+  setEmail: React.Dispatch<React.SetStateAction<string>>;
   password: string;
-  setPassword: (state: string) => void;
+  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  passcode: string;
+  setPasscode: React.Dispatch<React.SetStateAction<string>>
   actErr: IError | null;
 }
 

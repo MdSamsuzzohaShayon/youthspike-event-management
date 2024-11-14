@@ -1,0 +1,141 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { HttpStatus, UseGuards } from '@nestjs/common';
+import { Args, Context, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { Roles } from 'src/shared/auth/roles.decorator';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
+import { AppResponse } from 'src/shared/response';
+import { UserRole } from 'src/user/user.schema';
+import { TeamService } from 'src/team/team.service';
+import { ConfigService } from '@nestjs/config';
+import { Group } from './group.schema';
+import { CreateGroupInput, UpdateGroupInput } from './group.input';
+import { GroupService } from './group.service';
+import { EventService } from 'src/event/event.service';
+
+@ObjectType()
+class GetGroupsResponse extends AppResponse<Group[]> {
+  @Field((_type) => [Group], { nullable: false })
+  data?: Group[];
+}
+
+@ObjectType()
+class GetGroupResponse extends AppResponse<Group> {
+  @Field((_type) => Group, { nullable: false })
+  data?: Group;
+}
+
+@Resolver((of) => Group)
+export class GroupResolver {
+  constructor(
+    private configService: ConfigService,
+    private teamService: TeamService,
+    private groupService: GroupService,
+    private eventService: EventService,
+  ) {}
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((returns) => GetGroupResponse)
+  async createGroup(@Context() context: any, @Args('input') input: CreateGroupInput): Promise<GetGroupResponse> {
+    try {
+      /**
+       * TODO:
+       *  Step-1: Get user id from token if not logged in as admin
+       */
+
+      const newGroup = await this.groupService.create(input);
+      // Update teams and event
+      await Promise.all([
+        this.eventService.updateOne({ _id: newGroup.event }, { $addToSet: { groups: newGroup._id } }),
+        this.teamService.updateMany({ _id: { $in: input.teams } }, { group: newGroup._id }),
+      ]);
+
+      return {
+        data: newGroup,
+        success: true,
+        message: 'Group has been created successfully.',
+        code: HttpStatus.CREATED,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetGroupResponse)
+  async updateGroup(
+    @Context() context: any,
+    @Args('updateInput') updateInput: UpdateGroupInput,
+    @Args('eventId', { nullable: true }) eventId?: string,
+  ): Promise<GetGroupResponse> {
+    try {
+      /**
+       * TODO:
+       *  Step-1: Get user id from token if not logged in as admin
+       */
+      const updatePromises = [];
+      console.log(updateInput);
+      const updatedGroup = await this.groupService.updateOne(
+        { _id: updateInput._id },
+        { $pull: { teams: updateInput.teams } },
+      );
+      // Update team
+      if (updateInput.teams.length > 0) {
+        for (const team of updateInput.teams) {
+          updatePromises.push(this.teamService.updateOne({ _id: team }, { group: updateInput._id }));
+        }
+      }
+      await Promise.all(updatePromises);
+      const findGroup = await this.groupService.findOne({ _id: updateInput._id });
+
+      return {
+        data: findGroup,
+        success: true,
+        message: 'Group has been updated successfully.',
+        code: HttpStatus.ACCEPTED,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((returns) => GetGroupsResponse)
+  async getGroups(@Context() context: any, @Args('eventId', { nullable: true }) eventId?: string) {
+    try {
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: [],
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((returns) => GetGroupResponse)
+  async getGroup(@Args('eventId') eventId: string) {
+    try {
+      //   const findGroup = await this.eventService.findById(eventId);
+      //   return {
+      //     code: findGroup ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+      //     success: findGroup ? true : false,
+      //     data: findGroup ?? null,
+      //   };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
+
+  @ResolveField()
+  async teams(@Parent() event: Group) {
+    const teamList = await this.teamService.query({ _id: { $in: event.teams } });
+    return teamList;
+  }
+}

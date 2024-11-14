@@ -1,4 +1,4 @@
-import { IError, IOption, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam } from '@/types';
+import { IError, IEvent, IOption, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam } from '@/types';
 import React, { useEffect, useRef } from 'react';
 import Sortable from 'sortablejs';
 import { EPlayerStatus } from '@/types/player';
@@ -7,6 +7,8 @@ import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
 import { handleError } from '@/utils/handleError';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -20,6 +22,7 @@ interface IPlayerListProps {
   refetchFunc?: () => void;
   setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
   playerRanking?: IPlayerRankingExpRel | null;
+  currEvent?: null | IEvent;
 }
 
 interface IPlayerRank {
@@ -27,9 +30,10 @@ interface IPlayerRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, setActErr, playerRanking }: IPlayerListProps) {
+function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, setActErr, playerRanking, currEvent }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const screenWidth = useScreenWidth();
+  const user = useUser();
 
   // const [rankPlayers] = useMutation(UPDATE_PLAYERS);
   const [mutatePlayerRanking] = useMutation(UPDATE_PLAYER_RANKING);
@@ -99,43 +103,53 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
 
   useEffect(() => {
     let sortableList: Sortable | null = null;
-    if (listRef && rankControls) {
-      // For mobiloe devices
+
+  // Determine if ranking is allowed based on role, event end date, and passcode
+  const canRank = (() => {
+    if (!user?.info || !currEvent) return true; // Default to true if data is missing
+
+    const { role, passcode } = user.info;
+    const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
+    const eventEnded = new Date() > new Date(currEvent.endDate);    
+
+    // Return true unless user is captain/co-captain, event has ended, and they lack a passcode
+    return !(isCaptainRole && eventEnded && !passcode);
+  })();
+  
+
+
+    // Only create Sortable if ranking is allowed, listRef exists, and rankControls is enabled
+    if (listRef && rankControls && canRank) {
+      // Common configuration options
+      const sortableOptions = {
+        animation: 150,
+        easing: 'cubic-bezier(1, 0, 0, 1)',
+        onEnd: handleSortEnd,
+      };
+
+      // Add mobile-specific settings for screens <= 768px
       if (screenWidth <= 768) {
-        // Adjust behavior based on screen width
-        sortableList = Sortable.create(listRef.current!, {
-          /*
-          // Previous code, manual
-          animation: 150,
-          easing: 'cubic-bezier(1, 0, 0, 1)',
-          delay: 200, // Delay in milliseconds before sorting starts
-          touchStartThreshold: 100, // Minimum distance in pixels to start sorting
-          onStart(evt) {
-            // Workaround to prevent default behavior of long press on iOS
-            evt.preventDefault();
+        Object.assign(sortableOptions, {
+          multiDrag: true,
+          selectedClass: 'selected',
+          fallbackTolerance: 3,
+          delay: 200,
+          touchStartThreshold: 100,
+          onStart(evt: any) {
+            evt.preventDefault(); // Prevent default behavior for long press on iOS
           },
-          onEnd: handleSortEnd,
-          */
-          multiDrag: true, // Enable multi-drag
-          selectedClass: 'selected', // The class applied to the selected items
-          fallbackTolerance: 3, // So that we can select items on mobile
-          animation: 150,
-          onEnd: handleSortEnd,
-        });
-      } else {
-        sortableList = Sortable.create(listRef.current!, {
-          animation: 150,
-          easing: 'cubic-bezier(1, 0, 0, 1)',
-          onEnd: handleSortEnd,
         });
       }
+
+      sortableList = Sortable.create(listRef.current!, sortableOptions);
     }
+
     return () => {
       if (sortableList) {
         sortableList.destroy();
       }
     };
-  }, [playerList, screenWidth, rankControls]); // Re-run effect when playerList or screenWidth changes
+  }, [playerList, screenWidth, rankControls, user, currEvent]); // Re-run effect when playerList or screenWidth changes
 
 
 

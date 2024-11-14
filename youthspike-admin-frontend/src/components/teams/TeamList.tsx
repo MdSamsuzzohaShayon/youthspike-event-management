@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ICheckedInput, IError, IEvent, ITeam } from '@/types';
+import { ICheckedInput, IError, IEvent, IGroup, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -11,6 +11,7 @@ import { SEND_CREDENTIALS } from '@/graphql/event';
 interface TeamListProps {
   eventId: string;
   teamList: ITeam[];
+  groupList: IGroup[];
   eventList?: IEvent[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
@@ -18,19 +19,22 @@ interface TeamListProps {
 }
 
 
-function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
+function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
 
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
   // const [bulkTeams, setBulkTeams] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
   const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
+  const [filteredGroupId, setFilteredGroupId] = useState<string | null>(null);
 
-  const [sendCredentials, {data, error}] = useMutation(SEND_CREDENTIALS);
+  const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
 
   // eslint-disable-next-line no-unused-vars
-  const handleFilter = (e: React.SyntheticEvent, filteredItemId: number) => {
+  const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
     e.preventDefault();
+    setFilteredGroupId(groupId);
+    setShowFilter(false);
   };
 
   // ===== Bulk Actions =====
@@ -103,7 +107,7 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
     }
   }
 
-  const handleSendCredential=async (e: React.SyntheticEvent, teamId: string)=>{
+  const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
     try {
       setIsLoading(true);
       await sendCredentials({ variables: { eventId, teamIds: [teamId] } });
@@ -124,18 +128,16 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={handleShowBulk} />
         </div>
         <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
-          <p>A-Z</p>
+          <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : "Group"}</p>
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
         </div>
 
         {/* Filter Action Start  */}
         <ul className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-          <li role="presentation" className='capitalize' onClick={(e) => handleFilter(e, 1)}>
-            Copy
-          </li>
-          <li role="presentation" className='capitalize' onClick={(e) => handleFilter(e, 2)}>
-            Edit
-          </li>
+        <li key={"all"} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, null)}>All</li>
+          {groupList.map((g, gI) => (<li key={gI} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, g._id)}>
+            {g.name}
+          </li>))}
         </ul>
         {/* Filter Action End  */}
 
@@ -154,12 +156,25 @@ function TeamList({ teamList, eventId, eventList, setIsLoading, setActErr, fefet
 
       </div>
       <div className="team-list-card flex flex-col justify-between items-center gap-3">
-        {teamList.map((team) => (
-          <TeamCard key={team._id} team={team} eventId={eventId} eventList={eventList || []}
-            setIsLoading={setIsLoading} isChecked={checkedTeams.get(team._id) ?? false}
-            fefetchFunc={fefetchFunc} handleSendCredential={handleSendCredential} handleCheckedTeam={handleCheckedTeam} />
-          //  <input key={team._id} type="text" className='w-fit' defaultChecked={checkedTeams.get(team._id) ?? false} />
-        ))}
+        {teamList.map((team) => {
+          if (!filteredGroupId || team.group?._id === filteredGroupId) {
+            return (
+              <TeamCard
+                key={team._id}
+                team={team}
+                eventId={eventId}
+                eventList={eventList || []}
+                groupList={groupList}
+                setIsLoading={setIsLoading}
+                isChecked={checkedTeams.get(team._id) ?? false}
+                fefetchFunc={fefetchFunc}
+                handleSendCredential={handleSendCredential}
+                handleCheckedTeam={handleCheckedTeam}
+              />
+            );
+          }
+          return null;
+        })}
       </div>
     </div>
   );

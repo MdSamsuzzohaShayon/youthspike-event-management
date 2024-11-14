@@ -1,24 +1,28 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-unused-vars */
-import cld from '@/config/cloudinary.config';
-import { IEvent, IMatchExpRel, IPlayer, IPlayerRankingExpRel, ITeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useUser } from '@/lib/UserProvider';
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
-import { EEventItem } from '@/types/event';
 import { useAppDispatch } from '@/redux/hooks';
-import { EVENT_ITEM, imgW } from '@/utils/constant';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { APP_NAME } from '@/utils/keys';
-import { useLdoId } from '@/lib/LdoProvider';
+import Image from 'next/image';
+import cld from '@/config/cloudinary.config';
+import { IEvent, IGroup, IMatchExpRel, IOption, IPlayer, IPlayerRankingExpRel, ITeam } from '@/types';
+import { AdvancedImage } from '@cloudinary/react';
+import { EEventItem } from '@/types/event';
 import { setRankingMap, setTeamsPlayerRanking } from '@/redux/slices/playerRankingSlice';
+import { divisionsToOptionList } from '@/utils/helper';
+import { EVENT_ITEM, imgW, APP_NAME } from '@/utils/constant';
+
+import { useLdoId } from '@/lib/LdoProvider';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
 import PlayerList from '../player/PlayerList';
+import SelectInput from '../elements/SelectInput';
 
-interface IteamCaptain extends ITeam {
+// Interfaces
+interface ITeamCaptain extends ITeam {
   captain: IPlayer;
 }
 
@@ -30,136 +34,132 @@ interface IMatchCaptain extends IMatchExpRel {
 interface IEventRelatives extends IEvent {
   matches?: IMatchCaptain[];
   players?: IPlayer[];
-  teams?: IteamCaptain[];
-}
-
-interface ITeamCaptain extends ITeam {
-  captain: IPlayer;
+  teams?: ITeamCaptain[];
 }
 
 function EventDetail({ event }: { event: IEventRelatives }) {
-  const user = useUser();
-  const dispatch = useAppDispatch();
-  const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
+  const dispatch = useAppDispatch();
+  const user = useUser();
+  const searchParams = useSearchParams();
 
   const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
+  const [currDivision, setCurrDivision] = useState<string | null>(null);
+  const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
-  // After redirecting set an item to select between playerList, teamList or match list of an event
-  useEffect(() => {
-    // @ts-ignore
-    const eventItem: EEventItem | null | undefined = searchParams.get(EVENT_ITEM);
-    if (eventItem) {
-      setSelectedItem(eventItem);
-    }
-  }, [searchParams]);
+  const [teamList, setTeamList] = useState<ITeamCaptain[]>([]);
+  const [matchList, setMatchList] = useState<IMatchCaptain[]>([]);
+  const [playerList, setPlayerList] = useState<IPlayer[]>([]);
+  const [groupList, setGroupList] = useState<IGroup[]>([]);
 
-  const renderContent = () => {
-    switch (selectedItem) {
-      case EEventItem.PLAYER:
-        return <PlayerList playerList={event.players} />;
-      case EEventItem.TEAM:
-        return <TeamList teamList={event.teams} divisions={event.divisions} matchList={event.matches} />;
-      case EEventItem.MATCH:
-        return <MatchList matchList={event.matches} divisions={event.divisions} />;
-      default:
-        return null;
-    }
-  };
+  const initializeLists = useCallback(() => {
+    const rankingMap = new Map();
 
-  const renderSponsors = () => {
-    const sponsorList: React.ReactNode[] = [];
-    sponsorList.push(
-      <div className="w-20" key="default-logo">
-        <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
-      </div>,
-    );
-    event.sponsors.forEach((sponsor, index) => {
-      sponsorList.push(<AdvancedImage cldImg={cld.image(sponsor.logo.toString())} key={sponsor._id || `sponsor-${index}`} className="w-20" />);
-    });
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <React.Fragment>{sponsorList}</React.Fragment>;
-  };
+    setTeamList(event.teams || []);
+    setMatchList(event.matches || []);
+    setPlayerList(event.players || []);
+    setGroupList(event.groups || []);
 
-  useEffect(() => {
-    if (event.teams && event.teams.length > 0) {
-      const eventTeams = event.teams;
-      const teamsPlayerRanking: IPlayerRankingExpRel[] = [];
-      const rankingMap = new Map();
-      for (let i = 0; i < eventTeams.length; i += 1) {
-        if (!eventTeams[i].playerRanking.rankLock) {
-          // @ts-ignore
-          const { rankings } = eventTeams[i].playerRanking as IPlayerRankingExpRel[];
-          const playerSingleRanking: IPlayerRankingExpRel = {
-            _id: eventTeams[i].playerRanking._id,
-            rankLock: eventTeams[i].playerRanking.rankLock,
-            rankings,
-            team: {
-              _id: eventTeams[i]._id,
-              name: eventTeams[i].name,
-              division: eventTeams[i].division,
-              // @ts-ignore
-              event: event._id,
-            },
-          };
-          teamsPlayerRanking.push(playerSingleRanking);
-          for (let j = 0; j < rankings.length; j += 1) {
-            rankingMap.set(rankings[j].player._id, rankings[j].rank);
-          }
-        }
+    const teamsPlayerRanking = event.teams?.reduce((rankings, team) => {
+      if (!team.playerRanking.rankLock) {
+        rankings.push({
+          ...team.playerRanking,
+          team: { _id: team._id, name: team.name, division: team.division, event: event._id },
+        });
+        team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
       }
-      dispatch(setTeamsPlayerRanking(teamsPlayerRanking));
-      dispatch(setRankingMap(Array.from(rankingMap)));
-    }
+      return rankings;
+    }, [] as IPlayerRankingExpRel[]);
+
+    dispatch(setTeamsPlayerRanking(teamsPlayerRanking || []));
+    dispatch(setRankingMap(Array.from(rankingMap)));
   }, [dispatch, event]);
 
+  useEffect(() => {
+    initializeLists();
+    if (event.divisions) setDivisionList(divisionsToOptionList(event.divisions));
+    const eventItem = searchParams.get(EVENT_ITEM) as EEventItem;
+    if (eventItem) setSelectedItem(eventItem);
+  }, [event, initializeLists, searchParams]);
+
+  const filterList = (division: string) => {
+    const matchesDivision = (item: { division?: string }) => item.division?.trim().toLowerCase() === division.trim().toLowerCase();
+
+    setTeamList(event.teams?.filter(matchesDivision) || []);
+    setMatchList(event.matches?.filter(matchesDivision) || []);
+    setPlayerList(event.players?.filter(matchesDivision) || []);
+    setGroupList(event.groups?.filter(matchesDivision) || []);
+  };
+
+  const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedDivision = e.target.value;
+    setCurrDivision(selectedDivision);
+    // eslint-disable-next-line no-unused-expressions
+    selectedDivision ? filterList(selectedDivision) : initializeLists();
+  };
+
+  const renderContent = () => {
+    const renderMap = {
+      [EEventItem.PLAYER]: <PlayerList playerList={playerList} />,
+      [EEventItem.TEAM]: <TeamList teamList={teamList} groupList={groupList} matchList={matchList} />,
+      [EEventItem.MATCH]: <MatchList matchList={matchList} division={currDivision} />,
+    };
+    return renderMap[selectedItem] || null;
+  };
+
+  const renderSponsors = () => (
+    <>
+      <div className="w-20" key="default-logo">
+        <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
+      </div>
+      {event.sponsors?.map((sponsor, index) => <AdvancedImage key={sponsor._id || `sponsor-${index}`} cldImg={cld.image(sponsor.logo.toString())} className="w-20" />)}
+    </>
+  );
+
   return (
-    <div className="w-full mb-8">
-      <div className="logo-with event my-4 text-center w-full flex items-center justify-center flex-col">
+    <div className="container mx-auto px-4 mb-8">
+      <div className="text-center w-full flex flex-col items-center mb-6">
         <Link href={`/${ldoIdUrl}`}>
           <Image height={100} width={100} src="/free-logo.png" alt="youthspike-logo" className="w-24" />
         </Link>
-        <h1>{event.name}</h1>
+        <h1 className="text-2xl font-bold mt-2">{event.name}</h1>
       </div>
 
-      {!user.token && event?.sponsors && (
-        <>
-          <h3 className="mb-4">Sponsors</h3>
-          <div className="sponsors w-full flex items-center justify-between md:justify-start flex-wrap gap-2 bg-black-logo">{renderSponsors()}</div>
-        </>
+      {!user.token && event.sponsors && (
+        <div className="mb-6">
+          <h3 className="mb-4 text-lg font-semibold">Sponsors</h3>
+          <div className="flex gap-4 flex-wrap">{renderSponsors()}</div>
+        </div>
       )}
 
-      <div className="flex flex-col md:flex-row mt-8 bg-black-logo px-2">
-        <div className="side-bar sticky top-0 w-full md:w-2/6 flex flex-row md:flex-col flex-wrap mb-2 z-10">
-          {event.players?.length === 0 && event.teams?.length === 0 && event.matches?.length === 0 ? (
-            <h3>No matche, team, or, player is been created yet!</h3>
+      <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6 mb-4" />
+
+      <div className="flex flex-col md:flex-row gap-6">
+        <motion.div
+          className="side-bar w-full md:w-1/4 bg-gray-800 p-4 rounded-md sticky top-4 md:top-20 z-10 md:h-screen overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {event.players?.length || event.teams?.length || event.matches?.length ? (
+            <ul className="flex flex-col gap-2">
+              {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (
+                <motion.li
+                  key={item}
+                  className={`cursor-pointer p-2 rounded-md text-center ${selectedItem === item ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
+                  onClick={() => setSelectedItem(item)}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {item}
+                </motion.li>
+              ))}
+            </ul>
           ) : (
-            <>
-              <li
-                role="presentation"
-                onClick={() => setSelectedItem(EEventItem.PLAYER)}
-                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.PLAYER ? 'font-bold bg-yellow-logo text-black' : 'bg-black-logo'}`}
-              >
-                Players
-              </li>
-              <li
-                role="presentation"
-                onClick={() => setSelectedItem(EEventItem.TEAM)}
-                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.TEAM ? 'font-bold bg-yellow-logo text-black' : 'bg-black-logo'}`}
-              >
-                Teams
-              </li>
-              <li
-                role="presentation"
-                onClick={() => setSelectedItem(EEventItem.MATCH)}
-                className={`list-none cursor-pointer p-2 ${selectedItem === EEventItem.MATCH ? 'font-bold bg-yellow-logo text-black' : 'bg-black-logo'}`}
-              >
-                Matches
-              </li>
-            </>
+            <h3>No matches, teams, or players have been created yet!</h3>
           )}
-        </div>
-        <div className="w-full md:w-4/6 static">{renderContent()}</div>
+        </motion.div>
+
+        <div className="content w-full md:w-3/4 rounded-md p-6">{renderContent()}</div>
       </div>
     </div>
   );

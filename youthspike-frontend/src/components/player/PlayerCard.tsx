@@ -16,7 +16,7 @@ interface PlayerCardProps {
 }
 
 function PlayerCard({ player, rank }: PlayerCardProps) {
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
   const params = useParams();
   const user = useUser();
   const playerLiEl = useRef<HTMLLIElement | null>(null);

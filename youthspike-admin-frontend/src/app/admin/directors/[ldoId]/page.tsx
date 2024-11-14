@@ -20,6 +20,7 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
   if (loading || isLoading) return <Loader />;
   const prevLdo = data?.getEventDirector?.data;
   
+  
 
   return (
     <div className='container mx-auto px-2 min-h-screen'>

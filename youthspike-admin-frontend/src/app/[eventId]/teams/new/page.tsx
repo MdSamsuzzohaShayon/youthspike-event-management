@@ -7,8 +7,9 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import UserMenuList from '@/components/layout/UserMenuList';
 import TeamAdd from '@/components/teams/TeamAdd';
 import { GET_EVENT_WITH_PLAYERS, GET_PLAYERS } from '@/graphql/players';
-import { IError, IEventExpRel, IOption, ITeam } from '@/types';
+import { IError, IEventExpRel, IGroup, IOption, ITeam } from '@/types';
 import { IPlayer } from '@/types/player';
+import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 import { useLazyQuery } from '@apollo/client';
@@ -29,6 +30,8 @@ function TeamsPage({ params }: ITeamsPageProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
   const [filteredPlayers, setFilteredPlayers] = useState<IPlayer[]>([]);
+  const [groupList, setGroupList] = useState<IGroup[]>([]);
+  const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]); // Filter according to division
   const [actErr, setActErr] = useState<IError | null>(null);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
@@ -56,18 +59,25 @@ function TeamsPage({ params }: ITeamsPageProps) {
       setDivisionToStore(inputEl.value.trim());
       const npList = availablePlayers.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       setFilteredPlayers([...npList]);
+      const ngList = groupList.filter((g)=> g.division.toLowerCase() === inputEl.value.trim().toLowerCase());
+      setFilteredGroupList(ngList);
     }
   }
 
 
   const fetchPlayers = async () => {
     const playerRes = await getPlayers({ variables: { eventId: params.eventId }, fetchPolicy: "network-only" });
-    if (!playerRes?.data?.getEvent?.success) return setActErr({success: false, code: playerRes?.data?.getEvent?.code, message: playerRes?.data?.getEvent?.message});
+    const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
+    if (!success) return;
 
     if (playerRes?.data?.getEvent?.data) setCurrEvent(playerRes.data.getEvent.data);
 
     const napList: IPlayer[] = playerRes?.data?.getEvent?.data?.players ? playerRes.data.getEvent.data.players.filter((p: IPlayer) => !p.teams || p.teams.length === 0) : []; // nap List = new available players List
     let nfpList = [...napList]; // fnp List = new filtered player List
+
+    const ngList: IGroup[] = playerRes.data.getEvent.data.groups ?? [];
+    let nfgList = [...ngList];
+    // if (playerRes?.data?.getEvent?.data?.groups) setGroupList(playerRes.data.getEvent.data.groups);
 
     // Division and player value
     removeTeamFromStore();
@@ -75,10 +85,13 @@ function TeamsPage({ params }: ITeamsPageProps) {
     if (divisionExist) {
       setCurrDivision(divisionExist);
       nfpList = napList.filter((p) => p.division && p.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+      nfgList = ngList.filter((g) => g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
     }
 
     setAvailablePlayers(napList);
     setFilteredPlayers(nfpList);
+    setGroupList(ngList);
+    setFilteredGroupList(nfgList);
 
     // Making divisions list
     const divisions = playerRes?.data?.getEvent?.data?.divisions ? playerRes?.data?.getEvent?.data?.divisions : '';
@@ -117,7 +130,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
       <div className="mt-2 division-selection w-full">
         <SelectInput key="teams-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
       </div>
-      <TeamAdd setIsLoading={setIsLoading} availablePlayers={filteredPlayers} handleClose={handleClose} eventId={params.eventId}
+      <TeamAdd groupList={filteredGroupList} setIsLoading={setIsLoading} availablePlayers={filteredPlayers} handleClose={handleClose} eventId={params.eventId}
         setAvailablePlayers={setFilteredPlayers} setActErr={setActErr} currDivision={currDivision} teamAddCB={teamAddCB} />
     </div>
   )

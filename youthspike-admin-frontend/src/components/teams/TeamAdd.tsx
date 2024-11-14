@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 import React, { useState, useEffect, useRef } from 'react';
 import Message from '../elements/Message';
-import { IError, IOption, IPlayer, ITeam, ITeamAdd } from '@/types';
+import { IError, IOption, IPlayer, ITeam, ITeamAdd, IGroup, IGroupRelatives } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -10,6 +10,7 @@ import FileInput from '../elements/forms/FileInput';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
+import Link from 'next/link';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
@@ -18,6 +19,7 @@ interface IPrevTeam extends ITeamAdd {
 interface ITeamAddProps {
     eventId: string;
     availablePlayers: IPlayer[];
+    groupList: IGroup[];
     setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -39,7 +41,7 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
+function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
     const {ldoIdUrl} = useLdoId();
@@ -134,6 +136,10 @@ function TeamAdd({ eventId, handleClose, setIsLoading, availablePlayers, setAvai
             </div>
 
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
+
+            <SelectInput handleSelect={handleInputChange} name='group' optionList={groupList.map((g)=> ({text: g.name, value: g._id}))} vertical />
+            <Link className='underline underline-offset-1' href={`/${eventId}/groups/new/${ldoIdUrl}`}>Create new group!</Link>
+            
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
             {!update && (<div className="player-input mb-4">

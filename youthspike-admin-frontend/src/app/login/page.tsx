@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import Login from '@/components/user/Login';
 import { LOGIN_USER } from '@/graphql/admin';
 import { IError } from '@/types';
@@ -14,13 +13,14 @@ import { setCookie } from '@/utils/cookie';
 function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [passcode, setPasscode] = useState<string>('');
   const [actErr, setActErr] = useState<IError | null>(null);
 
   // Apollo mutation hook
   const [loginUser, { loading }] = useMutation(LOGIN_USER, {
-    variables: { email, password },
+    variables: { email, password, passcode },
     onError: (error) => {
       setActErr({
         success: false,
@@ -80,6 +80,8 @@ function LoginPage() {
         setEmail={setEmail}
         password={password}
         setPassword={setPassword}
+        passcode={passcode}
+        setPasscode={setPasscode}
         actErr={actErr}
       />
     </div>

@@ -24,6 +24,7 @@ export interface IPlayer extends IDocument {
   lastName: string;
   profile: string | null;
   email: string;
+  division: string;
   status: EPlayerStatus,
   event?: string;
   teams?: ITeam[];

@@ -140,6 +140,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
               teamId={team._id}
               showRank
               playerRanking={playerRanking}
+              currEvent={event}
             />
           </div>
 
@@ -155,6 +156,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                 teamList={teamList}
                 divisionList={divisionList}
                 teamId={team._id}
+                currEvent={event}
               />
             </div>
           )}

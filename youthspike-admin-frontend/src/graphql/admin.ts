@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 const LOGIN_USER_RAW = `
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation Login($email: String!, $password: String!, $passcode: String) {
+    login(email: $email, password: $password, passcode: $passcode) {
       code
       success
       message
@@ -15,6 +15,7 @@ const LOGIN_USER_RAW = `
           role
           team
           email
+          passcode
           event
           captainplayer
           cocaptainplayer

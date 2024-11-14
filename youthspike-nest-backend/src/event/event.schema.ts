@@ -2,6 +2,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { Group } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Match } from 'src/match/match.schema';
 import { Player } from 'src/player/player.schema';
@@ -71,6 +72,10 @@ export class Event extends AppDocument {
   @Field(() => [Match], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
   matches: Match[] | string[];
+
+  @Field(() => [Group], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }] })
+  groups: Group[] | string[];
 
   @Field(() => [Sponsor], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' }] })

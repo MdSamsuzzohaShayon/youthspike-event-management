@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cardAnimate, headingAnimate } from '@/utils/animation';
 import Message from '../elements/Message';
+import { useState } from 'react';
 
 const { initial: hInitial, animate: hAnimate, exit: hExit, transition: hTransition } = headingAnimate;
 const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
 
-
-function Login({ handleLogin, email, setEmail, password, setPassword, actErr }: ILoginProps) {
+function Login({ handleLogin, email, setEmail, password, setPassword, passcode, setPasscode, actErr }: ILoginProps) {
+    const [passcodeOpener, setPasscodeOpener] = useState<boolean>(false);
 
     const handleSetEmail = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -21,45 +22,121 @@ function Login({ handleLogin, email, setEmail, password, setPassword, actErr }: 
         const inputEl = e.target as HTMLInputElement;
         setPassword(inputEl.value);
     }
-
+    const handlePasscodeChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const inputEl = e.target as HTMLInputElement;
+        setPasscode(inputEl.value);
+    }
     const handleLoginLocal = (e: React.SyntheticEvent) => {
         e.preventDefault();
         handleLogin(e);
     }
 
     return (
-        <div className='w-full flex'>
-            <div className="w-full md:w-3/6 flex flex-col justify-center items-center">
-                <div className="w-full flex justify-center items-center">
-                    <div className="px-2">
-                        {actErr && <Message error={actErr} />}
-                    </div>
-                </div>
-                <div className="w-full px-2 md:w-4/6 md:px-0">
-                    <motion.h1 className="text-3xl text-center font-bold p-2" initial={hInitial} animate={hAnimate} exit={hExit} transition={{ ...hTransition, delay: 0.4 }} >Login</motion.h1>
-                    <form onSubmit={handleLoginLocal} className='w-full flex flex-col justify-center items-center gap-4 text-center'>
-                        <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={{ ...cTransition, delay: 0.6 }} className='w-full text-center flex items-center justify-center'>
-                            <Image alt="American Spikers Logo" src="/free-logo.png" width={100} height={100} className='w-32 text-center' />
+        <div className="flex w-full min-h-screen bg-gradient-to-r from-[#fce013] to-[#fff293]">
+            <div className="flex flex-col items-center justify-center w-full md:w-1/2 px-6 py-12 md:py-0">
+                <motion.h1
+                    className="text-4xl font-bold text-white mb-6"
+                    initial={hInitial}
+                    animate={hAnimate}
+                    exit={hExit}
+                    transition={{ ...hTransition, delay: 0.3 }}
+                >
+                    Login
+                </motion.h1>
+                <div className="w-full md:w-4/6">
+                    {actErr && <Message error={actErr} />}
+                    <motion.div
+                        initial={cInitial}
+                        animate={cAnimate}
+                        exit={cExit}
+                        transition={{ ...cTransition, delay: 0.5 }}
+                        className="flex justify-center mb-6"
+                    >
+                        <Image alt="Logo" src="/free-logo.png" width={80} height={80} className="rounded-full shadow-md" />
+                    </motion.div>
+                    <form
+                        onSubmit={handleLoginLocal}
+                        className="flex flex-col gap-4 bg-white p-8 rounded-lg shadow-lg text-gray-700"
+                    >
+                        <motion.div
+                            initial={cInitial}
+                            animate={cAnimate}
+                            exit={cExit}
+                            transition={{ ...cTransition, delay: 0.6 }}
+                        >
+                            <TextInput
+                                name="email"
+                                vertical
+                                defaultValue={email}
+                                lblTxt="Email"
+                                handleInputChange={handleSetEmail}
+                                required
+                            />
                         </motion.div>
-                        <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={{ ...cTransition, delay: 0.8 }} className='w-full'>
-                            <TextInput name='email' vertical defaultValue={email} lblTxt='Username' handleInputChange={handleSetEmail} required />
+                        <motion.div
+                            initial={cInitial}
+                            animate={cAnimate}
+                            exit={cExit}
+                            transition={{ ...cTransition, delay: 0.8 }}
+                        >
+                            <PasswordInput
+                                name="password"
+                                vertical
+                                defaultValue={password}
+                                lblTxt="Password"
+                                handleInputChange={handleSetPassword}
+                                svgColor='svg-black'
+                                required
+                            />
                         </motion.div>
-                        <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={{ ...cTransition, delay: 1 }} className='w-full'>
-                            <PasswordInput name='password' vertical defaultValue={password} lblTxt='Password' handleInputChange={handleSetPassword} required />
-                        </motion.div>
-                        <motion.button initial={cInitial} animate={cAnimate} exit={cExit} transition={{ ...cTransition, delay: 1.2 }} className="btn-primary" type="submit"> Submit</motion.button>
+                        {passcodeOpener && (
+                            <motion.div
+                                initial={cInitial}
+                                animate={cAnimate}
+                                exit={cExit}
+                                transition={{ ...cTransition, delay: 1.0 }}
+                            >
+                                <PasswordInput
+                                    name="passcode"
+                                    vertical
+                                    lblTxt="Passcode"
+                                    defaultValue={passcode}
+                                    handleInputChange={handlePasscodeChange}
+                                    svgColor='svg-black'
+                                    tooltip="This field is essential to grant permissions."
+                                />
+                            </motion.div>
+                        )}
+                        <motion.button
+                            type="submit"
+                            className="w-full btn-info"
+                            initial={cInitial}
+                            animate={cAnimate}
+                            exit={cExit}
+                            transition={{ ...cTransition, delay: 1.2 }}
+                        >
+                            Submit
+                        </motion.button>
+                        {!passcodeOpener && <p role='presentation' onClick={(e)=> setPasscodeOpener(true)}>Have passcode?</p>}
                     </form>
                 </div>
             </div>
-            <div className="md:w-3/6 hidden md:flex justify-center items-center relative">
-                <h1 className='absolute z-10 px-2'> Login to access as admin to league director</h1>
-                <div className="img-holder w-full">
-                    <img src="/login-bg.jpg" alt="login bg" className='w-full h-screen object-cover object-center' />
+            <div className="hidden md:flex md:w-1/2 items-center justify-center relative bg-white">
+                <motion.h1
+                    className="absolute top-1/2 transform -translate-y-1/2 text-xl font-semibold text-gray-700 z-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                    Access as Admin to League Director
+                </motion.h1>
+                <div className="w-full h-screen overflow-hidden">
+                    <img src="/login-bg.jpg" alt="Login background" className="object-cover w-full h-full" />
                 </div>
             </div>
         </div>
     );
 }
-
 
 export default Login;

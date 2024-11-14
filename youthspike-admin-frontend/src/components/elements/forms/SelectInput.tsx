@@ -11,7 +11,7 @@ const SelectInput = (props: ISelectInputProps) => {
   const [selectedValue, setSelectedValue] = useState<string>('');
 
   useEffect(() => {
-    if (props.defaultValue !== undefined && selectedValue !== props.defaultValue.toString()) {
+    if (props.defaultValue !== undefined && props.defaultValue !== '' && selectedValue !== props.defaultValue.toString()) {
       setSelectedValue(props.defaultValue.toString());
     }
   }, [props.defaultValue, selectedValue]);

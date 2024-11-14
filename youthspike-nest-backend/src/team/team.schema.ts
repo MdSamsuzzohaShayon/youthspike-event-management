@@ -4,6 +4,7 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
+import { Group } from 'src/group/group.schema';
 import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
@@ -74,6 +75,10 @@ export class Team extends AppDocument {
   @Field((type) => [PlayerRanking], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' }] })
   playerRankings?: PlayerRanking[] | string[];
+
+  @Field((type) => Group, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Group' })
+  group?: Group | string;
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

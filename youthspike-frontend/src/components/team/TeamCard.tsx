@@ -11,8 +11,8 @@ import { useUser } from '@/lib/UserProvider';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import Image from 'next/image';
 import { imgW } from '@/utils/constant';
-import TextImg from '../elements/TextImg';
 import { useLdoId } from '@/lib/LdoProvider';
+import TextImg from '../elements/TextImg';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -51,8 +51,8 @@ const calculateScores = (match: IMatch, team: ITeamCaptain) => {
 function TeamCard({ team, matchList = [] }: ITeamCardProps) {
   const user = useUser();
   const params = useParams();
-  const {ldoIdUrl} = useLdoId();
-  
+  const { ldoIdUrl } = useLdoId();
+
   const [teamScores, setTeamScores] = useState({ myTeamScore: 0, opTeamScore: 0 });
 
   useEffect(() => {
