@@ -15,6 +15,7 @@ interface IPlayerScoreCard {
   player: IPlayer | null;
   screenWidth: number;
   myTeamE: ETeam;
+  subbedRounds?: number[];
   tapr?: IPlayerRankingExpRel | null; // tapr= team A Player Ranking
   tbpr?: IPlayerRankingExpRel | null; // tbpr= team B Player Ranking
   onTop?: boolean;
@@ -35,6 +36,7 @@ function PlayerScoreCard({
   dropdownPlayer,
   screenWidth,
   myTeamE,
+  subbedRounds,
   tapr: teamAPlayerRanking,
   tbpr: teamBPlayerRanking,
 }: IPlayerScoreCard) {
@@ -114,18 +116,19 @@ function PlayerScoreCard({
     }
 
     return (
-      <>
-        <div className="placeholder h-6" />
-        <p
-          className={`rank w-6 h-6 absolute ${onTop ? 'bottom-0' : 'top-6'} left-1/2 rounded-lg bg-yellow-logo text-black z-10 flex justify-center items-center`}
-          style={{ transform: 'translate(-50%, -50%)' }}
-        >
-          {playerRank}
-        </p>
-      </>
+      <div className={`bg-yellow-logo text-center text-black ${onTop ? 'rounded-b-lg' : 'rounded-t-lg'}`}>
+        <p className="rank">Rank {playerRank}</p>
+        {subbedRounds && (
+          <div className="relative">
+            <p>{subbedRounds.map((s) => `S${s}`)}</p>
+            {/* <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 shadow-lg">
+              This player has been subbed in round 1, round 2 and round 3
+            </div> */}
+          </div>
+        )}
+      </div>
     );
-  }
-  
+  };
 
   return (
     <div className="w-full h-full relative overflow-hidden flex flex-col justify-end">
@@ -134,7 +137,7 @@ function PlayerScoreCard({
       {/* Level 1: rank end  */}
 
       {/* Lavel 2: player start  */}
-      <div className={`wrapper w-full border border-yellow rounded-lg overflow-hidden flex ${onTop ? 'flex-col' : 'flex-col-reverse'}`}>
+      <div className={`wrapper w-full border border-yellow overflow-hidden flex ${onTop ? 'flex-col rounded-t-lg' : 'flex-col-reverse rounded-b-lg'}`}>
         <div className="p-rank bg-yellow-logo w-full flex flex-wrap items-center justify-center">
           <p className="p-name max-three-line break-all text-c-sm uppercase text-black-logo text-center font-bold leading-3 pt-1">
             {player ? player.firstName : ''}

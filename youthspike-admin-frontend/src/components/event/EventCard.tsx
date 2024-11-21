@@ -74,9 +74,7 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
           {event.sendCredentials ? 'Resend Credential' : 'Send Credentials'}
         </li>
         <li>
-          {' '}
           <Link href={`/${event._id}/settings/${ldoIdUrl}`} className="cursor-pointer flex justify-start items-center gap-x-2">
-            {' '}
             <span>
               <Image width={20} height={20} src="/icons/edit.svg" alt="Edit-icon" className="svg-white" />
             </span>

@@ -1,18 +1,17 @@
 import { useMutation } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
-import { IAddMatch, IDefaultMatchProps, IError, IEventExpRel, IMatch, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IAddMatch, IDefaultMatchProps, IError, IEventExpRel, IGroup, IGroupExpRel, IMatch, IMatchExpRel, IOption, ITeam } from '@/types';
 import TextInput from '../elements/forms/TextInput';
 import NumberInput from '../elements/forms/NumberInput';
 import SelectInput from '../elements/forms/SelectInput';
 import staticData from '../../lib/data.json';
 import ToggleInput from '../elements/forms/ToggleInput';
-import { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, UPDATE_MATCH } from '@/graphql/matches';
+import { CREATE_MATCH, UPDATE_MATCH } from '@/graphql/matches';
 import { assignStrategies } from '@/utils/staticData';
 import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
-import { getCurrentDate } from '@/utils/datetime';
 import { useLdoId } from '@/lib/LdoProvider';
 
 interface IMatchTeams extends IDefaultMatchProps {
@@ -23,6 +22,7 @@ interface IMatchAddProps {
     eventId: string;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    groupList: IGroupExpRel[];
     currDivision?: string;
     update?: boolean;
     teamList?: ITeam[];
@@ -60,11 +60,14 @@ function MatchAdd({ eventId,
     setIsLoading,
     teamList,
     currDivision,
+    groupList,
     update,
     matchId,
     eventData,
     showAddMatch,
     prevMatch, addMatchCB }: IMatchAddProps) {
+
+
     const router = useRouter();
     const { ldoIdUrl } = useLdoId();
 
@@ -73,6 +76,8 @@ function MatchAdd({ eventId,
     // Local State
     const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
     const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
+    const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList ?? []);
+    const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
     // GraphQL
     const [createMatch, { client }] = useMutation(CREATE_MATCH);
@@ -132,6 +137,19 @@ function MatchAdd({ eventId,
         }
     }
 
+    const handleGroupChange = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const inputEl = e.target as HTMLSelectElement;
+        setSelectedGroup(inputEl.value !== '' ? inputEl.value : null);
+        const groupExist = groupList.find((g) => g._id === inputEl.value);
+        if (groupExist && groupExist.teams && groupExist.teams.length > 0) {
+            const teamsOfGroup = groupExist.teams.map((gt) => gt._id);
+            const newTeamList = teamList?.filter((t) => teamsOfGroup.includes(t._id)) || [];
+            setFilteredTeamList(newTeamList);
+
+        }
+    }
+
     /**
      * Submit add match
      */
@@ -175,13 +193,23 @@ function MatchAdd({ eventId,
         setAddMatch(mObj);
     }, [eventData, prevMatch]);
 
+    // console.log(groupList);
+
+
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
             <DateInput handleDateChange={handleDateChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
 
             {!update && (<>
-                <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(teamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
-                <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(teamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
+                <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
+                    ? groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g) => ({ text: g.name, value: g._id }))
+                    : groupList.map((g) => ({ text: g.name, value: g._id }))} vertical />
+                {selectedGroup && (
+                    <>
+                        <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(filteredTeamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
+                        <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(filteredTeamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
+                    </>
+                )}
             </>)}
             <div className="mt-4 w-full">
                 <h3 className='w-full capitalize'>Default settings</h3>
@@ -192,6 +220,7 @@ function MatchAdd({ eventId,
 
             <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
 
+            {/* @ts-ignore */}
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
                 name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
             <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />

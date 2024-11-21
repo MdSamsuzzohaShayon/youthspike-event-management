@@ -34,7 +34,7 @@ export function handleResponse({ response, setActErr }: IHandleResponseProps): b
     }
 
     // Check response
-    console.log(response);
+    // console.log(response);
     return success;
 
 }

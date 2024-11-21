@@ -59,7 +59,7 @@ export class TeamResolver {
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
-  ) {}
+  ) { }
 
   async singleDelete(teamExist: Team) {
     const teamPlayerIds = teamExist.players.map((p) => p.toString());
@@ -393,6 +393,62 @@ export class TeamResolver {
       for (let i = 0; i < teamIds.length; i++) {
         try {
           const teamExist = await this.teamService.findById(teamIds[i]);
+          if (!teamExist) {
+            continue;
+          }
+          if (teamExist.captain) {
+            deletePromises.push(
+              this.playerService.updateOne(
+                { _id: teamExist.captain.toString() },
+                { $pull: { teams: teamExist._id.toString() } },
+              ),
+            );
+          }
+
+          if (teamExist.cocaptain) {
+            deletePromises.push(
+              this.playerService.updateOne(
+                { _id: teamExist.cocaptain.toString() },
+                { $pull: { teams: teamExist._id.toString() } },
+              ),
+            );
+          }
+          if (teamExist.matches && teamExist.matches.length > 0) {
+            // this.matchService.updateMany({ _id: { $in: teamExist.matches } }, { $set: { teamA: null } });
+          }
+
+          if (teamExist.event) {
+            deletePromises.push(
+              this.eventService.updateOne({ _id: teamExist.event.toString() }, { $pull: { teams: teamExist._id } }),
+            );
+          }
+
+          if (teamExist.players && teamExist.players.length > 0) {
+            deletePromises.push(
+              this.playerService.updateMany(
+                { _id: { $in: teamExist.players } },
+                { $pull: { teams: teamExist._id.toString() } },
+              ),
+            );
+          }
+
+          if (teamExist.nets && teamExist.nets.length > 0) {
+            // deletePromises.push(this.netService.update);
+          }
+
+          if (teamExist.group) {
+            deletePromises.push(
+              this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id.toString() } }),
+            );
+          }
+
+          if (teamExist.playerRankings && teamExist.playerRankings.length > 0) {
+            const playerRankings = await this.playerRankingService.find({ _id: { $in: teamExist.playerRankings } })
+            for (const pr of playerRankings) {
+              deletePromises.push(this.playerRankingService.deletManyItem({ _id: { $in: pr.rankings } }));
+            }
+            deletePromises.push(this.playerRankingService.deletMany({ _id: { $in: teamExist.playerRankings } }));
+          }
           if (teamExist) {
             deletePromises.push(this.singleDelete(teamExist));
           }
@@ -405,6 +461,7 @@ export class TeamResolver {
 
       return {
         code: HttpStatus.NO_CONTENT,
+        data: null,
         success: true,
         message: 'Teams have been deleted successfully',
       };

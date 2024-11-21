@@ -25,6 +25,7 @@ import UserMenuList from '../layout/UserMenuList';
 import { getUserFromCookie } from '@/utils/cookie';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
+import { motion } from 'framer-motion';
 
 interface ITeamsOfEventPage {
   eventId: string;
@@ -34,26 +35,27 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   // Hooks
   const pathname = usePathname();
   const router = useRouter();
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
   const searchParams = useSearchParams()
 
   // Local State
   const importerEl = useRef<HTMLDialogElement | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [eventList, setEventList] = useState<IEvent[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
+  const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]);
   const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
-  
+
 
   // GraphQL
-  const [getEvent, { loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS, {fetchPolicy: "network-only"});
-  const [getLdo, { loading: ldoLoading }] = useLazyQuery(GET_LDO_EVENTS_LIGHT, {fetchPolicy: "network-only"});
+  const [getEvent, { loading, error }] = useLazyQuery(GET_EVENT_WITH_TEAMS, { fetchPolicy: "network-only" });
+  const [getLdo, { loading: ldoLoading }] = useLazyQuery(GET_LDO_EVENTS_LIGHT, { fetchPolicy: "network-only" });
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -68,7 +70,9 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     } else {
       setDivisionToStore(inputEl.value.trim());
       const newList = teamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+      const newGroupList = groupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       setFilteredlist([...newList]);
+      setFilteredGroupList(newGroupList);
     }
   };
 
@@ -86,7 +90,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     closeDialog();
   };
 
-  
+
 
   const fetchEvent = async () => {
     const eventResponse = await getEvent({ variables: { eventId }, fetchPolicy: 'network-only' });
@@ -98,8 +102,8 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     let newFilteredList = [...newTeamList];
     if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
-    // setGroupList
-    const newGroupList: ITeam[] = eventResponse?.data?.getEvent?.data?.groups ? eventResponse?.data.getEvent.data.groups : [];    
+    const newGroupList: IGroup[] = eventResponse?.data?.getEvent?.data?.groups ? eventResponse?.data.getEvent.data.groups : [];
+    let newFilteredGroupList: IGroup[] = [...newGroupList];
 
     // Division and team value
     removeTeamFromStore();
@@ -107,11 +111,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     if (divisionExist) {
       setCurrDivision(divisionExist);
       newFilteredList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+      newFilteredGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
     }
 
     setTeamList(newTeamList);
     setFilteredlist(newFilteredList);
     setGroupList(newGroupList);
+    setFilteredGroupList(newFilteredGroupList);
 
     // Making divisions list
     const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : [];
@@ -120,22 +126,22 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
 
   };
 
-  const fetchLDO=async()=>{
+  const fetchLDO = async () => {
     // Fetch LDO if there is LDO id
     const instantUser = getUserFromCookie();
-    if(instantUser && instantUser.info && instantUser.token){
+    if (instantUser && instantUser.info && instantUser.token) {
       let directorId = null;
-      if(instantUser.info.role === UserRole.admin){
+      if (instantUser.info.role === UserRole.admin) {
         directorId = searchParams.get('ldoId');
-      }else if(instantUser.info.role === UserRole.director){
+      } else if (instantUser.info.role === UserRole.director) {
         directorId = instantUser.info._id;
       }
-      if(directorId){
-        const ldoRes = await getLdo({variables: {dId: directorId}});
-        if(ldoRes?.data?.getEventDirector?.data?.events){
+      if (directorId) {
+        const ldoRes = await getLdo({ variables: { dId: directorId } });
+        if (ldoRes?.data?.getEventDirector?.data?.events) {
           setEventList(ldoRes.data.getEventDirector.data.events)
         }
-        
+
       }
     }
   }
@@ -144,7 +150,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     await fetchEvent();
   };
 
-  
+
 
 
   // Do this for all event pages
@@ -159,56 +165,83 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
     }
   }, [pathname, router, eventId, searchParams]);
 
-  
+
 
   if (loading || isLoading || ldoLoading) return <Loader />;
-  
 
-  
+
+
 
   return (
-    <div className="TeamMain">
-      <dialog ref={importerEl}>
-        <div className="w-full flex justify-end items-center">
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="close" className="w-6 svg-white" role="presentation" onClick={handleClose} />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="team-main container mx-auto px-4 py-6"
+    >
+      <dialog ref={importerEl} className="p-6 bg-gray-800 rounded-lg shadow-lg">
+        <div className="flex justify-end mb-4">
+          <button
+            type="button"
+            className="bg-transparent text-white"
+            onClick={() => importerEl.current?.close()}
+          >
+            ✖
+          </button>
         </div>
-        <MultiPlayerAdd eventId={eventId} setIsLoading={setIsLoading} closeDialog={closeDialog} setActErr={setActErr} divisionList={divisionList} />
+        <MultiPlayerAdd
+          eventId={eventId}
+          setIsLoading={setIsLoading}
+          closeDialog={() => importerEl.current?.close()}
+          setActErr={setActErr}
+          divisionList={divisionList}
+        />
       </dialog>
-      <h1 className="text-center mb-4">Teams</h1>
+
+      <h1 className="text-4xl font-bold text-center text-white mb-6">Team Management</h1>
       {currEvent && <CurrentEvent currEvent={currEvent} />}
-      <div className="navigator mb-4">
+
+      <div className="navigator my-6">
         <UserMenuList eventId={eventId} />
       </div>
-      <div className="mb-4 division-selection w-full">
-        <SelectInput handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+
+      <div className="mb-4">
+        <SelectInput
+          handleSelect={handleDivisionSelection}
+          defaultValue={currDivision}
+          name="division"
+          optionList={divisionList}
+          vertical
+          extraCls="w-full bg-gray-700 text-white"
+        />
       </div>
 
-      {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <div className="mb-8 make-team flex w-full justify-between">
-        <Link className="btn-info flex justify-between items-center gap-2 text-gray-900" href={`/${eventId}/teams/new/${ldoIdUrl}`}>
-          <span>
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/plus.svg" alt="plus" className="w-6 svg-black" />
-          </span>
+
+      <div className="actions flex flex-col sm:flex-row justify-between gap-4 mb-8">
+        <Link href={`/${eventId}/teams/new/${ldoIdUrl}`} className="btn-info text-center">
           Add New Team
         </Link>
         <button
-          type="button"
-          onClick={() => {
-            if (importerEl.current) importerEl.current.showModal();
-          }}
-          className="btn-info flex justify-between items-center gap-2"
+          onClick={() => importerEl.current?.showModal()}
+          className="btn-info text-center"
         >
-          <span>
-            <Image width={imgSize.logo} height={imgSize.logo} alt="import-icon" src="/icons/import.svg" className="w-6 svg-black" />
-          </span>
-          Import File
+          Import Teams
         </button>
       </div>
-      <div className="list-with-filter w-full relative">
-        {filteredList.length > 0 && <TeamList eventId={eventId} teamList={filteredList} eventList={eventList} groupList={groupList} setIsLoading={setIsLoading} setActErr={setActErr} fefetchFunc={fefetchFunc} />}
-      </div>
-    </div>
+
+      {filteredList.length > 0 ? (
+        <TeamList
+          groupList={filteredGroupList}
+          eventId={eventId}
+          teamList={filteredList}
+          setIsLoading={setIsLoading}
+          fefetchFunc={fefetchFunc}
+          setActErr={setActErr}
+        />
+      ) : (
+        <p className="text-center text-gray-400">No teams available.</p>
+      )}
+    </motion.div>
   );
 }
 

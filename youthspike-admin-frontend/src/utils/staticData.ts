@@ -1,5 +1,6 @@
 import { EAssignStrategies, IMenuItem } from "@/types/elements";
 import { EEventPeriod } from "@/types/event";
+import { EGroupRule } from "@/types/group";
 
 const assignStrategies = [EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAssignStrategies.ANCHORING];
 const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST,];
@@ -22,6 +23,12 @@ const initialUserMenuList: IMenuItem[] = [
         imgName: 'teams',
         text: 'Teams',
         link: '/teams'
+    },
+    {
+        id: 2.5,
+        imgName: 'group',
+        text: 'Groups',
+        link: '/groups'
     },
     {
         id: 3,
@@ -62,5 +69,10 @@ const initialUserMenuList: IMenuItem[] = [
 ];
 
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
+
+
+export const ruleList = [
+    EGroupRule.CAN_PLAY_EACH_OTHER, EGroupRule.CAN_NOT_PLAY_EACH_OTHER
+]
 
 export { assignStrategies, eventPeriods, initialUserMenuList, eventPaths };

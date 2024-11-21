@@ -143,6 +143,7 @@ type Group {
   name: String!
   active: Boolean!
   division: String!
+  rule: String!
   teams: [Team!]!
   event: Event!
 }
@@ -450,7 +451,7 @@ type Query {
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
-  getGroup(eventId: String!): GetGroupResponse!
+  getGroup(groupId: String!): GetGroupResponse!
 }
 
 input FilterQueryInput {
@@ -723,6 +724,7 @@ input CreateGroupInput {
   name: String!
   active: Boolean!
   division: String!
+  rule: String! = "CAN_PLAY_EACH_OTHER"
   event: String!
   teams: [String!]!
 }
@@ -731,6 +733,7 @@ input UpdateGroupInput {
   name: String
   active: Boolean
   division: String
+  rule: String = "CAN_PLAY_EACH_OTHER"
   event: String
   teams: [String!]
   _id: String!

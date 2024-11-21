@@ -1,7 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
-'use client'
+'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
@@ -9,26 +8,34 @@ import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
 import { IError, ILDO } from '@/types';
 import { handleResponse } from '@/utils/handleError';
+import { motion } from 'framer-motion';
 
-function AccountPage() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+const pageVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.6 } },
+};
+
+const titleVariants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: { opacity: 1, y: 0, transition: { delay: 0.2, duration: 0.6 } },
+};
+
+const AccountPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [ldoState, setLdoState] = useState<ILDO | null>(null);
   const [actErr, setActErr] = useState<IError | null>(null);
 
-  const [getLdo, { loading, error, data: ldoData, refetch }] = useLazyQuery(GET_LDO, {fetchPolicy: 'network-only'});
-  // Query for director
+  const [getLdo, { loading, error, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: 'network-only' });
 
-
-
-  const fetchLDO= async () => {
+  const fetchLDO = async () => {
     const searchParams = new URLSearchParams(location.search);
     const ldoIdParam = searchParams.get('ldoId');
 
-    const { data } = await getLdo({ variables: {dId: ldoIdParam} }); // Use dynamic id // use either ldoId or directorI      
+    const { data } = await getLdo({ variables: { dId: ldoIdParam } });
     const ldoObj = data?.getEventDirector?.data;
     const success = handleResponse({ response: data?.getEventDirector, setActErr });
-    if (!success) return;
 
+    if (!success) return;
 
     setLdoState({
       name: ldoObj?.name,
@@ -39,33 +46,50 @@ function AccountPage() {
         lastName: ldoObj?.director?.lastName,
         password: '',
         confirmPassword: '',
-      }
-    })
-  }
+      },
+    });
+  };
 
-  const refetchFunc= async ()=>{
+  const refetchFunc = async () => {
     await fetchLDO();
-  }
+  };
 
   useEffect(() => {
-    /**
-     * Fetch director
-     */
-    (async ()=>{
-      await fetchLDO();
-    })()
+    fetchLDO();
   }, []);
 
   if (loading || isLoading) return <Loader />;
 
   return (
-    <div className="container px-2 mx-auto min-h-screen">
-      <h1 className='my-4 text-center'>Account Setting (LDO)</h1>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      variants={pageVariants}
+      className="container mx-auto px-4 py-8 min-h-screen bg-gray-900 text-white rounded-lg shadow-lg"
+    >
+      {/* Title */}
+      <motion.h1
+        variants={titleVariants}
+        className="text-3xl font-bold text-center mb-6"
+      >
+        Account Setting (LDO)
+      </motion.h1>
+
+      {/* Error Messages */}
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={ldoState} setActErr={setActErr} refetchFunc={refetchFunc} />
-    </div>
-  )
-}
+
+      {/* Director Form */}
+      <DirectorAdd
+        setIsLoading={setIsLoading}
+        update
+        prevLdo={ldoState}
+        setActErr={setActErr}
+        refetchFunc={refetchFunc}
+      />
+    </motion.div>
+  );
+};
 
 export default AccountPage;

@@ -120,7 +120,7 @@ function Menu() {
         const menuItems: React.ReactNode[] = [];
         for (let i = 0; i < uml.length; i++) {
             let newLink: string = '';
-            if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 3 || uml[i].id === 4)) {
+            if (eId && eId !== '' && (uml[i].id === 1 || uml[i].id === 2 || uml[i].id === 2.5 || uml[i].id === 3 || uml[i].id === 4)) {
                 newLink = '/' + eId;
             } else if (eId && eId !== '' && (uml[i].id === 9)) {
                 newLink = `${FRONTEND_URL}/events/${eId}`;

@@ -137,7 +137,9 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
 
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
 
-            <SelectInput handleSelect={handleInputChange} name='group' optionList={groupList.map((g)=> ({text: g.name, value: g._id}))} vertical />
+            <SelectInput key="g-t-d" handleSelect={handleInputChange} name='group' defaultValue={teamState.division} optionList={teamState.division && teamState.division !== '' 
+                ? groupList.filter((g)=> g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g)=> ({text: g.name, value: g._id}))
+                : groupList.map((g)=> ({text: g.name, value: g._id}))} vertical />
             <Link className='underline underline-offset-1' href={`/${eventId}/groups/new/${ldoIdUrl}`}>Create new group!</Link>
             
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />

@@ -176,6 +176,16 @@ const GET_EVENT_WITH_MATCHES_TEAMS = gql`
           name
           logo
         }
+        groups{
+          _id
+          name
+          rule
+          division
+          teams{
+            _id
+            name
+          }
+        }
       }
     }
   }

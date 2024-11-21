@@ -12,6 +12,7 @@ import { Group } from './group.schema';
 import { CreateGroupInput, UpdateGroupInput } from './group.input';
 import { GroupService } from './group.service';
 import { EventService } from 'src/event/event.service';
+import { FilterQuery } from 'mongoose';
 
 @ObjectType()
 class GetGroupsResponse extends AppResponse<Group[]> {
@@ -32,7 +33,7 @@ export class GroupResolver {
     private teamService: TeamService,
     private groupService: GroupService,
     private eventService: EventService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -76,17 +77,22 @@ export class GroupResolver {
        *  Step-1: Get user id from token if not logged in as admin
        */
       const updatePromises = [];
-      console.log(updateInput);
-      const updatedGroup = await this.groupService.updateOne(
-        { _id: updateInput._id },
-        { $pull: { teams: updateInput.teams } },
-      );
       // Update team
       if (updateInput.teams.length > 0) {
         for (const team of updateInput.teams) {
+          const teamExist = await this.teamService.findOne({ _id: team });
+          if (teamExist && teamExist.group) {
+            updatePromises.push(
+              this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id } }),
+            );
+          }
           updatePromises.push(this.teamService.updateOne({ _id: team }, { group: updateInput._id }));
         }
       }
+      updatePromises.push(
+        this.groupService.updateOne({ _id: updateInput._id }, { $addToSet: { teams: { $each: updateInput.teams } } }),
+      );
+
       await Promise.all(updatePromises);
       const findGroup = await this.groupService.findOne({ _id: updateInput._id });
 
@@ -104,10 +110,13 @@ export class GroupResolver {
   @Query((returns) => GetGroupsResponse)
   async getGroups(@Context() context: any, @Args('eventId', { nullable: true }) eventId?: string) {
     try {
+      const queryParams: FilterQuery<Group> = {};
+      if (eventId) queryParams.event = eventId;
+      const groupList = await this.groupService.find({});
       return {
         code: HttpStatus.OK,
         success: true,
-        data: [],
+        data: groupList,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -115,14 +124,14 @@ export class GroupResolver {
   }
 
   @Query((returns) => GetGroupResponse)
-  async getGroup(@Args('eventId') eventId: string) {
+  async getGroup(@Args('groupId') groupId: string) {
     try {
-      //   const findGroup = await this.eventService.findById(eventId);
-      //   return {
-      //     code: findGroup ? HttpStatus.OK : HttpStatus.NOT_FOUND,
-      //     success: findGroup ? true : false,
-      //     data: findGroup ?? null,
-      //   };
+      const findGroup = await this.groupService.findById(groupId);
+      return {
+        code: findGroup ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: findGroup ? true : false,
+        data: findGroup ?? null,
+      };
     } catch (err) {
       return AppResponse.handleError(err);
     }
@@ -134,8 +143,14 @@ export class GroupResolver {
    */
 
   @ResolveField()
-  async teams(@Parent() event: Group) {
-    const teamList = await this.teamService.query({ _id: { $in: event.teams } });
+  async teams(@Parent() group: Group) {
+    const teamList = await this.teamService.find({ _id: { $in: group.teams } });
     return teamList;
+  }
+
+  @ResolveField()
+  async event(@Parent() group: Group) {
+    const eventExist = await this.eventService.findOne({ _id: group.event.toString() });
+    return eventExist;
   }
 }

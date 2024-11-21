@@ -1,15 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 
+export enum EGroupRule {
+  CAN_PLAY_EACH_OTHER = 'CAN_PLAY_EACH_OTHER',
+  CAN_NOT_PLAY_EACH_OTHER = 'CAN_NOT_PLAY_EACH_OTHER',
+}
+
+registerEnumType(EGroupRule, {
+  name: 'EGroupRule',
+});
+
 /**
  * Group
- * https://docs.nestjs.com/techniques/mongodb#model-injection
- * https://docs.nestjs.com/graphql/resolvers#object-types
  */
 @ObjectType()
 @Schema({ timestamps: true })
@@ -29,6 +35,10 @@ export class Group extends AppDocument {
   @Prop({ required: true })
   division: string;
 
+  @Field({ nullable: false, defaultValue: EGroupRule })
+  @Prop({ required: true, default: EGroupRule })
+  rule: EGroupRule;
+
   @Field(() => [Team], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
   teams: Team[] | string[];
@@ -36,6 +46,16 @@ export class Group extends AppDocument {
   @Field(() => Event, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
   event: string | Event;
+
+
+  // @Field(() => Group, { nullable: true })
+  // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Group', default: null })
+  // parentGroup: string | Group | null;
+
+
+  // @Field(() => [Group], { nullable: true })
+  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }], default: [] })
+  // childGroups: (string | Group)[];
 }
 
 export const GroupSchema = SchemaFactory.createForClass(Group);

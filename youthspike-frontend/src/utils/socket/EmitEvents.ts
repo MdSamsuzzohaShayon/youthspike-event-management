@@ -109,7 +109,15 @@ class EmitEvents {
       return;
     }
 
-    actionData.subbedPlayers = this.getSubbedPlayers(myPlayerIds, currRound, selectedPlayers);
+    const notSelectedPlayers = this.getSubbedPlayers(myPlayerIds, currRound, selectedPlayers);
+    const prevSubs: string[] = [];
+    if (currRound.subs && currRound.subs.length > 0) {
+      for (let i = 0; i < currRound.subs.length; i += 1) {
+        prevSubs.push(currRound.subs[i]);
+      }
+    }
+    // @ts-ignore
+    actionData.subbedPlayers = [...new Set([...notSelectedPlayers, ...prevSubs])];
     this.updateRoundWithLineup(currRound, roundList, actionData);
     this.socket?.emit('submit-lineup-from-client', actionData);
   }

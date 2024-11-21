@@ -9,7 +9,7 @@ export class PlayerRankingService {
   constructor(
     @InjectModel(PlayerRanking.name) private playerRanking: Model<PlayerRanking>,
     @InjectModel(PlayerRankingItem.name) private playerRankingItem: Model<PlayerRankingItem>,
-  ) {}
+  ) { }
 
   async create(rankingData: PlayerRanking) {
     const playerRanking = await this.playerRanking.create({ ...rankingData, rankings: [] });
@@ -39,7 +39,9 @@ export class PlayerRankingService {
 
   async deleteOne(filter: FilterQuery<PlayerRanking>) {
     const deleteRanking = await this.playerRanking.findOne(filter);
-    await this.playerRankingItem.deleteMany({ playerRanking: deleteRanking._id });
+    if (deleteRanking && deleteRanking?._id) {
+      await this.playerRankingItem.deleteMany({ playerRanking: deleteRanking._id });
+    }
     return this.playerRanking.deleteOne(filter);
   }
 
@@ -67,6 +69,9 @@ export class PlayerRankingService {
       { $addToSet: { rankings: { $each: rankingsItems.map((ri) => ri._id.toString()) } } },
     );
   }
+  async deletMany(filter: FilterQuery<PlayerRanking>) {
+    return this.playerRanking.deleteMany(filter);
+  }
 
   async updateOneItem(filter: FilterQuery<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
     return this.playerRankingItem.updateOne(filter, updateObj);
@@ -82,5 +87,8 @@ export class PlayerRankingService {
 
   async findOneItem(filter: FilterQuery<PlayerRankingItem>) {
     return this.playerRankingItem.findOne(filter);
+  }
+  async deletManyItem(filter: FilterQuery<PlayerRankingItem>) {
+    return this.playerRankingItem.deleteMany(filter);
   }
 }

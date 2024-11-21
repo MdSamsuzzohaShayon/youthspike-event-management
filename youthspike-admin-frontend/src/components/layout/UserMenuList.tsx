@@ -1,50 +1,62 @@
+import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { IMenuItem } from '@/types';
 import { getUserFromCookie } from '@/utils/cookie';
 import { getEventIdFromPath, rearrangeMenu } from '@/utils/helper';
 import { initialUserMenuList } from '@/utils/staticData';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { UserRole } from '@/types/user';
-
-import { motion } from 'framer-motion';
-import { liAnimate } from '@/utils/animation';
 import { useLdoId } from '@/lib/LdoProvider';
 
-const {initial: iInitial, animate: iAnimate, exit: iExit, transition: iTransition} = liAnimate;
+const listVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 },
+};
 
 function UserMenuList({ eventId }: { eventId: string }) {
-    const pathname = usePathname();
-    const {ldoIdUrl} = useLdoId();
-    const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
-    
+  const pathname = usePathname();
+  const { ldoIdUrl } = useLdoId();
+  const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
 
-    useEffect(() => {
-        const userDetail = getUserFromCookie();
-        // Get ldoId from query parameters and set state
-        const eventPath = getEventIdFromPath(pathname);
-        let menuItemList = rearrangeMenu(userDetail, eventPath);
-        
-        menuItemList = menuItemList.map((mi) => ({ ...mi, link: mi.id === 5 ? mi.link : `/${eventId}/${mi.link}/${ldoIdUrl}` }));
-        setUserMenuList(menuItemList);
-    }, [pathname]);
+  useEffect(() => {
+    const userDetail = getUserFromCookie();
+    const eventPath = getEventIdFromPath(pathname);
+    const menuItems = rearrangeMenu(userDetail, eventPath).map((mi) => ({
+      ...mi,
+      link: mi.id === 5 ? mi.link : `/${eventId}/${mi.link}/${ldoIdUrl}`,
+    }));
+    setUserMenuList(menuItems);
+  }, [pathname]);
 
-    // State to hold ldoId
-
-
-    return (
-        <ul className="w-full flex justify-center items-center gap-x-2 flex-wrap">
-            {userMenuList.map((item, iIdx) => (
-                <motion.li className='capitalize' initial={iInitial} animate={iAnimate} exit={iExit} transition={iTransition} key={item.id}>
-                    <Link
-                        href={item.link}
-                    >
-                        {iIdx !== 0 && '|'} {item.text}
-                    </Link>
-                </motion.li>
-            ))}
-        </ul>
-    );
+  return (
+    <motion.ul
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+      variants={listVariants}
+      className="menu-list flex flex-wrap justify-center gap-4 bg-gray-800 p-4 rounded-lg shadow-lg"
+    >
+      {userMenuList.map((item) => (
+        <motion.li
+          key={item.id}
+          variants={itemVariants}
+          className="capitalize text-center text-sm md:text-base"
+        >
+          <Link
+            href={item.link}
+            className="text-blue-500 hover:text-blue-700 transition-colors"
+          >
+            {item.text}
+          </Link>
+        </motion.li>
+      ))}
+    </motion.ul>
+  );
 }
 
 export default UserMenuList;

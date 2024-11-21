@@ -28,8 +28,6 @@ function EventCard({ event }: IEventCardProps) {
 
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
 
-  console.log(user.info?.role === UserRole.admin || user.info?.role === UserRole.director);
-
   return (
     <motion.div
       initial={initial}

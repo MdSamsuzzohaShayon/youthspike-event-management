@@ -55,21 +55,21 @@ ___
 ### Requirements
  - Watch them:
  - **__https://www.loom.com/share/f221cae55313451cb1a0752dc7768ac4__**
- - Creating groups, we have 112 teams, 50 of them will be in advanced, 60 of them will be in beginner, inside those 50, they all can not play each other.
- - They are going to be groups of 5, so it will be 10 groups inside beginner, 10 groups of 5 teams, and they will play each other
- - In public view, teams/ standings, division underneth of event name, if anyone select division, they should see groups, (left and right to go to the different groups)
- - Inside a division, we should be able to create groups
- - A dropdown box to change group of a team, moreover, in edit page of a group there will be option for group
- - In teams page(admin), there will ba a group filter
  - Move team, and assign group should have a bulk action
- - Captain will see teams as standings
+ - Bulk actions for players
  - Rank teams by match records, head to head, game points difference, 
- - It should show standings, like this -> https://www.google.com/search?q=college+football+standings&oq=college+football+stand&gs_lcrp=EgZjaHJvbWUqBwgAEAAYgAQyBwgAEAAYgAQyBggBEEUYOTIHCAIQABiABDIHCAMQABiABDIHCAQQABiABDIHCAUQABiABDIHCAYQABiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBCDYwMjBqMGo0qAIAsAIB&sourceid=chrome&ie=UTF-8#sie=lg;/g/11vt06k5bq;6;/m/012hfxch;st;fp;1;;;
  - **__https://www.loom.com/share/52d87d3bec864e64b83ab7affe7af326__** Till 3 minutes
  - Move change nets like change rosters
- - Teams name below the rosters
- - Instead of rendering players seperately, change the rank box wider and make it say "subbed in the round 1 or 3"
-    - https://www.loom.com/share/da66732176474ed291c37312afe8b17f
+ - Instead of rendering players seperately, change the rank box wider and make it say "subbed in the round 1 or 3" (S1, S2, S3)
+ - Show subbed players properly
+ - In assign net confirmation, show all nets and players that is going to be subbed
+ - In 2 points nets, had to refresh. Able to put score in before banning a net
+ - If match is completed they should not be able to update points
+ - A level or progress bar
+ - Plus minus score (public view teams)
+ - Sort by name and record in teams (public view)
+ - **__https://www.loom.com/share/da66732176474ed291c37312afe8b17f__**
+ - (In play match page ) - Need to rotate net beautifully
 
  - Updating a net still not working
  - Ranking player with a ranking icon

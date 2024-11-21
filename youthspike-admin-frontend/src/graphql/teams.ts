@@ -119,6 +119,11 @@ const eventResponse = `
       name
       division
     }
+    groups{
+      _id
+      name
+      division
+    }
     players{
       _id
       firstName
@@ -188,6 +193,7 @@ query GetEvent($eventId: String!) {
       groups{
         _id
         name
+        division
       }
     }
   }

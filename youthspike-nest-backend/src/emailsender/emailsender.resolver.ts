@@ -154,7 +154,7 @@ export class EmailsenderResolver {
 
       // Update event or team to mark credentials as sent
       if (teamIds && teamIds.length > 0) {
-        await this.teamService.updateOne({ _id: {$in : teamIds} }, { $set: { sendCredentials: true } });
+        await this.teamService.updateMany({ _id: { $in: teamIds } }, { $set: { sendCredentials: true } });
       } else {
         await this.eventService.updateOne({ _id: eventId }, { $set: { sendCredentials: true } });
       }
