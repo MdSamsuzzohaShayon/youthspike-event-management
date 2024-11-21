@@ -7,24 +7,30 @@ import TeamSelectInput from '../elements/forms/TeamSelectInput';
 import { useMutation } from '@apollo/client';
 import { ADD_GROUP } from '@/graphql/group';
 import { handleError, handleResponse } from '@/utils/handleError';
+import { useRouter } from 'next/navigation';
+import { EGroupRule, IGroupExpRel } from '@/types/group';
+import { ruleList } from '@/utils/staticData';
 
 interface IGroupAddOrUpdateProps {
   divisions: string;
   teamList: ITeam[];
   update: boolean;
+  prevGroup: IGroupAdd | null;
   eventId: string;
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function GroupAddOrUpdate({ eventId, divisions, teamList, update, setActErr, setIsLoading }: IGroupAddOrUpdateProps) {
+function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, setActErr, setIsLoading }: IGroupAddOrUpdateProps) {
 
   const [eventAdd] = useMutation(ADD_GROUP);
+  const router = useRouter();
 
   const [groupState, setGroupState] = useState<IGroupAdd>({
     active: true,
     division: '',
     name: '',
+    rule: EGroupRule.CAN_PLAY_EACH_OTHER,
     event: eventId,
     teams: [],
   });
@@ -38,6 +44,7 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, setActErr, set
     if (!update) {
       setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
     } else {
+      setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
       setUpdateGroup((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
     }
   };
@@ -46,41 +53,45 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, setActErr, set
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
     setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    const nTList = teamList.filter((t) => t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
+    const nTList = teamList.filter((t) => t.division && inputEl.value && t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
     setFilteredTeams(nTList);
   };
 
 
   const handleCheckboxChange = (teamId: string, isChecked: boolean) => {
     if (isChecked) {
-      setGroupState((prevState) => ({...prevState, teams: [...new Set([...prevState.teams, teamId])]}));
+      setGroupState((prevState) => ({ ...prevState, teams: [...new Set([...prevState.teams, teamId])] }));
     } else {
-      setGroupState((prevState) => ({...prevState, teams: prevState.teams.filter((p) => p !== teamId)}));
+      setGroupState((prevState) => ({ ...prevState, teams: prevState.teams.filter((p) => p !== teamId) }));
     }
   }
 
   const handleGroupAdd = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if(groupState.name === ''){
-      setActErr({message: "Must set a name for the group", success: false});
+    if (groupState.name === '') {
+      setActErr({ message: "Must set a name for the group", success: false });
       return;
     }
 
-    if(groupState.division === ''){
-      setActErr({message: "Must a division for the group", success: false});
+    if (groupState.division === '') {
+      setActErr({ message: "Must a division for the group", success: false });
       return;
     }
 
     try {
-      const groupResponse = await eventAdd({variables: {input: groupState}});
+      setIsLoading(true);
+      const groupResponse = await eventAdd({ variables: { input: groupState } });
 
-      const success = await handleResponse({response: groupResponse.data, setActErr});
-      console.log({groupResponse, success});
-      
-      
+      const success = await handleResponse({ response: groupResponse.data.createGroup, setActErr });
+      if (success) {
+        router.push(`/${eventId}/groups`);
+      }
+
     } catch (error: any) {
-      handleError({error, setActErr})
-      
+      handleError({ error, setActErr })
+
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -91,14 +102,27 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, setActErr, set
     }
   }, [teamList]);
 
+  useEffect(() => {
+    if (prevGroup) {
+      setGroupState((prevState) => ({
+        ...prevState,
+        ...prevGroup,
+      }));
+    }
+  }, [prevGroup]);
+
+  
 
   return (
     <form onSubmit={handleGroupAdd} className="flex flex-col gap-2">
       <TextInput key="ti-eau-1" required={!update} defaultValue={groupState.name}
-        handleInputChange={handleInputChange} lblTxt="Name" name="name" lw="w-2/6" rw="w-4/6" />
-      <SelectInput name='division' handleSelect={handleDivisionInputChange} optionList={divisionsToOptionList(divisions)} lblTxt="Division" lw="w-2/6" rw="w-4/6" />
+        handleInputChange={handleInputChange} lblTxt="Name" name="name" vertical />
+      <SelectInput key="division-1" name='division' handleSelect={handleDivisionInputChange} defaultValue={groupState.division ? groupState.division.toString().trim().toLocaleLowerCase() : null} optionList={divisionsToOptionList(divisions)} lblTxt="Division" vertical />
+      <SelectInput key="rule-1" name='rule' defaultValue={groupState.rule} handleSelect={handleInputChange} optionList={ruleList.map((r)=> ({value: r, text: r.replaceAll(/_/g, " ")}))} lblTxt="Rule" vertical />
 
-      <TeamSelectInput name='teams' teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />
+      <div className="mt-4">
+        <TeamSelectInput name='teams' teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />
+      </div>
 
       {/* {!update ? (
           <TextInput key="ti-eau-2" required={!update} defaultValue={groupState.divisions} handleInputChange={handleDivisionInputChange} readOnly={update} lblTxt="DIVISIONS" name="divisions" lw="w-2/6" rw="w-4/6" />
@@ -106,7 +130,7 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, setActErr, set
           <h4>Divisions</h4>
         )} */}
 
-      <button className="btn-info" type="submit">
+      <button className="btn-info mt-4" type="submit">
         {update ? 'Update' : 'Submit'}
       </button>
     </form>

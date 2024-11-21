@@ -145,7 +145,7 @@ export interface ISelectInputProps {
   name: string;
   vertical?: boolean;
   optionList: IOption[];
-  defaultValue?: string | number;
+  defaultValue?: string | number | null;
   handleSelect: (e: React.SyntheticEvent) => void;
 }
 

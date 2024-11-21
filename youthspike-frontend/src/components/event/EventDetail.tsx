@@ -64,8 +64,10 @@ function EventDetail({ event }: { event: IEventRelatives }) {
       if (!team.playerRanking.rankLock) {
         rankings.push({
           ...team.playerRanking,
+          // @ts-ignore
           team: { _id: team._id, name: team.name, division: team.division, event: event._id },
         });
+        // @ts-ignore
         team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
       }
       return rankings;
@@ -146,11 +148,11 @@ function EventDetail({ event }: { event: IEventRelatives }) {
               {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (
                 <motion.li
                   key={item}
-                  className={`cursor-pointer p-2 rounded-md text-center ${selectedItem === item ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
+                  className={`cursor-pointer p-2 rounded-md uppercase text-center ${selectedItem === item ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
                   onClick={() => setSelectedItem(item)}
                   whileHover={{ scale: 1.05 }}
                 >
-                  {item}
+                  {item === EEventItem.TEAM ? `Standings / Teams` : item}
                 </motion.li>
               ))}
             </ul>

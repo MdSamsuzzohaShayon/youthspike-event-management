@@ -538,7 +538,7 @@ export class MyGatWay implements OnModuleInit {
         updatePromises.push(
           this.roundService.updateOne(
             { _id: currRoundObj._id, status: EPlayerStatus.ACTIVE },
-            { $set: { subs: subbedPlayers } },
+            { $addToSet: { subs: { $each: subbedPlayers } } },
           ),
         );
       }

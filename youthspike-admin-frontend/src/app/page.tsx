@@ -22,6 +22,7 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
+import { motion } from "framer-motion";
 
 interface IItem {
   id: number;

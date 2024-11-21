@@ -1,5 +1,6 @@
 // events.dto.ts
 import { Field, InputType, PartialType } from '@nestjs/graphql';
+import { EGroupRule } from './group.schema';
 
 @InputType()
 export class CreateGroupInput {
@@ -12,10 +13,13 @@ export class CreateGroupInput {
   @Field()
   division: string;
 
+  @Field({ defaultValue: EGroupRule.CAN_PLAY_EACH_OTHER })
+  rule: EGroupRule;
+
   @Field()
   event: string;
 
-  @Field((_type)=> [String])
+  @Field((_type) => [String])
   teams: string[];
 }
 

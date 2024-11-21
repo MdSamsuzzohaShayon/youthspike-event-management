@@ -60,7 +60,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     setActionOpen(false);
   });
 
-  
+
   /**
    * Handle Events
    */
@@ -207,7 +207,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             <Image className="svg-red" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
           </li>
         </ul>
-  
+
         {/* Team Selection and Number */}
         <div className="flex flex-col items-center gap-2">
           <CheckboxInput
@@ -220,7 +220,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             {team.num}
           </span>
         </div>
-  
+
         {/* Team Name and Logo */}
         <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-2/3">
           <div className="flex items-center gap-4">
@@ -241,7 +241,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
               <h3 className="text-lg font-semibold">{team.name}</h3>
               <SelectInput
                 name="group"
-                optionList={groupList.map((g) => ({
+                optionList={groupList.filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()).map((g) => ({
                   value: g._id,
                   text: g.name,
                 }))}
@@ -252,7 +252,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             </div>
           </div>
         </div>
-  
+
         {/* Captain Info and Active Players */}
         <div className="flex flex-col lg:flex-row items-center gap-4 w-full">
           {team.captain && (
@@ -282,7 +282,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team.players.length}</span>
           </p>
         </div>
-  
+
         {/* Action Buttons */}
         <div className="flex gap-3 mt-4 lg:mt-0 lg:pr-2">
           <Image
@@ -303,7 +303,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           />
         </div>
       </div>
-  
+
       {/* Level-2: Moving component start */}
       {openMoveTeam && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
         <div className="move-team w-full p-4 bg-gray-800 rounded-lg mt-4 flex flex-col items-start relative">

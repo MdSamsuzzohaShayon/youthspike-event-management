@@ -7,6 +7,8 @@ import { handleError, handleResponse } from '@/utils/handleError';
 import { useMutation } from '@apollo/client';
 import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
+import SelectInput from '../elements/forms/SelectInput';
+import { UPDATE_GROUP } from '@/graphql/group';
 
 interface TeamListProps {
   eventId: string;
@@ -22,6 +24,10 @@ interface TeamListProps {
 function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
 
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
+  const [updateGroup] = useMutation(UPDATE_GROUP);
+
+  const cngGroupEl = useRef<HTMLDialogElement | null>(null);
+
   // const [bulkTeams, setBulkTeams] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
@@ -107,6 +113,67 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setAc
     }
   }
 
+  const handleShowChangeGroup = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
+    if (checkedTeamIds.length === 0) {
+      return setActErr({ message: "You must select a few teams and do this action", success: false });
+    }
+
+    setShowBulkAction(false);
+    setShowFilter(false);
+    if (cngGroupEl.current) {
+      cngGroupEl.current.showModal();
+    }
+  }
+
+
+  const handleBulkChangeGroup = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (cngGroupEl.current) {
+      cngGroupEl.current.close();
+    }
+    const inputEl = e.target as HTMLInputElement;
+
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
+
+
+    // console.log({ groupId: inputEl.value, checkedTeamIds });
+
+    // Send captain credentials to the captain and co captain credentials to co captain
+    try {
+      setIsLoading(true);
+      await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } })
+      if (fefetchFunc) await fefetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleBulkMoveTeam = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
+
+
+    // Send captain credentials to the captain and co captain credentials to co captain
+    try {
+      setIsLoading(true);
+      if (fefetchFunc) await fefetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
     try {
       setIsLoading(true);
@@ -122,36 +189,46 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setAc
   return (
     <div className="team-list w-full">
       <div className="action-section flex justify-between mb-4">
-        <div className="input-group flex items-center gap-2 justify-between">
+        <div className="input-group relative flex items-center gap-2 justify-between">
           <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
           <label htmlFor="bulk-action">Bulk Action</label>
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={handleShowBulk} />
+          {/* Bulk Action start  */}
+          <ul className={`${showBulkAction ? 'flex' : 'hidden'} w-48 flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-2 z-10 rounded-lg`}>
+            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleBulkDelete}>
+              delete
+            </li>
+
+            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleBulkCredentials}>
+              Send Credentials
+            </li>
+
+            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleShowChangeGroup}>
+              Change Group
+            </li>
+
+            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleBulkMoveTeam}>
+              Move team
+            </li>
+
+          </ul>
+          {/* Bulk Action end  */}
         </div>
-        <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
+        <div className="input-group relative flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
           <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : "Group"}</p>
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+
+          {/* Filter Action Start  */}
+          <ul className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
+            <li key={"all"} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, null)}>All</li>
+            {groupList.map((g, gI) => (<li key={gI} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, g._id)}>
+              {g.name}
+            </li>))}
+          </ul>
+          {/* Filter Action End  */}
         </div>
 
-        {/* Filter Action Start  */}
-        <ul className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-        <li key={"all"} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, null)}>All</li>
-          {groupList.map((g, gI) => (<li key={gI} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, g._id)}>
-            {g.name}
-          </li>))}
-        </ul>
-        {/* Filter Action End  */}
 
-        {/* Bulk Action start  */}
-        <ul className={`${showBulkAction ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-14 z-10 rounded-lg`}>
-          <li role="presentation" className='capitalize' onClick={handleBulkDelete}>
-            delete
-          </li>
-
-          <li role="presentation" className='capitalize' onClick={handleBulkCredentials}>
-            Send Credentials
-          </li>
-        </ul>
-        {/* Bulk Action end  */}
 
 
       </div>
@@ -176,6 +253,20 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setAc
           return null;
         })}
       </div>
+
+      <dialog ref={cngGroupEl} className='w-4/6 md:w-3/6 py-4'>
+        <h3>Change Group</h3>
+        {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
+        <SelectInput
+          name="group"
+          optionList={groupList.map((g) => ({
+            value: g._id,
+            text: g.name,
+          }))}
+          handleSelect={handleBulkChangeGroup}
+          vertical
+        />
+      </dialog>
     </div>
   );
 }

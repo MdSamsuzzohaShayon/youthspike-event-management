@@ -25,6 +25,11 @@ export enum EMenuTitle {
   FIND_MATCHES = 'FIND MATCHES',
 }
 
+export enum EDirection{
+  LEFT = "LEFT",
+  RIGHT = "RIGHT",
+}
+
 export interface IColMenu {
   id: number;
   title: EMenuTitle;

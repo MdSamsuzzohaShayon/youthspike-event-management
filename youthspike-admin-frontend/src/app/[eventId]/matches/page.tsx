@@ -16,7 +16,7 @@ import MatchList from '@/components/match/MatchList';
 // GraphQL, helpers, utils, types
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
-import { IError, IEventExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IError, IEventExpRel, IGroup, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
 import { IUserContext, UserRole } from '@/types/user';
 import { getUserFromCookie } from '@/utils/cookie';
 import { handleResponse } from '@/utils/handleError';
@@ -38,6 +38,8 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   const [matchList, setMatchList] = useState<IMatchExpRel[]>([]);
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
+  const [groupList, setGroupList] = useState<IGroupExpRel[]>([]);
+  const [filteredGroupList, setFilteredGroupList] = useState<IGroupExpRel[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
@@ -74,6 +76,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     const localUser = getUserFromCookie();
     let newTeamList = [...teamList];
     let newMatchList = [...matchList];
+    let newGroupList = [...groupList];
     if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain) {
       newMatchList = captainsMatches(localUser, newTeamList, newMatchList);
     }
@@ -89,6 +92,9 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
       newMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
       setFilteredMatchList([...newMatchList]);
+
+      newGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+      setFilteredGroupList(newGroupList);
     }
   };
 
@@ -105,6 +111,9 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
 
       let newFilteredTeamList = [...newTeamList];
+      const newGroupList: IGroupExpRel[] = eventResponse?.data?.getEvent?.data?.groups || [];
+      let newFilteredGroupList = [...newGroupList];
+      
 
       if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
@@ -115,6 +124,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         setCurrDivision(divisionExist);
         newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
         newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+        newFilteredGroupList = newGroupList.filter((g)=> g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
       }
 
       // If logged in as captain check me I the captain of one of the team or not
@@ -128,6 +138,9 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
       setTeamList(newTeamList);
       setFilteredTeamList(newFilteredTeamList);
+
+      setGroupList(newGroupList);
+      setFilteredGroupList(newFilteredGroupList);
 
       // Making divisions list
       const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
@@ -195,6 +208,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
                   setActErr={setActErr}
                   setIsLoading={setIsLoading}
                   showAddMatch={setAddMatch}
+                  groupList={filteredGroupList}
                   currDivision={currDivision}
                 />
               </>

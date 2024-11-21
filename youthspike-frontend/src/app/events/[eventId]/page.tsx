@@ -15,7 +15,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
   /**
    * Read query from cache or fetch data from server
    */
-  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_AN_EVENT, { variables: { eventId: params.eventId }, fetchPolicy: 'network-only' });
+  const [fetchEvent, { data, loading }] = useLazyQuery(GET_AN_EVENT, { variables: { eventId: params.eventId }, fetchPolicy: 'network-only' });
 
   useEffect(() => {
     if (params.eventId) {

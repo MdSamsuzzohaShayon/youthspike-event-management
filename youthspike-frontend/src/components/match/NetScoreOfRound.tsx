@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import Image from 'next/image';
+import { AnimatePresence } from 'framer-motion';
 
 // Redux
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -16,6 +17,8 @@ import { ETeam } from '@/types/team';
 import { EActionProcess } from '@/types/room';
 import { setMatch } from '@/utils/localStorage';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+
+// Components
 import MatchSetting from './MatchSetting';
 import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
@@ -106,8 +109,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
               {roundList.map((round) => (
                 <button
-                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-logo' : 'bg-white'} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
-                    } rounded-t-lg`}
+                  className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-logo' : 'bg-white'} py-1 text-center cursor-pointer ${
+                    screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
+                  } rounded-t-lg`}
                   type="button"
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}
@@ -153,15 +157,15 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       <MatchSetting match={match} myTeam={myTeam} opTeam={opTeam} />
       {/* Setting end  */}
 
-      {/* Right side net detail start */}
       <div id="right-net-card" className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? 'w-9/12' : 'w-3/6'}`}>
-        {screenWidth > screen.xs ? (
-          currentRoundNets.map((net) => <NetCard boardHeight={boardHeight} key={net._id} net={net} screenWidth={screenWidth} />)
-        ) : (
-          <NetCard boardHeight={boardHeight} net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId) ?? null} screenWidth={screenWidth} />
-        )}
+        <AnimatePresence mode="wait">
+          {screenWidth > screen.xs ? (
+            currentRoundNets.map((net) => <NetCard key={net._id} boardHeight={boardHeight} net={net} screenWidth={screenWidth} />)
+          ) : (
+            <NetCard key={currNetNum} boardHeight={boardHeight} net={currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId) ?? null} screenWidth={screenWidth} />
+          )}
+        </AnimatePresence>
       </div>
-      {/* Right side net detail end */}
     </div>
   );
 }

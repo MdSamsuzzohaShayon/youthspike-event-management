@@ -4,6 +4,7 @@
 
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useCallback, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 // Hooks
 import useResizeObserver from '@/hooks/useResizeObserver';
@@ -35,9 +36,8 @@ import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import { UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
-import { EPlayerStatus, IPlayer } from '@/types/player';
+import { EPlayerStatus } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
-import SubbedPlayerList from '@/components/SubbedPlayer/SubbedPlayerList';
 import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
 import { APP_NAME } from '@/utils/keys';
 import { imgW } from '@/utils/constant';
@@ -90,8 +90,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   // ===== Local State =====
   const audioPlayEl = useRef<HTMLButtonElement>(null);
-  const [opSubbedPlayers, setOpSubbedPlayers] = useState<IPlayer[]>([]);
-  const [mySubbedPlayers, setMySubbedPlayers] = useState<IPlayer[]>([]);
   const [selectTeam, setSelectTeam] = useState<boolean>(false);
 
   // ===== Redux States =====
@@ -104,7 +102,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
   // ===== GraphAL =====
-  const [getMatch, { data, error, loading, refetch }] = useLazyQuery(GET_MATCH_DETAIL);
+  const [getMatch, { data, error, loading }] = useLazyQuery(GET_MATCH_DETAIL);
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -197,29 +195,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, user, teamA, teamB, currentRound, roundList, currRoundNets, params.matchId]);
 
-  // ===== Subbed & Inactive players =====
-  useEffect(() => {
-    if (currentRound && myPlayers) {
-      const nmsp = []; // new subbed players
-      for (let i = 0; i < currentRound.subs.length; i += 1) {
-        const playerExist = myPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
-        if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
-          nmsp.push(playerExist);
-        }
-      }
-      setMySubbedPlayers(nmsp);
-    }
-    if (currentRound && opPlayers) {
-      const nosp = []; // new subbed players
-      for (let i = 0; i < currentRound.subs.length; i += 1) {
-        const playerExist = opPlayers.find((p) => currentRound.subs && p._id === currentRound.subs[i]);
-        if (playerExist && playerExist.status !== EPlayerStatus.INACTIVE) {
-          nosp.push(playerExist);
-        }
-      }
-      setOpSubbedPlayers(nosp);
-    }
-  }, [roundList, currentRound, myPlayers, opPlayers]);
 
   // ===== Click on DOM by default to get rid of error when playing audio =====
   useEffect(() => {
@@ -257,63 +232,57 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   return (
     <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
-      {/* Level 1 start  */}
-      <div className="container mx-auto px-4 bg-black-logo">
-        {error && <Message error={error} />}
-        {actErr && <Message error={actErr} />}
-      </div>
-      {/* Level 1 end  */}
-
-      {/* Level 2 start: hidden  */}
-      <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
-        Button
-      </button>
-      {/* Level 2 end: hidden  */}
-
-      {/* Level 3 start: sub of oponents  */}
-      {opSubbedPlayers && opSubbedPlayers.length > 0 && (
-        <div className="subbed-wrapper pt-4 bg-black-logo text-white">
-          <div className="container px-4 mx-auto ">
-            <SubbedPlayerList teamPlayers={opSubbedPlayers} currRound={currentRound} roundList={roundList} />
+      {/* Level 1 start */}
+      {(error || actErr) && (
+        <div className="py-4 bg-black-logo text-white shadow-lg">
+          <div className="container mx-auto px-4 ">
+            {error && <Message error={error} />}
+            {actErr && <Message error={actErr} />}
           </div>
         </div>
       )}
-      {/* Level 3 end: sub of oponents  */}
+      {/* Level 1 end */}
 
-      {/* Level 4 start: oponent rosters  */}
-      <div className="op-rosters-wrapper w-full">
-        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} onTop />
-        {/* Level 4.1 start: oponent team name  */}
-        <div className="op-team-bottom-wrapper h-4" /> {/* Placeholder */}
-        <div className="name-wrapper px-4">
-          <div className="container px-4 mx-auto text-center relative z-10">
-            <div className={`w-full bg-black-logo absolute bottom-0 left-0 ${myS < opS && currMatch.completed ? 'bg-green-500 text-white' : 'text-gray-100'}`}>
-              <h1 className="op-team-name h1 uppercase ">{opTeam?.name}</h1>
-            </div>
-          </div>
-        </div>
-        {/* Level 4.1 end: oponent team name  */}
+      {/* Level 2 start: hidden */}
+      <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
+        Button
+      </button>
+      {/* Level 2 end: hidden */}
+
+      {/* Level 4 start: opponent rosters */}
+      <div className="op-rosters-wrapper w-full bg-black-logo text-white">
+        {/* Level 4.1 start: opponent team name */}
+        <motion.div
+          className={`w-full bg-black-logo ${myS < opS && currMatch.completed ? 'bg-green-500 text-white' : 'text-gray-100'}`}
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <h1 className="op-team-name text-2xl font-bold uppercase container px-4 mx-auto">{opTeam?.name}</h1>
+        </motion.div>
+        {/* Level 4.1 end: opponent team name */}
+        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} roundList={roundList} screenWidth={screenWidth} onTop />
       </div>
-      {/* Level 4 end: oponent rosters  */}
+      {/* Level 4 end: opponent rosters */}
 
-      {/* Level 6 start: main match  */}
+      {/* Level 6 start: main match */}
       <div className="main-match-wrapper w-full">
         {notTieBreakerNetId ? (
-          <div className="not-tie-breaker w-full bg-white text-black-logo ">
+          <motion.div className="not-tie-breaker w-full bg-white text-black-logo shadow-md rounded-lg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
             <NotTieBreaker teamA={teamA} teamB={teamB} ntbnId={notTieBreakerNetId} currRoundNets={currRoundNets} currRound={currentRound} socket={socket} />
-          </div>
+          </motion.div>
         ) : (
-          <div className="verify-stategy-main-points">
+          <div className="verify-strategy-main-points">
             {verifyLineup ? (
               <VerifyLineup />
             ) : (
               <>
                 {currentRound && (
-                  <div className="net-score">
+                  <motion.div className="net-score" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                     <NetScoreOfRound currRoundId={currentRound._id} />
-                  </div>
+                  </motion.div>
                 )}
-                <div className="w-full line-up-starategy">
+                <div className="line-up-strategy w-full">
                   <LineupStrategy
                     myTeamE={myTeamE}
                     currRound={currentRound}
@@ -325,68 +294,51 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                     currMatch={currMatch}
                   />
                 </div>
-                {/* Conditions:
-                There must be user
-                If the user is Director or Admin type he can access RoundRunner
-                if the user is captain or co captain he must be a captain or co-captain of a team */}
                 {user?.info &&
                   currRoom &&
                   (user.info.role === UserRole.director || user.info.role === UserRole.admin || user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
-                    <div className="my-round-runner w-full">
+                    <motion.div className="my-round-runner w-full" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
                       <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
-                    </div>
+                    </motion.div>
                   )}
               </>
             )}
           </div>
         )}
       </div>
-      {/* Level 6 end: main match  */}
+      {/* Level 6 end: main match */}
 
-      {/* Level 7 start: My Rosters  */}
-      <div className="my-roster-wrapper w-full">
-        {/*  Level 7.1 start: My Team name  */}
+      {/* Level 7 start: My Rosters */}
+      <div className="my-roster-wrapper w-full bg-black-logo text-white">
+        <TeamPlayers roundList={roundList} teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+
         <div className="team-name-selection">
           {selectTeam && teamA && teamB ? (
-            <div className="w-full select-team-wrapper px-4">
+            <motion.div className="select-team-wrapper px-4" initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
               <SelectTeam teamA={teamA} teamB={teamB} setSelectTeam={setSelectTeam} />
-            </div>
+            </motion.div>
           ) : (
-            <div className="name-wrapper px-4">
-              <div className="container mx-auto text-center  relative">
-                <div className={`w-full absolute top-0 z-10 left-0 ${myS > opS && currMatch.completed ? 'bg-green-500 text-white' : 'bg-white text-black-logo'}`}>
-                  <h1 className="op-team-name h1 uppercase">{myTeam?.name}</h1>
-                  {(user.info?.role === UserRole.director || user.info?.role === UserRole.admin) && (
-                    <button className="absolute top-2 right-4 z-20" aria-label="select-team" type="button" onClick={() => setSelectTeam(true)}>
-                      <Image height={imgSize.tiny.height} width={imgSize.tiny.width} src="/icons/dropdown.svg" className="w-6" alt="dowpdown-icon" />
-                    </button>
-                  )}
-                </div>
+            <motion.div className="w-full" initial={{ y: -10 }} animate={{ y: 0 }} transition={{ duration: 0.4 }}>
+              <div className="container px-4 mx-auto flex justify-between">
+                <h1 className="my-team-name text-xl font-bold uppercase">{myTeam?.name}</h1>
+                {(user.info?.role === UserRole.director || user.info?.role === UserRole.admin) && (
+                  <button className="right-4 z-20" aria-label="select-team" type="button" onClick={() => setSelectTeam(true)}>
+                    <Image height={imgSize.tiny.height} width={imgSize.tiny.width} src="/icons/dropdown.svg" className="w-6 svg-white" alt="dropdown-icon" />
+                  </button>
+                )}
               </div>
-              <div className="my-team-top-wrapper h-5" /> {/* Placeholder */}
-            </div>
+            </motion.div>
           )}
         </div>
-
-        {/*  Level 7.1 start: My Team name  */}
-        <TeamPlayers teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
       </div>
-      {/* // Show subbed players  */}
-      {mySubbedPlayers && mySubbedPlayers.length > 0 && (
-        <div className="subbed-wrapper pt-4 bg-black-logo text-white">
-          <div className="container px-4 mx-auto">
-            <SubbedPlayerList teamPlayers={mySubbedPlayers} currRound={currentRound} roundList={roundList} subControl={!currentRound?.completed} />
-          </div>
-        </div>
-      )}
-      {/* Level 7 end: My Rosters  */}
+      {/* Level 7 end: My Rosters */}
 
-      {/* Level 8 start: Sponsors  */}
+      {/* Level 8 start: Sponsors */}
       {eventSponsors.length > 0 && (!user || !user.token) && (
-        <div className="sponsors w-full pt-2 mx-auto mb-2 bg-black-logo text-white">
+        <motion.div className="sponsors w-full py-4 mx-auto bg-black-logo text-white rounded-lg shadow-md" initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
           <div className="container px-4 mx-auto">
-            <h2 className="mt-4">Sponsors</h2>
-            <div className="flex items-center justify-between md:justify-start flex-wrap w-full">
+            <h2 className="text-lg font-semibold">Sponsors</h2>
+            <div className="flex items-center justify-between md:justify-start flex-wrap w-full gap-4">
               {eventSponsors.map((spon) =>
                 spon.company === APP_NAME ? (
                   <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
@@ -396,9 +348,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
-      {/* Level 8 end: Sponsors  */}
+      {/* Level 8 end: Sponsors */}
     </div>
   );
 }

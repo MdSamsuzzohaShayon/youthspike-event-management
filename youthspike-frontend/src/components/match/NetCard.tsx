@@ -1,13 +1,13 @@
-/* eslint-disable @next/next/no-img-element */
+import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 
 // Redux
 import { setCurrNetNum } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 
-
 // Types
 import { INetRelatives } from '@/types';
+import { EDirection } from '@/types/elements';
 import { EXTRA_HEIGHT } from '@/utils/constant';
 
 import NetPointCard from './NetPointCard';
@@ -23,7 +23,6 @@ interface INetCardProps {
 const touchThreshold: number = 50;
 
 function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
-  // Hook
   const dispatch = useAppDispatch();
 
   // Redux State
@@ -34,11 +33,13 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
+  const [direction, setDirection] = useState<EDirection>(EDirection.RIGHT);
 
   /**
    * Handle events
    */
   const handleRightShift = () => {
+    setDirection(EDirection.LEFT); // Update direction
     const netIndex = currRoundNets.findIndex((n) => n.num === currNetNum);
     if (netIndex === null || netIndex === 0) return;
     const prevNet = currRoundNets[netIndex - 1];
@@ -47,6 +48,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   };
 
   const handleLeftShift = () => {
+    setDirection(EDirection.RIGHT); // Update direction
     const netIndex = currRoundNets.findIndex((n) => n.num === currNetNum);
     if (netIndex === null || netIndex + 1 >= currRoundNets.length) return;
     const nextNet = currRoundNets[netIndex + 1];
@@ -67,25 +69,31 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   };
 
   return (
-    <div
+    <motion.div
+      layout
       className="net-detail w-full h-full relative flex justify-center items-center flex-col"
       style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      initial={{ opacity: 0, x: direction === EDirection.RIGHT ? 300 : -300 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: direction === EDirection.RIGHT ? -300 : 300 }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
     >
-      {/* Net top section start  */}
+      {/* Net top section start */}
       <NetTeamSelect boardHeight={boardHeight} net={net} onTop teamE={opTeamE} />
-      {/* Net top section end  */}
+      {/* Net top section end */}
 
       {/* Vertically centered NetPointCard component */}
       <div className="flex-grow flex justify-center items-center cursor-pointer">
-        <NetPointCard net={net} handleLeftShift={handleLeftShift} handleRightShift={handleRightShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
+        {/* Pass direction prop */}
+        <NetPointCard net={net} handleRightShift={handleRightShift} handleLeftShift={handleLeftShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
       </div>
 
-      {/* Net bottom section start  */}
+      {/* Net bottom section start */}
       <NetTeamSelect boardHeight={boardHeight} net={net} onTop={false} teamE={myTeamE} />
       {/* Net bottom section end */}
-    </div>
+    </motion.div>
   );
 }
 

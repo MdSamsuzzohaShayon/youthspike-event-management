@@ -38,6 +38,9 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
 
   const teamData = data?.getTeam?.data;
 
+  const groupList = teamData?.event?.groups ?? [];
+  
+
   if(isLoading || loading) return <Loader />
 
   return (
@@ -45,7 +48,7 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
       <h1 className='mb-8 text-center'>Update Team</h1>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {teamData && <TeamAdd eventId={params.eventId} availablePlayers={availablePlayers} handleClose={handleClose} setActErr={setActErr} 
+      {teamData && <TeamAdd groupList={groupList} eventId={params.eventId} availablePlayers={availablePlayers} handleClose={handleClose} setActErr={setActErr} 
       setAvailablePlayers={setAvailablePlayers} setIsLoading={setIsLoading} prevTeam={teamData} update refetchFunc={handleRefetch} />}
     </div>
   )
