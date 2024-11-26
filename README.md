@@ -54,6 +54,9 @@ ___
 
 ### Requirements
  - Watch them:
+ - Testing now! Initial thoughts:
+    - ⁠all admins will need to be able to see the standings page. The one that you can see from the spectator view
+    - A team view from the admin to public
  - **__https://www.loom.com/share/f221cae55313451cb1a0752dc7768ac4__**
  - Move team, and assign group should have a bulk action
  - Bulk actions for players

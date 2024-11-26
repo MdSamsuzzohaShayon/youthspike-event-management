@@ -1,5 +1,77 @@
 import { gql } from '@apollo/client';
 
+const roundResponse = `
+rounds {
+  _id
+  num
+  teamAScore
+  teamBScore
+  teamAProcess
+  teamBProcess
+  nets {
+    _id
+    num
+    teamAPlayerA
+    teamAPlayerB
+    teamAScore
+    teamBPlayerA
+    teamBPlayerB
+    teamBScore
+  }
+}
+`;
+
+const netResponse = `
+nets {
+  _id
+  teamAScore
+  teamBScore
+  num
+  points
+  round{
+    _id
+  }
+}
+`;
+
+const matchResponse = `
+matches {
+  ${roundResponse}
+  ${netResponse}
+  _id
+  date
+  division
+  completed
+  teamA {
+    _id
+    name
+    active
+    division
+    logo
+    captain {
+      _id
+      firstName
+      lastName
+      email
+    }
+  }
+  teamB {
+    _id
+    name
+    active
+    division
+    logo
+    captain {
+      _id
+      firstName
+      lastName
+      email
+    }
+  }
+  description
+}
+`;
+
 const teamResponse = `
     _id
     active
@@ -8,6 +80,7 @@ const teamResponse = `
     division
     sendCredentials
     num
+    ${matchResponse}
     event{
       _id
     }

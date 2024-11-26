@@ -207,7 +207,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
       <div className="mb-4">
         <SelectInput
           handleSelect={handleDivisionSelection}
-          defaultValue={currDivision}
+          value={currDivision}
           name="division"
           optionList={divisionList}
           vertical

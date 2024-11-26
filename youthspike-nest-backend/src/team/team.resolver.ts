@@ -23,6 +23,7 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { LdoService } from 'src/ldo/ldo.service';
 import { GroupService } from 'src/group/group.service';
+import { Match } from 'src/match/match.schema';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -59,7 +60,7 @@ export class TeamResolver {
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
-  ) { }
+  ) {}
 
   async singleDelete(teamExist: Team) {
     const teamPlayerIds = teamExist.players.map((p) => p.toString());
@@ -443,7 +444,7 @@ export class TeamResolver {
           }
 
           if (teamExist.playerRankings && teamExist.playerRankings.length > 0) {
-            const playerRankings = await this.playerRankingService.find({ _id: { $in: teamExist.playerRankings } })
+            const playerRankings = await this.playerRankingService.find({ _id: { $in: teamExist.playerRankings } });
             for (const pr of playerRankings) {
               deletePromises.push(this.playerRankingService.deletManyItem({ _id: { $in: pr.rankings } }));
             }
@@ -603,5 +604,18 @@ export class TeamResolver {
   async group(@Parent() team: Team) {
     const groupExist = await this.groupService.findOne({ _id: team.group });
     return groupExist;
+  }
+
+  @ResolveField() // Specify the return type for "players"
+  async matches(@Parent() team: Team): Promise<Match[]> {
+    try {
+      const matches = await this.matchService.find({
+        $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+      });
+      return matches;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   }
 }

@@ -120,7 +120,7 @@ function PlayerScoreCard({
         <p className="rank">Rank {playerRank}</p>
         {subbedRounds && (
           <div className="relative">
-            <p>{subbedRounds.map((s) => `S${s}`)}</p>
+            <p>{subbedRounds.map((s, i) => `S${s}${i + 1 !== subbedRounds.length ? ', ' : ''}`)}</p>
             {/* <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 shadow-lg">
               This player has been subbed in round 1, round 2 and round 3
             </div> */}
