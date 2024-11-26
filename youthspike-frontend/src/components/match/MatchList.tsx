@@ -1,11 +1,9 @@
-import { IMatchExpRel, IPlayer, ITeam, IOption } from '@/types';
+import { IMatchExpRel, IPlayer, ITeam } from '@/types';
 import React, { useEffect, useState } from 'react';
-import { divisionsToOptionList } from '@/utils/helper';
 import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import SocketEventListener from '@/utils/socket/SocketEventListener';
 import MatchCard from './MatchCard';
-import SelectInput from '../elements/SelectInput';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;

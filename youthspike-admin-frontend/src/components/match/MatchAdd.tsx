@@ -198,7 +198,8 @@ function MatchAdd({ eventId,
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            <DateInput handleDateChange={handleDateChange} name='date' required={!update} defaultValue={addMatch.date} vertical extraCls='md:w-5/12' />
+            <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time (This is how the matches are ranked.)' 
+            required={!update} defaultValue={addMatch.date} vertical />
 
             {!update && (<>
                 <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
@@ -206,8 +207,12 @@ function MatchAdd({ eventId,
                     : groupList.map((g) => ({ text: g.name, value: g._id }))} vertical />
                 {selectedGroup && (
                     <>
-                        <SelectInput name='teamA' lblTxt='Team A' optionList={showTeamList(filteredTeamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamA} vertical extraCls='md:w-5/12' />
-                        <SelectInput name='teamB' lblTxt='Team B' optionList={showTeamList(filteredTeamList)} handleSelect={handleSelectChange} defaultValue={addMatch.teamB} vertical extraCls='md:w-5/12' />
+                        <SelectInput name='teamA' lblTxt='Team A' 
+                        optionList={showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)} 
+                        handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
+                        <SelectInput name='teamB' lblTxt='Team B' 
+                        optionList={showTeamList(addMatch.teamA && addMatch.teamA !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamA) : filteredTeamList)} 
+                        handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
                     </>
                 )}
             </>)}

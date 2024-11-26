@@ -15,6 +15,7 @@ import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { EActionProcess } from '@/types/room';
+import { imgSize } from '@/utils/styles';
 import PointsByRoundPublic from './PointsByRoundPublic';
 
 interface MatchCardProps {
@@ -55,9 +56,13 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     return (
       <>
         <div className="advanced-img w-14">
-          {team?.logo ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" /> : <Image src="/free-logo.png" className="w-full h-full" alt="free-logo" />}
+          {team?.logo ? (
+            <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" />
+          ) : (
+            <Image src="/free-logo.png" width={imgW.logo} height={imgW.logo} className="w-full h-full" alt="free-logo" />
+          )}
         </div>
-        <h3 className="capitalize">{team.name}</h3>
+        <h3 className="capitalize">{team?.name}</h3>
         <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border ${won ? 'bg-green-600' : ''}`}>{teamScore}</h1>
       </>
     );
@@ -76,7 +81,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         // break round loop
         break;
       } else if (currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.CHECKIN) {
-        const currRoundNets = allNets.filter((n)=> n.round === roundList[i]._id);
+        const currRoundNets = allNets.filter((n) => n.round === roundList[i]._id);
         for (let j = 0; currRoundNets && j < currRoundNets.length; j += 1) {
           if (!currRoundNets[j].teamAScore || !currRoundNets[j].teamAScore) {
             runningRoundIndex = i;
@@ -91,7 +96,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           break;
         }
       } else if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
-        const currRoundNets = allNets.filter((n)=> n.round === roundList[i]._id);
+        const currRoundNets = allNets.filter((n) => n.round === roundList[i]._id);
         for (let j = 0; currRoundNets && j < currRoundNets.length; j += 1) {
           if (!currRoundNets[j].teamAScore || !currRoundNets[j].teamAScore) {
             runningRoundIndex = i;
@@ -109,6 +114,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
     return msg;
   }, [roundList]);
+  
 
   return (
     <div className="w-full bg-gray-700 flex flex-col justify-between items-center relative rounded-lg" style={{ minHeight: '6rem' }}>

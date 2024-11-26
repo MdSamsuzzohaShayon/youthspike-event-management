@@ -29,6 +29,8 @@ function EventMainPage() {
 
   // ===== Redux =====
   const { eventList } = useAppSelector((state) => state.events);
+  console.log(eventList);
+  
 
   // ===== Local State =====
 
@@ -38,6 +40,7 @@ function EventMainPage() {
       removeEvent();
       const res = await getEvents();
       if (res?.data?.getEvents?.data) {
+        
         dispatch(setEventList(res.data.getEvents.data));
       }
     })();

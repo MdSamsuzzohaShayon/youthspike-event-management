@@ -34,6 +34,8 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
     event: eventId,
     teams: [],
   });
+  
+  
 
   const [updateGroup, setUpdateGroup] = useState<Partial<IGroupAdd>>({});
   const [filteredTeams, setFilteredTeams] = useState<ITeam[]>([]);
@@ -53,7 +55,9 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
     setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    const nTList = teamList.filter((t) => t.division && inputEl.value && t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
+    let nTList = teamList.filter((t) => t.division && inputEl.value && t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
+    // If A team already has a group he should not be shown
+    nTList = nTList.filter((t)=> !t.group || !t.group?._id);
     setFilteredTeams(nTList);
   };
 
@@ -98,7 +102,7 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
 
   useEffect(() => {
     if (teamList) {
-      setFilteredTeams(teamList);
+      setFilteredTeams(teamList.filter((t)=> !t.group || !t.group?._id));
     }
   }, [teamList]);
 
@@ -118,7 +122,7 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
       <TextInput key="ti-eau-1" required={!update} defaultValue={groupState.name}
         handleInputChange={handleInputChange} lblTxt="Name" name="name" vertical />
       <SelectInput key="division-1" name='division' handleSelect={handleDivisionInputChange} defaultValue={groupState.division ? groupState.division.toString().trim().toLocaleLowerCase() : null} optionList={divisionsToOptionList(divisions)} lblTxt="Division" vertical />
-      <SelectInput key="rule-1" name='rule' defaultValue={groupState.rule} handleSelect={handleInputChange} optionList={ruleList.map((r)=> ({value: r, text: r.replaceAll(/_/g, " ")}))} lblTxt="Rule" vertical />
+      {/* <SelectInput key="rule-1" name='rule' defaultValue={groupState.rule} handleSelect={handleInputChange} optionList={ruleList.map((r)=> ({value: r, text: r.replaceAll(/_/g, " ")}))} lblTxt="Rule" vertical /> */}
 
       <div className="mt-4">
         <TeamSelectInput name='teams' teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />

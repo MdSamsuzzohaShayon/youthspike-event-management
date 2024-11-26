@@ -14,6 +14,7 @@ import Link from 'next/link';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
+    group?: IGroup;
 }
 
 interface ITeamAddProps {
@@ -44,7 +45,7 @@ const initialTeamState = {
 function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
-    const {ldoIdUrl} = useLdoId();
+    const { ldoIdUrl } = useLdoId();
 
 
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
@@ -58,6 +59,9 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
     const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation(UPDATE_TEAM);
 
 
+    console.log(prevTeam);
+
+
 
 
     // Handle events
@@ -68,7 +72,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
             playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
         });
 
-        if(success){
+        if (success) {
             if (refetchFunc) await refetchFunc();
             const formEl = e.target as HTMLFormElement;
             formEl.reset();
@@ -137,11 +141,13 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
 
             <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
 
-            <SelectInput key="g-t-d" handleSelect={handleInputChange} name='group' defaultValue={teamState.division} optionList={teamState.division && teamState.division !== '' 
-                ? groupList.filter((g)=> g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g)=> ({text: g.name, value: g._id}))
-                : groupList.map((g)=> ({text: g.name, value: g._id}))} vertical />
+            <SelectInput key="g-t-d" handleSelect={handleInputChange} name='group'
+                {...(prevTeam?.group ? { defaultValue: prevTeam.group._id } : {})}
+                optionList={teamState.division && teamState.division !== ''
+                    ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g) => ({ text: g.name, value: g._id }))
+                    : groupList.map((g) => ({ text: g.name, value: g._id }))} vertical />
             <Link className='underline underline-offset-1' href={`/${eventId}/groups/new/${ldoIdUrl}`}>Create new group!</Link>
-            
+
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
 
             {!update && (<div className="player-input mb-4">

@@ -45,6 +45,10 @@ const GET_EVENT_WITH_GROUP = gql`
             _id
             name
             division
+            group{
+              _id
+              name
+            }
         }
         groups{
             _id

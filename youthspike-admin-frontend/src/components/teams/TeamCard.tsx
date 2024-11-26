@@ -222,7 +222,8 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         </div>
 
         {/* Team Name and Logo */}
-        <div className="flex flex-col lg:flex-row items-center gap-4 w-full lg:w-2/3">
+        <div className="flex justify-between items-center gap-4 w-full lg:w-2/3">
+          <div></div>
           <div className="flex items-center gap-4">
             {team.logo ? (
               <div className="rounded-full overflow-hidden w-14 h-14 border border-yellow-400">
@@ -251,6 +252,10 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
               />
             </div>
           </div>
+          {/* Preview Link */}
+          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+            <button className="text-yellow-400 hover:underline text-sm mt-1">Preview</button>
+          </Link>
         </div>
 
         {/* Captain Info and Active Players */}

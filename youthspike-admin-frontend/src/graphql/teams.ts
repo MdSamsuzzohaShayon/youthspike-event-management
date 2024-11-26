@@ -148,6 +148,10 @@ const GET_A_TEAM = gql`
       message
       success
       data {
+        group{
+          _id
+          name
+        }
         ${rankingResponse}
         ${teamResponse}
         event{

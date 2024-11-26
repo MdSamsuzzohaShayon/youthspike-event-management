@@ -15,23 +15,16 @@ import React, { useState, useEffect } from 'react';
  * 
  * FC Barcelona
  * Captain
- * pfn1193
+ * tyler118
  * Co-captains
- * pfn1393
- * 
- * 
- * Bayern Munich FC
- * Captain
- * pfn395
- * Co-captains
- * pfn295
+ * lincoln118
  * 
  * 
  * Real Madrid
  * Captain
- * pfn1994
+ * casey119
  * Co-captain
- * pfn2094
+ * aaron119
  * 
  * 
  */
@@ -64,7 +57,6 @@ function MatchSingle({ params }: MatchSingleProps) {
     
     
 
-
     return (
         <div className='container mx-auto px-2 min-h-screen'>
             <h1 className='uppercase text-center'>Match</h1>
@@ -73,7 +65,7 @@ function MatchSingle({ params }: MatchSingleProps) {
             {actErr && <Message error={actErr} />}
 
 
-            {matchData && <MatchAdd prevMatch={matchData} eventId={params.eventId} 
+            {matchData && <MatchAdd groupList={[]} prevMatch={matchData} eventId={params.eventId} 
               setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />}
 
             <h3>Rounds</h3>

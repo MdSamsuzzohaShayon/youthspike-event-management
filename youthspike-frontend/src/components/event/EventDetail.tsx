@@ -44,6 +44,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const searchParams = useSearchParams();
 
   const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [currDivision, setCurrDivision] = useState<string | null>(null);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
@@ -100,22 +101,40 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     selectedDivision ? filterList(selectedDivision) : initializeLists();
   };
 
-  const renderContent = () => {
+  const handleSelectGroup = (e: React.SyntheticEvent, groupId: string | null) => {
+    e.preventDefault();
+    setSelectedGroup(groupId ?? null);
+    // filter team, players, matches
+    const selectedTeams = new Set();
+    if (groupId) {
+      const filteredTeamList = event.teams?.filter((t) => t?.group?._id === groupId);
+      setTeamList(filteredTeamList || []);
+      console.log({ matchList }, { playerList }); // Match team id ans set match list and player list
+
+    } else {
+      setTeamList(event?.teams || []);
+    }
+  };
+
+  const renderContent = useCallback(() => {
     const renderMap = {
       [EEventItem.PLAYER]: <PlayerList playerList={playerList} />,
-      [EEventItem.TEAM]: <TeamList teamList={teamList} groupList={groupList} matchList={matchList} />,
+      [EEventItem.TEAM]: <TeamList teamList={teamList} matchList={matchList} />,
       [EEventItem.MATCH]: <MatchList matchList={matchList} division={currDivision} />,
     };
     return renderMap[selectedItem] || null;
-  };
+  }, [currDivision, matchList, playerList, selectedItem, teamList]);
 
-  const renderSponsors = () => (
-    <>
-      <div className="w-20" key="default-logo">
-        <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
-      </div>
-      {event.sponsors?.map((sponsor, index) => <AdvancedImage key={sponsor._id || `sponsor-${index}`} cldImg={cld.image(sponsor.logo.toString())} className="w-20" />)}
-    </>
+  const renderSponsors = useCallback(
+    () => (
+      <>
+        <div className="w-20" key="default-logo">
+          <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
+        </div>
+        {event.sponsors?.map((sponsor, index) => <AdvancedImage key={sponsor._id || `sponsor-${index}`} cldImg={cld.image(sponsor.logo.toString())} className="w-20" />)}
+      </>
+    ),
+    [event.sponsors],
   );
 
   return (
@@ -135,6 +154,32 @@ function EventDetail({ event }: { event: IEventRelatives }) {
       )}
 
       <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6 mb-4" />
+
+      <div className="group-menu w-full mb-4 lg:sticky lg:top-4 p-4 bg-gray-800 rounded-md">
+        <h2 className="text-lg font-semibold mb-2 text-white text-center">Groups</h2>
+        <motion.ul className="w-full flex flex-wrap justify-around items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <motion.li
+            key="group-for-all"
+            role="presentation"
+            onClick={(e) => handleSelectGroup(e, null)}
+            className={`p-2 rounded-md cursor-pointer mb-2 text-center ${selectedGroup === null ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
+            whileHover={{ scale: 1.1 }}
+          >
+            All
+          </motion.li>
+          {groupList.map((group, index) => (
+            <motion.li
+              key={group?._id || index}
+              role="presentation"
+              onClick={(e) => handleSelectGroup(e, group?._id)}
+              className={`p-2 rounded-md cursor-pointer mb-2 text-center ${selectedGroup === group?._id ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
+              whileHover={{ scale: 1.1 }}
+            >
+              {group.name}
+            </motion.li>
+          ))}
+        </motion.ul>
+      </div>
 
       <div className="flex flex-col md:flex-row gap-6">
         <motion.div
