@@ -37,7 +37,7 @@ function Footer() {
 
   return (
     <footer className="bg-black-logo text-white border-t border-gray-700">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 py-8">
         {/* Responsive Menu */}
         <nav className="flex flex-col md:flex-row justify-center items-center mb-4 space-y-4 md:space-y-0 md:space-x-8">
           <Link href={`/${ldoIdUrl}`} className="hover:text-gray-400 transition-colors">

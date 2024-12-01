@@ -36,6 +36,8 @@ interface IMatchAddProps {
 
 
 
+
+
 const initialAddMatch: IAddMatch = {
     date: new Date().toISOString(),
     event: "",
@@ -52,6 +54,7 @@ const initialAddMatch: IAddMatch = {
     homeTeam: '',
     rosterLock: '',
     timeout: 0,
+    // group: "" // Optional
 }
 
 
@@ -141,12 +144,26 @@ function MatchAdd({ eventId,
         e.preventDefault();
         const inputEl = e.target as HTMLSelectElement;
         setSelectedGroup(inputEl.value !== '' ? inputEl.value : null);
+        if (inputEl.value.toLowerCase() === "all") {
+            if (update) {
+                setUpdateMatch((prevState) => ({ ...prevState, group: undefined }));
+            } else {
+                setAddMatch((prevState) => ({ ...prevState, group: undefined }));
+            }
+        } else {
+            if (update) {
+                setUpdateMatch((prevState) => ({ ...prevState, group: inputEl.value }));
+            } else {
+                setAddMatch((prevState) => ({ ...prevState, group: inputEl.value }));
+            }
+        }
         const groupExist = groupList.find((g) => g._id === inputEl.value);
-        if (groupExist && groupExist.teams && groupExist.teams.length > 0) {
+        if (groupExist && groupExist?.teams) {
             const teamsOfGroup = groupExist.teams.map((gt) => gt._id);
             const newTeamList = teamList?.filter((t) => teamsOfGroup.includes(t._id)) || [];
             setFilteredTeamList(newTeamList);
-
+        } else if (inputEl.value.toLowerCase() === "all" && teamList) {
+            setFilteredTeamList(teamList);
         }
     }
 
@@ -198,21 +215,21 @@ function MatchAdd({ eventId,
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time (This is how the matches are ranked.)' 
-            required={!update} defaultValue={addMatch.date} vertical />
+            <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time (This is how the matches are ranked.)'
+                required={!update} defaultValue={addMatch.date} vertical />
 
             {!update && (<>
                 <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
-                    ? groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g) => ({ text: g.name, value: g._id }))
-                    : groupList.map((g) => ({ text: g.name, value: g._id }))} vertical />
+                    ? [{ text: "All", value: "all" }, ...groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g) => ({ text: g.name, value: g._id }))]
+                    : [{ text: "All", value: "all" }, ...groupList.map((g) => ({ text: g.name, value: g._id }))]} vertical />
                 {selectedGroup && (
                     <>
-                        <SelectInput name='teamA' lblTxt='Team A' 
-                        optionList={showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)} 
-                        handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
-                        <SelectInput name='teamB' lblTxt='Team B' 
-                        optionList={showTeamList(addMatch.teamA && addMatch.teamA !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamA) : filteredTeamList)} 
-                        handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
+                        <SelectInput name='teamA' lblTxt='Team A'
+                            optionList={showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)}
+                            handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
+                        <SelectInput name='teamB' lblTxt='Team B'
+                            optionList={showTeamList(addMatch.teamA && addMatch.teamA !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamA) : filteredTeamList)}
+                            handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
                     </>
                 )}
             </>)}

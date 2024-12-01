@@ -3,12 +3,12 @@ import { Inter } from 'next/font/google';
 import ApolloWrapper from '@/lib/ApolloWrapper';
 import ReduxProvider from '@/lib/ReduxProviders';
 import './globals.css';
-import Menu from '@/components/layout/Menu';
 import Footer from '@/components/layout/Footer';
 import UserProvider from '@/lib/UserProvider';
 import SocketProvider from '@/lib/SocketProvider';
 import Loader from '@/components/elements/Loader';
 import LdoProvider from '@/lib/LdoProvider';
+import MenuSwitcher from '@/components/layout/MenuSwitcher';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <UserProvider>
                 <ReduxProvider>
                   <LdoProvider>
-                    <Menu />
+                    <MenuSwitcher />
                     {children}
                     <Footer />
                   </LdoProvider>

@@ -47,3 +47,11 @@ export const liAnimate =  {
     exit: { ...commonAnimate.exit, x: -50 },
     transition: { ...commonAnimate.transition, delay: 0.7 },
 };
+
+
+// menu item 
+export const itemVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.5 } },
+    hover: { x: 20, transition: { duration: 0.5 } },
+  };

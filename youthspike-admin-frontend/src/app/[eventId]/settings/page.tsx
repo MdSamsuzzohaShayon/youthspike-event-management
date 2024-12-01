@@ -15,6 +15,7 @@ import { isValidObjectId } from '@/utils/helper';
 import { useUser } from '@/lib/UserProvider';
 import { getCookie } from '@/utils/cookie';
 import { motion } from 'framer-motion';
+import CurrentEvent from '@/components/event/CurrentEvent';
 
 const pageVariants = {
   hidden: { opacity: 0 },
@@ -78,7 +79,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       animate="visible"
       exit="hidden"
       variants={pageVariants}
-      className="container mx-auto px-4 py-8 min-h-screen bg-gray-900 text-white rounded-lg shadow-lg"
+      className="container mx-auto px-4 py-8 min-h-screen"
     >
       {/* Title */}
       <motion.h1
@@ -91,9 +92,14 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       </motion.h1>
 
       {/* Navigation Menu */}
-      <div className="navigator mb-6">
-        <UserMenuList eventId={params.eventId} />
+      {/* Event Menu Start */}
+      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+        {prevEvent && <CurrentEvent currEvent={prevEvent} />}
+        <div className="navigator mt-8">
+          <UserMenuList eventId={params.eventId} />
+        </div>
       </div>
+      {/* Event Menu End */}
 
       {/* Error Messages */}
       {error && <Message error={error} />}

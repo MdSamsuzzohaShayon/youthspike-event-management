@@ -162,7 +162,7 @@ function EventsPage() {
   const newLdoData = ldoData?.getEventDirector?.data;
 
   return (
-    <div className="events-page container px-2 mx-auto min-h-screen">
+    <div className="events-page container px-6 mx-auto min-h-screen">
       <dialog ref={filterListEl}>
         <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
         {itemList.map((item) => (
@@ -197,7 +197,7 @@ function EventsPage() {
       </div>
       <div className="filtered-elements flex flex-wrap gap-2 mb-4">
         {filteredItems.map((item) => (
-          <p key={item.id} className="px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between">
+          <p key={item.id} className="px-6 py-2 rounded-full bg-gray-800 flex items-center justify-between">
             {item.text}{' '}
             <span role="presentation" onClick={(e) => handleRemoveFilter(e, item.id)}>
               <img src="/icons/close.svg" className="svg-white w-6 ml-2 p-0 m-0" alt="close" />

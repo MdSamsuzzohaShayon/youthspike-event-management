@@ -13,6 +13,7 @@ import { CreateGroupInput, UpdateGroupInput } from './group.input';
 import { GroupService } from './group.service';
 import { EventService } from 'src/event/event.service';
 import { FilterQuery } from 'mongoose';
+import { MatchService } from 'src/match/match.service';
 
 @ObjectType()
 class GetGroupsResponse extends AppResponse<Group[]> {
@@ -33,6 +34,7 @@ export class GroupResolver {
     private teamService: TeamService,
     private groupService: GroupService,
     private eventService: EventService,
+    private matchService: MatchService,
   ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,8 +46,9 @@ export class GroupResolver {
        * TODO:
        *  Step-1: Get user id from token if not logged in as admin
        */
-
-      const newGroup = await this.groupService.create(input);
+      const groupObj = { ...input, matches: [] };
+      if (input.matches) groupObj.matches;
+      const newGroup = await this.groupService.create(groupObj);
       // Update teams and event
       await Promise.all([
         this.eventService.updateOne({ _id: newGroup.event }, { $addToSet: { groups: newGroup._id } }),
@@ -146,6 +149,12 @@ export class GroupResolver {
   async teams(@Parent() group: Group) {
     const teamList = await this.teamService.find({ _id: { $in: group.teams } });
     return teamList;
+  }
+
+  @ResolveField()
+  async matches(@Parent() group: Group) {
+    const matchList = await this.matchService.find({ _id: { $in: group.matches } });
+    return matchList;
   }
 
   @ResolveField()

@@ -113,7 +113,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       let newFilteredTeamList = [...newTeamList];
       const newGroupList: IGroupExpRel[] = eventResponse?.data?.getEvent?.data?.groups || [];
       let newFilteredGroupList = [...newGroupList];
-      
+
 
       if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
@@ -124,7 +124,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         setCurrDivision(divisionExist);
         newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
         newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-        newFilteredGroupList = newGroupList.filter((g)=> g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
+        newFilteredGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
       }
 
       // If logged in as captain check me I the captain of one of the team or not
@@ -175,11 +175,16 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
-      <motion.h1 initial={hInitial} animate={hAnimate} exit={hExit} transition={{...hTransition, delay: 1.2}} className="mb-8 text-center">Matches</motion.h1>
-      {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
-      <div className="navigator mb-4">
-        <UserMenuList eventId={params.eventId} />
+      <motion.h1 initial={hInitial} animate={hAnimate} exit={hExit} transition={{ ...hTransition, delay: 1.2 }} className="mb-8 text-center">Matches</motion.h1>
+      
+      {/* Event Menu Start */}
+      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+        {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
+        <div className="navigator mt-8">
+          <UserMenuList eventId={params.eventId} />
+        </div>
       </div>
+      {/* Event Menu End */}
 
       <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="msg w-full">
         {error && <Message error={error} />}
@@ -203,6 +208,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
                 <MatchAdd
                   eventData={currEvent}
                   teamList={filteredTeamList}
+                  // teamList={teamList}
                   eventId={params.eventId}
                   addMatchCB={addMatchCB}
                   setActErr={setActErr}

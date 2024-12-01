@@ -378,9 +378,6 @@ export class MyGatWay implements OnModuleInit {
       clientObj.userRole = joinData.userRole ?? clientExist.userRole;
     }
     this.clientList.set(client.id, clientObj);
-    // Response
-    // client.emit('join-room-response', roomData);
-    // await this.emitToAllClients('check-in-response-to-all', client, roomData.match, roomData);
     await this.emitToAllClients('join-room-response-all', client, roomData.match, roomData, false);
   }
 
@@ -392,7 +389,6 @@ export class MyGatWay implements OnModuleInit {
        * Find room from local map
        * Update process
        */
-
       // Validate and organize room data
       const prevRoom = this.roomsLocal.get(checkIn.room);
       if (!prevRoom) {

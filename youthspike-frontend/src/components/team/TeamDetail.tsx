@@ -1,9 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { IEvent, ITeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import { useLdoId } from '@/lib/LdoProvider';
+import { useAppDispatch } from '@/redux/hooks';
+import { setRankingMap } from '@/redux/slices/playerRankingSlice';
 import Link from 'next/link';
 import TextImg from '../elements/TextImg';
 import PlayerList from '../player/PlayerList';
@@ -14,6 +16,8 @@ interface ITeamDetailProps {
   team: ITeam;
 }
 
+type MapType = [string, number][];
+
 // eslint-disable-next-line no-unused-vars, no-shadow
 enum ETab {
   // eslint-disable-next-line no-unused-vars
@@ -23,6 +27,7 @@ enum ETab {
 }
 
 function TeamDetail({ event, team }: ITeamDetailProps) {
+  const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
 
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
@@ -32,10 +37,20 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
     setSelectedItem(tab);
   };
 
+  useEffect(()=>{
+    if(team && team.playerRanking){
+      const rankingMap = new Map();
+      // @ts-ignore 
+      team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
+      dispatch(setRankingMap(Array.from(rankingMap)))
+    }
+  }, [team]);
+
   const showContent = useCallback(() => {
     switch (selectedItem) {
       case ETab.ROSTER:
-        return <PlayerList playerList={team.players} />;
+        // Players should be shown with their records. Win / losses for games
+        return <PlayerList playerList={team.players} matchList={team.matches} />;
       case ETab.MATCHES:
         // @ts-ignore
         return <MatchList matchList={team.matches} division={team.division} />;

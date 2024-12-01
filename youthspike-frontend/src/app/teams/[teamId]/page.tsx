@@ -32,6 +32,7 @@ function TeamSinglePage({ params: { teamId } }: TeamSinglePageProps) {
 
   const teamData = data?.getTeam?.data;
   const eventData = data?.getTeam?.data?.event;
+  
 
   return (
     <div className="container mx-auto px-2 min-h-screen">

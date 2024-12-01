@@ -49,7 +49,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
     if (!success) return;
 
-    if(playerRes?.data?.getEvent){
+    if (playerRes?.data?.getEvent) {
       setCurrEvent(playerRes?.data?.getEvent.data);
     }
 
@@ -211,10 +211,14 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   return (
     <div className="container mx-auto px-2 min-h-screen">
       <h1 className="mb-8 text-center">Roster</h1>
-      {currEvent && <CurrentEvent currEvent={currEvent} />}
-      <div className="navigator mb-4">
-        <UserMenuList eventId={params.eventId} />
+      {/* Event Menu Start */}
+      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+        {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
+        <div className="navigator mt-8">
+          <UserMenuList eventId={params.eventId} />
+        </div>
       </div>
+      {/* Event Menu End */}
 
       {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
         <div className="mb-4 division-selection w-full">

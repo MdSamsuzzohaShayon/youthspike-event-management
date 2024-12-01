@@ -10,11 +10,6 @@ active
 autoAssign
 autoAssignLogic
 coachPassword
-ldo {
-  _id
-  name
-  logo
-}
 divisions
 homeTeam
 description
@@ -24,6 +19,11 @@ netVariance
 rosterLock
 timeout
 fwango
+ldo {
+  _id
+  name
+  logo
+}
 sponsors {
   _id
   company

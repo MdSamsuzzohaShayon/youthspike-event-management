@@ -19,30 +19,33 @@ export const cardAnimate = {
   transition: { ...commonAnimate.transition },
 };
 
-export const headingAnimate = {
-  initial: { ...commonAnimate.initial, y: -200 },
-  animate: { ...commonAnimate.animate, y: 0 },
-  exit: { ...commonAnimate.exit, y: -200 },
-  transition: { ...commonAnimate.transition },
+export const menuBackdropVariants = {
+  visible: { opacity: 1, transition: { duration: 0.3 } },
+  hidden: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-export const msgAnimate = {
-  initial: { ...commonAnimate.initial, y: -200 },
-  animate: { ...commonAnimate.animate, y: 0 },
-  exit: { ...commonAnimate.exit, y: -200 },
-  transition: { ...commonAnimate.transition },
+export const menuVariants = {
+  hidden: { x: '-100%', opacity: 0, transition: { duration: 0.3 } },
+  visible: { x: '0', opacity: 1, transition: { duration: 0.3 } },
+  exit: { x: '-100%', opacity: 0, transition: { duration: 0.3 } },
 };
 
-export const menuAnimate = {
-  initial: { ...commonAnimate.initial, x: -200 },
-  animate: { ...commonAnimate.animate, x: 0 },
-  exit: { ...commonAnimate.exit, x: -200 },
-  transition: { ...commonAnimate.transition, delay: 0 },
+// Variants for animations
+export const containerVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, when: 'beforeChildren', staggerChildren: 0.2 } },
 };
 
-export const liAnimate = {
-  initial: { ...commonAnimate.initial, x: -50 },
-  animate: { ...commonAnimate.animate, x: 0 },
-  exit: { ...commonAnimate.exit, x: -50 },
-  transition: { ...commonAnimate.transition, delay: 0.7 },
+export const itemVariants = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.5 } },
+  hover: { x: 20, transition: { duration: 0.5 } },
+};
+
+export const hoverVariants = {
+  hover: { scale: 1.1, transition: { type: 'spring', stiffness: 300 } },
+};
+
+export const buttonVariants = {
+  hover: { scale: 1.1, transition: { type: 'spring', stiffness: 300 } },
 };

@@ -33,7 +33,7 @@ import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
 import { isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import { UserRole } from '@/types/user';
+import { IUserContext, UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus } from '@/types/player';
@@ -102,7 +102,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
   // ===== GraphAL =====
-  const [getMatch, { data, error, loading }] = useLazyQuery(GET_MATCH_DETAIL);
+  const [getMatch, { data, error, loading }] = useLazyQuery(GET_MATCH_DETAIL, { variables: { matchId: params.matchId } });
 
   const handlePlayAudio = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -121,22 +121,26 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   const mainEl = useResizeObserver(onResize);
 
+  const fetchData = async (userDetail: IUserContext) => {
+    const result = await getMatch({ variables: { matchId: params.matchId } });
+    console.log({eventId: result.data.getMatch.data.event._id});
+    
+    if (result?.data?.getMatch?.data) {
+      if (result.data.getMatch.data?.event?._id) {
+        setEvent(result.data.getMatch.data.event._id);
+      }
+      // { matchData, token, userInfo, matchId, dispatch }
+      await organizeFetchedData({ matchData: result.data.getMatch.data, token: userDetail.token, userInfo: userDetail.info, matchId: params.matchId, dispatch });
+    } else {
+      dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
+    }
+  };
   // ===== Fetch Data =====
   useEffect(() => {
     // Get user info here
     const userDetail = getUserFromCookie();
-    const fetchData = async () => {
-      const result = await getMatch({ variables: { matchId: params.matchId } });
-      if (result?.data?.getMatch?.data) {
-        if (result.data.getMatch.data?.event?._id) setEvent(result.data.getMatch.data.event._id);
-        // { matchData, token, userInfo, matchId, dispatch }
-        await organizeFetchedData({ matchData: result.data.getMatch.data, token: userDetail.token, userInfo: userDetail.info, matchId: params.matchId, dispatch });
-      } else {
-        dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
-      }
-    };
     if (userDetail && isValidObjectId(params.matchId)) {
-      fetchData();
+      fetchData(userDetail);
     } else {
       dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId or Invalid token!' }));
     }
@@ -194,7 +198,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, user, teamA, teamB, currentRound, roundList, currRoundNets, params.matchId]);
-
 
   // ===== Click on DOM by default to get rid of error when playing audio =====
   useEffect(() => {

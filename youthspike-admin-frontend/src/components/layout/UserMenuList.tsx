@@ -39,7 +39,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
       animate="visible"
       exit="hidden"
       variants={listVariants}
-      className="menu-list flex flex-wrap justify-center gap-4 bg-gray-800 p-4 rounded-lg shadow-lg"
+      className="menu-list flex flex-wrap justify-center gap-4"
     >
       {userMenuList.map((item) => (
         <motion.li
