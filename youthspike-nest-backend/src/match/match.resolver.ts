@@ -114,8 +114,9 @@ export class MatchResolver {
 
       const createPromises = [];
 
-      if (!input.division || !eventExist.divisions.toLowerCase().includes(input.division.trim().toLowerCase()))
+      if (!input.division || !eventExist.divisions.toLowerCase().includes(input.division.trim().toLowerCase())) {
         return AppResponse.notFound('Event');
+      }
 
       // ===== Set Event default value ====
       // Prepare defaults based on the event
@@ -241,8 +242,6 @@ export class MatchResolver {
       createPromises.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
 
       await Promise.all(createPromises);
-
-      console.log({ msg: 'Creating a match - backend!', matchId: newMatch._id, date: newMatch.date });
 
       return {
         data: newMatch,
@@ -401,6 +400,16 @@ export class MatchResolver {
   async event(@Parent() match: Match) {
     try {
       return this.eventService.findById(match.event.toString());
+    } catch {
+      return null;
+    }
+  }
+
+  @ResolveField()
+  async group(@Parent() match: Match) {
+    try {
+      if (!match.group) return null;
+      return this.eventService.findById(match.group?.toString());
     } catch {
       return null;
     }

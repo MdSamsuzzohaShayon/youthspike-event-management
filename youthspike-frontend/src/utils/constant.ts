@@ -36,7 +36,7 @@ const imgW = {
 
 const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST];
 
-const APP_NAME = "YouthSpike";
+const APP_NAME = 'YouthSpike';
 const EVENT_ITEM = 'event_item'; // Name of the query params
 const LDO_ID = 'ldoId';
 

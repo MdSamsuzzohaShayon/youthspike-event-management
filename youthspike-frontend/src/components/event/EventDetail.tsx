@@ -105,12 +105,10 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     e.preventDefault();
     setSelectedGroup(groupId ?? null);
     // filter team, players, matches
-    const selectedTeams = new Set();
     if (groupId) {
       const filteredTeamList = event.teams?.filter((t) => t?.group?._id === groupId);
       setTeamList(filteredTeamList || []);
-      console.log({ matchList }, { playerList }); // Match team id ans set match list and player list
-
+      // console.log({ matchList }, { playerList }); // Match team id ans set match list and player list
     } else {
       setTeamList(event?.teams || []);
     }
@@ -118,7 +116,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
   const renderContent = useCallback(() => {
     const renderMap = {
-      [EEventItem.PLAYER]: <PlayerList playerList={playerList} />,
+      [EEventItem.PLAYER]: <PlayerList playerList={playerList} matchList={matchList} showRank={false} />,
       [EEventItem.TEAM]: <TeamList teamList={teamList} matchList={matchList} />,
       [EEventItem.MATCH]: <MatchList matchList={matchList} division={currDivision} />,
     };
@@ -153,9 +151,9 @@ function EventDetail({ event }: { event: IEventRelatives }) {
         </div>
       )}
 
-      <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6 mb-4" />
 
-      <div className="group-menu w-full mb-4 lg:sticky lg:top-4 p-4 bg-gray-800 rounded-md">
+      <div className="group-menu w-full mb-4 p-4 bg-gray-800 rounded-md">
+        <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6 mb-4" />
         <h2 className="text-lg font-semibold mb-2 text-white text-center">Groups</h2>
         <motion.ul className="w-full flex flex-wrap justify-around items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           <motion.li
@@ -183,7 +181,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
       <div className="flex flex-col md:flex-row gap-6">
         <motion.div
-          className="side-bar w-full md:w-1/4 bg-gray-800 p-4 rounded-md sticky top-4 md:top-20 z-10 md:h-screen overflow-hidden"
+          className="side-bar w-full md:w-1/4 bg-gray-800 p-4 rounded-md sticky top-0 z-10 md:h-screen overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -206,7 +204,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
           )}
         </motion.div>
 
-        <div className="content w-full md:w-3/4 rounded-md p-6">{renderContent()}</div>
+        <div className="content w-full md:w-3/4 rounded-md">{renderContent()}</div>
       </div>
     </div>
   );

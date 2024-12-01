@@ -22,9 +22,9 @@ interface ITeamListProps {
 function TeamList({ teamList, matchList }: ITeamListProps) {
   const renderTeamCardMatches = useCallback((team: ITeamCaptain, ml?: IMatch[]) => {
     if (!ml) return null;
-    const newMatchList = ml.filter((match) => match.teamA._id === team._id || match.teamB._id === team._id);
+    const newMatchList = ml.filter((match) => match.teamA?._id === team?._id || match.teamB?._id === team?._id);
 
-    return <TeamCard team={team} key={team._id} matchList={newMatchList} />;
+    return <TeamCard team={team} key={team?._id} matchList={newMatchList} />;
   }, []);
 
   return (

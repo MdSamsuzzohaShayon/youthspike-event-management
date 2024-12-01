@@ -21,6 +21,20 @@ rounds {
 }
 `;
 
+const rankingResponse = `
+playerRanking {
+          _id
+          rankLock
+          rankings {
+            _id
+            rank
+            player {
+              _id
+            }
+          }
+        }
+`;
+
 const netResponse = `
 nets {
   _id
@@ -81,6 +95,7 @@ const teamResponse = `
     sendCredentials
     num
     ${matchResponse}
+    ${rankingResponse}
     event{
       _id
     }
@@ -140,6 +155,7 @@ const GET_A_TEAM = gql`
       success
       message
       data {
+        
       ${teamResponse}
       }
     }

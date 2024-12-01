@@ -30,3 +30,9 @@ export interface IPlayer extends IDocument {
   teams?: ITeam[];
   captainofteams: ITeam[];
 }
+
+export interface IPlayerRecord {
+  running: number;
+  wins: number;
+  losses: number;
+}

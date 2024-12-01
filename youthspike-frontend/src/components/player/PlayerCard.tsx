@@ -1,7 +1,9 @@
+/* eslint-disable react/require-default-props */
+/* eslint-disable react/no-unused-prop-types */
 import cld from '@/config/cloudinary.config';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
-import { IPlayer } from '@/types/player';
+import { IPlayer, IPlayerRecord } from '@/types/player';
 import { imgW } from '@/utils/constant';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
@@ -13,48 +15,69 @@ import { useRef } from 'react';
 interface PlayerCardProps {
   player: IPlayer;
   rank: number | null;
+  playerRecord?: IPlayerRecord | null;
 }
 
-function PlayerCard({ player, rank }: PlayerCardProps) {
+function PlayerCard({ player, rank, playerRecord }: PlayerCardProps) {
   const { ldoIdUrl } = useLdoId();
   const params = useParams();
   const user = useUser();
   const playerLiEl = useRef<HTMLLIElement | null>(null);
 
   return (
-    <li ref={playerLiEl} className="player-card w-full bg-gray-700 py-2 flex justify-between items-center gap-2 rounded-md" style={{ minHeight: '6rem' }}>
-      <div className="w-10/12 px-2 flex justify-between items-center">
-        <div className="w-5/6 flex justify-start gap-x-2 items-center">
-          <div className="advanced-img w-20 h-24 border border-yellow rounded-lg border-4">
-            {player.profile ? (
-              <AdvancedImage className="w-full h-full " cldImg={cld.image(player.profile)} />
-            ) : (
-              <Image width={200} height={200} src="/icons/sports-man.svg" alt="" className="svg-white w-full h-full" />
-            )}
-          </div>
-          <div className="player-name flex flex-col">
-            <h3 className="break-words">{`${player.firstName} ${player.lastName}`}</h3>
-            {player.teams && player.teams.length > 0 && <p className="text-yellow-400 uppercase">{player.teams[0].name}</p>}
-            {player?.captainofteams && player.captainofteams.length > 0 && <p className="text-yellow-400 uppercase">Captain</p>}
-          </div>
-        </div>
-
-        <div className="rank-box h-10 w-1/12 flex flex-col">
-          {rank && (
-            <>
-              <h3 className="bg-yellow-logo text-black w-8 h-8 flex justify-center items-center text-base">{rank}</h3>
-              <p>Rank</p>
-            </>
+    <li ref={playerLiEl} className="player-card w-full bg-gray-700 py-4 px-4 flex flex-col md:flex-row items-center gap-4 rounded-lg shadow-md" style={{ minHeight: '6rem' }}>
+      {/* Player Profile and Details */}
+      <div className="flex items-center w-full md:w-7/12">
+        <div className="advanced-img w-20 h-20 md:w-24 md:h-24 border border-yellow-400 rounded-lg overflow-hidden">
+          {player.profile ? (
+            <AdvancedImage className="w-full h-full object-cover" cldImg={cld.image(player.profile)} />
+          ) : (
+            <Image width={200} height={200} src="/icons/sports-man.svg" alt="Player Avatar" className="svg-white w-full h-full object-contain" />
           )}
         </div>
+        <div className="player-details flex flex-col pl-4 text-white">
+          <h3 className="text-lg font-bold capitalize">{`${player.firstName} ${player.lastName}`}</h3>
+          {player.teams && player.teams?.length > 0 && <p className="text-yellow-400 uppercase text-sm">{player.teams[0].name}</p>}
+          {player?.captainofteams?.length > 0 && <p className="text-yellow-400 uppercase text-sm">Captain</p>}
+        </div>
       </div>
-      <div className="w-2/12 pe-2">
-        {user.token && (
-          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/players/${player._id}/${ldoIdUrl}`} className="pe-2 flex items-center justify-end">
-            <Image src="/icons/edit.svg" height={imgW.logo} width={imgW.logo} alt="Exit Button" className="svg-white" />
-          </Link>
+
+      {/* Player Rank */}
+      <div className="flex flex-col items-center w-full md:w-2/12 text-white">
+        {rank && (
+          <>
+            <div className="rank-circle bg-yellow-400 text-black w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg font-bold">{rank}</div>
+            <p className="text-sm mt-2">Rank</p>
+          </>
         )}
       </div>
+
+      {/* Player Record */}
+      {playerRecord && (
+        <div className="record-box w-full md:w-3/12 text-center md:text-left text-white">
+          <h3 className="text-sm font-bold mb-2">Matches</h3>
+          <div className="text-xs md:text-sm space-y-1">
+            <p>
+              <span className="font-medium">Running:</span> {playerRecord.running}
+            </p>
+            <p>
+              <span className="font-medium">Wins:</span> {playerRecord.wins}
+            </p>
+            <p>
+              <span className="font-medium">Losses:</span> {playerRecord.losses}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Button */}
+      {user.token && (
+        <div className="edit-btn flex justify-end w-full md:w-2/12">
+          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/players/${player._id}/${ldoIdUrl}`} className="flex items-center justify-center p-2 bg-gray-600 hover:bg-gray-500 rounded-full">
+            <Image src="/icons/edit.svg" height={imgW.logo} width={imgW.logo} alt="Edit" className="svg-white" />
+          </Link>
+        </div>
+      )}
     </li>
   );
 }

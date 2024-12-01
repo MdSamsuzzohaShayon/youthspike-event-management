@@ -19,6 +19,9 @@ export class CreateMatchInput {
   division: string;
 
   @Field({ nullable: true })
+  group?: string;
+
+  @Field({ nullable: true })
   numberOfNets?: number;
 
   @Field({ nullable: true })

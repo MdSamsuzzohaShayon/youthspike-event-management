@@ -21,6 +21,9 @@ export class CreateGroupInput {
 
   @Field((_type) => [String])
   teams: string[];
+
+  @Field((_type) => [String], {nullable: true})
+  matches?: string[];
 }
 
 @InputType()

@@ -27,3 +27,4 @@ function MenuItem({ icon, text, link, setOpenMenu }: IMenuItem) {
 }
 
 export default MenuItem;
+// initialUserMenuList

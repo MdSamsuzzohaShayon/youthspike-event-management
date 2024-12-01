@@ -53,6 +53,15 @@ ___
       
 
 ### Requirements
+ - (web socket) Update match properly and show win and losses properly
+ - Add team and players
+  - Create a team and player should be able to add to the team (In player or team edit option)
+ - Menu
+  - In the roster: game + and - (how many game a player is playing)
+  - When in a particular group (in group filter), show standings of a team
+  - When creating a match, for selecting group (all / bracket)
+  - Select group a match (only sort by group stage game) show the records according to group
+  - When does the roster lock, (pick a data, after that date the roster will be locked) (Create event)
  - Watch them:
  - Testing now! Initial thoughts:
     - ⁠all admins will need to be able to see the standings page. The one that you can see from the spectator view

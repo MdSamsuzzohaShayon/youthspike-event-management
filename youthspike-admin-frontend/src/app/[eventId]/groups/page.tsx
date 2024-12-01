@@ -13,6 +13,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import UserMenuList from '@/components/layout/UserMenuList';
+import CurrentEvent from '@/components/event/CurrentEvent';
 
 interface IGroupsPageProps {
     params: {
@@ -39,27 +40,18 @@ function GroupsPage({ params }: IGroupsPageProps) {
     const groupList: IGroupExpRel[] = data?.getEvent?.data?.groups || [];
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col">
-            {/* Header */}
-            <motion.header
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="bg-gray-800 py-6 shadow-lg"
-            >
-                <div className="container mx-auto px-6 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">Event Groups</h1>
-                    <p className="text-lg md:text-xl text-gray-300">
-                        Organize and manage groups with ease. Select a division to get started.
-                    </p>
+        <div className="min-h-screen container mx-auto px-6 text-center flex flex-col">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Event Groups</h1>
+            {/* Event Menu Start */}
+            <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+                {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
+                <div className="navigator mt-8">
+                    <UserMenuList eventId={params.eventId} />
                 </div>
-            </motion.header>
-
-            <div className="navigator my-6">
-                <UserMenuList eventId={params.eventId} />
             </div>
+            {/* Event Menu End */}
 
-            <main className="container mx-auto px-6 py-10 flex flex-col lg:flex-row gap-10">
+            <main className="container mx-auto py-10 flex flex-col lg:flex-row gap-10">
                 {/* Sidebar */}
                 <motion.aside
                     initial={{ opacity: 0, x: -50 }}

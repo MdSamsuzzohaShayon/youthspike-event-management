@@ -44,6 +44,43 @@ enum ETeam {
   teamB
 }
 
+type PlayerRankingItem {
+  _id: String
+  rank: Int!
+  player: Player!
+  playerRanking: PlayerRanking!
+}
+
+type PlayerRanking {
+  _id: String
+  rankLock: Int!
+  rankings: [PlayerRankingItem!]
+  team: Team!
+  match: Match
+}
+
+type Team {
+  _id: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  rankLock: Boolean
+  sendCredentials: Boolean
+  num: Float
+  captain: Player
+  cocaptain: Player
+  matches: [Match!]
+  event: Event!
+  players: [Player!]!
+  nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  group: Group
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
 type Net {
   _id: String
   num: Int
@@ -67,21 +104,6 @@ enum ETieBreaker {
   FINAL_ROUND_NET
   FINAL_ROUND_NET_LOCKED
   TIE_BREAKER_NET
-}
-
-type PlayerRankingItem {
-  _id: String
-  rank: Int!
-  player: Player!
-  playerRanking: PlayerRanking!
-}
-
-type PlayerRanking {
-  _id: String
-  rankLock: Int!
-  rankings: [PlayerRankingItem!]
-  team: Team!
-  match: Match
 }
 
 type Room {
@@ -114,28 +136,7 @@ type Match {
   room: Room
   teamARanking: PlayerRanking
   teamBRanking: PlayerRanking
-}
-
-type Team {
-  _id: String
-  name: String!
-  logo: String
-  active: Boolean!
-  division: String!
-  rankLock: Boolean
-  sendCredentials: Boolean
-  num: Float
-  captain: Player
-  cocaptain: Player
-  matches: [Match!]
-  event: Event!
-  players: [Player!]!
-  nets: [Net!]!
-  playerRankings: [PlayerRanking!]
   group: Group
-  playerRanking: PlayerRanking
-  rankings: [PlayerRankingItem!]!
-  player: PlayerRankingItem!
 }
 
 type Group {
@@ -145,6 +146,7 @@ type Group {
   division: String!
   rule: String!
   teams: [Team!]!
+  matches: [Match!]!
   event: Event!
 }
 
@@ -601,6 +603,7 @@ input CreateMatchInput {
   teamA: String
   teamB: String
   division: String!
+  group: String
   numberOfNets: Float
   numberOfRounds: Float
   netVariance: Int
@@ -619,6 +622,7 @@ input UpdateMatchInput {
   teamA: String
   teamB: String
   division: String
+  group: String
   numberOfNets: Float
   numberOfRounds: Float
   netVariance: Int
@@ -727,6 +731,7 @@ input CreateGroupInput {
   rule: String! = "CAN_PLAY_EACH_OTHER"
   event: String!
   teams: [String!]!
+  matches: [String!]
 }
 
 input UpdateGroupInput {
@@ -736,5 +741,6 @@ input UpdateGroupInput {
   rule: String = "CAN_PLAY_EACH_OTHER"
   event: String
   teams: [String!]
+  matches: [String!]
   _id: String!
 }

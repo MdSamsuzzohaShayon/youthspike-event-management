@@ -1,4 +1,4 @@
-import { INetRelatives, IRoundRelatives, ITeam } from ".";
+import { IGroup, INetRelatives, IRoundRelatives, ITeam } from ".";
 
 export interface ICommonMatchEvent{
   netVariance: number;
@@ -33,6 +33,7 @@ export interface IAddMatch extends IDefaultMatch{
   teamB: string;
   numberOfNets: number;
   numberOfRounds: number;
+  group?: string;
 }
 
 export interface IMatch extends IMatchBase{
@@ -46,6 +47,7 @@ export interface IMatchRelatives extends IMatchBase{
   teamA: ITeam;
   teamB: ITeam;
   rounds: IRoundRelatives[];
+  group?: string;
 }
 
 export interface IMatchExpRel extends IMatchBase{
@@ -54,4 +56,5 @@ export interface IMatchExpRel extends IMatchBase{
   teamB: ITeam;
   rounds: IRoundRelatives[];
   nets: INetRelatives[];
+  group?: IGroup;
 }

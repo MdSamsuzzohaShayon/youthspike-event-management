@@ -26,7 +26,7 @@ function CurrentEvent({ currEvent }: ICurrentEventProps) {
       initial="hidden"
       animate="visible"
       transition={{ duration: 0.6 }}
-      className="event-detail w-full flex flex-col justify-center items-center gap-6 bg-gray-800 p-8 rounded-lg shadow-lg"
+      className="event-detail w-full flex flex-col justify-center items-center gap-6"
     >
       {/* Event Logo */}
       <motion.div

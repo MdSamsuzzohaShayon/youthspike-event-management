@@ -51,7 +51,20 @@ class EmitEvents {
       return;
     }
 
-    if (!this.isAuthorized(user.info) || !this.isTeamValid(teamA, teamB)) return;
+    if (!this.isAuthorized(user.info)) return;
+    if (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) {
+      // Check if captain or co-captain in in team A or team B 
+      if (
+        !(
+          (teamA.captain && teamA.captain._id === user.info.captainplayer) ||
+          (teamA.cocaptain && teamA.cocaptain._id === user.info.cocaptainplayer) ||
+          (teamB.captain && teamB.captain._id === user.info.captainplayer) ||
+          (teamB.cocaptain && teamB.cocaptain._id === user.info.cocaptainplayer)
+        )
+      ) {
+        return;
+      }
+    }
 
     joinData.team = await this.getTeamId(user.info, teamA, teamB);
     if (user.info) {
@@ -191,7 +204,6 @@ class EmitEvents {
 
     if (this.socket) this.socket.emit('update-net-from-client', actionData);
   }
-
 
   // Helper functions
   private isAuthorized(userInfo: IUser): boolean {

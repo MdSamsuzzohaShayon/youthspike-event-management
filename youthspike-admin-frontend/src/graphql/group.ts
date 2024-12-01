@@ -59,7 +59,7 @@ const GET_EVENT_WITH_GROUP = gql`
   }
 `;
 
-const GET_GROUPS= gql`
+const GET_GROUPS = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
@@ -68,6 +68,13 @@ query GetEvent($eventId: String!) {
     data {
       _id
       name
+      logo
+      startDate
+      endDate
+      active
+      autoAssign
+      autoAssignLogic
+      coachPassword
       divisions
       groups {
         _id

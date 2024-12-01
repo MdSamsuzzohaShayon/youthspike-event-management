@@ -11,6 +11,7 @@ import SocketProvider from '@/lib/SocketProvider';
 
 import "../utils/polyfills";
 import LdoProvider from '@/lib/LdoProvider';
+import AdminMenu from '@/components/layout/AdminMenu';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,7 +36,7 @@ export default function RootLayout({
             <UserProvider>
               <LdoProvider>
                 <Suspense fallback={<LoadingPage />}>
-                  <Menu />
+                  <AdminMenu />
                   {children}
                   <div className="mt-6">
                     <Footer />

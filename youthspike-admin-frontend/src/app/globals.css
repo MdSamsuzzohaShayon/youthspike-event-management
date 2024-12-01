@@ -186,6 +186,10 @@ dialog::backdrop {
 .bg-yellow-logo{
   background: #fce013;
 }
+
+.text-yellow{
+  color: #fce013;
+}
 .border-yellow-logo{
   border-color: #fce013;
 }

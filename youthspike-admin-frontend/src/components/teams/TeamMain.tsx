@@ -198,11 +198,14 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
       </dialog>
 
       <h1 className="text-4xl font-bold text-center text-white mb-6">Team Management</h1>
-      {currEvent && <CurrentEvent currEvent={currEvent} />}
-
-      <div className="navigator my-6">
-        <UserMenuList eventId={eventId} />
+      {/* Event Menu Start */}
+      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+        {currEvent && <CurrentEvent currEvent={currEvent} />}
+        <div className="navigator mt-8">
+          <UserMenuList eventId={eventId} />
+        </div>
       </div>
+      {/* Event Menu End */}
 
       <div className="mb-4">
         <SelectInput
