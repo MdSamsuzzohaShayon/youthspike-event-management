@@ -15,8 +15,6 @@ interface IAdminMenuProps {
   user: IUserContext | null;
 }
 
-
-
 function AdminMenu({ user }: IAdminMenuProps) {
   // ===== Hooks =====
   const router = useRouter();
@@ -46,19 +44,18 @@ function AdminMenu({ user }: IAdminMenuProps) {
     } else {
       setEventId(null);
     }
-  }
-
+  };
 
   const handleMenuOpen = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsMenuOpen(true);
     fetchEvent();
-  }
+  };
 
   // ===== Component Mount =====
   useEffect(() => {
     fetchEvent();
-  }, [params, router, pathname]);
+  }, [params, router, pathname, fetchEvent]);
 
   // Lock the body scroll when the menu is open
   useEffect(() => {
@@ -110,7 +107,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
 
             {/* User Info */}
             <div className="user-info text-center mb-8">
-              <Link href={ADMIN_FRONTEND_URL}>
+              <Link onClick={() => setIsMenuOpen(false)} href={ADMIN_FRONTEND_URL}>
                 <Image height={100} width={100} src="/free-logo.png" alt="User Avatar" className="w-16 h-16 mx-auto rounded-full border-2 border-yellow" />
               </Link>
 
@@ -121,7 +118,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
             {/* Menu Links */}
             <ul className="menu-list space-y-6">
               <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                <Link href={ADMIN_FRONTEND_URL} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                <Link onClick={() => setIsMenuOpen(false)} href={ADMIN_FRONTEND_URL} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                   <Image height={40} width={40} src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
                   Home
                 </Link>
@@ -129,31 +126,51 @@ function AdminMenu({ user }: IAdminMenuProps) {
               {eventId && (
                 <>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/${eventId}/settings/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link
+                      onClick={() => setIsMenuOpen(false)}
+                      href={`${ADMIN_FRONTEND_URL}/${eventId}/settings/${ldoIdUrl}`}
+                      className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                    >
                       <Image height={40} width={40} src="/icons/setting.svg" alt="Settings" className="w-6 mr-4 svg-white" />
                       Settings
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link
+                      onClick={() => setIsMenuOpen(false)}
+                      href={`${ADMIN_FRONTEND_URL}/${eventId}/teams/${ldoIdUrl}`}
+                      className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                    >
                       <Image height={40} width={40} src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
                       Teams
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/${eventId}/groups/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link
+                      onClick={() => setIsMenuOpen(false)}
+                      href={`${ADMIN_FRONTEND_URL}/${eventId}/groups/${ldoIdUrl}`}
+                      className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                    >
                       <Image height={40} width={40} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
                       Groups
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link
+                      onClick={() => setIsMenuOpen(false)}
+                      href={`${ADMIN_FRONTEND_URL}/${eventId}/players/${ldoIdUrl}`}
+                      className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                    >
                       <Image height={40} width={40} src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
                       Roster
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/${eventId}/matches/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link
+                      onClick={() => setIsMenuOpen(false)}
+                      href={`${ADMIN_FRONTEND_URL}/${eventId}/matches/${ldoIdUrl}`}
+                      className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                    >
                       <Image height={40} width={40} src="/icons/trophy.svg" alt="Matches" className="w-6 mr-4 svg-white" />
                       Matches
                     </Link>
@@ -163,7 +180,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
 
               {user?.info?.role === UserRole.director && (
                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                  <Link href={`${ADMIN_FRONTEND_URL}/account`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                  <Link onClick={() => setIsMenuOpen(false)} href={`${ADMIN_FRONTEND_URL}/account`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                     <Image height={40} width={40} src="/icons/account.svg" alt="Account" className="w-6 mr-4 svg-white" />
                     Account
                   </Link>
@@ -173,19 +190,19 @@ function AdminMenu({ user }: IAdminMenuProps) {
               {user?.info?.role === UserRole.admin && (
                 <>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/admin`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link onClick={() => setIsMenuOpen(false)} href={`${ADMIN_FRONTEND_URL}/admin`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                       <Image height={40} width={40} src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
                       Admin
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/admin/directors`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link onClick={() => setIsMenuOpen(false)} href={`${ADMIN_FRONTEND_URL}/admin/directors`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                       <Image height={40} width={40} src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
                       LDOs
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link href={`${ADMIN_FRONTEND_URL}/events/tournament`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link onClick={() => setIsMenuOpen(false)} href={`${ADMIN_FRONTEND_URL}/events/tournament`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                       <Image height={40} width={40} src="/icons/event.svg" alt="Tournament" className="w-6 mr-4 svg-white" />
                       Tournament
                     </Link>

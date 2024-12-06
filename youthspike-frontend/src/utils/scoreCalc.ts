@@ -29,6 +29,37 @@ function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE
   return { score, plusMinusScore };
 }
 
+function calcMatchScore(roundList: IRoundRelatives[], allNets: INetRelatives[], teamE: ETeam) {
+  let teamScore = 0;
+  let oponentScore = 0;
+  let teamPlusMinus = 0;
+  let oponentPlusMinus = 0;
+  const oponentE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+
+  roundList.forEach((r) => {
+    // @ts-ignore
+    const netsOfRound = allNets.filter((n) => n.round._id === r._id);
+    const { score: ts, plusMinusScore: tpms } = calcRoundScore(
+      netsOfRound,
+      // @ts-ignore
+      r,
+      teamE,
+    );
+    const { score: os, plusMinusScore: otms } = calcRoundScore(
+      netsOfRound,
+      // @ts-ignore
+      r,
+      oponentE,
+    );
+    teamScore += ts;
+    oponentScore += os;
+    teamPlusMinus += tpms;
+    oponentPlusMinus += otms;
+  });
+
+  return { teamScore, oponentScore, teamPlusMinus, oponentPlusMinus }
+}
+
 function calcPairScore(playerA: number | null | undefined, playerB: number | null | undefined): number {
   let ps = 0;
   if (playerA) ps += playerA;
@@ -36,4 +67,4 @@ function calcPairScore(playerA: number | null | undefined, playerB: number | nul
   return ps;
 }
 
-export { calcRoundScore, calcPairScore };
+export { calcRoundScore, calcPairScore, calcMatchScore };

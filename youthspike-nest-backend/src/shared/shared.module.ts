@@ -161,16 +161,54 @@ export class SharedModule {
   async onApplicationBootstrap() {
     try {
       const userService = this.modRef.get(UserService);
-      const hashedPassword = await bcrypt.hash(this.configService.get<string>('ADMIN_PASSWORD'), 10);
-      await userService.createOrUpdateAdmin({
-        firstName: this.configService.get<string>('ADMIN_FIRST_NAME'),
-        lastName: this.configService.get<string>('ADMIN_LAST_NAME'),
-        role: UserRole.admin,
-        active: true,
-        email: this.configService.get<string>('ADMIN_EMAIL'),
-        password: hashedPassword,
-        passcode: this.configService.get<string>('ADMIN_PASSCODE'),
-      });
+      // const hashedPassword = await bcrypt.hash(this.configService.get<string>('ADMIN_PASSWORD'), 10);
+      const adminList = [
+        {
+          firstName: this.configService.get<string>('ADMIN1_FIRST_NAME'),
+          lastName: this.configService.get<string>('ADMIN1_LAST_NAME'),
+          role: UserRole.admin,
+          active: true,
+          email: this.configService.get<string>('ADMIN1_EMAIL'),
+          password: this.configService.get<string>('ADMIN1_PASSWORD'),
+          passcode: this.configService.get<string>('ADMIN1_PASSCODE'),
+        },
+        {
+          firstName: this.configService.get<string>('ADMIN2_FIRST_NAME'),
+          lastName: this.configService.get<string>('ADMIN2_LAST_NAME'),
+          role: UserRole.admin,
+          active: true,
+          email: this.configService.get<string>('ADMIN2_EMAIL'),
+          password: this.configService.get<string>('ADMIN2_PASSWORD'),
+          passcode: this.configService.get<string>('ADMIN2_PASSCODE'),
+        },
+        {
+          firstName: this.configService.get<string>('ADMIN3_FIRST_NAME'),
+          lastName: this.configService.get<string>('ADMIN3_LAST_NAME'),
+          role: UserRole.admin,
+          active: true,
+          email: this.configService.get<string>('ADMIN3_EMAIL'),
+          password: this.configService.get<string>('ADMIN3_PASSWORD'),
+          passcode: this.configService.get<string>('ADMIN3_PASSCODE'),
+        },
+        {
+          firstName: this.configService.get<string>('ADMIN4_FIRST_NAME'),
+          lastName: this.configService.get<string>('ADMIN4_LAST_NAME'),
+          role: UserRole.admin,
+          active: true,
+          email: this.configService.get<string>('ADMIN4_EMAIL'),
+          password: this.configService.get<string>('ADMIN4_PASSWORD'),
+          passcode: this.configService.get<string>('ADMIN4_PASSCODE'),
+        },
+      ];
+
+      const userPromises = [];
+      for (let i = 0; i < adminList.length; i += 1) {
+        const adminExist = await userService.findOne({ email: adminList[i].email });
+        if (!adminExist) {
+          userPromises.push(userService.create(adminList[i]));
+        }
+      }
+      if (userPromises.length > 0) await Promise.all(userPromises);
     } catch (error) {
       console.log(error);
     }

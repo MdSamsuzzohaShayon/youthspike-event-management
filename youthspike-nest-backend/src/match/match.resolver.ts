@@ -20,6 +20,7 @@ import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { EmailsenderService } from 'src/emailsender/emailsender.service';
+import { GroupService } from 'src/group/group.service';
 
 @ObjectType()
 class GetMatchesResponse extends AppResponse<Match[]> {
@@ -44,6 +45,7 @@ export class MatchResolver {
     private roomService: RoomService,
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
+    private groupService: GroupService,
     private emailsenderService: EmailsenderService,
   ) { }
   // ===== Healper Functions =====
@@ -409,7 +411,7 @@ export class MatchResolver {
   async group(@Parent() match: Match) {
     try {
       if (!match.group) return null;
-      return this.eventService.findById(match.group?.toString());
+      return this.groupService.findById(match.group?.toString());
     } catch {
       return null;
     }

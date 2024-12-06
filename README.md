@@ -53,11 +53,15 @@ ___
       
 
 ### Requirements
+ - Group list
+  - In the group list -> show list of teams in each group
+ - In match, there will be description and location both -> both will be in the match screen (frontend)
  - (web socket) Update match properly and show win and losses properly
  - Add team and players
   - Create a team and player should be able to add to the team (In player or team edit option)
- - Menu
+  - Rank team properly according to this -> https://www.canva.com/design/DAGYKsAdBD0/r4iaHg8fT7og3MkfNjda5w/edit
   - In the roster: game + and - (how many game a player is playing)
+ - Menu
   - When in a particular group (in group filter), show standings of a team
   - When creating a match, for selecting group (all / bracket)
   - Select group a match (only sort by group stage game) show the records according to group
@@ -267,4 +271,3 @@ ___
 
 
 ### Ask
- Currently, it takes us to the login page if someone is not logged in. Okay no problem, I will take them to matches page. I will create a system where you can edit email before sending it, but it will take little bit time, if you say, I will start working on that.

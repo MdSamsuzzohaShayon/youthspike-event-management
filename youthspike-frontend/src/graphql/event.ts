@@ -42,6 +42,10 @@ matches {
   date
   division
   completed
+  group{
+    _id
+    name
+  }
   teamA {
     _id
     name
