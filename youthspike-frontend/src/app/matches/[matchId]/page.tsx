@@ -57,29 +57,16 @@ import { ITeiBreakerAction } from '@/types/room';
 /**
  * Test Match
  *
- * FC Barcelona
+ * Liverpool FC
  * Captain
- * pfn1193
- * Co-captains
- * pfn1393
+ * pfn11124
  *
  *
- * Bayern Munich FC
+ * Aston Villa
  * Captain
- * pfn395new
- * Co-captains
- * pfn295
+ * pfn7125
  *
  *
- * Real Madrid
- * Captain
- * pfn1994
- * Co-captain
- * pfn2094
- *
- *
- *
- * http://localhost:3001/matches/66fadc13002cfc571836844a
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -123,7 +110,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   const fetchData = async (userDetail: IUserContext) => {
     const result = await getMatch({ variables: { matchId: params.matchId } });
-    console.log({eventId: result.data.getMatch.data.event._id});
     
     if (result?.data?.getMatch?.data) {
       if (result.data.getMatch.data?.event?._id) {

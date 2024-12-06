@@ -4,7 +4,7 @@ import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProp
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
 import { IPlayer, IPlayerRecord } from './player';
-import { ITeam } from './team';
+import { ITeam, ITeamScore } from './team';
 import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from './match';
 import { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse } from './net';
 import { IRoundBase, IRoundExpRel, IRoundRelatives } from './round';
@@ -66,6 +66,7 @@ export type {
 
   // Team
   ITeam,
+  ITeamScore,
 
   // Match
   IAddMatch,

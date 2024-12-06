@@ -117,7 +117,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const renderContent = useCallback(() => {
     const renderMap = {
       [EEventItem.PLAYER]: <PlayerList playerList={playerList} matchList={matchList} showRank={false} />,
-      [EEventItem.TEAM]: <TeamList teamList={teamList} matchList={matchList} />,
+      [EEventItem.TEAM]: <TeamList teamList={teamList} selectedGroup={selectedGroup} matchList={matchList} />,
       [EEventItem.MATCH]: <MatchList matchList={matchList} division={currDivision} />,
     };
     return renderMap[selectedItem] || null;

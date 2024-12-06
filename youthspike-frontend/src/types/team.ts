@@ -22,6 +22,18 @@ export interface ITeam {
   playerRanking: IPlayerRanking;
 }
 
+
+export interface ITeamScore {
+  rank: number;
+  totalMatches: number;
+  overallWins: number;
+  overallLoses: number;
+  groupWins: number;
+  groupLoses: number;
+  matchAvgDiff: number;
+  gameAvgDiff: number;
+}
+
 // eslint-disable-next-line no-shadow
 export enum ETeam {
   // eslint-disable-next-line no-unused-vars

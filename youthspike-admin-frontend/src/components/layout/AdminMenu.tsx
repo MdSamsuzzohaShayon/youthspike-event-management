@@ -127,7 +127,7 @@ const AdminMenu = () => {
 
                         {/* User Info */}
                         <div className="user-info text-center mb-8">
-                            <Link href="/">
+                            <Link onClick={()=> setIsMenuOpen(false)} href="/">
                                 <Image
                                     height={100}
                                     width={100}
@@ -144,7 +144,7 @@ const AdminMenu = () => {
                         {/* Menu Links */}
                         <ul className="menu-list space-y-6">
                             <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                <Link
+                                <Link onClick={()=> setIsMenuOpen(false)}
                                     href="/"
                                     className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                 >
@@ -154,7 +154,7 @@ const AdminMenu = () => {
                             </motion.li>
                             {eventId && (<>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href={`/${eventId}/settings/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -163,7 +163,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href={`/${eventId}/teams/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -172,7 +172,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href={`/${eventId}/groups/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -181,7 +181,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href={`/${eventId}/players/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -190,7 +190,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href={`/${eventId}/matches/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -202,7 +202,7 @@ const AdminMenu = () => {
 
                             {user?.info?.role === UserRole.director && (
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href="/account"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -214,7 +214,7 @@ const AdminMenu = () => {
 
                             {user?.info?.role === UserRole.admin && (<>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href="/admin"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -223,7 +223,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href="/admin/directors"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -231,15 +231,15 @@ const AdminMenu = () => {
                                         LDOs
                                     </Link>
                                 </motion.li>
-                                <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link
+                                {/* <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
+                                    <Link onClick={()=> setIsMenuOpen(false)}
                                         href="/events/tournament"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
                                         <img src="/icons/event.svg" alt="Tournament" className="w-6 mr-4 svg-white" />
                                         Tournament
                                     </Link>
-                                </motion.li>
+                                </motion.li> */}
                             </>)}
                         </ul>
 

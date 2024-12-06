@@ -1,5 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IEvent } from './event';
+import { IGroup } from './group';
 import { INetRelatives } from './net';
 import { IRoom } from './room';
 import { IRoundExpRel } from './round';
@@ -39,6 +40,7 @@ export interface IMatchRelatives extends IMatchBase {
   teamA: string;
   teamB: string;
   rounds: string[];
+  group?: string;
 }
 
 export interface IMatchExpRel extends IMatchBase {
@@ -50,4 +52,5 @@ export interface IMatchExpRel extends IMatchBase {
   rounds: IRoundExpRel[];
   nets: INetRelatives[];
   room: IRoom;
+  group?: IGroup;
 }
