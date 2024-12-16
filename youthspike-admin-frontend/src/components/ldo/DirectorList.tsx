@@ -1,92 +1,121 @@
-import { ILDOItem } from '@/types';
-import DirectorRow from './DirectorRow';
+import React, { useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useMutation } from '@apollo/client';
-import { DELETE_DIRECTOR } from '@/graphql/director';
-import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { DELETE_DIRECTOR } from '@/graphql/director';
+import DirectorRow from './DirectorRow';
+import { ILDOItem } from '@/types';
 
-/**
- * React component that represent a list of directors
- */
-interface IDirectorListProps{
-    ldoList: ILDOItem[];
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    referchFunc?: ()=> void;
+interface IDirectorListProps {
+  ldoList: ILDOItem[];
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  referchFunc?: () => void;
 }
+
 function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps) {
-    const [ldoIdToDelete, setLdoIdToDelete] = useState<string | null>(null);
+  const [ldoIdToDelete, setLdoIdToDelete] = useState<string | null>(null);
+  const [deleteDirector] = useMutation(DELETE_DIRECTOR);
+  const dialogEl = useRef<HTMLDialogElement | null>(null);
 
-    const [deleteDirector, { data }] = useMutation(DELETE_DIRECTOR);
+  const handleDeleteLDO = (e: React.SyntheticEvent, ldoId: string) => {
+    e.preventDefault();
+    setLdoIdToDelete(ldoId);
+    dialogEl.current?.showModal();
+  };
 
-    const dialogEl = useRef<HTMLDialogElement | null>(null);
+  const handleCancel = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setLdoIdToDelete(null);
+    dialogEl.current?.close();
+  };
 
-    const handleDeleteLDO = (e: React.SyntheticEvent, ldoId: string) => {
-        e.preventDefault();
-
-        if (ldoId) {
-            setLdoIdToDelete(ldoId);
-            if (dialogEl.current) dialogEl.current.showModal();
-        }
-    }
-
-    const handleCancel = (e: React.SyntheticEvent) => {
-        e.preventDefault();
+  const handleConfirmDelete = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (ldoIdToDelete) {
+      try {
+        setIsLoading(true);
+        await deleteDirector({ variables: { dId: ldoIdToDelete } });
         setLdoIdToDelete(null);
-        if (dialogEl.current) dialogEl.current.close();
+        dialogEl.current?.close();
+        referchFunc && (await referchFunc());
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
+  };
 
-    const handleConfirmDelete = async (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        if (ldoIdToDelete) {
-            try {
-                setIsLoading(true);
-                await deleteDirector({ variables: { dId: ldoIdToDelete } });
-                setLdoIdToDelete(null);
-                if (dialogEl.current) dialogEl.current.close();
-                if(referchFunc) await referchFunc();
-            } catch (error) {
-                console.log(error);
+  return (
+    <div className="directorList w-full flex flex-col gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">
+      <div className="overflow-x-auto">
+        <motion.table
+          className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <thead className="bg-gray-700 text-white">
+            <tr>
+              <th className="py-3 px-4">Name</th>
+              <th className="py-3 px-4">Logo</th>
+              <th className="py-3 px-4">Director</th>
+              <th className="py-3 px-4">Email</th>
+              <th className="py-3 px-4">Number</th>
+              <th className="py-3 px-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ldoList?.map((ldo, i) => (
+              <DirectorRow
+                key={ldo._id}
+                ldo={ldo}
+                handleDeleteLDO={handleDeleteLDO}
+              />
+            ))}
+          </tbody>
+        </motion.table>
+      </div>
 
-            }finally{
-                setIsLoading(false);
-            }
-        }
-    }
-
-    return (
-        <div className="overflow-x-auto">
-            <table className="w-full bg-transparent border shadow border-b border-gray-800">
-                <thead>
-                    <tr className='border-b border-gray-800 hover:bg-gray-800'>
-                        <th className="py-2 px-4 uppercase" >Name</th>
-                        <th className="py-2 px-4 uppercase" >Logo</th>
-                        <th className="py-2 px-4 uppercase" >Director</th>
-                        <th className="py-2 px-4 uppercase" >Director Email</th>
-                        <th className="py-2 px-4 uppercase" >Number</th>
-                        <th className="py-2 px-4 uppercase" >Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {ldoList?.map((ldo: ILDOItem, i: number) => (
-                        <DirectorRow key={i} ldo={ldo} handleDeleteLDO={handleDeleteLDO} />
-                    ))}
-                </tbody>
-            </table>
-            <dialog ref={dialogEl} className='w-5/6 mt-4 items-center '>
-                <div className="dialog-wrapper flex flex-col justify-between gap-y-4">
-                <div className="w-full flex justify-end">
-                    <Image height={20} width={20} src="/icons/close.svg" alt='close-icon' role='presentation' onClick={handleCancel} className='w-6 h-6 svg-white' />
-                </div>
-                <h1>Are sure you want to delete the LDO?</h1>
-                <div className="btn-group w-full flex gap-x-2">
-                    <button className="btn-primary" onClick={handleConfirmDelete}>Yes</button>
-                    <button className="btn-danger" type='button' onClick={handleCancel} >Cancel</button>
-                </div>
-                </div>
-            </dialog>
+      <dialog
+        ref={dialogEl}
+        className="dialog-wrapper w-11/12 max-w-md bg-gray-800 text-gray-300 rounded-lg p-6 shadow-lg"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-end">
+            <Image
+              height={20}
+              width={20}
+              src="/icons/close.svg"
+              alt="close-icon"
+              role="presentation"
+              onClick={handleCancel}
+              className="cursor-pointer"
+            />
+          </div>
+          <h2 className="text-lg font-medium text-white">Are you sure you want to delete this director?</h2>
+          <div className="flex gap-2">
+            <motion.button
+              className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700"
+              onClick={handleConfirmDelete}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Yes
+            </motion.button>
+            <motion.button
+              className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700"
+              onClick={handleCancel}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Cancel
+            </motion.button>
+          </div>
         </div>
-    );
-};
-
+      </dialog>
+    </div>
+  );
+}
 
 export default DirectorList;

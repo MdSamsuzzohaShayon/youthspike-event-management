@@ -47,7 +47,7 @@ export class MatchResolver {
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
     private emailsenderService: EmailsenderService,
-  ) { }
+  ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
     const updatePromises = [];
@@ -136,6 +136,7 @@ export class MatchResolver {
         rosterLock: input.rosterLock ?? eventExist.rosterLock,
         timeout: input.timeout ?? eventExist.timeout,
         description: input.description ?? eventExist.description,
+        location: input.location ?? eventExist.location,
         fwango: input.fwango ?? eventExist.fwango,
       };
 
@@ -235,13 +236,18 @@ export class MatchResolver {
         netIds.push(...netIdsOfRound);
 
         // Update the nets field in the created round
-        createPromises.push(this.roundService.update({ nets: netIdsOfRound }, round._id));
+        createPromises.push(this.roundService.updateOne({ _id: round._id }, { nets: netIdsOfRound }));
       }
-      createPromises.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamA }));
-      createPromises.push(this.teamService.update({ $addToSet: { matches: newMatch._id } }, { _id: input.teamB }));
-      createPromises.push(this.roomService.update({ _id: newRoom._id }, { match: newMatch._id }));
-      createPromises.push(this.eventService.update({ matches: [newMatch._id] }, input.event));
-      createPromises.push(this.matchService.update({ nets: netIds, rounds: roundIds }, newMatch._id));
+      createPromises.push(
+        this.teamService.updateMany(
+          { _id: { $in: [input.teamA, input.teamB] } },
+          { $addToSet: { matches: newMatch._id } },
+        ),
+      );
+
+      createPromises.push(this.roomService.updateOne({ _id: newRoom._id }, { match: newMatch._id }));
+      createPromises.push(this.eventService.updateOne({ _id: input.event }, { matches: [newMatch._id] }));
+      createPromises.push(this.matchService.updateOne({ _id: newMatch._id }, { nets: netIds, rounds: roundIds }));
 
       await Promise.all(createPromises);
 
@@ -261,7 +267,7 @@ export class MatchResolver {
   @Mutation((returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
     try {
-      const updatedMatch = await this.matchService.update(input, matchId);
+      const updatedMatch = await this.matchService.updateOne({ _id: matchId }, input);
       return {
         data: updatedMatch,
         message: 'Match Updated successfully!',

@@ -17,15 +17,6 @@ export class RoundService {
     return newRounds;
   }
 
-  async update(round: UpdateQuery<Round>, id: string) {
-    return this.roundModel.findOneAndUpdate(
-      {
-        _id: id,
-      },
-      round,
-      { upsert: true, new: true },
-    );
-  }
 
   async updateOne(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>) {
     return this.roundModel.updateOne(filter, updateData);

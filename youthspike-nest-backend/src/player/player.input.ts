@@ -44,14 +44,8 @@ export class UpdatePlayerInput extends PartialType(CreatePlayerInput) {
 export class UpdatePlayersInput extends PartialType(CreatePlayerInput) {
   @Field()
   _id: string;
+
+  @Field({ nullable: true })
+  status?: EPlayerStatus;
 }
 
-
-@InputType()
-export class RankingPlayerInput {
-  @Field({ nullable: false })
-  rank: number;
-
-  @Field({ nullable: false })
-  playerId: string;
-}

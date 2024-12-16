@@ -8,6 +8,7 @@ export interface ICommonMatchEvent{
   rosterLock: string;
   timeout: number;
   description: string;
+  location: string;
   fwango?: string | null;
 }
 

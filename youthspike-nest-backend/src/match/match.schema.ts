@@ -59,6 +59,10 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true })
   @Prop({ required: false })
+  location?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
   description?: string;
 
   @Field({ nullable: true })

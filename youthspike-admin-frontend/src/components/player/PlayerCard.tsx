@@ -16,11 +16,14 @@ import EmailInput from '../elements/forms/EmailInput';
 import SelectInput from '../elements/forms/SelectInput';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
+import CheckboxInput from '../elements/forms/CheckboxInput';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
   eventId: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  isChecked: boolean;
+  handleSelectPlayer: (e: React.SyntheticEvent, _id: string) => void;
   teamId?: string | null;
   showRank?: boolean;
   rankControls?: boolean;
@@ -31,7 +34,7 @@ interface PlayerCardProps {
   rank?: number | null;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank, isChecked, handleSelectPlayer,  }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -245,7 +248,10 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       >
         {/* Draggable element start  */}
         <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>
-          <input type="checkbox" name="player-select" id="option" className="w-1/12" />
+        <div className="ml-4"></div>
+          {user.info?.role === UserRole.admin || user.info?.role === UserRole.director
+          ? (<CheckboxInput name='bulk-match' defaultValue={isChecked} _id={player._id} handleInputChange={handleSelectPlayer} />)
+          : <div className='w-4' />}
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
@@ -283,7 +289,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         {/* Draggable element End  */}
 
         {/* Operation menu start  */}
-        <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-20 z-10 rounded-lg`}>
+        <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-10 z-10 rounded-lg`}>
           <li role="presentation">
             {' '}
             <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>

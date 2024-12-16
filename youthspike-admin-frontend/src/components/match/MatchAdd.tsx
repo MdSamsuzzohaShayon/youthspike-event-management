@@ -42,6 +42,7 @@ const initialAddMatch: IAddMatch = {
     date: new Date().toISOString(),
     event: "",
     description: "",
+    location: "",
     numberOfNets: 0,
     numberOfRounds: 0,
     teamA: "",
@@ -204,6 +205,7 @@ function MatchAdd({ eventId,
                 mObj.rosterLock = eventData.rosterLock;
                 mObj.homeTeam = eventData.homeTeam;
                 mObj.description = eventData.description;
+                mObj.location = eventData.location;
                 mObj.fwango = eventData?.fwango;
             }
         }
@@ -215,7 +217,7 @@ function MatchAdd({ eventId,
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time (This is how the matches are ranked.)'
+            <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
                 required={!update} defaultValue={addMatch.date} vertical />
 
             {!update && (<>
@@ -250,6 +252,7 @@ function MatchAdd({ eventId,
             <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={addMatch.fwango} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} vertical extraCls='md:w-5/12' />
+            <TextInput handleInputChange={handleInputChange} name='location' required={!update} defaultValue={addMatch.location} vertical extraCls='md:w-5/12' />
             <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
         </form>
     )

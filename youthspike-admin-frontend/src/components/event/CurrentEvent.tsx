@@ -74,6 +74,7 @@ function CurrentEvent({ currEvent }: ICurrentEventProps) {
           className="icon w-6 h-6 svg-white"
         />
         <p>{currEvent.description}</p>
+        <p>{currEvent.location}</p>
       </motion.div>
 
       {/* Event Timing */}

@@ -52,6 +52,7 @@ const matchResponse = `
     rosterLock
     timeout
     description
+    location
     rounds {
       _id
       num

@@ -282,7 +282,7 @@ export class EventResolver {
           if (findItemIndex === -1) {
             // Create a regular expression for case-insensitive and trimmed search
             const regex = new RegExp(`^${prevDivList[i].trim()}$`, 'i');
-            divisionPromises.push(this.teamService.update({ division: '' }, { division: { $regex: regex } }));
+            divisionPromises.push(this.teamService.updateOne({ division: { $regex: regex } }, { division: '' }));
           }
         }
 
@@ -297,7 +297,7 @@ export class EventResolver {
 
               // Create a regular expression for case-insensitive and trimmed search
               const regex = new RegExp(`^${oe.trim()}$`, 'i');
-              divisionPromises.push(this.teamService.update({ division: ne }, { division: { $regex: regex } }));
+              divisionPromises.push(this.teamService.updateOne({ division: { $regex: regex } }, { division: ne }));
             }
           }
         }
@@ -579,7 +579,7 @@ export class EventResolver {
 
   @ResolveField()
   async players(@Parent() event: Event) {
-    return this.playerService.query({ _id: { $in: event.players } });
+    return this.playerService.find({ _id: { $in: event.players } });
   }
 
   @ResolveField()

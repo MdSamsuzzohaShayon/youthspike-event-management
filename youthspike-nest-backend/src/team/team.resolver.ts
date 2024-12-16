@@ -125,7 +125,7 @@ export class TeamResolver {
 
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
-      promiseOperations.push(this.eventService.update({ $push: { teams: newTeam._id } }, input.event));
+      promiseOperations.push(this.eventService.updateOne({ _id: input.event }, { $push: { teams: newTeam._id } }));
 
       // Create player ranking when creating match
       const playerRankings = [];
@@ -326,7 +326,7 @@ export class TeamResolver {
         updatePromises.push(this.playerService.updateOne({ _id: players[i] }, { $addToSet: { teams: teamExist._id } }));
       }
       teamObj.players = [...new Set([...prevPlayerIds, ...players])];
-      updatePromises.push(this.teamService.update(teamObj, { _id: teamId }));
+      updatePromises.push(this.teamService.updateOne({ _id: teamId }, teamObj));
 
       // ===== Update Player Ranking (Make sure all players have ranking) =====
       const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
@@ -511,7 +511,7 @@ export class TeamResolver {
   @ResolveField() // Specify the return type for "players"
   async players(@Parent() team: Team): Promise<Player[]> {
     try {
-      const players = await this.playerService.query({ teams: { $in: [team._id.toString()] } });
+      const players = await this.playerService.find({ teams: { $in: [team._id.toString()] } });
       return players;
     } catch (error) {
       console.error(error);

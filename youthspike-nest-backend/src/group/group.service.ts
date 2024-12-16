@@ -43,4 +43,8 @@ export class GroupService {
   async deleteMany(filter: FilterQuery<Group>) {
     return this.groupModal.deleteMany(filter);
   }
+
+  async deleteOne(filter: FilterQuery<Group>) {
+    return this.groupModal.deleteOne(filter);
+  }
 }

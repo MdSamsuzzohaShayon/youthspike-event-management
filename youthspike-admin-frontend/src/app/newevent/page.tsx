@@ -13,7 +13,7 @@ function EventNewPage() {
   if (isLoading) return <Loader />;
 
   return (
-    <div className="container mx-auto px-2 min-h-screen">
+    <div className="container mx-auto px-4 min-h-screen">
       <h1 className="my-4 text-center">New Event</h1>
       <div className="new-event-wrapper mb-5">
         {actErr && <Message error={actErr} />}

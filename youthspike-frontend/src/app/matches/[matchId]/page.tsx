@@ -60,13 +60,16 @@ import { ITeiBreakerAction } from '@/types/room';
  * Liverpool FC
  * Captain
  * pfn11124
+ * Co-captains
+ * pfn13124
+ *
  *
  *
  * Aston Villa
  * Captain
  * pfn7125
- *
- *
+ * Co-captains
+ * pfn4125
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -110,7 +113,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   const fetchData = async (userDetail: IUserContext) => {
     const result = await getMatch({ variables: { matchId: params.matchId } });
-    
+
     if (result?.data?.getMatch?.data) {
       if (result.data.getMatch.data?.event?._id) {
         setEvent(result.data.getMatch.data.event._id);

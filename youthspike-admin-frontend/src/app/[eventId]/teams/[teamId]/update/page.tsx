@@ -45,7 +45,7 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
   if (isLoading || loading) return <Loader />
 
   return (
-    <div className='container mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-4 min-h-screen'>
       <h1 className='mb-8 text-center'>Update Team</h1>
       <div className="navigator mb-4">
         <UserMenuList eventId={params.eventId} />

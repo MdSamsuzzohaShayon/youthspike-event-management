@@ -16,6 +16,7 @@ export interface IDefaultMatch {
   timeout: number;
   coachPassword: string;
   description: string;
+  location: string;
   fwango?: string | null;
 }
 

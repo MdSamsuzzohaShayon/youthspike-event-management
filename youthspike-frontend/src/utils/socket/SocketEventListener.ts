@@ -166,7 +166,7 @@ class SocketEventListener {
           const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
           if (roundObj) {
             const properRoundObj = { ...roundObj };
-            if (roundList[i]._id >= data.subbedRound) {
+            if (roundList[i]._id === data.subbedRound) {
               properRoundObj.subs = data.subbedPlayers;
             }
             // @ts-ignore

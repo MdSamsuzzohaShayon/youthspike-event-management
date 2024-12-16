@@ -16,7 +16,6 @@ import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { EActionProcess } from '@/types/room';
-import { imgSize } from '@/utils/styles';
 import PointsByRoundPublic from './PointsByRoundPublic';
 
 interface MatchCardProps {
@@ -208,6 +207,10 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           </p>
         </div>
         <div className="w-1/2 text-right">
+          <p className="flex items-center gap-x-2">
+            <Image width={20} height={20} src="/icons/location.svg" className="w-6 svg-white" alt="location-logo" />
+            <span>{match.location}</span>
+          </p>
           <p className="flex items-center gap-x-2">
             <Image width={20} height={20} src="/icons/location.svg" className="w-6 svg-white" alt="location-logo" />
             <span>{match.description}</span>

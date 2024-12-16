@@ -55,6 +55,7 @@ function EventCard({ event }: IEventCardProps) {
             {`${monthNames[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}
           </p>
           {event.description && <p>{event.description}</p>}
+          {event.location && <p>{event.location}</p>}
         </div>
       </Link>
     </motion.div>

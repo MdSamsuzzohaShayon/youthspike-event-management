@@ -52,6 +52,8 @@ const AdminMenu = () => {
         if (params.eventId) {
             // @ts-ignore
             setEventId(params.eventId);
+        }else{
+            setEventId(null);
         }
         const userDetail = getUserFromCookie();
 
@@ -85,7 +87,7 @@ const AdminMenu = () => {
             {/* Open Menu Button */}
             <button
                 onClick={() => setIsMenuOpen(true)}
-                className="menu-button p-2 rounded-md"
+                className="menu-button rounded-md"
             >
                 <img src="/icons/menu.svg" alt="Open Menu" className="w-10 mt-4 svg-white" />
             </button>

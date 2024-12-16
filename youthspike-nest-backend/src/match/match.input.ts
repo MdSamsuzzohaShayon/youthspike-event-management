@@ -49,6 +49,9 @@ export class CreateMatchInput {
   @Field({ nullable: false })
   description?: string;
 
+  @Field({ nullable: false })
+  location?: string;
+
   @Field({ nullable: true })
   fwango?: string;
 }
@@ -103,4 +106,7 @@ export class FilterQueryInput {
 
   @Field({ nullable: true })
   description?: string;
+
+  @Field({ nullable: true })
+  location?: string;
 }

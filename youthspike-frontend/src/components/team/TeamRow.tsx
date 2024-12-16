@@ -1,7 +1,11 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
+import { AdvancedImage } from '@cloudinary/react';
+import cld from '@/config/cloudinary.config';
+import TextImg from '../elements/TextImg';
 
 interface ITeamRowProps {
   team: ITeam;
@@ -19,8 +23,13 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
       transition={{ duration: 0.3, delay: index * 0.1 }}
     >
       <td className="py-3 px-4 font-medium">{index + 1}</td>
-      <td className="py-3 px-4">{team.name}</td>
-      {selectedGroup && <td className="py-3 px-4">{teamScores && `${teamScores.groupWins}-${teamScores.groupLoses}`}</td> }
+      <td className="py-3 px-4 ">
+        <Link href={`/teams/${team._id}`} className='flex justify-start items-center gap-2'>
+          <span>{team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="h-10 w-10" /> : <TextImg fullText={team?.name} className="h-10 w-10" />}</span>
+          {team.name}
+        </Link>
+      </td>
+      {selectedGroup && <td className="py-3 px-4">{teamScores && `${teamScores.groupWins}-${teamScores.groupLoses}`}</td>}
       <td className="py-3 px-4">{teamScores && `${teamScores.matchAvgDiff.toFixed(2)}`}</td>
       <td className="py-3 px-4">{teamScores && `${teamScores.gameAvgDiff.toFixed(2)}`}</td>
       <td className="py-3 px-4">{teamScores && `${teamScores.overallWins}-${teamScores.overallLoses}`}</td>

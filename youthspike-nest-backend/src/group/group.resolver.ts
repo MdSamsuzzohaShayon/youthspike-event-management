@@ -12,7 +12,7 @@ import { Group } from './group.schema';
 import { CreateGroupInput, UpdateGroupInput } from './group.input';
 import { GroupService } from './group.service';
 import { EventService } from 'src/event/event.service';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, UpdateQuery } from 'mongoose';
 import { MatchService } from 'src/match/match.service';
 
 @ObjectType()
@@ -35,7 +35,7 @@ export class GroupResolver {
     private groupService: GroupService,
     private eventService: EventService,
     private matchService: MatchService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -80,8 +80,9 @@ export class GroupResolver {
        *  Step-1: Get user id from token if not logged in as admin
        */
       const updatePromises = [];
+      const groupObj: UpdateQuery<Group> = { ...updateInput };
       // Update team
-      if (updateInput.teams.length > 0) {
+      if (updateInput.teams && updateInput.teams.length > 0) {
         for (const team of updateInput.teams) {
           const teamExist = await this.teamService.findOne({ _id: team });
           if (teamExist && teamExist.group) {
@@ -91,10 +92,9 @@ export class GroupResolver {
           }
           updatePromises.push(this.teamService.updateOne({ _id: team }, { group: updateInput._id }));
         }
+        groupObj.$addToSet = { teams: { $each: updateInput.teams } };
       }
-      updatePromises.push(
-        this.groupService.updateOne({ _id: updateInput._id }, { $addToSet: { teams: { $each: updateInput.teams } } }),
-      );
+      updatePromises.push(this.groupService.updateOne({ _id: updateInput._id }, groupObj));
 
       await Promise.all(updatePromises);
       const findGroup = await this.groupService.findOne({ _id: updateInput._id });
@@ -104,6 +104,46 @@ export class GroupResolver {
         success: true,
         message: 'Group has been updated successfully.',
         code: HttpStatus.ACCEPTED,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetGroupResponse)
+  async deleteGroup(
+    @Context() context: any,
+    @Args('groupId', { nullable: true }) groupId: string,
+  ): Promise<GetGroupResponse> {
+    try {
+      const groupExist = await this.groupService.findById(groupId);
+      if (!groupExist) {
+        return AppResponse.notFound('Group');
+      }
+      // Teams, matches, event
+      const deletePromises = [];
+      if (groupExist.teams.length > 0) {
+        deletePromises.push(
+          this.teamService.updateMany({ _id: { $in: groupExist.teams } }, { $pull: { group: groupId } }),
+        );
+      }
+
+      if (groupExist.matches.length > 0) {
+        deletePromises.push(
+          this.matchService.updateMany({ _id: { $in: groupExist.matches } }, { $pull: { group: groupId } }),
+        );
+      }
+
+      deletePromises.push(this.eventService.updateOne({ _id: groupExist.event }, { $pull: { group: groupId } }));
+      deletePromises.push(this.groupService.deleteOne({ _id: groupId }));
+
+      await Promise.all(deletePromises);
+      return {
+        success: true,
+        message: 'Group has been deleted successfully.',
+        code: HttpStatus.NO_CONTENT,
       };
     } catch (err) {
       return AppResponse.handleError(err);

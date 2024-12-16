@@ -27,10 +27,9 @@ class GetNetResponse extends AppResponse<Net> {
   data?: Net;
 }
 
-
 @Resolver((of) => Net)
 export class NetResolver {
-  constructor(private roundService: RoundService, private netService: NetService, private teamService: TeamService) { }
+  constructor(private roundService: RoundService, private netService: NetService, private teamService: TeamService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain)
@@ -40,24 +39,23 @@ export class NetResolver {
       /**
        * TODO:
        *  Set players for team A and team B
-      */
+       */
       const findNetPromise: any = (await this.netService.findOne({ _id: netId })).populate('match');
       const netExist = await findNetPromise;
-      if (!netExist) return AppResponse.notFound("Net");
+      if (!netExist) return AppResponse.notFound('Net');
       const teamIds = [];
       if (netExist.match?.teamA) teamIds.push(netExist.match.teamA);
       if (netExist.match?.teamB) teamIds.push(netExist.match.teamB);
 
       await Promise.all([
         this.netService.updateOne({ _id: netId }, input),
-        this.teamService.updateOne({ _id: { $in: teamIds } }, { $push: { nets: netId } })
+        this.teamService.updateOne({ _id: { $in: teamIds } }, { $push: { nets: netId } }),
       ]);
-
 
       return {
         data: netExist,
         code: HttpStatus.ACCEPTED,
-        message: "Net has been updated successfully!",
+        message: 'Net has been updated successfully!',
         success: true,
       };
     } catch (err) {
@@ -65,13 +63,14 @@ export class NetResolver {
     }
   }
 
-
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain,  UserRole.co_captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((returns) => GetNetsResponse)
-  async updateNets(@Args('input', { type: () => [UpdateMultipleNetInput] }) netsInput: UpdateMultipleNetInput[]): Promise<GetNetsResponse> {
+  async updateNets(
+    @Args('input', { type: () => [UpdateMultipleNetInput] }) netsInput: UpdateMultipleNetInput[],
+  ): Promise<GetNetsResponse> {
     try {
-      const netIds = netsInput.map(net => net._id);
+      const netIds = netsInput.map((net) => net._id);
       const netsToUpdate = netsInput.map(({ _id, ...updateData }) => ({
         updateData,
         _id,
@@ -83,7 +82,7 @@ export class NetResolver {
       return {
         data: updatedNets,
         code: HttpStatus.ACCEPTED,
-        message: "Multiple nets have been updated successfully!",
+        message: 'Multiple nets have been updated successfully!',
         success: true,
       };
     } catch (err) {
@@ -91,10 +90,8 @@ export class NetResolver {
     }
   }
 
-  private async bulkUpdateNets(netsToUpdate: { updateData: any, _id: string }[]): Promise<any[]> {
-    const updatePromises = netsToUpdate.map(({ updateData, _id }) =>
-      this.netService.update(updateData, _id)
-    );
+  private async bulkUpdateNets(netsToUpdate: { updateData: any; _id: string }[]): Promise<any[]> {
+    const updatePromises = netsToUpdate.map(({ updateData, _id }) => this.netService.update(updateData, _id));
 
     return await Promise.all(updatePromises);
   }
@@ -102,12 +99,12 @@ export class NetResolver {
   private async updateRelatedTeams(netIds: string[]): Promise<void> {
     const netsWithMatches = await this.netService.findNetsWithMatches(netIds);
 
-    const teamUpdates = netsWithMatches.flatMap(net => {
+    const teamUpdates = netsWithMatches.flatMap((net) => {
       const teamIds = [];
       const netMatch: any = net?.match;
       if (netMatch?.teamA) teamIds.push(netMatch?.teamA);
       if (netMatch?.teamB) teamIds.push(netMatch?.teamB);
-      return teamIds.map(teamId => this.teamService.update({ $push: { nets: net._id } }, { _id: teamId }));
+      return teamIds.map((teamId) => this.teamService.updateOne({ _id: teamId }, { $push: { nets: net._id } }));
     });
 
     await Promise.all(teamUpdates);
@@ -138,7 +135,6 @@ export class NetResolver {
       return AppResponse.handleError(err);
     }
   }
-
 
   /**
    * POPULATE
@@ -173,5 +169,4 @@ export class NetResolver {
       return null;
     }
   }
-
 }

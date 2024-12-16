@@ -125,6 +125,7 @@ type Match {
   autoAssignLogic: String
   rosterLock: String
   timeout: Float
+  location: String
   description: String
   fwango: String
   completed: Boolean
@@ -193,6 +194,7 @@ type Event {
   timeout: Float!
   coachPassword: String!
   description: String
+  location: String
 }
 
 type Player {
@@ -433,9 +435,6 @@ type GetGroupResponse {
   data: Group!
 }
 
-"""Date custom scalar type"""
-scalar Date
-
 type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
@@ -472,6 +471,7 @@ input FilterQueryInput {
   rosterLock: String
   timeout: Int
   description: String
+  location: String
 }
 
 type Mutation {
@@ -505,6 +505,7 @@ type Mutation {
   resetAllPlayerRankings: PlayerRankingResponse!
   createGroup(input: CreateGroupInput!): GetGroupResponse!
   updateGroup(updateInput: UpdateGroupInput!, eventId: String): GetGroupResponse!
+  deleteGroup(groupId: String): GetGroupResponse!
 }
 
 input UpdateUser {
@@ -544,6 +545,7 @@ input CreateEventInput {
   coachPassword: String!
   fwango: String
   description: String!
+  location: String!
   ldo: String!
   id: String
 }
@@ -566,6 +568,7 @@ input UpdateEventInput {
   coachPassword: String
   fwango: String
   description: String
+  location: String
   ldo: String
   id: String
 }
@@ -613,6 +616,7 @@ input CreateMatchInput {
   rosterLock: String
   timeout: Int
   description: String!
+  location: String!
   fwango: String
 }
 
@@ -632,6 +636,7 @@ input UpdateMatchInput {
   rosterLock: String
   timeout: Int
   description: String
+  location: String
   fwango: String
 }
 
@@ -717,6 +722,7 @@ input UpdatePlayersInput {
   rank: Float
   team: String
   _id: String!
+  status: String
 }
 
 input UpdatePlayerRankingInput {

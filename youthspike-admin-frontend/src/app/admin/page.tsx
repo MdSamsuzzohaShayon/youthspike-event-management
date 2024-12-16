@@ -55,7 +55,7 @@ function AdminPage() {
 
 
   return (
-    <div className='container mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-4 min-h-screen'>
       <h1 className='mt-4 text-center'>Admin Panel</h1>
       <div className="boxes flex justify-center items-center flex-wrap w-full gap-2 mt-4">
         <Link href={`/admin/directors`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >

@@ -14,6 +14,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import UserMenuList from '@/components/layout/UserMenuList';
 import CurrentEvent from '@/components/event/CurrentEvent';
+import Loader from '@/components/elements/Loader';
 
 interface IGroupsPageProps {
     params: {
@@ -23,8 +24,9 @@ interface IGroupsPageProps {
 
 function GroupsPage({ params }: IGroupsPageProps) {
     const { ldoIdUrl } = useLdoId();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const { data } = useQuery(GET_GROUPS, {
+    const { data, refetch } = useQuery(GET_GROUPS, {
         variables: { eventId: params.eventId },
         fetchPolicy: 'network-only',
     });
@@ -38,6 +40,9 @@ function GroupsPage({ params }: IGroupsPageProps) {
 
     const eventExist = data?.getEvent?.data;
     const groupList: IGroupExpRel[] = data?.getEvent?.data?.groups || [];
+    const divisionList = eventExist ? divisionsToOptionList(eventExist.divisions) : []
+
+    if(isLoading) return <Loader />
 
     return (
         <div className="min-h-screen container mx-auto px-6 text-center flex flex-col">
@@ -81,7 +86,7 @@ function GroupsPage({ params }: IGroupsPageProps) {
                             handleSelect={handleDivisionSelection}
                             defaultValue={currDivision}
                             name="division"
-                            optionList={eventExist ? divisionsToOptionList(eventExist.divisions) : []}
+                            optionList={divisionList}
                             vertical={false}
                             extraCls="w-full"
                             rw="w-full"
@@ -98,7 +103,7 @@ function GroupsPage({ params }: IGroupsPageProps) {
                 >
                     <h2 className="text-2xl font-semibold mb-6">Group List</h2>
                     {groupList.length > 0 ? (
-                        <GroupList currDivision={currDivision} groupList={groupList} />
+                        <GroupList currDivision={currDivision} groupList={groupList} setIsLoading={setIsLoading} divisionList={divisionList} refetch={refetch} />
                     ) : (
                         <p className="text-gray-300">No groups found for this division.</p>
                     )}

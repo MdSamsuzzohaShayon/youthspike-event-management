@@ -151,12 +151,12 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
                 playerList={inactivePlayers}
                 eventId={eventId}
                 setIsLoading={setIsLoading}
-                rankControls
                 refetchFunc={refetchFunc}
                 teamList={teamList}
                 divisionList={divisionList}
                 teamId={team._id}
                 currEvent={event}
+                inactive
               />
             </div>
           )}
