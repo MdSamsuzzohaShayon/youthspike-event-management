@@ -5,7 +5,7 @@ export const commonAnimate = {
     transition: { delay: 0.5, ease: "easeInOut" },
 };
 
-export const logoAnimate =  {
+export const logoAnimate = {
     initial: { ...commonAnimate.initial, y: -200 },
     animate: { ...commonAnimate.animate, y: 0 },
     exit: { ...commonAnimate.exit, y: -200 },
@@ -27,21 +27,21 @@ export const headingAnimate = {
 };
 
 
-export const msgAnimate =  {
+export const msgAnimate = {
     initial: { ...commonAnimate.initial, y: -200 },
     animate: { ...commonAnimate.animate, y: 0 },
     exit: { ...commonAnimate.exit, y: -200 },
     transition: { ...commonAnimate.transition },
 };
 
-export const menuAnimate =  {
+export const menuAnimate = {
     initial: { ...commonAnimate.initial, x: -200 },
     animate: { ...commonAnimate.animate, x: 0 },
     exit: { ...commonAnimate.exit, x: -200 },
     transition: { ...commonAnimate.transition, delay: 0 },
 };
 
-export const liAnimate =  {
+export const liAnimate = {
     initial: { ...commonAnimate.initial, x: -50 },
     animate: { ...commonAnimate.animate, x: 0 },
     exit: { ...commonAnimate.exit, x: -50 },
@@ -49,9 +49,21 @@ export const liAnimate =  {
 };
 
 
-// menu item 
+// Variants
 export const itemVariants = {
     hidden: { opacity: 0, x: -50 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.5 } },
     hover: { x: 20, transition: { duration: 0.5 } },
-  };
+};
+
+export const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+};
+
+export const menuVariants = {
+    hidden: { opacity: 0, scale: 0.95, y: -10 },
+    visible: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.95, y: -10 },
+};

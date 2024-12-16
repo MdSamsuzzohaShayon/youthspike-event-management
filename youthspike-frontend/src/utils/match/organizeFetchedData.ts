@@ -43,7 +43,7 @@ const dispatchTeamData = ({ dispatch, myLocalTeam, opLocalTeam, myLocalPlayers, 
 };
 
 const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispatch }: IOrganizeFetchedDataProps): Promise<void> => {
-  const { _id, description, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed, fwango, room, netVariance, teamARanking, teamBRanking } = matchData;
+  const { _id, description, location, numberOfNets, numberOfRounds, teamA: teamAF, teamB: teamBF, date, rounds, event, completed, fwango, room, netVariance, teamARanking, teamBRanking } = matchData;
 
   // Setting teams
   dispatch(setTeamA({ ...teamAF }));
@@ -148,6 +148,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
       date,
       completed,
       description,
+      location,
       numberOfNets,
       numberOfRounds,
       fwango,

@@ -1,10 +1,10 @@
 import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { PlayerService } from './player.service';
-import { CreatePlayerInput, RankingPlayerInput, UpdatePlayerInput, UpdatePlayersInput } from './player.input';
-import { EPlayerStatus, Player } from './player.schema';
+import { CreatePlayerInput, UpdatePlayerInput, UpdatePlayersInput } from './player.input';
+import { Player } from './player.schema';
 import { AppResponse } from 'src/shared/response';
 import { Roles } from 'src/shared/auth/roles.decorator';
-import { BadRequestException, HttpStatus, UseGuards } from '@nestjs/common';
+import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { User, UserRole } from 'src/user/user.schema';
@@ -99,10 +99,13 @@ export class PlayerResolver {
             await this.playerRankingService.insertManyItems(itemsToInsert);
           }
         }
-        ensurePromises.push(this.teamService.update({ $addToSet: { players: newPlayer._id } }, { _id: input.team }));
+        ensurePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: newPlayer._id } }));
       }
       ensurePromises.push(
-        this.eventService.update({ $addToSet: { players: newPlayer._id.toString() } }, input.event.toString()),
+        this.eventService.updateOne(
+          { _id: input.event.toString() },
+          { $addToSet: { players: newPlayer._id.toString() } },
+        ),
       );
       await Promise.all(ensurePromises);
 
@@ -256,18 +259,57 @@ export class PlayerResolver {
     @Args('input', { type: () => [UpdatePlayersInput] }) input: UpdatePlayersInput[],
   ): Promise<PlayersResponse> {
     try {
-      let players = [];
       if (input && input.length > 0) {
         const updatePromises = [];
+        let teamIds = [];
         for (let i = 0; i < input.length; i++) {
           const playerId = input[i]._id;
-          const playerObj = { ...input[i] };
+          const playerExist = await this.playerService.findById(playerId);
+          if (!playerExist) continue;
+          teamIds = playerExist.teams;
+          const playerObj = { ...input[i], teams: teamIds || [] };
+          if (playerObj.team) {
+            updatePromises.push(
+              this.teamService.updateMany({ _id: { $in: teamIds } }, { $pull: { players: playerId } }),
+            );
+            updatePromises.push(
+              this.teamService.updateOne({ _id: playerObj.team }, { $addToSet: { players: playerId } }),
+            );
+            // playerObj.teams = [...playerExist.teams, playerObj.team];
+            playerObj.teams = [playerObj.team];
+            // Update previous ranking
+            const playerRankings = await this.playerRankingService.find({ team: playerExist.teams[0] });
+            for (const pr of playerRankings) {
+              const playerRankingItemExist = await this.playerRankingService.findOneItem({ player: pr._id });
+              if (playerRankingItemExist) {
+                updatePromises.push(
+                  this.playerRankingService.updateOne(
+                    { _id: pr._id },
+                    { $pull: { rankings: playerRankingItemExist._id } },
+                  ),
+                );
+              }
+              updatePromises.push(this.playerRankingService.deletManyItem({ player: pr._id }));
+            }
+            // Create new player ranking item
+            const teamExist = await this.teamService.findById(playerObj.team);
+            if (teamExist) {
+              const newPlayerRankings = await this.playerRankingService.find({ _id: teamExist._id });
+              for (const pr of newPlayerRankings) {
+                // Add this item to all playerRankings
+                updatePromises.push(
+                  this.playerRankingService.createAnItem({ player: playerId, playerRanking: pr._id, rank: 0 }),
+                );
+              }
+            }
+            delete playerObj.team;
+          }
           if (playerObj._id) delete playerObj._id;
           updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));
         }
-        players = await Promise.all(updatePromises);
+        await Promise.all(updatePromises);
       }
-      const findPlayers = await this.playerService.query({ _id: { $in: input.map((i) => i._id) } });
+      const findPlayers = await this.playerService.find({ _id: { $in: input.map((i) => i._id) } });
       return {
         code: HttpStatus.ACCEPTED,
         message: 'Multiple Players have been created successfully!',
@@ -357,9 +399,9 @@ export class PlayerResolver {
       await Promise.all(promiseOperations);
       const unassignedPlayerIds = allPlayers.map((p) => p._id);
       playerIds.push(...unassignedPlayerIds);
-      await this.eventService.update(
+      await this.eventService.updateOne(
+        { _id: eventId },
         { $addToSet: { teams: { $each: teamIds }, players: { $each: playerIds } } },
-        eventId,
       );
 
       return {
@@ -457,7 +499,7 @@ export class PlayerResolver {
   @Query((_returns) => PlayersResponse) // Specify the return type
   async getPlayers(@Args('eventId') eventId: string): Promise<PlayersResponse> {
     try {
-      const players = await this.playerService.query({ events: { $in: [eventId] } });
+      const players = await this.playerService.find({ events: { $in: [eventId] } });
       return {
         code: HttpStatus.OK,
         success: true,

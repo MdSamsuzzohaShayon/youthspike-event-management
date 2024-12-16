@@ -49,6 +49,7 @@ const initialEvent: IEventAdd = {
   fwango: null,
   coachPassword: 'Spikeball',
   description: 'USA',
+  location: 'USA',
 };
 
 const initialCurrSponsor = { logo: null, company: '' };
@@ -354,6 +355,7 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       <TextInput key="ti-eau-3" handleInputChange={handleInputChange} lblTxt="Coach Password" name="coachPassword" required defaultValue={eventState.coachPassword} rw="w-3/6" lw="w-3/6" />
       <TextInput key="ti-eau-4" handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={eventState.fwango} rw="w-3/6" lw="w-3/6" />
       <TextareaInput handleInputChange={handleInputChange} name="description" vertical required defaultValue={eventState.description} rw="w-3/6" lw="w-3/6" />
+      <TextareaInput handleInputChange={handleInputChange} name="location" vertical required defaultValue={eventState.location} rw="w-3/6" lw="w-3/6" />
 
       {/* File upload start  */}
       <dialog ref={addSponsorDialogEl}>

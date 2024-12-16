@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-
+// Mutations
 const ADD_GROUP = gql`
 mutation CreateGroup($input: CreateGroupInput!) {
   createGroup(input: $input) {
@@ -31,6 +31,18 @@ mutation UpdateGroup($updateInput: UpdateGroupInput!, $eventId: String) {
 }
 `;
 
+const DELETE_A_GROUP = gql`
+mutation DeleteGroup($groupId: String) {
+  deleteGroup(groupId: $groupId) {
+    code
+    message
+    success
+  }
+}
+`;
+
+
+// Queries
 const GET_EVENT_WITH_GROUP = gql`
   query GetEvent($eventId: String!) {
     getEvent(eventId: $eventId) {
@@ -119,4 +131,4 @@ query GetGroup($groupId: String!) {
 }
 `;
 
-export { GET_EVENT_WITH_GROUP, ADD_GROUP, UPDATE_GROUP, GET_GROUPS, GET_A_GROUP };
+export { GET_EVENT_WITH_GROUP, ADD_GROUP, UPDATE_GROUP, GET_GROUPS, GET_A_GROUP, DELETE_A_GROUP };

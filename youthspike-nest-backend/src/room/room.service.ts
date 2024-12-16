@@ -6,28 +6,21 @@ import { CreateRoomInput, UpdateRoomInput } from './room.input';
 
 @Injectable()
 export class RoomService {
-    constructor(@InjectModel(Room.name) private readonly roomModel: Model<Room>) { }
+  constructor(@InjectModel(Room.name) private readonly roomModel: Model<Room>) {}
 
-    async create(roomData: CreateRoomInput) {
-        return this.roomModel.create(roomData);
-    }
+  async create(roomData: CreateRoomInput) {
+    return this.roomModel.create(roomData);
+  }
 
-    async findOne(filter: FilterQuery<Room>) {
-        return this.roomModel.findOne(filter);
-    }
+  async findOne(filter: FilterQuery<Room>) {
+    return this.roomModel.findOne(filter);
+  }
 
-    async query(filter: FilterQuery<Room>) {
-        return this.roomModel.find(filter);
-      }
+  async updateOne(filter: FilterQuery<Room>, roomData: UpdateRoomInput) {
+    return this.roomModel.updateOne(filter, roomData);
+  }
 
-    async update(filter: FilterQuery<Room>, roomData: UpdateRoomInput) {
-        return this.roomModel.updateOne(filter, roomData);
-    }
-    async updateOne(filter: FilterQuery<Room>, roomData: UpdateRoomInput) {
-        return this.roomModel.updateOne(filter, roomData);
-    }
-
-    async deleteOne(filter: FilterQuery<Room>) {
-        return this.roomModel.deleteOne(filter);;
-    }
+  async deleteOne(filter: FilterQuery<Room>) {
+    return this.roomModel.deleteOne(filter);
+  }
 }

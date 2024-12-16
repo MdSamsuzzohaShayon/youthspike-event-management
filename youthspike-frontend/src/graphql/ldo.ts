@@ -12,6 +12,7 @@ const eventResponse = `
   divisions
   homeTeam
   description
+  location
   nets
   rounds
   netVariance

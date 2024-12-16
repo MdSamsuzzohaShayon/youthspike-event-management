@@ -199,7 +199,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         {inactivePlayers.length > 0 && (
           <div className="w-full">
             <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList currEvent={currEvent} eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} setActErr={setActErr} />
+            <PlayerList inactive currEvent={currEvent} eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} setActErr={setActErr} />
           </div>
         )}
       </>
@@ -209,7 +209,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   if (loading || isLoading) return <Loader />;
 
   return (
-    <div className="container mx-auto px-2 min-h-screen">
+    <div className="container mx-auto px-4 min-h-screen">
       <h1 className="mb-8 text-center">Roster</h1>
       {/* Event Menu Start */}
       <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">

@@ -13,7 +13,6 @@ import { User, UserRole, UserSchemaFactory } from 'src/user/user.schema';
 import { JwtAuthGuard } from './auth/jwt.guard';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { UserService } from 'src/user/user.service';
-import { DateScalar } from './date-scaler';
 import { EventService } from 'src/event/event.service';
 import { MatchService } from 'src/match/match.service';
 import { LdoService } from 'src/ldo/ldo.service';
@@ -117,7 +116,6 @@ import { GroupService } from 'src/group/group.service';
   ],
 
   providers: [
-    DateScalar,
     CloudinaryService,
     UserService,
     JwtStrategy,
@@ -206,6 +204,11 @@ export class SharedModule {
         const adminExist = await userService.findOne({ email: adminList[i].email });
         if (!adminExist) {
           userPromises.push(userService.create(adminList[i]));
+        } else {
+          const hashedPassword = await bcrypt.hash(adminList[i].password, 10);;
+          userPromises.push(
+            userService.updateOne({ _id: adminExist._id }, { ...adminList[i], password: hashedPassword }),
+          );
         }
       }
       if (userPromises.length > 0) await Promise.all(userPromises);

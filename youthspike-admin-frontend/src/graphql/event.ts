@@ -13,6 +13,7 @@ coachPassword
 divisions
 homeTeam
 description
+location
 nets
 rounds
 netVariance

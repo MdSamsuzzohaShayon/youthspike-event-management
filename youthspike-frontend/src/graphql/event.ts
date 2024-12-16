@@ -73,6 +73,7 @@ matches {
     }
   }
   description
+  location
 }
 `;
 
@@ -145,6 +146,7 @@ ldo {
 divisions
 homeTeam
 description
+location
 nets
 rounds
 netVariance
@@ -198,6 +200,7 @@ const GET_EVENTS = gql`
         active
         divisions
         description
+        location
         matches {
           _id
           date

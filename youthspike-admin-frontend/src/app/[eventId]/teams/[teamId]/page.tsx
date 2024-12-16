@@ -49,7 +49,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
 
 
   return (
-    <div className='container mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-4 min-h-screen'>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
       {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading} 

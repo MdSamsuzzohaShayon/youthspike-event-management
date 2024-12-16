@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { removeCookie } from '@/utils/cookie';
 import { useParams, useRouter, usePathname } from 'next/navigation';
@@ -34,7 +34,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
     return window.location.reload();
   };
 
-  const fetchEvent = () => {
+  const fetchEvent = useCallback(() => {
     const eventExist = getEvent();
     if (params.eventId) {
       // @ts-ignore
@@ -44,7 +44,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
     } else {
       setEventId(null);
     }
-  };
+  }, [params.eventId]);
 
   const handleMenuOpen = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -110,8 +110,8 @@ function AdminMenu({ user }: IAdminMenuProps) {
               <Link onClick={() => setIsMenuOpen(false)} href={ADMIN_FRONTEND_URL}>
                 <Image height={100} width={100} src="/free-logo.png" alt="User Avatar" className="w-16 h-16 mx-auto rounded-full border-2 border-yellow" />
               </Link>
-
               <h1 className="text-2xl text-yellow mt-4 capitalize">{`${user.info?.firstName} ${user.info?.lastName}`}</h1>
+              {user.info?.team && <h3 className="text-sm text-gray-400">{user.info.team}</h3>}
               <p className="uppercase text-yellow text-sm mt-2">{user?.info?.role}</p>
             </div>
 

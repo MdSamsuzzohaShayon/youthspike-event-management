@@ -108,7 +108,7 @@ function PlayerAddPage({ params }: IPlayerAddPageProps) {
   if (loading || isLoading) return <Loader />;
 
   return (
-    <div className='container mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-4 min-h-screen'>
       <div className="mb-4 division-selection w-full">
         <SelectInput key="player-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
       </div>

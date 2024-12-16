@@ -43,6 +43,7 @@ const initialState: MatchesState = {
     completed: false,
     date: new Date().toISOString(),
     description: '',
+    location: '',
     numberOfNets: 0,
     numberOfRounds: 0,
     division: '',

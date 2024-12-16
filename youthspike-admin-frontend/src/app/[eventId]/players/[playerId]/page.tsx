@@ -36,7 +36,7 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
 
   
   return (
-    <div className='container mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-4 min-h-screen'>
       <h1>Player Update</h1>
       {actErr && <Message error={actErr} />}
       {error && <Message error={error} />}

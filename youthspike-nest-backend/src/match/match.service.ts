@@ -48,15 +48,6 @@ export class MatchService {
     return null;
   }
 
-  async update(event: Partial<Match>, id: string): Promise<Match> {
-    return this.matchModel.findOneAndUpdate(
-      {
-        _id: id,
-      },
-      event,
-      { upsert: true, new: true },
-    );
-  }
 
   async updateMany(filter: FilterQuery<Match>, matchObj: UpdateQuery<Match>) {
     return this.matchModel.updateMany(filter, matchObj);

@@ -39,6 +39,7 @@ export interface IEvent {
   timeout: number;
   coachPassword: string;
   description: string;
+  location: string;
 }
 
 export interface IEventWMatch extends IEvent{

@@ -61,6 +61,7 @@ query GetMatch($matchId: String!) {
       division
       homeTeam
       description
+      location
       fwango
       netVariance
       numberOfNets

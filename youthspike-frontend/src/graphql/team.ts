@@ -83,6 +83,7 @@ matches {
     }
   }
   description
+  location
 }
 `;
 

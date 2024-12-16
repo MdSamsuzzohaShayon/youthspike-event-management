@@ -2,7 +2,6 @@
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
-import { DateScalar } from 'src/shared/date-scaler';
 
 @InputType()
 export class EventSponsorInput {
@@ -76,6 +75,9 @@ export class CreateEventInput {
 
   @Field({ nullable: false })
   description: string;
+
+  @Field({ nullable: false })
+  location: string;
 
   @Field()
   ldo?: string;

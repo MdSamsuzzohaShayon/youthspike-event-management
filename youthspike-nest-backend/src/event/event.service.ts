@@ -4,17 +4,6 @@ import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Event } from './event.schema';
 import { Types } from 'mongoose';
 
-interface IDynamicEvent {
-  players?: {
-    $each: string[];
-  };
-  teams?: {
-    $each: string[];
-  };
-  // Add other properties as needed
-}
-
-
 
 @Injectable()
 export class EventService {
@@ -51,38 +40,6 @@ export class EventService {
       ...event,
       active: true,
     });
-  }
-
-  async update(updateData: UpdateQuery<Event>, id: string) {
-    const updateObj: any = { ...updateData };
-  
-    if (updateData.players) {
-      updateObj.$addToSet = updateObj.$addToSet || {};
-      updateObj.$addToSet.players = { $each: updateData.players };
-      delete updateObj.players;
-    }
-  
-    if (updateData.teams) {
-      updateObj.$addToSet = updateObj.$addToSet || {};
-      updateObj.$addToSet.teams = { $each: updateData.teams };
-      delete updateObj.teams;
-    }
-
-    if (updateData.matches) {
-      updateObj.$addToSet = updateObj.$addToSet || {};
-      updateObj.$addToSet.matches = { $each: updateData.matches };
-      delete updateObj.matches;
-    }
-  
-    const updatedEvent = await this.eventModel.findOneAndUpdate(
-      {
-        _id: id,
-      },
-      updateObj,
-      { upsert: true, new: true },
-    );
-  
-    return updatedEvent;
   }
 
   async updateOne(filter: FilterQuery<Event>, updateData: UpdateQuery<Event>){

@@ -174,7 +174,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
 
   return (
-    <div className="container mx-auto px-2 min-h-screen">
+    <div className="container mx-auto px-4 min-h-screen">
       <motion.h1 initial={hInitial} animate={hAnimate} exit={hExit} transition={{ ...hTransition, delay: 1.2 }} className="mb-8 text-center">Matches</motion.h1>
       
       {/* Event Menu Start */}

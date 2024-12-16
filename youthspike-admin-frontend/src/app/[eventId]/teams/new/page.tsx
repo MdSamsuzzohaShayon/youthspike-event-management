@@ -119,7 +119,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
   if (loading || isLoading) return <Loader />;
 
   return (
-    <div className='container mx-auto px-2 min-h-screen'>
+    <div className='container mx-auto px-4 min-h-screen'>
       <h1 className='mb-8 text-center'>Teams</h1>
       {currEvent && (<CurrentEvent currEvent={currEvent} />)}
       <div className="navigator mb-4">

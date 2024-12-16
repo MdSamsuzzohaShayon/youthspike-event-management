@@ -102,6 +102,7 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
             {`${monthNames[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}
           </p>
           <p>{event.description}</p>
+          <p>{event.location}</p>
         </div>
       </Link>
     </div>

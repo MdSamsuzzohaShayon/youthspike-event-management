@@ -54,9 +54,13 @@ ___
 
 ### Requirements
  - Group list
-  - In the group list -> show list of teams in each group
+  - Rank by losses (team rank) -> who ever has the fewest losses goes to the top
+  - Other fields will break the tie for a team
+  - A link for the team to show specific team
+ - Create filters for matches ( filter by passed, current, completed, in progress, not started)
  - In match, there will be description and location both -> both will be in the match screen (frontend)
  - (web socket) Update match properly and show win and losses properly
+ - Group card change - keep group name, and number of  groups, and list all the teams inside a group
  - Add team and players
   - Create a team and player should be able to add to the team (In player or team edit option)
   - Rank team properly according to this -> https://www.canva.com/design/DAGYKsAdBD0/r4iaHg8fT7og3MkfNjda5w/edit
@@ -68,15 +72,12 @@ ___
   - When does the roster lock, (pick a data, after that date the roster will be locked) (Create event)
  - Watch them:
  - Testing now! Initial thoughts:
-    - ⁠all admins will need to be able to see the standings page. The one that you can see from the spectator view
+    - ⁠All admins will need to be able to see the standings page. The one that you can see from the spectator view
     - A team view from the admin to public
  - **__https://www.loom.com/share/f221cae55313451cb1a0752dc7768ac4__**
  - Move team, and assign group should have a bulk action
- - Bulk actions for players
- - Rank teams by match records, head to head, game points difference, 
  - **__https://www.loom.com/share/52d87d3bec864e64b83ab7affe7af326__** Till 3 minutes
  - Move change nets like change rosters
- - Instead of rendering players seperately, change the rank box wider and make it say "subbed in the round 1 or 3" (S1, S2, S3)
  - Show subbed players properly
  - In assign net confirmation, show all nets and players that is going to be subbed
  - In 2 points nets, had to refresh. Able to put score in before banning a net

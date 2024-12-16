@@ -43,7 +43,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [checkedMatches, setCheckedMatches] = useState<Map<string, boolean>>(new Map());
-  const actionEl = useRef(null);
+  const actionEl = useRef<HTMLUListElement | null>(null);
 
   const [deleteMultipleMatches] = useMutation(DELETE_MATCHES);
   const user = useUser();

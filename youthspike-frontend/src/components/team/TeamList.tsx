@@ -17,7 +17,6 @@ interface IMatch extends IMatchExpRel {
 }
 
 interface ITeamListProps {
-  // division: string | null;
   teamList?: ITeamCaptain[];
   matchList?: IMatch[];
   selectedGroup?: string | null;
@@ -25,12 +24,12 @@ interface ITeamListProps {
 
 function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
+  const [sortedTeams, setSortedTeams] = useState<ITeamCaptain[]>([]);
 
   const calculateTeamScore = useCallback(() => {
     const newTeamScores: Map<string, ITeamScore> = new Map();
 
     if (teamList && teamList.length > 0 && matchList) {
-      // Preprocess matches to group them by team ID
       const matchesByTeam = new Map<string, IMatch[]>();
       for (const match of matchList) {
         if (match.teamA._id) {
@@ -41,7 +40,6 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
         }
       }
 
-      // Calculate scores for each team
       for (const team of teamList) {
         const teamMatches = matchesByTeam.get(team._id) || [];
         const teamRecord: ITeamScore = {
@@ -62,6 +60,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
         for (const match of teamMatches) {
           numOfRounds += match.rounds.length;
           const isTeamA = match.teamA._id === team._id;
+          // @ts-ignore
           const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
 
           numOfMatches += 1;
@@ -87,13 +86,46 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
     setTeamScores(newTeamScores);
   }, [teamList, matchList]);
 
+  const rankTeams = useCallback(() => {
+    const sortedTeamArray = teamList?.slice().sort((teamA, teamB) => {
+      const scoreA = teamScores.get(teamA._id);
+      const scoreB = teamScores.get(teamB._id);
+
+      if (!scoreA || !scoreB) return 0;
+
+      if (selectedGroup) {
+        if (scoreA.groupLoses !== scoreB.groupLoses) {
+          return scoreA.groupLoses - scoreB.groupLoses;
+        }
+      }
+      if (scoreA.overallLoses !== scoreB.overallLoses) {
+        return scoreA.overallLoses - scoreB.overallLoses;
+      }
+
+      if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
+        return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
+      }
+
+      if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
+        return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
+      }
+
+      return 0;
+    });
+
+    setSortedTeams(sortedTeamArray || []);
+  }, [teamScores, teamList, selectedGroup]);
+
   useEffect(() => {
     calculateTeamScore();
   }, [teamList, matchList, selectedGroup, calculateTeamScore]);
 
+  useEffect(() => {
+    rankTeams();
+  }, [teamScores, rankTeams]);
+
   return (
     <div className="teamList w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">
-      {/* Responsive table container */}
       <div className="overflow-x-auto">
         <motion.table
           className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]"
@@ -111,7 +143,11 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
               <th className="py-3 px-4">Overall</th>
             </tr>
           </thead>
-          <tbody>{teamList && teamList.map((team, index) => <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />)}</tbody>
+          <tbody>
+            {sortedTeams.map((team, index) => (
+              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
+            ))}
+          </tbody>
         </motion.table>
       </div>
     </div>

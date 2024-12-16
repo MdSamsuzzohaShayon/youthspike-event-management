@@ -49,10 +49,6 @@ export class PlayerService {
     return this.playerModel.insertMany(playerListInput);
   }
 
-  async query(filter: FilterQuery<Player>) {
-    return this.playerModel.find(filter).sort({ rank: 1 });
-  }
-
   async findById(playerId: string) {
     return this.playerModel.findById(playerId);
   }

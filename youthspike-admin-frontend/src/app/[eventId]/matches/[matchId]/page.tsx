@@ -13,20 +13,23 @@ import React, { useState, useEffect } from 'react';
 /**
  * Test Match
  * 
- * FC Barcelona
+ * Liverpool FC
  * Captain
- * tyler118
+ * pfn11124
  * Co-captains
- * lincoln118
+ * pfn13124
  * 
  * 
- * Real Madrid
+ * 
+ * Aston Villa
  * Captain
- * casey119
- * Co-captain
- * aaron119
+ * pfn7125
+ * Co-captains
+ * pfn4125
  * 
- * 
+ * Aston Villa
+ * Captain
+ * pfn21126
  */
 
 interface MatchSingleProps {
@@ -58,7 +61,7 @@ function MatchSingle({ params }: MatchSingleProps) {
     
 
     return (
-        <div className='container mx-auto px-2 min-h-screen'>
+        <div className='container mx-auto px-4 min-h-screen'>
             <h1 className='uppercase text-center'>Match</h1>
 
             {error && <Message error={error} />}

@@ -97,6 +97,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
               <h3>{ldo?.name}</h3>
               <p>Date: {readDate(match.date)}</p>
               <p>Location: {match.description}</p>
+              <p>Location: {match.location}</p>
             </div>
           </div>
 
