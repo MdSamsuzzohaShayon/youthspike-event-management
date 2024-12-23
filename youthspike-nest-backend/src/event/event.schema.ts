@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Group } from 'src/group/group.schema';
@@ -9,6 +9,15 @@ import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Team } from 'src/team/team.schema';
+
+export enum ERosterLock {
+  FIRST_ROSTER_SUBMIT = 'FIRST_ROSTER_SUBMIT',
+  PICK_A_DATE = 'PICK_A_DATE',
+}
+
+registerEnumType(ERosterLock, {
+  name: 'ERosterLock',
+});
 
 /**
  * Event
@@ -114,7 +123,7 @@ export class Event extends AppDocument {
 
   @Field({ nullable: false })
   @Prop({ required: true })
-  rosterLock: string;
+  rosterLock: ERosterLock | string;
 
   @Field({ nullable: false })
   @Prop({ required: true })

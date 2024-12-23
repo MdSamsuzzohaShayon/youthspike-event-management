@@ -1,16 +1,80 @@
-import { IError } from '@/types';
-import Image from 'next/image';
-import React from 'react';
+'use client';
 
-function Message({ error }: { error: IError | null }) {
-  if (error === null) return null;
+import { useAppSelector } from '@/redux/hooks';
+import Image from 'next/image';
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toastVariants } from '@/utils/animation';
+
+// Error Object Interface
+export interface IError {
+  message: string;
+}
+
+// Redux State Interface
+export interface ElementsState {
+  actErr: IError | null;
+}
+
+const TEN_SECONDS = 10 * 1000;
+
+function Message() {
+  const { actErr } = useAppSelector((state) => state.elements);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    let timer = null;
+
+    if (actErr?.message) {
+      setIsVisible(true);
+      timer = setTimeout(() => {
+        setIsVisible(false);
+      }, TEN_SECONDS); // Auto-hide after 5 seconds
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [actErr]);
+
+  if (!actErr || !actErr.message) return null;
+
   return (
-    <div className="text-red-500 container mx-auto bg-transparent">
-      <div className="flex gap-2 items-center">
-        <h2>Error: </h2> <Image width={12} height={12} src="/icons/error.svg" className="w-4 svg-white" alt="error-image" />
-        <p>{error && error?.message && <p>{error.message}</p>}</p>
-      </div>
-    </div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          variants={toastVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          className="fixed top-5 right-5 md:right-10 z-50 w-full max-w-sm"
+        >
+          <div className="flex items-center gap-4 bg-red-100 text-red-900 border-l-4 border-red-500 px-5 py-4 rounded-md shadow-lg">
+            {/* Icon */}
+            <div className="flex-shrink-0">
+              <Image src="/icons/error.svg" width={24} height={24} alt="Error Icon" className="w-6 h-6" />
+            </div>
+
+            {/* Message Content */}
+            <div className="flex-1">
+              <h2 className="font-bold text-lg">Something went wrong</h2>
+              <p className="text-sm">{actErr.message}</p>
+            </div>
+
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsVisible(false)}
+              className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 rounded-full"
+              aria-label="Close Toast"
+            >
+              ✖️
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

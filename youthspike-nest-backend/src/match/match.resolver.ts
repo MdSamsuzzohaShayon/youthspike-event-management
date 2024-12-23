@@ -246,10 +246,12 @@ export class MatchResolver {
       );
 
       createPromises.push(this.roomService.updateOne({ _id: newRoom._id }, { match: newMatch._id }));
-      createPromises.push(this.eventService.updateOne({ _id: input.event }, { matches: [newMatch._id] }));
+      createPromises.push(this.eventService.updateOne({ _id: input.event }, { $addToSet: { matches: newMatch._id } }));
       createPromises.push(this.matchService.updateOne({ _id: newMatch._id }, { nets: netIds, rounds: roundIds }));
 
       await Promise.all(createPromises);
+      const updatedEvent = await this.eventService.findOne({ _id: input.event });
+      console.log(newMatch);
 
       return {
         data: newMatch,

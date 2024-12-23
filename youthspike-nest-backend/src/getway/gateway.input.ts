@@ -141,6 +141,9 @@ export class RoundUpdatedResponse {
 @InputType()
 export class SubmitLineupInput extends UserInput {
   @Field({ nullable: false })
+  eventId: string;
+
+  @Field({ nullable: false })
   room: string;
 
   @Field({ nullable: false })

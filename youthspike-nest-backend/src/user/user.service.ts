@@ -73,6 +73,10 @@ export class UserService {
     return this.userModel.findOne(filter);
   }
 
+  async find(filter: FilterQuery<User>) {
+    return this.userModel.find(filter);
+  }
+
   async validateLogin(payload: { _id: ObjectId }) {
     const user = await this.userModel.findById(payload._id);
     if (!user) throw this.notFound;
@@ -141,9 +145,6 @@ export class UserService {
     }
   }
 
-  async query(filter: FilterQuery<User>) {
-    return this.userModel.find(filter).sort({ updatedAt: -1 });
-  }
   async delete(filter: FilterQuery<User>) {
     return this.userModel.deleteMany(filter);
   }

@@ -92,13 +92,13 @@ class EmitEvents {
     this.socket?.emit('check-in-from-client', actionData);
   }
 
-  submitLineup({ user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, myTeamE }: ISubmitLineupProps) {
+  submitLineup({ eventId, user, teamA, teamB, currRoom, currRound, currRoundNets, roundList, myPlayerIds, myTeamE }: ISubmitLineupProps) {
     if (!user || !user?.token || !teamA || !teamB || !currRoom || !currRound) {
       console.error({ msg: 'Not provided required value', user, token: user?.token, teamA, teamB, currRoom, currRound });
       return;
     }
 
-    const actionData: ISubmitLineupAction = this.prepareLineupActionData(user, teamA, teamB, currRoom, currRound, currRoundNets, myTeamE);
+    const actionData: ISubmitLineupAction = this.prepareLineupActionData(eventId, user, teamA, teamB, currRoom, currRound, currRoundNets, myTeamE);
 
     const selectedPlayers = new Set();
     let filledAllNets = true;
@@ -241,9 +241,10 @@ class EmitEvents {
     this.dispatch(setCurrentRound(updatedRound));
   }
 
-  private prepareLineupActionData(user: IUserContext, teamA: ITeam, teamB: ITeam, currRoom: IRoom, currRound: IRoundRelatives, currRoundNets: INetRelatives[], myTeamE: ETeam): ISubmitLineupAction {
+  private prepareLineupActionData(eventId: string, user: IUserContext, teamA: ITeam, teamB: ITeam, currRoom: IRoom, currRound: IRoundRelatives, currRoundNets: INetRelatives[], myTeamE: ETeam): ISubmitLineupAction {
     const lineupData: ISubmitLineupAction = {
       room: currRoom?._id ?? null,
+      eventId,
       round: currRound?._id ?? null,
       match: currRoom?.match,
       teamAProcess: myTeamE === ETeam.teamA ? EActionProcess.LINEUP : currRound?.teamAProcess,

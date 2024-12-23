@@ -25,7 +25,7 @@ export interface IEvent {
   endDate: string;
   playerLimit: number;
   active: boolean;
-  logo?:string;
+  logo?: string;
   sponsors: IEventSponsor[];
   ldo?: ILDO;
   groups: IGroup[];
@@ -42,7 +42,7 @@ export interface IEvent {
   location: string;
 }
 
-export interface IEventWMatch extends IEvent{
+export interface IEventWMatch extends IEvent {
   matches: IMatchRelatives[];
 }
 

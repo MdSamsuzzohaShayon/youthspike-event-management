@@ -17,6 +17,8 @@ export enum ERosterLock{
   FIRST_ROSTER_SUBMIT="FIRST_ROSTER_SUBMIT",
   PICK_A_DATE="PICK_A_DATE"
 }
+
+
 export interface IEventSponsor {
   _id: string;
   company: string;

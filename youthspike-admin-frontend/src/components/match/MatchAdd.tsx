@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 import React, { useEffect, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
-import { IAddMatch, IDefaultMatchProps, IError, IEventExpRel, IGroup, IGroupExpRel, IMatch, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IAddMatch, IDateChangeHandlerProps, IError, IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
 import TextInput from '../elements/forms/TextInput';
 import NumberInput from '../elements/forms/NumberInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -13,10 +13,9 @@ import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
+import { ERosterLock } from '@/types/event';
 
-interface IMatchTeams extends IDefaultMatchProps {
-    teams: ITeam[]; // add teams to IDefaultEventMatch
-}
+
 
 interface IMatchAddProps {
     eventId: string;
@@ -34,7 +33,19 @@ interface IMatchAddProps {
 }
 
 
-
+const lockTimes = [
+    {
+      id: 1,
+      type: ERosterLock.FIRST_ROSTER_SUBMIT,
+      text: "First Roster Submit"
+    },
+    {
+      id: 2,
+      type: ERosterLock.PICK_A_DATE,
+      text: "Pick A Date"
+    },
+  ]
+  
 
 
 
@@ -75,7 +86,7 @@ function MatchAdd({ eventId,
     const router = useRouter();
     const { ldoIdUrl } = useLdoId();
 
-    const { homeTeamStrategy, assignLogicList, rosterLockList } = staticData;
+    const { homeTeamStrategy } = staticData;
 
     // Local State
     const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
@@ -108,6 +119,15 @@ function MatchAdd({ eventId,
             setAddMatch((prevState) => ({ ...prevState, [name]: value }));
         }
     }
+
+    const handleRosterLockDate=({name, value}: IDateChangeHandlerProps)=>{
+
+        if (update) {
+            setUpdateMatch((prevState) => ({ ...prevState, rosterLock: value }));
+        } else {
+            setAddMatch((prevState) => ({ ...prevState, rosterLock: value }));
+        }
+      }
 
     const handleNumInputChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -188,6 +208,8 @@ function MatchAdd({ eventId,
         return options;
     }
 
+    
+
 
     // Need to show number of rounds and number of net and net variance etc
     useEffect(() => {
@@ -212,7 +234,7 @@ function MatchAdd({ eventId,
         setAddMatch(mObj);
     }, [eventData, prevMatch]);
 
-    // console.log(groupList);
+    
 
 
     return (
@@ -248,7 +270,14 @@ function MatchAdd({ eventId,
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
                 name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
             <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
-            <SelectInput name='rosterLock' defaultValue={rosterLockList[0].value} optionList={rosterLockList} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+
+            <SelectInput name='rosterLock' 
+            defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE} 
+            optionList={lockTimes.map((lt)=> ({value: lt.type, text: lt.text}))} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            {addMatch.rosterLock && addMatch.rosterLock !== "" && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+                <DateInput name='rosterLockDate' lblTxt='Pick A date when ranking is going to lock' handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} vertical extraCls='md:w-5/12' />
+            )}
+
             <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={addMatch.fwango} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} vertical extraCls='md:w-5/12' />

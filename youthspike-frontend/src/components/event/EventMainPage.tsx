@@ -11,7 +11,6 @@ import { useSocket } from '@/lib/SocketProvider';
 import { imgW } from '@/utils/constant';
 import { logoAnimate } from '@/utils/animation';
 import { APP_NAME } from '@/utils/keys';
-import { listenPublicSocketEvents } from '@/utils/match/listenSocketEvents';
 import Image from 'next/image';
 import { removeEvent } from '@/utils/localStorage';
 import EventList from './EventList';
@@ -47,7 +46,7 @@ function EventMainPage() {
   // ===== Web Socket Real Time connection =====
   useEffect(() => {
     if (socket) {
-      listenPublicSocketEvents({ socket });
+      // const eventListener = new Event 
     }
   }, [socket]);
 

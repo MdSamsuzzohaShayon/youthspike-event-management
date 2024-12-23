@@ -1,17 +1,24 @@
+/* eslint-disable no-shadow */
 /* eslint-disable import/no-cycle */
 import { ETieBreaker, INetPlayers } from './net';
 import { ETeam } from './team';
 import { UserRole } from './user';
 
 export enum EActionProcess {
+  // eslint-disable-next-line no-unused-vars
   INITIATE = 'INITIATE',
 
+  // eslint-disable-next-line no-unused-vars
   CHECKIN = 'CHECKIN',
 
+  // eslint-disable-next-line no-unused-vars
   LINEUP = 'LINEUP',
+  // eslint-disable-next-line no-unused-vars
   LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
 
+  // eslint-disable-next-line no-unused-vars
   LOCKED = 'LOCKED',
+  // eslint-disable-next-line no-unused-vars
   COMPLETE = 'COMPLETE',
 }
 
@@ -69,6 +76,7 @@ export interface ICheckInAction extends IActionCommon {
 }
 
 export interface ISubmitLineupAction extends ICheckInAction {
+  eventId: string;
   teamAId: string;
   teamBId: string;
   subbedPlayers: string[];

@@ -61,7 +61,7 @@ function EventList({ eventList }: { eventList: IEventWMatch[] }) {
       // Check search filter
       if (filterParams.search) {
         const searchText = filterParams.search.trim().toLowerCase();
-        if (currEvent.name?.toLowerCase().includes(searchText) || currEvent.description?.toLowerCase().includes(searchText)) {
+        if (currEvent.name?.toLowerCase().includes(searchText) || currEvent.description?.toLowerCase().includes(searchText) || currEvent.location?.toLowerCase().includes(searchText)) {
           matchFound = true;
         } else {
           matchFound = false;

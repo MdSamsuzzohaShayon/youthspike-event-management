@@ -24,6 +24,8 @@ import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-rank
 import { LdoService } from 'src/ldo/ldo.service';
 import { GroupService } from 'src/group/group.service';
 import { Match } from 'src/match/match.schema';
+import { ERosterLock } from 'src/event/event.schema';
+import { checkDateHasPassed } from 'src/util/helper';
 
 @ObjectType()
 class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -446,7 +448,7 @@ export class TeamResolver {
           if (teamExist.playerRankings && teamExist.playerRankings.length > 0) {
             const playerRankings = await this.playerRankingService.find({ _id: { $in: teamExist.playerRankings } });
             for (const pr of playerRankings) {
-              deletePromises.push(this.playerRankingService.deletManyItem({ _id: { $in: pr.rankings } }));
+              deletePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: pr.rankings } }));
             }
             deletePromises.push(this.playerRankingService.deletMany({ _id: { $in: teamExist.playerRankings } }));
           }
@@ -490,9 +492,32 @@ export class TeamResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetTeamResponse)
   async getTeam(@Args('teamId') teamId: string) {
-    const teamExist = await this.teamService.findById(teamId);
-    if (!teamExist) return AppResponse.notFound('Team');
     try {
+      const teamExist = await this.teamService.findById(teamId);
+      // getPlayer Rankings
+      if (!teamExist) return AppResponse.notFound('Team');
+
+      const [eventExist, playerRankings] = await Promise.all([
+        this.eventService.findOne({ _id: teamExist.event }),
+        this.playerRankingService.find({
+          $and: [{ team: teamId }, { $or: [{ match: null }, { match: { $exists: false } }] }],
+        }),
+      ]);
+      if (eventExist.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT) {
+        // Check the date has passed or not
+        const datePassed = checkDateHasPassed(eventExist.rosterLock);
+        if (datePassed) {
+          const updatePromises = [];
+          for (const playerRanking of playerRankings) {
+            if (!playerRanking.rankLock) {
+              updatePromises.push(
+                this.playerRankingService.updateOne({ _id: playerRanking._id }, { $set: { rankLock: true } }),
+              );
+            }
+          }
+          if (updatePromises.length > 0) await Promise.all(updatePromises);
+        }
+      }
       return {
         code: HttpStatus.OK,
         success: true,

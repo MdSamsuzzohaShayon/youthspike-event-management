@@ -58,16 +58,21 @@ export interface ITeamSelectProps {
   eventId: string;
 }
 
+export interface IDateChangeHandlerProps{ 
+  name: string; 
+  value: string; 
+}
+
 export interface IDateinputProps {
+  name: string;
+  handleDateChange: ({ name, value }: IDateChangeHandlerProps) => void;
   lw?: string;
   rw?: string;
   vertical?: boolean;
   extraCls?: string;
   lblTxt?: string;
-  name: string;
-  required: boolean;
-  defaultValue: string;
-  handleDateChange: ({ name, value }: { name: string, value: string }) => void;
+  required?: boolean;
+  defaultValue?: string;
 }
 
 export interface IFileFileProps {

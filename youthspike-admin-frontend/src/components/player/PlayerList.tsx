@@ -343,7 +343,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   
   return (
     <React.Fragment>
-      {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+      {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && playerList.length > 0 &&  (
         <div className="bulk-selection relative w-full flex justify-between">
           <div className="input-group flex items-center gap-2 justify-between"  >
             <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />

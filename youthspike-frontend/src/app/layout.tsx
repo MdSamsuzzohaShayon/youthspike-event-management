@@ -9,6 +9,7 @@ import SocketProvider from '@/lib/SocketProvider';
 import Loader from '@/components/elements/Loader';
 import LdoProvider from '@/lib/LdoProvider';
 import MenuSwitcher from '@/components/layout/MenuSwitcher';
+import Message from '@/components/elements/Message';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <UserProvider>
                 <ReduxProvider>
                   <LdoProvider>
+                    <Message />
                     <MenuSwitcher />
                     {children}
                     <Footer />

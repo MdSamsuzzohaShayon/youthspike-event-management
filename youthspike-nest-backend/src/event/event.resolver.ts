@@ -317,11 +317,11 @@ export class EventResolver {
         }
 
         const userIds = [];
-        const capUsers = await this.userService.query({ captainplayer: { $in: cap } });
+        const capUsers = await this.userService.find({ captainplayer: { $in: cap } });
         const capUserIds = capUsers.map((u) => u._id);
         userIds.push(...capUserIds);
 
-        const coCapUsers = await this.userService.query({ cocaptainplayer: { $in: coCap } });
+        const coCapUsers = await this.userService.find({ cocaptainplayer: { $in: coCap } });
         const coCapUserIds = coCapUsers.map((u) => u._id);
         userIds.push(...coCapUserIds);
 

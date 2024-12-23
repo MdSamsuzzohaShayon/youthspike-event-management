@@ -20,6 +20,7 @@ function VerifyLineup() {
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const currRoom = useAppSelector((state) => state.rooms.current);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
+  const { current: currEvent } = useAppSelector((state) => state.events);
 
   const handleCloseLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ function VerifyLineup() {
     e.preventDefault();
     const emitEvents = new EmitEvents(socket, dispatch);
     const myPlayerIds: string[] = myPlayers.map((mp) => mp._id);
-    emitEvents.submitLineup({ currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
+    emitEvents.submitLineup({ eventId: currEvent?._id || "", currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
   };
 
   // Precompute assigned players for efficiency

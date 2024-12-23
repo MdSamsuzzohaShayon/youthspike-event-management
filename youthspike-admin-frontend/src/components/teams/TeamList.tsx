@@ -9,6 +9,8 @@ import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
+import { AnimatePresence, motion } from 'framer-motion';
+import { menuVariants } from '@/utils/animation';
 
 interface TeamListProps {
   eventId: string;
@@ -41,6 +43,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setAc
     e.preventDefault();
     setFilteredGroupId(groupId);
     setShowFilter(false);
+    setShowBulkAction(false);
   };
 
   // ===== Bulk Actions =====
@@ -194,37 +197,65 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setAc
           <label htmlFor="bulk-action">Bulk Action</label>
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={handleShowBulk} />
           {/* Bulk Action start  */}
-          <ul className={`${showBulkAction ? 'flex' : 'hidden'} w-48 flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-2 z-10 rounded-lg`}>
-            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleBulkDelete}>
-              delete
-            </li>
+          <AnimatePresence>
+            {showBulkAction && (
+              <motion.ul
+                className="absolute z-10 left-12 top-6 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+                variants={menuVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.2 }}
+              >
+                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkDelete}>
+                  <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} />
+                  delete
+                </li>
+                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkCredentials}>
+                  <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
+                  Send Credentials
+                </li>
+                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleShowChangeGroup}>
+                  <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
+                  Change Group
+                </li>
 
-            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleBulkCredentials}>
-              Send Credentials
-            </li>
-
-            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleShowChangeGroup}>
-              Change Group
-            </li>
-
-            <li role="presentation" className='cursor-pointer capitalize border-b w-full' onClick={handleBulkMoveTeam}>
-              Move team
-            </li>
-
-          </ul>
+                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkMoveTeam}>
+                  <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
+                  Move team
+                </li>
+              </motion.ul>
+            )}
+          </AnimatePresence>
           {/* Bulk Action end  */}
         </div>
-        <div className="input-group relative flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
-          <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : "Group"}</p>
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+        <div className="input-group relative ">
+          <div className="button flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
+            <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : "Group"}</p>
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+          </div>
 
           {/* Filter Action Start  */}
-          <ul className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-3 z-10 rounded-lg`}>
-            <li key={"all"} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, null)}>All</li>
-            {groupList.map((g, gI) => (<li key={gI} role="presentation" className='capitalize' onClick={(e) => handleGroupFilter(e, g._id)}>
-              {g.name}
-            </li>))}
-          </ul>
+          <AnimatePresence>
+            {showFilter && (
+              <motion.ul
+                className="absolute z-10 top-7 right-3 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+                variants={menuVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.2 }}
+              >
+                <li key={"all"} role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
+                  onClick={(e) => handleGroupFilter(e, null)}>All</li>
+                {groupList.map((g, gI) => (<li key={gI} role="presentation"
+                  className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleGroupFilter(e, g._id)}>
+                  {g.name}
+                </li>))}
+
+              </motion.ul>
+            )}
+          </AnimatePresence>
           {/* Filter Action End  */}
         </div>
 

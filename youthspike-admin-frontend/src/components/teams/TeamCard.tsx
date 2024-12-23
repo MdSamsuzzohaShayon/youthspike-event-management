@@ -18,6 +18,8 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { divisionsToOptionList } from '@/utils/helper';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { handleResponse } from '@/utils/handleError';
+import { AnimatePresence, motion } from 'framer-motion';
+import { menuVariants } from '@/utils/animation';
 
 interface ITeamCardProps {
   eventId: string;
@@ -90,10 +92,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     setMoveTeam((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
   };
 
-  const handleOpenAction = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setActionOpen((prevState) => !prevState);
-  };
 
   // eslint-disable-next-line no-unused-vars
   const handleOpenMoveTeam = (e: React.SyntheticEvent, teamId: string) => {
@@ -177,36 +175,45 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     <div className="team-card w-full bg-gray-800 text-white rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 relative">
         {/* Action Menu */}
-        <ul
-          ref={actionEl}
-          className={`${actionOpen ? 'flex' : 'hidden'} absolute top-1/3 lg:top-6 lg:right-8 z-10 flex-col gap-3 p-4 bg-gray-900 rounded-lg shadow-lg`}
-        >
-          <li
-            onClick={(e) => handleEditTeam(e, team._id)}
-            className="flex items-center gap-2 text-sm cursor-pointer hover:text-yellow-400"
-          >
-            <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={16} height={16} /> Edit
-          </li>
-          <li
-            onClick={(e) => handleOpenMoveTeam(e, team._id)}
-            className="flex items-center gap-2 text-sm cursor-pointer hover:text-yellow-400"
-          >
-            <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} /> Move Team
-          </li>
-          <li
-            onClick={(e) => handleSendCredential(e, team._id)}
-            className="flex items-center gap-2 text-sm cursor-pointer hover:text-yellow-400"
-          >
-            <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />{' '}
-            {team.sendCredentials ? 'Resend' : 'Send'} Credential
-          </li>
-          <li
-            onClick={(e) => handleDeleteTeam(e, team._id)}
-            className="flex items-center gap-2 text-sm cursor-pointer text-red-500 hover:text-red-400"
-          >
-            <Image className="svg-red" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
-          </li>
-        </ul>
+        {actionOpen && (
+          <AnimatePresence>
+            <motion.ul
+              className="absolute z-10 right-16 top-48 md:right-6 md:top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+              variants={menuVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={{ duration: 0.2 }}
+            >
+              <li
+                onClick={(e) => handleEditTeam(e, team._id)}
+                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+              >
+                <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={16} height={16} /> Edit
+              </li>
+              <li
+                onClick={(e) => handleOpenMoveTeam(e, team._id)}
+                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+              >
+                <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} /> Move Team
+              </li>
+              <li
+                onClick={(e) => handleSendCredential(e, team._id)}
+                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+              >
+                <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />{' '}
+                {team.sendCredentials ? 'Resend' : 'Send'} Credential
+              </li>
+              <li
+                onClick={(e) => handleDeleteTeam(e, team._id)}
+                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+              >
+                <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
+              </li>
+            </motion.ul>
+          </AnimatePresence>
+        )}
+
 
         {/* Team Selection and Number */}
         <div className="flex flex-col items-center gap-2">
@@ -290,14 +297,19 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
 
         {/* Action Buttons */}
         <div className="flex gap-3 mt-4 lg:mt-0 lg:pr-2">
-          <Image
-            onClick={handleOpenAction}
-            src="/icons/dots-vertical.svg"
-            alt="Options"
-            width={20}
-            height={20}
-            className="cursor-pointer svg-white opacity-80 hover:opacity-100"
-          />
+          <button
+            onClick={() => setActionOpen((prev) => !prev)}
+            className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Options"
+          >
+            <Image
+              width={imgSize.logo}
+              height={imgSize.logo}
+              src="/icons/dots-vertical.svg"
+              alt="options"
+              className="w-5 h-5 svg-white"
+            />
+          </button>
           <Image
             onClick={(e) => handleSendCredential(e, team._id)}
             src="/icons/send-email.svg"

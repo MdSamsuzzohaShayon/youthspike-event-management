@@ -93,6 +93,7 @@ export class GroupResolver {
           updatePromises.push(this.teamService.updateOne({ _id: team }, { group: updateInput._id }));
         }
         groupObj.$addToSet = { teams: { $each: updateInput.teams } };
+        delete groupObj.teams;
       }
       updatePromises.push(this.groupService.updateOne({ _id: updateInput._id }, groupObj));
 

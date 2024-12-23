@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Event } from 'src/event/event.schema';
+import { ERosterLock, Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
 import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
@@ -51,7 +51,7 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true })
   @Prop({ required: false })
-  rosterLock?: string;
+  rosterLock?: ERosterLock | string;
 
   @Field({ nullable: true })
   @Prop({ required: false })

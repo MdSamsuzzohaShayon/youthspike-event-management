@@ -125,9 +125,9 @@ export class EmailsenderResolver {
 
       // Send emails to recipients
       for (const recipient of recipients) {
-        const player = await this.playerService.findById(recipient);
-        if (player) {
-          const sendTo = [player.email];
+        const playerExist = await this.playerService.findById(recipient);
+        if (playerExist) {
+          const sendTo = [playerExist.email];
           if (this.configService.get<string>('NODE_ENV') === 'development') {
             sendTo.push('mdsamsuzzoha5222@gmail.com');
           }
@@ -137,11 +137,11 @@ export class EmailsenderResolver {
               to: sendTo,
               subject,
               htmlFileName,
-              player_username: player.username,
+              player_username: playerExist.username,
               coach_password: eventExist.coachPassword,
               ldo_name: ldoExist.name,
               director_email: directorExist.email,
-              captain_name: player.firstName,
+              captain_name: playerExist.firstName,
               event_date: eventDateFormatted,
               fwango_link: eventExist.fwango,
               ldo_phone: ldoExist.phone,
