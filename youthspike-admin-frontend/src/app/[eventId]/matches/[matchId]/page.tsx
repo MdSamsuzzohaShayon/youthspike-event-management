@@ -13,23 +13,13 @@ import React, { useState, useEffect } from 'react';
 /**
  * Test Match
  * 
- * Liverpool FC
+ * Team B
  * Captain
- * pfn11124
- * Co-captains
- * pfn13124
+ * pfn4130
  * 
- * 
- * 
- * Aston Villa
+ * Team D
  * Captain
- * pfn7125
- * Co-captains
- * pfn4125
- * 
- * Aston Villa
- * Captain
- * pfn21126
+ * pfn1131
  */
 
 interface MatchSingleProps {

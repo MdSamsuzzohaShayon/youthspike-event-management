@@ -171,7 +171,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
   }, [params.eventId]);
 
   if (loading || isLoading) return <Loader />;
-
+  
 
   return (
     <div className="container mx-auto px-4 min-h-screen">

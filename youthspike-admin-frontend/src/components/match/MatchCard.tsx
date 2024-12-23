@@ -155,13 +155,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
           </p> */}
         </div>
         <div className="w-3/6 text-end">
-          {match.description && (
-            <p className='flex justify-start items-center gap-x-2'>
-              <span><img src='/icons/location.svg' className='w-6 svg-white' /></span>
-              <span>{match.description}</span>
-            </p>
-          )}
-
           {match.location && (
             <p className='flex justify-start items-center gap-x-2'>
               <span><img src='/icons/location.svg' className='w-6 svg-white' /></span>
@@ -172,6 +165,14 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
       </div>
       {/* ===== LEVEL 5 END ===== */}
 
+      <div className="w-full px-2 md:px-6 mt-2 md:mt-6 pb-2">
+        {match.description && (
+          <p className='flex justify-start items-center gap-x-2'>
+            <span><img src='/icons/pencil.svg' className='w-6 svg-white' /></span>
+            <span>{match.description}</span>
+          </p>
+        )}
+      </div>
       {/* ===== LEVEL 6 START ===== */}
       {/* <div className="lavel-6 w-full flex justify-between items-start border-t border-gray-500 px-2 md:px-6 mt-2 md:mt-6 pb-2">
         <h3>Match Setting</h3>

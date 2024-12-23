@@ -3,11 +3,11 @@ import { IError, IEventAdd, IEventSponsorAdd } from "@/types";
 import React from "react";
 import { getCookie } from "../cookie";
 import { APP_NAME, BACKEND_URL } from "../keys";
-import { IUserContext, UserRole } from "@/types/user";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { createNewEvent } from "../emitSocketEvent";
 import { Socket } from "socket.io-client";
+import { ERosterLock } from "@/types/event";
 
 interface IAddOrUpdateProps {
     e: React.SyntheticEvent;
@@ -52,7 +52,11 @@ async function addOrUpdateEvent({
     const inputData = update ? { ...updateEvent } : { ...eventState };
     inputData.ldo = directorId ? directorId : 'auto_detect_from_server';
     if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString()
-    if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString()
+    if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString();
+
+    if(eventState.rosterLock === ERosterLock.PICK_A_DATE){
+        return setActErr({ message: "You must choose a date when ranking of the player is going to lock!", success: false });
+    }
 
     const mutationVariables: IMutationVariables = {
         sponsorsInput: [],

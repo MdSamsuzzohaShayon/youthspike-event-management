@@ -1,3 +1,4 @@
+import { setActErr } from '@/redux/slices/elementSlice';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
@@ -341,6 +342,13 @@ class SocketEventListener {
     setMatchList(updatedMatchList);
 
     this.dispatch(setRoundList([]));
+  }
+
+  handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {
+    console.log({error});
+    this.dispatch = dispatch;
+    dispatch(setActErr({ success: false, message: `${error}. Try refreshing the page!` }));
+
   }
 }
 

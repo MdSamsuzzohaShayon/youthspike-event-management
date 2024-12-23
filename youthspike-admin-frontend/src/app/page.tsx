@@ -131,6 +131,7 @@ function EventsPage() {
    * Redirect to edit event page if event is been created successfully
    */
   const handleCopyEvent = async (e: React.SyntheticEvent, eventId: string) => {
+    e.preventDefault();
     const eventResponse = await cloneEvent({ variables: { eventId } });
     if (eventResponse.data.cloneEvent.success !== true) {
       return setActErr({ code: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, success: false });

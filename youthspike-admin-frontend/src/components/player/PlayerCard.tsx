@@ -17,6 +17,8 @@ import SelectInput from '../elements/forms/SelectInput';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import CheckboxInput from '../elements/forms/CheckboxInput';
+import { AnimatePresence, motion } from 'framer-motion';
+import { menuVariants } from '@/utils/animation';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -34,7 +36,7 @@ interface PlayerCardProps {
   rank?: number | null;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank, isChecked, handleSelectPlayer,  }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank, isChecked, handleSelectPlayer, }: PlayerCardProps) {
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -55,10 +57,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const { ldoIdUrl } = useLdoId();
 
   // ====== Actions for players  ======
-  const handleOpenAction = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setActionOpen((prevState) => !prevState);
-  };
 
   const makeCaptainOrCoCaptain = async (input: { captain?: string; cocaptain?: string }) => {
     setActionOpen((prevState) => !prevState);
@@ -248,10 +246,10 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       >
         {/* Draggable element start  */}
         <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>
-        <div className="ml-4"></div>
+          <div className="ml-4"></div>
           {user.info?.role === UserRole.admin || user.info?.role === UserRole.director
-          ? (<CheckboxInput name='bulk-match' defaultValue={isChecked} _id={player._id} handleInputChange={handleSelectPlayer} />)
-          : <div className='w-4' />}
+            ? (<CheckboxInput name='bulk-match' defaultValue={isChecked} _id={player._id} handleInputChange={handleSelectPlayer} />)
+            : <div className='w-4' />}
 
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
@@ -289,44 +287,65 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         {/* Draggable element End  */}
 
         {/* Operation menu start  */}
-        <ul className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 right-6 md:right-10 z-10 rounded-lg`}>
-          <li role="presentation">
-            {' '}
-            <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
-          </li>
-          {rankControls && player.status === EPlayerStatus.ACTIVE && (
-            <>
-              <li role="presentation" onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
-                {' '}
-                Make Captain
+        <AnimatePresence>
+          {actionOpen && (
+            <motion.ul
+              className="absolute z-10 right-6 top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+              variants={menuVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={{ duration: 0.2 }}
+            >
+              <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' >
+                <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
-              <li role="presentation" onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}>
-                {' '}
-                Make Co-Captain
+              {rankControls && player.status === EPlayerStatus.ACTIVE && (
+                <>
+                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
+  
+                    Make Captain
+                  </li>
+                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}>
+  
+                    Make Co-Captain
+                  </li>
+                </>
+              )}
+              <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={handleMovePlayerBox}>
+                Move Player
               </li>
-            </>
+              {player.status === EPlayerStatus.ACTIVE ? (
+                <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
+
+                  Make Inactive
+                </li>
+              ) : (
+                <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
+                  Make Active
+                </li>
+              )}
+              <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleDelete(e, player._id)}>
+                Delete
+              </li>
+            </motion.ul>
           )}
-          <li role="presentation" onClick={handleMovePlayerBox}>
-            {' '}
-            Move Player
-          </li>
-          {player.status === EPlayerStatus.ACTIVE ? (
-            <li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
-              {' '}
-              Make Inactive
-            </li>
-          ) : (
-            <li role="presentation" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
-              {' '}
-              Make Active
-            </li>
-          )}
-          <li role="presentation" onClick={(e) => handleDelete(e, player._id)}>
-            Delete
-          </li>
-        </ul>
+        </AnimatePresence>
+
         <div className="dot-img-wrapper w-1/12 flex justify-end items-end">
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="dot-vertical" className="w-8 svg-white" role="presentation" onClick={handleOpenAction} />
+          <button
+            onClick={() => setActionOpen((prev) => !prev)}
+            className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Options"
+          >
+            <Image
+              width={imgSize.logo}
+              height={imgSize.logo}
+              src="/icons/dots-vertical.svg"
+              alt="options"
+              className="w-5 h-5 svg-white"
+            />
+          </button>
         </div>
         {/* Operation menu ende  */}
 

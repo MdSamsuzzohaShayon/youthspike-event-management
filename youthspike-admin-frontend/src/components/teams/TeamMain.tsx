@@ -16,8 +16,6 @@ import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, set
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { handleResponse } from '@/utils/handleError';
 import { GET_LDO_EVENTS_LIGHT } from '@/graphql/director';
-import Image from 'next/image';
-import { imgSize } from '@/utils/style';
 import SelectInput from '../elements/forms/SelectInput';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../hooks/useClickOutside';
@@ -44,7 +42,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [actErr, setActErr] = useState<IError | null>(null);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
-  const [eventList, setEventList] = useState<IEvent[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]);
   const [filteredList, setFilteredlist] = useState<ITeam[]>([]);
@@ -139,7 +136,7 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
       if (directorId) {
         const ldoRes = await getLdo({ variables: { dId: directorId } });
         if (ldoRes?.data?.getEventDirector?.data?.events) {
-          setEventList(ldoRes.data.getEventDirector.data.events)
+          // setEventList(ldoRes.data.getEventDirector.data.events)
         }
 
       }

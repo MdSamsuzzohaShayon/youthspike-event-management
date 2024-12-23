@@ -140,6 +140,7 @@ const AdminMenu = () => {
                             </Link>
 
                             <h1 className="text-2xl text-yellow mt-4 capitalize">{`${user.info?.firstName} ${user.info?.lastName}`}</h1>
+                            {user.info?.team && <h3 className="text-sm text-yellow-500 text-gray-400">{user.info.team}</h3>}
                             <p className="uppercase text-yellow text-sm mt-2">{user?.info?.role}</p>
                         </div>
 

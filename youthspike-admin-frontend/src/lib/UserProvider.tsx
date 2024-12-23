@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useParams, usePathname, useSearchParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { getCookie } from '@/utils/cookie';
 import { IUser, IUserContext } from '@/types/user';
 

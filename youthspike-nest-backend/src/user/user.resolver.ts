@@ -136,12 +136,11 @@ export class UserResolver {
             // db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
             const ldoExist = await this.ldoService.findOne({ _id: eventExist.ldo.toString() });
             if (ldoExist) {
-              const directorUserExist = await this.userService.findOne({ _id: ldoExist.director.toString() });
-              if (
-                passcode &&
-                directorUserExist.passcode &&
-                directorUserExist.passcode.toUpperCase() === passcode.toUpperCase()
-              ) {
+              const directorUsers = await this.userService.find({
+                $or: [{ _id: ldoExist.director.toString() }, { role: UserRole.admin }],
+              });
+              const passcodeList = directorUsers.map((du)=> du.passcode && du.passcode.toString().toUpperCase());
+              if (passcode && passcodeList.includes(passcode.toUpperCase())) {
                 payload.passcode = passcode;
                 userObj.passcode = passcode; // Now, This is a player user but has access to director
               }

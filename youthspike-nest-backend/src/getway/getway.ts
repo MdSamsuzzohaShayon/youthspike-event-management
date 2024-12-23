@@ -1,5 +1,5 @@
-import { Logger, OnModuleInit } from '@nestjs/common';
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { OnModuleInit } from '@nestjs/common';
+import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { RoomService } from 'src/room/room.service';
 import {
@@ -10,7 +10,6 @@ import {
   UpdatePointsInput,
   RoundUpdatedResponse,
   TieBreakerInput,
-  NetTieBreaker,
   ETeam,
   CreateEventInput,
   NetPointsAssign,
@@ -25,6 +24,10 @@ import { MatchService } from 'src/match/match.service';
 import { EPlayerStatus } from 'src/player/player.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { UserRole } from 'src/user/user.schema';
+import { EventService } from 'src/event/event.service';
+import { ERosterLock } from 'src/event/event.schema';
+import { UserService } from 'src/user/user.service';
+import { PlayerService } from 'src/player/player.service';
 
 @ObjectType()
 class RoomRoundProcess {
@@ -124,11 +127,13 @@ export class MyGatWay implements OnModuleInit {
   private clientList = new Map<string, GeneralClient>(); // List all the players that joined our system
 
   constructor(
+    private readonly eventService: EventService,
     private readonly roomService: RoomService,
     private readonly roundService: RoundService,
     private readonly netService: NetService,
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
+    private readonly playerService: PlayerService,
     private readonly playerRankingService: PlayerRankingService,
   ) {}
 
@@ -401,6 +406,55 @@ export class MyGatWay implements OnModuleInit {
         throw new Error('Round not found, with that round ID!');
       }
 
+      // Check already checked in to another match or not
+      if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
+        if (checkIn.userId) {
+          const captainPlayerExist = await this.playerService.findOne({
+            $or: [{ captainuser: checkIn.userId }, { cocaptainuser: checkIn.userId }],
+          });
+          if (captainPlayerExist && captainPlayerExist.teams.length > 0) {
+            const teams = await this.teamService.find({ _id: { $in: captainPlayerExist.teams.map((t) => t._id) } });
+            if (teams.length > 0) {
+              const teamIds = teams.map((t) => t._id.toString());
+              const matches = await this.matchService.find({
+                $or: [{ teamA: { $in: teamIds } }, { teamB: { $in: teamIds } }],
+              });
+              const teamOfTheCaptain = teamIds[0]; // Currently one player can have only one team
+              if (matches.length > 0) {
+                // Check Is there is any match running or not
+                let matchRunning = null;
+                for (const match of matches) {
+                  const roundList = await this.roundService.find({ match: match._id });
+                  if (roundList.length > 0) {
+                    const firstRound = roundList[0];
+                    if (
+                      teamOfTheCaptain === match.teamA.toString() &&
+                      firstRound.teamAProcess !== EActionProcess.INITIATE &&
+                      !match.completed
+                    ) {
+                      matchRunning = match._id;
+                      break;
+                    } else if (
+                      teamOfTheCaptain === match.teamB.toString() &&
+                      firstRound.teamBProcess !== EActionProcess.INITIATE &&
+                      !match.completed
+                    ) {
+                      matchRunning = match._id;
+                      break;
+                    }
+                  }
+                }
+                if (matchRunning) {
+                  throw new Error(
+                    `A match is already running (${matchRunning}), until you complete that match you can not start a new match!`,
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
       // update round to checkin
       const currRoundObj = { ...roundList[roundI] };
       if (checkIn.teamE === ETeam.teamA) {
@@ -425,6 +479,7 @@ export class MyGatWay implements OnModuleInit {
       ]);
     } catch (error) {
       console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
     }
   }
 
@@ -452,8 +507,11 @@ export class MyGatWay implements OnModuleInit {
       }
 
       // update round to checkin
-      const roundExist = await this.roundService.findById(submitLineup.round);
-      if (!roundExist) {
+      const [roundExist, eventExist] = await Promise.all([
+        this.roundService.findById(submitLineup.round),
+        this.eventService.findById(submitLineup.eventId),
+      ]);
+      if (!roundExist || !eventExist) {
         throw new Error('Round not found in the Database, with that round ID!');
       }
 
@@ -478,12 +536,15 @@ export class MyGatWay implements OnModuleInit {
       }
 
       // Change ranking lock strategy
-      updatePromises.push(
-        this.playerRankingService.updateOne(
-          { match: submitLineup.match, team: currTeamId },
-          { $set: { rankLock: true } },
-        ),
-      );
+      if (roundExist.num === 1 && eventExist.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT) {
+        updatePromises.push(
+          // Locking ranking for this specific match
+          this.playerRankingService.updateOne(
+            { match: submitLineup.match, team: currTeamId },
+            { $set: { rankLock: true } },
+          ),
+        );
+      }
 
       // Update nets and round by assigning player to nets
       const updateRoundData = { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess };
@@ -539,7 +600,7 @@ export class MyGatWay implements OnModuleInit {
         );
       }
 
-      if (currRoundObj.num === 1) {
+      if (currRoundObj.num === 1 && eventExist.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT) {
         updatePromises.push(
           this.teamService.updateMany(
             { _id: { $in: [submitLineup.teamAId, submitLineup.teamBId] } },
@@ -565,156 +626,177 @@ export class MyGatWay implements OnModuleInit {
       ]);
     } catch (error) {
       console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
     }
   }
 
   // For banning nets
   @SubscribeMessage('update-net-from-client')
   async onNetUpdate(client, netInputs: TieBreakerInput) {
-    const prevRoom = this.roomsLocal.get(netInputs.room);
-    if (!prevRoom) {
-      throw new Error('Room not found, Incorrect room ID!');
-    }
-    const roomData = { ...prevRoom };
+    try {
+      const prevRoom = this.roomsLocal.get(netInputs.room);
+      if (!prevRoom) {
+        throw new Error('Room not found, Incorrect room ID!');
+      }
+      const roomData = { ...prevRoom };
 
-    const roundExist = await this.roundService.findById(netInputs.round);
-    if (!roundExist) {
-      throw new Error('Round not found in the Database, with that round ID!');
-    }
+      const roundExist = await this.roundService.findById(netInputs.round);
+      if (!roundExist) {
+        throw new Error('Round not found in the Database, with that round ID!');
+      }
 
-    // Update nets and round by assigning player to nets
-    const updatePromises = [];
-    const lockedNetIds = [];
-    for (const n of netInputs.nets) {
-      if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) lockedNetIds.push(n._id);
-      updatePromises.push(
-        this.netService.update(
+      // Update nets and round by assigning player to nets
+      const updatePromises = [];
+      const lockedNetIds = [];
+      for (const n of netInputs.nets) {
+        if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) lockedNetIds.push(n._id);
+        updatePromises.push(
+          this.netService.update(
+            {
+              netType: n.netType,
+            },
+            n._id,
+          ),
+        );
+      }
+
+      if (lockedNetIds.length > 1) {
+        // TIE_BREAKER_NET, worth 2 points
+        this.netService.updateMany(
           {
-            netType: n.netType,
+            _id: { $nin: lockedNetIds },
+            $and: [
+              { round: netInputs.round },
+              { round: { $exists: true } }, // Ensure that the round field exists
+            ],
           },
-          n._id,
-        ),
-      );
+          {
+            $set: { points: 2, netType: ETieBreaker.TIE_BREAKER_NET },
+          },
+        );
+      }
+
+      await Promise.all(updatePromises);
+
+      this.roomsLocal.set(netInputs.room, roomData);
+      const roomDataWithNets = { ...roomData, nets: netInputs.nets };
+
+      // client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
+      await this.emitToAllClients('update-net-response-all', client, prevRoom.match, roomDataWithNets);
+    } catch (error) {
+      console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
     }
-
-    if (lockedNetIds.length > 1) {
-      // TIE_BREAKER_NET, worth 2 points
-      this.netService.updateMany(
-        {
-          _id: { $nin: lockedNetIds },
-          $and: [
-            { round: netInputs.round },
-            { round: { $exists: true } }, // Ensure that the round field exists
-          ],
-        },
-        {
-          $set: { points: 2, netType: ETieBreaker.TIE_BREAKER_NET },
-        },
-      );
-    }
-
-    await Promise.all(updatePromises);
-
-    this.roomsLocal.set(netInputs.room, roomData);
-    const roomDataWithNets = { ...roomData, nets: netInputs.nets };
-
-    // client.to(prevRoom._id).emit('update-net-response', roomDataWithNets);
-    await this.emitToAllClients('update-net-response-all', client, prevRoom.match, roomDataWithNets);
   }
 
   @SubscribeMessage('update-points-from-client')
   async onPointsUpdate(client, updatePointsInput: UpdatePointsInput) {
-    const prevRoom = this.roomsLocal.get(updatePointsInput.room);
-    if (!prevRoom) return;
+    try {
+      const prevRoom = this.roomsLocal.get(updatePointsInput.room);
+      if (!prevRoom) return;
 
-    const [roundList, roundExist] = await Promise.all([
-      this.roundService.find({ match: prevRoom.match }),
-      this.roundService.findById(updatePointsInput.round),
-    ]);
+      const [roundList, roundExist] = await Promise.all([
+        this.roundService.find({ match: prevRoom.match }),
+        this.roundService.findById(updatePointsInput.round),
+      ]);
 
-    if (!roundList || !roundExist) {
-      throw new Error(
-        `Round List or Round Exist not found! Round List: ${JSON.stringify(roundList)}, Round Exist: ${JSON.stringify(
-          roundExist,
-        )}`,
-      );
-    }
-
-    // Update net score from database
-    const updatePromises = [];
-    for (const n of updatePointsInput.nets) {
-      const pointsObj: any = {};
-      if (n.teamAScore || n.teamAScore === 0) pointsObj.teamAScore = n.teamAScore;
-      if (n.teamBScore || n.teamBScore === 0) pointsObj.teamBScore = n.teamBScore;
-      updatePromises.push(this.netService.update(pointsObj, n._id));
-    }
-    await Promise.all(updatePromises);
-
-    // Calculate and update score for all nets of a round
-    const findNets = await this.netService.query({ round: updatePointsInput.round });
-    // Update score in round
-    let teamAScore = null;
-    let teamBScore = null;
-    let i = 0;
-    while (i < findNets.length) {
-      if (findNets[i].teamAScore && findNets[i].teamBScore) {
-        teamAScore ? (teamAScore += findNets[i].teamAScore) : (teamAScore = findNets[i].teamAScore);
-        teamBScore ? (teamBScore += findNets[i].teamBScore) : (teamBScore = findNets[i].teamBScore);
-      } else {
-        teamAScore = null;
-        teamBScore = null;
+      if (!roundList || !roundExist) {
+        throw new Error(
+          `Round List or Round Exist not found! Round List: ${JSON.stringify(roundList)}, Round Exist: ${JSON.stringify(
+            roundExist,
+          )}`,
+        );
       }
-      i += 1;
+
+      // Update net score from database
+      const updatePromises = [];
+      for (const n of updatePointsInput.nets) {
+        const pointsObj: any = {};
+        if (n.teamAScore || n.teamAScore === 0) pointsObj.teamAScore = n.teamAScore;
+        if (n.teamBScore || n.teamBScore === 0) pointsObj.teamBScore = n.teamBScore;
+        updatePromises.push(this.netService.updateOne({ _id: n._id }, pointsObj));
+      }
+      await Promise.all(updatePromises);
+
+      // Calculate and update score for all nets of a round
+      const findNets = await this.netService.query({ round: updatePointsInput.round });
+      // Update score in round
+      let teamAScore = null;
+      let teamBScore = null;
+      let i = 0;
+      while (i < findNets.length) {
+        if (findNets[i].teamAScore && findNets[i].teamBScore) {
+          teamAScore ? (teamAScore += findNets[i].teamAScore) : (teamAScore = findNets[i].teamAScore);
+          teamBScore ? (teamBScore += findNets[i].teamBScore) : (teamBScore = findNets[i].teamBScore);
+        } else {
+          teamAScore = null;
+          teamBScore = null;
+        }
+        i += 1;
+      }
+
+      let completed = false;
+      if (teamAScore && teamAScore > 0 && teamBScore && teamBScore > 0) completed = true;
+      await this.roundService.updateOne({ _id: updatePointsInput.round }, { teamAScore, teamBScore, completed });
+
+      const pointsResponse: RoundUpdatedResponse = {
+        nets: updatePointsInput.nets,
+        room: updatePointsInput.room,
+        round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed },
+        matchCompleted: false,
+        teamAProcess: roundExist.teamAProcess,
+        teamBProcess: roundExist.teamBProcess,
+      };
+
+      // ===== Complete the match if score is updated in all nets  =====
+      if (completed && roundExist.num === roundList.length) {
+        // Check all rounds
+        await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
+        pointsResponse.matchCompleted = true;
+      }
+
+      client.to(prevRoom._id).emit('update-points-response', pointsResponse);
+      const presizedRoundData: MatchRoundNet = {
+        nets: updatePointsInput.nets,
+        _id: updatePointsInput.round,
+        match: prevRoom.match,
+        matchCompleted: pointsResponse.matchCompleted,
+      };
+
+      await Promise.all([
+        this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse),
+        this.emitToAllClients('net-update-all-pages', client, prevRoom.match, presizedRoundData, true, true),
+      ]);
+    } catch (error) {
+      console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
     }
-
-    let completed = false;
-    if (teamAScore && teamAScore > 0 && teamBScore && teamBScore > 0) completed = true;
-    await this.roundService.updateOne({ _id: updatePointsInput.round }, { teamAScore, teamBScore, completed });
-
-    const pointsResponse: RoundUpdatedResponse = {
-      nets: updatePointsInput.nets,
-      room: updatePointsInput.room,
-      round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed },
-      matchCompleted: false,
-      teamAProcess: roundExist.teamAProcess,
-      teamBProcess: roundExist.teamBProcess,
-    };
-
-    // ===== Complete the match if score is updated in all nets  =====
-    if (completed && roundExist.num === roundList.length) {
-      // Check all rounds
-      await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
-      pointsResponse.matchCompleted = true;
-    }
-
-    client.to(prevRoom._id).emit('update-points-response', pointsResponse);
-    const presizedRoundData: MatchRoundNet = {
-      nets: updatePointsInput.nets,
-      _id: updatePointsInput.round,
-      match: prevRoom.match,
-      matchCompleted: pointsResponse.matchCompleted,
-    };
-
-    await Promise.all([
-      this.emitToAllClients('update-points-response-all', client, prevRoom.match, pointsResponse),
-      this.emitToAllClients('net-update-all-pages', client, prevRoom.match, presizedRoundData, true, true),
-    ]);
   }
 
   @SubscribeMessage('completed-match-from-client')
   async onMatchComplete(client, { matchId }: { matchId: string }) {
-    const matchExist = await this.matchService.findById(matchId);
-    if (matchExist) {
-      await this.matchService.updateOne({ _id: matchId }, { $set: { completed: true } });
-      // client.emit('completed-match-response', { matchId });
-      await this.emitToAllClients('completed-match-response-all', client, matchId, { matchId });
+    try {
+      const matchExist = await this.matchService.findById(matchId);
+      if (matchExist) {
+        await this.matchService.updateOne({ _id: matchId }, { $set: { completed: true } });
+        // client.emit('completed-match-response', { matchId });
+        await this.emitToAllClients('completed-match-response-all', client, matchId, { matchId });
+      }
+    } catch (error) {
+      console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
     }
   }
 
   @SubscribeMessage('room-detail-client')
   async onRoomCheck(client, { roomId }: { roomId: string }) {
-    const prevRoom = this.roomsLocal.get(roomId);
-    client.emit('room-detail-response', prevRoom);
+    try {
+      const prevRoom = this.roomsLocal.get(roomId);
+      client.emit('room-detail-response', prevRoom);
+    } catch (error) {
+      console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
+    }
   }
 
   // This will be triggered in all pages except single match page

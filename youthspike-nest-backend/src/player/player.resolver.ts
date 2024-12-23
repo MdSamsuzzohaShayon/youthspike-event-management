@@ -40,7 +40,56 @@ export class PlayerResolver {
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
     private playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
+
+  private async handleTeamUpdate(
+    playerId: string,
+    currentTeams: string[],
+    newTeamId: string,
+    updatePromises: Promise<any>[],
+  ) {
+    // Remove player from current teams
+    if (currentTeams.length > 0) {
+      updatePromises.push(
+        this.teamService.updateMany({ _id: { $in: currentTeams } }, { $pull: { players: playerId } }),
+      );
+    }
+
+    // Add player to the new team
+    updatePromises.push(this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }));
+
+    // Update rankings in the current team <- currently removing all players in the team
+    const currentTeamRankings = await this.playerRankingService.find({ team: currentTeams[0] });
+    for (const ranking of currentTeamRankings) {
+      // const rankingIds = ranking.rankings.map((id) => id.toString());
+      const rankings = await this.playerRankingService.findItems({ player: playerId });
+      if (rankings.length > 0) {
+        const rankingIds = rankings.map((r) => r._id);
+        updatePromises.push(
+          this.playerRankingService.updateOne({ _id: ranking._id }, { $pull: { rankings: { $in: rankingIds } } }),
+        );
+        updatePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: rankingIds } }));
+      }
+    }
+
+    // Update rankings in the new team
+    const newTeam = await this.teamService.findById(newTeamId);
+    if (newTeam) {
+      const newTeamRankings = await this.playerRankingService.find({ team: newTeam._id });
+      let index = 0;
+      for (const ranking of newTeamRankings) {
+        const newRankingItem = await this.playerRankingService.createAnItem({
+          player: playerId,
+          playerRanking: ranking._id,
+          rank: ranking.rankings.length + 1 + index,
+        });
+        updatePromises.push(
+          this.playerRankingService.updateOne({ _id: ranking._id }, { $addToSet: { rankings: newRankingItem._id } }),
+        );
+        index += 1;
+      }
+    }
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -165,61 +214,13 @@ export class PlayerResolver {
 
       // ===== Remove from Previous Team =====
       if (input.playerTeamId && input.team) {
-        if (input.team === input.playerTeamId)
+        if (input.team === input.playerTeamId) {
           return AppResponse.handleError({
             name: 'Invalid team',
             message: 'New team and previous team both are same, therefore no need to change',
           });
-
-        const newTeamExist = await this.teamService.findById(input.team);
-        if (!newTeamExist) return AppResponse.notFound('Team');
-        updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
-
-        // First, add the new team if it doesn't exist
-        const currTeamPlayerRankings = await this.playerRankingService.find({ team: newTeamExist._id });
-        for (const playerRanking of currTeamPlayerRankings) {
-          const rankings = await this.playerRankingService.findItems({ playerRanking: playerRanking._id });
-          const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
-
-          updatePromises.push(
-            this.playerRankingService.createAnItem({
-              player: playerId,
-              rank: highestRank + 1,
-              playerRanking: playerRanking._id,
-            }),
-          );
         }
-
-        // Prev team
-        const prevTeamExist = await this.teamService.findById(input.playerTeamId);
-        if (!prevTeamExist) return AppResponse.notFound('Team');
-
-        // Remove
-        const prevTeamPlayerRankings = await this.playerRankingService.find({ team: prevTeamExist._id });
-        for (const playerRanking of prevTeamPlayerRankings) {
-          updatePromises.push(
-            this.playerRankingService.deleteOneItem({ player: playerId, playerRanking: playerRanking._id }),
-          );
-        }
-
-        const playerIds = prevTeamExist.players.map((p) => p.toString());
-        const newPlayerIds = playerIds.filter((p) => p.toString() !== playerId);
-        updatePromises.push(
-          this.teamService.updateOne({ _id: input.playerTeamId }, { $set: { players: newPlayerIds } }),
-        );
-
-        // Add
-        updatePromises.push(
-          this.playerService.updateOne(
-            { _id: playerId },
-            {
-              $set: { teams: [input.team] },
-              // $addToSet: { teams: input.team },
-              // $pull: { teams: input.playerTeamId }
-            },
-          ),
-        );
-        // updatePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: playerId } }));
+        await this.handleTeamUpdate(playerId, [input.playerTeamId], input.team, updatePromises);
       }
 
       if (playerObj.team) delete playerObj.team;
@@ -268,40 +269,10 @@ export class PlayerResolver {
           if (!playerExist) continue;
           teamIds = playerExist.teams;
           const playerObj = { ...input[i], teams: teamIds || [] };
+          // Move one team to another
           if (playerObj.team) {
-            updatePromises.push(
-              this.teamService.updateMany({ _id: { $in: teamIds } }, { $pull: { players: playerId } }),
-            );
-            updatePromises.push(
-              this.teamService.updateOne({ _id: playerObj.team }, { $addToSet: { players: playerId } }),
-            );
-            // playerObj.teams = [...playerExist.teams, playerObj.team];
+            await this.handleTeamUpdate(playerId, teamIds, playerObj.team, updatePromises);
             playerObj.teams = [playerObj.team];
-            // Update previous ranking
-            const playerRankings = await this.playerRankingService.find({ team: playerExist.teams[0] });
-            for (const pr of playerRankings) {
-              const playerRankingItemExist = await this.playerRankingService.findOneItem({ player: pr._id });
-              if (playerRankingItemExist) {
-                updatePromises.push(
-                  this.playerRankingService.updateOne(
-                    { _id: pr._id },
-                    { $pull: { rankings: playerRankingItemExist._id } },
-                  ),
-                );
-              }
-              updatePromises.push(this.playerRankingService.deletManyItem({ player: pr._id }));
-            }
-            // Create new player ranking item
-            const teamExist = await this.teamService.findById(playerObj.team);
-            if (teamExist) {
-              const newPlayerRankings = await this.playerRankingService.find({ _id: teamExist._id });
-              for (const pr of newPlayerRankings) {
-                // Add this item to all playerRankings
-                updatePromises.push(
-                  this.playerRankingService.createAnItem({ player: playerId, playerRanking: pr._id, rank: 0 }),
-                );
-              }
-            }
             delete playerObj.team;
           }
           if (playerObj._id) delete playerObj._id;

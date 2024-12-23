@@ -52,25 +52,18 @@ ___
  - Run the match 20 times and fix all the issues we got
       
 
-### Requirements
- - Group list
-  - Rank by losses (team rank) -> who ever has the fewest losses goes to the top
-  - Other fields will break the tie for a team
-  - A link for the team to show specific team
- - Create filters for matches ( filter by passed, current, completed, in progress, not started)
- - In match, there will be description and location both -> both will be in the match screen (frontend)
+### Requirements 
+ - Work with a captain can play only one match
+ - Improve design -> Change design and animations for all input fields
+ - Handle error properly -> Use react toast
+ - Welcome to the match VS (other team team name), 
+ - Description of the match
+
+ - Create a team and player should be able to add to the team (In player or team edit option)
+
  - (web socket) Update match properly and show win and losses properly
  - Group card change - keep group name, and number of  groups, and list all the teams inside a group
- - Add team and players
-  - Create a team and player should be able to add to the team (In player or team edit option)
-  - Rank team properly according to this -> https://www.canva.com/design/DAGYKsAdBD0/r4iaHg8fT7og3MkfNjda5w/edit
-  - In the roster: game + and - (how many game a player is playing)
- - Menu
-  - When in a particular group (in group filter), show standings of a team
-  - When creating a match, for selecting group (all / bracket)
-  - Select group a match (only sort by group stage game) show the records according to group
-  - When does the roster lock, (pick a data, after that date the roster will be locked) (Create event)
- - Watch them:
+
  - Testing now! Initial thoughts:
     - ⁠All admins will need to be able to see the standings page. The one that you can see from the spectator view
     - A team view from the admin to public
@@ -78,17 +71,11 @@ ___
  - Move team, and assign group should have a bulk action
  - **__https://www.loom.com/share/52d87d3bec864e64b83ab7affe7af326__** Till 3 minutes
  - Move change nets like change rosters
- - Show subbed players properly
- - In assign net confirmation, show all nets and players that is going to be subbed
  - In 2 points nets, had to refresh. Able to put score in before banning a net
- - If match is completed they should not be able to update points
- - A level or progress bar
- - Plus minus score (public view teams)
  - Sort by name and record in teams (public view)
  - **__https://www.loom.com/share/da66732176474ed291c37312afe8b17f__**
  - (In play match page ) - Need to rotate net beautifully
 
- - Updating a net still not working
  - Ranking player with a ranking icon
  - Captain of a team must not be able to change the ranking of another team
  - Test with public in the match 
@@ -272,3 +259,6 @@ ___
 
 
 ### Ask
+ - Can you please test everything and find all unsolved issues, create a long video with all the issues you still has
+ - I have commented in the to do list, Reply to my comments that will make things clear.
+ - I need some extra money for my wedding, if you can give me in advanced it would be really helpful for me.

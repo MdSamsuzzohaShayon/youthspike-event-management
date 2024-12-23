@@ -172,6 +172,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         inactivePlayers.push(filteredPlayers[i]);
       }
     }
+    
 
     return (
       <>

@@ -29,7 +29,6 @@ import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 // Types
 import { useUser } from '@/lib/UserProvider';
-import Message from '@/components/elements/Message';
 import { useSocket } from '@/lib/SocketProvider';
 import { isValidObjectId } from '@/utils/helper';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
@@ -57,19 +56,13 @@ import { ITeiBreakerAction } from '@/types/room';
 /**
  * Test Match
  *
- * Liverpool FC
+ * Team B
  * Captain
- * pfn11124
- * Co-captains
- * pfn13124
+ * pfn4130
  *
- *
- *
- * Aston Villa
+ * Team D
  * Captain
- * pfn7125
- * Co-captains
- * pfn4125
+ * pfn1131
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -174,6 +167,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         'update-net-response-all',
         (lineUpData: ITeiBreakerAction) => socketEventListener?.handleUpdateNet({ data: lineUpData, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
       );
+      socket.on('error-from-server', (serverError: string) => socketEventListener?.handleError(serverError, dispatch));
     }
 
     return () => {
@@ -224,16 +218,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   return (
     <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
-      {/* Level 1 start */}
-      {(error || actErr) && (
-        <div className="py-4 bg-black-logo text-white shadow-lg">
-          <div className="container mx-auto px-4 ">
-            {error && <Message error={error} />}
-            {actErr && <Message error={actErr} />}
-          </div>
-        </div>
-      )}
-      {/* Level 1 end */}
 
       {/* Level 2 start: hidden */}
       <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
