@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 
@@ -6,65 +7,94 @@ interface IReturnScore {
   plusMinusScore: number;
 }
 
-function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE: ETeam): IReturnScore {
-  // Remove the teamE declaration here
+/**
+ * Calculate the score and plus-minus for a specific team in a round.
+ */
+function calcRoundScore(
+  findNets: INetRelatives[],
+  round: IRoundRelatives,
+  teamE: ETeam
+): IReturnScore {
   let score = 0;
   let plusMinusScore = 0;
 
-  findNets.forEach((net) => {
+  for (const net of findNets) {
     const teamAScore = net.teamAScore || 0;
     const teamBScore = net.teamBScore || 0;
 
-    // Dark is oponent team
     if (teamE === ETeam.teamA && teamAScore > teamBScore) {
       score += net.points;
     } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
       score += net.points;
     }
-  });
+  }
 
-  const fullPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
-  plusMinusScore = fullPoints - (teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0);
+  const teamPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
+  const opponentPoints = teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0;
+
+  plusMinusScore = teamPoints - opponentPoints;
 
   return { score, plusMinusScore };
 }
 
-function calcMatchScore(roundList: IRoundRelatives[], allNets: INetRelatives[], teamE: ETeam) {
+/**
+ * Calculate match scores for both teams with optimized filtering.
+ */
+function calcMatchScore(
+  roundList: IRoundRelatives[],
+  allNets: INetRelatives[],
+  teamE: ETeam
+): {
+  teamScore: number;
+  oponentScore: number;
+  teamPlusMinus: number;
+  oponentPlusMinus: number;
+} {
   let teamScore = 0;
   let oponentScore = 0;
   let teamPlusMinus = 0;
   let oponentPlusMinus = 0;
+
   const oponentE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
 
-  roundList.forEach((r) => {
+  // Pre-group nets by round ID to reduce filtering overhead
+  const netsByRound = new Map<string, INetRelatives[]>();
+  for (const net of allNets) {
     // @ts-ignore
-    const netsOfRound = allNets.filter((n) => n.round._id === r._id);
-    const { score: ts, plusMinusScore: tpms } = calcRoundScore(
-      netsOfRound,
+    if (!netsByRound.has(net.round._id)) {
       // @ts-ignore
-      r,
-      teamE,
-    );
-    const { score: os, plusMinusScore: otms } = calcRoundScore(
-      netsOfRound,
-      // @ts-ignore
-      r,
-      oponentE,
-    );
-    teamScore += ts;
-    oponentScore += os;
-    teamPlusMinus += tpms;
-    oponentPlusMinus += otms;
-  });
+      netsByRound.set(net.round._id, []);
+    }
+    // @ts-ignore
+    netsByRound.get(net.round._id)!.push(net);
+  }
 
-  return { teamScore, oponentScore, teamPlusMinus, oponentPlusMinus }
+  for (const round of roundList) {
+    const netsOfRound = netsByRound.get(round._id) || [];
+
+    // Calculate team and opponent scores in one loop
+    const teamResult = calcRoundScore(netsOfRound, round, teamE);
+    const oponentResult = calcRoundScore(netsOfRound, round, oponentE);
+
+    teamScore += teamResult.score;
+    teamPlusMinus += teamResult.plusMinusScore;
+    oponentScore += oponentResult.score;
+    oponentPlusMinus += oponentResult.plusMinusScore;
+  }
+
+  return {
+    teamScore,
+    oponentScore,
+    teamPlusMinus,
+    oponentPlusMinus,
+  };
 }
 
+/**
+ * Calculate the combined score of two players.
+ */
 function calcPairScore(playerA: number | null | undefined, playerB: number | null | undefined): number {
-  let ps = 0;
-  if (playerA) ps += playerA;
-  if (playerB) ps += playerB;
-  return ps;
+  return (playerA || 0) + (playerB || 0);
 }
 
 export { calcRoundScore, calcPairScore, calcMatchScore };

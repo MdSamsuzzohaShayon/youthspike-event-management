@@ -71,4 +71,20 @@ export const menuVariants = {
 export const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
-  };
+};
+
+
+export const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+
+export const inputVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+};
+
+export const buttonVariants = {
+    hover: { scale: 1.05, boxShadow: '0px 4px 15px rgba(255, 255, 0, 0.4)' },
+    tap: { scale: 0.95 },
+};

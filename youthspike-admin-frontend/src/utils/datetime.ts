@@ -73,6 +73,7 @@ function defaultInputValue(isoString: string): string {
 
     // Create the formatted date string
     const formattedDate = `${year}-${month}-${day}`;
+    
     return formattedDate;
 }
 

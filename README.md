@@ -53,6 +53,9 @@ ___
       
 
 ### Requirements 
+ - Change style for adding and updating form
+ - In public view show search filter (Search by team, date, match description)
+ - Admin should be able to put score in
  - Work with a captain can play only one match
  - Improve design -> Change design and animations for all input fields
  - Handle error properly -> Use react toast
@@ -85,11 +88,6 @@ ___
  - Use www sub domain for both
 
 ### Update
- - In public view show search filter (Search by team, date, match description)
- - In public view need to show round score (In progress or final score) (winning team will have green circle)
- - Show records (win loss) for a team during an event.  (Record win number - Loss number)
- - Show final or in progress in last round
- - Admin should be able to put score in
 
 
 

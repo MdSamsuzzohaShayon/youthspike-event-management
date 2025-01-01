@@ -47,7 +47,7 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
   };
 
   return (
-    <div className="directorList w-full flex flex-col gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div className="directorList w-full flex flex-col gap-4 rounded-lg shadow-lg">
       <div className="overflow-x-auto">
         <motion.table
           className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]"
@@ -55,13 +55,13 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <thead className="bg-gray-700 text-white">
+          <thead className="bg-gray-700 text-white text-center">
             <tr>
               <th className="py-3 px-4">Name</th>
               <th className="py-3 px-4">Logo</th>
               <th className="py-3 px-4">Director</th>
               <th className="py-3 px-4">Email</th>
-              <th className="py-3 px-4">Number</th>
+              <th className="py-3 px-4">Phone</th>
               <th className="py-3 px-4">Actions</th>
             </tr>
           </thead>

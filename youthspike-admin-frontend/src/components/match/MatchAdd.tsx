@@ -35,17 +35,17 @@ interface IMatchAddProps {
 
 const lockTimes = [
     {
-      id: 1,
-      type: ERosterLock.FIRST_ROSTER_SUBMIT,
-      text: "First Roster Submit"
+        id: 1,
+        type: ERosterLock.FIRST_ROSTER_SUBMIT,
+        text: "First Roster Submit"
     },
     {
-      id: 2,
-      type: ERosterLock.PICK_A_DATE,
-      text: "Pick A Date"
+        id: 2,
+        type: ERosterLock.PICK_A_DATE,
+        text: "Pick A Date"
     },
-  ]
-  
+]
+
 
 
 
@@ -120,14 +120,14 @@ function MatchAdd({ eventId,
         }
     }
 
-    const handleRosterLockDate=({name, value}: IDateChangeHandlerProps)=>{
+    const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
 
         if (update) {
             setUpdateMatch((prevState) => ({ ...prevState, rosterLock: value }));
         } else {
             setAddMatch((prevState) => ({ ...prevState, rosterLock: value }));
         }
-      }
+    }
 
     const handleNumInputChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -208,7 +208,7 @@ function MatchAdd({ eventId,
         return options;
     }
 
-    
+
 
 
     // Need to show number of rounds and number of net and net variance etc
@@ -221,6 +221,7 @@ function MatchAdd({ eventId,
             if (eventData) {
                 mObj.numberOfRounds = eventData.rounds;
                 mObj.numberOfNets = eventData.nets;
+                mObj.date = eventData.startDate;
                 mObj.netVariance = eventData.netVariance;
                 mObj.autoAssign = eventData.autoAssign;
                 mObj.timeout = eventData.timeout;
@@ -234,13 +235,13 @@ function MatchAdd({ eventId,
         setAddMatch(mObj);
     }, [eventData, prevMatch]);
 
-    
+
 
 
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
-                required={!update} defaultValue={addMatch.date} vertical />
+            {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
+                required={!update} value={addMatch.date} vertical /> }
 
             {!update && (<>
                 <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
@@ -271,9 +272,9 @@ function MatchAdd({ eventId,
                 name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
             <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
 
-            <SelectInput name='rosterLock' 
-            defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE} 
-            optionList={lockTimes.map((lt)=> ({value: lt.type, text: lt.text}))} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            <SelectInput name='rosterLock'
+                defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE}
+                optionList={lockTimes.map((lt) => ({ value: lt.type, text: lt.text }))} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
             {addMatch.rosterLock && addMatch.rosterLock !== "" && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
                 <DateInput name='rosterLockDate' lblTxt='Pick A date when ranking is going to lock' handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} vertical extraCls='md:w-5/12' />
             )}

@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable react/require-default-props */
 import { IMatchExpRel, IPlayer, ITeam } from '@/types';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
@@ -24,70 +24,87 @@ interface ITeamListProps {
 
 function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
-  const [sortedTeams, setSortedTeams] = useState<ITeamCaptain[]>([]);
 
-  const calculateTeamScore = useCallback(() => {
-    const newTeamScores: Map<string, ITeamScore> = new Map();
+  /**
+   * Memoized Map of Matches by Team ID
+   */
+  const matchesByTeam = useMemo(() => {
+    const map = new Map<string, IMatch[]>();
 
-    if (teamList && teamList.length > 0 && matchList) {
-      const matchesByTeam = new Map<string, IMatch[]>();
+    if (matchList) {
       for (const match of matchList) {
         if (match.teamA._id) {
-          matchesByTeam.set(match.teamA._id, [...(matchesByTeam.get(match.teamA._id) || []), match]);
+          if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
+          map.get(match.teamA._id)?.push(match);
         }
         if (match.teamB._id) {
-          matchesByTeam.set(match.teamB._id, [...(matchesByTeam.get(match.teamB._id) || []), match]);
+          if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
+          map.get(match.teamB._id)?.push(match);
         }
-      }
-
-      for (const team of teamList) {
-        const teamMatches = matchesByTeam.get(team._id) || [];
-        const teamRecord: ITeamScore = {
-          rank: 0,
-          totalMatches: 0,
-          overallWins: 0,
-          overallLoses: 0,
-          groupWins: 0,
-          groupLoses: 0,
-          matchAvgDiff: 0,
-          gameAvgDiff: 0,
-        };
-
-        let totalMatchDiff = 0;
-        let numOfMatches = 0;
-        let numOfRounds = 0;
-
-        for (const match of teamMatches) {
-          numOfRounds += match.rounds.length;
-          const isTeamA = match.teamA._id === team._id;
-          // @ts-ignore
-          const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
-
-          numOfMatches += 1;
-          totalMatchDiff += teamPlusMinus;
-
-          if (teamScore > oponentScore) {
-            teamRecord.overallWins += 1;
-            if (match?.group?._id) teamRecord.groupWins += 1;
-          } else if (oponentScore > teamScore) {
-            teamRecord.overallLoses += 1;
-            if (match?.group?._id) teamRecord.groupLoses += 1;
-          }
-        }
-
-        teamRecord.totalMatches = numOfMatches;
-        teamRecord.matchAvgDiff = numOfMatches ? totalMatchDiff / numOfMatches : 0;
-        teamRecord.gameAvgDiff = numOfRounds ? totalMatchDiff / numOfRounds : 0;
-
-        newTeamScores.set(team._id, teamRecord);
       }
     }
 
-    setTeamScores(newTeamScores);
-  }, [teamList, matchList]);
+    return map;
+  }, [matchList]);
 
-  const rankTeams = useCallback(() => {
-    const sortedTeamArray = teamList?.slice().sort((teamA, teamB) => {
+  /**
+   * Calculate Team Scores
+   */
+  const calculateTeamScore = useCallback(() => {
+    if (!teamList || teamList.length === 0) return;
+
+    const newTeamScores = new Map<string, ITeamScore>();
+
+    for (const team of teamList) {
+      const teamMatches = matchesByTeam.get(team._id) || [];
+      const teamRecord: ITeamScore = {
+        rank: 0,
+        totalMatches: 0,
+        overallWins: 0,
+        overallLoses: 0,
+        groupWins: 0,
+        groupLoses: 0,
+        matchAvgDiff: 0,
+        gameAvgDiff: 0,
+      };
+
+      let totalMatchDiff = 0;
+      let totalGameDiff = 0;
+
+      for (const match of teamMatches) {
+        const isTeamA = match.teamA._id === team._id;
+        // @ts-ignore
+        const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
+
+        totalMatchDiff += teamScore;
+        totalGameDiff += teamPlusMinus;
+
+        if (teamScore > oponentScore) {
+          teamRecord.overallWins += 1;
+          if (match?.group?._id) teamRecord.groupWins += 1;
+        } else if (oponentScore > teamScore) {
+          teamRecord.overallLoses += 1;
+          if (match?.group?._id) teamRecord.groupLoses += 1;
+        }
+      }
+
+      teamRecord.totalMatches = teamMatches.length;
+      teamRecord.matchAvgDiff = teamMatches.length ? totalMatchDiff / teamMatches.length : 0;
+      teamRecord.gameAvgDiff = teamMatches.length ? totalGameDiff / teamMatches.length : 0;
+
+      newTeamScores.set(team._id, teamRecord);
+    }
+
+    setTeamScores(newTeamScores);
+  }, [teamList, matchesByTeam]);
+
+  /**
+   * Rank Teams
+   */
+  const sortedTeams = useMemo(() => {
+    if (!teamList || teamScores.size === 0) return [];
+
+    return [...teamList].sort((teamA, teamB) => {
       const scoreA = teamScores.get(teamA._id);
       const scoreB = teamScores.get(teamB._id);
 
@@ -101,28 +118,23 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
       if (scoreA.overallLoses !== scoreB.overallLoses) {
         return scoreA.overallLoses - scoreB.overallLoses;
       }
-
       if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
         return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
       }
-
       if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
         return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
       }
 
       return 0;
     });
+  }, [teamList, teamScores, selectedGroup]);
 
-    setSortedTeams(sortedTeamArray || []);
-  }, [teamScores, teamList, selectedGroup]);
-
+  /**
+   * Trigger Calculations on Dependency Changes
+   */
   useEffect(() => {
     calculateTeamScore();
-  }, [teamList, matchList, selectedGroup, calculateTeamScore]);
-
-  useEffect(() => {
-    rankTeams();
-  }, [teamScores, rankTeams]);
+  }, [calculateTeamScore]);
 
   return (
     <div className="teamList w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">

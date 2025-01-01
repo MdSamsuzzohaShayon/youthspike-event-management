@@ -118,10 +118,10 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     const renderMap = {
       [EEventItem.PLAYER]: <PlayerList playerList={playerList} matchList={matchList} showRank={false} />,
       [EEventItem.TEAM]: <TeamList teamList={teamList} selectedGroup={selectedGroup} matchList={matchList} />,
-      [EEventItem.MATCH]: <MatchList matchList={matchList} division={currDivision} />,
+      [EEventItem.MATCH]: <MatchList matchList={matchList} />,
     };
     return renderMap[selectedItem] || null;
-  }, [currDivision, matchList, playerList, selectedItem, teamList]);
+  }, [matchList, playerList, selectedGroup, selectedItem, teamList]);
 
   const renderSponsors = useCallback(
     () => (
