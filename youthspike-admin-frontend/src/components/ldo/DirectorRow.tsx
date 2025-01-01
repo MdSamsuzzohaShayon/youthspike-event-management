@@ -12,14 +12,14 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
     
 
     return (
-        <tr className='border-b border-gray-800 hover:bg-gray-800'  >
+        <tr className='border-b border-gray-800 hover:bg-gray-800 text-center'  >
             <td className="py-2 px-4 capitalize" >{ldo.name}</td>
             <td className="py-2 px-4 capitalize" >
                 {ldo?.logo ? <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> : ''}
             </td>
             <td className="py-2 px-4 capitalize break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
+            <td className="py-2 px-4 lowercase" >{ldo.phone}</td>
             <td className="py-2 px-4 lowercase" >{ldo.director?.email}</td>
-            <td className="py-2 px-4 lowercase" >{ldo.num}</td>
             <td className="py-2 px-4 capitalize flex justify-center items-center gap-2" >
                 <Link href={`/?ldoId=${ldo._id}`}>
                     <img src='/icons/event.svg' alt='edit' className='w-6 svg-white' />

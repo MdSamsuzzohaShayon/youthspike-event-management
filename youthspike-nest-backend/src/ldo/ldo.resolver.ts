@@ -64,11 +64,6 @@ export class LdoResolver {
     @Args('input') input: CreateDirector,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ) {
-    /**
-     * Create LDO = Event Director Organization
-     * Upload ldo logo image if there is a image
-     * Create User as director
-     */
     try {
       // Upload image to cloudinary
       let logoUrl: string | null = null;

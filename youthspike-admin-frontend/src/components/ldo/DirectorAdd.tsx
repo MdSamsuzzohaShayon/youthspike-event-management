@@ -1,17 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
+import { motion } from "framer-motion";
 import { ADD_DIRECTOR } from '@/graphql/director';
-import Loader from '../elements/Loader';
-import TextInput from '../elements/forms/TextInput';
 import { IAddDirector, ILDO, ILdoUpdate, IError } from '@/types';
-import EmailInput from '../elements/forms/EmailInput';
-import PasswordInput from '../elements/forms/PasswordInput';
-import FileInput from '../elements/forms/FileInput';
 import { UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW } from '@/graphql/director';
 import { useUser } from '@/lib/UserProvider';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
 import addOrUpdateDirector from '@/utils/requestHandlers/addOrUpdateDirector';
+import Loader from '../elements/Loader';
+import TextInput from '../elements/forms/TextInput';
+import EmailInput from '../elements/forms/EmailInput';
+import PasswordInput from '../elements/forms/PasswordInput';
+import FileInput from '../elements/forms/FileInput';
 import NumberInput from '../elements/forms/NumberInput';
+import { buttonVariants, containerVariants, inputVariants } from '@/utils/animation';
+import InputField from '../elements/forms/InputField';
 
 interface DirectorAddProps {
     update: boolean;
@@ -26,6 +29,7 @@ interface DirectorAddProps {
 const initialLdo: ILDO = {
     name: '',
     logo: '',
+    phone: ''
 }
 
 const initialDirector: IAddDirector = {
@@ -35,7 +39,6 @@ const initialDirector: IAddDirector = {
     password: '',
     confirmPassword: '',
     passcode: '',
-    phone: ''
 }
 
 /**
@@ -45,7 +48,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
 
     // Hooks
     const user = useUser();
-
+    
     // Local State
     const [directorState, setDirectorState] = useState<IAddDirector>(prevLdo && prevLdo.director
         ? { ...initialDirector, ...prevLdo.director } : initialDirector);
@@ -119,35 +122,70 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
     if (loading || capLoading) return <Loader />;
 
     return (
-        <form onSubmit={handleDirectorSubmit} className="flex flex-col md:flex-row md:flex-wrap md:justify-between gap-2 md:gap-1">
-            <TextInput key="txt-dn-da-1" vertical name='name' required={!update} lblTxt='LDO Name'
-                defaultValue={ldoState.name} handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
+        <motion.div
+            className="flex justify-center items-center "
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            <motion.form
+                onSubmit={handleDirectorSubmit}
+                className="w-full max-w-3xl bg-gray-900 text-white rounded-xl shadow-xl p-8 md:p-12 border border-gray-800"
+                variants={containerVariants}
+            >
+                {/* Title */}
+                <motion.h2
+                    className="text-3xl md:text-4xl font-bold text-center text-yellow-400 mb-8"
+                    variants={inputVariants}
+                >
+                    {update ? "Update" : "Register New"} Director
+                </motion.h2>
 
-            <TextInput key="txt-fn-da-2" vertical defaultValue={directorState.firstName} name='firstName' required={!update} lblTxt='First Name'
-                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <TextInput key="txt-ln-da-3" vertical defaultValue={directorState.lastName} name='lastName' required={!update} lblTxt='Last Name'
-                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <NumberInput vertical defaultValue={directorState.phone} name='phone' required={!update}
-                handleInputChange={handleLdoChange} extraCls='md:w-5/12' />
-            <EmailInput key="eml-da-1" vertical name='email' required={!update} lblTxt='Email'
-                defaultValue={directorState.email} handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            {/* {update && (
-                <PasswordInput vertical name='oldPassword' required={!update} lblTxt="Old Password"
-                    handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            )} */}
-            <PasswordInput key="pwd-1-da-1" vertical name='password' required={!update} lblTxt={update ? 'Change Password' : 'Password'}
-                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <PasswordInput key="pwd-2-da-2" vertical name='confirmPassword' required={!update} lblTxt='Confirm Password'
-                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' />
-            <PasswordInput key="pwd-3-da-3" vertical name='passcode' defaultValue={directorState.passcode} required={!update} lblTxt='Passcode'
-                handleInputChange={handleDirectorChange} extraCls='md:w-5/12' tooltip="This field is essential to grant the captain permission to perform specific actions on the director's behalf." />
-            <FileInput key="fil-da-1" defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
-            <div className="input-group w-full mt-4">
-                <button className="btn-info" type="submit">
-                    {update ? 'Update' : 'Register'}
-                </button>
-            </div>
-        </form>
+                {/* Input Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-1" name="name" type="text" label="Name" value={ldoState.name} onChange={handleLdoChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-2" name="firstName" type="text" label="First Name" value={directorState.firstName} onChange={handleDirectorChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-3" name="lastName" type="text" label="Last Name" value={directorState.lastName} onChange={handleDirectorChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-4" name="phone" type="text" label="Phone" value={ldoState.phone} onChange={handleLdoChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-5" name="email" type="email" label="Email" value={directorState.email} onChange={handleDirectorChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-6" name="passcode" type="password" label="Passcode" value={directorState.passcode} onChange={handleDirectorChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-7" name="password" type="password" label="Password" value={directorState.password} onChange={handleDirectorChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <InputField key="dau-8" name="confirmPassword" type="password" label="Confirm Password" value={directorState.confirmPassword} onChange={handleDirectorChange} required={!update} />
+                    </motion.div>
+                    <motion.div variants={inputVariants}>
+                        <FileInput key="fil-da-1" defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' />
+                    </motion.div>
+                </div>
+
+                {/* Submit Button */}
+                <motion.div className="w-full mt-8 text-center" variants={inputVariants}>
+                    <motion.button
+                        type="submit"
+                        className="w-full md:w-1/2 py-3 px-6 bg-yellow-400 text-black font-semibold rounded-md shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
+                        whileHover="hover"
+                        whileTap="tap"
+                        variants={buttonVariants}
+                    >
+                        {update ? "Update" : "Register"}
+                    </motion.button>
+                </motion.div>
+            </motion.form>
+        </motion.div>
     );
 };
 

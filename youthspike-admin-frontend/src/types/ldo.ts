@@ -14,6 +14,7 @@ export interface ILDOItem {
   name: string;
   logo: string;
   num: number;
+  phone?: string;
   director?: IDirectorItem;
 }
 

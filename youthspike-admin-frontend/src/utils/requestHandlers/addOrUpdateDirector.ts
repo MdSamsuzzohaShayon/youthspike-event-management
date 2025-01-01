@@ -51,7 +51,7 @@ async function addOrUpdateDirector({ directorUpdate, update, setActErr, director
     }
 
     const formData = new FormData();
-    const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, phone: directorState.phone, email: directorState.email, password: directorState.password, passcode: directorState.passcode };
+    const inputArgs = { name: ldoState.name, firstName: directorState.firstName, lastName: directorState.lastName, phone: ldoState.phone, email: directorState.email, password: directorState.password, passcode: directorState.passcode };
     const updateArgs = { ...ldoUpdate, ...directorUpdateObj };
 
     const updateVar = { input: updateArgs };

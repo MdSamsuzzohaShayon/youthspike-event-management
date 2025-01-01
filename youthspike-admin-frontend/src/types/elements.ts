@@ -73,6 +73,7 @@ export interface IDateinputProps {
   lblTxt?: string;
   required?: boolean;
   defaultValue?: string;
+  value?: string;
 }
 
 export interface IFileFileProps {

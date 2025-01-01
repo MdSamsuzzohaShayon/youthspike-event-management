@@ -40,12 +40,13 @@ const AccountPage = () => {
     setLdoState({
       name: ldoObj?.name,
       logo: ldoObj?.logo,
+      phone: ldoObj?.phone,
       director: {
         email: ldoObj?.director?.email,
         firstName: ldoObj?.director?.firstName,
         lastName: ldoObj?.director?.lastName,
-        password: '',
-        confirmPassword: '',
+        // password: '',
+        // confirmPassword: '',
       },
     });
   };
@@ -66,7 +67,7 @@ const AccountPage = () => {
       animate="visible"
       exit="hidden"
       variants={pageVariants}
-      className="container mx-auto px-4 py-8 min-h-screen bg-gray-900 text-white rounded-lg shadow-lg"
+      className="container mx-auto px-4 py-8 min-h-screen rounded-lg shadow-lg"
     >
       {/* Title */}
       <motion.h1
