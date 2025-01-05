@@ -1,31 +1,29 @@
-import { CREATE_MULTIPLE_PLAYERS, CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/players';
-import { IError, IOption } from '@/types';
+import { CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/players';
+import { IOption } from '@/types';
 import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
-import { ApolloClient, ApolloClientOptions, RefetchQueriesFunction, useMutation } from '@apollo/client';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
-import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorContext';
 
-type ApolloClientType = import('@apollo/client').ApolloClient<any>; // Replace 'any' with your specific schema types
 
 interface IMultiPlayerAddProps {
     eventId: string;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     closeDialog: () => void;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     divisionList: IOption[];
 }
 
 // Define the type for the Apollo Client instance
 
-function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, setActErr, divisionList }: IMultiPlayerAddProps) {
+function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IMultiPlayerAddProps) {
 
     const router = useRouter();
     const {ldoIdUrl} = useLdoId();
+    const { setActErr } = useError();
 
     const uploadFileEl = useRef<HTMLInputElement | null>(null);
     const [selectedDivision, setSelectedDivision] = useState<string>('');

@@ -90,7 +90,7 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
               alt="close-icon"
               role="presentation"
               onClick={handleCancel}
-              className="cursor-pointer"
+              className="cursor-pointer svg-white"
             />
           </div>
           <h2 className="text-lg font-medium text-white">Are you sure you want to delete this director?</h2>

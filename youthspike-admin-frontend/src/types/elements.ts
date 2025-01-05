@@ -185,7 +185,6 @@ export interface ILoginProps {
   setPassword: React.Dispatch<React.SetStateAction<string>>;
   passcode: string;
   setPasscode: React.Dispatch<React.SetStateAction<string>>
-  actErr: IError | null;
 }
 
 

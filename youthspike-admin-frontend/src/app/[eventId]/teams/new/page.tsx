@@ -7,6 +7,7 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import UserMenuList from '@/components/layout/UserMenuList';
 import TeamAdd from '@/components/teams/TeamAdd';
 import { GET_EVENT_WITH_PLAYERS, GET_PLAYERS } from '@/graphql/players';
+import { useError } from '@/lib/ErrorContext';
 import { IError, IEventExpRel, IGroup, IOption, ITeam } from '@/types';
 import { IPlayer } from '@/types/player';
 import { handleResponse } from '@/utils/handleError';
@@ -24,6 +25,7 @@ function TeamsPage({ params }: ITeamsPageProps) {
   // Hooks
   const router = useRouter();
   const pathname = usePathname();
+  const { setActErr } = useError();
 
 
   // Local State
@@ -32,7 +34,6 @@ function TeamsPage({ params }: ITeamsPageProps) {
   const [filteredPlayers, setFilteredPlayers] = useState<IPlayer[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]); // Filter according to division
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
@@ -118,6 +119,10 @@ function TeamsPage({ params }: ITeamsPageProps) {
 
   if (loading || isLoading) return <Loader />;
 
+  if(error){
+    console.log(error)
+  }
+
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       <h1 className='mb-8 text-center'>Teams</h1>
@@ -126,12 +131,11 @@ function TeamsPage({ params }: ITeamsPageProps) {
         <UserMenuList eventId={params.eventId} />
       </div>
       {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
       <div className="mt-2 division-selection w-full">
         <SelectInput key="teams-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
       </div>
       <TeamAdd groupList={filteredGroupList} setIsLoading={setIsLoading} availablePlayers={filteredPlayers} handleClose={handleClose} eventId={params.eventId}
-        setAvailablePlayers={setFilteredPlayers} setActErr={setActErr} currDivision={currDivision} teamAddCB={teamAddCB} />
+        setAvailablePlayers={setFilteredPlayers} currDivision={currDivision} teamAddCB={teamAddCB} />
     </div>
   )
 }

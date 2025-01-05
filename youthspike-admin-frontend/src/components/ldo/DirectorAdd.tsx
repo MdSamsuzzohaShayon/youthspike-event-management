@@ -15,11 +15,11 @@ import FileInput from '../elements/forms/FileInput';
 import NumberInput from '../elements/forms/NumberInput';
 import { buttonVariants, containerVariants, inputVariants } from '@/utils/animation';
 import InputField from '../elements/forms/InputField';
+import { useError } from '@/lib/ErrorContext';
 
 interface DirectorAddProps {
     update: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     prevLdo?: null | ILDO | undefined;
     ldoId?: string;
     setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -44,10 +44,11 @@ const initialDirector: IAddDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirector, ldoId, refetchFunc }: DirectorAddProps) {
+function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, refetchFunc }: DirectorAddProps) {
 
     // Hooks
     const user = useUser();
+    const { setActErr } = useError();
     
     // Local State
     const [directorState, setDirectorState] = useState<IAddDirector>(prevLdo && prevLdo.director
@@ -100,7 +101,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setActErr, setAddNetDirect
     const handleDirectorSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         addOrUpdateDirector({
-            directorUpdate, update, setActErr, directorState, ldoState,
+            directorUpdate, update, setActErr, directorState, ldoState, 
             ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
             initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc
         });

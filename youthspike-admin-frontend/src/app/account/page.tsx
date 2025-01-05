@@ -9,6 +9,7 @@ import { GET_LDO } from '@/graphql/director';
 import { IError, ILDO } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 import { motion } from 'framer-motion';
+import { useError } from '@/lib/ErrorContext';
 
 const pageVariants = {
   hidden: { opacity: 0 },
@@ -21,9 +22,11 @@ const titleVariants = {
 };
 
 const AccountPage = () => {
+
+  const { setActErr } = useError();
+
   const [isLoading, setIsLoading] = useState(false);
   const [ldoState, setLdoState] = useState<ILDO | null>(null);
-  const [actErr, setActErr] = useState<IError | null>(null);
 
   const [getLdo, { loading, error, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: 'network-only' });
 
@@ -60,6 +63,10 @@ const AccountPage = () => {
   }, []);
 
   if (loading || isLoading) return <Loader />;
+  if (error) {
+    console.log(error);
+
+  }
 
   return (
     <motion.div
@@ -79,14 +86,12 @@ const AccountPage = () => {
 
       {/* Error Messages */}
       {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
 
       {/* Director Form */}
       <DirectorAdd
         setIsLoading={setIsLoading}
         update
         prevLdo={ldoState}
-        setActErr={setActErr}
         refetchFunc={refetchFunc}
       />
     </motion.div>

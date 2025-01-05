@@ -6,6 +6,7 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 import CurrentEvent from '@/components/event/CurrentEvent';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
+import { useError } from '@/lib/ErrorContext';
 import { IError, IOption, IPlayerExpRel, ITeam } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
@@ -22,9 +23,11 @@ interface IPlayerAddPageProps {
 
 function PlayerAddPage({ params }: IPlayerAddPageProps) {
 
+    const {setActErr} = useError();
+  
+
   // ===== Local State ===== 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
@@ -104,6 +107,11 @@ function PlayerAddPage({ params }: IPlayerAddPageProps) {
     }
   }, [params.eventId]);
 
+  if(error){
+    console.log(error);
+    
+  }
+
 
   if (loading || isLoading) return <Loader />;
 
@@ -115,10 +123,7 @@ function PlayerAddPage({ params }: IPlayerAddPageProps) {
       <h1 className='mb-8 text-center'>Add Player</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
 
-      {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
-
-      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} setActErr={setActErr} />
+      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} />
     </div>
   )
 }

@@ -37,14 +37,14 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
     setSelectedItem(tab);
   };
 
-  useEffect(()=>{
-    if(team && team.playerRanking){
+  useEffect(() => {
+    if (team && team.playerRanking) {
       const rankingMap = new Map();
-      // @ts-ignore 
+      // @ts-ignore
       team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
-      dispatch(setRankingMap(Array.from(rankingMap)))
+      dispatch(setRankingMap(Array.from(rankingMap)));
     }
-  }, [team]);
+  }, [dispatch, team]);
 
   const showContent = useCallback(() => {
     switch (selectedItem) {

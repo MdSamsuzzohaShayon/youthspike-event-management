@@ -12,7 +12,6 @@ import { IError } from '@/types';
 function DirectorPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addNewDirector, setAddNetDirector] = useState<boolean>(false);
-  const [actErr, setActErr] = useState<IError | null>(null);
   /**
    * Show list of directors
    */
@@ -23,14 +22,16 @@ function DirectorPage() {
   }
   
   if (loading || isLoading) return <Loader />;
+  if(error){
+    console.log(error);
+  }
 
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       <h1 className='my-4 text-center'>Directors</h1>
       {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
       {addNewDirector 
-      ? <DirectorAdd setIsLoading={setIsLoading} update={false} setActErr={setActErr} setAddNetDirector={setAddNetDirector} refetchFunc={referchFunc} /> 
+      ? <DirectorAdd setIsLoading={setIsLoading} update={false} setAddNetDirector={setAddNetDirector} refetchFunc={referchFunc} /> 
       : (<React.Fragment>
         <DirectorList ldoList={data?.getEventDirectors?.data} setIsLoading={setIsLoading} referchFunc={referchFunc} />
         <button className="btn-info mt-4" type='button' onClick={() => setAddNetDirector(true)}>Add New</button>

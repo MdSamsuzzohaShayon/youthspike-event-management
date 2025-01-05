@@ -55,3 +55,8 @@ export interface IPlayerExpRel extends IDocument {
   captainofteams: ITeam[] | null;
   cocaptainofteams: ITeam[] | null;
 }
+
+export interface IPlayerRank extends IPlayerExpRel {
+  rank?: number;
+}
+

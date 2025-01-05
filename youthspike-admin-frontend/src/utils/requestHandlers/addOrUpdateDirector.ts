@@ -1,18 +1,18 @@
-import { ADD_DIRECTOR_RAW, GET_LDOS, UPDATE_DIRECTOR_RAW } from "@/graphql/director";
+import { ADD_DIRECTOR_RAW, UPDATE_DIRECTOR_RAW } from "@/graphql/director";
 import { IAddDirector, IError, ILDO, ILdoUpdate } from "@/types";
 import React from "react";
-import { getCookie, removeCookie } from "../cookie";
-import { ADMIN_URL, BACKEND_URL } from "../keys";
+import { getCookie } from "../cookie";
+import { BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
-import { ApolloClient, MutationFunction } from "@apollo/client";
+import { MutationFunction } from "@apollo/client";
 import { handleError } from "../handleError";
 
 interface IAddUpdateDirectorProps {
     directorUpdate: ILdoUpdate;
     update: boolean;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     directorState: IAddDirector;
     ldoState: ILDO;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     ldoUpdate: ILdoUpdate;
     uploadedLogo: React.RefObject<File | null>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -30,7 +30,7 @@ interface IAddUpdateDirectorProps {
     refetchFunc?:()=> Promise<void>;
 }
 
-async function addOrUpdateDirector({ directorUpdate, update, setActErr, directorState, ldoState,
+async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoState, setActErr,
     ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
     initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc }: IAddUpdateDirectorProps) {
 

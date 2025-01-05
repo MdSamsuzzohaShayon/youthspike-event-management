@@ -17,6 +17,8 @@ import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { UserRole } from '@/types/user';
+import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorContext';
 
 
 
@@ -27,7 +29,6 @@ interface IMatchListProps {
   matchList: IMatchExpRel[];
   teamList: ITeam[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   refetchFunc?: () => Promise<void>;
 }
 
@@ -37,8 +38,7 @@ interface IFilterParams {
   description?: string;
 }
 
-const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refetchFunc }: IMatchListProps) => {
-  
+const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: IMatchListProps) => {
 
   const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
@@ -48,6 +48,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, setActErr, refe
 
   const [deleteMultipleMatches] = useMutation(DELETE_MATCHES);
   const user = useUser();
+  const { setActErr } = useError();
 
   useClickOutside(actionEl, () => {
     setShowFilter(false);

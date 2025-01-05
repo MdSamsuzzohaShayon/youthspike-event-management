@@ -2,6 +2,8 @@ import { IError } from "@/types";
 // import { OperationVariables, QueryResult } from "@apollo/client";
 import { removeCookie } from "./cookie";
 import { ApolloError } from "@apollo/client";
+import { useLdoId } from "@/lib/LdoProvider";
+import { useError } from "@/lib/ErrorContext";
 
 interface IResponse {
     message: string;
@@ -12,16 +14,16 @@ interface IResponse {
 
 interface IHandleResponseProps {
     response: IResponse;
-    setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
 interface IHandleApolloErrorProps {
     error: ApolloError | Error[];
-    setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
 export function handleResponse({ response, setActErr }: IHandleResponseProps): boolean {
-    if(!response) return false;
+    if (!response) return false;
     let success = response.success;
     if (success) return success;
 
@@ -52,7 +54,8 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
             // Handle unauthenticated error
             if (setActErr) {
                 setActErr({
-                    code:  401, // unauthenticatedError.extensions?.response?.statusCode ||
+                    code: 401, // unauthenticatedError.extensions?.response?.statusCode ||
+                    // @ts-ignore
                     message: unauthenticatedError.extensions?.response?.message || unauthenticatedError.message,
                     success: false,
                 });
@@ -64,7 +67,8 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
             // Handle other types of GraphQL errors
             if (setActErr) {
                 setActErr({
-                    code:  500, // error.graphQLErrors[0]?.extensions?.response?.statusCode ||
+                    code: 500,
+                    // @ts-ignore
                     message: error.graphQLErrors[0]?.extensions?.response?.message || error.message,
                     success: false,
                 });

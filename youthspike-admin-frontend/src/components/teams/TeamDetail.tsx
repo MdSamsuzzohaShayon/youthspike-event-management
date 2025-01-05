@@ -14,6 +14,7 @@ import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
 import Image from 'next/image';
 import UserMenuList from '../layout/UserMenuList';
+import { useError } from '@/lib/ErrorContext';
 
 interface ITeamDetailProps {
   event: IEvent;
@@ -22,14 +23,14 @@ interface ITeamDetailProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   divisionList: IOption[];
   teamList: ITeam[];
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   refetchFunc?: () => Promise<void>;
   playerList: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
 }
 
-function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, setActErr, refetchFunc, playerList, playerRanking }: ITeamDetailProps) {
+function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, refetchFunc, playerList, playerRanking }: ITeamDetailProps) {
   const pathname = usePathname();
+  const { setActErr } = useError();
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -58,8 +59,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
       setAddPlayer(false);
     } catch (error) {
       console.log(error);
-      // @ts-ignore
-      setActErr({ name: error.name, message: error.message, main: error });
+      setActErr({ message: error?.message || "", success: false});
     }
   };
 
@@ -128,7 +128,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
             </button>
           </div>
 
-          <div className="sortable-active-player-list mt-4 px-8 md:px-4">
+          <div className="sortable-active-player-list mt-4">
             <PlayerList
               playerList={activePlayers}
               eventId={eventId}
@@ -145,7 +145,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
           </div>
 
           {inactivePlayers.length > 0 && (
-            <div className="sortable-inactive-player-list mt-4 px-8">
+            <div className="sortable-inactive-player-list mt-4">
               <h3 className="my-4">Inactive Player List</h3>
               <PlayerList
                 playerList={inactivePlayers}

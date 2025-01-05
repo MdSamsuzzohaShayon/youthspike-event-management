@@ -150,9 +150,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           eventId
         }
       });
-      // console.log(groupRes);
-
-      // const success = handleResponse({response, setActErr});
     } catch (error) {
       console.log(error);
 

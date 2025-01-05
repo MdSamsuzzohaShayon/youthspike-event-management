@@ -252,10 +252,10 @@ export class MyGatWay implements OnModuleInit {
       this.clientList.set(client.id, { _id: null, matches: [matchId], userRole: UserRole.captain });
     }
 
-    console.log({ emitEvent, clientsToSend });
-
     if (clientsToSend.length === 0) {
-      throw new Error('No client to send message to!');
+      console.log({ emitEvent, clientsToSend });
+      // throw new Error('No client to send message to!');
+      console.error('No client to send message to!');
     }
 
     return clientsToSend;
@@ -263,7 +263,7 @@ export class MyGatWay implements OnModuleInit {
 
   // Event for real time connection
   onModuleInit() {
-    this.server.on('connection', (socket) => {
+    this.server.on('connection', (_socket) => {
       console.log('socket connected');
     });
   }

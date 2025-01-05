@@ -14,12 +14,12 @@ import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock } from '@/types/event';
+import { useError } from '@/lib/ErrorContext';
 
 
 
 interface IMatchAddProps {
     eventId: string;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     groupList: IGroupExpRel[];
     currDivision?: string;
@@ -71,7 +71,6 @@ const initialAddMatch: IAddMatch = {
 
 
 function MatchAdd({ eventId,
-    setActErr,
     setIsLoading,
     teamList,
     currDivision,
@@ -85,6 +84,7 @@ function MatchAdd({ eventId,
 
     const router = useRouter();
     const { ldoIdUrl } = useLdoId();
+    const { setActErr } = useError();
 
     const { homeTeamStrategy } = staticData;
 
@@ -193,7 +193,7 @@ function MatchAdd({ eventId,
      */
     const handleAddMatch = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        await addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB });
+        await addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, updateMatch, update, showAddMatch, router, addMatchCB });
     }
 
     /**

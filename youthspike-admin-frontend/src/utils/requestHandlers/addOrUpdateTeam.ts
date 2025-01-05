@@ -4,15 +4,16 @@ import { getCookie, removeCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { ApolloError, MutationFunction } from "@apollo/client";
 import { handleError } from "../handleError";
+import { useError } from "@/lib/ErrorContext";
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
 }
 
 interface IAddOrUpdateTeam {
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     eventId: string | null;
     teamState: ITeamAdd;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     uploadedLogo: React.RefObject<null | File>;
     updateTeamState: any;
@@ -27,7 +28,7 @@ interface IAddOrUpdateTeam {
     currDivision?: string;
 }
 
-async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
+async function addOrUpdateTeam({ setActErr, eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
     playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB }: IAddOrUpdateTeam): Promise<boolean> {
     let success = true;
     try {
@@ -104,7 +105,7 @@ async function addOrUpdateTeam({ eventId, teamState, setActErr, setIsLoading, up
     } catch (error: any) {
         console.log(error);
         success = false;
-        handleError({error, setActErr})
+        handleError({error, setActErr});
     } finally {
         setIsLoading(false);
 

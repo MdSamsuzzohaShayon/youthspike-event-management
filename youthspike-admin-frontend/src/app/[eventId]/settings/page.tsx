@@ -16,6 +16,7 @@ import { useUser } from '@/lib/UserProvider';
 import { getCookie } from '@/utils/cookie';
 import { motion } from 'framer-motion';
 import CurrentEvent from '@/components/event/CurrentEvent';
+import { useError } from '@/lib/ErrorContext';
 
 const pageVariants = {
   hidden: { opacity: 0 },
@@ -30,9 +31,9 @@ const titleVariants = {
 const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   // Hooks
   const user = useUser();
+  const { setActErr } = useError();
 
   // Local State
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
 
@@ -72,6 +73,10 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
 
   const prevEvent = data?.getEvent?.data;
   const prevPlayer = playerData?.getPlayer?.data;
+  if(error){
+    console.log(error);
+    
+  }
 
   return (
     <motion.div
@@ -101,10 +106,6 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       </div>
       {/* Event Menu End */}
 
-      {/* Error Messages */}
-      {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
-
       {/* Main Content */}
       <div className="event-player-action mb-10">
         {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? (
@@ -116,7 +117,6 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
               prevPlayer={prevPlayer}
               teamList={teamList}
               playerUpdateCB={playerUpdateCB}
-              setActErr={setActErr}
             />
           )
         ) : (
@@ -124,7 +124,6 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
             <EventAddUpdate
               update
               setIsLoading={setIsLoading}
-              setActErr={setActErr}
               prevEvent={prevEvent}
             />
           )

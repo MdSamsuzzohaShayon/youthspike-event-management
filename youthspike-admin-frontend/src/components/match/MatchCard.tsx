@@ -15,8 +15,6 @@ import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
-import { useSearchParams } from 'next/navigation';
-import { LDO_ID } from '@/utils/constant';
 import { useLdoId } from '@/lib/LdoProvider';
 
 interface MatchCardProps {
@@ -24,8 +22,6 @@ interface MatchCardProps {
   sl: number;
   eventId: string;
   isChecked: boolean;
-  // setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  // setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   refetchFunc?: () => Promise<void>;
 }
@@ -60,12 +56,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
     if (refetchFunc) await refetchFunc();
   }
 
-  // useEffect(()=>{
-  //   if(match.date){
-  //     console.log({iso: match.date, date: readDate(match.date), tempDate: readDateTemp(match.date)});
-
-  //   }
-  // }, [match]);
 
 
 
@@ -173,13 +163,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
           </p>
         )}
       </div>
-      {/* ===== LEVEL 6 START ===== */}
-      {/* <div className="lavel-6 w-full flex justify-between items-start border-t border-gray-500 px-2 md:px-6 mt-2 md:mt-6 pb-2">
-        <h3>Match Setting</h3>
-        {match && <MatchAdd prevMatch={match} eventId={match.event}
-          setActErr={setActErr} setIsLoading={setIsLoading} update matchId={match._id} />}
-      </div> */}
-      {/* ===== LEVEL 5 END ===== */}
+
 
       {/* Actions items start  */}
       <ul ref={actionItemEl} className={`${actionOpen ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-4 right-8 md:right-14 md:right-8 z-10 rounded-lg`}>

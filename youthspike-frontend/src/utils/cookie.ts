@@ -39,7 +39,17 @@ function setCookie(name: string, value: string, days: number): void {
 }
 
 function removeCookie(name: string): void {
-  document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/;`;
+  if (NODE_ENV === 'production') {
+    /**
+     * Ensure we use the same domain pattern used during cookie creation
+     * Use a leading dot (.) for subdomain-wide coverage
+     */
+    const allSubDomains = FRONTEND_URL.split('//')[1];
+    document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; Domain=${allSubDomains}; path=/`;
+  } else {
+    // For non-production environments, just remove it without specifying Domain
+    document.cookie = `${name}=; expires=${new Date(0).toUTCString()}; Max-Age=0; path=/`;
+  }
 }
 
 // ===== Logical functions =====

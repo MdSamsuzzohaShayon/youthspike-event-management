@@ -52,7 +52,7 @@ const AdminMenu = () => {
         if (params.eventId) {
             // @ts-ignore
             setEventId(params.eventId);
-        }else{
+        } else {
             setEventId(null);
         }
         const userDetail = getUserFromCookie();
@@ -111,7 +111,7 @@ const AdminMenu = () => {
                 {isMenuOpen && (
                     <motion.div
                         ref={menuRef}
-                        className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full top-0 left-0 z-50 p-6 flex flex-col shadow-2xl"
+                        className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full max-h-screen top-0 left-0 z-50 p-6 flex flex-col shadow-2xl overflow-y-auto"
                         initial="hidden"
                         animate="visible"
                         exit="exit"
@@ -129,7 +129,7 @@ const AdminMenu = () => {
 
                         {/* User Info */}
                         <div className="user-info text-center mb-8">
-                            <Link onClick={()=> setIsMenuOpen(false)} href="/">
+                            <Link onClick={() => setIsMenuOpen(false)} href="/">
                                 <Image
                                     height={100}
                                     width={100}
@@ -145,9 +145,9 @@ const AdminMenu = () => {
                         </div>
 
                         {/* Menu Links */}
-                        <ul className="menu-list space-y-6">
+                        <ul className="menu-list space-y-6 ">
                             <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                <Link onClick={()=> setIsMenuOpen(false)}
+                                <Link onClick={() => setIsMenuOpen(false)}
                                     href="/"
                                     className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                 >
@@ -157,7 +157,7 @@ const AdminMenu = () => {
                             </motion.li>
                             {eventId && (<>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href={`/${eventId}/settings/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -166,7 +166,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href={`/${eventId}/teams/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -175,7 +175,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href={`/${eventId}/groups/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -184,7 +184,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href={`/${eventId}/players/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -193,7 +193,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href={`/${eventId}/matches/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -205,7 +205,7 @@ const AdminMenu = () => {
 
                             {user?.info?.role === UserRole.director && (
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href="/account"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -217,7 +217,7 @@ const AdminMenu = () => {
 
                             {user?.info?.role === UserRole.admin && (<>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href="/admin"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -226,7 +226,7 @@ const AdminMenu = () => {
                                     </Link>
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
+                                    <Link onClick={() => setIsMenuOpen(false)}
                                         href="/admin/directors"
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
@@ -247,12 +247,14 @@ const AdminMenu = () => {
                         </ul>
 
                         {/* Logout Button */}
-                        <button
-                            onClick={handleLogout}
-                            className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all"
-                        >
-                            Logout
-                        </button>
+                        <div className='mt-auto pt-4'>
+                            <button
+                                onClick={handleLogout}
+                                className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

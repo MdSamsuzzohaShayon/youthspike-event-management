@@ -23,6 +23,7 @@ import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
 import { motion } from "framer-motion";
+import { useError } from '@/lib/ErrorContext';
 
 interface IItem {
   id: number;
@@ -42,10 +43,10 @@ function EventsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {ldoIdUrl} = useLdoId();
+  const {setActErr} = useError();
 
   // Local States
   const [filteredItems, setFilteredItems] = useState<IItem[]>([]);
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [eventList, setEventList] = useState<IEvent[]>([]);
   const [ldoId, setLdoId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
@@ -174,7 +175,6 @@ function EventsPage() {
       </dialog>
       <h1 className="my-4 text-center">Events Director</h1>
       {ldoError && <Message error={ldoError} />}
-      {actErr && <Message error={actErr} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {newLdoData?.logo ? (
           <div className="w-28 h-28 advanced-img rounded-full">

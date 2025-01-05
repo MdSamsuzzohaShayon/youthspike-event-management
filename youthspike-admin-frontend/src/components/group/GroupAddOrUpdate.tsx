@@ -9,7 +9,7 @@ import { ADD_GROUP } from '@/graphql/group';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useRouter } from 'next/navigation';
 import { EGroupRule, IGroupExpRel } from '@/types/group';
-import { ruleList } from '@/utils/staticData';
+import { useError } from '@/lib/ErrorContext';
 
 interface IGroupAddOrUpdateProps {
   divisions: string;
@@ -17,14 +17,14 @@ interface IGroupAddOrUpdateProps {
   update: boolean;
   prevGroup: IGroupAdd | null;
   eventId: string;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, setActErr, setIsLoading }: IGroupAddOrUpdateProps) {
+function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, setIsLoading }: IGroupAddOrUpdateProps) {
 
   const [eventAdd] = useMutation(ADD_GROUP);
   const router = useRouter();
+  const { setActErr } = useError();
 
   const [groupState, setGroupState] = useState<IGroupAdd>({
     active: true,
@@ -122,17 +122,11 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
       <TextInput key="ti-eau-1" required={!update} defaultValue={groupState.name}
         handleInputChange={handleInputChange} lblTxt="Name" name="name" vertical />
       <SelectInput key="division-1" name='division' handleSelect={handleDivisionInputChange} defaultValue={groupState.division ? groupState.division.toString().trim().toLocaleLowerCase() : null} optionList={divisionsToOptionList(divisions)} lblTxt="Division" vertical />
-      {/* <SelectInput key="rule-1" name='rule' defaultValue={groupState.rule} handleSelect={handleInputChange} optionList={ruleList.map((r)=> ({value: r, text: r.replaceAll(/_/g, " ")}))} lblTxt="Rule" vertical /> */}
 
       <div className="mt-4">
         <TeamSelectInput name='teams' teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />
       </div>
 
-      {/* {!update ? (
-          <TextInput key="ti-eau-2" required={!update} defaultValue={groupState.divisions} handleInputChange={handleDivisionInputChange} readOnly={update} lblTxt="DIVISIONS" name="divisions" lw="w-2/6" rw="w-4/6" />
-        ) : (
-          <h4>Divisions</h4>
-        )} */}
 
       <button className="btn-info mt-4" type="submit">
         {update ? 'Update' : 'Submit'}

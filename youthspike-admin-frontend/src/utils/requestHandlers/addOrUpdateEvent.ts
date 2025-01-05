@@ -11,6 +11,7 @@ import { ERosterLock } from "@/types/event";
 
 interface IAddOrUpdateProps {
     e: React.SyntheticEvent;
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     update: boolean;
     eventId: string | null;
     directorId: string | null;
@@ -20,7 +21,6 @@ interface IAddOrUpdateProps {
     updateEvent: Partial<IEventAdd>;
     sponsorImgList: IEventSponsorAdd[];
     eventLogo: React.RefObject<null | MediaSource | Blob>;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     eventUpdate: MutationFunction;
     eventAdd: MutationFunction;
     router: AppRouterInstance;
@@ -42,9 +42,9 @@ interface IMutationVariables {
  * Add event mutation
  */
 async function addOrUpdateEvent({
-    e,
+    e, setActErr,
     update, eventId, directorId, setEventState, setIsLoading, eventState,
-    updateEvent, sponsorImgList, eventLogo, setActErr, eventUpdate,
+    updateEvent, sponsorImgList, eventLogo, eventUpdate,
     eventAdd, router, initialEvent, socket, ldoIdUrl }: IAddOrUpdateProps) {
 
     setIsLoading(true);
@@ -54,7 +54,7 @@ async function addOrUpdateEvent({
     if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString()
     if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString();
 
-    if(eventState.rosterLock === ERosterLock.PICK_A_DATE){
+    if (eventState.rosterLock === ERosterLock.PICK_A_DATE) {
         return setActErr({ message: "You must choose a date when ranking of the player is going to lock!", success: false });
     }
 
@@ -83,12 +83,12 @@ async function addOrUpdateEvent({
             }
         });
 
-        if(sponsorFileList.length === 1 && sponsorFileList[0].company === APP_NAME) sponsorFileList = [];
+        if (sponsorFileList.length === 1 && sponsorFileList[0].company === APP_NAME) sponsorFileList = [];
 
         // @ts-ignore
         if (update && sponsorStringList.length > 0) mutationVariables.sponsorsStringInput = sponsorStringList;
 
-        if ((sponsorFileList.length > 0) || eventLogo.current ) {
+        if ((sponsorFileList.length > 0) || eventLogo.current) {
 
             // Use FormData with fetch if there is a file to upload on the server
             const formData = new FormData();
@@ -185,7 +185,7 @@ async function addOrUpdateEvent({
         formEl.reset();
 
         if (newEventId) {
-            createNewEvent({socket, eventId: newEventId})
+            createNewEvent({ socket, eventId: newEventId })
             router.push(`/${newEventId}/${ldoIdUrl}`);
         };
     } catch (error) {

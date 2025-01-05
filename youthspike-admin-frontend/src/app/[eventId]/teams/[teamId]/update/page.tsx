@@ -52,7 +52,7 @@ function TeamUpdatePage({ params }: { params: { eventId: string, teamId: string 
       </div>
       {error && <Message error={error} />}
       {actErr && <Message error={actErr} />}
-      {teamData && <TeamAdd groupList={groupList} eventId={params.eventId} availablePlayers={availablePlayers} handleClose={handleClose} setActErr={setActErr}
+      {teamData && <TeamAdd groupList={groupList} eventId={params.eventId} availablePlayers={availablePlayers} handleClose={handleClose}
         setAvailablePlayers={setAvailablePlayers} setIsLoading={setIsLoading} prevTeam={teamData} update refetchFunc={handleRefetch} />}
     </div>
   )

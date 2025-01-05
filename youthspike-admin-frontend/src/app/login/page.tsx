@@ -6,17 +6,17 @@ import { useMutation } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import Login from '@/components/user/Login';
 import { LOGIN_USER } from '@/graphql/admin';
-import { IError } from '@/types';
 import { UserRole } from '@/types/user';
 import { setCookie } from '@/utils/cookie';
+import { useError } from '@/lib/ErrorContext';
 
 function LoginPage() {
   const router = useRouter();
+  const { setActErr } = useError();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passcode, setPasscode] = useState<string>('');
-  const [actErr, setActErr] = useState<IError | null>(null);
 
   // Apollo mutation hook
   const [loginUser, { loading }] = useMutation(LOGIN_USER, {
@@ -82,7 +82,6 @@ function LoginPage() {
         setPassword={setPassword}
         passcode={passcode}
         setPasscode={setPasscode}
-        actErr={actErr}
       />
     </div>
   );

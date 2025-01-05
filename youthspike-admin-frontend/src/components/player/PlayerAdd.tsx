@@ -14,6 +14,7 @@ import ImageInput from '../elements/forms/ImageInput';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorContext';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -21,7 +22,6 @@ interface IPlayerAddProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   teamList: ITeam[];
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   division?: string;
   update?: boolean;
   playerAddCB?: (playerData: IPlayerExpRel) => void;
@@ -40,7 +40,7 @@ const initialPlayerAdd = {
   division: ''
 };
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, setActErr, division, playerAddCB, playerUpdateCB, refetchFunc }: IPlayerAddProps) {
+function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB, playerUpdateCB, refetchFunc }: IPlayerAddProps) {
 
 
   // React Hooks
@@ -48,6 +48,8 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
   const user = useUser();
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
+  const { setActErr } = useError();
+
 
   // ===== local States =====
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
