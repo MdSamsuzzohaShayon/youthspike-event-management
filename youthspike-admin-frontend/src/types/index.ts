@@ -24,7 +24,7 @@ import {
 } from "./elements";
 import { IUser, IDirector, IAddDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
-import { IPlayer, IPlayerExpRel} from "./player";
+import { IPlayer, IPlayerExpRel, IPlayerRank} from "./player";
 import { ITeam, ITeamAdd } from "./team";
 import { IAddMatch, IMatch, IDefaultMatchProps, IMatchRelatives, IMatchExpRel} from "./match";
 import { IRoundBase, IRoundRelatives, IRoundExpRel } from "./round";
@@ -115,6 +115,7 @@ export type {
   IPlayerRankingItem,
   IPlayerRankingExpRel, 
   IPlayerRankingItemExpRel,
+  IPlayerRank,
 
   // Soicket
   ICreateNewEventProps,

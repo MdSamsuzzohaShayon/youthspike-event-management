@@ -5,7 +5,7 @@ import { IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { ApolloError, useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { IError, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
@@ -19,6 +19,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { AnimatePresence, motion } from 'framer-motion';
 import { menuVariants } from '@/utils/animation';
+import { useError } from '@/lib/ErrorContext';
 
 interface PlayerCardProps {
   player: IPlayerExpRel;
@@ -32,11 +33,12 @@ interface PlayerCardProps {
   divisionList?: IOption[];
   teamList?: ITeam[];
   refetchFunc?: () => void;
-  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
   rank?: number | null;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, setActErr, rank, isChecked, handleSelectPlayer, }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, rank, isChecked, handleSelectPlayer, }: PlayerCardProps) {
+
+  const { setActErr } = useError();
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -229,28 +231,25 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   };
 
 
-  const renderTeam = () => {
+
+  const playerAssignment = useMemo((): null | string => {
     let teamFound = null;
     if (player?.teams && player?.teams.length > 0) {
       const nti = player?.teams[0];
       teamFound = teamList?.find((t) => t._id === nti._id);
     }
-    return <p className="text-yellow-logo uppercase">{teamFound ? teamFound.name : 'Unassigned'}</p>;
-  };
+    return teamFound ? teamFound.name : null;
+  }, [player]);
+
 
   return (
     <>
       <div
-        className={`w-full flex justify-between items-center ${!player?.teams || player?.teams.length === 0 ? 'bg-gray-700 ' : 'bg-gray-500'} gap-y-2 relative rounded-md `}
+        className={`w-full flex justify-between items-center gap-y-2 relative rounded-md `}
         style={{ minHeight: '6rem' }}
       >
         {/* Draggable element start  */}
         <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>
-          <div className="ml-4"></div>
-          {user.info?.role === UserRole.admin || user.info?.role === UserRole.director
-            ? (<CheckboxInput name='bulk-match' defaultValue={isChecked} _id={player._id} handleInputChange={handleSelectPlayer} />)
-            : <div className='w-4' />}
-
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
               <div className="advanced-img w-20 h-20 border border-yellow rounded-lg border-4">
@@ -265,7 +264,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
-                {!teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && renderTeam()}
+                {!teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && <p className="text-yellow-logo uppercase">{playerAssignment ?? "Unassigned"}</p>}
               </div>
             </div>
 
@@ -303,11 +302,11 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
               {rankControls && player.status === EPlayerStatus.ACTIVE && (
                 <>
                   <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
-  
+
                     Make Captain
                   </li>
                   <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}>
-  
+
                     Make Co-Captain
                   </li>
                 </>

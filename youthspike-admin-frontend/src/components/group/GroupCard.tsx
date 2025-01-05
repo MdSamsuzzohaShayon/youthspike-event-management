@@ -11,6 +11,7 @@ import { ApolloQueryResult, OperationVariables, useMutation } from '@apollo/clie
 import { DELETE_A_GROUP, UPDATE_GROUP } from '@/graphql/group';
 import { handleError } from '@/utils/handleError';
 import SelectInput from '../elements/forms/SelectInput';
+import { useError } from '@/lib/ErrorContext';
 
 interface IGroupCardProps {
   group: IGroupExpRel;
@@ -21,9 +22,11 @@ interface IGroupCardProps {
 
 function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardProps) {
   const { ldoIdUrl } = useLdoId();
+  
   const [deleteGroup] = useMutation(DELETE_A_GROUP);
   const [mutateGroup] = useMutation(UPDATE_GROUP);
   const params = useParams();
+  const {setActErr} = useError();
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const dialogEl = useRef<HTMLDialogElement | null>(null);
@@ -52,7 +55,7 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
 
     } catch (error: any) {
       console.log(error);
-      handleError(error);
+      handleError({error, setActErr});
     } finally {
       setIsLoading(false);
     }

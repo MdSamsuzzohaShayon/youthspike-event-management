@@ -1,4 +1,4 @@
-import { IDefaultEventMatch, IDefaultMatchProps, IMenuItem, INetRelatives, IOption, IRoundRelatives, ITeam, IUserContext } from "@/types";
+import { IDefaultEventMatch, IDefaultMatchProps, IMenuItem, INetRelatives, IOption, IPlayerExpRel, IPlayerRank, IPlayerRankingItemExpRel, IRoundRelatives, ITeam, IUserContext } from "@/types";
 import { eventPaths, initialUserMenuList } from "./staticData";
 import { UserRole } from "@/types/user";
 import { ETeam } from "@/types/team";
@@ -92,19 +92,29 @@ export function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives
   let score = 0;
 
   findNets.forEach((net) => {
-      const teamAScore = net.teamAScore || 0;
-      const teamBScore = net.teamBScore || 0;
+    const teamAScore = net.teamAScore || 0;
+    const teamBScore = net.teamBScore || 0;
 
-      // Dark is oponent team
-      if (teamE === ETeam.teamA && teamAScore > teamBScore) {
-          score += net.points;
-      } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
-          score += net.points;
-      }
+    // Dark is oponent team
+    if (teamE === ETeam.teamA && teamAScore > teamBScore) {
+      score += net.points;
+    } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
+      score += net.points;
+    }
   });
-  
+
 
   const fullPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
 
   return score;
+}
+
+
+export const getRankedPlayers = (pl: IPlayerExpRel[] /** pl = Player List */, rankings?: IPlayerRankingItemExpRel[] /** pr = Player Ranking */): IPlayerRank[] => {
+  if(!rankings) return pl;
+  const rankingMap = new Map(pl.map((p) => [p._id, p]));
+  const npl = rankings
+    .filter((r) => rankingMap.has(r.player._id))
+    .map((r) => ({ ...rankingMap.get(r.player._id)!, rank: r.rank })); // npl = new player list
+  return npl
 }

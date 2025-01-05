@@ -11,6 +11,7 @@ import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
+import { useError } from '@/lib/ErrorContext';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
@@ -24,7 +25,6 @@ interface ITeamAddProps {
     setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     teamAddCB?: (teamData: ITeam) => void;
     currDivision?: string;
     update?: boolean;
@@ -42,10 +42,11 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, setActErr, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
+function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
     const { ldoIdUrl } = useLdoId();
+    const { setActErr } = useError();
 
 
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
@@ -68,7 +69,8 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         const success = await addOrUpdateTeam({
-            eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
+            setActErr,
+            eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
             playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
         });
 
@@ -84,7 +86,8 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
     const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
         e.preventDefault();
         await addOrUpdateTeam({
-            eventId, teamState, setActErr, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
+            setActErr,
+            eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
             playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
         });
         if (refetchFunc) await refetchFunc();

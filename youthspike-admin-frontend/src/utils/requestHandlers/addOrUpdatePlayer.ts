@@ -1,5 +1,4 @@
 import { CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW } from "@/graphql/players";
-import { IError, ITeamAdd } from "@/types";
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from "@/types/player";
 import { getCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
@@ -7,10 +6,12 @@ import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { getTeamFromStore } from "../localStorage";
 import { handleResponse } from "../handleError";
+import { useError } from "@/lib/ErrorContext";
+import { IError } from "@/types";
 
 interface IAddOrUpdatePlayer {
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     playerState: IPlayerAdd;
     eventId: string | null;
     uploadedProfile: React.RefObject<File | null>;
@@ -31,7 +32,7 @@ interface IAddOrUpdatePlayer {
     refetchFunc?: () => Promise<void>;
 }
 
-async function addOrUpdatePlayer({ setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
+async function addOrUpdatePlayer({ setActErr, setIsLoading, playerState, division, eventId, uploadedProfile, playerUpdate,
     prevPlayer, ldoIdUrl, updatePlayer, addPlayer, playerAddCB, setPlayerState, initialPlayerAdd, setAddPlayer, playerUpdateCB, router, e, update, refetchFunc }: IAddOrUpdatePlayer) {
     const teamExist = getTeamFromStore();
     let success = true;

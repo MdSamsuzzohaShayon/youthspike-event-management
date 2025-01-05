@@ -4,6 +4,7 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import NetList from '@/components/net/NetList';
 import { GET_A_ROUND } from '@/graphql/round';
+import { useError } from '@/lib/ErrorContext';
 import { IError, IRoundRelatives } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
@@ -17,8 +18,9 @@ interface IRoundSingleProps {
 }
 
 function RoundSingle({ params }: IRoundSingleProps) {
+    const {setActErr} = useError();
+
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [actErr, setActErr] = useState<IError | null>(null);
     const [fetchRound, { data, loading, error }] = useLazyQuery(GET_A_ROUND);
 
 
@@ -38,11 +40,15 @@ function RoundSingle({ params }: IRoundSingleProps) {
     const currRound: IRoundRelatives = data?.getRound?.data;
     const allNets = data?.getRound?.data?.nets;
 
+    if(error){
+        console.log(error);
+        
+    }
+
     return (
         <div className='RoundSingle container px-2 mx-auto min-h-screen'>
             <h1>Round {currRound?.num}</h1>
             {error && <Message error={error} />}
-            {actErr && <Message error={actErr} />}
             <h3>Nets</h3>
             <NetList netList={allNets} eventId={params.eventId} />
         </div>

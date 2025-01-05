@@ -1,15 +1,17 @@
+import { useError } from "@/lib/ErrorContext";
+import { useLdoId } from "@/lib/LdoProvider";
 import { IAddMatch, IError, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import React from "react";
 
 interface IAddOrUpdateMatchProps {
+    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     eventId: string;
     mutateMatch: MutationFunction;
     createMatch: MutationFunction;
     addMatch: IAddMatch;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     updateMatch: Partial<IAddMatch>;
     ldoIdUrl: string;
     currDivision?: string;
@@ -21,7 +23,7 @@ interface IAddOrUpdateMatchProps {
 }
 
 
-async function addOrUpdateMatch({ setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, setActErr, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
+async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
     try {
         setIsLoading(true);
         let matchRes = null;

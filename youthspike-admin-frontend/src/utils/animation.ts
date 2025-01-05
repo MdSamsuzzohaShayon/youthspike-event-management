@@ -88,3 +88,10 @@ export const buttonVariants = {
     hover: { scale: 1.05, boxShadow: '0px 4px 15px rgba(255, 255, 0, 0.4)' },
     tap: { scale: 0.95 },
 };
+
+export const toastVariants = {
+    hidden: { opacity: 0, y: -30, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -30, scale: 0.95 },
+  };
+  

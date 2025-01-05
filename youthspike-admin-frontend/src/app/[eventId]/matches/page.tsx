@@ -25,15 +25,19 @@ import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, set
 import { motion } from 'framer-motion';
 
 import { headingAnimate, logoAnimate } from '@/utils/animation';
+import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorContext';
 
 const { animate: hAnimate, exit: hExit, initial: hInitial, transition: hTransition } = headingAnimate;
 const { animate: mAnimate, exit: mExit, initial: mInitial, transition: mTransition } = logoAnimate;
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
+    const {setActErr} = useError();
+  
+
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addMatch, setAddMatch] = useState<boolean>(false);
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [currDivision, setCurrDivision] = useState<string>('');
   const [matchList, setMatchList] = useState<IMatchExpRel[]>([]);
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
@@ -188,7 +192,6 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
 
       <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="msg w-full">
         {error && <Message error={error} />}
-        {actErr && <Message error={actErr} />}
       </motion.div>
 
       <div className="mt-4">
@@ -211,7 +214,6 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
                   // teamList={teamList}
                   eventId={params.eventId}
                   addMatchCB={addMatchCB}
-                  setActErr={setActErr}
                   setIsLoading={setIsLoading}
                   showAddMatch={setAddMatch}
                   groupList={filteredGroupList}
@@ -234,7 +236,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
               </div>
             )}
             {filteredMatchList.length > 0 ? (
-              <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} />
+              <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} refetchFunc={refetchFunc} />
             ) : (
               <p>No match created yet!</p>
             )}

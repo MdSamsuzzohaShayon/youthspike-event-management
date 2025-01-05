@@ -32,12 +32,12 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
     const map = new Map<string, IMatch[]>();
 
     if (matchList) {
-      for (const match of matchList) {
-        if (match.teamA._id) {
+      for (const match of matchList) { 
+        if (match.teamA?._id) {
           if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
           map.get(match.teamA._id)?.push(match);
         }
-        if (match.teamB._id) {
+        if (match.teamB?._id) {
           if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
           map.get(match.teamB._id)?.push(match);
         }

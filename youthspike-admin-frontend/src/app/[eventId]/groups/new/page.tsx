@@ -8,6 +8,8 @@ import { useLazyQuery } from '@apollo/client';
 import { IError, ITeam } from '@/types';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorContext';
 
 interface INetGroupProps {
   params: {
@@ -21,10 +23,11 @@ function NewGroup({ params: { eventId } }: INetGroupProps) {
     fetchPolicy: 'network-only',
   });
 
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [divisions, setDivisions] = useState<string>('');
+    const {setActErr} = useError();
+  
 
   const fetchEvent = async () => {
     const eventResponse = await getEvent();
@@ -60,16 +63,6 @@ function NewGroup({ params: { eventId } }: INetGroupProps) {
       </motion.header>
 
       <main className="container mx-auto px-6 py-10">
-        {/* Error Message */}
-        {actErr && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-4"
-          >
-            <Message error={actErr} />
-          </motion.div>
-        )}
 
         {/* Group Add or Update Form */}
         <motion.section
@@ -81,7 +74,6 @@ function NewGroup({ params: { eventId } }: INetGroupProps) {
           <GroupAddOrUpdate
             update={false}
             prevGroup={null}
-            setActErr={setActErr}
             setIsLoading={setIsLoading}
             divisions={divisions}
             teamList={teamList}

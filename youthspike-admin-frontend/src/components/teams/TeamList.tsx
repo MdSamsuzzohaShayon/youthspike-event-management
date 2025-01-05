@@ -11,6 +11,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'framer-motion';
 import { menuVariants } from '@/utils/animation';
+import { useError } from '@/lib/ErrorContext';
 
 interface TeamListProps {
   eventId: string;
@@ -18,15 +19,15 @@ interface TeamListProps {
   groupList: IGroup[];
   eventList?: IEvent[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   fefetchFunc?: () => Promise<void>;
 }
 
 
-function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, setActErr, fefetchFunc }: TeamListProps) {
+function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefetchFunc }: TeamListProps) {
 
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
   const [updateGroup] = useMutation(UPDATE_GROUP);
+  const { setActErr } = useError();
 
   const cngGroupEl = useRef<HTMLDialogElement | null>(null);
 

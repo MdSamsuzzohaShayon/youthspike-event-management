@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import ApolloWrapper from '@/lib/ApolloProvider';
 import UserProvider, { useUser } from '@/lib/UserProvider';
-import Menu from '@/components/layout/Menu';
 import Footer from '@/components/layout/Footer';
 import './globals.css';
 import { Suspense } from 'react';
@@ -12,6 +11,8 @@ import SocketProvider from '@/lib/SocketProvider';
 import "../utils/polyfills";
 import LdoProvider from '@/lib/LdoProvider';
 import AdminMenu from '@/components/layout/AdminMenu';
+import { ErrorProvider } from '@/lib/ErrorContext';
+import Message from '@/components/elements/Message';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,13 +36,16 @@ export default function RootLayout({
           <SocketProvider>
             <UserProvider>
               <LdoProvider>
-                <Suspense fallback={<LoadingPage />}>
-                  <AdminMenu />
-                  {children}
-                  <div className="mt-6">
-                    <Footer />
-                  </div>
-                </Suspense>
+                <ErrorProvider>
+                  <Suspense fallback={<LoadingPage />}>
+                    <Message />
+                    <AdminMenu />
+                    {children}
+                    <div className="mt-6">
+                      <Footer />
+                    </div>
+                  </Suspense>
+                </ErrorProvider>
               </LdoProvider>
             </UserProvider>
           </SocketProvider>

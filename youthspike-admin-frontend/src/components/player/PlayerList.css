@@ -1,0 +1,18 @@
+.sortable-item {
+    display: flex;
+    align-items: center;
+    cursor: default;
+  }
+  
+  .drag-handle {
+    cursor: grab;
+    margin-right: 8px;
+  }
+  
+  .sortable-ghost {
+    opacity: 0.4;
+    color: black;
+    background: #fce013;
+  }
+  
+  

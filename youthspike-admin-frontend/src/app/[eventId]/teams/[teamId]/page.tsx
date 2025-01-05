@@ -7,8 +7,9 @@ import TeamDetail from '@/components/teams/TeamDetail';
 import { GET_A_TEAM } from '@/graphql/teams';
 import { IError } from '@/types';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { useLazyQuery} from '@apollo/client';
+import { useLazyQuery } from '@apollo/client';
 import { setTeamToStore } from '@/utils/localStorage';
+import { useError } from '@/lib/ErrorContext';
 
 interface TeamSingleMainProps {
   params: { teamId: string, eventId: string },
@@ -17,10 +18,10 @@ interface TeamSingleMainProps {
 function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
 
   const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId }, fetchPolicy: "network-only" });
-  const [actErr, setActErr] = useState<IError | null>(null);
+  const { setActErr } = useError();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const refetchFunc = async () => {    
+  const refetchFunc = async () => {
     await refetch();
   }
 
@@ -43,18 +44,21 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
   const playerRanking = data?.getTeam?.data?.playerRanking;
-  
-  
-  
+
+
+  if(error){
+    console.log(error);
+    
+  }
+
 
 
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
-      {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading} 
-      divisionList={divisionList} teamList={teamList} setActErr={setActErr} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} />}
-      
+      {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading}
+        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} />}
+
     </div>
   )
 }

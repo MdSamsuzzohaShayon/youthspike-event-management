@@ -68,7 +68,7 @@ const initialEvent: IEventAdd = {
 
 const initialCurrSponsor = { logo: null, company: '' };
 
-function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAddProps) {
+function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
   // Hooks
   const router = useRouter();
   const user = useUser();
@@ -109,7 +109,6 @@ function EventAddUpdate({ update, setActErr, prevEvent, setIsLoading }: IEventAd
       updateEvent,
       sponsorImgList,
       eventLogo,
-      setActErr,
       eventUpdate,
       eventAdd,
       router,

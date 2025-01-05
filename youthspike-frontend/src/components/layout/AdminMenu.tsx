@@ -92,7 +92,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
         {isMenuOpen && (
           <motion.div
             ref={menuRef}
-            className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full top-0 left-0 z-50 p-6 flex flex-col shadow-2xl"
+            className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full top-0 left-0 z-50 p-6 flex flex-col shadow-2xl overflow-y-auto"
             initial="hidden"
             animate="visible"
             exit="exit"
@@ -212,9 +212,11 @@ function AdminMenu({ user }: IAdminMenuProps) {
             </ul>
 
             {/* Logout Button */}
-            <button type="button" onClick={handleLogout} className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all">
-              Logout
-            </button>
+            <div className="mt-auto pt-4">
+              <button type="button" onClick={handleLogout} className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all">
+                Logout
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

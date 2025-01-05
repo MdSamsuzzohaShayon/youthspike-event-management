@@ -72,7 +72,6 @@ export interface IEventAdd extends IDefaultEventMatch {
 
 export interface IEventAddProps {
   update: boolean;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
 }

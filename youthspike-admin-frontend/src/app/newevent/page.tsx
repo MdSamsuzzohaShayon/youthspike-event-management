@@ -1,13 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import Message from '@/components/elements/Message';
 import EventAddUpdate from '@/components/event/EventAddUpdate';
-import { IError } from '@/types';
 import Loader from '@/components/elements/Loader';
 
 function EventNewPage() {
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   if (isLoading) return <Loader />;
@@ -16,8 +13,7 @@ function EventNewPage() {
     <div className="container mx-auto px-4 min-h-screen">
       <h1 className="my-4 text-center">New Event</h1>
       <div className="new-event-wrapper mb-5">
-        {actErr && <Message error={actErr} />}
-        <EventAddUpdate update={false} setActErr={setActErr} setIsLoading={setIsLoading} />
+        <EventAddUpdate update={false} setIsLoading={setIsLoading} />
       </div>
     </div>
   );

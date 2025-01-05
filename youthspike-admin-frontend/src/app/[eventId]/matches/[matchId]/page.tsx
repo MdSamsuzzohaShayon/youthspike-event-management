@@ -5,6 +5,8 @@ import Message from '@/components/elements/Message';
 import MatchAdd from '@/components/match/MatchAdd';
 import RoundList from '@/components/round/RoundList';
 import { GET_A_MATCH } from '@/graphql/matches';
+import { useError } from '@/lib/ErrorContext';
+import { useLdoId } from '@/lib/LdoProvider';
 import { IError } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
@@ -28,7 +30,8 @@ interface MatchSingleProps {
 
 function MatchSingle({ params }: MatchSingleProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [actErr, setActErr] = useState<IError | null>(null);
+      const {setActErr} = useError();
+    
     const [fetchMatch, { data, loading, error, refetch }] = useLazyQuery(GET_A_MATCH, { variables: { matchId: params.matchId } });
     
 
@@ -48,18 +51,18 @@ function MatchSingle({ params }: MatchSingleProps) {
     const matchData = data?.getMatch?.data;
     const roundList = data?.getMatch?.data?.rounds;
     
+
+    if(error){
+        console.log(error);
+    }
     
 
     return (
         <div className='container mx-auto px-4 min-h-screen'>
             <h1 className='uppercase text-center'>Match</h1>
 
-            {error && <Message error={error} />}
-            {actErr && <Message error={actErr} />}
-
-
             {matchData && <MatchAdd groupList={[]} prevMatch={matchData} eventId={params.eventId} 
-              setActErr={setActErr} setIsLoading={setIsLoading} update matchId={params.matchId} />}
+              setIsLoading={setIsLoading} update matchId={params.matchId} />}
 
             <h3>Rounds</h3>
             <RoundList roundList={roundList} eventId={params.eventId} />

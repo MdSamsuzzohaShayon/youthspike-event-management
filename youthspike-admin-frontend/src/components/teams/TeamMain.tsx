@@ -24,6 +24,7 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { motion } from 'framer-motion';
+import { useError } from '@/lib/ErrorContext';
 
 interface ITeamsOfEventPage {
   eventId: string;
@@ -34,13 +35,13 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
   const pathname = usePathname();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
+  const { setActErr } = useError();
   const searchParams = useSearchParams()
 
   // Local State
   const importerEl = useRef<HTMLDialogElement | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [actErr, setActErr] = useState<IError | null>(null);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]);
@@ -189,7 +190,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
           eventId={eventId}
           setIsLoading={setIsLoading}
           closeDialog={() => importerEl.current?.close()}
-          setActErr={setActErr}
           divisionList={divisionList}
         />
       </dialog>
@@ -215,8 +215,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
         />
       </div>
 
-      {actErr && <Message error={actErr} />}
-
       <div className="actions flex flex-col sm:flex-row justify-between gap-4 mb-8">
         <Link href={`/${eventId}/teams/new/${ldoIdUrl}`} className="btn-info text-center">
           Add New Team
@@ -236,7 +234,6 @@ function TeamMain({ eventId }: ITeamsOfEventPage) {
           teamList={filteredList}
           setIsLoading={setIsLoading}
           fefetchFunc={fefetchFunc}
-          setActErr={setActErr}
         />
       ) : (
         <p className="text-center text-gray-400">No teams available.</p>

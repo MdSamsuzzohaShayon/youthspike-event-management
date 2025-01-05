@@ -4,13 +4,12 @@ import TextInput from '../elements/forms/TextInput';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cardAnimate, headingAnimate } from '@/utils/animation';
-import Message from '../elements/Message';
 import { useState } from 'react';
 
 const { initial: hInitial, animate: hAnimate, exit: hExit, transition: hTransition } = headingAnimate;
 const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
 
-function Login({ handleLogin, email, setEmail, password, setPassword, passcode, setPasscode, actErr }: ILoginProps) {
+function Login({ handleLogin, email, setEmail, password, setPassword, passcode, setPasscode }: ILoginProps) {
     const [passcodeOpener, setPasscodeOpener] = useState<boolean>(false);
 
     const handleSetEmail = (e: React.SyntheticEvent) => {
@@ -45,7 +44,6 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
                     Login
                 </motion.h1>
                 <div className="w-full md:w-4/6">
-                    {actErr && <Message error={actErr} />}
                     <motion.div
                         initial={cInitial}
                         animate={cAnimate}
@@ -124,7 +122,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
             </div>
             <div className="hidden md:flex md:w-1/2 items-center justify-center relative bg-white">
                 <motion.h1
-                    className="absolute top-1/2 transform -translate-y-1/2 text-xl font-semibold text-gray-700 z-10"
+                    className="absolute top-1/2 transform -translate-y-1/2 text-xl font-semibold text-white z-10"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.5 }}

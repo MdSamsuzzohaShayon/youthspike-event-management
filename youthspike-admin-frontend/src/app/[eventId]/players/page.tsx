@@ -4,7 +4,7 @@ import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { useLazyQuery } from '@apollo/client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
@@ -17,11 +17,13 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import { handleResponse } from '@/utils/handleError';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useError } from '@/lib/ErrorContext';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
   // ===== hooks =====
   const user = useUser();
+  const { setActErr } = useError();
+
 
   // ===== Local State =====
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -29,7 +31,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [showRank, setShowRank] = useState<boolean>(false);
   const [rankControls, setRankControls] = useState<boolean>(false);
   const [lockRank, setLockRank] = useState<boolean>(false);
-  const [actErr, setActErr] = useState<IError | null>(null);
+
   const [currDivision, setCurrDivision] = useState<string>('');
   const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
   const [filteredPlayerList, setFilteredPlayerList] = useState<IPlayerExpRel[]>([]);
@@ -41,9 +43,9 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [currEvent, setCurrEvent] = useState<IEvent | null>(null);
 
   // ===== GraphQL =====
-  const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId } });
+  const [getEvent, { data, loading, error, refetch }] = useLazyQuery(GET_EVENT_WITH_PLAYERS, { variables: { eventId: params.eventId }, fetchPolicy: "network-only" });
 
-  const fetchPlayer = async () => {
+  const fetchPlayer = useCallback(async () => {
     const playerRes = await getEvent({ variables: { eventId: params.eventId } });
 
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
@@ -103,12 +105,12 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       fpList = npList.filter((p) => p.division && p.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
       ftList = ntList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
     }
-
+    
     setPlayerList(npList);
     setFilteredPlayerList(fpList);
     setTeamList(ntList);
     setFilteredTeamList(ftList);
-  };
+  }, []);
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -151,7 +153,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
  */
   useEffect(() => {
     if (params.eventId && user.token) {
-      if (isValidObjectId(params.eventId)) {
+      if (isValidObjectId(params.eventId)) {        
         fetchPlayer();
       } else {
         setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' });
@@ -161,51 +163,14 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
 
 
-  const renderActiveInactive = (filteredPlayers: IPlayerExpRel[]): React.ReactNode => {
-    const activePlayers: IPlayerExpRel[] = [];
-    const inactivePlayers: IPlayerExpRel[] = [];
 
-    for (let i = 0; i < filteredPlayers.length; i += 1) {
-      if (filteredPlayers[i].status === EPlayerStatus.ACTIVE) {
-        activePlayers.push(filteredPlayers[i]);
-      } else {
-        inactivePlayers.push(filteredPlayers[i]);
-      }
-    }
-    
 
-    return (
-      <>
-        <h3 className="mt-4">Player List</h3>
-        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-          <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
-            Add player
-          </button>
-        )}
-        <PlayerList
-          eventId={params.eventId}
-          playerList={activePlayers}
-          setIsLoading={setIsLoading}
-          rankControls={rankControls && !lockRank}
-          refetchFunc={refetchFunc}
-          teamList={filteredTeamList}
-          divisionList={divisionList}
-          showRank={showRank}
-          setActErr={setActErr}
-          playerRanking={teamPlayerRanking}
-          teamId={teamId}
-          currEvent={currEvent}
-        />
+  if (error) {
+    console.log(error);
 
-        {inactivePlayers.length > 0 && (
-          <div className="w-full">
-            <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList inactive currEvent={currEvent} eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} setActErr={setActErr} />
-          </div>
-        )}
-      </>
-    );
-  };
+  }
+
+  
 
   if (loading || isLoading) return <Loader />;
 
@@ -227,8 +192,6 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         </div>
       )}
 
-      {error && <Message error={error} />}
-      {actErr && <Message error={actErr} />}
       {addPlayer ? (
         <>
           <h3 className="mt-4">Player Add</h3>
@@ -242,11 +205,37 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
             teamList={filteredTeamList}
             division={currDivision}
             playerAddCB={playerAddCB}
-            setActErr={setActErr}
           />
         </>
       ) : (
-        renderActiveInactive(filteredPlayerList)
+        <>
+        <h3 className="mt-4">Player List</h3>
+        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+          <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
+            Add player
+          </button>
+        )}
+        <PlayerList
+          eventId={params.eventId}
+          playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
+          setIsLoading={setIsLoading}
+          rankControls={rankControls && !lockRank}
+          refetchFunc={refetchFunc}
+          teamList={filteredTeamList}
+          divisionList={divisionList}
+          showRank={showRank}
+          playerRanking={teamPlayerRanking}
+          teamId={teamId}
+          currEvent={currEvent}
+        />
+
+        {filteredPlayerList.length > 0 && (
+          <div className="w-full">
+            <h3 className="mt-4">Inactive Players List</h3>
+            <PlayerList inactive currEvent={currEvent} eventId={params.eventId} playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE)} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+          </div>
+        )}
+      </>
       )}
     </div>
   );

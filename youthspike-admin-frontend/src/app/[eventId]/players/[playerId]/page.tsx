@@ -5,6 +5,7 @@ import Message from '@/components/elements/Message';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { GET_A_EVENT } from '@/graphql/event';
 import { GET_A_PLAYER } from '@/graphql/players';
+import { useError } from '@/lib/ErrorContext';
 import { IError, IPlayerExpRel } from '@/types';
 import { divisionsToOptionList } from '@/utils/helper';
 import { useQuery } from '@apollo/client';
@@ -14,7 +15,8 @@ import React, { useState } from 'react';
 function PlayerSingle({ params }: { params: { eventId: string, playerId: string } }) {
   // ====== Local State ========
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [actErr, setActErr]= useState<IError | null>(null);
+    const {setActErr} = useError();
+  
 
 
   const { data, error, loading, refetch } = useQuery(GET_A_PLAYER, { variables: { playerId: params.playerId }, fetchPolicy: "network-only" });
@@ -34,13 +36,16 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
 
   const teamList = eventData?.getEvent?.data?.teams ? eventData?.getEvent?.data?.teams : [];
 
+  if(error){
+    console.log(error);
+    
+  }
   
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       <h1>Player Update</h1>
-      {actErr && <Message error={actErr} />}
-      {error && <Message error={error} />}
-      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} refetchFunc={refetchFunc} teamList={teamList} playerUpdateCB={playerUpdateCB} setActErr={setActErr} />}
+      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} refetchFunc={refetchFunc} teamList={teamList} playerUpdateCB={playerUpdateCB} 
+       />}
     </div>
   )
 }
