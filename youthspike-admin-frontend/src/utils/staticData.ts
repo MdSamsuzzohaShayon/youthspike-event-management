@@ -6,6 +6,7 @@ const assignStrategies = [EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAss
 const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST,];
 
 const initialUserMenuList: IMenuItem[] = [
+    // home, settings, teams, groups, players, matches, account, admin, ldo, 
     {
         id: 8,
         imgName: 'home',
@@ -54,6 +55,7 @@ const initialUserMenuList: IMenuItem[] = [
         text: 'Admin',
         link: '/admin'
     },
+    
     {
         id: 7,
         imgName: 'account',

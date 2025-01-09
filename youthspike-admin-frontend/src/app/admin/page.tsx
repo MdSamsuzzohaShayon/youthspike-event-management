@@ -34,19 +34,19 @@ function AdminPage() {
     // @ts-ignore
     eventIds = [...new Set(eventIds)], matchIds = [...new Set(matchIds)], playerIds = [...new Set(playerIds)], teamIds = [...new Set(teamIds)];
     return <>
-      <Link href={`/admin/directors`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
+      <Link href={`/admin/events`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
         <h4>Events</h4>
         <p>{eventIds.length}</p>
       </Link>
-      <Link href={`/admin/directors`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
+      <Link href={`/admin/players`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
         <h4>Players</h4>
         <p>{playerIds.length}</p>
       </Link>
-      <Link href={`/admin/directors`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
+      <Link href={`/admin/matches`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
         <h4>Matches</h4>
         <p>{matchIds.length}</p>
       </Link>
-      <Link href={`/admin/directors`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
+      <Link href={`/admin/teams`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
         <h4>Teams</h4>
         <p>{teamIds.length}</p>
       </Link>
