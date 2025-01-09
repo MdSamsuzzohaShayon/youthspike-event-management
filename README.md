@@ -53,18 +53,15 @@ ___
       
 
 ### Requirements 
+ - PlayerList is not showing properly (Only works when I reload something)
 
-4. When I click on "Account" it logs me out and takes me to the login screen
 
-5. Admin link give a "Page 404 Not Found" error message
 
-6. Admin panel every link takes you to the directors page
 
-7. What is "LDO" and the link give a "Page 404 Not Found" error message
 
-11. Between my 2 logins, when clicking on “Next Match” one goes to Matches the other goes to Roster.  
 
-12. When clicking on the 3 dots to go to the main menu, the size of the screen can make the log out button disappear, I cannot scroll up.
+
+
 
  - Change style for adding and updating form
  - Trying everything again and again on mobile backdated browser (Safari)

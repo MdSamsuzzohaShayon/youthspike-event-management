@@ -5,7 +5,6 @@ import { useParams, useRouter, usePathname } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import { IUserContext, UserRole } from '@/types/user';
 import Image from 'next/image';
-// import { removeDivisionFromStore, removeTeamFromStore } from '@/utils/localStorage';
 import Link from 'next/link';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { getEvent } from '@/utils/localStorage';

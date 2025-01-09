@@ -12,7 +12,7 @@ interface IPlayerListProps {
   matchList?: IMatchExpRel[];
 }
 
-function PlayerList({ showRank, playerList = [], matchList = [] }: IPlayerListProps) {
+function PlayerList({ showRank, playerList, matchList }: IPlayerListProps) {
   const [playerRecords, setPlayerRecords] = useState<Map<string, IPlayerRecord>>(new Map());
   const { rankingMap } = useAppSelector((state) => state.playerRanking);
   const newRankingMap = new Map(rankingMap);
@@ -46,16 +46,16 @@ function PlayerList({ showRank, playerList = [], matchList = [] }: IPlayerListPr
   };
 
   useEffect(() => {
-    if (!matchList.length || !playerList.length) return;
+    if (!matchList?.length || !playerList?.length) return;
 
     const newPlayerRecords = new Map<string, IPlayerRecord>();
 
-    playerList.forEach((player) => {
+    playerList?.forEach((player) => {
       if (!player?.teams?.length) return;
 
       const playerTeamIds = player.teams.map((team) => team._id);
 
-      matchList.forEach((match) => {
+      matchList?.forEach((match) => {
         const isTeamA = playerTeamIds.includes(match.teamA._id);
         const isTeamB = playerTeamIds.includes(match.teamB._id);
 
@@ -78,9 +78,7 @@ function PlayerList({ showRank, playerList = [], matchList = [] }: IPlayerListPr
 
   return (
     <div className="playerList w-full flex flex-col gap-1">
-      {playerList.map((player) => (
-        <PlayerCard key={player._id} rank={showRank ? newRankingMap.get(player._id) ?? null : null} player={player} playerRecord={playerRecords.get(player._id)} />
-      ))}
+      {playerList?.map((player) => <PlayerCard key={player._id} rank={showRank ? newRankingMap.get(player._id) ?? null : null} player={player} playerRecord={playerRecords.get(player._id)} />)}
     </div>
   );
 }

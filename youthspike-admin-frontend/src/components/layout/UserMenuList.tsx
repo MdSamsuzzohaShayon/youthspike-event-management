@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { IMenuItem } from '@/types';
@@ -7,6 +7,8 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { getEventIdFromPath, rearrangeMenu } from '@/utils/helper';
 import { initialUserMenuList } from '@/utils/staticData';
 import { useLdoId } from '@/lib/LdoProvider';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -21,7 +23,10 @@ const itemVariants = {
 function UserMenuList({ eventId }: { eventId: string }) {
   const pathname = usePathname();
   const { ldoIdUrl } = useLdoId();
-  const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
+  const user = useUser();
+
+
+
 
   useEffect(() => {
     const userDetail = getUserFromCookie();
@@ -30,7 +35,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
       ...mi,
       link: mi.id === 5 ? mi.link : `/${eventId}/${mi.link}/${ldoIdUrl}`,
     }));
-    setUserMenuList(menuItems);
+    // setUserMenuList(menuItems);
   }, [pathname]);
 
   return (
@@ -39,22 +44,27 @@ function UserMenuList({ eventId }: { eventId: string }) {
       animate="visible"
       exit="hidden"
       variants={listVariants}
-      className="menu-list flex flex-wrap justify-center gap-4"
+      className="menu-list flex flex-wrap justify-center gap-x-4"
     >
-      {userMenuList.map((item) => (
-        <motion.li
-          key={item.id}
-          variants={itemVariants}
-          className="capitalize text-center text-sm md:text-base"
-        >
-          <Link
-            href={item.link}
-            className="text-blue-500 hover:text-blue-700 transition-colors"
-          >
-            {item.text}
-          </Link>
-        </motion.li>
-      ))}
+      <motion.li
+        variants={itemVariants} className="capitalize text-center text-sm md:text-base"
+      >
+        <Link href="/" className="text-blue-500 hover:text-blue-700 transition-colors" > Home </Link>
+      </motion.li>
+      {eventId && <>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/settings/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Settings </Link></motion.li>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/teams/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Teams </Link></motion.li>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/groups/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Groups </Link></motion.li>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/players/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Players </Link></motion.li>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/matches/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Matches </Link></motion.li>
+      </>}
+      {user?.info?.role === UserRole.director && (<motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href="/account" className="text-blue-500 hover:text-blue-700 transition-colors" > Account </Link></motion.li>)}
+
+      {user.info?.role === UserRole.admin && (<>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href="/admin" className="text-blue-500 hover:text-blue-700 transition-colors" > Admin </Link></motion.li>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href="/admin/directors" className="text-blue-500 hover:text-blue-700 transition-colors" > LDOs </Link></motion.li>
+      </>
+      )}
     </motion.ul>
   );
 }
