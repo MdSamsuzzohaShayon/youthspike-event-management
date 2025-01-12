@@ -3,11 +3,10 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
-import { Player } from 'src/player/player.schema';
 import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
-import { User } from 'src/user/user.schema';
+
 
 export enum ETieBreaker {
   PREV_NET = 'PREV_NET',

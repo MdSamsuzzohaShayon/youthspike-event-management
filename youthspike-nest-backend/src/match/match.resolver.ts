@@ -138,6 +138,7 @@ export class MatchResolver {
         description: input.description ?? eventExist.description,
         location: input.location ?? eventExist.location,
         fwango: input.fwango ?? eventExist.fwango,
+        extendedOvertime: false
       };
 
       // Create a new room
@@ -400,7 +401,7 @@ export class MatchResolver {
   @ResolveField((returns) => [Round])
   async nets(@Parent() match: Match) {
     try {
-      return this.netService.query({ match: match._id.toString() });
+      return this.netService.find({ match: match._id.toString() });
     } catch {
       return [];
     }

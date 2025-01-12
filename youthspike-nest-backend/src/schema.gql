@@ -124,11 +124,13 @@ type Match {
   autoAssign: Boolean
   autoAssignLogic: String
   rosterLock: String
+  tieBreaking: String
   timeout: Float
   location: String
   description: String
   fwango: String
   completed: Boolean
+  extendedOvertime: Boolean
   event: Event!
   nets: [Net!]!
   rounds: [Round!]!
@@ -191,6 +193,7 @@ type Event {
   autoAssign: Boolean!
   autoAssignLogic: String!
   rosterLock: String!
+  tieBreaking: String
   timeout: Float!
   coachPassword: String!
   description: String
@@ -540,6 +543,7 @@ input CreateEventInput {
   homeTeam: String!
   autoAssign: Boolean
   autoAssignLogic: String
+  tieBreaking: String
   rosterLock: String
   timeout: Int
   coachPassword: String!
@@ -563,6 +567,7 @@ input UpdateEventInput {
   homeTeam: String
   autoAssign: Boolean
   autoAssignLogic: String
+  tieBreaking: String
   rosterLock: String
   timeout: Int
   coachPassword: String
@@ -610,6 +615,7 @@ input CreateMatchInput {
   numberOfNets: Float
   numberOfRounds: Float
   netVariance: Int
+  tieBreaking: String
   homeTeam: String
   autoAssign: Boolean
   autoAssignLogic: String
@@ -630,6 +636,7 @@ input UpdateMatchInput {
   numberOfNets: Float
   numberOfRounds: Float
   netVariance: Int
+  tieBreaking: String
   homeTeam: String
   autoAssign: Boolean
   autoAssignLogic: String

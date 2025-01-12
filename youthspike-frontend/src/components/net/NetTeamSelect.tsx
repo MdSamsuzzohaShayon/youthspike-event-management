@@ -4,7 +4,6 @@ import { IPlayer } from '@/types';
 import { ETeam } from '@/types/team';
 import { calcPairScore } from '@/utils/scoreCalc';
 import { ETeamPlayer, INetRelatives, INetUpdate } from '@/types/net';
-import { EXTRA_HEIGHT } from '@/utils/constant';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { border } from '@/utils/styles';
@@ -103,7 +102,13 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
 
     // Process for the round must be checkin or lineup
     let isTeamProcessValid = false;
-    if (myTeamE === ETeam.teamA) {
+    if (currMatch?.extendedOvertime) {
+      if (myTeamE === ETeam.teamA && currRound?.teamAProcess === EActionProcess.CHECKIN) {
+        isTeamProcessValid = true;
+      } else if (myTeamE === ETeam.teamB && currRound?.teamBProcess === EActionProcess.CHECKIN) {
+        isTeamProcessValid = true;
+      }
+    } else if (myTeamE === ETeam.teamA) {
       if (currRound?.teamAProcess === EActionProcess.CHECKIN && (currRound?.teamBProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.LINEUP)) {
         isTeamProcessValid = true;
       }
@@ -114,13 +119,15 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
     if (!isTeamProcessValid) return;
 
     // At first first placing their player first will submit their players
-    if (myTeamE === currRound?.firstPlacing) {
-      if (myTeamE === ETeam.teamA) {
-        if (currRound.teamAProcess === EActionProcess.LINEUP) return;
-      } else if (currRound.teamBProcess === EActionProcess.LINEUP) return;
-    } else if (myTeamE === ETeam.teamA) {
-      if (currRound.teamBProcess !== EActionProcess.LINEUP) return;
-    } else if (currRound.teamAProcess !== EActionProcess.LINEUP) return;
+    if (!currMatch?.extendedOvertime) {
+      if (myTeamE === currRound?.firstPlacing) {
+        if (myTeamE === ETeam.teamA) {
+          if (currRound.teamAProcess === EActionProcess.LINEUP) return;
+        } else if (currRound.teamBProcess === EActionProcess.LINEUP) return;
+      } else if (myTeamE === ETeam.teamA) {
+        if (currRound.teamBProcess !== EActionProcess.LINEUP) return;
+      } else if (currRound.teamAProcess !== EActionProcess.LINEUP) return;
+    }
 
     dispatch(setShowTeamPlayers(true));
     dispatch(setPlayerSpot(playerSpot));
@@ -159,9 +166,8 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
 
       return expectedPlayer || null;
     },
-    [myPlayers, net, opPlayers, teamE]
+    [myPlayers, net, opPlayers, teamE],
   );
-
 
   useEffect(() => {
     const pA = matchTPlayer(ETeamPlayer.PLAYER_A, !onTop);
@@ -187,8 +193,9 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
     <div
       // style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
       style={{ minHeight: '50%' }}
-      className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${border.light
-        } items-center justify-start`}
+      className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${
+        border.light
+      } items-center justify-start`}
     >
       <div className="player-pair flex justify-between w-full gap-x-1">
         <div className="player-card team-a-player-1 w-3/6 lg:w-2/6">

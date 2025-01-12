@@ -5,7 +5,7 @@ import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IJoinTheRoomProps, IStatusChange, IRoomNetAssign, IRoundRelatives, IJoinData, ICheckInData, IUpdatePointData, INetRelatives } from '@/types';
 import { IUser, IUserContext, UserRole } from '@/types/user';
 import { EActionProcess, IRoom, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
-import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps } from '@/types/socket';
+import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps, ISubmitExtendOvertimeProps } from '@/types/socket';
 import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
 import { ETieBreaker } from '@/types/net';
@@ -53,7 +53,7 @@ class EmitEvents {
 
     if (!this.isAuthorized(user.info)) return;
     if (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) {
-      // Check if captain or co-captain in in team A or team B 
+      // Check if captain or co-captain in in team A or team B
       if (
         !(
           (teamA.captain && teamA.captain._id === user.info.captainplayer) ||
@@ -157,6 +157,14 @@ class EmitEvents {
     this.socket?.emit('update-points-from-client', actionData);
   }
 
+  extendOvertime({ currRoom, currRound }: ISubmitExtendOvertimeProps) {
+    if (!currRoom || !currRound) {
+      this.dispatch(setActErr({ success: false, message: 'No room or round found!' }));
+      return;
+    }
+    this.socket?.emit('extend-overtime-from-client', { room: currRoom._id, round: currRound._id });
+  }
+
   banANet({ netId, currRoom, currRound, currRoundNets, allNets }: INotTwoPointNetProps) {
     const actionData: ITeiBreakerAction = {
       match: currRound?.match,
@@ -241,7 +249,16 @@ class EmitEvents {
     this.dispatch(setCurrentRound(updatedRound));
   }
 
-  private prepareLineupActionData(eventId: string, user: IUserContext, teamA: ITeam, teamB: ITeam, currRoom: IRoom, currRound: IRoundRelatives, currRoundNets: INetRelatives[], myTeamE: ETeam): ISubmitLineupAction {
+  private prepareLineupActionData(
+    eventId: string,
+    user: IUserContext,
+    teamA: ITeam,
+    teamB: ITeam,
+    currRoom: IRoom,
+    currRound: IRoundRelatives,
+    currRoundNets: INetRelatives[],
+    myTeamE: ETeam,
+  ): ISubmitLineupAction {
     const lineupData: ISubmitLineupAction = {
       room: currRoom?._id ?? null,
       eventId,

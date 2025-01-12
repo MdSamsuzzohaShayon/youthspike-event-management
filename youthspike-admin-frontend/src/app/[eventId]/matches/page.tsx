@@ -25,11 +25,9 @@ import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, set
 import { motion } from 'framer-motion';
 
 import { headingAnimate, logoAnimate } from '@/utils/animation';
-import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorContext';
 
 const { animate: hAnimate, exit: hExit, initial: hInitial, transition: hTransition } = headingAnimate;
-const { animate: mAnimate, exit: mExit, initial: mInitial, transition: mTransition } = logoAnimate;
 
 function MatchesPage({ params }: { params: { eventId: string } }) {
     const {setActErr} = useError();
@@ -189,10 +187,6 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
         </div>
       </div>
       {/* Event Menu End */}
-
-      <motion.div initial={mInitial} animate={mAnimate} exit={mExit} transition={mTransition} className="msg w-full">
-        {error && <Message error={error} />}
-      </motion.div>
 
       <div className="mt-4">
         {addMatch ? (

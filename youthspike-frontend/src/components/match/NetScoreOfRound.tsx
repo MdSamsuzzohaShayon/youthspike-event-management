@@ -107,7 +107,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             <LogoMatchScore dark team={opTeam} teamE={opTeamE} completed={match.completed} />
 
             <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
-              {roundList.map((round) => (
+              {roundList.map((round, i) => (
                 <button
                   className={`single-r ${round._id === currentRound?._id ? 'bg-yellow-logo' : 'bg-white'} py-1 text-center cursor-pointer ${
                     screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
@@ -116,7 +116,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}
                 >
-                  RD{round.num}
+                  {match.extendedOvertime && i === roundList.length - 1 ? 'RDX' : `RD${round.num}`}
                 </button>
               ))}
             </div>

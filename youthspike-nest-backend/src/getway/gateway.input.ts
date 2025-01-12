@@ -88,15 +88,19 @@ export class NetPointsAssign {
 }
 
 @ObjectType()
-export class UpdatePointsInput {
+export class ExtendOvertimeInput {
   @Field({ nullable: false })
   round: string;
 
-  @Field(() => [NetPointsAssign], { nullable: false })
-  nets: NetPointsAssign[];
-
   @Field({ nullable: false })
   room: string;
+}
+
+@ObjectType()
+export class UpdatePointsInput extends ExtendOvertimeInput{
+
+  @Field(() => [NetPointsAssign], { nullable: false })
+  nets: NetPointsAssign[];
 
   @Field({ nullable: false })
   teamE: ETeam;

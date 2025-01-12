@@ -25,6 +25,7 @@ import {
   IJoinData,
   ICheckInData,
   IUpdatePointData,
+  IOvertimeData,
 } from './socket';
 
 import { IPlayerRankingExpRel, IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel } from './playerRanking';
@@ -112,6 +113,7 @@ export type {
   IJoinData,
   ICheckInData,
   IUpdatePointData,
+  IOvertimeData,
 
   // Ranking
   IPlayerRankingExpRel,

@@ -6,11 +6,15 @@ import { useSocket } from '@/lib/SocketProvider';
 import { INetRelatives, IRoundRelatives, ITeam } from '@/types';
 import { ETeam } from '@/types/team';
 import { ETieBreaker } from '@/types/net';
+import { useAppSelector } from '@/redux/hooks';
+import { ETieBreakingStrategy } from '@/types/match';
 import CheckInBox from '../ActionBoxes/CheckInBox';
 import InitializeBox from '../ActionBoxes/InitializeBox';
 import LineupBox from '../ActionBoxes/LineupBox';
 import CompletedBox from '../ActionBoxes/CompletedBox';
 import FinalRoundBox from '../ActionBoxes/FinalRoundBox';
+import AskOvertimeScore from '../ActionBoxes/AskOvertimeScore';
+import OvertimeBox from '../ActionBoxes/OvertimeBox';
 
 interface IRoundRunnerProps {
   currentRound: IRoundRelatives | null;
@@ -25,6 +29,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
   // ===== Hooks =====
   const user = useUser();
   const socket = useSocket();
+  const { match, teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
 
   // ===== Local State =====
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
@@ -32,12 +37,29 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
 
   const renderActionBoxes = useCallback((): React.ReactNode | null => {
     const isFinalRound = currentRound?.num === roundList.length;
+
     const lockedNets = currRoundNets.filter((net) => net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
 
-    if (isFinalRound && currentRound?.teamAProcess === EActionProcess.LINEUP && currentRound?.teamBProcess === EActionProcess.LINEUP && lockedNets.length <= 1) {
+    if (
+      isFinalRound &&
+      currentRound?.teamAProcess === EActionProcess.LINEUP &&
+      currentRound?.teamBProcess === EActionProcess.LINEUP &&
+      lockedNets.length <= 1 &&
+      match.tieBreaking === ETieBreakingStrategy.TWO_POINTS_NET
+    ) {
       return <FinalRoundBox myTeamE={myTeamE} />;
     }
 
+    // Check both teams points are same
+    if (isFinalRound && currentRound?.completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && teamATotalScore === teamBTotalScore) {
+      return <AskOvertimeScore currRoom={currentRoom} currRound={currentRound} />;
+    }
+
+    if (match.extendedOvertime && currentRound?.teamAProcess !== EActionProcess.LINEUP && currentRound?.teamBProcess !== EActionProcess.LINEUP) {
+      return <OvertimeBox currRoom={currentRoom} />;
+    }
+
+    // Main round completed
     if (currentRound?.completed) {
       return <CompletedBox />;
     }
@@ -55,8 +77,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
       default:
         return null;
     }
-  }, [currRoundNets, currentRoom, currentRound, mtp, myTeamE, otp, roundList, socket, user]);
-
+  }, [currRoundNets, currentRoom, currentRound, match.extendedOvertime, match.tieBreaking, mtp, myTeamE, otp, roundList, socket, teamATotalScore, teamBTotalScore, user]);
   useEffect(() => {
     if (ETeam.teamA === myTeamE) {
       if (currentRound?.teamAProcess) setMtp(currentRound.teamAProcess);

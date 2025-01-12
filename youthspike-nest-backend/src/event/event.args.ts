@@ -62,6 +62,9 @@ export class CreateEventInput {
   autoAssignLogic: string;
 
   @Field({ nullable: true })
+  tieBreaking: string;
+
+  @Field({ nullable: true })
   rosterLock: string;
 
   @Field(() => Int, { nullable: true })

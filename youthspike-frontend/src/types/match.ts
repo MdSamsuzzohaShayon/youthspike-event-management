@@ -6,6 +6,14 @@ import { IRoom } from './room';
 import { IRoundExpRel } from './round';
 import { ITeam } from './team';
 
+// eslint-disable-next-line no-shadow
+export enum ETieBreakingStrategy {
+  // eslint-disable-next-line no-unused-vars
+  TWO_POINTS_NET = 'TWO_POINTS_NET',
+  // eslint-disable-next-line no-unused-vars
+  OVERTIME_ROUND = 'OVERTIME_ROUND',
+}
+
 export interface IDefaultMatch {
   division: string;
   netVariance: number;
@@ -17,6 +25,7 @@ export interface IDefaultMatch {
   coachPassword: string;
   description: string;
   location: string;
+  tieBreaking: ETieBreakingStrategy;
   fwango?: string | null;
 }
 
@@ -27,6 +36,7 @@ export interface IDefaultMatchProps extends IDefaultMatch {
 
 interface IMatchBase extends Partial<IDefaultMatchProps> {
   date: string;
+  extendedOvertime?: boolean;
 }
 
 export interface IAddMatch extends IMatchBase {

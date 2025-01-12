@@ -3,7 +3,7 @@ import { setMatchInfo } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IMatchExpRel, IMatchRelatives, INetRelatives, IPlayer, IRoom, IRoomNets, IRoundRelatives, ITeam, IUpdateScoreResponse } from '@/types';
+import { IMatchExpRel, IMatchRelatives, INetRelatives, IOvertimeData, IPlayer, IRoom, IRoomNets, IRoundRelatives, ITeam, IUpdateScoreResponse } from '@/types';
 import { ETieBreaker, INetScoreUpdate } from '@/types/net';
 import { EActionProcess, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
 import React from 'react';
@@ -32,6 +32,12 @@ interface IUpdatePointsResponse {
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];
   currentRound: IRoundRelatives | null;
+  match: IMatchRelatives;
+}
+
+interface IUpdateExtendOvertimeResponse {
+  data: IOvertimeData;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
   match: IMatchRelatives;
 }
 
@@ -235,6 +241,26 @@ class SocketEventListener {
     }
   }
 
+  updateExtendOvertime({ data, dispatch, match }: IUpdateExtendOvertimeResponse) {
+    this.dispatch = dispatch;
+    // ===== set current round nets =====
+    // Update round list
+    dispatch(setRoundList(data.roundList));
+    // Set current round
+    if (data.roundList && data.roundList.length > 0) {
+      let itemWithMaxNum = data.roundList[0]; // Start with the first item
+
+      for (let i = 1; i < data.roundList.length; i += 1) {
+        if (data.roundList[i].num > itemWithMaxNum.num) {
+          itemWithMaxNum = data.roundList[i];
+        }
+      }
+      dispatch(setCurrentRound(itemWithMaxNum));
+    }
+    dispatch(setMatchInfo({ ...match, extendedOvertime: data.extendedOvertime }));
+    dispatch(setNets(data.nets));
+  }
+
   handleUpdateNet({ data, dispatch, currRoundNets, allNets, roundList, match }: IUpdateNetResponse) {
     this.dispatch = dispatch;
     // Update current round nets and all nets
@@ -308,7 +334,6 @@ class SocketEventListener {
   }
 
   handleUpdateNetAllPages({ matchList, setMatchList, actionData }: IUpdateNet) {
-
     // Find match index directly in the match list
     const matchIndex = matchList.findIndex((m) => m._id === actionData.match);
     if (matchIndex === -1) return;
@@ -345,10 +370,9 @@ class SocketEventListener {
   }
 
   handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {
-    console.log({error});
+    console.log({ error });
     this.dispatch = dispatch;
     dispatch(setActErr({ success: false, message: `${error}. Try refreshing the page!` }));
-
   }
 }
 

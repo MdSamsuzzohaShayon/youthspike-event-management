@@ -10,6 +10,11 @@ import { AppDocument } from 'src/shared/schema/document.schema';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Team } from 'src/team/team.schema';
 
+export enum ETieBreakingStrategy {
+  TWO_POINTS_NET = 'TWO_POINTS_NET',
+  OVERTIME_ROUND = 'OVERTIME_ROUND',
+}
+
 export enum ERosterLock {
   FIRST_ROSTER_SUBMIT = 'FIRST_ROSTER_SUBMIT',
   PICK_A_DATE = 'PICK_A_DATE',
@@ -124,6 +129,10 @@ export class Event extends AppDocument {
   @Field({ nullable: false })
   @Prop({ required: true })
   rosterLock: ERosterLock | string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  tieBreaking: ETieBreakingStrategy | string;
 
   @Field({ nullable: false })
   @Prop({ required: true })

@@ -91,7 +91,7 @@ export class NetResolver {
   }
 
   private async bulkUpdateNets(netsToUpdate: { updateData: any; _id: string }[]): Promise<any[]> {
-    const updatePromises = netsToUpdate.map(({ updateData, _id }) => this.netService.update(updateData, _id));
+    const updatePromises = netsToUpdate.map(({ updateData, _id }) => this.netService.updateOne({ _id }, updateData));
 
     return await Promise.all(updatePromises);
   }
@@ -116,7 +116,7 @@ export class NetResolver {
       return {
         code: HttpStatus.OK,
         success: true,
-        data: (await this.netService.query({ roundId })) || [],
+        data: (await this.netService.find({ round: roundId })) || [],
       };
     } catch (err) {
       return AppResponse.handleError(err);

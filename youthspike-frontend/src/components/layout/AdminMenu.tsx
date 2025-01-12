@@ -116,12 +116,14 @@ function AdminMenu({ user }: IAdminMenuProps) {
 
             {/* Menu Links */}
             <ul className="menu-list space-y-6">
-              <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                <Link onClick={() => setIsMenuOpen(false)} href={ADMIN_FRONTEND_URL} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                  <Image height={40} width={40} src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
-                  Home
-                </Link>
-              </motion.li>
+              {user.info?.role === UserRole.admin || user.info?.role === UserRole.director && (
+                <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)} href={ADMIN_FRONTEND_URL} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Image height={40} width={40} src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
+                    Home
+                  </Link>
+                </motion.li>
+              )}
               {eventId && (
                 <>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
@@ -144,16 +146,18 @@ function AdminMenu({ user }: IAdminMenuProps) {
                       Teams
                     </Link>
                   </motion.li>
-                  <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link
-                      onClick={() => setIsMenuOpen(false)}
-                      href={`${ADMIN_FRONTEND_URL}/${eventId}/groups/${ldoIdUrl}`}
-                      className="flex items-center text-yellow hover:text-yellow-500 transition-all"
-                    >
-                      <Image height={40} width={40} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
-                      Groups
-                    </Link>
-                  </motion.li>
+                  {user.info?.role === UserRole.admin || user.info?.role === UserRole.director && (
+                    <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
+                      <Link
+                        onClick={() => setIsMenuOpen(false)}
+                        href={`${ADMIN_FRONTEND_URL}/${eventId}/groups/${ldoIdUrl}`}
+                        className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                      >
+                        <Image height={40} width={40} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
+                        Groups
+                      </Link>
+                    </motion.li>
+                  )}
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                     <Link
                       onClick={() => setIsMenuOpen(false)}

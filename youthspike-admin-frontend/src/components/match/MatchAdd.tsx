@@ -1,5 +1,5 @@
 import { useMutation } from '@apollo/client';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
 import { IAddMatch, IDateChangeHandlerProps, IError, IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
 import TextInput from '../elements/forms/TextInput';
@@ -13,8 +13,9 @@ import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
-import { ERosterLock } from '@/types/event';
+import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
 import { useError } from '@/lib/ErrorContext';
+import { ETeam } from '@/types/team';
 
 
 
@@ -66,6 +67,7 @@ const initialAddMatch: IAddMatch = {
     homeTeam: '',
     rosterLock: '',
     timeout: 0,
+    tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET
     // group: "" // Optional
 }
 
@@ -80,6 +82,7 @@ function MatchAdd({ eventId,
     eventData,
     showAddMatch,
     prevMatch, addMatchCB }: IMatchAddProps) {
+        
 
 
     const router = useRouter();
@@ -199,14 +202,20 @@ function MatchAdd({ eventId,
     /**
      * Show select items list
      */
-    const showTeamList = (teamItems: ITeam[] | null | undefined): IOption[] => {
-        if (!teamItems) return [];
-        const options = [];
-        for (let i = 0; i < teamItems.length; i++) {
-            options.push({ value: teamItems[i]._id, text: teamItems[i].name });
+    const showTeamOptions=useCallback((teamE: ETeam)=>{
+        // showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)
+        let nList: ITeam[] = filteredTeamList;
+        if(teamE === ETeam.teamA){
+            if(addMatch.teamB && addMatch.teamB !== ""){
+                nList = filteredTeamList.filter((t) => t._id !== addMatch.teamB)
+            }
+        }else{
+            if(addMatch.teamA && addMatch.teamA !== ""){
+                nList = filteredTeamList.filter((t) => t._id !== addMatch.teamA)
+            }
         }
-        return options;
-    }
+        return nList.map((t)=> ({value: t._id, text: t.name}));
+    }, [filteredTeamList, addMatch, selectedGroup]);
 
 
 
@@ -229,9 +238,11 @@ function MatchAdd({ eventId,
                 mObj.homeTeam = eventData.homeTeam;
                 mObj.description = eventData.description;
                 mObj.location = eventData.location;
+                mObj.tieBreaking = eventData.tieBreaking;
                 mObj.fwango = eventData?.fwango;
             }
         }
+        
         setAddMatch(mObj);
     }, [eventData, prevMatch]);
 
@@ -241,7 +252,7 @@ function MatchAdd({ eventId,
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
             {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
-                required={!update} value={addMatch.date} vertical /> }
+                required={!update} value={addMatch.date} vertical />}
 
             {!update && (<>
                 <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
@@ -250,10 +261,10 @@ function MatchAdd({ eventId,
                 {selectedGroup && (
                     <>
                         <SelectInput name='teamA' lblTxt='Team A'
-                            optionList={showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)}
+                            optionList={showTeamOptions(ETeam.teamA)}
                             handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
                         <SelectInput name='teamB' lblTxt='Team B'
-                            optionList={showTeamList(addMatch.teamA && addMatch.teamA !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamA) : filteredTeamList)}
+                            optionList={showTeamOptions(ETeam.teamB)}
                             handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
                     </>
                 )}
@@ -265,14 +276,17 @@ function MatchAdd({ eventId,
             <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
 
-            <SelectInput name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
+            <SelectInput key="si-1" name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
+            <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking}
+                optionList={[{ text: "Overtime round", value: ETieBreakingStrategy.OVERTIME_ROUND }, { text: "Two Points Net", value: ETieBreakingStrategy.TWO_POINTS_NET }]}
+                lblTxt="Tie breaking strategy" handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
 
             {/* @ts-ignore */}
             <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
                 name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
-            <SelectInput defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            <SelectInput key="si-3" defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
 
-            <SelectInput name='rosterLock'
+            <SelectInput key="si-4" name='rosterLock'
                 defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE}
                 optionList={lockTimes.map((lt) => ({ value: lt.type, text: lt.text }))} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
             {addMatch.rosterLock && addMatch.rosterLock !== "" && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (

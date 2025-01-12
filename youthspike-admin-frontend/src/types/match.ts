@@ -1,4 +1,5 @@
 import { IGroup, INetRelatives, IRoundRelatives, ITeam } from ".";
+import { ETieBreakingStrategy } from "./event";
 
 export interface ICommonMatchEvent{
   netVariance: number;
@@ -9,6 +10,7 @@ export interface ICommonMatchEvent{
   timeout: number;
   description: string;
   location: string;
+  tieBreaking: ETieBreakingStrategy;
   fwango?: string | null;
 }
 
