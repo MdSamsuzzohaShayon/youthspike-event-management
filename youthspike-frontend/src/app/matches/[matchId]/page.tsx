@@ -48,21 +48,31 @@ import { setTeamScore } from '@/redux/slices/matchesSlice';
 import './Match.css';
 import SelectTeam from '@/components/match/SelectTeam';
 import { imgSize } from '@/utils/styles';
-import { IRoom, IRoomNets, IUpdateScoreResponse } from '@/types';
+import { IOvertimeData, IRoom, IRoomNets, IUpdateScoreResponse } from '@/types';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import SocketEventListener from '@/utils/socket/SocketEventListener';
 import { ITeiBreakerAction } from '@/types/room';
 
 /**
  * Test Match
- *
- * Team B
+ * 
+ * PSG
  * Captain
- * pfn4130
- *
- * Team D
+ * gianluigi103
+ * Co captain
+ * marquinhos103
+ * 
+ * FC Barcelona
  * Captain
- * pfn1131
+ * lionel101
+ * Co captain
+ * sergio101
+ * 
+ * Liverpool FC
+ * Captain
+ * virgil102
+ * Co captain
+ * alisson102
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
@@ -156,6 +166,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       socketEventListener = new SocketEventListener(socket, dispatch, audioPlayEl);
 
       // Listen to socket events for joining the room
+      socket.on('extend-overtime-response-all', (overtimeData: IOvertimeData) => socketEventListener?.updateExtendOvertime({ data: overtimeData, dispatch, match: currMatch }));
       socket.on('join-room-response-all', (joinData: IRoom) => socketEventListener?.handleJoinRoom(joinData, dispatch));
       socket.on('check-in-response-to-all', (checkInData: IRoom) => socketEventListener?.handleCheckInResponse({ data: checkInData, dispatch, roundList, currentRound }));
       socket.on('submit-lineup-response-all', (lineUpData: IRoomNets) => socketEventListener?.handleLineupResponse({ data: lineUpData, dispatch, currRoundNets, allNets, roundList, currentRound }));
@@ -172,6 +183,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
     return () => {
       // Clean up event listeners to avoid memory leaks
+      socket?.off('extend-overtime-response-all');
       socket?.off('join-room-response-all');
       socket?.off('check-in-response-to-all');
       socket?.off('submit-lineup-response-all');
@@ -218,7 +230,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   return (
     <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
-
       {/* Level 2 start: hidden */}
       <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
         Button

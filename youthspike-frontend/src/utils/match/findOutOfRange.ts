@@ -1,4 +1,4 @@
-import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel } from '@/types';
+import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from '@/types';
 import { ETeamPlayer } from '@/types/net';
 import { ETeam } from '@/types/team';
 
@@ -19,7 +19,13 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
   const oponentNetPlayers: IPlayer[] = [];
 
   const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+  const rankingMap = new Map<string, IPlayerRankingItemExpRel>();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const ranking of rankings) {
+    rankingMap.set(ranking.player._id, ranking);
+  }
 
+  // Find pair score
   let oponentPairScore = 0;
   if (myTeamE === ETeam.teamA) {
     if (net?.teamBPlayerA) {
@@ -41,9 +47,31 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
     }
   }
 
-  if (oponentNetPlayers.length > 0) {
+  if (currMatch.extendedOvertime) {
+    // Initialize an array to store players with their ranks
+    const rankedPlayers = [];
+
+    // Loop through the players and collect their ranks
+    for (let i = 0; i < myPlayers.length; i += 1) {
+      const playerRank = rankingMap.get(myPlayers[i]._id)?.rank || 0;
+      rankedPlayers.push({ player: myPlayers[i], rank: playerRank });
+    }
+
+    // Sort the array by rank in descending order
+    rankedPlayers.sort((a, b) => a.rank - b.rank);
+
+    if (rankedPlayers.length > 3) {
+      // Get all players except the top 3
+      const remainingPlayers = rankedPlayers.slice(3);
+      for (let i = 0; i < remainingPlayers.length; i += 1) {
+        inavalidPlayerIds.push(remainingPlayers[i].player._id);
+      }
+    }
+  } else if (oponentNetPlayers.length > 0) {
+    // Find oponent pair score
     for (let i = 0; i < oponentNetPlayers.length; i += 1) {
-      const opr: number | null = rankings.find((p) => p.player._id === oponentNetPlayers[i]?._id)?.rank || null; // opr = oponent player rank
+      // const opr: number | null = rankings.find((p) => p.player._id === oponentNetPlayers[i]?._id)?.rank || null; // opr = oponent player rank
+      const opr: number | null = rankingMap.get(oponentNetPlayers[i]?._id)?.rank || null;
       if (opr) oponentPairScore += opr;
     }
 
@@ -53,6 +81,7 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
     let partnerPlayer = null;
     let partnerRank = 0;
 
+    // Find partner
     if (myTeamE === ETeam.teamA) {
       if (playerSpot === ETeamPlayer.PLAYER_A && net?.teamAPlayerB) {
         partnerPlayer = myPlayers.find((p) => p._id === net.teamAPlayerB);
@@ -66,15 +95,16 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
     }
 
     if (partnerPlayer) {
-      const ppr: number | null = rankings.find((p) => p.player._id === partnerPlayer._id)?.rank || null; // ppr = partner player rank
+      const ppr: number | null = rankingMap.get(partnerPlayer?._id)?.rank || null; // ppr = partner player rank
       if (ppr) partnerRank += ppr;
     }
 
-    // const mtrp = rankings.find((p) => p.player._id === partnerPlayer._id)?.rank || null; // ppr = partner player rank
+    // Get highest or lowest ranked players
     const mtr = myTeamE === ETeam.teamA ? teamAPlayerRanking?.rankings || [] : teamBPlayerRanking?.rankings || []; // mtr = my team rankings
     const myTopRank = Math.max(...mtr.map((o) => o.rank), 0);
     const myLowRank = Math.min(...mtr.map((o) => o.rank), Infinity);
 
+    // Make players invalid
     let p = 0;
     while (p < myPlayers.length) {
       // eslint-disable-next-line no-loop-func
@@ -110,3 +140,4 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
 };
 
 export default findOutOfRange;
+

@@ -68,6 +68,8 @@ query GetMatch($matchId: String!) {
       numberOfRounds
       rosterLock
       timeout
+      tieBreaking
+      extendedOvertime
       room {
         _id
       }

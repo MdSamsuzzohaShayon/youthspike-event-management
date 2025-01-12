@@ -31,6 +31,9 @@ export class CreateMatchInput {
   @Field(() => Int, { nullable: true })
   netVariance?: number;
 
+  @Field({ nullable: true })
+  tieBreaking: string;
+
   @Field(() => String, { nullable: true })
   homeTeam?: string;
 

@@ -15,7 +15,7 @@ function VerifyLineup() {
   const dispatch = useAppDispatch();
 
   const { teamA, teamB } = useAppSelector((state) => state.teams);
-  const { myTeamE, myPlayers } = useAppSelector((state) => state.matches);
+  const { myTeamE, myPlayers, match: currMatch } = useAppSelector((state) => state.matches);
   const { currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const currRoom = useAppSelector((state) => state.rooms.current);
@@ -78,7 +78,7 @@ function VerifyLineup() {
           </div>
 
           {/* Subbed Players Section */}
-          <div className="w-full">{renderSubbedPlayers()}</div>
+          {!currMatch?.extendedOvertime && <div className="w-full">{renderSubbedPlayers()}</div>}
 
           {/* Buttons Section */}
           <div className="flex justify-center items-center gap-4 mt-6">

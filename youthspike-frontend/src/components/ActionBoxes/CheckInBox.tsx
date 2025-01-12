@@ -1,13 +1,11 @@
 /* eslint-disable no-nested-ternary */
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import Image from 'next/image';
-import { IRoom, IRoundRelatives } from '@/types';
-import { EPlayerStatus } from '@/types/player';
+import { IRoom } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
+import submitLineup from '@/utils/match/submitLineup';
 import React, { useEffect, useState } from 'react';
-import { setVerifyLineup, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
-import { setActErr } from '@/redux/slices/elementSlice';
 import PointText from './PointText';
 
 interface IBoxProps {
@@ -25,81 +23,13 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
   const [bgBox, setBgBox] = useState<string>('box-danger');
 
   // ===== Redux State =====
-  const { myTeamE, myPlayers, closePSCAvailable } = useAppSelector((state) => state.matches);
+  const { myTeamE, myPlayers, closePSCAvailable, match: currMatch } = useAppSelector((state) => state.matches);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
 
   const handleSubmitLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
-
-    if (!currRoom) return;
-    // ===== Make sure all entes are filled with players =====
-    let filled = true;
-    const selectedPlayerIds = [];
-    for (let i = 0; i < currentRoundNets.length; i += 1) {
-      if (myTeamE === ETeam.teamA) {
-        if (!currentRoundNets[i].teamAPlayerA || !currentRoundNets[i].teamAPlayerB) {
-          filled = false;
-        } else {
-          selectedPlayerIds.push(currentRoundNets[i].teamAPlayerA, currentRoundNets[i].teamAPlayerB);
-        }
-      } else if (!currentRoundNets[i].teamBPlayerA || !currentRoundNets[i].teamBPlayerB) {
-        filled = false;
-      } else {
-        selectedPlayerIds.push(currentRoundNets[i].teamBPlayerA, currentRoundNets[i].teamBPlayerB);
-      }
-    }
-
-    /**
-     * Make sure did use previous subbed players
-     * A player can be subbed only once in a match, exception below
-     * A player is only allowd to sub when all other player had been subbed for atleast once
-     */
-    if (currRound?.num && currRound?.num > 1 && filled) {
-      const myPlayerIds = myPlayers.map((p) => p._id);
-      const preSubbedPlayerIds: Set<string> = new Set<string>();
-      const subbedPlayerIds: Set<string> = new Set<string>();
-      roundList.forEach((rl: IRoundRelatives) => {
-        // @ts-ignore
-        if (rl.subs && rl.subs.length > 0) {
-          rl.subs.forEach((rls) => {
-            if (rls) preSubbedPlayerIds.add(rls); // This line will produce an error
-          });
-        }
-      });
-
-      // Subbed players of this round
-      for (let j = 0; j < myPlayerIds.length; j += 1) {
-        if (!selectedPlayerIds.includes(myPlayerIds[j])) subbedPlayerIds.add(myPlayerIds[j]);
-      }
-
-      // All player has not been subbed atleast for once
-      if (subbedPlayerIds.size < myPlayerIds.length) {
-        //   // Show error
-        let errMsg = '';
-        let dupPlayerCount = 0;
-        subbedPlayerIds.forEach((up) => {
-          if (preSubbedPlayerIds.has(up)) {
-            const findPlayer = myPlayers.find((p) => p._id === up);
-            if (findPlayer && findPlayer.status === EPlayerStatus.ACTIVE) {
-              errMsg += `${findPlayer.firstName}, `;
-              dupPlayerCount += 1;
-            }
-          }
-        });
-        if (dupPlayerCount > 0) {
-          errMsg += `${dupPlayerCount > 1 ? 'were' : 'was'} subbed previously, ${dupPlayerCount > 1 ? 'they' : 'he'} must be selected in this round`;
-          dispatch(setActErr({ success: false, message: errMsg }));
-          return;
-        }
-      }
-    }
-
-    if (closePSCAvailable) dispatch(setclosePSCAvailable(false));
-    if (filled) {
-      dispatch(setActErr(null));
-      dispatch(setVerifyLineup(true));
-    }
+    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets, currRound, myPlayers, roundList, closePSCAvailable });
   };
 
   useEffect(() => {

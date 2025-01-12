@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { ERosterLock, Event } from 'src/event/event.schema';
+import { ERosterLock, ETieBreakingStrategy, Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
 import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
@@ -55,6 +55,10 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true })
   @Prop({ required: false })
+  tieBreaking: ETieBreakingStrategy | string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
   timeout?: number;
 
   @Field({ nullable: true })
@@ -72,6 +76,10 @@ export class Match extends AppDocument {
   @Field({ nullable: true })
   @Prop({ required: false })
   completed: boolean;
+
+  @Field({ nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  extendedOvertime: boolean;
 
   // Relations
   @Field((_type) => Event, { nullable: false })

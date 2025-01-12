@@ -53,15 +53,16 @@ ___
       
 
 ### Requirements 
- - PlayerList is not showing properly (Only works when I reload something)
-
-
-
-
-
-
-
-
+ - PlayerList is not showing properly (Only works when I reload something) 
+   - Captain can not re-rank a player
+ - Overtime:
+    - there will be 2 options A) Overtime B) 2 points net
+    - There will be 1 in the final round there will be only one net (To break the tie)
+    - If someone has 1 point advantage then the match is over, there will be no two points net
+    - Only top 3 players are able to assigned to that one net
+    - Both team need to submit their team in order to show the net (with assigned players)
+ - Leaving a goast image behind
+ - Settings -> number of rounds
 
  - Change style for adding and updating form
  - Trying everything again and again on mobile backdated browser (Safari)

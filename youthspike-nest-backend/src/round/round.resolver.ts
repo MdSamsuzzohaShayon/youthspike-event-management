@@ -59,6 +59,8 @@ export class RoundResolver {
     }
   }
 
+
+
   @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetRoundsResponse)
   async getRounds(@Args('matchId') matchId: string) {
@@ -82,7 +84,7 @@ export class RoundResolver {
   @ResolveField((returns) => [Round])
   async nets(@Parent() round: Round) {
     try {
-      return this.netService.query({ round: round._id.toString() });
+      return this.netService.find({ round: round._id.toString() });
     } catch {
       return [];
     }

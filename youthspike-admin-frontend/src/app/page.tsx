@@ -174,7 +174,6 @@ function EventsPage() {
         ))}
       </dialog>
       <h1 className="my-4 text-center">Events Director</h1>
-      {ldoError && <Message error={ldoError} />}
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {newLdoData?.logo ? (
           <div className="w-28 h-28 advanced-img rounded-full">

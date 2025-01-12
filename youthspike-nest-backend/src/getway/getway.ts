@@ -13,10 +13,11 @@ import {
   ETeam,
   CreateEventInput,
   NetPointsAssign,
+  ExtendOvertimeInput,
 } from './gateway.input';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { RoundService } from 'src/round/round.service';
-import { EActionProcess } from 'src/round/round.schema';
+import { EActionProcess, Round } from 'src/round/round.schema';
 import { NetService } from 'src/net/net.service';
 import { ETieBreaker, Net } from 'src/net/net.schema';
 import { TeamService } from 'src/team/team.service';
@@ -25,9 +26,21 @@ import { EPlayerStatus } from 'src/player/player.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { UserRole } from 'src/user/user.schema';
 import { EventService } from 'src/event/event.service';
-import { ERosterLock } from 'src/event/event.schema';
-import { UserService } from 'src/user/user.service';
+import { ERosterLock, ETieBreakingStrategy } from 'src/event/event.schema';
 import { PlayerService } from 'src/player/player.service';
+import { Match } from 'src/match/match.schema';
+
+interface IMatchRoundDetails {
+  roundList: Round[];
+  round: Round;
+  match: Match;
+}
+
+interface INetScore {
+  teamAScore: number;
+  teamBScore: number;
+  points: number;
+}
 
 @ObjectType()
 class RoomRoundProcess {
@@ -221,6 +234,31 @@ export class MyGatWay implements OnModuleInit {
     return currTeamId;
   }
   // Submit lineup function ends
+
+  private findPrevRoom(roomId: string) {
+    const prevRoom = this.roomsLocal.get(roomId);
+    if (!prevRoom) {
+      throw new Error('Room not found, Incorrect room ID!');
+    }
+    return prevRoom;
+  }
+
+  private async fetchMatchAndRoundDetails(matchId: string, roundId: string): Promise<IMatchRoundDetails> {
+    const [roundList, roundExist, matchExist] = await Promise.all([
+      this.roundService.find({ match: matchId }),
+      this.roundService.findById(roundId),
+      this.matchService.findById(matchId),
+    ]);
+
+    if (!roundList || !roundExist || !matchExist) {
+      throw new Error(
+        `Required data not found! Details: Round List: ${JSON.stringify(roundList)}, Round Exist: ${JSON.stringify(
+          roundExist,
+        )}, Match Exist: ${JSON.stringify(matchExist)}`,
+      );
+    }
+    return { roundList, round: roundExist, match: matchExist };
+  }
 
   async emitToAllClients(
     emitEvent: string,
@@ -507,12 +545,13 @@ export class MyGatWay implements OnModuleInit {
       }
 
       // update round to checkin
-      const [roundExist, eventExist] = await Promise.all([
+      const [roundExist, eventExist, matchExist] = await Promise.all([
         this.roundService.findById(submitLineup.round),
         this.eventService.findById(submitLineup.eventId),
+        this.matchService.findById(prevRoom.match),
       ]);
-      if (!roundExist || !eventExist) {
-        throw new Error('Round not found in the Database, with that round ID!');
+      if (!roundExist || !eventExist || !matchExist) {
+        throw new Error('Round, event, or match not found in the Database, with that round ID!');
       }
 
       const currRoundObj = {
@@ -553,14 +592,14 @@ export class MyGatWay implements OnModuleInit {
       const selectedPlayers = new Set();
       for (const n of submitLineup.nets) {
         updatePromises.push(
-          this.netService.update(
+          this.netService.updateOne(
+            { _id: n._id },
             {
               teamAPlayerA: n.teamAPlayerA,
               teamAPlayerB: n.teamAPlayerB,
               teamBPlayerA: n.teamBPlayerA,
               teamBPlayerB: n.teamBPlayerB,
             },
-            n._id,
           ),
         );
 
@@ -571,7 +610,7 @@ export class MyGatWay implements OnModuleInit {
       }
 
       const subbedPlayers = [];
-      for (let i = 0; i < submitLineup.subbedPlayers.length; i++) {
+      for (let i = 0; i < submitLineup.subbedPlayers.length && !matchExist?.extendedOvertime; i++) {
         if (!selectedPlayers.has(submitLineup.subbedPlayers[i])) {
           subbedPlayers.push(submitLineup.subbedPlayers[i]);
         }
@@ -634,10 +673,7 @@ export class MyGatWay implements OnModuleInit {
   @SubscribeMessage('update-net-from-client')
   async onNetUpdate(client, netInputs: TieBreakerInput) {
     try {
-      const prevRoom = this.roomsLocal.get(netInputs.room);
-      if (!prevRoom) {
-        throw new Error('Room not found, Incorrect room ID!');
-      }
+      const prevRoom = this.findPrevRoom(netInputs.room);
       const roomData = { ...prevRoom };
 
       const roundExist = await this.roundService.findById(netInputs.round);
@@ -651,11 +687,11 @@ export class MyGatWay implements OnModuleInit {
       for (const n of netInputs.nets) {
         if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) lockedNetIds.push(n._id);
         updatePromises.push(
-          this.netService.update(
+          this.netService.updateOne(
+            { _id: n._id },
             {
               netType: n.netType,
             },
-            n._id,
           ),
         );
       }
@@ -692,21 +728,8 @@ export class MyGatWay implements OnModuleInit {
   @SubscribeMessage('update-points-from-client')
   async onPointsUpdate(client, updatePointsInput: UpdatePointsInput) {
     try {
-      const prevRoom = this.roomsLocal.get(updatePointsInput.room);
-      if (!prevRoom) return;
-
-      const [roundList, roundExist] = await Promise.all([
-        this.roundService.find({ match: prevRoom.match }),
-        this.roundService.findById(updatePointsInput.round),
-      ]);
-
-      if (!roundList || !roundExist) {
-        throw new Error(
-          `Round List or Round Exist not found! Round List: ${JSON.stringify(roundList)}, Round Exist: ${JSON.stringify(
-            roundExist,
-          )}`,
-        );
-      }
+      const prevRoom = this.findPrevRoom(updatePointsInput.room);
+      const { roundList, round, match } = await this.fetchMatchAndRoundDetails(prevRoom.match, updatePointsInput.round);
 
       // Update net score from database
       const updatePromises = [];
@@ -719,7 +742,7 @@ export class MyGatWay implements OnModuleInit {
       await Promise.all(updatePromises);
 
       // Calculate and update score for all nets of a round
-      const findNets = await this.netService.query({ round: updatePointsInput.round });
+      const findNets = await this.netService.find({ round: updatePointsInput.round });
       // Update score in round
       let teamAScore = null;
       let teamBScore = null;
@@ -736,7 +759,15 @@ export class MyGatWay implements OnModuleInit {
       }
 
       let completed = false;
-      if (teamAScore && teamAScore > 0 && teamBScore && teamBScore > 0) completed = true;
+      if (
+        teamAScore &&
+        teamAScore > 0 &&
+        teamBScore &&
+        teamBScore > 0
+        // && match.tieBreaking === ETieBreakingStrategy.TWO_POINTS_NET
+      ) {
+        completed = true;
+      }
       await this.roundService.updateOne({ _id: updatePointsInput.round }, { teamAScore, teamBScore, completed });
 
       const pointsResponse: RoundUpdatedResponse = {
@@ -744,13 +775,16 @@ export class MyGatWay implements OnModuleInit {
         room: updatePointsInput.room,
         round: { _id: updatePointsInput.round, teamAScore, teamBScore, completed },
         matchCompleted: false,
-        teamAProcess: roundExist.teamAProcess,
-        teamBProcess: roundExist.teamBProcess,
+        teamAProcess: round.teamAProcess,
+        teamBProcess: round.teamBProcess,
       };
 
       // ===== Complete the match if score is updated in all nets  =====
-      if (completed && roundExist.num === roundList.length) {
+      if (completed && round.num === roundList.length && match.tieBreaking === ETieBreakingStrategy.TWO_POINTS_NET) {
         // Check all rounds
+        await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
+        pointsResponse.matchCompleted = true;
+      } else if (completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && match.extendedOvertime) {
         await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
         pointsResponse.matchCompleted = true;
       }
@@ -782,6 +816,86 @@ export class MyGatWay implements OnModuleInit {
         // client.emit('completed-match-response', { matchId });
         await this.emitToAllClients('completed-match-response-all', client, matchId, { matchId });
       }
+    } catch (error) {
+      console.log(error);
+      client.emit('error-from-server', error?.message || 'Internal error occured');
+    }
+  }
+
+  @SubscribeMessage('extend-overtime-from-client')
+  async onExtendOvertime(client, extendOvertimeInput: ExtendOvertimeInput) {
+    try {
+      const prevRoom = this.findPrevRoom(extendOvertimeInput.room);
+      const { roundList, round, match } = await this.fetchMatchAndRoundDetails(
+        prevRoom.match,
+        extendOvertimeInput.round,
+      );
+      // Check match is overtime round or not
+      if (match.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND) {
+        throw new Error('This match does not allow overtime round');
+      }
+      if (match.extendedOvertime) {
+        throw new Error('A round and a net has been created already and made it extended');
+      }
+      const netList = await this.netService.find({ match: prevRoom.match });
+
+      // Check match score is tied for both team
+      let teamATotalScore = 0,
+        teamBTotalScore = 0;
+      for (const net of netList) {
+        if (net.teamAScore > net.teamBScore) {
+          teamATotalScore += net.points;
+        } else if (net.teamBScore > net.teamAScore) {
+          teamBTotalScore += net.points;
+        }
+      }
+      if (teamATotalScore !== teamBTotalScore) {
+        throw new Error('Score is not tied for this match, so you do not need to add overtime.');
+      }
+      // Create a new round with one single net
+      const newRound = await this.roundService.create({
+        num: roundList.length + 1,
+        match: prevRoom.match,
+        nets: [], // Need to create 1 net
+        players: [],
+        subs: [],
+        teamAScore: null,
+        teamBScore: null,
+        teamAProcess: EActionProcess.CHECKIN,
+        teamBProcess: EActionProcess.CHECKIN,
+        completed: false,
+        firstPlacing: ETeam.teamA,
+      });
+      const newNet = await this.netService.create({
+        num: 1,
+        match: prevRoom.match,
+        round: newRound._id,
+        points: 1,
+        netType: ETieBreaker.FINAL_ROUND_NET_LOCKED,
+        teamAScore: null,
+        teamBScore: null,
+        pairRange: 0,
+      });
+      // Update match field (extended overtime)
+      await Promise.all([
+        this.roundService.updateOne({ _id: newRound._id }, { $set: { nets: [newNet._id] } }),
+        this.matchService.updateOne({ _id: prevRoom.match }, { $set: { extendedOvertime: true } }),
+      ]);
+
+      // If both team have agreed, then update the match
+      // Send match, round list and all nets
+      await this.emitToAllClients(
+        'extend-overtime-response-all',
+        client,
+        prevRoom.match,
+        {
+          roundList: [...roundList, { ...newRound, nets: [newNet._id] }],
+          nets: [...netList, { ...newNet }],
+          extendedOvertime: true,
+        },
+        false,
+      );
+
     } catch (error) {
       console.log(error);
       client.emit('error-from-server', error?.message || 'Internal error occured');

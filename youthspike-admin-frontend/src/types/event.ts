@@ -18,6 +18,11 @@ export enum ERosterLock{
   PICK_A_DATE="PICK_A_DATE"
 }
 
+export enum ETieBreakingStrategy {
+  TWO_POINTS_NET = 'TWO_POINTS_NET',
+  OVERTIME_ROUND = 'OVERTIME_ROUND',
+}
+
 
 export interface IEventSponsor {
   _id: string;

@@ -10,6 +10,7 @@ const eventResponse = `
     divisions
     endDate
     homeTeam
+    tieBreaking
     description
     name
     netVariance
@@ -47,6 +48,7 @@ const matchResponse = `
     numberOfRounds
     netVariance
     homeTeam
+    tieBreaking
     autoAssign
     autoAssignLogic
     rosterLock

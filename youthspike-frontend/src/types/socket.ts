@@ -110,6 +110,11 @@ export interface ISubmitUpdatePointsProps {
   myTeamE: ETeam;
 }
 
+export interface ISubmitExtendOvertimeProps {
+  currRoom: IRoom | null;
+  currRound: IRoundRelatives | null;
+}
+
 export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps {
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   allNets: INetRelatives[];
@@ -124,4 +129,10 @@ export interface ICanGoProps extends ICommonProps {
 
 export interface IListenPublicSocketProps {
   socket: Socket;
+}
+
+export interface IOvertimeData {
+  roundList: IRoundRelatives[];
+  nets: INetRelatives[];
+  extendedOvertime: boolean;
 }

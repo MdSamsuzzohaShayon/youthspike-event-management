@@ -28,7 +28,8 @@ import ImageInput from '../elements/forms/ImageInput';
 
 import { useSocket } from '@/lib/SocketProvider';
 import { useLdoId } from '@/lib/LdoProvider';
-import { ERosterLock } from '@/types/event';
+import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
+import { useError } from '@/lib/ErrorContext';
 // Select Input Options
 const { homeTeamStrategy, rosterLockList } = staticData;
 
@@ -62,6 +63,7 @@ const initialEvent: IEventAdd = {
   timeout: 3,
   fwango: null,
   coachPassword: 'Spikeball',
+  tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
   description: 'USA',
   location: 'USA',
 };
@@ -75,7 +77,8 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
   const searchParams = useSearchParams();
   const pName = usePathname();
   const socket = useSocket();
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
+  const { setActErr } = useError();
 
   // Local State
   const eventLogo = useRef<null | MediaSource | Blob>(null);
@@ -100,6 +103,7 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
     e.preventDefault();
     await addOrUpdateEvent({
       e,
+      setActErr,
       update,
       eventId,
       directorId,
@@ -139,7 +143,7 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
     }
   }
 
-  const handleRosterLockDate=({name, value}: IDateChangeHandlerProps)=>{
+  const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
     if (!update) {
       setEventState((prevState) => ({ ...prevState, rosterLock: value }));
     } else {
@@ -325,7 +329,6 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
       <TextInput key="ti-eau-1" required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt="Name" name="name" lw="w-2/6" rw="w-4/6" />
 
       <ImageInput handleFileChange={handleLogoChange} name="logo" />
-      {/* <FileInput defaultValue={eventState.logo} handleFileChange={handleLogoChange} name="logo" extraCls="md:w-5/12" /> */}
 
       <DateInput required={!update} defaultValue={eventState.startDate} handleDateChange={handleDateChange} lblTxt="Start Date" name="startDate" lw="w-2/6" rw="w-4/6" />
       <DateInput required={!update} defaultValue={eventState.endDate} handleDateChange={handleDateChange} lblTxt="End Date" name="endDate" lw="w-2/6" rw="w-4/6" />
@@ -353,9 +356,13 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
       <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleNumberInputChange} lblTxt="Net Variance" name="netVariance" required={!update} rw="w-3/6" lw="w-3/6" />
 
       <SelectInput name="homeTeam" defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt="How is home team decided?" handleSelect={handleInputChange} rw="w-3/6" lw="w-3/6" />
-      <ToggleInput 
-      handleInputChange={handleInputChange}
-      lblTxt="Auto assign when clock runs out" value={eventState.autoAssign} name="autoAssign" />
+      <SelectInput name="tieBreaking" defaultValue={eventState.tieBreaking}
+        optionList={[{ text: "Overtime round", value: ETieBreakingStrategy.OVERTIME_ROUND }, { text: "Two Points Net", value: ETieBreakingStrategy.TWO_POINTS_NET }]}
+        lblTxt="Tie breaking strategy" handleSelect={handleInputChange} rw="w-3/6" lw="w-3/6" />
+
+      <ToggleInput
+        handleInputChange={handleInputChange}
+        lblTxt="Auto assign when clock runs out" value={eventState.autoAssign} name="autoAssign" />
       <SelectInput
         defaultValue={eventState.autoAssignLogic}
         name="autoAssignLogic"
@@ -367,14 +374,14 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
       />
       <SelectInput
         name="rosterLock"
-        optionList={lockTimes.map((lt)=> ({value: lt.type, text: lt.text}))}
+        optionList={lockTimes.map((lt) => ({ value: lt.type, text: lt.text }))}
         lblTxt="When does the roster lock setting?"
         handleSelect={handleInputChange}
         rw="w-3/6"
         lw="w-3/6"
       />
       {eventState.rosterLock && eventState.rosterLock !== "" && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-        <DateInput name='rosterLockDate' handleDateChange={handleRosterLockDate} rw="w-3/6" lw="w-3/6"  />
+        <DateInput name='rosterLockDate' required handleDateChange={handleRosterLockDate} rw="w-3/6" lw="w-3/6" />
       )}
       <NumberInput required lblTxt="Sub Clock" name="timeout" defaultValue={eventState.timeout} handleInputChange={handleInputChange} rw="w-3/6" lw="w-3/6" />
       <TextInput key="ti-eau-3" handleInputChange={handleInputChange} lblTxt="Coach Password" name="coachPassword" required defaultValue={eventState.coachPassword} rw="w-3/6" lw="w-3/6" />

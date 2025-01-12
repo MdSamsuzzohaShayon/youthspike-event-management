@@ -7,25 +7,14 @@ import { Net } from 'src/net/net.schema';
 export class NetService {
   constructor(@InjectModel(Net.name) private netModel: Model<Net>) { }
 
-  async create(net: Net) {
-    return this.netModel.create({
-      ...net,
-    });
+  async create(net: Net): Promise<Net> {
+    const savedNet = await this.netModel.create(net);
+    return savedNet;
   }
 
   async createMany(nets: Net[]) {
     const newNets = await this.netModel.insertMany(nets);
     return newNets;
-  }
-
-  async update(net: UpdateQuery<Net>, id: string) {
-    return this.netModel.findOneAndUpdate(
-      {
-        _id: id,
-      },
-      net,
-      { upsert: true, new: true },
-    );
   }
 
   async updateOne(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>) {
@@ -37,12 +26,6 @@ export class NetService {
     // db.collection.updateMany(filter, update, options)
     const updatedNets = await this.netModel.updateMany(filter, updateObj);
     return updatedNets;
-  }
-
-  async query(filter: FilterQuery<Net>) {
-    return this.netModel.find(filter).sort({
-      num: 1,
-    });
   }
 
   async find(filter: FilterQuery<Net>) {
