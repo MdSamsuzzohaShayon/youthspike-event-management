@@ -16,6 +16,7 @@ export interface ICommonMatchEvent{
 
 export interface IDefaultMatch extends ICommonMatchEvent{
   division: string;
+  extendedOvertime?: boolean;
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {

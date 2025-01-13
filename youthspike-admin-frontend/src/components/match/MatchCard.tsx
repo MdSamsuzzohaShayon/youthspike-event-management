@@ -76,6 +76,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
     </React.Fragment>);
   }
 
+  console.log(match);
+  
+
 
 
   return (
@@ -111,7 +114,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
         </div>
         <div className="rounds flex flex-col justify-center items-center w-full ">
           <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
-            {roundList.map((round) => <li key={round._id} className='w-12 flex justify-center items-center text-yellow-logo'>RD{round.num}</li>)}
+            {roundList.map((round, i) => <li key={round._id} 
+            className='w-12 flex justify-center items-center text-yellow-logo'>{`RD${match.extendedOvertime && i === (roundList.length - 1) ? "X" : round.num}`}</li>)}
           </ul>
           <div className="points-by-rounds w-full flex flex-wrap justify-center items-center">
             <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamA} />

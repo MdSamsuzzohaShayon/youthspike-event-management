@@ -1,7 +1,7 @@
 import { useMutation } from '@apollo/client';
 import React, { useCallback, useEffect, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
-import { IAddMatch, IDateChangeHandlerProps, IError, IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IAddMatch, IDateChangeHandlerProps, IEventExpRel, IGroupExpRel, IMatchExpRel, ITeam } from '@/types';
 import TextInput from '../elements/forms/TextInput';
 import NumberInput from '../elements/forms/NumberInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -48,6 +48,8 @@ const lockTimes = [
 ]
 
 
+
+console.log(new Date().toISOString());
 
 
 const initialAddMatch: IAddMatch = {
@@ -252,7 +254,7 @@ function MatchAdd({ eventId,
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
             {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
-                required={!update} value={addMatch.date} vertical />}
+                required={!update} defaultValue={addMatch.date} vertical />}
 
             {!update && (<>
                 <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''

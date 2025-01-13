@@ -50,7 +50,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
     if (!success) return;
-
+    console.log(playerRes?.data);
+    
     if (playerRes?.data?.getEvent) {
       setCurrEvent(playerRes?.data?.getEvent.data);
     }
@@ -105,7 +106,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       fpList = npList.filter((p) => p.division && p.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
       ftList = ntList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
     }
-    
+
     setPlayerList(npList);
     setFilteredPlayerList(fpList);
     setTeamList(ntList);
@@ -153,7 +154,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
  */
   useEffect(() => {
     if (params.eventId && user.token) {
-      if (isValidObjectId(params.eventId)) {        
+      if (isValidObjectId(params.eventId)) {
         fetchPlayer();
       } else {
         setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' });
@@ -170,7 +171,23 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
   }
 
-  
+  const renderInactivePlayers = useCallback(() => {
+
+    if (filteredPlayerList.length > 0) {
+      const inactivePlayers = filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE);
+      if (inactivePlayers.length === 0) return <p>No inactive players</p>;
+      return (
+
+        <div className="w-full">
+          <h3 className="mt-4">Inactive Players List</h3>
+          <PlayerList inactive currEvent={currEvent} eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+        </div>
+      )
+    }
+    return <p>No inactive players</p>;
+  }, [filteredPlayerList, currEvent]);
+
+
 
   if (loading || isLoading) return <Loader />;
 
@@ -209,33 +226,28 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
         </>
       ) : (
         <>
-        <h3 className="mt-4">Player List</h3>
-        {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-          <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
-            Add player
-          </button>
-        )}
-        <PlayerList
-          eventId={params.eventId}
-          playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
-          setIsLoading={setIsLoading}
-          rankControls={rankControls && !lockRank}
-          refetchFunc={refetchFunc}
-          teamList={filteredTeamList}
-          divisionList={divisionList}
-          showRank={showRank}
-          playerRanking={teamPlayerRanking}
-          teamId={teamId}
-          currEvent={currEvent}
-        />
+          <h3 className="mt-4">Player List</h3>
+          {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+            <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
+              Add player
+            </button>
+          )}
+          <PlayerList
+            eventId={params.eventId}
+            playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
+            setIsLoading={setIsLoading}
+            rankControls={rankControls && !lockRank}
+            refetchFunc={refetchFunc}
+            teamList={filteredTeamList}
+            divisionList={divisionList}
+            showRank={showRank}
+            playerRanking={teamPlayerRanking}
+            teamId={teamId}
+            currEvent={currEvent}
+          />
 
-        {filteredPlayerList.length > 0 && (
-          <div className="w-full">
-            <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList inactive currEvent={currEvent} eventId={params.eventId} playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE)} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
-          </div>
-        )}
-      </>
+          {renderInactivePlayers()}
+        </>
       )}
     </div>
   );

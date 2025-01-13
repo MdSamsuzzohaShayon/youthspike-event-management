@@ -6,8 +6,10 @@ const DateInput = (props: IDateinputProps) => {
     const handleDatetimeInputChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
-        const dateWithCurrentTime = new Date(`${inputEl.value}T${new Date().toTimeString().split(' ')[0]}`);
-        props.handleDateChange({ name: props.name, value: dateWithCurrentTime.toISOString() });
+        
+        const now = new Date();
+        const inputValue= new Date(`${inputEl.value}T${now.toISOString().split("T")[1]}`);
+        props.handleDateChange({ name: props.name, value: inputValue.toISOString() });
     };
 
     const inputProps: Record<string, any> = {
