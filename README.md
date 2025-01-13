@@ -53,6 +53,7 @@ ___
       
 
 ### Requirements 
+ - WHen clicking on extend overtime, it is taking to the next round
  - PlayerList is not showing properly (Only works when I reload something) 
    - Captain can not re-rank a player
  - Overtime:

@@ -55,6 +55,7 @@ const matchResponse = `
     timeout
     description
     location
+    extendedOvertime
     rounds {
       _id
       num

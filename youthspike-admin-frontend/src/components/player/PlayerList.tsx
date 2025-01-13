@@ -63,6 +63,7 @@ function PlayerList({
 }: IPlayerListProps) {
   
   const listRef = useRef<HTMLUListElement>(null);
+  const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
   const user = useUser();
   const { setActErr } = useError();
@@ -129,12 +130,12 @@ function PlayerList({
     }
   };
 
-
-  console.log({outside: true,playerList});
-
   useEffect(() => {    
-    if (playerList && playerList.length > 0) setPlayers(playerList);
-  }, []);
+    if (!isMounted.current && playerList && playerList.length > 0) {
+      setPlayers(playerList);
+      isMounted.current = true;
+    }
+  }, [playerList]);
 
 
   /** Memoize Sortable Initialization **/

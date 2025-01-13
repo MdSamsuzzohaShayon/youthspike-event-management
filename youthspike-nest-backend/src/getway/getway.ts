@@ -853,7 +853,7 @@ export class MyGatWay implements OnModuleInit {
         throw new Error('Score is not tied for this match, so you do not need to add overtime.');
       }
       // Create a new round with one single net
-      const newRound = await this.roundService.create({
+      const roundObj = {
         num: roundList.length + 1,
         match: prevRoom.match,
         nets: [], // Need to create 1 net
@@ -865,8 +865,9 @@ export class MyGatWay implements OnModuleInit {
         teamBProcess: EActionProcess.CHECKIN,
         completed: false,
         firstPlacing: ETeam.teamA,
-      });
-      const newNet = await this.netService.create({
+      };
+      const newRound = await this.roundService.create(roundObj);
+      const netObj = {
         num: 1,
         match: prevRoom.match,
         round: newRound._id,
@@ -875,7 +876,8 @@ export class MyGatWay implements OnModuleInit {
         teamAScore: null,
         teamBScore: null,
         pairRange: 0,
-      });
+      };
+      const newNet = await this.netService.create(netObj);
       // Update match field (extended overtime)
       await Promise.all([
         this.roundService.updateOne({ _id: newRound._id }, { $set: { nets: [newNet._id] } }),
@@ -889,13 +891,12 @@ export class MyGatWay implements OnModuleInit {
         client,
         prevRoom.match,
         {
-          roundList: [...roundList, { ...newRound, nets: [newNet._id] }],
-          nets: [...netList, { ...newNet }],
+          roundList: [...roundList, { ...{ ...roundObj, _id: newRound._id }, nets: [newNet._id] }],
+          nets: [...netList, { ...{ ...netObj, _id: newNet._id } }],
           extendedOvertime: true,
         },
         false,
       );
-
     } catch (error) {
       console.log(error);
       client.emit('error-from-server', error?.message || 'Internal error occured');

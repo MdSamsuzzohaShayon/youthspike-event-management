@@ -163,9 +163,9 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           ))}
         <div className="rounds flex flex-col justify-center items-center w-full">
           <ul className="round-numbers w-full flex justify-center items-center gap-x-2">
-            {roundList.map((round) => (
+            {roundList.map((round, i) => (
               <li key={round._id} className="w-12 flex justify-center items-center text-yellow-logo text-sm font-semibold">
-                RD{round.num}
+                {`RD${match.extendedOvertime && i === roundList.length - 1 ? 'X' : round.num}`}
               </li>
             ))}
           </ul>
