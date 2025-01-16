@@ -31,8 +31,11 @@ export interface IPlayer extends IDocument {
   captainofteams: ITeam[];
 }
 
-export interface IPlayerRecord {
+export interface IPlayerRecord extends IPlayer{
+  numOfGame: number;
   running: number;
-  wins: number;
-  losses: number;
+  wins: number; // Number of games wins
+  losses: number; // Number of games loses
+  averagePointsDiff: number; // Points of wins os loses by how many points in each game on average
+  rank?: number | null;
 }

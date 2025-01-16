@@ -2,7 +2,7 @@
 
 import { useAppSelector } from '@/redux/hooks';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toastVariants } from '@/utils/animation';
 
@@ -21,18 +21,25 @@ const TEN_SECONDS = 10 * 1000;
 function Message() {
   const { actErr } = useAppSelector((state) => state.elements);
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const isMounted = useRef<Boolean>(false); // Ref to track if the component is mounted
 
   useEffect(() => {
+    isMounted.current = true;
+
     let timer = null;
 
     if (actErr?.message) {
       setIsVisible(true);
+
       timer = setTimeout(() => {
-        setIsVisible(false);
-      }, TEN_SECONDS); // Auto-hide after 5 seconds
+        if (isMounted.current) {
+          setIsVisible(false);
+        }
+      }, TEN_SECONDS); // Auto-hide after 10 seconds
     }
 
     return () => {
+      isMounted.current = false;
       if (timer) clearTimeout(timer);
     };
   }, [actErr]);

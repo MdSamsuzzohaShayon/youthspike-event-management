@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
+import { tableVariant } from '@/utils/animation';
 import TeamRow from './TeamRow';
 
 interface ITeamCaptain extends ITeam {
@@ -32,7 +33,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
     const map = new Map<string, IMatch[]>();
 
     if (matchList) {
-      for (const match of matchList) { 
+      for (const match of matchList) {
         if (match.teamA?._id) {
           if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
           map.get(match.teamA._id)?.push(match);
@@ -139,12 +140,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   return (
     <div className="teamList w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">
       <div className="overflow-x-auto">
-        <motion.table
-          className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]" variants={tableVariant} initial="hidden" animate="visible">
           <thead className="bg-gray-700 text-white">
             <tr>
               <th className="py-3 px-4">Rank</th>

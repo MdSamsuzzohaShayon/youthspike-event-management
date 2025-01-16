@@ -16,7 +16,6 @@ interface ITeamDetailProps {
   team: ITeam;
 }
 
-type MapType = [string, number][];
 
 // eslint-disable-next-line no-unused-vars, no-shadow
 enum ETab {
@@ -50,17 +49,17 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
     switch (selectedItem) {
       case ETab.ROSTER:
         // Players should be shown with their records. Win / losses for games
-        return <PlayerList playerList={team.players} matchList={team.matches} />;
+        return <PlayerList playerList={team.players} matchList={team.matches} showRank />;
       case ETab.MATCHES:
         // @ts-ignore
         return <MatchList matchList={team.matches} division={team.division} />;
       default:
-        return <PlayerList playerList={team.players} />;
+        return <PlayerList playerList={team.players} showRank />;
     }
   }, [selectedItem, team.division, team.matches, team.players]);
 
   return (
-    <div className="min-h-screen py-8 px-4 md:px-12">
+    <div className="min-h-screen">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold uppercase">Teams / Roster</h1>
         <h2 className="text-lg text-gray-300 uppercase">{event?.name}</h2>

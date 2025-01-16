@@ -742,15 +742,16 @@ export class MyGatWay implements OnModuleInit {
       await Promise.all(updatePromises);
 
       // Calculate and update score for all nets of a round
-      const findNets = await this.netService.find({ round: updatePointsInput.round });
+      const findNets = await this.netService.find({ match: prevRoom.match });
+      const findRoundNets = findNets.filter((net) => net.round.toString() === updatePointsInput.round);
       // Update score in round
       let teamAScore = null;
       let teamBScore = null;
       let i = 0;
-      while (i < findNets.length) {
-        if (findNets[i].teamAScore && findNets[i].teamBScore) {
-          teamAScore ? (teamAScore += findNets[i].teamAScore) : (teamAScore = findNets[i].teamAScore);
-          teamBScore ? (teamBScore += findNets[i].teamBScore) : (teamBScore = findNets[i].teamBScore);
+      while (i < findRoundNets.length) {
+        if (findRoundNets[i].teamAScore && findRoundNets[i].teamBScore) {
+          teamAScore ? (teamAScore += findRoundNets[i].teamAScore) : (teamAScore = findRoundNets[i].teamAScore);
+          teamBScore ? (teamBScore += findRoundNets[i].teamBScore) : (teamBScore = findRoundNets[i].teamBScore);
         } else {
           teamAScore = null;
           teamBScore = null;
@@ -787,6 +788,28 @@ export class MyGatWay implements OnModuleInit {
       } else if (completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && match.extendedOvertime) {
         await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
         pointsResponse.matchCompleted = true;
+      } else if (completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && !match.extendedOvertime) {
+        let aScore = 0;
+        let bScore = 0;
+        let filled = true;
+        for (const n of findNets) {
+          if (!n.teamAScore || !n.teamBScore) {
+            filled = false;
+            break;
+          } else {
+            if (n.teamAScore > n.teamBScore) {
+              aScore += n.points;
+            } else if (n.teamAScore < n.teamBScore) {
+              bScore += n.points;
+            }
+          }
+        }
+        if (filled) {
+          if (aScore !== bScore) {
+            pointsResponse.matchCompleted = true;
+            await this.matchService.updateOne({ _id: prevRoom.match }, { completed });
+          }
+        }
       }
 
       client.to(prevRoom._id).emit('update-points-response', pointsResponse);

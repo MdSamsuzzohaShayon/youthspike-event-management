@@ -20,6 +20,7 @@ import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
 import PlayerList from '../player/PlayerList';
 import SelectInput from '../elements/SelectInput';
+import PlayerStandings from '../player/PlayerStandings';
 
 // Interfaces
 interface ITeamCaptain extends ITeam {
@@ -62,7 +63,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     setGroupList(event.groups || []);
 
     const teamsPlayerRanking = event.teams?.reduce((rankings, team) => {
-      if (!team.playerRanking.rankLock) {
+      if (!team?.playerRanking?.rankLock) {
         rankings.push({
           ...team.playerRanking,
           // @ts-ignore
@@ -116,7 +117,8 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
   const renderContent = useCallback(() => {
     const renderMap = {
-      [EEventItem.PLAYER]: <PlayerList playerList={playerList} matchList={matchList} showRank={false} />,
+      // <PlayerList playerList={playerList} matchList={matchList} showRank={false} />
+      [EEventItem.PLAYER]: <PlayerStandings selectedGroup={selectedGroup} playerList={playerList} matchList={matchList} />,
       [EEventItem.TEAM]: <TeamList teamList={teamList} selectedGroup={selectedGroup} matchList={matchList} />,
       [EEventItem.MATCH]: <MatchList matchList={matchList} />,
     };

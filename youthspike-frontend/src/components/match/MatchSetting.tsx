@@ -1,13 +1,13 @@
+import { AdvancedImage } from '@cloudinary/react';
+import React, { useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import cld from '@/config/cloudinary.config';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { IMatchRelatives, ITeam } from '@/types';
 import { readDate } from '@/utils/datetime';
-import { AdvancedImage } from '@cloudinary/react';
-import React, { useRef } from 'react';
 import { EMenuTitle, IColMenu } from '@/types/elements';
 import { setSelectedColItem } from '@/redux/slices/elementSlice';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useLdoId } from '@/lib/LdoProvider';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import TeamInMatch from '../team/TeamInMatch';
@@ -21,7 +21,7 @@ interface IMatchSettingProps {
 
 function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
   const dispatch = useAppDispatch();
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
 
   const { ldo } = useAppSelector((state) => state.events);
   const { colMenus, selectedColItem } = useAppSelector((state) => state.elements);
@@ -107,6 +107,7 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
               <p>Net Variance: {match.netVariance}</p>
               <p>Number of Nets: {match.numberOfNets}</p>
               <p>Number of Rounds: {match.numberOfRounds}</p>
+              <p className="capitalize">Tie breaking strategy: {match.tieBreaking?.replace(/_/, ' ')}</p>
             </div>
           </div>
 

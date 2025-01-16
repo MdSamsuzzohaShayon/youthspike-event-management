@@ -60,7 +60,9 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     room,
     netVariance,
     extendedOvertime,
+    // @ts-ignore
     teamARanking,
+    // @ts-ignore
     teamBRanking,
   } = matchData;
 
@@ -129,6 +131,10 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   }
 
   dispatch(setNets(formattedNets));
+  console.log('allNets: ', formattedNets);
+
+  console.log(`RoundList: `, formattedRounds);
+
   dispatch(setRoundList(formattedRounds));
 
   // Setting current round and nets
@@ -142,6 +148,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
     dispatch(setCurrentRoundNets(filteredNets));
   }
+  console.log('Current round: ', selectedRound);
 
   // Setting room
   if (token && userInfo) {
@@ -161,25 +168,25 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   }
 
   // Setting Match
-  dispatch(
-    setMatchInfo({
-      _id,
-      date,
-      completed,
-      description,
-      location,
-      numberOfNets,
-      numberOfRounds,
-      fwango,
-      teamA: teamAF._id,
-      teamB: teamBF._id,
-      event: event?._id,
-      rounds: rounds.map((r) => r._id),
-      netVariance,
-      tieBreaking,
-      extendedOvertime,
-    }),
-  );
+  const matchObj = {
+    _id,
+    date,
+    completed,
+    description,
+    location,
+    numberOfNets,
+    numberOfRounds,
+    fwango,
+    teamA: teamAF._id,
+    teamB: teamBF._id,
+    event: event?._id,
+    rounds: rounds.map((r) => r._id),
+    netVariance,
+    tieBreaking,
+    extendedOvertime,
+  };
+  dispatch(setMatchInfo(matchObj));
+  console.log('Match info: ', matchObj);
 
   // Setting ranking
   dispatch(setTeamAPlayerRanking(teamARanking));

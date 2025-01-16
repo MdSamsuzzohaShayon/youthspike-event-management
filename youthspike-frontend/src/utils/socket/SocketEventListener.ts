@@ -255,9 +255,9 @@ class SocketEventListener {
           itemWithMaxNum = data.roundList[i];
         }
       }
-      dispatch(setCurrentRound(itemWithMaxNum));
+      // dispatch(setCurrentRound(itemWithMaxNum));
     }
-    dispatch(setMatchInfo({ ...match, extendedOvertime: data.extendedOvertime }));
+    dispatch(setMatchInfo({ ...match, extendedOvertime: data.extendedOvertime, rounds: data.roundList.map(r => r._id) }));
     dispatch(setNets(data.nets));
   }
 

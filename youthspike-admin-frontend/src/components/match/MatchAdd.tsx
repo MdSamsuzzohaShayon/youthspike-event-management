@@ -254,7 +254,7 @@ function MatchAdd({ eventId,
     return (
         <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
             {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
-                required={!update} defaultValue={addMatch.date} vertical />}
+                required={!update} value={addMatch.date} vertical />}
 
             {!update && (<>
                 <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
