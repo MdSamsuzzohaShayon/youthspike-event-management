@@ -51,8 +51,8 @@ class GetEventsResponse extends AppResponse<Event[]> {
 
 @ObjectType()
 class GetEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: false })
-  data?: Event;
+  @Field((type) => Event, { nullable: true })
+  data?: Event | null;
 }
 
 @Resolver((of) => Event)
@@ -477,11 +477,13 @@ export class EventResolver {
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
     try {
-      const findEvent = await this.eventService.findById(eventId);
+      const eventExist = await this.eventService.findById(eventId);
+      if(!eventExist) return AppResponse.notFound('Event');
+
       return {
-        code: findEvent ? HttpStatus.OK : HttpStatus.NOT_FOUND,
-        success: findEvent ? true : false,
-        data: findEvent ?? null,
+        code: HttpStatus.OK,
+        success: true,
+        data: eventExist,
       };
     } catch (err) {
       return AppResponse.handleError(err);

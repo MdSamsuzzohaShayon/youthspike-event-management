@@ -53,6 +53,9 @@ ___
       
 
 ### Requirements 
+ - Standings for players -> individual games / individual team / game points diff
+ - SHow rank in frontend
+ - Fix issues with assign strategies
  - WHen clicking on extend overtime, it is taking to the next round
  - PlayerList is not showing properly (Only works when I reload something) 
    - Captain can not re-rank a player
@@ -266,6 +269,4 @@ ___
 
 
 ### Ask
- - Can you please test everything and find all unsolved issues, create a long video with all the issues you still has
- - I have commented in the to do list, Reply to my comments that will make things clear.
- - I need some extra money for my wedding, if you can give me in advanced it would be really helpful for me.
+ - I have updated player standings in the public view based on the games played by an individual player.

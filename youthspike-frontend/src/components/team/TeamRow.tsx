@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
+import { rowVariant } from '@/utils/animation';
 import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
 
@@ -18,13 +19,14 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
     <motion.tr
       key={team._id}
       className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      custom={index} // Pass index for dynamic delay
+      variants={rowVariant}
+      initial="hidden"
+      animate="visible"
     >
       <td className="py-3 px-4 font-medium">{index + 1}</td>
       <td className="py-3 px-4 ">
-        <Link href={`/teams/${team._id}`} className='flex justify-start items-center gap-2'>
+        <Link href={`/teams/${team._id}`} className="flex justify-start items-center gap-2">
           <span>{team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="h-10 w-10" /> : <TextImg fullText={team?.name} className="h-10 w-10" />}</span>
           {team.name}
         </Link>

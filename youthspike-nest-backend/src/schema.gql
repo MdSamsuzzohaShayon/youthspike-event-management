@@ -295,7 +295,7 @@ type GetEventResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: Event!
+  data: Event
 }
 
 type CreateOrUpdateTeamResponse {

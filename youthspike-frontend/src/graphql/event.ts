@@ -28,6 +28,10 @@ nets {
   teamBScore
   num
   points
+  teamAPlayerA
+  teamAPlayerB
+  teamBPlayerA
+  teamBPlayerB
   round{
     _id
   }

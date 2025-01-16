@@ -3,7 +3,7 @@
 import cld from '@/config/cloudinary.config';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
-import { IPlayer, IPlayerRecord } from '@/types/player';
+import { IPlayerRecord } from '@/types/player';
 import { imgW } from '@/utils/constant';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
@@ -13,12 +13,11 @@ import { useParams } from 'next/navigation';
 import { useRef } from 'react';
 
 interface PlayerCardProps {
-  player: IPlayer;
-  rank: number | null;
-  playerRecord?: IPlayerRecord | null;
+  player: IPlayerRecord;
+  showRank?: boolean;
 }
 
-function PlayerCard({ player, rank, playerRecord }: PlayerCardProps) {
+function PlayerCard({ player, showRank }: PlayerCardProps) {
   const { ldoIdUrl } = useLdoId();
   const params = useParams();
   const user = useUser();
@@ -44,27 +43,27 @@ function PlayerCard({ player, rank, playerRecord }: PlayerCardProps) {
 
       {/* Player Rank */}
       <div className="flex flex-col items-center w-full md:w-2/12 text-white">
-        {rank && (
+        {showRank && player.rank && (
           <>
-            <div className="rank-circle bg-yellow-400 text-black w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg font-bold">{rank}</div>
+            <div className="rank-circle bg-yellow-400 text-black w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-lg font-bold">{player.rank}</div>
             <p className="text-sm mt-2">Rank</p>
           </>
         )}
       </div>
 
       {/* Player Record */}
-      {playerRecord && (
+      {player && (
         <div className="record-box w-full md:w-3/12 text-center md:text-left text-white">
           <h3 className="text-sm font-bold mb-2">Matches</h3>
           <div className="text-xs md:text-sm space-y-1">
             <p>
-              <span className="font-medium">Running:</span> {playerRecord.running}
+              <span className="font-medium">Running:</span> {player.running}
             </p>
             <p>
-              <span className="font-medium">Wins:</span> {playerRecord.wins}
+              <span className="font-medium">Wins:</span> {player.wins}
             </p>
             <p>
-              <span className="font-medium">Losses:</span> {playerRecord.losses}
+              <span className="font-medium">Losses:</span> {player.losses}
             </p>
           </div>
         </div>
