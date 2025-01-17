@@ -2,6 +2,9 @@
 
 'use client';
 
+import { useLazyQuery } from '@apollo/client';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import Loader from '@/components/elements/Loader';
 import EventDetail from '@/components/event/EventDetail';
 import { GET_AN_EVENT } from '@/graphql/event';
@@ -13,9 +16,6 @@ import { UserRole } from '@/types/user';
 import { LDO_ID } from '@/utils/constant';
 import { isValidObjectId } from '@/utils/helper';
 import { setEvent } from '@/utils/localStorage';
-import { useLazyQuery } from '@apollo/client';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
 
 function EventSingle({ params }: { params: { eventId: string } }) {
   const user = useUser();

@@ -8,22 +8,32 @@ import PlayerRow from './PlayerRow';
 interface IPlayerStandingsProps {
   playerList: IPlayer[];
   matchList: IMatchExpRel[];
-  selectedGroup: string | null;
 }
 
-function PlayerStandings({ playerList, matchList, selectedGroup }: IPlayerStandingsProps) {
+function PlayerStandings({ playerList, matchList }: IPlayerStandingsProps) {
   // const [playerRecords, setPlayerRecords] = useState<Map<string, IPlayerRecord>>(new Map());
   const [players, setPlayers] = useState<IPlayerRecord[]>([]);
 
   useEffect(() => {
-    if (!playerList?.length) return;
+    if (!playerList) return;
     let newMatchList: IMatchExpRel[] = [];
-    if(matchList.length > 0) newMatchList = matchList;
+    if (matchList.length > 0) newMatchList = matchList;
     const newPlayerList = calculatePlayerRecords(playerList, newMatchList);
 
     // Sort the player records based on the criteria
     const sortedRecords = newPlayerList.sort((a, b) => {
       // First, compare by number of wins (descending)
+      const aGamesPlayed = a.numOfGame - a.running;
+      const bGamesPlayed = b.numOfGame - b.running;
+
+      const aWinPercentage = aGamesPlayed > 0 ? (a.wins / aGamesPlayed) * 100 : 0;
+      const bWinPercentage = bGamesPlayed > 0 ? (b.wins / bGamesPlayed) * 100 : 0;
+
+      // First, compare by win percentage (descending)
+      if (aWinPercentage !== bWinPercentage) {
+        return bWinPercentage - aWinPercentage;
+      }
+
       if (a.wins !== b.wins) return b.wins - a.wins;
 
       // If wins are tied, compare by number of losses (ascending)
@@ -45,15 +55,16 @@ function PlayerStandings({ playerList, matchList, selectedGroup }: IPlayerStandi
             <tr>
               <th className="py-3 px-4">Rank</th>
               <th className="py-3 px-4">Player</th>
-              {selectedGroup && <th className="py-3 px-4">Record</th>}
+              <th className="py-3 px-4">Wins % </th>
+              <th className="py-3 px-4">Match Played</th>
               <th className="py-3 px-4">Running</th>
               <th className="py-3 px-4">GM PT DIFF/AVG</th>
-              <th className="py-3 px-4">Overall</th>
+              <th className="py-3 px-4">Record</th>
             </tr>
           </thead>
           <motion.tbody>
             {players.map((player, index) => (
-              <PlayerRow key={player._id} index={index} player={player} selectedGroup={selectedGroup} />
+              <PlayerRow key={player._id} index={index} player={player} />
             ))}
           </motion.tbody>
         </motion.table>

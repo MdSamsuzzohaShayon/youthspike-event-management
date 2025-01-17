@@ -4,7 +4,7 @@ import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IRoundRe
 import { ETeam } from '@/types/team';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
-import { EPlayerStatus } from '@/types/player';
+import { EPlayerStatus, IPlayerRank } from '@/types/player';
 import findPrevPartner from '../match/findPrevPartner';
 import { opPlayerRankingNums, organizeRankings } from '../playerRankings';
 
@@ -68,8 +68,31 @@ function randomAssign(props: IRandomAssignProps) {
   const myRankingsMap = new Map<string, number>(myRankings.map(({ player, rank }) => [player._id, rank]));
   const opRankingsMap = new Map<string, number>(opRankings.map(({ player, rank }) => [player._id, rank]));
 
+  // Sorting my players and oponent players according to rank
+  let mySortedPlayers: IPlayerRank[] = [];
+  let opSortedPlayers: IPlayerRank[] = [];
+  myPlayers.forEach((mp) => {
+    const rank = myRankingsMap.get(mp._id) || 0;
+    mySortedPlayers.push({ ...mp, rank });
+  });
+  mySortedPlayers = mySortedPlayers.sort((a, b) => a.rank - b.rank);
+  opPlayers.forEach((mp) => {
+    const rank = opRankingsMap.get(mp._id) || 0;
+    opSortedPlayers.push({ ...mp, rank });
+  });
+  opSortedPlayers = opSortedPlayers.sort((a, b) => a.rank - b.rank);
+  if (currMatch.extendedOvertime) {
+    if (mySortedPlayers.length > 3) {
+      mySortedPlayers = mySortedPlayers.slice(0, 3 );
+    }
+
+    if (opSortedPlayers.length > 3) {
+      opSortedPlayers = opSortedPlayers.slice(0, 3 );
+    }
+  }
+
   // Shuffle players to ensure randomness
-  const randomizedPlayers = shufflePlayers(myPlayers);
+  const randomizedPlayers = shufflePlayers(mySortedPlayers);
 
   // Create deep copy of nets
   const allNetsClone = allNets.map((net) => ({ ...net }));
@@ -106,7 +129,6 @@ function randomAssign(props: IRandomAssignProps) {
     const rp1Rank = myRankingsMap.get(rp1._id) ?? 0;
     let rp2Rank = myRankingsMap.get(rp2._id) ?? 0;
     const pairScore = rp1Rank + rp2Rank;
-
 
     // Minimum and maximum score must not exceeds
     if (currMatch.netVariance && opPairScore) {

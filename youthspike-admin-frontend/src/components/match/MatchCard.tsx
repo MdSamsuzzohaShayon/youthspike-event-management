@@ -75,8 +75,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
       <h1 className="h-12 w-12 flex justify-center items-center rounded-full border border-gray-100">{pointsOfRound}</h1>
     </React.Fragment>);
   }
-
-  console.log(match);
   
 
 

@@ -1,3 +1,5 @@
+// Follow this docs -> https://medium.com/@pp.palinda/parallel-processing-in-nestjs-6ecdbc533e1f
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';

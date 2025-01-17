@@ -1,9 +1,12 @@
+import { useAppSelector } from '@/redux/hooks';
 import { INetRelatives, IRoundRelatives, IUserContext } from '@/types';
+import { ETieBreakingStrategy } from '@/types/match';
+import { ETieBreaker } from '@/types/net';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
 import { fsToggle } from '@/utils/helper';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ITeamScoreInputProps {
   net: INetRelatives | null;
@@ -13,20 +16,39 @@ interface ITeamScoreInputProps {
   user: IUserContext | null;
   currRound: IRoundRelatives | null;
   wTeam: ETeam | null;
+  currRoundNets: INetRelatives[];
   // eslint-disable-next-line no-unused-vars
   handlePointChange: (e: React.SyntheticEvent, netId: string | null, teamAorB: string) => void;
 }
-function TeamScoreInput({ net, teamE, wTeam , screenWidth, teamName, user, currRound, handlePointChange }: ITeamScoreInputProps) {
+function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRound, currRoundNets, handlePointChange }: ITeamScoreInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [defaultVal, setDefaultVal] = useState<string>('');
+  const { match: currMatch } = useAppSelector((state) => state.matches);
 
-  const inputReadonly = (): boolean => {
+  const inputReadonly = useCallback((): boolean => {
     const isUserAuthorized = user && (user.info?.role === UserRole.admin || user.info?.role === UserRole.director || user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain);
     // ||
     // || (user.info?.captainplayer && user.info.captainplayer === teamAorB?.captain?._id)
 
-    return !isUserAuthorized || currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP;
-  };
+    let banningNet = false;
+    if (currMatch && !currMatch.extendedOvertime && currMatch.tieBreaking === ETieBreakingStrategy.TWO_POINTS_NET) {
+      let lockedNet = 0;
+      currRoundNets.forEach((crn) => {
+        if (crn.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) {
+          lockedNet += 1;
+        } else if (crn.netType === ETieBreaker.FINAL_ROUND_NET) {
+          banningNet = true;
+        }
+      });
+      if (lockedNet >= 2) {
+        banningNet = false;
+      }
+    }
+
+    
+
+    return !isUserAuthorized || currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP || banningNet;
+  }, [currMatch, currRound?.teamAProcess, currRound?.teamBProcess, currRoundNets, user]);
 
   useEffect(() => {
     const TBS = net?.teamBScore?.toString() || '';

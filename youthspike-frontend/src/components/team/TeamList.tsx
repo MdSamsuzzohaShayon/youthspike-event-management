@@ -22,6 +22,14 @@ interface ITeamListProps {
   matchList?: IMatch[];
   selectedGroup?: string | null;
 }
+/*
+FC Barcelona
+8 - 6 (2 matches)
+
+PSG
+6 - 8 (2 matches)
+
+*/
 
 function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
@@ -71,13 +79,14 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
 
       let totalMatchDiff = 0;
       let totalGameDiff = 0;
+      let totalNets = 0;
 
       for (const match of teamMatches) {
         const isTeamA = match.teamA._id === team._id;
         // @ts-ignore
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
 
-        totalMatchDiff += teamScore;
+        totalMatchDiff += teamPlusMinus;
         totalGameDiff += teamPlusMinus;
 
         if (teamScore > oponentScore) {
@@ -87,11 +96,12 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
           teamRecord.overallLoses += 1;
           if (match?.group?._id) teamRecord.groupLoses += 1;
         }
+        totalNets += match.nets.length;
       }
-
+      
       teamRecord.totalMatches = teamMatches.length;
       teamRecord.matchAvgDiff = teamMatches.length ? totalMatchDiff / teamMatches.length : 0;
-      teamRecord.gameAvgDiff = teamMatches.length ? totalGameDiff / teamMatches.length : 0;
+      teamRecord.gameAvgDiff = teamMatches.length ? totalGameDiff / totalNets : 0;
 
       newTeamScores.set(team._id, teamRecord);
     }

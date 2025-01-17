@@ -298,7 +298,7 @@ function MatchAdd({ eventId,
             <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={addMatch.fwango} vertical extraCls='md:w-5/12' />
             <TextInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} vertical extraCls='md:w-5/12' />
-            <TextInput handleInputChange={handleInputChange} name='location' required={!update} defaultValue={addMatch.location} vertical extraCls='md:w-5/12' />
+            <TextInput handleInputChange={handleInputChange} name='location' defaultValue={addMatch.location} vertical extraCls='md:w-5/12' />
             <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
         </form>
     )

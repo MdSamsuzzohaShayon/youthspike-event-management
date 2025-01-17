@@ -3,7 +3,7 @@ import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, I
 import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps } from './elements';
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
-import { IPlayer, IPlayerRecord } from './player';
+import { IPlayer, IPlayerRecord, IPlayerRank } from './player';
 import { ITeam, ITeamScore } from './team';
 import { IAddMatch, IMatchExpRel, IDefaultMatchProps, IMatchRelatives } from './match';
 import { INetBase, INetRelatives, INetUpdate, INetPlayers, INetScoreUpdate, IUpdateScoreResponse } from './net';
@@ -64,6 +64,7 @@ export type {
   // Player
   IPlayer,
   IPlayerRecord,
+  IPlayerRank,
 
   // Team
   ITeam,

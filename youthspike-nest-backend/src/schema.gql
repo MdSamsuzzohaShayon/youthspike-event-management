@@ -622,7 +622,7 @@ input CreateMatchInput {
   rosterLock: String
   timeout: Int
   description: String!
-  location: String!
+  location: String
   fwango: String
 }
 

@@ -71,7 +71,7 @@ function calcMatchScore(
     // Calculate team and opponent scores in one loop
     const teamResult = calcRoundScore(netsOfRound, round, teamE);
     const oponentResult = calcRoundScore(netsOfRound, round, oponentE);
-
+    
     teamScore += teamResult.score;
     teamPlusMinus += teamResult.plusMinusScore;
     oponentScore += oponentResult.score;

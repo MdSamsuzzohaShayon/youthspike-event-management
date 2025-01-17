@@ -1,9 +1,15 @@
-import { EActionProcess } from "./room";
+// eslint-disable-next-line import/no-cycle
+import { EActionProcess } from './room';
 
+// eslint-disable-next-line no-shadow
 export enum ETieBreaker {
+  // eslint-disable-next-line no-unused-vars
   PREV_NET = 'PREV_NET',
+  // eslint-disable-next-line no-unused-vars
   FINAL_ROUND_NET = 'FINAL_ROUND_NET',
+  // eslint-disable-next-line no-unused-vars
   FINAL_ROUND_NET_LOCKED = 'FINAL_ROUND_NET_LOCKED',
+  // eslint-disable-next-line no-unused-vars
   TIE_BREAKER_NET = 'TIE_BREAKER_NET',
 }
 
@@ -62,8 +68,11 @@ interface INetPlayers {
   teamBPlayerB: string;
 }
 
+// eslint-disable-next-line no-shadow
 export enum ETeamPlayer {
+  // eslint-disable-next-line no-unused-vars
   PLAYER_A = 'PLAYER_A',
+  // eslint-disable-next-line no-unused-vars
   PLAYER_B = 'PLAYER_B',
 }
 

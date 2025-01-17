@@ -31,6 +31,10 @@ export interface IPlayer extends IDocument {
   captainofteams: ITeam[];
 }
 
+export interface IPlayerRank extends IPlayer {
+  rank: number;
+}
+
 export interface IPlayerRecord extends IPlayer{
   numOfGame: number;
   running: number;
