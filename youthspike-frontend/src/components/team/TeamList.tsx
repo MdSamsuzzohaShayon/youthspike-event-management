@@ -86,7 +86,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
         // @ts-ignore
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
 
-        totalMatchDiff += teamPlusMinus;
+        totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
 
         if (teamScore > oponentScore) {
@@ -98,7 +98,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
         }
         totalNets += match.nets.length;
       }
-      
+
       teamRecord.totalMatches = teamMatches.length;
       teamRecord.matchAvgDiff = teamMatches.length ? totalMatchDiff / teamMatches.length : 0;
       teamRecord.gameAvgDiff = teamMatches.length ? totalGameDiff / totalNets : 0;

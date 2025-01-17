@@ -11,7 +11,6 @@ import { GET_AN_EVENT } from '@/graphql/event';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import { setActErr } from '@/redux/slices/elementSlice';
-import { IError } from '@/types';
 import { UserRole } from '@/types/user';
 import { LDO_ID } from '@/utils/constant';
 import { isValidObjectId } from '@/utils/helper';
