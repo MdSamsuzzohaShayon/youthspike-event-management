@@ -2,14 +2,14 @@
 /* eslint-disable no-unused-vars */
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useUser } from '@/lib/UserProvider';
-import { useAppDispatch } from '@/redux/hooks';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { AdvancedImage } from '@cloudinary/react';
+import { useUser } from '@/lib/UserProvider';
+import { useAppDispatch } from '@/redux/hooks';
 import cld from '@/config/cloudinary.config';
 import { IEvent, IGroup, IMatchExpRel, IOption, IPlayer, IPlayerRankingExpRel, ITeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
 import { EEventItem } from '@/types/event';
 import { setRankingMap, setTeamsPlayerRanking } from '@/redux/slices/playerRankingSlice';
 import { divisionsToOptionList } from '@/utils/helper';
@@ -63,14 +63,14 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     setGroupList(event.groups || []);
 
     const teamsPlayerRanking = event.teams?.reduce((rankings, team) => {
-      if (!team?.playerRanking?.rankLock) {
+      if (!team?.playerRanking?.rankLock && rankings) {
         rankings.push({
           ...team.playerRanking,
           // @ts-ignore
           team: { _id: team._id, name: team.name, division: team.division, event: event._id },
         });
         // @ts-ignore
-        team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
+        if (team?.playerRanking?.rankings) team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
       }
       return rankings;
     }, [] as IPlayerRankingExpRel[]);
@@ -109,7 +109,15 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     if (groupId) {
       const filteredTeamList = event.teams?.filter((t) => t?.group?._id === groupId);
       setTeamList(filteredTeamList || []);
-      // console.log({ matchList }, { playerList }); // Match team id ans set match list and player list
+      const filteredMatchesList = event.matches?.filter((t) => t?.group?._id === groupId);
+      setMatchList(filteredMatchesList || []);
+
+      const groupTeamsIds = new Set<string>();
+      filteredTeamList?.forEach((t) => {
+        groupTeamsIds.add(t._id);
+      });
+      const newPlayerList = event.players?.filter((p) => p.teams && p.teams.length > 0 && groupTeamsIds.has(p.teams[0]._id)) || [];
+      setPlayerList(newPlayerList);
     } else {
       setTeamList(event?.teams || []);
     }
@@ -118,7 +126,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const renderContent = useCallback(() => {
     const renderMap = {
       // <PlayerList playerList={playerList} matchList={matchList} showRank={false} />
-      [EEventItem.PLAYER]: <PlayerStandings selectedGroup={selectedGroup} playerList={playerList} matchList={matchList} />,
+      [EEventItem.PLAYER]: <PlayerStandings playerList={playerList} matchList={matchList} />,
       [EEventItem.TEAM]: <TeamList teamList={teamList} selectedGroup={selectedGroup} matchList={matchList} />,
       [EEventItem.MATCH]: <MatchList matchList={matchList} />,
     };
@@ -152,7 +160,6 @@ function EventDetail({ event }: { event: IEventRelatives }) {
           <div className="flex gap-4 flex-wrap">{renderSponsors()}</div>
         </div>
       )}
-
 
       <div className="group-menu w-full mb-4 p-4 bg-gray-800 rounded-md">
         <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6 mb-4" />

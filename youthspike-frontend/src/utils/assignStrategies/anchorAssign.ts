@@ -1,8 +1,8 @@
 import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { setclosePSCAvailable, setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
-import { EPlayerStatus } from '@/types/player';
+import { setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
+import { EPlayerStatus, IPlayerRank } from '@/types/player';
 import React from 'react';
 import findPrevPartner from '../match/findPrevPartner';
 import { opPlayerRankingNums, organizeRankings, playerRankNum } from '../playerRankings';
@@ -28,8 +28,36 @@ function anchorAssign(props: IanchorAssignProps) {
   const allNetsClone = allNets.slice();
   const selectedPlayerIds = new Set<string>();
 
+  // Precompute player rankings for O(1) lookup
+  const { myRankings, opRankings } = organizeRankings({ myTeamE, tapr, tbpr });
+  const myRankingsMap = new Map<string, number>(myRankings.map(({ player, rank }) => [player._id, rank]));
+  const opRankingsMap = new Map<string, number>(opRankings.map(({ player, rank }) => [player._id, rank]));
+
+  // Sorting my players and oponent players according to rank
+  let mySortedPlayers: IPlayerRank[] = [];
+  let opSortedPlayers: IPlayerRank[] = [];
+  myPlayers.forEach((mp) => {
+    const rank = myRankingsMap.get(mp._id) || 0;
+    mySortedPlayers.push({ ...mp, rank });
+  });
+  mySortedPlayers = mySortedPlayers.sort((a, b) => a.rank - b.rank);
+  opPlayers.forEach((mp) => {
+    const rank = opRankingsMap.get(mp._id) || 0;
+    opSortedPlayers.push({ ...mp, rank });
+  });
+  opSortedPlayers = opSortedPlayers.sort((a, b) => a.rank - b.rank);
+  if (currMatch.extendedOvertime) {
+    if (mySortedPlayers.length > 3) {
+      mySortedPlayers = mySortedPlayers.slice(0, 3);
+    }
+
+    if (opSortedPlayers.length > 3) {
+      opSortedPlayers = opSortedPlayers.slice(0, 3);
+    }
+  }
+
   for (let i = 0; i < currRoundNets.length; i += 1) {
-    const availablePlayers = myPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
+    const availablePlayers = mySortedPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
 
     if (availablePlayers.length < 2) {
       console.error('Not enough available players');
@@ -40,13 +68,6 @@ function anchorAssign(props: IanchorAssignProps) {
     let rp2: null | undefined | IPlayer = availablePlayers[availablePlayers.length - 1];
 
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
-
-    const { myRankings, opRankings } = organizeRankings({ myTeamE, tapr, tbpr });
-    // const myRankingsMap = new Map<string, number>(myRankings.map(item => [item.player._id, item.rank]));
-    // const opRankingsMap = new Map<string, number>(opRankings.map(item => [item.player._id, item.rank]));
-
-    const myRankingsMap = new Map<string, number>(myRankings.map((item) => [item.player._id, item.rank]));
-    const opRankingsMap = new Map<string, number>(opRankings.map((item) => [item.player._id, item.rank]));
 
     let opPairScore = null;
     if (matchUp) {
@@ -111,8 +132,6 @@ function anchorAssign(props: IanchorAssignProps) {
           rp2 = null;
         }
       }
-
-
     }
 
     const netObj = { ...currRoundNets[i] };
@@ -125,8 +144,6 @@ function anchorAssign(props: IanchorAssignProps) {
     }
 
     newCurrRoundNets.push(netObj);
-
-
 
     const fni = allNetsClone.findIndex((n) => n._id === currRoundNets[i]._id);
     if (fni !== -1) {

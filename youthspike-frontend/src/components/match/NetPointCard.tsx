@@ -125,6 +125,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         handlePointChange={handlePointChange}
         teamE={opTeamE}
         wTeam={wTeam}
+        currRoundNets={currRoundNets}
       />
       <div className="net-card flex justify-around items-center w-full py-1">
         {screenWidth <= screen.xs && (
@@ -159,6 +160,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         handlePointChange={handlePointChange}
         teamE={myTeamE}
         wTeam={wTeam}
+        currRoundNets={currRoundNets}
       />
     </div>
   );

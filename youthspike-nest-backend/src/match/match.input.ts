@@ -50,9 +50,9 @@ export class CreateMatchInput {
   timeout?: number;
 
   @Field({ nullable: false })
-  description?: string;
+  description: string;
 
-  @Field({ nullable: false })
+  @Field({ nullable: true })
   location?: string;
 
   @Field({ nullable: true })

@@ -53,6 +53,7 @@ ___
       
 
 ### Requirements 
+ - Matches should be filtered by group in matches and players
  - Standings for players -> individual games / individual team / game points diff
  - SHow rank in frontend
  - Fix issues with assign strategies

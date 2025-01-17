@@ -9,10 +9,9 @@ import cld from '@/config/cloudinary.config';
 interface IPlayerRowProps {
   player: IPlayerRecord;
   index: number;
-  selectedGroup: string | null;
 }
 
-function PlayerRow({ player, index, selectedGroup }: IPlayerRowProps) {
+function PlayerRow({ player, index }: IPlayerRowProps) {
   return (
     <motion.tr
       key={player._id} // Assuming `player.id` exists
@@ -31,7 +30,8 @@ function PlayerRow({ player, index, selectedGroup }: IPlayerRowProps) {
         )}
         <span>{`${player.firstName} ${player.lastName}`}</span>
       </td>
-      {selectedGroup && <td className="py-3 px-4">5</td>}
+      <td className="py-3 px-4">{Number.isNaN((player.wins * 100) / (player.numOfGame - player.running)) ? '0' : ((player.wins * 100) / (player.numOfGame - player.running)).toFixed(2)}%</td>
+      <td className="py-3 px-4">{player.numOfGame - player.running}</td>
       <td className="py-3 px-4">{player.running}</td>
       <td className="py-3 px-4">{player.averagePointsDiff.toFixed(2)}</td>
       <td className="py-3 px-4">{`${player.wins}-${player.losses}`}</td>

@@ -116,7 +116,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
                   onClick={(e) => handleRoundChange(e, round._id)}
                   key={round._id}
                 >
-                  {match.extendedOvertime && i === roundList.length - 1 ? 'RDX' : `RD${round.num}`}
+                  {match.extendedOvertime && i === roundList.length - 1 ? 'OT' : `RD${round.num}`}
                 </button>
               ))}
             </div>

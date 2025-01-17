@@ -7,7 +7,7 @@ import { ETeam } from '@/types/team';
 import anchorAssign from '@/utils/assignStrategies/anchorAssign';
 import hierarchyAssign from '@/utils/assignStrategies/hierarchyAssign';
 import randomAssign from '@/utils/assignStrategies/randomAssign';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 interface ILineupProps {
   myTeamE: ETeam;
@@ -59,21 +59,26 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
     dispatch(setclosePSCAvailable(true));
   };
 
-  if (myTeamE === ETeam.teamA) {
-    if (currRound?.firstPlacing === ETeam.teamA) {
-      if (currRound.teamAProcess !== EActionProcess.CHECKIN || currRound.teamAScore) {
-        return null;
+  const availableAssign: boolean = useCallback(() => {
+    if (myTeamE === ETeam.teamA) {
+      if (currRound?.firstPlacing === ETeam.teamA) {
+        if (currRound.teamAProcess !== EActionProcess.CHECKIN || currRound.teamAScore) {
+          return false;
+        }
+      } else if (currRound?.teamBProcess !== EActionProcess.LINEUP || currRound.teamBScore) {
+        return false;
       }
-    } else if (currRound?.teamBProcess !== EActionProcess.LINEUP || currRound.teamBScore) {
-      return null;
+    } else if (currRound?.firstPlacing === ETeam.teamB) {
+      if (currRound.teamBProcess !== EActionProcess.CHECKIN || currRound.teamBScore) {
+        return false;
+      }
+    } else if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound.teamAScore) {
+      if (!currMatch.extendedOvertime) return false;
     }
-  } else if (currRound?.firstPlacing === ETeam.teamB) {
-    if (currRound.teamBProcess !== EActionProcess.CHECKIN || currRound.teamBScore) {
-      return null;
-    }
-  } else if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound.teamAScore) {
-    return null;
-  }
+    return true;
+  }, [currMatch, currRound, myTeamE])();
+
+  if (!availableAssign) return null;
 
   return (
     <div className="w-full flex justify-center items-center relative text-white">

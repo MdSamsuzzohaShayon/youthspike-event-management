@@ -33,11 +33,12 @@ function hierarchyAssign(props: IHierarchyAssignProps) {
   const { myRankings, opRankings } = organizeRankings({ myTeamE, tapr, tbpr });
   const myRankingsMap = new Map<string, number>(myRankings.map((item) => [item.player._id, item.rank]));
   const opRankingsMap = new Map<string, number>(opRankings.map((item) => [item.player._id, item.rank]));
+  
 
   const newCurrRoundNets: INetRelatives[] = [];
   const allNetsClone = [...allNets]; // shallow copy for immutability
 
-  for (let i = 0; i < currRoundNets.length; i++) {
+  for (let i = 0; i < currRoundNets.length; i += 1) {
     // Filter players who haven't been selected yet
     const availablePlayers = activePlayers.filter((player) => !selectedPlayerIds.has(player._id));
 
@@ -48,7 +49,7 @@ function hierarchyAssign(props: IHierarchyAssignProps) {
     }
 
     // Assign initial players based on rankings
-    let rp1 = availablePlayers[0];
+    const rp1 = availablePlayers[0];
     let rp2 = availablePlayers[1];
 
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
@@ -57,7 +58,8 @@ function hierarchyAssign(props: IHierarchyAssignProps) {
       rp2 = availablePlayers[2] || null;
     }
 
-    let op1, op2;
+    let op1;
+    let op2;
     if (myTeamE === ETeam.teamA) {
       op1 = opPlayers.find((p) => p._id === currRoundNets[i].teamBPlayerA);
       op2 = opPlayers.find((p) => p._id === currRoundNets[i].teamBPlayerB);
@@ -79,7 +81,7 @@ function hierarchyAssign(props: IHierarchyAssignProps) {
       const minPairScore = Math.max(0, opPairScore - currMatch.netVariance);
       const maxPairScore = opPairScore + currMatch.netVariance;
 
-      if ((myrp1 + myrp2) > maxPairScore) {
+      if (myrp1 + myrp2 > maxPairScore) {
         for (const ap of availablePlayers) {
           const aps = playerRankNum(myRankingsMap, ap._id);
           if (myrp1 + aps <= maxPairScore) {
@@ -88,7 +90,7 @@ function hierarchyAssign(props: IHierarchyAssignProps) {
             break;
           }
         }
-      } else if ((myrp1 + myrp2) < minPairScore) {
+      } else if (myrp1 + myrp2 < minPairScore) {
         for (const ap of availablePlayers) {
           const aps = playerRankNum(myRankingsMap, ap._id);
           if (myrp1 + aps >= minPairScore) {
@@ -126,8 +128,6 @@ function hierarchyAssign(props: IHierarchyAssignProps) {
 }
 
 export default hierarchyAssign;
-
-
 
 /*
 import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IRoundRelatives } from '@/types';
