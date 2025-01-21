@@ -59,7 +59,11 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
     dispatch(setclosePSCAvailable(true));
   };
 
-  const availableAssign: boolean = useCallback(() => {
+  const availableAssign: boolean = (useCallback(() => {
+    if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
+      return false;
+    }
+
     if (myTeamE === ETeam.teamA) {
       if (currRound?.firstPlacing === ETeam.teamA) {
         if (currRound.teamAProcess !== EActionProcess.CHECKIN || currRound.teamAScore) {
@@ -74,9 +78,9 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
       }
     } else if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound.teamAScore) {
       if (!currMatch.extendedOvertime) return false;
-    }
+    } 
     return true;
-  }, [currMatch, currRound, myTeamE])();
+  }, [currMatch, currRound, myTeamE]))();
 
   if (!availableAssign) return null;
 

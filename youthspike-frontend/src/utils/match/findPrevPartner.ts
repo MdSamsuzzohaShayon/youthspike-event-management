@@ -1,4 +1,4 @@
-// import { setPrevPartner } from '@/redux/slices/matchesSlice';
+/* eslint-disable no-restricted-syntax */
 import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam } from '@/types/team';
 
@@ -11,31 +11,38 @@ interface IPrevPartnerProps {
 }
 
 function findPrevPartner({ roundList, currRound, allNets, myTeamE, net }: IPrevPartnerProps): string | null {
-  let prevPartnerId = null;
-  const pri = roundList.findIndex((rl) => rl._id === currRound?._id); // pri = previous round index
-  if (pri !== -1 && roundList[pri - 1]) {
-    const prevRound = roundList[pri - 1];
-    const prevRoundNets = allNets.filter((n) => n.round === prevRound._id);
+  if (!currRound || !net) return null; // Early exit for invalid inputs
 
-    if (myTeamE === ETeam.teamA) {
-      if (net?.teamAPlayerA) {
-        const prevPlayedNet = prevRoundNets.find((prn) => prn.teamAPlayerA === net.teamAPlayerA || prn.teamAPlayerB === net.teamAPlayerA);
-        if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerA) {
-          prevPartnerId = prevPlayedNet.teamAPlayerB;
-        } else if (prevPlayedNet && prevPlayedNet.teamAPlayerA === net?.teamAPlayerB) {
-          prevPartnerId = prevPlayedNet.teamAPlayerA;
-        }
-      }
-    } else if (net?.teamBPlayerA) {
-      const prevPlayedNet = prevRoundNets.find((prn) => prn.teamBPlayerA === net.teamBPlayerA || prn.teamBPlayerB === net.teamBPlayerA);
-      if (prevPlayedNet && prevPlayedNet.teamBPlayerA === net?.teamBPlayerA) {
-        prevPartnerId = prevPlayedNet.teamBPlayerB;
-      } else if (prevPlayedNet && prevPlayedNet.teamBPlayerB === net?.teamBPlayerA) {
-        prevPartnerId = prevPlayedNet.teamBPlayerA;
-      }
+  // Preprocess `allNets` into a Map grouped by `round`
+  const netsByRound = new Map<string, INetRelatives[]>();
+  for (const n of allNets) {
+    if (!netsByRound.has(n.round)) {
+      netsByRound.set(n.round, []);
     }
+    netsByRound.get(n.round)!.push(n);
   }
-  return prevPartnerId || null;
+
+  // Find the current round index directly
+  const currRoundIndex = roundList.findIndex((round) => round._id === currRound._id);
+  if (currRoundIndex <= 0) return null; // No previous round exists
+
+  // Get the previous round's nets using the preprocessed Map
+  const prevRoundId = roundList[currRoundIndex - 1]._id;
+  const prevRoundNets = netsByRound.get(prevRoundId) || [];
+
+  // Determine team keys
+  const isTeamA = myTeamE === ETeam.teamA;
+  const playerKey = isTeamA ? 'teamAPlayerA' : 'teamBPlayerA';
+  const partnerKey = isTeamA ? 'teamAPlayerB' : 'teamBPlayerB';
+
+  // Find the net from the previous round that matches the current net's players
+  const prevPlayedNet = prevRoundNets.find((prn) => prn[playerKey] === net[playerKey] || prn[partnerKey] === net[playerKey]);
+
+  if (!prevPlayedNet) return null;
+
+  // Return the partner ID based on the matching player
+  const partnerId = prevPlayedNet[playerKey] === net[playerKey] ? prevPlayedNet[partnerKey] : prevPlayedNet[playerKey];
+  return partnerId || null;
 }
 
 export default findPrevPartner;

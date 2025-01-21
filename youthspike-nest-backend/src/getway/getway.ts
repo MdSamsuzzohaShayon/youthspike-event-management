@@ -36,12 +36,6 @@ interface IMatchRoundDetails {
   match: Match;
 }
 
-interface INetScore {
-  teamAScore: number;
-  teamBScore: number;
-  points: number;
-}
-
 @ObjectType()
 class RoomRoundProcess {
   @Field({ nullable: false })
@@ -148,7 +142,7 @@ export class MyGatWay implements OnModuleInit {
     private readonly matchService: MatchService,
     private readonly playerService: PlayerService,
     private readonly playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
 
   // Additional functions
   async handleTieBreakerNets(netList: Net[]) {
@@ -570,6 +564,7 @@ export class MyGatWay implements OnModuleInit {
         currRoundObj.teamBProcess = EActionProcess.LINEUP;
         currTeamId = this.processLineup(ETeam.teamB, submitLineup, currRoundObj, currTeamId);
       }
+
       if (!currTeamId) {
         throw new Error('Fill all the nets, and submit again!'); // Use Error for better error handling
       }
@@ -585,12 +580,47 @@ export class MyGatWay implements OnModuleInit {
         );
       }
 
-      // Update nets and round by assigning player to nets
-      const updateRoundData = { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess };
-      updatePromises.push(this.roundService.updateOne({ _id: submitLineup.round }, updateRoundData));
 
-      const selectedPlayers = new Set();
+
+      // Check both player have played in the same net in the previous round
+      const prevRoundNetsMap = new Map<string, boolean>();
+      if (currRoundObj.num > 1 && !matchExist.extendedOvertime) {
+        const prevRound = await this.roundService.findOne({
+          $and: [{ num: currRoundObj.num - 1 }, { match: prevRoom.match }],
+        });
+        if (!prevRound) throw new Error('No previous round found before this round!');
+
+        const prevRoundNets = await this.netService.find({
+          $and: [{ match: prevRoom.match }, { round: prevRound._id }],
+        });
+
+        // Pre-group `prevRoundNets` for quick lookups
+        for (const prn of prevRoundNets) {
+          const teamAKey = `${prn.teamAPlayerA}:${prn.teamAPlayerB}`;
+          const teamBKey = `${prn.teamBPlayerA}:${prn.teamBPlayerB}`;
+          prevRoundNetsMap.set(teamAKey, true);
+          prevRoundNetsMap.set(teamBKey, true);
+        }
+      }
+
+      const selectedPlayers = new Set<string>();
       for (const n of submitLineup.nets) {
+        // Check for duplicates in previous round
+        if (prevRoundNetsMap.size > 0) {
+          const teamAKey = `${n.teamAPlayerA}:${n.teamAPlayerB}`;
+          const teamBKey = `${n.teamBPlayerA}:${n.teamBPlayerB}`;
+          const reverseTeamAKey = `${n.teamAPlayerB}:${n.teamAPlayerA}`;
+          const reverseTeamBKey = `${n.teamBPlayerB}:${n.teamBPlayerA}`;
+
+          if (prevRoundNetsMap.has(teamAKey) || prevRoundNetsMap.has(reverseTeamAKey)) {
+            throw new Error('Team A has the same players assigned in a net that match in the previous round!');
+          }
+          if (prevRoundNetsMap.has(teamBKey) || prevRoundNetsMap.has(reverseTeamBKey)) {
+            throw new Error('Team B has the same players assigned in a net that match in the previous round!');
+          }
+        }
+
+        // Update promises and track selected players
         updatePromises.push(
           this.netService.updateOne(
             { _id: n._id },
@@ -615,6 +645,11 @@ export class MyGatWay implements OnModuleInit {
           subbedPlayers.push(submitLineup.subbedPlayers[i]);
         }
       }
+
+
+      // Update nets and round by assigning player to nets
+      const updateRoundData = { teamAProcess: currRoundObj.teamAProcess, teamBProcess: currRoundObj.teamBProcess };
+      updatePromises.push(this.roundService.updateOne({ _id: submitLineup.round }, updateRoundData));
 
       // Update room locally
       roundList[roundI] = currRoundObj;
@@ -650,10 +685,6 @@ export class MyGatWay implements OnModuleInit {
 
       // update rank lock in the team
       await Promise.all(updatePromises);
-
-      // client.to(prevRoom._id).emit('submit-lineup-response', roomDataWithNets);
-      // Send this data to all the clients
-      await this.emitToAllClients('submit-lineup-response-all', client, roomData.match, roomDataWithNets);
 
       const presizedRoundData: MatchRound = { ...updateRoundData, _id: submitLineup.round, match: prevRoom.match };
       // Send message to specific room

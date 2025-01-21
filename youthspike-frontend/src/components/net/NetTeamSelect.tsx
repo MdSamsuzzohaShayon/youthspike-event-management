@@ -19,10 +19,9 @@ interface INetTeamSelectProps {
   teamE: ETeam;
   net: INetRelatives | null;
   onTop: boolean;
-  boardHeight: number;
 }
 
-function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) {
+function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
   const user = useUser();
   const dispatch = useAppDispatch();
 
@@ -169,6 +168,19 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
     [myPlayers, net, opPlayers, teamE],
   );
 
+  const showPlayer = useCallback(() => {
+    if (currMatch.extendedOvertime) {
+      if (onTop) {
+        if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
+          return true;
+        }
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }, [currMatch.extendedOvertime, currRound?.teamAProcess, currRound?.teamBProcess, onTop])();
+
   useEffect(() => {
     const pA = matchTPlayer(ETeamPlayer.PLAYER_A, !onTop);
     const pB = matchTPlayer(ETeamPlayer.PLAYER_B, !onTop);
@@ -202,8 +214,8 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
           <PlayerScoreCard
             onTop={onTop}
             teamPlayer={ETeamPlayer.PLAYER_A}
-            player={playerA}
-            playerRankExist={playerARank}
+            player={showPlayer ? playerA : null}
+            playerRankExist={currMatch ? playerARank : null}
             dropdownPlayer={handleDropdownPlayer}
             evacuatePlayer={handleEvacuatePlayer}
             screenWidth={screenWidth}
@@ -214,8 +226,8 @@ function NetTeamSelect({ teamE, net, onTop, boardHeight }: INetTeamSelectProps) 
           <PlayerScoreCard
             onTop={onTop}
             teamPlayer={ETeamPlayer.PLAYER_B}
-            player={playerB}
-            playerRankExist={playerBRank}
+            player={showPlayer ? playerB : null}
+            playerRankExist={showPlayer ? playerBRank : null}
             dropdownPlayer={handleDropdownPlayer}
             evacuatePlayer={handleEvacuatePlayer}
             screenWidth={screenWidth}

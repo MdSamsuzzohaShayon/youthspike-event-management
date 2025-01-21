@@ -56,6 +56,7 @@ function anchorAssign(props: IanchorAssignProps) {
     }
   }
 
+
   for (let i = 0; i < currRoundNets.length; i += 1) {
     const availablePlayers = mySortedPlayers.filter((player) => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE);
 
@@ -67,17 +68,33 @@ function anchorAssign(props: IanchorAssignProps) {
     let rp1: null | undefined | IPlayer = availablePlayers[0];
     let rp2: null | undefined | IPlayer = availablePlayers[availablePlayers.length - 1];
 
-    const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: currRoundNets[i] });
+    const netObj = { ...currRoundNets[i] };
 
+    if (myTeamE === ETeam.teamA) {
+      netObj.teamAPlayerA = rp1?._id || null;
+      netObj.teamAPlayerB = rp2?._id || null;
+    } else {
+      netObj.teamBPlayerA = rp1?._id || null;
+      netObj.teamBPlayerB = rp2?._id || null;
+    }
+
+    const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net: netObj });
+
+    if (prevPartnerId && rp2?._id === prevPartnerId) {
+      rp2 = availablePlayers[availablePlayers.length - 2] || null;
+      if (myTeamE === ETeam.teamA) {
+        netObj.teamAPlayerB = rp2?._id || null;
+      } else {
+        netObj.teamBPlayerB = rp2?._id || null;
+      }
+    }
+    
     let opPairScore = null;
     if (matchUp) {
       const { oprp1, oprp2 } = opPlayerRankingNums({ myTeamE, opPlayers, currRoundNets, i, opRankingsMap });
       opPairScore = oprp1 + oprp2;
     }
 
-    if (matchUp && prevPartnerId && rp2?._id === prevPartnerId) {
-      rp2 = availablePlayers[availablePlayers.length - 2] || null;
-    }
 
     const myrp1 = rp1?._id ? playerRankNum(myRankingsMap, rp1?._id) : 0;
     const myrp2 = rp2?._id ? playerRankNum(myRankingsMap, rp2?._id) : 0;
@@ -87,11 +104,12 @@ function anchorAssign(props: IanchorAssignProps) {
       const minPairScore = Math.max(0, opPairScore - currMatch.netVariance);
       const maxPairScore = opPairScore + currMatch.netVariance;
 
+      // If our pair score is greater than the oponent pair score plus net variance
       if (pairScore > maxPairScore && matchUp) {
         let found = false;
         let mI = 0;
         const limit = Math.ceil(availablePlayers.length / 2);
-        while (limit) {
+        while (mI <= limit) {
           const tempP1: null | undefined | IPlayer = availablePlayers[mI + 1];
           const tempRp1 = playerRankNum(myRankingsMap, tempP1?._id);
           const tempP2: null | undefined | IPlayer = availablePlayers.find((p) => tempRp1 && playerRankNum(myRankingsMap, p._id) + tempRp1 <= maxPairScore);
@@ -113,13 +131,13 @@ function anchorAssign(props: IanchorAssignProps) {
         let found = false;
         let mI = 0;
         const limit = Math.ceil(availablePlayers.length / 2);
-        while (limit) {
+        while (mI <= limit) {
           const tempP1: null | undefined | IPlayer = availablePlayers[mI + 1];
           const tempP2: null | undefined | IPlayer = availablePlayers[availablePlayers.length - (mI + 1)];
           const tempRp1 = playerRankNum(myRankingsMap, tempP1?._id);
           const tempRp2 = playerRankNum(myRankingsMap, tempP2?._id);
           const nps = (tempRp1 || 0) + (tempRp2 || 0);
-          if (nps >= maxPairScore) {
+          if (nps >= minPairScore) {
             rp1 = tempP1;
             rp2 = tempP2;
             found = true;
@@ -134,7 +152,6 @@ function anchorAssign(props: IanchorAssignProps) {
       }
     }
 
-    const netObj = { ...currRoundNets[i] };
     if (myTeamE === ETeam.teamA) {
       netObj.teamAPlayerA = rp1?._id || null;
       netObj.teamAPlayerB = rp2?._id || null;
@@ -160,16 +177,3 @@ function anchorAssign(props: IanchorAssignProps) {
 }
 
 export default anchorAssign;
-
-/**
- * Explanation and Improvements:
- *
- * Type Definitions: Ensure all variables and function return types are aligned with the defined types (IanchorAssignProps, IPlayer, INetRelatives, etc.).
- * Data Structures: Use Set<string> for selectedPlayerIds instead of an array to ensure O(1) time complexity for checking and adding elements.
- * Efficient Filtering and Looping: Use filter and find methods effectively to reduce unnecessary iterations and improve time complexity.
- * Precomputed Rankings: Precompute myRankingsMap and opRankingsMap as Map objects for O(1) lookup time when retrieving player rankings.
- * Avoiding Infinite Loops: Adjusted loop conditions (while (mI < limit)) to prevent potential infinite loops and improve algorithm efficiency.
- * Array Operations: Used ...allNets to create a shallow copy instead of allNets.slice() for clarity and maintained immutability.
- *
- * These changes aim to improve both time and space complexity by optimizing the way players are selected and assigned, utilizing efficient data structures, and ensuring that operations within loops are minimized and controlled effectively. This should enhance the performance and maintainability of the anchorAssign function in your application.
- */

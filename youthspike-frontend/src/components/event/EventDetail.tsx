@@ -51,6 +51,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
   const [teamList, setTeamList] = useState<ITeamCaptain[]>([]);
   const [matchList, setMatchList] = useState<IMatchCaptain[]>([]);
+  const [unfilteredMatchList, setUnfilteredMatchList] = useState<IMatchCaptain[]>([]);
   const [playerList, setPlayerList] = useState<IPlayer[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
 
@@ -59,6 +60,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
     setTeamList(event.teams || []);
     setMatchList(event.matches || []);
+    setUnfilteredMatchList(event.matches || []);
     setPlayerList(event.players || []);
     setGroupList(event.groups || []);
 
@@ -127,11 +129,11 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     const renderMap = {
       // <PlayerList playerList={playerList} matchList={matchList} showRank={false} />
       [EEventItem.PLAYER]: <PlayerStandings playerList={playerList} matchList={matchList} />,
-      [EEventItem.TEAM]: <TeamList teamList={teamList} selectedGroup={selectedGroup} matchList={matchList} />,
+      [EEventItem.TEAM]: <TeamList teamList={teamList} selectedGroup={selectedGroup} matchList={unfilteredMatchList} />,
       [EEventItem.MATCH]: <MatchList matchList={matchList} />,
     };
     return renderMap[selectedItem] || null;
-  }, [matchList, playerList, selectedGroup, selectedItem, teamList]);
+  }, [matchList, playerList, selectedGroup, selectedItem, teamList, unfilteredMatchList]);
 
   const renderSponsors = useCallback(
     () => (
