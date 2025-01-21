@@ -53,6 +53,9 @@ ___
       
 
 ### Requirements 
+ - Players standing
+  - Need team name -> (link) 
+  - DO not need matches played, running
  - Optimize assign strategies
  - Matches should be filtered by group in matches and players
  - Standings for players -> individual games / individual team / game points diff
@@ -270,10 +273,12 @@ ___
 
 
 ### Ask
- - Updated
-    - Peam standings (match point diffrential and game points differentials)
+ - I just Updated the server
+    - Team standings (match point diffrential and game points differentials)
     - Player standings (Filter players by group)
     - Fixed overtime issues
     - Fixed frontend particular event page error
     - Sort roster by win percentage
     - Making description field required and location field not required
+    - Fixed auto assign strategies
+

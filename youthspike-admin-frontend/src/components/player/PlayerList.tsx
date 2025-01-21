@@ -176,7 +176,7 @@ function PlayerList({
 
     const npl = getRankedPlayers(players, playerRanking?.rankings); // npl = New Player List
 
-    return showRank && rankControls ? [...npl].sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity)) : players
+    return showRank && rankControls ? [...npl].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players
   }, [players, showRank, rankControls, playerRanking]);
 
 

@@ -1,6 +1,7 @@
 import { INetRelatives, IPlayer, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from "@/types";
 import { ETeam } from "@/types/team";
 
+// Radaundant
 const playerRankNum = (rankingsMap: Map<string, number>, playerId: string): number => {
   return rankingsMap.get(playerId) ?? 0;
 };
@@ -39,6 +40,7 @@ const organizeRankings = ({ myTeamE, tapr, tbpr }: ICalcRankings): IReturnRankin
 
 
 
+// Radaundant
 const opPlayerRankingNums = ({ myTeamE, opPlayers, currRoundNets, i, opRankingsMap }: IOpPlayerRankingNums) => {
   let op1;
   let op2;

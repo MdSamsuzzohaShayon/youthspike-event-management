@@ -29,7 +29,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
   const { currNetNum, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { roundList } = useAppSelector((state) => state.rounds);
   const currentRoom = useAppSelector((state) => state.rooms.current);
-  const { myTeamE, opTeamE } = useAppSelector((state) => state.matches);
+  const { myTeamE, opTeamE, } = useAppSelector((state) => state.matches);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
@@ -81,7 +81,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       transition={{ duration: 0.5, ease: 'easeInOut' }}
     >
       {/* Net top section start */}
-      <NetTeamSelect boardHeight={boardHeight} net={net} onTop teamE={opTeamE} />
+      <NetTeamSelect net={net} onTop teamE={opTeamE} />
       {/* Net top section end */}
 
       {/* Vertically centered NetPointCard component */}
@@ -91,7 +91,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       </div>
 
       {/* Net bottom section start */}
-      <NetTeamSelect boardHeight={boardHeight} net={net} onTop={false} teamE={myTeamE} />
+      <NetTeamSelect net={net} onTop={false} teamE={myTeamE} />
       {/* Net bottom section end */}
     </motion.div>
   );

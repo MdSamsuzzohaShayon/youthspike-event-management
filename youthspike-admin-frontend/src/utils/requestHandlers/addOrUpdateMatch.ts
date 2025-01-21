@@ -4,6 +4,7 @@ import { IAddMatch, IError, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import React from "react";
+import { handleError, handleResponse } from "../handleError";
 
 interface IAddOrUpdateMatchProps {
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
@@ -37,6 +38,7 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             // @ts-ignore
             if (updateMatchObj.teams) delete updateMatchObj.teams;
             matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
+            matchRes = matchRes?.data?.updateMatch;
             setActErr(null);
             // Get updated match
         } else {
@@ -48,21 +50,28 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             // @ts-ignore
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });
+            matchRes = matchRes?.data?.createMatch;
             if (matchRes?.data?.createMatch?.data && addMatchCB) addMatchCB(matchRes?.data?.createMatch?.data);
             dateObj.date = addMatchObj.date;
             dateObj.matchId = matchRes?.data?.createMatch?.data?._id || "";
             setActErr(null);
         }
-        console.log(dateObj);
         
-        if (showAddMatch) showAddMatch(false);
-        if(update && router){
-            if(matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299){
-                router.push(`/${eventId}/matches/${ldoIdUrl}`);
+        const success = handleResponse({response: matchRes, setActErr});
+        console.log({success});
+        
+        if(success){
+            if (showAddMatch) showAddMatch(false);
+            if(update && router){
+                if(matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299){
+                    router.push(`/${eventId}/matches/${ldoIdUrl}`);
+                }
             }
         }
-    } catch (error) {
+
+    } catch (error: any) {
         console.log(error);
+        handleError({error, setActErr});
     } finally {
         setIsLoading(false);
     }
