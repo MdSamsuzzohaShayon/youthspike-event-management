@@ -31,7 +31,7 @@ class GetMatchesResponse extends AppResponse<Match[]> {
 @ObjectType()
 class GetMatchResponse extends AppResponse<Match> {
   @Field((type) => Match, { nullable: true })
-  data?: Match;
+  data?: Match | null;
 }
 
 @Resolver((of) => Match)
@@ -46,7 +46,6 @@ export class MatchResolver {
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
-    private emailsenderService: EmailsenderService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -272,7 +271,7 @@ export class MatchResolver {
     try {
       const updatedMatch = await this.matchService.updateOne({ _id: matchId }, input);
       return {
-        data: updatedMatch,
+        data: updatedMatch ?? null,
         message: 'Match Updated successfully!',
         code: HttpStatus.ACCEPTED,
         success: true,

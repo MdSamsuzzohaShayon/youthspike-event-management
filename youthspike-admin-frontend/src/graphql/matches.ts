@@ -56,6 +56,11 @@ const matchResponse = `
     description
     location
     extendedOvertime
+    completed
+    group{
+          _id
+          name
+    }
     rounds {
       _id
       num
@@ -218,9 +223,6 @@ mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
     code
     success
     message
-    data {
-      ${matchResponse}
-    }
   }
 }
 `;

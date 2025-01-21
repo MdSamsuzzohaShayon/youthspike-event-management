@@ -8,7 +8,6 @@ import { useAppDispatch } from '@/redux/hooks';
 import { setRankingMap } from '@/redux/slices/playerRankingSlice';
 import Link from 'next/link';
 import TextImg from '../elements/TextImg';
-import PlayerList from '../player/PlayerList';
 import MatchList from '../match/MatchList';
 import PlayerStandings from '../player/PlayerStandings';
 
@@ -50,7 +49,6 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
     switch (selectedItem) {
       case ETab.ROSTER:
         // Players should be shown with their records. Win / losses for games
-        // return <PlayerList playerList={team.players} matchList={team.matches} showRank />;
         return <PlayerStandings matchList={team.matches} playerList={team.players} teamRank />;
       case ETab.MATCHES:
         // @ts-ignore

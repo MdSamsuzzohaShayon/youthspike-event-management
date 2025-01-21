@@ -53,9 +53,10 @@ ___
       
 
 ### Requirements 
- - Players standing
-  - Need team name -> (link) 
-  - DO not need matches played, running
+ - Sorting matches
+  - Incompleted matches -> M1, m2, m3,
+  - Completed matches -> M1, m2, m3
+ - Make group filter for admin
  - Optimize assign strategies
  - Matches should be filtered by group in matches and players
  - Standings for players -> individual games / individual team / game points diff
@@ -273,12 +274,5 @@ ___
 
 
 ### Ask
- - I just Updated the server
-    - Team standings (match point diffrential and game points differentials)
-    - Player standings (Filter players by group)
-    - Fixed overtime issues
-    - Fixed frontend particular event page error
-    - Sort roster by win percentage
-    - Making description field required and location field not required
-    - Fixed auto assign strategies
-
+ - Plaase reply all those comments I have made in the to-do list
+ - This is hours for last two days, jan 22 is not over yet, it is night, from the morning I will work more than 7 or 8 hours.

@@ -60,7 +60,10 @@ export class CreateMatchInput {
 }
 
 @InputType()
-export class UpdateMatchInput extends PartialType(CreateMatchInput) {}
+export class UpdateMatchInput extends PartialType(CreateMatchInput) {
+  @Field({ nullable: true })
+  date?: string;
+}
 
 @InputType()
 export class FilterQueryInput {

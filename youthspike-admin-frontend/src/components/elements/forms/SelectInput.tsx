@@ -22,7 +22,7 @@ const SelectInput = (props: ISelectInputProps) => {
         onChange={props.handleSelect}
         name={props.name}
         id={props.name}
-        className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw} max-w-full`}
+        className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw}`}
         style={!props.vertical ? selectStyle : {}}
         {...(props.defaultValue ? { defaultValue: props.defaultValue } : {})}
         {...(props.value ? { value: props.value } : {})}
@@ -44,6 +44,7 @@ const SelectInput = (props: ISelectInputProps) => {
             exit={iExit}
             transition={iTransition}
             value={o.value}
+            // style={{opacity: 1, transform: "none", width: "100%", whiteSpace: "normal", wordWrap: 'break-word', overflowWrap: "anywhere",}}
             key={i}
             className="bg-white text-gray-900 capitalize"
           >
