@@ -15,9 +15,6 @@ interface IPlayerRowProps {
 }
 
 function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
-  if (player.firstName.toUpperCase() === 'ANTOINE') {
-    console.log(player);
-  }
   return (
     <motion.tr
       key={player._id} // Assuming `player.id` exists

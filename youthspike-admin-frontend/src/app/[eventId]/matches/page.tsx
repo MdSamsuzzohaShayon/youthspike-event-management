@@ -230,7 +230,7 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
               </div>
             )}
             {filteredMatchList.length > 0 ? (
-              <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} refetchFunc={refetchFunc} />
+              <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} refetchFunc={refetchFunc} groupList={filteredGroupList} />
             ) : (
               <p>No match created yet!</p>
             )}

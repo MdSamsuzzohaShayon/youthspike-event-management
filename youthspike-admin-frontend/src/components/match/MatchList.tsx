@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { IError, IMatchExpRel, ITeam } from '@/types';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
 import MatchCard from './MatchCard';
 import SelectInput from '../elements/forms/SelectInput';
 import TextInput from '../elements/forms/TextInput';
@@ -17,7 +17,6 @@ import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { UserRole } from '@/types/user';
-import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorContext';
 
 
@@ -29,6 +28,7 @@ interface IMatchListProps {
   matchList: IMatchExpRel[];
   teamList: ITeam[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  groupList: IGroup[];
   refetchFunc?: () => Promise<void>;
 }
 
@@ -36,12 +36,14 @@ interface IFilterParams {
   date?: string;
   opponent?: string;
   description?: string;
+  group?: string | null;
 }
 
-const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: IMatchListProps) => {
+const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, groupList }: IMatchListProps) => {
 
   const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
   const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
+  const [sortedMatchList, setSortedMatchList] = useState<IMatchExpRel[]>([]);
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [checkedMatches, setCheckedMatches] = useState<Map<string, boolean>>(new Map());
   const actionEl = useRef<HTMLUListElement | null>(null);
@@ -54,13 +56,8 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: 
     setShowFilter(false);
   });
 
-  // Update filtered match list when matchList changes
-  useEffect(() => {
-    setFilteredMatchList([...matchList]);
-  }, [matchList]);
-
   const filterMatches = () => {
-    let filteredList = [...matchList];
+    let filteredList = [...sortedMatchList];
 
     if (user.info?.captainplayer) {
       // Filter matches where user is a captain
@@ -94,6 +91,14 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: 
       );
     }
 
+    if (filterParams.group || filterParams.group === '') {
+      if (filterParams.group === '') {
+        filteredList = [...filteredList];
+      } else if (filterParams.group) {
+        filteredList = filteredList.filter((m) => m.group?._id === filterParams.group);
+      }
+    }
+
     setFilteredMatchList([...filteredList]);
   };
 
@@ -112,6 +117,11 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: 
     setFilterParams((prevState) => ({ ...prevState, opponent: inputEl.value }));
   };
 
+  const handleGroupChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLSelectElement;
+    setFilterParams((prevState) => ({ ...prevState, group: inputEl.value }));
+  };
+
   const getSelectableOpponents = () => {
     const division = getDivisionFromStore();
     const isDifferentCaptain = (t: ITeam) => t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
@@ -123,6 +133,15 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: 
       return isDifferentCaptain(t) && sameDivision;
     });
   };
+
+  const getSelectableGroups: IOption[] = (useCallback(() => {
+    const groupOptionList: IOption[] = [];
+    groupOptionList.push({ value: "", text: "All" });
+    if (groupList && groupList.length > 0) {
+      groupList.forEach((g) => { groupOptionList.push({ value: g._id, text: g.name }) });
+    }
+    return groupOptionList;
+  }, [groupList]))();
 
 
   const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => {
@@ -176,9 +195,26 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: 
   }
 
   useEffect(() => {
+    if (matchList) {
+      const sortedMatch = [...matchList].sort((a, b) => {
+        // Condition 1: Sort by `completed` status (false first)
+        if (a.completed !== b.completed) {
+          return Number(a.completed) - Number(b.completed); // False (0) comes before True (1)
+        }
+        // Condition 2: Sort numerically by the number in `description` (e.g., M1, M2)
+        const numA = parseInt(a.description?.replace(/\D/g, "") ?? "0", 10); // Remove non-digits, fallback to 0
+        const numB = parseInt(b.description?.replace(/\D/g, "") ?? "0", 10); // Remove non-digits, fallback to 0
+        return numA - numB; // Sort numerically in ascending order
+      });
+
+      setSortedMatchList(sortedMatch); // Update state with the sorted list
+    }
+  }, [matchList]);
+
+  useEffect(() => {
     filterMatches();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterParams, matchList]);
+  }, [filterParams, matchList, sortedMatchList]);
 
   return (
     <div className="matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap">
@@ -203,6 +239,16 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc }: 
           vertical
           handleSelect={handleOpponentChange}
         />
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+          <SelectInput
+            name="group"
+            optionList={getSelectableGroups}
+            lblTxt="Group"
+            rw="w-3/6"
+            vertical
+            handleSelect={handleGroupChange}
+          />
+        )}
         <TextInput
           name="description"
           vertical

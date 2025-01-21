@@ -28,6 +28,7 @@ export interface IDefaultMatchProps extends IDefaultMatch {
 interface IMatchBase extends Partial<IDefaultMatchProps>{
   date: string;
   event: string;
+  completed: boolean;
 }
 
 export interface IAddMatch extends IDefaultMatch{
