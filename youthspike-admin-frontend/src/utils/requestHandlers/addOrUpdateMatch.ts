@@ -1,5 +1,3 @@
-import { useError } from "@/lib/ErrorContext";
-import { useLdoId } from "@/lib/LdoProvider";
 import { IAddMatch, IError, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -42,11 +40,11 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             setActErr(null);
             // Get updated match
         } else {
-            if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' })
+            if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' });
             const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision) addMatchObj.division = currDivision;
             if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ code: 400, success: false, message: 'Teams can not be empty to unselected!' });
-            if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' })
+            if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' });
             // @ts-ignore
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });
@@ -57,14 +55,14 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             dateObj.matchId = resData?._id || "";
             setActErr(null);
         }
-        
-        const success = handleResponse({response: matchRes, setActErr});
-        console.log({success});
-        
-        if(success){
+
+        const success = handleResponse({ response: matchRes, setActErr });
+        console.log({ success });
+
+        if (success) {
             if (showAddMatch) showAddMatch(false);
-            if(update && router){
-                if(matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299){
+            if (update && router) {
+                if (matchRes?.data?.updateMatch?.code >= 200 && matchRes?.data?.updateMatch?.code <= 299) {
                     router.push(`/${eventId}/matches/${ldoIdUrl}`);
                 }
             }
@@ -72,7 +70,7 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
 
     } catch (error: any) {
         console.log(error);
-        handleError({error, setActErr});
+        handleError({ error, setActErr });
     } finally {
         setIsLoading(false);
     }

@@ -60,8 +60,8 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
               <th className="py-3 px-4">Name</th>
               <th className="py-3 px-4">Logo</th>
               <th className="py-3 px-4">Director</th>
-              <th className="py-3 px-4">Email</th>
               <th className="py-3 px-4">Phone</th>
+              <th className="py-3 px-4">Email</th>
               <th className="py-3 px-4">Actions</th>
             </tr>
           </thead>

@@ -11,7 +11,7 @@ let ADMIN_FRONTEND_URL = 'http://localhost:3000';
 let BACKEND_URL: string = 'http://localhost:4000/graphql';
 let SOCKET_URL: string = 'ws://localhost:4000/websocket';
 
-if (NODE_ENV === 'production') {
+if (NODE_ENV === EEnv.production) {
   BACKEND_URL = 'https://aslsquads.com/graphql';
   SOCKET_URL = 'wss://aslsquads.com/websocket';
   FRONTEND_URL = 'https://aslsquads.com';
