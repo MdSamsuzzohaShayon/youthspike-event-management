@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
-import { IUserContext, UserRole } from '@/types/user';
-import { getUserFromCookie } from '@/utils/cookie';
+import { UserRole } from '@/types/user';
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -40,6 +39,7 @@ function UserMenuList({ eventId }: { eventId: string }) {
 
       {eventId && <>
         <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/settings/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Settings </Link></motion.li>
+        <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/teamstandings/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Team Standings </Link></motion.li>
         {(user?.info?.role === UserRole.director || user?.info?.role === UserRole.admin) && (<>
           <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/teams/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Teams </Link></motion.li>
           <motion.li variants={itemVariants} className="capitalize text-center text-sm md:text-base"><Link href={`/${eventId}/groups/${ldoIdUrl}`} className="text-blue-500 hover:text-blue-700 transition-colors" > Groups </Link></motion.li>

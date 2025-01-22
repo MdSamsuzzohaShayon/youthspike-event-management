@@ -132,7 +132,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       const success = handleResponse({ response: response.data.updatePlayer, setActErr });
       if (!success) return;
 
-      if (refetchFunc) await refetchFunc();
+      if (refetchFunc){
+            window.location.reload();
+      }
     } catch (error: any) {
       handleError({ error, setActErr });
     }

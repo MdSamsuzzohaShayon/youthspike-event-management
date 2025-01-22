@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IError, IEvent, IMenuItem, IOption, IPlayer, IPlayerRanking, IPlayerRankingExpRel, ITeam } from '@/types';
+import { IEvent, IMenuItem, IOption, IPlayer, IPlayerRankingExpRel, ITeam } from '@/types';
 import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
@@ -59,6 +59,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
       setAddPlayer(false);
     } catch (error) {
       console.log(error);
+      // @ts-ignore
       setActErr({ message: error?.message || "", success: false});
     }
   };
@@ -121,7 +122,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
         </>
       ) : (
         <div className="bulk-operations-players mt-8">
-          <div className="flex w-full justify-between items-center px-8 md:px-4">
+          <div className="flex w-full justify-between items-center">
             <h3 className="mt-4">Player List</h3>
             <button className="btn-info mt-4" type="button" onClick={() => setAddPlayer(true)}>
               Add Player to Team

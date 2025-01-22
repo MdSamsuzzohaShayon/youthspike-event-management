@@ -283,4 +283,87 @@ mutation DeleteTeams($teamIds: [String!]!) {
 }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS};
+const GET_TEAMS_AND_MATCHES = gql`
+query GetEvent($eventId: String!) {
+    getEvent(eventId: $eventId) {
+      code
+      message
+      success
+      data {
+        _id
+        active
+        autoAssign
+        autoAssignLogic
+        coachPassword
+        description
+        divisions
+        startDate
+        endDate
+        fwango
+        homeTeam
+        location
+        logo
+        name
+        groups {
+          _id
+          name
+          division
+        }
+        matches {
+          _id
+          autoAssign
+          autoAssignLogic
+          completed
+          description
+          group {
+            _id
+            name
+          }
+          teamA {
+            _id
+            name
+          }
+          teamB {
+            _id
+            name
+          }
+          rounds {
+            _id
+            completed
+            num
+            teamAScore
+            teamBScore
+          }
+          nets {
+            _id
+            num
+            teamAPlayerA
+            teamAPlayerB
+            teamBPlayerA
+            teamBPlayerB
+            teamAScore
+            teamBScore
+            points
+            round {
+              _id
+            }
+          }
+        }
+        teams {
+          _id
+          active
+          division
+          name
+          num
+          group {
+            _id
+            name
+          }
+
+        }
+      }
+    }
+  }
+`;
+
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES};

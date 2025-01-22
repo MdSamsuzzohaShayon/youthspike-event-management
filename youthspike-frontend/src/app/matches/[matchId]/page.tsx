@@ -38,7 +38,7 @@ import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
 import { EPlayerStatus } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
 import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
-import { APP_NAME } from '@/utils/keys';
+import { APP_NAME, NODE_ENV } from '@/utils/keys';
 import { imgW } from '@/utils/constant';
 import Image from 'next/image';
 import { ETeam } from '@/types/team';
@@ -52,6 +52,7 @@ import { IOvertimeData, IRoom, IRoomNets, IUpdateScoreResponse } from '@/types';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import SocketEventListener from '@/utils/socket/SocketEventListener';
 import { ITeiBreakerAction } from '@/types/room';
+import { EEnv } from '@/types/elements';
 
 /**
  * Test Match
@@ -269,18 +270,23 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                     <NetScoreOfRound currRoundId={currentRound._id} />
                   </motion.div>
                 )}
-                <div className="line-up-strategy w-full">
-                  <LineupStrategy
-                    myTeamE={myTeamE}
-                    currRound={currentRound}
-                    myPlayers={myPlayers}
-                    opPlayers={opPlayers}
-                    currRoundNets={currRoundNets}
-                    allNets={allNets}
-                    roundList={roundList}
-                    currMatch={currMatch}
-                  />
-                </div>
+
+
+                {/* // Temporary disabled in production  */}
+                {NODE_ENV === EEnv.development && (
+                  <div className="line-up-strategy w-full">
+                    <LineupStrategy
+                      myTeamE={myTeamE}
+                      currRound={currentRound}
+                      myPlayers={myPlayers}
+                      opPlayers={opPlayers}
+                      currRoundNets={currRoundNets}
+                      allNets={allNets}
+                      roundList={roundList}
+                      currMatch={currMatch}
+                    />
+                  </div>
+                )}
                 {user?.info &&
                   currRoom &&
                   (user.info.role === UserRole.director || user.info.role === UserRole.admin || user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (

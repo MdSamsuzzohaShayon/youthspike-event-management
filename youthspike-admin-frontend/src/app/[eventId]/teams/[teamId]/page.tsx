@@ -2,10 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import TeamDetail from '@/components/teams/TeamDetail';
 import { GET_A_TEAM } from '@/graphql/teams';
-import { IError } from '@/types';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { useLazyQuery } from '@apollo/client';
 import { setTeamToStore } from '@/utils/localStorage';
@@ -55,7 +53,6 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
 
   return (
     <div className='container mx-auto px-4 min-h-screen'>
-      {error && <Message error={error} />}
       {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading}
         divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} />}
 

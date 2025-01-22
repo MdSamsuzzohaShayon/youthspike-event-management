@@ -3,9 +3,9 @@ import type { NextRequest } from 'next/server';
 import { UserRole } from './types/user';
 
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/newevent'];
-const captainAuthPages = ['/players', '/matches', '/settings'];
-const adminPages = ['/', '/admin', '/directors', '/settings'];
+const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/newevent', '/teamstandings'];
+const captainAuthPages = ['/players', '/matches', '/settings', '/teamstandings'];
+const adminPages = ['/', '/admin', '/directors', '/settings', '/teamstandings'];
 
 export const config = {
   matcher: [

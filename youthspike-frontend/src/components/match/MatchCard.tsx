@@ -79,7 +79,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     for (let i = 0; i < roundList.length; i += 1) {
       const currRound = roundList[i];
       if (currRound?.teamAProcess === EActionProcess.INITIATE || currRound?.teamBProcess === EActionProcess.INITIATE) {
-        msg = 'TILL NOT CHECKED IN TO PLAY';
+        msg = 'SCHEDULED';
         runningRoundIndex = i;
         // break round loop
         break;

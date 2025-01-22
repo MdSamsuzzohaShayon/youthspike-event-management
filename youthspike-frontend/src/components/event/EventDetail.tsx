@@ -18,7 +18,6 @@ import { EVENT_ITEM, imgW, APP_NAME } from '@/utils/constant';
 import { useLdoId } from '@/lib/LdoProvider';
 import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
-import PlayerList from '../player/PlayerList';
 import SelectInput from '../elements/SelectInput';
 import PlayerStandings from '../player/PlayerStandings';
 
@@ -45,14 +44,14 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const searchParams = useSearchParams();
 
   const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [currDivision, setCurrDivision] = useState<string | null>(null);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
-
+  
   const [teamList, setTeamList] = useState<ITeamCaptain[]>([]);
   const [matchList, setMatchList] = useState<IMatchCaptain[]>([]);
   const [unfilteredMatchList, setUnfilteredMatchList] = useState<IMatchCaptain[]>([]);
   const [playerList, setPlayerList] = useState<IPlayer[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
 
   const initializeLists = useCallback(() => {
@@ -111,8 +110,6 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     if (groupId) {
       const filteredTeamList = event.teams?.filter((t) => t?.group?._id === groupId);
       setTeamList(filteredTeamList || []);
-      const filteredMatchesList = event.matches?.filter((t) => t?.group?._id === groupId);
-      setMatchList(filteredMatchesList || []);
 
       const groupTeamsIds = new Set<string>();
       filteredTeamList?.forEach((t) => {

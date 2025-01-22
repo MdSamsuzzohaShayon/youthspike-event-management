@@ -25,7 +25,7 @@ import {
 import { IUser, IDirector, IAddDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
 import { IPlayer, IPlayerExpRel, IPlayerRank} from "./player";
-import { ITeam, ITeamAdd } from "./team";
+import { ITeam, ITeamAdd, ITeamScore } from "./team";
 import { IAddMatch, IMatch, IDefaultMatchProps, IMatchRelatives, IMatchExpRel} from "./match";
 import { IRoundBase, IRoundRelatives, IRoundExpRel } from "./round";
 import { IGroupAdd, IGroup, IGroupExpRel, IGroupRelatives } from "./group";
@@ -89,6 +89,7 @@ export type {
   // Team
   ITeam,
   ITeamAdd,
+  ITeamScore,
 
 
   // Match

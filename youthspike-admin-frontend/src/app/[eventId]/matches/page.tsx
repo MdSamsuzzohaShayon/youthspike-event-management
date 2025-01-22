@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 
 // Components
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import CurrentEvent from '@/components/event/CurrentEvent';
 import UserMenuList from '@/components/layout/UserMenuList';
@@ -16,7 +15,7 @@ import MatchList from '@/components/match/MatchList';
 // GraphQL, helpers, utils, types
 import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
 import { useUser } from '@/lib/UserProvider';
-import { IError, IEventExpRel, IGroup, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
 import { IUserContext, UserRole } from '@/types/user';
 import { getUserFromCookie } from '@/utils/cookie';
 import { handleResponse } from '@/utils/handleError';
@@ -153,14 +152,15 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
     }
   };
 
-  const addMatchCB = (matchData: IMatchExpRel) => {
-    setMatchList((prevState) => [...prevState, matchData]);
-    setFilteredMatchList((prevState) => [...prevState, matchData]);
-  };
-
   const refetchFunc = async () => {
     await fetchEvent();
   };
+  const addMatchCB = (matchData: IMatchExpRel) => {
+    setMatchList((prevState) => [...prevState, matchData]);
+    setFilteredMatchList((prevState) => [...prevState, matchData]);
+    // refetchFunc();
+  };
+
 
   useEffect(() => {
     if (params.eventId) {

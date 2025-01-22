@@ -1,4 +1,4 @@
-import { IGroup, INetRelatives, IRoundRelatives, ITeam } from ".";
+import { IGroup, IGroupRelatives, INetRelatives, IRoundRelatives, ITeam } from ".";
 import { ETieBreakingStrategy } from "./event";
 
 export interface ICommonMatchEvent{
@@ -45,6 +45,8 @@ export interface IMatch extends IMatchBase{
   _id: string;
   teamA: ITeam;
   teamB: ITeam;
+  group?: IGroupRelatives;
+  nets: INetRelatives[];
 }
 
 export interface IMatchRelatives extends IMatchBase{
