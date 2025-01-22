@@ -9,12 +9,13 @@ import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
 
 interface ITeamRowProps {
+  eventId: string;
   team: ITeam;
   index: number;
   teamScores?: ITeamScore;
   selectedGroup?: string | null;
 }
-function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
+function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowProps) {
   return (
     <motion.tr
       key={team._id}
@@ -26,7 +27,7 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
     >
       <td className="py-3 px-4 font-medium">{index + 1}</td>
       <td className="py-3 px-4 ">
-        <Link href={`/teams/${team._id}`} className="flex justify-start items-center gap-2">
+        <Link href={`/${eventId}/teams/${team._id}`} className="flex justify-start items-center gap-2">
           <span>{team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="h-10 w-10" /> : <TextImg fullText={team?.name} className="h-10 w-10" />}</span>
           {team.name}
         </Link>

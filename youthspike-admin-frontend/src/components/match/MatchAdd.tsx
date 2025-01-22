@@ -16,6 +16,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
 import { useError } from '@/lib/ErrorContext';
 import { ETeam } from '@/types/team';
+import TeamSelector from './TeamSelector';
 
 
 
@@ -81,7 +82,7 @@ function MatchAdd({ eventId,
     eventData,
     showAddMatch,
     prevMatch, addMatchCB }: IMatchAddProps) {
-        
+
 
 
     const router = useRouter();
@@ -201,19 +202,19 @@ function MatchAdd({ eventId,
     /**
      * Show select items list
      */
-    const showTeamOptions=useCallback((teamE: ETeam)=>{
+    const showTeamOptions = useCallback((teamE: ETeam) => {
         // showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)
         let nList: ITeam[] = filteredTeamList;
-        if(teamE === ETeam.teamA){
-            if(addMatch.teamB && addMatch.teamB !== ""){
+        if (teamE === ETeam.teamA) {
+            if (addMatch.teamB && addMatch.teamB !== "") {
                 nList = filteredTeamList.filter((t) => t._id !== addMatch.teamB)
             }
-        }else{
-            if(addMatch.teamA && addMatch.teamA !== ""){
+        } else {
+            if (addMatch.teamA && addMatch.teamA !== "") {
                 nList = filteredTeamList.filter((t) => t._id !== addMatch.teamA)
             }
         }
-        return nList.map((t)=> ({value: t._id, text: t.name}));
+        return nList.map((t) => ({ value: t._id, text: t.name }));
     }, [filteredTeamList, addMatch, selectedGroup]);
 
 
@@ -241,7 +242,7 @@ function MatchAdd({ eventId,
                 mObj.fwango = eventData?.fwango;
             }
         }
-        
+
         setAddMatch(mObj);
     }, [eventData, prevMatch]);
 
@@ -259,12 +260,15 @@ function MatchAdd({ eventId,
                     : [{ text: "All", value: "all" }, ...groupList.map((g) => ({ text: g.name, value: g._id }))]} vertical />
                 {selectedGroup && (
                     <>
-                        <SelectInput name='teamA' lblTxt='Team A'
-                            optionList={showTeamOptions(ETeam.teamA)}
+                        {/* <SelectInput name='teamA' lblTxt='Team A'
+                            optionList={filteredTeamList.map((t) => ({ value: t._id, text: t.name }))}
                             handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
                         <SelectInput name='teamB' lblTxt='Team B'
-                            optionList={showTeamOptions(ETeam.teamB)}
-                            handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
+                            optionList={filteredTeamList.map((t) => ({ value: t._id, text: t.name }))}
+                            handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' /> */}
+                        <div className="w-full">
+                            {filteredTeamList && <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
+                        </div>
                     </>
                 )}
             </>)}

@@ -131,7 +131,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
                 </motion.ul>
             </div>
             <div className="team-standings mt-8">
-                <TeamStandings matchList={matchList} selectedGroup={selectedGroup} teamList={filteredTeamList} />
+                <TeamStandings eventId={eventId} matchList={matchList} selectedGroup={selectedGroup} teamList={filteredTeamList} />
             </div>
         </div>
     )

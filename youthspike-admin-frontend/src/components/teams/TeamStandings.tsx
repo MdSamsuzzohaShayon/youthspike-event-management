@@ -10,6 +10,7 @@ import { calcMatchScore } from '@/utils/calcScore';
 
 
 interface ITeamStandingsProps {
+  eventId: string;
   teamList?: ITeam[];
   matchList?: IMatchExpRel[];
   selectedGroup?: string | null;
@@ -23,7 +24,7 @@ PSG
 
 */
 
-function TeamStandings({ teamList, matchList, selectedGroup }: ITeamStandingsProps) {
+function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
 
   /**
@@ -160,7 +161,7 @@ function TeamStandings({ teamList, matchList, selectedGroup }: ITeamStandingsPro
           </thead>
           <tbody>
             {sortedTeams.map((team, index) => (
-              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
+              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} eventId={eventId} />
             ))}
           </tbody>
         </motion.table>
