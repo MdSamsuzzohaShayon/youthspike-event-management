@@ -30,6 +30,17 @@ export interface ITeamAdd {
   captain?: string | null;
 }
 
+
+export interface ITeamScore {
+  rank: number;
+  totalMatches: number;
+  overallWins: number;
+  overallLoses: number;
+  groupWins: number;
+  groupLoses: number;
+  matchAvgDiff: number;
+  gameAvgDiff: number;
+}
 export enum ETeam{
   teamA = "teamA",
   teamB = "teamB",

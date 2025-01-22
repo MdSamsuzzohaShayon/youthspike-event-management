@@ -25,9 +25,9 @@ export enum EMenuTitle {
   FIND_MATCHES = 'FIND MATCHES',
 }
 
-export enum EDirection{
-  LEFT = "LEFT",
-  RIGHT = "RIGHT",
+export enum EDirection {
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
 }
 
 export interface IColMenu {
@@ -36,6 +36,10 @@ export interface IColMenu {
   link?: string;
 }
 
+export enum EEnv {
+  development = 'development',
+  production = 'production',
+}
 
 // export interface ITextCommon {
 //   lw?: string;
@@ -157,6 +161,3 @@ export interface ILoginProps {
 export enum EActionTexts {
   INITIALIZE = '',
 }
-
-
-

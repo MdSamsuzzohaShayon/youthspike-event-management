@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
+
 import TeamList from '@/components/teams/TeamList';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { IError, IEvent, IEventExpRel, IGroup, IOption, ITeam } from '@/types';

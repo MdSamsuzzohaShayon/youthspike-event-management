@@ -51,9 +51,10 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });
             matchRes = matchRes?.data?.createMatch;
-            if (matchRes?.data?.createMatch?.data && addMatchCB) addMatchCB(matchRes?.data?.createMatch?.data);
+            const resData = matchRes?.data;
+            if (resData && addMatchCB) addMatchCB(resData);
             dateObj.date = addMatchObj.date;
-            dateObj.matchId = matchRes?.data?.createMatch?.data?._id || "";
+            dateObj.matchId = resData?._id || "";
             setActErr(null);
         }
         

@@ -1,25 +1,17 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable react/require-default-props */
-import { IMatchExpRel, IPlayer, ITeam } from '@/types';
+import { IMatch, IMatchExpRel, IPlayer, ITeam } from '@/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
 import { tableVariant } from '@/utils/animation';
 import TeamRow from './TeamRow';
+import { calcMatchScore } from '@/utils/calcScore';
 
-interface ITeamCaptain extends ITeam {
-  captain: IPlayer;
-}
 
-interface IMatch extends IMatchExpRel {
-  teamA: ITeamCaptain;
-  teamB: ITeamCaptain;
-}
-
-interface ITeamListProps {
-  teamList?: ITeamCaptain[];
-  matchList?: IMatch[];
+interface ITeamStandingsProps {
+  teamList?: ITeam[];
+  matchList?: IMatchExpRel[];
   selectedGroup?: string | null;
 }
 /*
@@ -31,18 +23,18 @@ PSG
 
 */
 
-function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
+function TeamStandings({ teamList, matchList, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
 
   /**
    * Memoized Map of Matches by Team ID
    */
   const matchesByTeam = useMemo(() => {
-    const map = new Map<string, IMatch[]>();
+    const map = new Map<string, IMatchExpRel[]>();
 
     if (matchList) {
       for (const match of matchList) {
-        if (match.completed) {
+        if(match.completed){
           if (match.teamA?._id) {
             if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
             map.get(match.teamA._id)?.push(match);
@@ -85,7 +77,6 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
 
       for (const match of teamMatches) {
         const isTeamA = match.teamA._id === team._id;
-        // @ts-ignore
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
 
         totalMatchDiff += teamScore - oponentScore;
@@ -178,4 +169,4 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   );
 }
 
-export default TeamList;
+export default TeamStandings;

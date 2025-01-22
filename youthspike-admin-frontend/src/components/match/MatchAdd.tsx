@@ -49,9 +49,6 @@ const lockTimes = [
 
 
 
-console.log(new Date().toISOString());
-
-
 const initialAddMatch: IAddMatch = {
     date: new Date().toISOString(),
     event: "",

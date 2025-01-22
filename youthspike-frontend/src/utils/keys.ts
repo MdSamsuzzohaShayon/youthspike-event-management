@@ -1,6 +1,9 @@
 /* eslint-disable import/no-mutable-exports */
-const NODE_ENV: string = 'development';
-// const NODE_ENV: string = 'production';
+
+import { EEnv } from '@/types/elements';
+
+const NODE_ENV: string = EEnv.development;
+// const NODE_ENV: string = EEnv.production;
 
 const APP_NAME = 'American Spikers League';
 let FRONTEND_URL = 'http://localhost:3001';
