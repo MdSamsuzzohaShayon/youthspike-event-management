@@ -7,6 +7,8 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import { setRankingMap } from '@/redux/slices/playerRankingSlice';
 import Link from 'next/link';
+import { EVENT_ITEM } from '@/utils/constant';
+import { EEventItem } from '@/types/event';
 import TextImg from '../elements/TextImg';
 import MatchList from '../match/MatchList';
 import PlayerStandings from '../player/PlayerStandings';
@@ -15,7 +17,6 @@ interface ITeamDetailProps {
   event: IEvent;
   team: ITeam;
 }
-
 
 // eslint-disable-next-line no-unused-vars, no-shadow
 enum ETab {
@@ -28,6 +29,7 @@ enum ETab {
 function TeamDetail({ event, team }: ITeamDetailProps) {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
+  const [redirectSymbol, setRedirectSymbol] = useState<string>('?');
 
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
 
@@ -44,6 +46,12 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
       dispatch(setRankingMap(Array.from(rankingMap)));
     }
   }, [dispatch, team]);
+
+  useEffect(() => {
+    if (ldoIdUrl && ldoIdUrl !== '') {
+      setRedirectSymbol('&');
+    }
+  }, [ldoIdUrl]);
 
   const showContent = useCallback(() => {
     switch (selectedItem) {
@@ -73,8 +81,11 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
         )}
         <h3 className="text-xl font-semibold capitalize mb-4">{team.name}</h3>
 
-        <Link href={`/events/${team.event._id}/${ldoIdUrl}`} className="btn-success bg-yellow-500 text-black py-2 px-4 rounded-md font-medium shadow hover:bg-yellow-400 transition mb-6">
-          Main Event
+        <Link
+          href={`/events/${team.event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+          className="btn-success bg-yellow-500 text-black py-2 px-4 rounded-md font-medium shadow hover:bg-yellow-400 transition mb-6"
+        >
+          Standings
         </Link>
 
         <div className="tab-menu w-full mb-6 bg-gray-700 rounded-lg p-4">

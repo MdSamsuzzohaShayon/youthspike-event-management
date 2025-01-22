@@ -248,4 +248,60 @@ mutation DeleteMatches($matchIds: [String!]!) {
 }
 `;
 
-export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES };
+
+const GET_MATCHES = gql`
+query GetMatches($filter: FilterQueryInput) {
+  getMatches(filter: $filter) {
+    code
+    message
+    success
+    data {
+      _id
+      autoAssign
+      autoAssignLogic
+      completed
+      date
+      description
+      division
+      extendedOvertime
+      fwango
+      homeTeam
+      completed
+      rounds {
+        _id
+        num
+        completed
+        teamAProcess
+        teamBProcess
+        teamAScore
+        teamBScore
+      }
+      nets {
+        _id
+        num
+        teamAScore
+        teamBScore
+        points
+        round {
+          _id
+        }
+      }
+      teamA {
+        _id
+        division
+        name
+        num
+      }
+      teamB {
+        _id
+        division
+        name
+        division
+      }
+    }
+  }
+}
+
+`;
+
+export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_TEAMS, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES, GET_MATCHES };

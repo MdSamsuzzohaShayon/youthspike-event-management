@@ -8,6 +8,7 @@ import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { useLazyQuery } from '@apollo/client';
 import { setTeamToStore } from '@/utils/localStorage';
 import { useError } from '@/lib/ErrorContext';
+import { GET_MATCHES } from '@/graphql/matches';
 
 interface TeamSingleMainProps {
   params: { teamId: string, eventId: string },
@@ -16,17 +17,20 @@ interface TeamSingleMainProps {
 function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
 
   const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId }, fetchPolicy: "network-only" });
+  const [fetchMatches, { data: matchesData, refetch: matchesFetch }] = useLazyQuery(GET_MATCHES, { variables: { filter: { event: eventId } }, fetchPolicy: "network-only" });
   const { setActErr } = useError();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const refetchFunc = async () => {
     await refetch();
+    await matchesFetch();
   }
 
   useEffect(() => {
     if (teamId) {
       if (isValidObjectId(teamId)) {
         fetchTeam({ variables: { teamId } });
+        fetchMatches({ variables: { filter: { event: eventId } } });
         setTeamToStore(teamId);
       } else {
         setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
@@ -42,11 +46,11 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
   const playerRanking = data?.getTeam?.data?.playerRanking;
+  const matchList = matchesData?.getMatches?.data || [];
 
-
-  if(error){
+  if (error) {
     console.log(error);
-    
+
   }
 
 
@@ -54,7 +58,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading}
-        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} />}
+        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} matchList={matchList} />}
 
     </div>
   )
