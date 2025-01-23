@@ -16,6 +16,7 @@ import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, set
 import SelectInput from '@/components/elements/forms/SelectInput';
 import { getUserFromCookie } from '@/utils/cookie';
 import { UserRole } from '@/types/user';
+import { useUser } from '@/lib/UserProvider';
 
 
 interface ITeamStandingsPageProps {
@@ -28,6 +29,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const user = useUser();
 
     const { setActErr } = useError();
     const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
@@ -62,7 +64,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
         const newGroupList: IGroup[] = eventResponse?.data?.getEvent?.data?.groups ? eventResponse?.data.getEvent.data.groups : [];
         let newFilteredGroupList: IGroup[] = [...newGroupList];
         setGroupList(newFilteredGroupList);
-        
+
         const newMatchList: IMatchExpRel[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
 
         // Division and team value
@@ -95,7 +97,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
         }
     };
 
-    const handleDivisionSelection = (e: React.SyntheticEvent) => {
+    const handleDivisionChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         /**
          * Filter Matches and teams
@@ -106,23 +108,23 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
         let newTeamList = [...teamList];
         let newMatchList = [...matchList];
         let newGroupList = [...groupList];
-    
+
         if (inputEl.value === '') {
-          setFilteredTeamList([...teamList]);
-          setFilteredMatchList([...newMatchList]);
-          removeDivisionFromStore();
+            setFilteredTeamList([...teamList]);
+            setFilteredMatchList([...newMatchList]);
+            removeDivisionFromStore();
         } else {
-          setDivisionToStore(inputEl.value.trim());
-          newTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-          setFilteredTeamList([...newTeamList]);
-    
-          newMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-          setFilteredMatchList([...newMatchList]);
-    
-          newGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-          setFilteredGroupList(newGroupList);
+            setDivisionToStore(inputEl.value.trim());
+            newTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+            setFilteredTeamList([...newTeamList]);
+
+            newMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+            setFilteredMatchList([...newMatchList]);
+
+            newGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+            setFilteredGroupList(newGroupList);
         }
-      };
+    };
 
     // Do this for all event pages
     useEffect(() => {
@@ -141,12 +143,30 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
             {/* Event Menu Start */}
             <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
                 {currEvent && <CurrentEvent currEvent={currEvent} />}
-                <div className="navigator mt-8">
+                <div className="team-name text-center mt-4">
+                    {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
+                </div>
+                <div className="navigator mt-4">
                     <UserMenuList eventId={eventId} />
                 </div>
             </div>
             {/* Event Menu End */}
-            <div className="group-select w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
+            <div className="w-full mb-4 p-4 bg-gray-800 rounded-md mt-8">
+                <div className="w-full flex justify-center items-center">
+                    <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" vertical extraCls="text-center w-full md:w-2/12" />
+                </div>
+                <div className="w-full flex justify-center items-center">
+                    <SelectInput
+                        handleSelect={(e) => handleSelectGroup(e, e.target?.value || null)}
+                        name="group"
+                        optionList={filteredGroupList.map((g) => ({ value: g._id, text: g.name }))}
+                        lblTxt="Group"
+                        vertical
+                        extraCls="text-center w-full md:w-2/12"
+                    />
+                </div>
+            </div>
+            {/* <div className="group-select w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
                 <div className="division-selection w-full">
                     <SelectInput key={"matches-si-1"} lblTxt='Division' handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
                 </div>
@@ -173,7 +193,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
                         </motion.li>
                     ))}
                 </motion.ul>
-            </div>
+            </div> */}
             <div className="team-standings mt-8">
                 <TeamStandings eventId={eventId} matchList={matchList} selectedGroup={selectedGroup} teamList={filteredTeamList} />
             </div>

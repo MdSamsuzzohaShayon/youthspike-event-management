@@ -51,7 +51,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
     if (!success) return;
     console.log(playerRes?.data);
-    
+
     if (playerRes?.data?.getEvent) {
       setCurrEvent(playerRes?.data?.getEvent.data);
     }
@@ -186,8 +186,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     }
     return <p>No inactive players</p>;
   }, [filteredPlayerList, currEvent]);
-
-
+  
 
   if (loading || isLoading) return <Loader />;
 
@@ -197,6 +196,9 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       {/* Event Menu Start */}
       <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
         {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
+        <div className="team-name text-center">
+          {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
+        </div>
         <div className="navigator mt-8">
           <UserMenuList eventId={params.eventId} />
         </div>
@@ -245,6 +247,22 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
             teamId={teamId}
             currEvent={currEvent}
           />
+
+          {/* <div className="sortable-active-player-list mt-4">
+            <PlayerList
+              playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
+              eventId={params.eventId}
+              setIsLoading={setIsLoading}
+              rankControls
+              refetchFunc={refetchFunc}
+              teamList={teamList}
+              divisionList={divisionList}
+              teamId={teamId}
+              showRank
+              playerRanking={teamPlayerRanking}
+              currEvent={currEvent}
+            />
+          </div> */}
 
           {renderInactivePlayers()}
         </>

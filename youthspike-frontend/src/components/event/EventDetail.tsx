@@ -160,7 +160,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
         </div>
       )}
 
-      <div className="group-menu w-full mb-4 p-4 bg-gray-800 rounded-md">
+      <div className="w-full mb-4 p-4 bg-gray-800 rounded-md">
         <div className="w-full flex justify-center items-center">
           <SelectInput handleSelect={handleDivisionChange} defaultTxt="Select division" name="division" optionList={divisionList} lblTxt="Division" vertical extraCls="text-center w-full md:w-2/12" />
         </div>

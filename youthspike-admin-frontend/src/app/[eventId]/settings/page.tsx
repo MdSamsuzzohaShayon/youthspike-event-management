@@ -73,10 +73,11 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
 
   const prevEvent = data?.getEvent?.data;
   const prevPlayer = playerData?.getPlayer?.data;
-  if(error){
+  if (error) {
     console.log(error);
-    
+
   }
+
 
   return (
     <motion.div
@@ -96,11 +97,13 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
           : 'Update Event'}
       </motion.h1>
 
-      {/* Navigation Menu */}
       {/* Event Menu Start */}
       <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
         {prevEvent && <CurrentEvent currEvent={prevEvent} />}
-        <div className="navigator mt-8">
+        <div className="team-name text-center mt-4">
+          {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
+        </div>
+        <div className="navigator mt-4">
           <UserMenuList eventId={params.eventId} />
         </div>
       </div>

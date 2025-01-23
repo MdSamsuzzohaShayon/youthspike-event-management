@@ -4,13 +4,19 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 
-export const NODE_ENV = 'development';
+enum EEnv{
+  development = "development",
+  production = "production",
+}
+
+export const NODE_ENV: EEnv = EEnv.development;
+// export const NODE_ENV: EEnv = EEnv.production;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   let origin = ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
-  if (process.env.NODE_ENV === 'production') {
+  if (NODE_ENV === EEnv.production) {
     origin = ['https://admin.aslsquads.com', 'https://aslsquads.com', 'https://studio.apollographql.com'];
   }
   // 'https://admin.aslsquads.com'

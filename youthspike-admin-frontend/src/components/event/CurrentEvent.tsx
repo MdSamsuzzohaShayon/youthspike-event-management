@@ -1,10 +1,11 @@
 import cld from '@/config/cloudinary.config';
-import { IEvent } from '@/types';
+import { IEvent, IUserContext } from '@/types';
 import { ISOToReadableDate } from '@/utils/helper';
 import { AdvancedImage } from '@cloudinary/react';
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useUser } from '@/lib/UserProvider';
 
 const logoVariants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -18,9 +19,11 @@ const textVariants = {
 
 interface ICurrentEventProps {
   currEvent: IEvent;
+  user?: IUserContext | null;
 }
 
 function CurrentEvent({ currEvent }: ICurrentEventProps) {
+
   return (
     <motion.div
       initial="hidden"
@@ -50,7 +53,6 @@ function CurrentEvent({ currEvent }: ICurrentEventProps) {
           />
         )}
       </motion.div>
-
       {/* Event Name */}
       <motion.h1
         variants={textVariants}
