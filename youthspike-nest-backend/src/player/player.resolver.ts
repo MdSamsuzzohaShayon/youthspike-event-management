@@ -361,7 +361,7 @@ export class PlayerResolver {
           promiseOperations.push(
             this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $addToSet: { teams: createTeam._id } }),
           );
-        } catch (dErrs) {
+        } catch (dErrs: any) {
           console.log(dErrs);
         }
       }

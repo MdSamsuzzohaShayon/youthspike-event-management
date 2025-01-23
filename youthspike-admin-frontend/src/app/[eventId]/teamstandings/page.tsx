@@ -9,10 +9,13 @@ import UserMenuList from '@/components/layout/UserMenuList';
 import TeamStandings from '@/components/teams/TeamStandings';
 import { GET_TEAMS_AND_MATCHES } from '@/graphql/teams';
 import { useError } from '@/lib/ErrorContext';
-import { IEventExpRel, IGroup, IMatchExpRel, ITeam } from '@/types';
+import { IEventExpRel, IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
 import { handleResponse } from '@/utils/handleError';
-import { isValidObjectId } from '@/utils/helper';
-import { getDivisionFromStore, removeTeamFromStore } from '@/utils/localStorage';
+import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
+import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import SelectInput from '@/components/elements/forms/SelectInput';
+import { getUserFromCookie } from '@/utils/cookie';
+import { UserRole } from '@/types/user';
 
 
 interface ITeamStandingsPageProps {
@@ -28,12 +31,15 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
 
     const { setActErr } = useError();
     const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
+    const [divisionList, setDivisionList] = useState<IOption[]>([]);
     const [currDivision, setCurrDivision] = useState<string>('');
     const [teamList, setTeamList] = useState<ITeam[]>([]);
     const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
     const [matchList, setMatchList] = useState<IMatchExpRel[]>([]);
+    const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
     const [groupList, setGroupList] = useState<IGroup[]>([]);
+    const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]);
 
     const [getEvent, { loading, error }] = useLazyQuery(GET_TEAMS_AND_MATCHES, { fetchPolicy: "network-only" });
 
@@ -48,9 +54,15 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
         let newFilteredList = [...newTeamList];
         if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
 
+        // Making divisions list
+        const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
+        const divs = divisionsToOptionList(divisions);
+        setDivisionList(divs);
+
         const newGroupList: IGroup[] = eventResponse?.data?.getEvent?.data?.groups ? eventResponse?.data.getEvent.data.groups : [];
         let newFilteredGroupList: IGroup[] = [...newGroupList];
-
+        setGroupList(newFilteredGroupList);
+        
         const newMatchList: IMatchExpRel[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
 
         // Division and team value
@@ -61,7 +73,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
             newFilteredList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
             newFilteredGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
         }
-        setGroupList(newFilteredGroupList);
+        setFilteredGroupList(newFilteredGroupList);
         setFilteredTeamList(newTeamList);
         setMatchList(newMatchList)
     };
@@ -82,6 +94,35 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
             setFilteredTeamList(teamList || []);
         }
     };
+
+    const handleDivisionSelection = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        /**
+         * Filter Matches and teams
+         */
+        const inputEl = e.target as HTMLInputElement;
+        setCurrDivision(inputEl.value.trim());
+        // If logged in as captain check me I the captain of one of the team or not
+        let newTeamList = [...teamList];
+        let newMatchList = [...matchList];
+        let newGroupList = [...groupList];
+    
+        if (inputEl.value === '') {
+          setFilteredTeamList([...teamList]);
+          setFilteredMatchList([...newMatchList]);
+          removeDivisionFromStore();
+        } else {
+          setDivisionToStore(inputEl.value.trim());
+          newTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+          setFilteredTeamList([...newTeamList]);
+    
+          newMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+          setFilteredMatchList([...newMatchList]);
+    
+          newGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
+          setFilteredGroupList(newGroupList);
+        }
+      };
 
     // Do this for all event pages
     useEffect(() => {
@@ -106,8 +147,11 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
             </div>
             {/* Event Menu End */}
             <div className="group-select w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
+                <div className="division-selection w-full">
+                    <SelectInput key={"matches-si-1"} lblTxt='Division' handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+                </div>
                 <h2 className="text-lg font-semibold mb-2 text-white text-center">Groups</h2>
-                <motion.ul className="w-full flex flex-wrap justify-around items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                <motion.ul className="w-full flex flex-wrap justify-center gap-x-2 items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                     <motion.li
                         key="group-for-all"
                         role="presentation"
@@ -117,7 +161,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
                     >
                         All
                     </motion.li>
-                    {groupList.map((group, index) => (
+                    {filteredGroupList.map((group, index) => (
                         <motion.li
                             key={group?._id || index}
                             role="presentation"

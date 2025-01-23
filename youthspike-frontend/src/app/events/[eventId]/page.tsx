@@ -83,6 +83,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
   // Handle case where no event data is returned
   const prevEvent = data?.getEvent?.data;
   
+  
   if (!prevEvent) {
     return (
       <div className="container mx-auto px-2 min-h-screen">

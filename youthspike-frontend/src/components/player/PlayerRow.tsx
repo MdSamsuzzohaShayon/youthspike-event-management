@@ -24,20 +24,22 @@ function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
       initial="hidden"
       animate="visible"
     >
-      <td className="py-3 px-4 font-medium">{teamRank ? player.rank : index + 1}</td>
-      <td className="py-3 px-4 flex flex-col">
-        {player.profile ? (
-          <AdvancedImage className="w-12 object-cover" cldImg={cld.image(player.profile)} />
-        ) : (
-          <Image width={200} height={200} src="/icons/sports-man.svg" alt="Player Avatar" className="svg-white w-12 h-12 object-contain" />
-        )}
-        <span>{`${player.firstName} ${player.lastName}`}</span>
-        {player.teams && player.teams?.length > 0 && (
-          <Link href={`/teams/${player.teams[0]._id}`} className="text-yellow-400 uppercase text-sm">
-            {player.teams[0].name}
-          </Link>
-        )}
-        {player?.captainofteams?.length > 0 && <p className="text-yellow-400 uppercase text-sm">Captain</p>}
+      <td className="py-3 flex justify-start items-center">
+        <span className="ml-2">{teamRank ? player.rank : index + 1}</span>
+        <div className="player-img px-4 flex flex-col">
+          {player.profile ? (
+            <AdvancedImage className="w-12 object-cover" cldImg={cld.image(player.profile)} />
+          ) : (
+            <Image width={200} height={200} src="/icons/sports-man.svg" alt="Player Avatar" className="svg-white w-12 h-12 object-contain" />
+          )}
+          <span>{`${player.firstName} ${player.lastName}`}</span>
+          {player.teams && player.teams?.length > 0 && (
+            <Link href={`/teams/${player.teams[0]._id}`} className="text-yellow-400 uppercase text-sm">
+              {player.teams[0].name}
+            </Link>
+          )}
+          {player?.captainofteams?.length > 0 && <p className="text-yellow-400 uppercase text-sm">Captain</p>}
+        </div>
       </td>
       <td className="py-3 px-4">
         {Number.isNaN((player.wins * 100) / (player.numOfGame - player.running))

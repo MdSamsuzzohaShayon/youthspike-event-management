@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 interface ISelectInputProps {
   name: string;
   optionList: IOption[];
+  defaultTxt?: string;
   // eslint-disable-next-line no-unused-vars
   handleSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   defaultValue?: string | number;
@@ -15,7 +16,7 @@ interface ISelectInputProps {
   lblTxt?: string;
 }
 
-function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name, vertical = false, optionList, defaultValue, handleSelect }: ISelectInputProps) {
+function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name, defaultTxt, vertical = false, optionList, defaultValue, handleSelect }: ISelectInputProps) {
   const selectStyle: React.CSSProperties = !rw ? { width: '19%' } : {};
 
   // eslint-disable-next-line no-unused-vars
@@ -36,7 +37,7 @@ function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name
         className={`form-control capitalize ${vertical ? 'w-full' : ''} ${rw} max-w-full`}
         style={vertical ? {} : selectStyle}
       >
-        <option value="">Select an option</option>
+        <option value="">{defaultTxt || 'Select an option'}</option>
         {optionList.map((o) => (
           <option value={o.value} key={o.value} className="bg-gray-500 text-black-logo">
             {o.text || o.value}

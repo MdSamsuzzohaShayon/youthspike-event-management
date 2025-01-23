@@ -15,6 +15,10 @@ function PlayerList({ showRank, playerList, matchList }: IPlayerListProps) {
   const [players, setPlayers] = useState<IPlayerRecord[]>([]);
   const { rankingMap } = useAppSelector((state) => state.playerRanking);
 
+  const handleContextMenu = (e: React.SyntheticEvent) => {
+    e.preventDefault(); // Prevent the default context menu from showing
+  };
+
   useEffect(() => {
     if (!playerList?.length) return;
 
@@ -29,7 +33,11 @@ function PlayerList({ showRank, playerList, matchList }: IPlayerListProps) {
     setPlayers(sortedPlayers);
   }, [matchList, playerList, rankingMap]);
 
-  return <div className="playerList w-full flex flex-col gap-1">{players?.map((player) => <PlayerCard showRank={showRank} key={player._id} player={player} />)}</div>;
+  return (
+    <div className="playerList w-full flex flex-col gap-1" onContextMenu={handleContextMenu}>
+      {players?.map((player) => <PlayerCard showRank={showRank} key={player._id} player={player} />)}
+    </div>
+  );
 }
 
 export default PlayerList;
