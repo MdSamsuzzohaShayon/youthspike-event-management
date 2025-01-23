@@ -25,6 +25,7 @@ import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { getRankedPlayers } from '@/utils/helper';
 import { useError } from '@/lib/ErrorContext';
+import { isISODateString } from '@/utils/datetime';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -61,7 +62,7 @@ function PlayerList({
   currEvent,
   inactive,
 }: IPlayerListProps) {
-  
+
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
@@ -134,7 +135,7 @@ function PlayerList({
     e.preventDefault(); // Prevent the default context menu from showing
   };
 
-  useEffect(() => {    
+  useEffect(() => {
     if (!isMounted.current && playerList && playerList.length > 0) {
       setPlayers(playerList);
       isMounted.current = true;
@@ -144,15 +145,30 @@ function PlayerList({
 
   /** Memoize Sortable Initialization **/
   useEffect(() => {
+    console.log({ playerRanking });
+
     const newCanRank = (() => {
       if (!user?.info || !currEvent) return true; // Default to true if data is missing
+      if(playerRanking?.rankLock){
+        if(user.info.role === UserRole.admin || user.info.role === UserRole.director) return true;
+  
+        const { role, passcode } = user.info;
+        const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
+  
+  
+        if (isCaptainRole) {
+          const isIsoTime = isISODateString(currEvent.rosterLock);
+          if (isIsoTime) {
+            const timePassed = new Date() > new Date(currEvent.rosterLock);
+            if (!timePassed && !passcode) return false;
+          }
+          // playerRanking
+        }
+      }
 
-      const { role, passcode } = user.info;
-      const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
-      const eventEnded = new Date() > new Date(currEvent.endDate);
 
       // Return true unless user is captain/co-captain, event has ended, and they lack a passcode
-      return !(isCaptainRole && eventEnded && !passcode);
+      return true;
     })();
 
     if (!listRef.current || !rankControls || !newCanRank) return;
@@ -185,8 +201,8 @@ function PlayerList({
 
 
 
-  console.log({playerList, players, playerRanking});
-  
+  console.log({ playerList, players, playerRanking });
+
 
 
   /** Render List **/

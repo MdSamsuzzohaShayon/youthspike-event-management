@@ -11,7 +11,7 @@ import { UpdatePlayerRankingInput } from './player-ranking.input';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
 import { ConfigService } from '@nestjs/config';
-import { tokenToUser } from 'src/util/helper';
+import { isISODateString, tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { EventService } from 'src/event/event.service';
 
@@ -59,16 +59,19 @@ export class PlayerRankingResolver {
 
       if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
         // Check date
-        const lastDate = new Date(eventExist.endDate);
-        const currentDateTime = new Date();
-        if (currentDateTime > lastDate) {
-          // if date has passed, check for passcode
-          const adminOrDirectorPasscode = 'KjhjSu23ii';
-          if (!adminOrDirectorPasscode) {
-            return AppResponse.handleError({
-              statusCode: HttpStatus.NOT_ACCEPTABLE,
-              message: 'Match date passed and you do not have passcode to re-rank',
-            });
+        const isIsoTime = isISODateString(eventExist.rosterLock);
+        if (isIsoTime) {
+          const lastDate = new Date(eventExist.rosterLock);
+          const currentDateTime = new Date();
+          if (currentDateTime > lastDate) {
+            // if date has passed, check for passcode
+            const adminOrDirectorPasscode = 'KjhjSu23ii';
+            if (!adminOrDirectorPasscode) {
+              return AppResponse.handleError({
+                statusCode: HttpStatus.NOT_ACCEPTABLE,
+                message: 'Match date passed and you do not have passcode to re-rank',
+              });
+            }
           }
         }
       }

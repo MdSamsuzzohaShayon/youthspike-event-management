@@ -95,5 +95,18 @@ function getCurrentDate() {
 };
 
 
+function isISODateString(dateString: string): boolean {
+    // Check if it's a string and matches the ISO 8601 format
+    const isoFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[\+\-]\d{2}:\d{2})?$/;
+    if (typeof dateString !== 'string' || !isoFormat.test(dateString)) {
+        return false;
+    }
 
-export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp };
+    // Attempt to parse it as a Date and check if it's valid
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
+}
+
+
+
+export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString };
