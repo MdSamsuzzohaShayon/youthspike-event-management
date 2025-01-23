@@ -130,6 +130,10 @@ function PlayerList({
     }
   };
 
+  const handleContextMenu = (e: React.SyntheticEvent) => {
+    e.preventDefault(); // Prevent the default context menu from showing
+  };
+
   useEffect(() => {    
     if (!isMounted.current && playerList && playerList.length > 0) {
       setPlayers(playerList);
@@ -181,10 +185,13 @@ function PlayerList({
 
 
 
+  console.log({playerList, players, playerRanking});
+  
+
 
   /** Render List **/
   return (
-    <ul ref={listRef} className="sortable-list">
+    <ul ref={listRef} className="sortable-list" onContextMenu={handleContextMenu}>
       {sortedPlayerList.map((player) => (
         <motion.li
           key={player._id}

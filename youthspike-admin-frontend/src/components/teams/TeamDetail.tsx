@@ -81,7 +81,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
     }
   };
 
-    const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => {}
+  const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => { }
 
   useEffect(() => {
     // Set division
@@ -108,7 +108,8 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
   const activePlayers = team?.players ? team.players.filter((p) => p.status === EPlayerStatus.ACTIVE) : [];
   const inactivePlayers = team?.players ? team.players.filter((p) => p.status !== EPlayerStatus.ACTIVE) : [];
-  const filteredMatchList = matchList.filter((m)=> m.teamA._id === team._id || m.teamB._id === team._id);
+  const filteredMatchList = matchList.filter((m) => m.teamA._id === team._id || m.teamB._id === team._id);
+  
 
 
   return (
@@ -209,9 +210,13 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
         )
       )}
 
-      {selectedItem === ETab.MATCHES && (<div className='w-full'>
-        {filteredMatchList.map((match, i)=> (<MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i+1}  />))}
-      </div>)}
+      {selectedItem === ETab.MATCHES && (
+        <div className='w-full'>
+          {filteredMatchList.length > 0
+            ? filteredMatchList.map((match, i) => (<MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />))
+            : <p>No match found of this team!</p>}
+        </div>
+      )}
 
       {/* Show captain  */}
       {/* <CaptainCard team={team} /> */}

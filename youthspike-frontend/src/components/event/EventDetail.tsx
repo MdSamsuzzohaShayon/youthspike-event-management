@@ -43,10 +43,10 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const user = useUser();
   const searchParams = useSearchParams();
 
-  const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.MATCH);
+  const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.TEAM);
   const [currDivision, setCurrDivision] = useState<string | null>(null);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
-  
+
   const [teamList, setTeamList] = useState<ITeamCaptain[]>([]);
   const [matchList, setMatchList] = useState<IMatchCaptain[]>([]);
   const [unfilteredMatchList, setUnfilteredMatchList] = useState<IMatchCaptain[]>([]);
@@ -161,39 +161,24 @@ function EventDetail({ event }: { event: IEventRelatives }) {
       )}
 
       <div className="group-menu w-full mb-4 p-4 bg-gray-800 rounded-md">
-        <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" rw="w-3/6 mb-4" />
-        <h2 className="text-lg font-semibold mb-2 text-white text-center">Groups</h2>
-        <motion.ul className="w-full flex flex-wrap justify-around items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <motion.li
-            key="group-for-all"
-            role="presentation"
-            onClick={(e) => handleSelectGroup(e, null)}
-            className={`p-2 rounded-md cursor-pointer mb-2 text-center ${selectedGroup === null ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
-            whileHover={{ scale: 1.1 }}
-          >
-            All
-          </motion.li>
-          {groupList.map((group, index) => (
-            <motion.li
-              key={group?._id || index}
-              role="presentation"
-              onClick={(e) => handleSelectGroup(e, group?._id)}
-              className={`p-2 rounded-md cursor-pointer mb-2 text-center ${selectedGroup === group?._id ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
-              whileHover={{ scale: 1.1 }}
-            >
-              {group.name}
-            </motion.li>
-          ))}
-        </motion.ul>
+        <div className="w-full flex justify-center items-center">
+          <SelectInput handleSelect={handleDivisionChange} defaultTxt="Select division" name="division" optionList={divisionList} lblTxt="Division" vertical extraCls="text-center w-full md:w-2/12" />
+        </div>
+        <div className="w-full flex justify-center items-center">
+          <SelectInput
+            handleSelect={(e) => handleSelectGroup(e, e.target.value)}
+            defaultTxt="Select division"
+            name="division"
+            optionList={groupList.map((g) => ({ value: g._id, text: g.name }))}
+            lblTxt="Division"
+            vertical
+            extraCls="text-center w-full md:w-2/12"
+          />
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        <motion.div
-          className="side-bar w-full md:w-1/4 bg-gray-800 p-4 rounded-md sticky top-0 z-10 md:h-screen overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div className="side-bar w-full md:w-1/4 bg-gray-800 p-4 rounded-md md:h-screen overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           {event.players?.length || event.teams?.length || event.matches?.length ? (
             <ul className="flex flex-col gap-2">
               {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (

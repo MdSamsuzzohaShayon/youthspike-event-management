@@ -355,6 +355,7 @@ query GetEvent($eventId: String!) {
           division
           name
           num
+          logo
           group {
             _id
             name

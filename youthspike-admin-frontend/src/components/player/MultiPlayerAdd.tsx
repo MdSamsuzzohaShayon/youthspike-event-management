@@ -8,6 +8,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorContext';
+import { handleError, handleResponse } from '@/utils/handleError';
 
 
 interface IMultiPlayerAddProps {
@@ -69,18 +70,22 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IM
             formData.set('0', uploadFileEl.current.files[0]);
             const token = getCookie('token');
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { 'Authorization': `Bearer ${token}` } });
+            console.log({response});
+            
             const jsonRes = await response.json();
-            await router.push(`/${eventId}/teams/${ldoIdUrl}`);
-            if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
-                setActErr({ code: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
+            const success = handleResponse({response: jsonRes?.data?.createMultiPlayers, setActErr});
+            if(success){
+                await router.push(`/${eventId}/teams/${ldoIdUrl}`);
+                if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
+                    setActErr({ code: jsonRes.data.createMultiPlayers.code, message: "Some email already registered with players!" });
+                }
+                window.location.reload();
+                closeDialog();
             }
-            window.location.reload();
-            closeDialog();
-        } catch (error) {
+        } catch (error: any) {
             closeDialog();
             console.log(error);
-            // @ts-ignore
-            setActErr({name: error?.name, message: error?.message, main: error});
+            handleError({error, setActErr});
         } finally {
             setIsLoading(false);
         }

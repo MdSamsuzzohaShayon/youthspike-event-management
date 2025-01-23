@@ -10,7 +10,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 
 interface PlayerCardProps {
   player: IPlayerRecord;
@@ -23,8 +23,17 @@ function PlayerCard({ player, showRank }: PlayerCardProps) {
   const user = useUser();
   const playerLiEl = useRef<HTMLLIElement | null>(null);
 
+  const handleContextMenu = (e: React.SyntheticEvent) => {
+    e.preventDefault(); // Prevent the default context menu from showing
+  };
+
   return (
-    <li ref={playerLiEl} className="player-card w-full bg-gray-700 py-4 px-4 flex flex-col md:flex-row items-center gap-4 rounded-lg shadow-md" style={{ minHeight: '6rem' }}>
+    <li
+      ref={playerLiEl}
+      onContextMenu={handleContextMenu}
+      className="player-card w-full bg-gray-700 py-4 px-4 flex flex-col md:flex-row items-center gap-4 rounded-lg shadow-md"
+      style={{ minHeight: '6rem' }}
+    >
       {/* Player Profile and Details */}
       <div className="flex items-center w-full md:w-7/12">
         <div className="advanced-img w-20 h-20 md:w-24 md:h-24 border border-yellow-400 rounded-lg overflow-hidden">

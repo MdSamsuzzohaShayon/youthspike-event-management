@@ -59,18 +59,15 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
   }, [playerList, matchList, teamRank, rankingMap]);
 
   return (
-    <div className="teamList w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
       <div className="overflow-x-auto">
-        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]" variants={tableVariant} initial="hidden" animate="visible">
-          <thead className="bg-gray-700 text-white">
-            <tr>
-              <th className="py-3 px-4">Rank</th>
-              <th className="py-3 px-4">Player</th>
-              <th className="py-3 px-4">Wins % </th>
-              {/* <th className="py-3 px-4">Match Played</th>
-              <th className="py-3 px-4">Running</th> */}
-              <th className="py-3 px-4">GM PT DIFF/AVG</th>
-              <th className="py-3 px-4">Record</th>
+        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
+          <thead>
+            <tr className="bg-yellow-500 text-black font-semibold">
+              <th className="py-3 px-2 sticky top-0 shadow-md">Player</th>
+              <th className="py-3 px-2 sticky top-0 shadow-md">Wins %</th>
+              <th className="py-3 px-2 sticky top-0 shadow-md">GM PT DIFF/AVG</th>
+              <th className="py-3 px-2 sticky top-0 shadow-md">Record</th>
             </tr>
           </thead>
           <motion.tbody>

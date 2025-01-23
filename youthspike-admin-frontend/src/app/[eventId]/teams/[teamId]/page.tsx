@@ -54,6 +54,8 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   }
 
 
+  console.log({playerRanking, data});
+  
 
   return (
     <div className='container mx-auto px-4 min-h-screen'>

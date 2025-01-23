@@ -154,17 +154,16 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   }, [calculateTeamScore]);
 
   return (
-    <div className="teamList w-full flex flex-col lg:gap-4 bg-gray-800 p-6 rounded-lg shadow-lg">
+    <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
       <div className="overflow-x-auto">
-        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]" variants={tableVariant} initial="hidden" animate="visible">
-          <thead className="bg-gray-700 text-white">
-            <tr>
-              <th className="py-3 px-4">Rank</th>
-              <th className="py-3 px-4">Team</th>
-              {selectedGroup && <th className="py-3 px-4">Group Record</th>}
-              <th className="py-3 px-4">Match PT DIFF/AVG</th>
-              <th className="py-3 px-4">GM PT DIFF/AVG</th>
-              <th className="py-3 px-4">Overall</th>
+        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
+          <thead>
+            <tr className="bg-yellow-500 text-black font-semibold">
+              <th className="py-3 px-2">Team</th>
+              {selectedGroup && <th className="py-3 px-2">Group Record</th>}
+              <th className="py-3 px-2">Overall</th>
+              <th className="py-3 px-2">Match PT DIFF/AVG</th>
+              <th className="py-3 px-2">GM PT DIFF/AVG</th>
             </tr>
           </thead>
           <tbody>

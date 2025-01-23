@@ -99,6 +99,7 @@ export class PlayerService {
               lastName: lnv,
               rank: null,
               email: ev,
+              status: EPlayerStatus.ACTIVE,
               division,
               events: [event],
               teams: [],
