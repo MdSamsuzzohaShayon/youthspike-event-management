@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { INetRelatives } from '@/types';
 import { EDirection } from '@/types/elements';
 import { EXTRA_HEIGHT } from '@/utils/constant';
+import { netCardVariant } from '@/utils/animation';
 
 import NetPointCard from './NetPointCard';
 import NetTeamSelect from '../net/NetTeamSelect';
@@ -75,10 +76,11 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      initial={{ opacity: 0, x: direction === EDirection.RIGHT ? 300 : -300 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: direction === EDirection.RIGHT ? -300 : 300 }}
-      transition={{ duration: 0.5, ease: 'easeInOut' }}
+      initial={direction === EDirection.RIGHT ? 'enterFromRight' : 'enterFromLeft'}
+      animate="center"
+      exit={direction === EDirection.RIGHT ? 'exitToLeft' : 'exitToRight'}
+      variants={netCardVariant}
+      transition={{ duration: 0.1, ease: 'easeInOut' }}
     >
       {/* Net top section start */}
       <NetTeamSelect net={net} onTop teamE={opTeamE} />

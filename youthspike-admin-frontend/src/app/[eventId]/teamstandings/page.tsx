@@ -159,6 +159,7 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
                     <SelectInput
                         handleSelect={(e) => handleSelectGroup(e, e.target?.value || null)}
                         name="group"
+                        defaultTxt='Overall'
                         optionList={filteredGroupList.map((g) => ({ value: g._id, text: g.name }))}
                         lblTxt="Group"
                         vertical

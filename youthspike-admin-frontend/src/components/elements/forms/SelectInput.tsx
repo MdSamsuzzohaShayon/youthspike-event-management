@@ -35,7 +35,7 @@ const SelectInput = (props: ISelectInputProps) => {
           value=""
           className="bg-gray-400 text-gray-700"
         >
-          Select {props.name}
+          {props.defaultTxt || "Select an option"}
         </motion.option>
         {props.optionList.map((o, i) => (
           <motion.option

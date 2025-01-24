@@ -74,7 +74,8 @@ const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets
         }
       });
       if (dupPlayerCount > 0) {
-        errMsg += `${dupPlayerCount > 1 ? 'were' : 'was'} subbed previously, ${dupPlayerCount > 1 ? 'they' : 'he'} must be selected in this round`;
+        errMsg = dupPlayerCount > 1 ? errMsg : errMsg.split(',')[0];
+        errMsg += `${dupPlayerCount > 1 ? 'were' : ' was'} subbed previously, they must be selected in this round`;
         dispatch(setActErr({ success: false, message: errMsg }));
         return;
       }

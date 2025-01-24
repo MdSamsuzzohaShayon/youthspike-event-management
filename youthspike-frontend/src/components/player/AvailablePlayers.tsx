@@ -63,7 +63,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
 
     // Check selected net already have a player or not, if there is already a player remove him from disabled player
 
-    // Vslidate selecting invalid players
+    // Validate selecting invalid players
     const dpIds = [...disabledPlayerIds];
     if (prevPartner) dpIds.push(prevPartner);
     if (outOfRange.length > 0) dpIds.push(...outOfRange); // Net Variance
@@ -75,6 +75,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
 
     if (!selectedNet || !selectedPlayerSpot || !isValidNet(selectedNet)) return;
 
+    // Set player for a specific net spot
     const { netPlayerObj, enablePlayerId }: { netPlayerObj: INetUpdate; enablePlayerId: string | null } = createNetPlayerObject(selectedNet, teamPlayerId, selectedPlayerSpot, myTeamE);
 
     // Update all nets and current round nets

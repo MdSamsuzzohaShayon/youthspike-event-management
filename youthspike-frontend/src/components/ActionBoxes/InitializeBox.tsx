@@ -32,7 +32,7 @@ function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp }: IB
     <div className="flex py-2 w-full justify-between items-center gap-1 box-success">
       <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
         <PointText txt="Squad check in" />
-        <h3 className="font-script">Welcome to your match VS {opTeam?.name}</h3>
+        <h3 >Welcome to your match VS {opTeam?.name}</h3>
         <h2 className="uppercase font-black text-start">{currMatch?.description}</h2>
         {mtp === EActionProcess.INITIATE && (
           <button className="btn-light uppercase" type="button" onClick={handleInitToCheckIn}>

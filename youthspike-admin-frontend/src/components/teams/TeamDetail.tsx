@@ -110,6 +110,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
   const inactivePlayers = team?.players ? team.players.filter((p) => p.status !== EPlayerStatus.ACTIVE) : [];
   const filteredMatchList = matchList.filter((m) => m.teamA._id === team._id || m.teamB._id === team._id);
   
+  
 
 
   return (

@@ -162,23 +162,23 @@ function EventDetail({ event }: { event: IEventRelatives }) {
 
       <div className="w-full mb-4 p-4 bg-gray-800 rounded-md">
         <div className="w-full flex justify-center items-center">
-          <SelectInput handleSelect={handleDivisionChange} defaultTxt="Select division" name="division" optionList={divisionList} lblTxt="Division" vertical extraCls="text-center w-full md:w-2/12" />
+          <SelectInput handleSelect={handleDivisionChange} defaultTxt="Select division" name="division" optionList={divisionList} lblTxt="Division" vertical extraCls="text-center w-full lg:w-2/12" />
         </div>
         <div className="w-full flex justify-center items-center">
           <SelectInput
             handleSelect={(e) => handleSelectGroup(e, e.target.value)}
-            defaultTxt="Select division"
-            name="division"
+            defaultTxt="Overall"
+            name="group"
             optionList={groupList.map((g) => ({ value: g._id, text: g.name }))}
-            lblTxt="Division"
+            lblTxt="Group"
             vertical
-            extraCls="text-center w-full md:w-2/12"
+            extraCls="text-center w-full lg:w-2/12"
           />
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <motion.div className="side-bar w-full md:w-1/4 bg-gray-800 p-4 rounded-md md:h-screen overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+      <div className="flex flex-col lg:flex-row gap-6">
+        <motion.div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:h-screen overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           {event.players?.length || event.teams?.length || event.matches?.length ? (
             <ul className="flex flex-col gap-2">
               {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (
@@ -197,7 +197,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
           )}
         </motion.div>
 
-        <div className="content w-full md:w-3/4 rounded-md">{renderContent()}</div>
+        <div className="content w-full lg:w-3/4 rounded-md">{renderContent()}</div>
       </div>
     </div>
   );

@@ -137,6 +137,20 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
     // eslint-disable-next-line no-unused-expressions
     prevPartnerId ? dispatch(setPrevPartner(prevPartnerId)) : dispatch(setPrevPartner(null));
 
+    // Resetting disabled players ids
+    const netPlayerIds: string[] = [];
+    currRoundNets.forEach((crn) => {
+      if (myTeamE === ETeam.teamA) {
+        if (crn.teamAPlayerA) netPlayerIds.push(crn.teamAPlayerA);
+        if (crn.teamAPlayerB) netPlayerIds.push(crn.teamAPlayerB);
+      } else {
+        if (crn.teamBPlayerA) netPlayerIds.push(crn.teamBPlayerA);
+        if (crn.teamBPlayerB) netPlayerIds.push(crn.teamBPlayerB);
+      }
+    });
+    // @ts-ignore
+    dispatch(setDisabledPlayerIds([...new Set([...disabledPlayerIds, ...netPlayerIds])]));
+
     // Disable players according to met variance
     const inavalidPlayerIds = findOutOfRange({ currMatch, net, myPlayers, myTeamE, opPlayers, playerSpot, teamAPlayerRanking, teamBPlayerRanking });
     if (inavalidPlayerIds.length > 0) dispatch(setOutOfRange(inavalidPlayerIds));
