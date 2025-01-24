@@ -52,9 +52,6 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
     console.log(error);
 
   }
-
-
-  console.log({playerRanking, data});
   
 
   return (

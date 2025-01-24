@@ -74,7 +74,8 @@ function PlayerList({
   /** State **/
   const [checkedPlayers, setCheckedPlayers] = useState<Map<string, boolean>>(new Map());
   const [canRank, setCanRank] = useState<boolean>(false);
-  const [players, setPlayers] = useState<IPlayerExpRel[]>([]);
+  const [players, setPlayers] = useState<IPlayerRank[]>([]);
+  const [rankingsMap, setRankingsMap] = useState<Map<string, number>>(new Map());
 
 
   /** Handle checkbox */
@@ -98,7 +99,7 @@ function PlayerList({
       try {
         await mutatePlayerRanking({ variables: { teamId, input: upr } });
         // Update rank players with match id and team id
-        if (refetchFunc) await refetchFunc();
+        // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
         console.log(error);
         handleError({ error, setActErr });
@@ -114,18 +115,27 @@ function PlayerList({
     if (oldIndex !== undefined && newIndex !== undefined) {
       console.log(`Moved from ${oldIndex} to ${newIndex}`);
 
+      // Moving player one index to another index
       const sortedPlayers = [...players];
       const [movedItem] = sortedPlayers.splice(oldIndex, 1);
       sortedPlayers.splice(newIndex, 0, movedItem);
 
+      // Organizing data
+      const updatedRanking: IUpdateRank[] = [];
+      const newRankingsMap = new Map();
+      const newRankedPlayers: IPlayerRank[] = [];
+      sortedPlayers.forEach((player, index) => {
+        updatedRanking.push(({
+          player: player._id,
+          rank: index + 1,
+        }));
+        newRankingsMap.set(player._id, index + 1);
+        newRankedPlayers.push({ ...player, rank: index + 1 });
+      });
 
-
-      const updatedRanking: IUpdateRank[] = sortedPlayers.map((player, index) => ({
-        player: player._id,
-        rank: index + 1,
-      }));
-
-      setPlayers(sortedPlayers);
+      // Setting state
+      setRankingsMap(newRankingsMap);
+      setPlayers(newRankedPlayers); // This need to rank properly
 
       await handleUpdate(updatedRanking);
     }
@@ -136,31 +146,41 @@ function PlayerList({
   };
 
   useEffect(() => {
-    if (!isMounted.current && playerList && playerList.length > 0) {
-      setPlayers(playerList);
+    if (!isMounted.current && playerList && playerList.length > 0 && playerRanking) {
+      console.log("Mounted once ->");
+      const newRankingsMap = new Map();
+      if (playerRanking && playerRanking.rankings.length > 0) {
+        playerRanking.rankings.forEach((pr) => {
+          newRankingsMap.set(pr.player._id, pr.rank);
+        });
+      }
+      setRankingsMap(newRankingsMap);
+      const playersWithRank: IPlayerRank[] = [];
+      playerList.forEach((p) => {
+        playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
+      });
+      setPlayers(playersWithRank);
       isMounted.current = true;
     }
-  }, [playerList]);
+  }, [playerList, playerRanking]);
 
 
   /** Memoize Sortable Initialization **/
   useEffect(() => {
-    console.log({ playerRanking });
-
     const newCanRank = (() => {
-      if (!user?.info || !currEvent) return true; // Default to true if data is missing
+      if (!user?.info || !currEvent) return false; // Default to true if data is missing
       if(playerRanking?.rankLock){
         if(user.info.role === UserRole.admin || user.info.role === UserRole.director) return true;
-  
+
         const { role, passcode } = user.info;
         const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
-  
-  
+
+
         if (isCaptainRole) {
           const isIsoTime = isISODateString(currEvent.rosterLock);
           if (isIsoTime) {
             const timePassed = new Date() > new Date(currEvent.rosterLock);
-            if (!timePassed && !passcode) return false;
+            if (timePassed && !passcode) return false;
           }
           // playerRanking
         }
@@ -173,7 +193,6 @@ function PlayerList({
 
     if (!listRef.current || !rankControls || !newCanRank) return;
     setCanRank(newCanRank);
-
     const sortableList = Sortable.create(listRef.current, {
       animation: 150,
       easing: 'cubic-bezier(1, 0, 0, 1)',
@@ -191,18 +210,13 @@ function PlayerList({
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
 
-    if (!rankControls || !showRank) return [...players];
-    if (!playerRanking?.rankings?.length) return [];
+    // if (!rankControls || !showRank) return [...players];
+    // if (!playerRanking?.rankings?.length) return [];
 
-    const npl = getRankedPlayers(players, playerRanking?.rankings); // npl = New Player List
+    // const npl = getRankedPlayers(players, playerRanking?.rankings); // npl = New Player List
 
-    return showRank && rankControls ? [...npl].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players
+    return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players
   }, [players, showRank, rankControls, playerRanking]);
-
-
-
-  console.log({ playerList, players, playerRanking });
-
 
 
   /** Render List **/

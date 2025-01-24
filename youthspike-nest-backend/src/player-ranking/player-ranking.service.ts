@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { PlayerRanking, PlayerRankingItem } from './player-ranking.schema';
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { EventService } from 'src/event/event.service';
+import { ERosterLock } from 'src/event/event.schema';
+import { checkDateHasPassed } from 'src/util/helper';
 
 @Injectable()
 export class PlayerRankingService {
@@ -9,7 +12,33 @@ export class PlayerRankingService {
   constructor(
     @InjectModel(PlayerRanking.name) private playerRanking: Model<PlayerRanking>,
     @InjectModel(PlayerRankingItem.name) private playerRankingItem: Model<PlayerRankingItem>,
-  ) { }
+    private eventService: EventService,
+  ) {}
+
+  async lockPlayerRanking(teamId: string, eventId: string) {
+    let locked = false;
+    const [eventExist, playerRankings] = await Promise.all([
+      this.eventService.findOne({ _id: eventId }),
+      this.playerRanking.find({
+        $and: [{ team: teamId }, { $or: [{ match: null }, { match: { $exists: false } }] }],
+      }),
+    ]);
+    if (eventExist.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT) {
+      // Check the date has passed or not
+      const datePassed = checkDateHasPassed(eventExist.rosterLock);
+      if (datePassed) {
+        const updatePromises = [];
+        for (const playerRanking of playerRankings) {
+          if (!playerRanking.rankLock) {
+            locked = true;
+            updatePromises.push(this.playerRanking.updateOne({ _id: playerRanking._id }, { $set: { rankLock: true } }));
+          }
+        }
+        if (updatePromises.length > 0) await Promise.all(updatePromises);
+      }
+    }
+    return locked;
+  }
 
   async create(rankingData: PlayerRanking) {
     const playerRanking = await this.playerRanking.create({ ...rankingData, rankings: [] });
