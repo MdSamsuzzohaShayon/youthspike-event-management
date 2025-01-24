@@ -71,3 +71,27 @@ export const rowVariant = {
     transition: { duration: 0.3, delay: index * 0.1 },
   }),
 };
+
+// Animation variants
+export const netCardVariant = {
+  enterFromRight: {
+    opacity: 0,
+    x: 300,
+  },
+  enterFromLeft: {
+    opacity: 0,
+    x: -300,
+  },
+  center: {
+    opacity: 1,
+    x: 0,
+  },
+  exitToRight: {
+    opacity: 0,
+    x: 300,
+  },
+  exitToLeft: {
+    opacity: 0,
+    x: -300,
+  },
+};

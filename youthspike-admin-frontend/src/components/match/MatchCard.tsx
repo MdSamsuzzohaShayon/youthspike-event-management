@@ -60,19 +60,28 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
 
   const teamCard = (team: ITeam, teamE: ETeam) => {
-    let pointsOfRound = 0;
+    let myPointsOfRound = 0;
+    let opPointsOfRound = 0;
+    const mE = teamE;
+    const oE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+    console.log({oE, mE});
+    
     roundList.forEach((r) => {
-      const score = calcRoundScore(allNets.filter((n) => n.round === r._id), r, teamE);
-      pointsOfRound += score;
+      const myScore = calcRoundScore(allNets.filter((n) => n.round === r._id), r, mE);
+      const opScore = calcRoundScore(allNets.filter((n) => n.round === r._id), r, oE);
+      myPointsOfRound += myScore;
+      opPointsOfRound += opScore;
     });
+    let win = myPointsOfRound > opPointsOfRound;
+    
     return (<React.Fragment>
       <div className="advanced-img w-14">
         {team?.logo
           ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" />
           : <img src='/free-logo.png' className='w-full h-full' />}
       </div>
-      <h3 className='capitalize'>{team?.name}</h3>
-      <h1 className="h-12 w-12 flex justify-center items-center rounded-full border border-gray-100">{pointsOfRound}</h1>
+      <h3 className={`capitalize ${(match.completed && win) ?"bg-green-600 text-white p-2 rounded-lg" : ""}`}>{team?.name}</h3>
+      <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${(match.completed && win) ? "bg-green-600" : "" }`}>{myPointsOfRound}</h1>
     </React.Fragment>);
   }
   
@@ -113,7 +122,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
         <div className="rounds flex flex-col justify-center items-center w-full ">
           <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
             {roundList.map((round, i) => <li key={round._id} 
-            className='w-12 flex justify-center items-center text-yellow-logo'>{`RD${match.extendedOvertime && i === (roundList.length - 1) ? "X" : round.num}`}</li>)}
+            className='w-12 flex justify-center items-center text-yellow-logo'>{match.extendedOvertime && i === (roundList.length - 1) ? "OT" : "RD"+round.num}</li>)}
           </ul>
           <div className="points-by-rounds w-full flex flex-wrap justify-center items-center">
             <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamA} />
@@ -123,7 +132,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
           </div>
         </div>
         <div className="">
-          <img src="/icons/share.svg" alt="share-icon" className="w-6 svg-white" />
+          {/* <img src="/icons/share.svg" alt="share-icon" className="w-6 svg-white" /> */}
         </div>
       </div>
       {/* ===== LEVEL 3 END ===== */}

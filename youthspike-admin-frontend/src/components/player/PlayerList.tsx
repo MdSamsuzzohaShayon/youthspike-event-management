@@ -146,8 +146,11 @@ function PlayerList({
   };
 
   useEffect(() => {
+    if(!isMounted.current && inactive && playerList){
+      setPlayers(playerList);
+      isMounted.current = true;
+    }
     if (!isMounted.current && playerList && playerList.length > 0 && playerRanking) {
-      console.log("Mounted once ->");
       const newRankingsMap = new Map();
       if (playerRanking && playerRanking.rankings.length > 0) {
         playerRanking.rankings.forEach((pr) => {
@@ -162,15 +165,15 @@ function PlayerList({
       setPlayers(playersWithRank);
       isMounted.current = true;
     }
-  }, [playerList, playerRanking]);
+  }, [playerList, playerRanking, inactive]);
 
 
   /** Memoize Sortable Initialization **/
   useEffect(() => {
     const newCanRank = (() => {
       if (!user?.info || !currEvent) return false; // Default to true if data is missing
-      if(playerRanking?.rankLock){
-        if(user.info.role === UserRole.admin || user.info.role === UserRole.director) return true;
+      if (playerRanking?.rankLock) {
+        if (user.info.role === UserRole.admin || user.info.role === UserRole.director) return true;
 
         const { role, passcode } = user.info;
         const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
@@ -209,6 +212,7 @@ function PlayerList({
 
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
+    if(inactive) return players;
 
     // if (!rankControls || !showRank) return [...players];
     // if (!playerRanking?.rankings?.length) return [];

@@ -147,6 +147,7 @@ export interface ISelectInputProps {
   lw?: string;
   rw?: string;
   extraCls?: string;
+  defaultTxt?:string;
   lblTxt?: string;
   name: string;
   vertical?: boolean;
