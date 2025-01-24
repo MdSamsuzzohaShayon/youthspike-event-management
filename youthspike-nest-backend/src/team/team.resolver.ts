@@ -497,27 +497,9 @@ export class TeamResolver {
       // getPlayer Rankings
       if (!teamExist) return AppResponse.notFound('Team');
 
-      const [eventExist, playerRankings] = await Promise.all([
-        this.eventService.findOne({ _id: teamExist.event }),
-        this.playerRankingService.find({
-          $and: [{ team: teamId }, { $or: [{ match: null }, { match: { $exists: false } }] }],
-        }),
-      ]);
-      if (eventExist.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT) {
-        // Check the date has passed or not
-        const datePassed = checkDateHasPassed(eventExist.rosterLock);
-        if (datePassed) {
-          const updatePromises = [];
-          for (const playerRanking of playerRankings) {
-            if (!playerRanking.rankLock) {
-              updatePromises.push(
-                this.playerRankingService.updateOne({ _id: playerRanking._id }, { $set: { rankLock: true } }),
-              );
-            }
-          }
-          if (updatePromises.length > 0) await Promise.all(updatePromises);
-        }
-      }
+      const locked = await this.playerRankingService.lockPlayerRanking(teamId, teamExist.event.toString());
+      console.log({ locked });
+
       return {
         code: HttpStatus.OK,
         success: true,

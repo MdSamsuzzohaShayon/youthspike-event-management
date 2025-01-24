@@ -14,21 +14,21 @@ import React, { useState, useEffect } from 'react';
  * 
  * PSG
  * Captain
- * gianluigi103
+ * gianluigi25
  * Co captain
- * marquinhos103
+ * marquinhos25
  * 
  * FC Barcelona
  * Captain
- * lionel101
+ * lionel23
  * Co captain
- * sergio101
+ * sergio23
  * 
  * Liverpool FC
  * Captain
- * virgil102
+ * virgil24
  * Co captain
- * alisson102
+ * alisson24
  */
 
 interface MatchSingleProps {

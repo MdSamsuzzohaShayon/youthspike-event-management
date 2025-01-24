@@ -6,7 +6,7 @@ import { ApolloError, useMutation } from '@apollo/client';
 import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { IError, IOption, ITeam } from '@/types';
+import { IError, IOption, IPlayerRank, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
 import { useUser } from '@/lib/UserProvider';
@@ -22,7 +22,7 @@ import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorContext';
 
 interface PlayerCardProps {
-  player: IPlayerExpRel;
+  player: IPlayerRank;
   eventId: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isChecked: boolean;
@@ -36,7 +36,7 @@ interface PlayerCardProps {
   rank?: number | null;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, rank, isChecked, handleSelectPlayer, }: PlayerCardProps) {
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, isChecked, handleSelectPlayer, }: PlayerCardProps) {
 
   const { setActErr } = useError();
 
@@ -271,9 +271,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             </div>
 
             <div className="text-box w-3/12 flex flex-col justify-center items-center">
-              {showRank && rank && (
+              {showRank && player.rank && (
                 <div className="rank-box flex flex-col items-center rounded-lg">
-                  <h3 className="bg-yellow-logo text-black px-2 flex justify-center items-center text-base">{rank}</h3>
+                  <h3 className="bg-yellow-logo text-black px-2 flex justify-center items-center text-base">{player.rank}</h3>
                   <p>Rank</p>
                 </div>
               )}
