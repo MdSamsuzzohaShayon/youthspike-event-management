@@ -132,10 +132,11 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
     dispatch(setPlayerSpot(playerSpot));
     if (net) dispatch(setSelectedNet(net));
 
+
     // Disabled players who played with him in previous round
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net });
     // eslint-disable-next-line no-unused-expressions
-    prevPartnerId ? dispatch(setPrevPartner(prevPartnerId)) : dispatch(setPrevPartner(null));
+    prevPartnerId && !currMatch?.extendedOvertime ? dispatch(setPrevPartner(prevPartnerId)) : dispatch(setPrevPartner(null));
 
     // Resetting disabled players ids
     const netPlayerIds: string[] = [];
@@ -219,9 +220,8 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
     <div
       // style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
       style={{ minHeight: '50%' }}
-      className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${
-        border.light
-      } items-center justify-start`}
+      className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${border.light
+        } items-center justify-start`}
     >
       <div className="player-pair flex justify-between w-full gap-x-1">
         <div className="player-card team-a-player-1 w-3/6 lg:w-2/6">
