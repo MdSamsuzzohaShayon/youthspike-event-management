@@ -12,6 +12,7 @@ const eventResponse = `
     homeTeam
     tieBreaking
     description
+    location
     name
     netVariance
     playerLimit

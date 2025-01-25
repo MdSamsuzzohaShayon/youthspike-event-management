@@ -141,11 +141,8 @@ function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
         <div className="container mx-auto px-4 min-h-screen">
             <h1 className="mb-8 text-center">Roster</h1>
             {/* Event Menu Start */}
-            <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+            <div className="event-and-menu p-8 rounded-lg shadow-lg">
                 {currEvent && <CurrentEvent currEvent={currEvent} />}
-                <div className="team-name text-center mt-4">
-                    {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
-                </div>
                 <div className="navigator mt-4">
                     <UserMenuList eventId={eventId} />
                 </div>

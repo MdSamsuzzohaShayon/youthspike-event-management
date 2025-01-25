@@ -180,11 +180,8 @@ function MatchesPage({ params }: { params: { eventId: string } }) {
       <motion.h1 initial={hInitial} animate={hAnimate} exit={hExit} transition={{ ...hTransition, delay: 1.2 }} className="mb-8 text-center">Matches</motion.h1>
 
       {/* Event Menu Start */}
-      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+      <div className="event-and-menu p-8 rounded-lg shadow-lg">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
-        <div className="team-name text-center mt-4">
-          {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
-        </div>
         <div className="navigator mt-4">
           <UserMenuList eventId={params.eventId} />
         </div>

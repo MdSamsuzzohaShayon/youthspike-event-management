@@ -217,7 +217,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   }, [filterParams, matchList, sortedMatchList]);
 
   return (
-    <div className="matchList w-full flex flex-col md:flex-row justify-between gap-1 flex-wrap">
+    <div className="matchList w-full flex flex-col md:flex-row justify-between gap-4 flex-wrap">
       <div className="search-filter w-full mb-8">
         <SelectInput
           name="period"

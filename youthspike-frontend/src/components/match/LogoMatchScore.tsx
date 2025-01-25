@@ -22,8 +22,8 @@ function LogoMatchScore({ dark, team, teamE, completed }: ILogoMatchScoreProps) 
   return (
     <div className={`logo-match-score py-2 flex w-full ${dark ? 'text-white flex-col' : 'text-black-logo flex-col-reverse'} gap-1`}>
       <div className="w-full flex justify-between items-center pt-4 gap-1">
-        <div className="w-3/6">
-        {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="h-24" /> : <TextImg fullText={team?.name} className="h-24" style={{ height: `${netSize.tlh}rem` }} />}
+        <div className="w-3/6 overflow-hidden">
+        {team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-full" /> : <TextImg fullText={team?.name} className="h-24" style={{ height: `${netSize.tlh}rem` }} />}
         </div>
         <div className="w-3/6 flex flex-col justify-center items-center gap-y-1">
           <h3 className="break-words w-max leading-4 uppercase font-bold text-c-sm">Match Score</h3>

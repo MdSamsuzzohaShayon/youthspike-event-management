@@ -169,23 +169,34 @@ const AdminMenu = () => {
                                 </motion.li>
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                                     <Link onClick={() => setIsMenuOpen(false)}
-                                        href={`/${eventId}/teams/${ldoIdUrl}`}
+                                        href={`/${eventId}/teamstandings/${ldoIdUrl}`}
                                         className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                                     >
-                                        <img src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
-                                        Teams
+                                        <img src="/icons/teams.svg" alt="Settings" className="w-6 mr-4 svg-white" />
+                                        Team Standings
                                     </Link>
                                 </motion.li>
                                 {user.info?.role === UserRole.admin || user.info?.role === UserRole.director && (
-                                    <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                                        <Link onClick={() => setIsMenuOpen(false)}
-                                            href={`/${eventId}/groups/${ldoIdUrl}`}
-                                            className="flex items-center text-yellow hover:text-yellow-500 transition-all"
-                                        >
-                                            <img src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
-                                            Groups
-                                        </Link>
-                                    </motion.li>
+                                    <React.Fragment>
+                                        <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
+                                            <Link onClick={() => setIsMenuOpen(false)}
+                                                href={`/${eventId}/teams/${ldoIdUrl}`}
+                                                className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                                            >
+                                                <img src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
+                                                Teams
+                                            </Link>
+                                        </motion.li>
+                                        <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
+                                            <Link onClick={() => setIsMenuOpen(false)}
+                                                href={`/${eventId}/groups/${ldoIdUrl}`}
+                                                className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                                            >
+                                                <img src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
+                                                Groups
+                                            </Link>
+                                        </motion.li>
+                                    </React.Fragment>
                                 )}
                                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                                     <Link onClick={() => setIsMenuOpen(false)}

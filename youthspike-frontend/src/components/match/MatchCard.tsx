@@ -63,7 +63,8 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
               <Image src="/free-logo.png" width={imgW.logo} height={imgW.logo} className="w-full h-full" alt="free-logo" />
             )}
           </div>
-          <h3 className={`capitalize ${match.completed && won ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
+          {/* <h3 className="text-2xl md:text-3xl font-semibold text-white capitalize text-center w-full">Barcelona FC</h3> */}
+          <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center w-full ${match.completed && won ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
           <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border ${match.completed && won ? 'bg-green-600' : ''}`}>{teamScore}</h1>
         </>
       );
@@ -128,7 +129,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     >
       {/* ===== LEVEL 1 START ===== */}
       <motion.div
-        className="level-1 w-full flex justify-center px-4 md:px-8 py-3 border-b border-yellow text-white font-bold text-lg tracking-wide"
+        className="level-1 w-full flex justify-center px-4 md:px-8 py-3 border-b-2 border-yellow-500 text-white font-bold text-lg tracking-wide"
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}

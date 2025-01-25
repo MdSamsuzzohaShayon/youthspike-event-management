@@ -256,6 +256,7 @@ type LoginUser {
   active: Boolean!
   event: String
   team: String
+  teamLogo: String
 }
 
 type LoginResponseData {

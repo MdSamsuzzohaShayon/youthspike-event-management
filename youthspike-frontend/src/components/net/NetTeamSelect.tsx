@@ -132,7 +132,6 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
     dispatch(setPlayerSpot(playerSpot));
     if (net) dispatch(setSelectedNet(net));
 
-
     // Disabled players who played with him in previous round
     const prevPartnerId = findPrevPartner({ roundList, currRound, allNets, myTeamE, net });
     // eslint-disable-next-line no-unused-expressions
@@ -220,11 +219,12 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
     <div
       // style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
       style={{ minHeight: '50%' }}
-      className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${border.light
-        } items-center justify-start`}
+      className={`net-top w-full px-2 text-center flex ${onTop ? 'flex-col bg-gradient-dark text-white' : 'flex-col-reverse bg-white text-black-logo'} border ${
+        border.light
+      } items-center justify-start`}
     >
       <div className="player-pair flex justify-between w-full gap-x-1">
-        <div className="player-card team-a-player-1 w-3/6 lg:w-2/6">
+        <div className="player-card team-a-player-1 w-3/6 md:w-24">
           <PlayerScoreCard
             onTop={onTop}
             teamPlayer={ETeamPlayer.PLAYER_A}
@@ -236,7 +236,7 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
             myTeamE={myTeamE}
           />
         </div>
-        <div className="player-card team-b-player-2 w-3/6 lg:w-2/6">
+        <div className="player-card team-b-player-2 w-3/6 md:w-24">
           <PlayerScoreCard
             onTop={onTop}
             teamPlayer={ETeamPlayer.PLAYER_B}
