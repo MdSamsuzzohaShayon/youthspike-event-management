@@ -48,7 +48,7 @@ function GroupsPage({ params }: IGroupsPageProps) {
         <div className="min-h-screen container mx-auto px-6 text-center flex flex-col">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Event Groups</h1>
             {/* Event Menu Start */}
-            <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+            <div className="event-and-menu p-8 rounded-lg shadow-lg">
                 {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
                 <div className="navigator mt-8">
                     <UserMenuList eventId={params.eventId} />

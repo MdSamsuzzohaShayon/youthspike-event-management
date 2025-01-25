@@ -132,8 +132,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       const success = handleResponse({ response: response.data.updatePlayer, setActErr });
       if (!success) return;
 
-      if (refetchFunc){
-            window.location.reload();
+      if (refetchFunc) {
+        window.location.reload();
       }
     } catch (error: any) {
       handleError({ error, setActErr });
@@ -301,34 +301,38 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
               <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' >
                 <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
-              {rankControls && player.status === EPlayerStatus.ACTIVE && (
-                <>
-                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
+              {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+                <React.Fragment>
+                  {rankControls && player.status === EPlayerStatus.ACTIVE && (
+                    <>
+                      <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
 
-                    Make Captain
+                        Make Captain
+                      </li>
+                      <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}>
+
+                        Make Co-Captain
+                      </li>
+                    </>
+                  )}
+                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={handleMovePlayerBox}>
+                    Move Player
                   </li>
-                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}>
+                  {player.status === EPlayerStatus.ACTIVE ? (
+                    <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
 
-                    Make Co-Captain
+                      Make Inactive
+                    </li>
+                  ) : (
+                    <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
+                      Make Active
+                    </li>
+                  )}
+                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleDelete(e, player._id)}>
+                    Delete
                   </li>
-                </>
+                </React.Fragment>
               )}
-              <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={handleMovePlayerBox}>
-                Move Player
-              </li>
-              {player.status === EPlayerStatus.ACTIVE ? (
-                <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
-
-                  Make Inactive
-                </li>
-              ) : (
-                <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
-                  Make Active
-                </li>
-              )}
-              <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleDelete(e, player._id)}>
-                Delete
-              </li>
             </motion.ul>
           )}
         </AnimatePresence>

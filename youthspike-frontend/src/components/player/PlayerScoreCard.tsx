@@ -117,7 +117,7 @@ function PlayerScoreCard({
 
     return (
       <div className={`bg-yellow-logo text-center text-black ${onTop ? 'rounded-b-lg' : 'rounded-t-lg'}`}>
-        <p className="rank">Rank {playerRank}</p>
+        <p className="rank"># {playerRank}</p>
         {subbedRounds && (
           <div className="relative">
             <p>{subbedRounds.map((s, i) => `S${s}${i + 1 !== subbedRounds.length ? ', ' : ''}`)}</p>

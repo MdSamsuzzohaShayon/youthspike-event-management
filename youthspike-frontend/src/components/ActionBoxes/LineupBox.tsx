@@ -36,7 +36,7 @@ function LineupBox({ otp }: IBoxProps) {
       <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
         <PointText txt={pTxt} />
         {otp === EActionProcess.LINEUP ? (
-          <h2 className="font-black text-start">Time to go PLAY. Once the games are finished, input the scores to complete round.</h2>
+          <h2 className="font-black text-start">Go Play. Placing team always picks serve or receive. Enter scores when done.</h2>
         ) : (
           // <h2 className="font-black text-start">Go Play. Placing team always picks serve or receive. Enter scores when done.</h2>
           <>

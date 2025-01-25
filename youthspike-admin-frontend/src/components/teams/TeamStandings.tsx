@@ -115,11 +115,11 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
 
       if (!scoreA || !scoreB) return 0;
 
-      // if (selectedGroup) {
-      //   if (scoreA.groupLoses !== scoreB.groupLoses) {
-      //     return scoreA.groupLoses - scoreB.groupLoses;
-      //   }
-      // }
+      if (selectedGroup) {
+        if (scoreA.groupLoses !== scoreB.groupLoses) {
+          return scoreA.groupLoses - scoreB.groupLoses;
+        }
+      }
       if (scoreA.overallLoses !== scoreB.overallLoses) {
         return scoreA.overallLoses - scoreB.overallLoses;
       }

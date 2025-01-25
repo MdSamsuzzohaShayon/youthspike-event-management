@@ -117,10 +117,10 @@ function MatchList({ matchList }: IMatchListProps) {
 
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
-      <SelectInput lblTxt="Match Filter" name="matchFilter" optionList={filterOptions.map((o) => ({ text: o.text.replace(/_/g, ' '), value: o.text }))} handleSelect={handleMatchFilter} />
+      <SelectInput lblTxt="Match Filter" name="matchFilter" optionList={filterOptions.map((o) => ({ text: o.text, value: o.text }))} handleSelect={handleMatchFilter} />
       {filteredMatchList &&
         filteredMatchList.map((match) => (
-          // @ts-ignore
+          // @ts-ignore 
           <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} allNets={match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []} />
         ))}
     </div>

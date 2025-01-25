@@ -98,7 +98,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       </motion.h1>
 
       {/* Event Menu Start */}
-      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+      {/* <div className="event-and-menu p-8 rounded-lg shadow-lg">
         {prevEvent && <CurrentEvent currEvent={prevEvent} />}
         <div className="team-name text-center mt-4">
           {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
@@ -106,7 +106,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
         <div className="navigator mt-4">
           <UserMenuList eventId={params.eventId} />
         </div>
-      </div>
+      </div> */}
       {/* Event Menu End */}
 
       {/* Main Content */}

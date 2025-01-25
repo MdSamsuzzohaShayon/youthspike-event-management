@@ -29,6 +29,9 @@ class LoginUser extends UserBase {
   team?: string;
 
   @Field((type) => String, { nullable: true })
+  teamLogo?: string;
+
+  @Field((type) => String, { nullable: true })
   captainplayer?: string;
 
   @Field((type) => String, { nullable: true })
@@ -97,20 +100,19 @@ export class UserResolver {
       const userObj = existingUser._doc;
       delete userObj.password;
 
-      if (userObj.role === UserRole.captain && userObj.captainplayer) {
-        const teamWithCaptain = await this.teamService.findOne({ captain: userObj.captainplayer.toString() });
-        if (teamWithCaptain) {
-          userObj.event = teamWithCaptain.event;
-          userObj.team = teamWithCaptain.name;
-        }
-      }
+      const roleMapping = {
+        [UserRole.captain]: 'captainplayer',
+        [UserRole.co_captain]: 'cocaptainplayer',
+      };
 
-      if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
-        // Fix updating co-captain and captain -> must have co-captain as co-captain player
-        const teamWithCoCaptain = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer.toString() });
-        if (teamWithCoCaptain) {
-          userObj.event = teamWithCoCaptain.event;
-          userObj.team = teamWithCoCaptain.name;
+      const roleKey = roleMapping[userObj.role];
+
+      if (roleKey && userObj[roleKey]) {
+        const team = await this.teamService.findOne({ [userObj.role]: userObj[roleKey].toString() });
+        if (team) {
+          userObj.event = team.event;
+          userObj.team = team.name;
+          userObj.teamLogo = team.logo;
         }
       }
 

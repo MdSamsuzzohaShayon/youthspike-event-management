@@ -193,7 +193,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
     <div className="container mx-auto px-4 min-h-screen">
       <h1 className="mb-8 text-center">Roster</h1>
       {/* Event Menu Start */}
-      <div className="event-and-menu bg-gray-800 p-8 rounded-lg shadow-lg">
+      <div className="event-and-menu p-8 rounded-lg shadow-lg">
         {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
         <div className="team-name text-center">
           {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
