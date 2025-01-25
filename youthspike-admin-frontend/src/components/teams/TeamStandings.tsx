@@ -24,18 +24,18 @@ PSG
 
 */
 
-function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
+function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
 
   /**
    * Memoized Map of Matches by Team ID
    */
   const matchesByTeam = useMemo(() => {
-    const map = new Map<string, IMatchExpRel[]>();
+    const map = new Map<string, IMatch[]>();
 
     if (matchList) {
       for (const match of matchList) {
-        if(match.completed){
+        if (match.completed) {
           if (match.teamA?._id) {
             if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
             map.get(match.teamA._id)?.push(match);
@@ -78,6 +78,7 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
 
       for (const match of teamMatches) {
         const isTeamA = match.teamA._id === team._id;
+        // @ts-ignore
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
 
         totalMatchDiff += teamScore - oponentScore;
@@ -108,35 +109,47 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
    */
   const sortedTeams = useMemo(() => {
     if (!teamList || teamScores.size === 0) return [];
-
+  
     return [...teamList].sort((teamA, teamB) => {
       const scoreA = teamScores.get(teamA._id);
       const scoreB = teamScores.get(teamB._id);
-
+  
       if (!scoreA || !scoreB) return 0;
-
+  
       if (selectedGroup) {
+        // Sorting by Group Wins first
+        if (scoreA.groupWins !== scoreB.groupWins) {
+          return scoreB.groupWins - scoreA.groupWins;  // Higher group wins go up
+        }
+        // If Group Wins are tied, sort by Group Losses (lower group losses go up)
         if (scoreA.groupLoses !== scoreB.groupLoses) {
-          return scoreA.groupLoses - scoreB.groupLoses;
+          return scoreA.groupLoses - scoreB.groupLoses;  // Lower group losses go up
+        }
+      } else {
+        // Sorting by Overall Wins first
+        if (scoreA.overallWins !== scoreB.overallWins) {
+          return scoreB.overallWins - scoreA.overallWins;  // Higher overall wins go up
+        }
+        // If Overall Wins are tied, sort by Overall Losses (lower overall losses go up)
+        if (scoreA.overallLoses !== scoreB.overallLoses) {
+          return scoreA.overallLoses - scoreB.overallLoses;  // Lower overall losses go up
         }
       }
-      if (scoreA.overallLoses !== scoreB.overallLoses) {
-        return scoreA.overallLoses - scoreB.overallLoses;
-      }
+  
+      // If the above criteria are tied, sort by matchAvgDiff (higher matchAvgDiff goes up)
       if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
         return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
       }
+  
+      // If the matchAvgDiff is also tied, sort by gameAvgDiff (higher gameAvgDiff goes up)
       if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
         return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
       }
-
-      return 0;
+  
+      return 0;  // If all criteria are equal, retain the original order
     });
-  }, [
-    teamList,
-    teamScores,
-    // selectedGroup
-  ]);
+  }, [teamList, teamScores, selectedGroup]);  // Re-run when teamList, teamScores, or selectedGroup change
+  
 
   /**
    * Trigger Calculations on Dependency Changes
@@ -146,11 +159,11 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
   }, [calculateTeamScore]);
 
   return (
-    <div className="teamList w-full flex flex-col lg:gap-4 shadow-lg">
+    <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
       <div className="overflow-x-auto">
-        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]" variants={tableVariant} initial="hidden" animate="visible">
-          <thead className="bg-gray-700 text-white">
-            <tr>
+        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
+          <thead>
+            <tr className="bg-yellow-500 text-black font-semibold">
               <th className="py-3 px-2">Team</th>
               {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Overall</th>
@@ -160,7 +173,7 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
           </thead>
           <tbody>
             {sortedTeams.map((team, index) => (
-              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} eventId={eventId} />
+              <TeamRow eventId={eventId} selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
             ))}
           </tbody>
         </motion.table>
@@ -169,4 +182,4 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
   );
 }
 
-export default TeamStandings;
+export default TeamStandingsPage;
