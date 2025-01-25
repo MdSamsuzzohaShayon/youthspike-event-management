@@ -53,9 +53,16 @@ ___
       
 
 ### Requirements 
- - Sorting matches
-  - Incompleted matches -> M1, m2, m3,
-  - Completed matches -> M1, m2, m3
+ - Sorting matches -> group selected
+ - Resize logos
+ - Make it faster
+ - DIvision and group select input (taking multiple times to click)
+ - Team name change (bg color in the match)
+ - Nginx load balancing
+ - Node.js module (Clusters)
+ - Increase capacity of RAM and CPUs
+
+
  - Make group filter for admin
  - Optimize assign strategies
  - Matches should be filtered by group in matches and players

@@ -64,7 +64,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             )}
           </div>
           {/* <h3 className="text-2xl md:text-3xl font-semibold text-white capitalize text-center w-full">Barcelona FC</h3> */}
-          <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center w-full ${match.completed && won ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
+          <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && won ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
           <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border ${match.completed && won ? 'bg-green-600' : ''}`}>{teamScore}</h1>
         </>
       );

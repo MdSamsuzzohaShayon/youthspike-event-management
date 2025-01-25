@@ -116,35 +116,47 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
    */
   const sortedTeams = useMemo(() => {
     if (!teamList || teamScores.size === 0) return [];
-
+  
     return [...teamList].sort((teamA, teamB) => {
       const scoreA = teamScores.get(teamA._id);
       const scoreB = teamScores.get(teamB._id);
-
+  
       if (!scoreA || !scoreB) return 0;
-
-      // if (selectedGroup) {
-      //   if (scoreA.groupLoses !== scoreB.groupLoses) {
-      //     return scoreA.groupLoses - scoreB.groupLoses;
-      //   }
-      // }
-      if (scoreA.overallLoses !== scoreB.overallLoses) {
-        return scoreA.overallLoses - scoreB.overallLoses;
+  
+      if (selectedGroup) {
+        // Sorting by Group Wins first
+        if (scoreA.groupWins !== scoreB.groupWins) {
+          return scoreB.groupWins - scoreA.groupWins;  // Higher group wins go up
+        }
+        // If Group Wins are tied, sort by Group Losses (lower group losses go up)
+        if (scoreA.groupLoses !== scoreB.groupLoses) {
+          return scoreA.groupLoses - scoreB.groupLoses;  // Lower group losses go up
+        }
+      } else {
+        // Sorting by Overall Wins first
+        if (scoreA.overallWins !== scoreB.overallWins) {
+          return scoreB.overallWins - scoreA.overallWins;  // Higher overall wins go up
+        }
+        // If Overall Wins are tied, sort by Overall Losses (lower overall losses go up)
+        if (scoreA.overallLoses !== scoreB.overallLoses) {
+          return scoreA.overallLoses - scoreB.overallLoses;  // Lower overall losses go up
+        }
       }
+  
+      // If the above criteria are tied, sort by matchAvgDiff (higher matchAvgDiff goes up)
       if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
         return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
       }
+  
+      // If the matchAvgDiff is also tied, sort by gameAvgDiff (higher gameAvgDiff goes up)
       if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
         return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
       }
-
-      return 0;
+  
+      return 0;  // If all criteria are equal, retain the original order
     });
-  }, [
-    teamList,
-    teamScores,
-    // selectedGroup
-  ]);
+  }, [teamList, teamScores, selectedGroup]);  // Re-run when teamList, teamScores, or selectedGroup change
+  
 
   /**
    * Trigger Calculations on Dependency Changes

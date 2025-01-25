@@ -80,7 +80,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
           ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" />
           : <img src='/free-logo.png' className='w-full h-full' />}
       </div>
-      <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center w-full ${(match.completed && win) ?"bg-green-600 text-white" : ""}`}>{team?.name}</h3>
+      <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${(match.completed && win) ?"bg-green-600 text-white p-2 rounded-lg" : ""}`}>{team?.name}</h3>
       <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${(match.completed && win) ? "bg-green-600" : "" }`}>{myPointsOfRound}</h1>
     </React.Fragment>);
   }
