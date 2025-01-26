@@ -1,3 +1,4 @@
+
 import { OnModuleInit } from '@nestjs/common';
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
@@ -995,3 +996,4 @@ export class MyGatWay implements OnModuleInit {
     this.server.emit('event-created-from-server', eventData);
   }
 }
+
