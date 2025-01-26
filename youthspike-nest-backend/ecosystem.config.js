@@ -1,4 +1,3 @@
-/*
 module.exports = {
     apps: [
       {
@@ -17,8 +16,9 @@ module.exports = {
       },
     ],
   };
-*/
 
+
+  /*
 // Clustering -> use this is there is no PM2 -> PM@ provides the same features
 module.exports = {
   apps: [
@@ -39,3 +39,6 @@ module.exports = {
     },
   ],
 };
+*/
+
+
