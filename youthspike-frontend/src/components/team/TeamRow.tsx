@@ -27,7 +27,13 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
       <td className="py-3 px-2 flex justify-start items-center md:text-start gap-x-2 text-center">
         <span>{index + 1}</span>
         <Link href={`/teams/${team._id}`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
-          <span>{team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-fit md:w-14 h-14 md:h-fit" /> : <TextImg fullText={team?.name} className="w-14" />}</span>
+          <span>
+            {team?.logo ? (
+              <AdvancedImage cldImg={cld.image(team.logo)} className="w-14 h-14 object-fit object-cover" />
+            ) : (
+              <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
+            )}
+          </span>
           {team.name}
         </Link>
       </td>

@@ -26,12 +26,18 @@ function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowPr
       animate="visible"
     >
       <td className="py-3 px-2 flex items-center gap-x-2">
-        <span>
-          {index + 1}
-        </span>
-        <Link href={`/${eventId}/teams/${team._id}`} className="flex justify-start items-center gap-2">
-          <span>{team?.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="h-10 w-10" /> : <TextImg fullText={team?.name} className="h-10 w-10" />}</span>
-          {team.name}
+          <span>{index + 1}</span>
+        <Link href={`/${eventId}/teams/${team._id}`} className="flex justify-center items-center gap-2">
+          <Link href={`/teams/${team._id}`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
+            <span>
+              {team?.logo ? (
+                <AdvancedImage cldImg={cld.image(team.logo)} className="w-14 h-14 object-fit object-cover" />
+              ) : (
+                <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
+              )}
+            </span>
+            {team.name}
+          </Link>
         </Link>
       </td>
       {selectedGroup && <td className="py-3 px-2">{teamScores && `${teamScores.groupWins}-${teamScores.groupLoses}`}</td>}

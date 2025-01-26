@@ -118,18 +118,18 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
   
       if (selectedGroup) {
         // Sorting by Group Wins first
-        if (scoreA.groupWins !== scoreB.groupWins) {
-          return scoreB.groupWins - scoreA.groupWins;  // Higher group wins go up
-        }
+        // if (scoreA.groupWins !== scoreB.groupWins) {
+        //   return scoreB.groupWins - scoreA.groupWins;  // Higher group wins go up
+        // }
         // If Group Wins are tied, sort by Group Losses (lower group losses go up)
         if (scoreA.groupLoses !== scoreB.groupLoses) {
           return scoreA.groupLoses - scoreB.groupLoses;  // Lower group losses go up
         }
       } else {
         // Sorting by Overall Wins first
-        if (scoreA.overallWins !== scoreB.overallWins) {
-          return scoreB.overallWins - scoreA.overallWins;  // Higher overall wins go up
-        }
+        // if (scoreA.overallWins !== scoreB.overallWins) {
+        //   return scoreB.overallWins - scoreA.overallWins;  // Higher overall wins go up
+        // }
         // If Overall Wins are tied, sort by Overall Losses (lower overall losses go up)
         if (scoreA.overallLoses !== scoreB.overallLoses) {
           return scoreA.overallLoses - scoreB.overallLoses;  // Lower overall losses go up
