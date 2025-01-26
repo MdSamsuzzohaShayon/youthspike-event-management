@@ -68,3 +68,14 @@ export function isISODateString(dateString) {
   return !isNaN(date.getTime());
 }
 
+export function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long', // Literal type: 'long', 'short', or 'narrow'
+      year: 'numeric', // Literal type: 'numeric' or '2-digit'
+      month: 'long', // Literal type: 'long', 'short', 'narrow', 'numeric', or '2-digit'
+      day: '2-digit', // Literal type: 'numeric' or '2-digit'
+  };
+  return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+

@@ -16,6 +16,12 @@ interface ITemplateGenerateParams {
   event_date: string;
   eventId: string;
   ldoIdUrl: string;
+
+  ldo_director_name: string;
+  roster_lock_date: string;
+  event_name: string;
+  frontend_url: string;
+
   fwango_link?: string | null;
   ldo_phone?: string | null;
 }
@@ -35,9 +41,7 @@ interface ITemplateInfoParams {
 @Injectable()
 export class EmailsenderService {
   private transporter;
-  constructor(
-    private configService: ConfigService,
-  ) {
+  constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -55,6 +59,12 @@ export class EmailsenderService {
     ldo_name,
     director_email,
     captain_name,
+
+    ldo_director_name,
+    roster_lock_date,
+    event_name,
+    frontend_url,
+
     event_date,
     fwango_link,
     ldo_phone,
@@ -77,18 +87,32 @@ export class EmailsenderService {
     const clientUrl = `${ADMIN_CLIENT_URL}/${eventId}/matches/${ldoIdUrl}`;
 
     // Replace placeholders with actual values
-    const replacedHtmlContent = htmlContent
-      .replace('{{admin_client_url}}', clientUrl)
-      .replace('{{player_username}}', player_username)
-      .replace('{{player_password}}', coach_password)
-      .replace('{{ldo_name}}', ldo_name)
+    const replacements = {
+      '{{admin_client_url}}': ADMIN_CLIENT_URL,
+      '{{player_username}}': player_username,
+      '{{player_password}}': coach_password,
+      '{{ldo_name}}': ldo_name,
+      '{{ldo_director_name}}': ldo_director_name,
+      '{{roster_lock_date}}': roster_lock_date,
+      '{{event_name}}': event_name,
+      '{{frontend_url}}': frontend_url,
+      '{{ldo_email}}': director_email,
+      '{{ldo_phone}}': organized_ldo_phone,
+      '{{event_date}}': event_date,
+      '{{fwango_url}}': FWANGO_URL,
+      '{{american_spikers_url}}': AMERICAN_SPIKERS_URL,
+      '{{captain}}': captain_name,
+    };
+    
+    let replacedHtmlContent = htmlContent;
+    
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      // Use global regex to replace all occurrences of the placeholder
+      const regex = new RegExp(placeholder, 'g');
+      replacedHtmlContent = replacedHtmlContent.replace(regex, value);
+    }
+    
 
-      .replace('{{ldo_email}}', director_email)
-      .replace('{{ldo_phone}}', organized_ldo_phone)
-      .replace('{{event_date}}', event_date)
-      .replace('{{fwango_url}}', FWANGO_URL)
-      .replace('{{american_spikers_url}}', AMERICAN_SPIKERS_URL)
-      .replace('{{captain}}', captain_name);
     return replacedHtmlContent;
   }
 
@@ -99,6 +123,12 @@ export class EmailsenderService {
     player_username,
     coach_password,
     ldo_name,
+
+    ldo_director_name,
+    roster_lock_date,
+    event_name,
+    frontend_url,
+
     director_email,
     captain_name,
     event_date,
@@ -116,6 +146,12 @@ export class EmailsenderService {
         director_email,
         captain_name,
         event_date,
+
+        ldo_director_name,
+        roster_lock_date,
+        event_name,
+        frontend_url,
+
         fwango_link,
         ldo_phone,
         eventId,

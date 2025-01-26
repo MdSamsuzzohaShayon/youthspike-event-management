@@ -12,7 +12,8 @@ import { UserService } from 'src/user/user.service';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
-import { tokenToUser } from 'src/util/helper';
+import { formatDate, isISODateString, tokenToUser } from 'src/util/helper';
+import { ERosterLock } from 'src/event/event.schema';
 
 @Resolver()
 export class EmailsenderResolver {
@@ -140,6 +141,14 @@ export class EmailsenderResolver {
               player_username: playerExist.username,
               coach_password: eventExist.coachPassword,
               ldo_name: ldoExist.name,
+
+              ldo_director_name: directorExist.firstName + ' ' + directorExist.lastName,
+              roster_lock_date: isISODateString(eventExist.rosterLock)
+                ? formatDate(eventExist.rosterLock)
+                : eventExist.rosterLock,
+              event_name: eventExist.name,
+              frontend_url: this.configService.get<string>('CLIENT_URL'),
+
               director_email: directorExist.email,
               captain_name: playerExist.firstName,
               event_date: eventDateFormatted,
