@@ -41,7 +41,7 @@ export class UserService {
     role: UserRole,
   ): Promise<User> {
     const userObj = {
-      email: playerUsername,
+      email: playerUsername.replace(/\s+/g, ''),
       password: eventExist.coachPassword,
       firstName: playerExist.firstName,
       lastName: playerExist.lastName,

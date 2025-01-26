@@ -20,7 +20,6 @@ function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowPr
     <motion.tr
       key={team._id}
       className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all"
-      custom={index} // Pass index for dynamic delay
       variants={rowVariant}
       initial="hidden"
       animate="visible"

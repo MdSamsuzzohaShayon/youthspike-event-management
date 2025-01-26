@@ -16,7 +16,6 @@ import EmailInput from '../elements/forms/EmailInput';
 import SelectInput from '../elements/forms/SelectInput';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
-import CheckboxInput from '../elements/forms/CheckboxInput';
 import { AnimatePresence, motion } from 'framer-motion';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorContext';

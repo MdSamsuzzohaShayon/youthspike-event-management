@@ -275,6 +275,7 @@ ___
  - Install git, nodejs, mongodb
 
 ### Speed Up
+ - Run both next.js server with one node_modules file (So I do not need to install those multiple times)
  - Server optimization, 
  - Caching strategies, and 
  - Content delivery networks (CDNs) can also significantly impact the server's ability to handle traffic. 
