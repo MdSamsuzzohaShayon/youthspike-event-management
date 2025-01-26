@@ -53,6 +53,11 @@ ___
       
 
 ### Requirements 
+ - So I think as far as list goes- 
+  1.) loading speed on public view standings, 
+  2.) in phone mostly having to hit a button up to 10 times, 
+  3.) logo presentation on public view standings (group and all). 
+  4.) And then standings ranking by losses first.
  - Sorting matches -> group selected
  - Resize logos
  - Make it faster

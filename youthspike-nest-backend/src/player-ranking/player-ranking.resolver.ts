@@ -76,7 +76,13 @@ export class PlayerRankingResolver {
         }
       }
 
-      const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
+      const playerRankings = await this.playerRankingService.find({
+        team: teamId,
+        $or: [
+          { match: { $exists: false } }, // `match` is undefined
+          { match: null }, // `match` is null
+        ],
+      });
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
 
       const updatePromises = [];
