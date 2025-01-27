@@ -168,6 +168,8 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     setCardResponsiveH(openMoveTeam ? { minHeight: cardHeight } : { height: cardHeight });
   }, [openMoveTeam]);
 
+  
+
   return (
     <div className="team-card w-full bg-gray-800 text-white rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 relative">
@@ -198,7 +200,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
                 onClick={(e) => handleSendCredential(e, team._id)}
                 className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
               >
-                <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />{' '}
+                <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={16} height={16} />{' '}
                 {team.sendCredentials ? 'Resend' : 'Send'} Credential
               </li>
               <li
@@ -313,7 +315,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             alt="Send Email"
             width={20}
             height={20}
-            className={`cursor-pointer ${team.sendCredentials ? 'text-green-400' : 'text-white'} opacity-80 hover:opacity-100`}
+            className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100`}
           />
         </div>
       </div>
