@@ -75,7 +75,7 @@ export class EmailsenderResolver {
       if (!eventExist) {
         return AppResponse.notFound('Event');
       }
-      const subject = `Credentials for ${eventExist.name}`;
+      const subject = `${eventExist.name} Captain's Login Credentials & Rankings`;
       const htmlFileName = 'send-credentials.html';
 
       const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
