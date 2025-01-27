@@ -362,14 +362,6 @@ type GetNetResponse {
   data: Net!
 }
 
-type NetAssign {
-  _id: String!
-  teamAPlayerA: String
-  teamAPlayerB: String
-  teamBPlayerA: String
-  teamBPlayerB: String
-}
-
 type NetPointsAssign {
   _id: String!
   teamAScore: Float
@@ -381,13 +373,6 @@ type RoundResoponse {
   teamAScore: Float
   teamBScore: Float
   completed: Boolean!
-}
-
-type RoomRoundProcess {
-  _id: String!
-  num: Float!
-  teamAProcess: String!
-  teamBProcess: String!
 }
 
 type GetDirectorLDOResponse {
