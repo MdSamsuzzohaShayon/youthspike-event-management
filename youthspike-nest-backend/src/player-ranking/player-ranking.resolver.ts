@@ -65,7 +65,7 @@ export class PlayerRankingResolver {
           const currentDateTime = new Date();
           if (currentDateTime > lastDate) {
             // if date has passed, check for passcode
-            const adminOrDirectorPasscode = 'KjhjSu23ii';
+            const adminOrDirectorPasscode = null;
             if (!adminOrDirectorPasscode) {
               return AppResponse.handleError({
                 statusCode: HttpStatus.NOT_ACCEPTABLE,

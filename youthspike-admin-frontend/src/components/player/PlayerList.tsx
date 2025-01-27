@@ -20,7 +20,7 @@ import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
 import { useMutation } from '@apollo/client';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
-import { handleError } from '@/utils/handleError';
+import { handleError, handleResponse } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { getRankedPlayers } from '@/utils/helper';
@@ -97,7 +97,10 @@ function PlayerList({
     // if (!rankControls) return;
     if (upr.length > 0) {
       try {
-        await mutatePlayerRanking({ variables: { teamId, input: upr } });
+        const rankingRes = await mutatePlayerRanking({ variables: { teamId, input: upr } });
+        
+        const success = handleResponse({response: rankingRes?.data?.updatePlayerRanking, setActErr});
+        console.log({success, rankingRes});        
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
@@ -116,7 +119,8 @@ function PlayerList({
       console.log(`Moved from ${oldIndex} to ${newIndex}`);
 
       // Moving player one index to another index
-      const sortedPlayers = [...players];
+      let sortedPlayers = [...players];
+      sortedPlayers = sortedPlayers.sort((a, b) => (a.rank && b.rank) ? a.rank - b.rank : 0)
       const [movedItem] = sortedPlayers.splice(oldIndex, 1);
       sortedPlayers.splice(newIndex, 0, movedItem);
 
@@ -163,6 +167,8 @@ function PlayerList({
         playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
       });
       setPlayers(playersWithRank);
+      console.log({msg: "PlayerList when event mount: ",playersWithRank});
+      
       isMounted.current = true;
     }
   }, [playerList, playerRanking, inactive]);

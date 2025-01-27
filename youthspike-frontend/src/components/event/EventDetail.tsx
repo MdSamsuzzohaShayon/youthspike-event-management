@@ -45,7 +45,14 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
   const divisionList = useMemo(() => divisionsToOptionList(event.divisions || []), [event.divisions]);
-  const groupList = useMemo(() => event.groups || [], [event.groups]);
+  const groupList = useMemo(() => {
+    if (!currDivision || currDivision === '') {
+      // If currDivision is null or empty string, return the entire group list
+      return event.groups || [];
+    }
+    // Filter groups based on the division
+    return (event.groups || []).filter((group) => group.division?.trim().toLowerCase() === currDivision.trim().toLowerCase());
+  }, [event.groups, currDivision]);
 
   const filteredData = useMemo(() => {
     const filterByDivision = (item: { division?: string }) => (currDivision ? item.division?.trim().toLowerCase() === currDivision.trim().toLowerCase() : true);
@@ -126,6 +133,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
             key="d-i-1"
             handleSelect={(e) => setCurrDivision(e.target.value)}
             defaultTxt="Select division"
+            defaultValue=""
             name="division"
             optionList={divisionList}
             lblTxt="Division"
@@ -138,6 +146,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
             key="g-i-1"
             handleSelect={(e) => setSelectedGroup(e.target.value || null)}
             defaultTxt="Overall"
+            defaultValue=""
             name="group"
             optionList={groupList.map((g) => ({ value: g._id, text: g.name }))}
             lblTxt="Group"

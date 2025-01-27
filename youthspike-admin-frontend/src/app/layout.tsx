@@ -17,7 +17,7 @@ import Message from '@/components/elements/Message';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Youthspike - administration',
+  title: 'Asl - admin',
   description: 'The purpose of Youthspike is to serve as a comprehensive and user-friendly platform for the management of sports leagues, events, teams, matches, and players. ',
 }
 

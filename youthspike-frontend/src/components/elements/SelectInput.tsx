@@ -19,11 +19,6 @@ interface ISelectInputProps {
 function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name, defaultTxt, vertical = false, optionList, defaultValue, handleSelect }: ISelectInputProps) {
   const selectStyle: React.CSSProperties = !rw ? { width: '19%' } : {};
 
-  // eslint-disable-next-line no-unused-vars
-  const [defaultSelected, setDefaultSelected] = useState<string>(() => {
-    return optionList.length > 0 ? optionList[0].value : '';
-  });
-
   return (
     <div className={`input-group mt-4 w-full flex ${vertical ? 'flex-col' : 'flex-row'} justify-between items-center ${extraCls}`}>
       <label htmlFor={name} className={`capitalize ${vertical ? 'w-full' : ''} ${lw}`}>
@@ -33,7 +28,7 @@ function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name
         onChange={handleSelect}
         name={name}
         id={name}
-        defaultValue={defaultValue || defaultSelected}
+        defaultValue={defaultValue}
         className={`form-control capitalize ${vertical ? 'w-full' : ''} ${rw} max-w-full`}
         style={vertical ? {} : selectStyle}
       >
