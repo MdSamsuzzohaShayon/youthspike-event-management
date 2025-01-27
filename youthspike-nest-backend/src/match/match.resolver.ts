@@ -137,7 +137,7 @@ export class MatchResolver {
         description: input.description ?? eventExist.description,
         location: input.location ?? eventExist.location,
         fwango: input.fwango ?? eventExist.fwango,
-        extendedOvertime: false
+        extendedOvertime: false,
       };
 
       // Create a new room
@@ -149,8 +149,20 @@ export class MatchResolver {
 
       // ===== Create new ranking for team A and team B =====
       const [teamARanking, teamBRanking] = await Promise.all([
-        this.playerRankingService.findOne({ team: input.teamA }),
-        this.playerRankingService.findOne({ team: input.teamB }),
+        this.playerRankingService.findOne({
+          team: input.teamA,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
+        this.playerRankingService.findOne({
+          team: input.teamB,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
       ]);
       if (!teamARanking || !teamBRanking) return AppResponse.notFound('Player Ranking');
 

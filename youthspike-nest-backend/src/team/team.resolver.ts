@@ -222,7 +222,7 @@ export class TeamResolver {
         const playerExist = await this.playerService.findById(input.captain.toString());
 
         if (playerExist) {
-          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
+          const newUsername = playerExist.firstName.trim().toLowerCase() + teamExist.num.toString();
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -546,7 +546,13 @@ export class TeamResolver {
   @ResolveField(() => [PlayerRankingItem]) // Specify the return type as an array of PlayerRankingItem
   async rankings(@Parent() team: Team): Promise<PlayerRankingItem[]> {
     try {
-      const pr = await this.playerRankingService.findOne({ rankLock: false, team: team._id });
+      const pr = await this.playerRankingService.findOne({
+        $or: [
+          { match: { $exists: false } }, // `match` is undefined
+          { match: null }, // `match` is null
+        ],
+        team: team._id,
+      });
       const rankingItems = await this.playerRankingService.findItems({ _id: { $in: pr.rankings } });
 
       // Ensure rank is not null for any item

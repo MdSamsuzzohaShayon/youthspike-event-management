@@ -88,7 +88,7 @@ export class EmailsenderService {
 
     // Replace placeholders with actual values
     const replacements = {
-      '{{admin_client_url}}': ADMIN_CLIENT_URL,
+      '{{admin_client_url}}': clientUrl,
       '{{player_username}}': player_username,
       '{{player_password}}': coach_password,
       '{{ldo_name}}': ldo_name,
