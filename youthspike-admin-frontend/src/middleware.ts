@@ -16,6 +16,8 @@ export const config = {
 
 function handleUnauthenticated(request: NextRequest, pathname: string) {
   const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
+  
+  
 
   // if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
   //   return NextResponse.redirect(new URL('/login', request.url).toString());

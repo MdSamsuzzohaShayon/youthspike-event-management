@@ -53,6 +53,11 @@ ___
       
 
 ### Requirements 
+ - Email seing and staying at position
+ - Roster lock and change to matches component
+ - Make username unique
+ - When making co-captain make sure he is not captain of any other team
+ 
  - So I think as far as list goes- 
   1.) loading speed on public view standings, 
   2.) in phone mostly having to hit a button up to 10 times, 

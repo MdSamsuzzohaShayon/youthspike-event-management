@@ -6,8 +6,8 @@ import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
+// import { createAdapter } from '@socket.io/redis-adapter';
+// import { createClient } from 'redis';
 
 
 enum EEnv {
@@ -21,20 +21,20 @@ export const NODE_ENV: EEnv = EEnv.development;
 
 
 export class RedisIoAdapter extends IoAdapter {
-  private adapterConstructor: ReturnType<typeof createAdapter>;
+  // private adapterConstructor: ReturnType<typeof createAdapter>;
 
-  async connectToRedis(): Promise<void> {
-    const pubClient = createClient({ url: `redis://localhost:6379` });
-    const subClient = pubClient.duplicate();
+  // async connectToRedis(): Promise<void> {
+  //   const pubClient = createClient({ url: `redis://localhost:6379` });
+  //   const subClient = pubClient.duplicate();
 
-    await Promise.all([pubClient.connect(), subClient.connect()]);
+  //   await Promise.all([pubClient.connect(), subClient.connect()]);
 
-    this.adapterConstructor = createAdapter(pubClient, subClient);
-  }
+  //   this.adapterConstructor = createAdapter(pubClient, subClient);
+  // }
 
   createIOServer(port: number, options?: ServerOptions): any {
     const server = super.createIOServer(port, options);
-    server.adapter(this.adapterConstructor);
+    // server.adapter(this.adapterConstructor);
     return server;
   }
 }
@@ -43,9 +43,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Set up redis adapter
-  const redisIoAdapter = new RedisIoAdapter(app);
-  await redisIoAdapter.connectToRedis();
-  app.useWebSocketAdapter(redisIoAdapter);
+  // const redisIoAdapter = new RedisIoAdapter(app);
+  // await redisIoAdapter.connectToRedis();
+  // app.useWebSocketAdapter(redisIoAdapter);
 
   let origin = ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
   if (NODE_ENV === EEnv.production) {

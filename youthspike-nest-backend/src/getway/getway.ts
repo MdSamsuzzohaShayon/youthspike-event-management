@@ -16,8 +16,8 @@ export class MyGatWay implements OnModuleInit, OnModuleDestroy {
 
   private roomsLocal = new Map<string, any>(); // Replace 'any' with a type for better typing
   private clientList = new Map<string, any>(); // Replace 'any' with a type for better typing
-  private pubClient: Cluster;
-  private subClient: Cluster;
+  // private pubClient: Cluster;
+  // private subClient: Cluster;
 
   constructor(
     private readonly roomService: RoomService,
@@ -28,18 +28,18 @@ export class MyGatWay implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     try {
       // Initialize Redis Cluster
-      this.pubClient = new Cluster([
-        { host: 'localhost', port: 7000 },
-        { host: 'localhost', port: 7001 },
-        { host: 'localhost', port: 7002 },
-      ]);
-      this.subClient = this.pubClient.duplicate();
+      // this.pubClient = new Cluster([
+      //   { host: 'localhost', port: 7000 },
+      //   { host: 'localhost', port: 7001 },
+      //   { host: 'localhost', port: 7002 },
+      // ]);
+      // this.subClient = this.pubClient.duplicate();
 
-      // Wait for clients to connect
-      await Promise.all([this.pubClient.connect(), this.subClient.connect()]);
+      // // Wait for clients to connect
+      // await Promise.all([this.pubClient.connect(), this.subClient.connect()]);
 
       // Set Redis Adapter
-      this.server.adapter(createAdapter(this.pubClient, this.subClient));
+      // this.server.adapter(createAdapter(this.pubClient, this.subClient));
 
       // Handle new client connection
       this.server.on('connection', (socket: Socket) => {
@@ -53,8 +53,8 @@ export class MyGatWay implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     // Disconnect Redis clients on application shutdown
-    if (this.pubClient) await this.pubClient.quit();
-    if (this.subClient) await this.subClient.quit();
+    // if (this.pubClient) await this.pubClient.quit();
+    // if (this.subClient) await this.subClient.quit();
   }
 
   handleConnection(client: Socket) {

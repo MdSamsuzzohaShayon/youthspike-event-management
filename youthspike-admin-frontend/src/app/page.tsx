@@ -143,6 +143,7 @@ function EventsPage() {
   const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
     e.preventDefault();
     try {
+      setIsLoading(true);
       const eventResponse = await deleteEvent({ variables: { eventId } });
       if (eventResponse.data.deleteEvent.success !== true) {
         setActErr({ code: eventResponse.data.deleteEvent.code, message: eventResponse.data.deleteEvent.message, success: false })
@@ -150,6 +151,8 @@ function EventsPage() {
       }
     } catch (error) {
       console.log(error);
+    }finally{
+      setIsLoading(false);
     }
     await fetchLDO();
   };

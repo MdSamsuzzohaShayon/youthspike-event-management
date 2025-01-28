@@ -90,6 +90,12 @@ export class UserResolver {
         return AppResponse.invalidCredentials();
       }
 
+      const users: any = await this.userService.find({ email: { $regex: new RegExp(email, 'i') } });
+      if (users && users.length > 0) {
+        console.log('Found many users');
+        console.log(users);
+      }
+
       const passwordFromUser = existingUser.password;
       const passwordMatched = await bcrypt.compare(password, passwordFromUser);
 
@@ -100,6 +106,8 @@ export class UserResolver {
       const userObj = existingUser._doc;
       delete userObj.password;
 
+      // Advanced code
+      /*
       const roleMapping = {
         [UserRole.captain]: 'captainplayer',
         [UserRole.co_captain]: 'cocaptainplayer',
@@ -108,11 +116,25 @@ export class UserResolver {
       const roleKey = roleMapping[userObj.role];
 
       if (roleKey && userObj[roleKey]) {
-        const team = await this.teamService.findOne({ [userObj.role]: userObj[roleKey].toString() });
-        if (team) {
-          userObj.event = team.event;
-          userObj.team = team.name;
-          userObj.teamLogo = team.logo;
+        const teamExist = await this.teamService.findOne({ [userObj.role]: userObj[roleKey].toString() });
+        if (teamExist) {
+          userObj.event = teamExist.event;
+          userObj.team = teamExist.name;
+          userObj.teamLogo = teamExist.logo;
+        }
+      }
+        */
+      if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
+        let teamExist = null;
+        if (userObj.role === UserRole.captain && userObj.captainplayer) {
+          teamExist = await this.teamService.findOne({ captainplayer: userObj.captainplayer });
+        } else if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
+          teamExist = await this.teamService.findOne({ cocaptainplayer: userObj.cocaptainplayer });
+        }
+        if (teamExist) {
+          userObj.event = teamExist.event;
+          userObj.team = teamExist.name;
+          userObj.teamLogo = teamExist.logo;
         }
       }
 
@@ -141,7 +163,7 @@ export class UserResolver {
               const directorUsers = await this.userService.find({
                 $or: [{ _id: ldoExist.director.toString() }, { role: UserRole.admin }],
               });
-              const passcodeList = directorUsers.map((du)=> du.passcode && du.passcode.toString().toUpperCase());
+              const passcodeList = directorUsers.map((du) => du.passcode && du.passcode.toString().toUpperCase());
               if (passcode && passcodeList.includes(passcode.toUpperCase())) {
                 payload.passcode = passcode;
                 userObj.passcode = passcode; // Now, This is a player user but has access to director
