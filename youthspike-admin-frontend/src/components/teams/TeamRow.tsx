@@ -7,6 +7,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import { rowVariant } from '@/utils/animation';
 import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface ITeamRowProps {
   eventId: string;
@@ -16,6 +17,8 @@ interface ITeamRowProps {
   selectedGroup?: string | null;
 }
 function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowProps) {
+  const {ldoIdUrl} = useLdoId();
+
   return (
     <motion.tr
       key={team._id}
@@ -24,19 +27,17 @@ function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowPr
       initial="hidden"
       animate="visible"
     >
-      <td className="py-3 px-2 flex items-center gap-x-2">
-          <span>{index + 1}</span>
-        <Link href={`/${eventId}/teams/${team._id}`} className="flex justify-center items-center gap-2">
-          <Link href={`/teams/${team._id}`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
-            <span>
-              {team?.logo ? (
-                <AdvancedImage cldImg={cld.image(team.logo)} className="w-14 h-14 object-fit object-cover" />
-              ) : (
-                <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
-              )}
-            </span>
-            {team.name}
-          </Link>
+       <td className="py-3 px-2 flex items-center gap-x-2">
+        <span>{index + 1}</span>
+        <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex justify-center items-center gap-2">
+          <span>
+            {team?.logo ? (
+              <AdvancedImage cldImg={cld.image(team.logo)} className="w-14 h-14 object-fit object-cover" />
+            ) : (
+              <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
+            )}
+          </span>
+          {team.name}
         </Link>
       </td>
       {selectedGroup && <td className="py-3 px-2">{teamScores && `${teamScores.groupWins}-${teamScores.groupLoses}`}</td>}

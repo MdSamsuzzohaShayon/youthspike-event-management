@@ -65,6 +65,9 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
   const handleSelectGroup = (e: React.SyntheticEvent, tab: ETab) => {
     e.preventDefault();
+    if(tab === ETab.ROSTER){
+      window.location.reload();
+    }
     setSelectedItem(tab);
   };
 
