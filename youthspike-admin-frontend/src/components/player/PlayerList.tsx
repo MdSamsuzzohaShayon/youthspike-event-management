@@ -48,6 +48,8 @@ interface IUpdateRank {
   rank: number;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 function PlayerList({
   playerList,
   eventId,
@@ -63,6 +65,8 @@ function PlayerList({
   inactive,
 }: IPlayerListProps) {
 
+
+
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
@@ -76,6 +80,17 @@ function PlayerList({
   const [canRank, setCanRank] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayerRank[]>([]);
   const [rankingsMap, setRankingsMap] = useState<Map<string, number>>(new Map());
+  // Pagination elements
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length, ITEMS_PER_PAGE]);
+
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
 
   /** Handle checkbox */
@@ -98,9 +113,9 @@ function PlayerList({
     if (upr.length > 0) {
       try {
         const rankingRes = await mutatePlayerRanking({ variables: { teamId, input: upr } });
-        
-        const success = handleResponse({response: rankingRes?.data?.updatePlayerRanking, setActErr});
-        console.log({success, rankingRes});        
+
+        const success = handleResponse({ response: rankingRes?.data?.updatePlayerRanking, setActErr });
+        console.log({ success, rankingRes });
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
@@ -150,26 +165,32 @@ function PlayerList({
   };
 
   useEffect(() => {
-    if(!isMounted.current && inactive && playerList){
-      setPlayers(playerList);
-      isMounted.current = true;
-    }
-    if (!isMounted.current && playerList && playerList.length > 0 && playerRanking) {
-      const newRankingsMap = new Map();
-      if (playerRanking && playerRanking.rankings.length > 0) {
-        playerRanking.rankings.forEach((pr) => {
-          newRankingsMap.set(pr.player._id, pr.rank);
-        });
+    if (playerList.length > 0) {
+      if (!isMounted.current && inactive && playerList) {
+        setPlayers(playerList);
+        isMounted.current = true;
       }
-      setRankingsMap(newRankingsMap);
-      const playersWithRank: IPlayerRank[] = [];
-      playerList.forEach((p) => {
-        playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
-      });
-      setPlayers(playersWithRank);
-      console.log({msg: "PlayerList when event mount: ",playersWithRank});
-      
-      isMounted.current = true;
+      if (!isMounted.current && playerList && playerList.length > 0) {
+        if (playerRanking) {
+          const newRankingsMap = new Map();
+          if (playerRanking && playerRanking.rankings.length > 0) {
+            playerRanking.rankings.forEach((pr) => {
+              newRankingsMap.set(pr.player._id, pr.rank);
+            });
+          }
+          setRankingsMap(newRankingsMap);
+          const playersWithRank: IPlayerRank[] = [];
+          playerList.forEach((p) => {
+            playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
+          });
+          setPlayers(playersWithRank);
+          console.log({ msg: "PlayerList when event mount: ", playersWithRank });
+        } else {
+          setPlayers(playerList);
+        }
+
+        isMounted.current = true;
+      }
     }
   }, [playerList, playerRanking, inactive]);
 
@@ -216,63 +237,88 @@ function PlayerList({
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, currEvent]);
 
+
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
-    if(inactive) return players;
+    // Paginated
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedPlayers = players.slice(start, start + ITEMS_PER_PAGE);
 
-    // if (!rankControls || !showRank) return [...players];
-    // if (!playerRanking?.rankings?.length) return [];
+    // inactive players won't have rankings
+    if (inactive) return paginatedPlayers;
 
-    // const npl = getRankedPlayers(players, playerRanking?.rankings); // npl = New Player List
-
-    return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players
-  }, [players, showRank, rankControls, playerRanking]);
+    // If ranking is allowed then sort them or keep it as it is
+    return showRank && rankControls ? [...paginatedPlayers].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : paginatedPlayers;
+  }, [players, showRank, rankControls, playerRanking, currentPage]);
 
 
   /** Render List **/
   return (
-    <ul ref={listRef} className="sortable-list" onContextMenu={handleContextMenu}>
-      {sortedPlayerList.map((player) => (
-        <motion.li
-          key={player._id}
-          className="sortable-item mb-2 flex items-center bg-gray-700 rounded-lg"
-          variants={itemVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          transition={{ duration: 0.2 }}
-        >
-          {/* Drag Handle */}
-          {canRank && (
-            <div className="drag-handle cursor-grab flex items-center justify-center">
-              <Image
-                height={20}
-                width={20}
-                src="/icons/sort.svg"
-                alt="sort-icon"
-                className="svg-white w-8"
-              />
-            </div>
-          )}
+    <>
+      <ul ref={listRef} className="sortable-list" onContextMenu={handleContextMenu}>
+        {sortedPlayerList.map((player) => (
+          <motion.li
+            key={player._id}
+            className="sortable-item mb-2 flex items-center bg-gray-700 rounded-lg"
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.2 }}
+          >
+            {/* Drag Handle */}
+            {canRank && (
+              <div className="drag-handle cursor-grab flex items-center justify-center">
+                <Image
+                  height={20}
+                  width={20}
+                  src="/icons/sort.svg"
+                  alt="sort-icon"
+                  className="svg-white w-8"
+                />
+              </div>
+            )}
 
-          {/* Player Card */}
-          <PlayerCard
-            eventId={eventId}
-            isChecked={checkedPlayers.get(player._id) ?? false}
-            handleSelectPlayer={handleSelectPlayer}
-            player={player}
-            setIsLoading={setIsLoading}
-            showRank={showRank}
-            teamList={teamList}
-            divisionList={divisionList}
-            refetchFunc={refetchFunc}
-            rankControls={rankControls}
-            teamId={teamId}
-            rank={player.rank}
-          />
-        </motion.li>
-      ))}
-    </ul>
+            {/* Player Card */}
+            <PlayerCard
+              eventId={eventId}
+              isChecked={checkedPlayers.get(player._id) ?? false}
+              handleSelectPlayer={handleSelectPlayer}
+              player={player}
+              setIsLoading={setIsLoading}
+              showRank={showRank}
+              teamList={teamList}
+              divisionList={divisionList}
+              refetchFunc={refetchFunc}
+              rankControls={rankControls}
+              teamId={teamId}
+              rank={player.rank}
+            />
+          </motion.li>
+        ))}
+      </ul>
+      {totalPages > 1 && (
+        <div className="flex items-center space-x-2 mt-4">
+          <button
+            onClick={handlePrev}
+            disabled={currentPage === 1}
+            className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300"
+          >
+            Prev
+          </button>
+          <span className="font-semibold">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 

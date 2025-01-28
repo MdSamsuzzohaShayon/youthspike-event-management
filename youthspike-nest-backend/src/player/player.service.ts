@@ -107,29 +107,31 @@ export class PlayerService {
           }
 
           // Organize team
-          const [tk, tv] = matchTeam;
-          if (tv && tv !== '') {
-            const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
-            if (findTeamI !== -1) {
-              const newPlayers = [...teams[findTeamI].players];
-              playerObj.rank = newPlayers.length === 0 ? 1 : newPlayers.length + 1;
-              if (playerObj) newPlayers.push(playerObj);
-              teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
+          if (matchTeam) {
+            const [tk, tv] = matchTeam;
+            if (tv && tv !== '') {
+              const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
+              if (findTeamI !== -1) {
+                const newPlayers = [...teams[findTeamI].players];
+                playerObj.rank = newPlayers.length === 0 ? 1 : newPlayers.length + 1;
+                if (playerObj) newPlayers.push(playerObj);
+                teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
+              } else {
+                playerObj.rank = 1;
+                const teamObj = {
+                  name: tv,
+                  active: true,
+                  players: playerObj ? [playerObj] : [],
+                  division: division,
+                  captain: null,
+                  cocaptain: null,
+                  event: event,
+                };
+                teams.push(teamObj);
+              }
             } else {
-              playerObj.rank = 1;
-              const teamObj = {
-                name: tv,
-                active: true,
-                players: playerObj ? [playerObj] : [],
-                division: division,
-                captain: null,
-                cocaptain: null,
-                event: event,
-              };
-              teams.push(teamObj);
+              if (playerObj) unassignedPlayers.push(playerObj);
             }
-          } else {
-            if (playerObj) unassignedPlayers.push(playerObj);
           }
         })
 

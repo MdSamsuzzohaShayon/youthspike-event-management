@@ -37,6 +37,8 @@ function EventMainPage() {
       // Remove specific event
       removeEvent();
       const res = await getEvents();
+      console.log(res?.data?.getEvents);
+      
       if (res?.data?.getEvents?.data) {
         dispatch(setEventList(res.data.getEvents.data));
       }

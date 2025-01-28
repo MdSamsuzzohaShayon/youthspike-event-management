@@ -18,7 +18,7 @@ export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any
   return newObj;
 }
 
-export function tokenToUser(context, secret: string): string | null {
+export function tokenToUser(context, secret: string): JwtPayload | null {
   const authToken = context.req.headers.authorization;
   if(!authToken) return null;
   const token = authToken.split(' ');
@@ -28,8 +28,7 @@ export function tokenToUser(context, secret: string): string | null {
     user = jwt.verify(baseToken, secret) as JwtPayload | null;
   }
   if (!user || !user._id) return null;
-  const userId = user._id;
-  return userId;
+  return user;
 }
 
 

@@ -1,5 +1,5 @@
 import { HttpStatus, UseGuards } from '@nestjs/common';
-import { Args, Context, Field, Mutation, ObjectType, Query, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation,  Resolver } from '@nestjs/graphql';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -13,7 +13,6 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { formatDate, isISODateString, tokenToUser } from 'src/util/helper';
-import { ERosterLock } from 'src/event/event.schema';
 
 @Resolver()
 export class EmailsenderResolver {
@@ -83,10 +82,10 @@ export class EmailsenderResolver {
 
       // Check user role
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
-      if (!userId) return AppResponse.unauthorized();
+      const userPayload = tokenToUser(context, secret);
+      if (!userPayload || !userPayload._id) return AppResponse.unauthorized();
 
-      const loggedUser = await this.userService.findById(userId);
+      const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
       let ldoIdUrl = '';
 

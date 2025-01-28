@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { isISODateString, tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { EventService } from 'src/event/event.service';
+import { NetService } from 'src/net/net.service';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
@@ -30,6 +31,7 @@ export class PlayerRankingResolver {
     private matchService: MatchService,
     private userService: UserService,
     private eventService: EventService,
+    private netService: NetService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,10 +44,10 @@ export class PlayerRankingResolver {
   ) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
+      const userPayload = tokenToUser(context, secret);
 
       // Get logged in user
-      const loggedUser = userId ? await this.userService.findById(userId) : null;
+      const loggedUser = await this.userService.findById(userPayload._id);
 
       const teamExist = await this.teamService.findById(teamId);
       if (!teamExist) return AppResponse.notFound('Team');
@@ -65,7 +67,7 @@ export class PlayerRankingResolver {
           const currentDateTime = new Date();
           if (currentDateTime > lastDate) {
             // if date has passed, check for passcode
-            const adminOrDirectorPasscode = null;
+            const adminOrDirectorPasscode = null; // Find passcode from token
             if (!adminOrDirectorPasscode) {
               return AppResponse.handleError({
                 statusCode: HttpStatus.NOT_ACCEPTABLE,
@@ -76,23 +78,36 @@ export class PlayerRankingResolver {
         }
       }
 
+      // Update player ranking in the database
       const playerRankings = await this.playerRankingService.find({
         team: teamId,
-        $or: [
-          { match: { $exists: false } }, // `match` is undefined
-          { match: null }, // `match` is null
-        ],
-      });
+      }); // Find all player rankings
+
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
+
+      const updatePlayerRankings: PlayerRanking[] = [];
+      for (const pr of playerRankings) {
+        if (pr.rankLock) continue;
+        if (pr.match) {
+          // Find the match, nets of that match, nets of that match
+          const firstNet = await this.netService.findOne({ match: pr.match, num: 1 });
+          if (firstNet) {
+            if (!firstNet.teamAPlayerA && !firstNet.teamAPlayerB && !firstNet.teamBPlayerA && !firstNet.teamBPlayerB) {
+              updatePlayerRankings.push(pr);
+            }
+          }
+        } else {
+          updatePlayerRankings.push(pr);
+        }
+      }
 
       const updatePromises = [];
 
-      for (let i = 0; i < playerRankings.length; i += 1) {
-        // updatePromises.push(this.playerRankingService.updateOneItem({ playerRanking: playerRankings[i]._id }, input));
+      for (let i = 0; i < updatePlayerRankings.length; i += 1) {
         for (let j = 0; j < input.length; j += 1) {
           updatePromises.push(
             this.playerRankingService.updateOneItem(
-              { playerRanking: playerRankings[i]._id, player: input[j].player },
+              { playerRanking: updatePlayerRankings[i]._id, player: input[j].player },
               { rank: input[j].rank },
             ),
           );

@@ -45,7 +45,7 @@ class CreateOrUpdateEventResponse extends AppResponse<Event> {
 
 @ObjectType()
 class GetEventsResponse extends AppResponse<Event[]> {
-  @Field((type) => [Event], { nullable: false })
+  @Field((type) => [Event], { nullable: true })
   data?: Event[];
 }
 
@@ -92,10 +92,10 @@ export class EventResolver {
 
       // Get user id
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
+      const userPayload = tokenToUser(context, secret);
 
       // Get user
-      const loggedUser = await this.userService.findById(userId);
+      const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
 
       // If the user is admin we must need ldoId otherwise get id from token
@@ -188,11 +188,11 @@ export class EventResolver {
        *  Step-5: Check division update and all other module that assigned the same division update that
        */
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
+      const userPayload = tokenToUser(context, secret);
 
       // ===== Get user =====
       const [loggedUser, eventExist] = await Promise.all([
-        this.userService.findById(userId),
+        this.userService.findById(userPayload._id),
         this.eventService.findById(eventId),
       ]);
       if (!loggedUser) return AppResponse.unauthorized();
@@ -364,14 +364,14 @@ export class EventResolver {
     try {
       // Get User
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
-      const loggedUser = await this.userService.findById(userId);
+      const userPayload = tokenToUser(context, secret);
+      const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
 
       // Role Check
       let findEvent = null;
       if (loggedUser.role === UserRole.director) {
-        findEvent = await this.eventService.findOne({ $and: [{ _id: eventId }, { directorId: userId }] });
+        findEvent = await this.eventService.findOne({ $and: [{ _id: eventId }, { directorId: userPayload._id }] });
       } else if (loggedUser.role === UserRole.admin) {
         findEvent = await this.eventService.findById(eventId);
       }
@@ -428,10 +428,10 @@ export class EventResolver {
   async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
+      const userPayload = tokenToUser(context, secret);
 
       // Get logged in user
-      const loggedUser = userId ? await this.userService.findById(userId) : null;
+      const loggedUser = userPayload?._id ? await this.userService.findById(userPayload._id) : null;
 
       // Determine director ID based on user role
       let newDirectorId = null;

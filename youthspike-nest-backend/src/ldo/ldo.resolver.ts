@@ -117,10 +117,10 @@ export class LdoResolver {
   ) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
-      if (!userId) return AppResponse.unauthorized();
+      const userPayload = tokenToUser(context, secret);
+      if (!userPayload?._id) return AppResponse.unauthorized();
 
-      const loggedUser = await this.userService.findById(userId);
+      const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
 
       let ldoExist = null;
@@ -201,10 +201,9 @@ export class LdoResolver {
         };
       }
       const secret = this.configService.get<string>('JWT_SECRET');
-      const userId = tokenToUser(context, secret);
-      if (!userId) return AppResponse.unauthorized();
+      const userPayload = tokenToUser(context, secret);
 
-      const loggedUser = await this.userService.findById(userId);
+      const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
 
       // If the user is admin we must need ldoId otherwise get id from token
