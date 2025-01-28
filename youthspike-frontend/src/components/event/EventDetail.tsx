@@ -44,6 +44,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
   const [currDivision, setCurrDivision] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
+  // @ts-ignore
   const divisionList = useMemo(() => divisionsToOptionList(event.divisions || []), [event.divisions]);
   const groupList = useMemo(() => {
     if (!currDivision || currDivision === '') {

@@ -289,7 +289,7 @@ type GetEventsResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: [Event!]!
+  data: [Event!]
 }
 
 type GetEventResponse {

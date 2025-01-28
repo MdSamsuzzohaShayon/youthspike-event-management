@@ -47,6 +47,7 @@ function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
   const playerRanking = data?.getTeam?.data?.playerRanking;
   const matchList = matchesData?.getMatches?.data || [];
+  
 
   if (error) {
     console.log(error);

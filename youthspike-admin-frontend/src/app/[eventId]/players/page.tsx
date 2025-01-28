@@ -4,7 +4,7 @@ import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { useLazyQuery } from '@apollo/client';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Loader from '@/components/elements/Loader';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { IEvent, IOption, IPlayerRankingExpRel, ITeam } from '@/types';
@@ -17,6 +17,7 @@ import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import { handleResponse } from '@/utils/handleError';
 import { useError } from '@/lib/ErrorContext';
+import PaginationWrapper from '@/components/elements/PaginationWrapper';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
   // ===== hooks =====
@@ -50,7 +51,6 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
     if (!success) return;
-    console.log(playerRes?.data);
 
     if (playerRes?.data?.getEvent) {
       setCurrEvent(playerRes?.data?.getEvent.data);
@@ -172,6 +172,15 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   }
 
 
+  const activeList = useMemo(() => {
+    return filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE);
+  }, [filteredPlayerList]);
+
+  const inactiveList = useMemo(() => {
+    return filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE);
+  }, [filteredPlayerList]);
+
+
 
   if (loading || isLoading) return <Loader />;
 
@@ -220,9 +229,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
             </button>
           )}
           <PlayerList
-            key="active-players"
+            playerList={activeList}
             eventId={params.eventId}
-            playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
             setIsLoading={setIsLoading}
             rankControls={rankControls && !lockRank}
             refetchFunc={refetchFunc}
@@ -234,9 +242,11 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
             currEvent={currEvent}
           />
 
+
+
           <div className="w-full">
             <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList key="inactive-players" inactive currEvent={currEvent} eventId={params.eventId} playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE)} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+            <PlayerList key="inactive-players" inactive currEvent={currEvent} eventId={params.eventId} playerList={inactiveList} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
           </div>
         </>
       )}
