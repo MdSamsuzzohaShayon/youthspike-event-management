@@ -34,8 +34,11 @@ function EventSingle({ params }: { params: { eventId: string } }) {
           message: `Error fetching event: ${err.message}`,
           code: 500,
           success: false,
-        })
+        }),
       );
+    },
+    onCompleted: (cData) => {
+      console.log({ msg: 'Completed fetching at: ', datetime: new Date() });
     },
   });
 
@@ -44,6 +47,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
     if (params.eventId) {
       if (isValidObjectId(params.eventId)) {
         setEvent(params.eventId); // Save the event ID to localStorage
+        console.log({ msg: 'Started fetching at: ', datetime: new Date() });
         fetchEvent({ variables: { eventId: params.eventId } });
       } else {
         dispatch(
@@ -51,7 +55,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
             message: 'Invalid Event ID! Please check and try again.',
             code: 400,
             success: false,
-          })
+          }),
         );
       }
     }
@@ -82,8 +86,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
 
   // Handle case where no event data is returned
   const prevEvent = data?.getEvent?.data;
-  
-  
+
   if (!prevEvent) {
     return (
       <div className="container mx-auto px-2 min-h-screen">
