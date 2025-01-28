@@ -4,7 +4,7 @@ import { GET_EVENT_WITH_PLAYERS } from '@/graphql/players';
 import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { useLazyQuery } from '@apollo/client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Loader from '@/components/elements/Loader';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { IEvent, IOption, IPlayerRankingExpRel, ITeam } from '@/types';
@@ -17,6 +17,7 @@ import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import { handleResponse } from '@/utils/handleError';
 import { useError } from '@/lib/ErrorContext';
+import PaginationWrapper from '@/components/elements/PaginationWrapper';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
   // ===== hooks =====
@@ -30,6 +31,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
   const [showRank, setShowRank] = useState<boolean>(false);
   const [rankControls, setRankControls] = useState<boolean>(false);
   const [lockRank, setLockRank] = useState<boolean>(false);
+  const isMounted = useRef<boolean>(false);
 
   const [currDivision, setCurrDivision] = useState<string>('');
   const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
@@ -49,7 +51,6 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
     const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
     if (!success) return;
-    console.log(playerRes?.data);
 
     if (playerRes?.data?.getEvent) {
       setCurrEvent(playerRes?.data?.getEvent.data);
@@ -71,6 +72,7 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
       const pId = user.info.captainplayer ? user.info.captainplayer : user.info.cocaptainplayer;
       const playerExist = npList.find((p) => p._id === pId);
       if (playerExist) {
+        // Make sure captain of which team
         const teamId = playerExist.teams && playerExist.teams.length > 0 ? playerExist.teams[0]._id : null;
         if (teamId) {
           const teamExist = ntList.find((t) => t._id === teamId);
@@ -164,28 +166,21 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
 
 
 
-
   if (error) {
     console.log(error);
 
   }
 
-  const renderInactivePlayers = useCallback(() => {
 
-    if (filteredPlayerList.length > 0) {
-      const inactivePlayers = filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE);
-      if (inactivePlayers.length === 0) return <p>No inactive players</p>;
-      return (
+  const activeList = useMemo(() => {
+    return filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE);
+  }, [filteredPlayerList]);
 
-        <div className="w-full">
-          <h3 className="mt-4">Inactive Players List</h3>
-          <PlayerList inactive currEvent={currEvent} eventId={params.eventId} playerList={inactivePlayers} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
-        </div>
-      )
-    }
-    return <p>No inactive players</p>;
-  }, [filteredPlayerList, currEvent]);
-  
+  const inactiveList = useMemo(() => {
+    return filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE);
+  }, [filteredPlayerList]);
+
+
 
   if (loading || isLoading) return <Loader />;
 
@@ -234,8 +229,8 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
             </button>
           )}
           <PlayerList
+            playerList={activeList}
             eventId={params.eventId}
-            playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
             setIsLoading={setIsLoading}
             rankControls={rankControls && !lockRank}
             refetchFunc={refetchFunc}
@@ -247,23 +242,12 @@ function PlayersPage({ params }: { params: { eventId: string } }) {
             currEvent={currEvent}
           />
 
-          {/* <div className="sortable-active-player-list mt-4">
-            <PlayerList
-              playerList={filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE)}
-              eventId={params.eventId}
-              setIsLoading={setIsLoading}
-              rankControls
-              refetchFunc={refetchFunc}
-              teamList={teamList}
-              divisionList={divisionList}
-              teamId={teamId}
-              showRank
-              playerRanking={teamPlayerRanking}
-              currEvent={currEvent}
-            />
-          </div> */}
 
-          {renderInactivePlayers()}
+
+          <div className="w-full">
+            <h3 className="mt-4">Inactive Players List</h3>
+            <PlayerList key="inactive-players" inactive currEvent={currEvent} eventId={params.eventId} playerList={inactiveList} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+          </div>
         </>
       )}
     </div>

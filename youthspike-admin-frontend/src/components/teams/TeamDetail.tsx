@@ -102,9 +102,12 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
     // Get available players from all player list
     const napList: IPlayer[] = playerList ? playerList.filter((p: IPlayer) => !p.teams || p.teams.length === 0) : []; // nap List = new available players List
     let nfpList = [...napList]; // fnp List = new filtered player List
+    
     nfpList = napList.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase());
     setFilteredPlayers(nfpList);
   }, []);
+
+  
 
   const activePlayers = team?.players ? team.players.filter((p) => p.status === EPlayerStatus.ACTIVE) : [];
   const inactivePlayers = team?.players ? team.players.filter((p) => p.status !== EPlayerStatus.ACTIVE) : [];

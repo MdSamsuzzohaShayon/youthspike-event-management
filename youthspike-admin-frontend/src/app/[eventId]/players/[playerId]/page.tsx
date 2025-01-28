@@ -9,7 +9,7 @@ import { useError } from '@/lib/ErrorContext';
 import { IError, IPlayerExpRel } from '@/types';
 import { divisionsToOptionList } from '@/utils/helper';
 import { useQuery } from '@apollo/client';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 
 function PlayerSingle({ params }: { params: { eventId: string, playerId: string } }) {
@@ -40,6 +40,7 @@ function PlayerSingle({ params }: { params: { eventId: string, playerId: string 
     console.log(error);
     
   }
+
   
   return (
     <div className='container mx-auto px-4 min-h-screen'>

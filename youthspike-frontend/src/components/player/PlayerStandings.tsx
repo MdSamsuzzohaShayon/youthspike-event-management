@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { IMatchExpRel, IPlayer, IPlayerRecord } from '@/types';
 import { tableVariant } from '@/utils/animation';
@@ -13,9 +13,25 @@ interface IPlayerStandingsProps {
   matchList: IMatchExpRel[];
 }
 
+// const ITEMS_PER_PAGE = 20;
+
 function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsProps) {
-  // const [playerRecords, setPlayerRecords] = useState<Map<string, IPlayerRecord>>(new Map());
+  // Local state
   const [players, setPlayers] = useState<IPlayerRecord[]>([]);
+
+
+  // const [currentPage, setCurrentPage] = useState<number>(1);
+  // const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length]);
+
+  // const handlePrev = () => {
+  //   setCurrentPage((prev) => Math.max(prev - 1, 1));
+  // };
+
+  // const handleNext = () => {
+  //   setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  // };
+
+  // Redux state
   const { rankingMap } = useAppSelector((state) => state.playerRanking);
 
   useEffect(() => {
@@ -54,6 +70,10 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
       });
     }
 
+    // Paginated list
+    // const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    // const paginatedPlayers = sortedRecords.slice(start, start + ITEMS_PER_PAGE);
+
     // Update state with the sorted Map
     setPlayers(sortedRecords);
   }, [playerList, matchList, teamRank, rankingMap]);
@@ -77,6 +97,17 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
           </motion.tbody>
         </motion.table>
       </div>
+      {/* <div className="flex items-center space-x-2 mt-4">
+        <button type="button" onClick={handlePrev} disabled={currentPage === 1} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
+          Prev
+        </button>
+        <span className="font-semibold">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button type="button" onClick={handleNext} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
+          Next
+        </button>
+      </div> */}
     </div>
   );
 }

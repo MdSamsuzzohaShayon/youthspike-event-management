@@ -531,6 +531,7 @@ export class TeamResolver {
     try {
       const playerRanking = await this.playerRankingService.findOne({
         team: team._id,
+        // rankLock: false,
         $or: [
           { match: { $exists: false } }, // `match` is undefined
           { match: null }, // `match` is null

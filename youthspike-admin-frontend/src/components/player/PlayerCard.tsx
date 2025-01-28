@@ -314,12 +314,11 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                       </li>
                     </>
                   )}
-                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={handleMovePlayerBox}>
+                  {/* <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={handleMovePlayerBox}>
                     Move Player
-                  </li>
+                  </li> */}
                   {player.status === EPlayerStatus.ACTIVE ? (
                     <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
-
                       Make Inactive
                     </li>
                   ) : (

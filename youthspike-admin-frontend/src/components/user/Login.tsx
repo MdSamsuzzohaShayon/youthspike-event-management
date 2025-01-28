@@ -67,7 +67,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
                                 name="email"
                                 vertical
                                 defaultValue={email}
-                                lblTxt="Email"
+                                lblTxt="Username"
                                 handleInputChange={handleSetEmail}
                                 required
                             />
