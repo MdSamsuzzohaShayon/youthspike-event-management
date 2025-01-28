@@ -76,7 +76,7 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
 
     // Update state with the sorted Map
     setPlayers(sortedRecords);
-  }, [playerList, matchList, teamRank, rankingMap, currentPage]);
+  }, [playerList, matchList, teamRank, rankingMap]);
 
   return (
     <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
