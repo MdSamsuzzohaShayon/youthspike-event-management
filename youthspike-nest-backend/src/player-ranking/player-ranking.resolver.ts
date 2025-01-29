@@ -32,7 +32,7 @@ export class PlayerRankingResolver {
     private userService: UserService,
     private eventService: EventService,
     private netService: NetService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
@@ -67,7 +67,7 @@ export class PlayerRankingResolver {
           const currentDateTime = new Date();
           if (currentDateTime > lastDate) {
             // if date has passed, check for passcode
-            const adminOrDirectorPasscode = null; // Find passcode from token
+            const adminOrDirectorPasscode = userPayload.passcode || null; // Find passcode from token
             if (!adminOrDirectorPasscode) {
               return AppResponse.handleError({
                 statusCode: HttpStatus.NOT_ACCEPTABLE,
@@ -79,15 +79,71 @@ export class PlayerRankingResolver {
       }
 
       // Update player ranking in the database
-      const playerRankings = await this.playerRankingService.find({
+      let playerRankings = await this.playerRankingService.find({
         team: teamId,
       }); // Find all player rankings
 
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
+      const firstRankings = playerRankings[0];
+      //  If there is more or less input then player rankings
+      if (input.length !== firstRankings.rankings.length) {
+        console.log({
+          msg: 'Ranking length did not match, ',
+          inputLength: input.length,
+          dbRankingLength: firstRankings.rankings.length,
+        });
 
+        // Find from database if player not exist in rankings
+        const abesentPlayers: string[] = [];
+        const findRankingItems = await this.playerRankingService.findItems({ playerRanking: firstRankings._id });
+
+        const rankingSet = new Set<string>();
+        for (const playerRank of findRankingItems) {
+          rankingSet.add(playerRank.player.toString());
+        }
+
+        for (const ipr of input) {
+          if (!rankingSet.has(ipr.player)) {
+            abesentPlayers.push(ipr.player);
+          }
+        }
+
+        console.log({ abesentPlayers, teamPlayers: teamExist.players.map((p) => p.toString()), input });
+
+
+        // Add those players to rankings if not exists
+        const insertedPlayersRank = [];
+        for (const pr of playerRankings) {
+          let currTotalPlayers = firstRankings.rankings.length;
+          for (const ap of abesentPlayers) {
+            const teamPlayers = teamExist.players.map((p) => p.toString());
+            if (teamPlayers.includes(ap)) {
+              console.log({ msg: "This player is in the team: ", ap });
+              insertedPlayersRank.push(
+                this.playerRankingService.createAnItem({
+                  player: ap,
+                  rank: (currTotalPlayers += 1),
+                  playerRanking: pr._id,
+                }),
+              );
+              currTotalPlayers += 1;
+            }
+          }
+        }
+        if (insertedPlayersRank.length > 0) {
+          console.log({ msg: 'Absent players, ', playerId: abesentPlayers });
+          await Promise.all(insertedPlayersRank);
+          playerRankings = await this.playerRankingService.find({
+            team: teamId,
+          });
+        }
+      }
+
+      // Updating the rank according to input
       const updatePlayerRankings: PlayerRanking[] = [];
+
       for (const pr of playerRankings) {
-        if (pr.rankLock) continue;
+        if (pr.rankLock && loggedUser.role !== UserRole.director && loggedUser.role !== UserRole.admin) continue;
         if (pr.match) {
           // Find the match, nets of that match, nets of that match
           const firstNet = await this.netService.findOne({ match: pr.match, num: 1 });
@@ -100,6 +156,7 @@ export class PlayerRankingResolver {
           updatePlayerRankings.push(pr);
         }
       }
+      // console.log({ input, playerRankings, updatePlayerRankings });
 
       const updatePromises = [];
 

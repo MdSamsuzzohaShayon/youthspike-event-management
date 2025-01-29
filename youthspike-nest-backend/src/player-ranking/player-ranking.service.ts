@@ -75,8 +75,8 @@ export class PlayerRankingService {
   }
 
   // ===== Item =====
-
   async createAnItem(playerRankingItem: PlayerRankingItem) {
+    // Need to work with it
     const newPlayerRankingItem = await this.playerRankingItem.create(playerRankingItem);
     await this.playerRanking.updateOne(
       { _id: playerRankingItem.playerRanking.toString() },

@@ -46,7 +46,7 @@ cd /home/shayon/youthspike-event-management/youthspike-nest-backend
 echo "#Environment variables for youthspike-nest-backend" > .env
 nano .env
 npm install
-nano src/main.ts
+nano src/utils/keys.ts
 npm run build
 export NODE_ENV="production"
 pm2 start ecosystem.config.js

@@ -90,12 +90,6 @@ export class UserResolver {
         return AppResponse.invalidCredentials();
       }
 
-      const users: any = await this.userService.find({ email: { $regex: new RegExp(email, 'i') } });
-      if (users && users.length > 0) {
-        console.log('Found many users');
-        console.log(users);
-      }
-
       const passwordFromUser = existingUser.password;
       const passwordMatched = await bcrypt.compare(password, passwordFromUser);
 
@@ -128,9 +122,9 @@ export class UserResolver {
       if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
         let teamExist = null;
         if (userObj.role === UserRole.captain && userObj.captainplayer) {
-          teamExist = await this.teamService.findOne({ captainplayer: userObj.captainplayer });
+          teamExist = await this.teamService.findOne({ captain: userObj.captainplayer });
         } else if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
-          teamExist = await this.teamService.findOne({ cocaptainplayer: userObj.cocaptainplayer });
+          teamExist = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer });
         }
         if (teamExist) {
           userObj.event = teamExist.event;

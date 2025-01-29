@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 interface JwtPayload {
   _id: string;
   // Add other properties if necessary
+  passcode: string | null;
 }
 
 export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any> {

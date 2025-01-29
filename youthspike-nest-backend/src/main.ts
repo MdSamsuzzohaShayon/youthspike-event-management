@@ -3,14 +3,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import { EEnv, NODE_ENV } from './util/keys';
 
-enum EEnv{
-  development = "development",
-  production = "production",
-}
 
-export const NODE_ENV: EEnv = EEnv.development;
-// export const NODE_ENV: EEnv = EEnv.production;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
