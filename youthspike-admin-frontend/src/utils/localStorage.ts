@@ -1,3 +1,5 @@
+import { IPlayerRank, IPlayerRankingItem, IPlayerWithRank } from "@/types";
+
 // Division
 function setDivisionToStore(division: string) {
     window.localStorage.setItem("division", division);
@@ -29,4 +31,27 @@ function removeTeamFromStore() {
     window.localStorage.removeItem("team");
 }
 
-export { setDivisionToStore, getDivisionFromStore, removeDivisionFromStore, setTeamToStore, getTeamFromStore, removeTeamFromStore};
+// Player ranking
+function setPlayerRankings(rankings: IPlayerWithRank[]) {
+    window.localStorage.setItem("playerRankings", JSON.stringify(rankings));
+}
+
+function removePlayerRankings() {
+    window.localStorage.removeItem("playerRankings");
+}
+
+function getPlayerRankings(): IPlayerWithRank[] | null {
+    const playerRankings = window.localStorage.getItem("playerRankings");
+    if(!playerRankings) return null;
+    const jsonParsed = JSON.parse(playerRankings);
+    return jsonParsed;
+}
+
+export {
+    setDivisionToStore, getDivisionFromStore, removeDivisionFromStore, setTeamToStore, getTeamFromStore, removeTeamFromStore,
+
+    setPlayerRankings,
+    removePlayerRankings,
+    getPlayerRankings,
+
+};

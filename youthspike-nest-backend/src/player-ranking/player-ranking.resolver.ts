@@ -32,7 +32,7 @@ export class PlayerRankingResolver {
     private userService: UserService,
     private eventService: EventService,
     private netService: NetService,
-  ) { }
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
@@ -84,7 +84,24 @@ export class PlayerRankingResolver {
       }); // Find all player rankings
 
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
+
       const firstRankings = playerRankings[0];
+      const findRankingItems = await this.playerRankingService.findItems({ playerRanking: firstRankings._id });
+      const playerIds = new Set();
+      findRankingItems.forEach((fri) => {
+        playerIds.add(fri.player.toString());
+      });
+
+      // Find from database if player not exist in rankings
+      const abesentPlayers: string[] = [];
+
+      for (const ipr of input) {
+        if (!playerIds.has(ipr.player)) {
+          abesentPlayers.push(ipr.player);
+        }
+      }
+
+      /*
       //  If there is more or less input then player rankings
       if (input.length !== firstRankings.rankings.length) {
         console.log({
@@ -92,25 +109,11 @@ export class PlayerRankingResolver {
           inputLength: input.length,
           dbRankingLength: firstRankings.rankings.length,
         });
-
-        // Find from database if player not exist in rankings
-        const abesentPlayers: string[] = [];
-        const findRankingItems = await this.playerRankingService.findItems({ playerRanking: firstRankings._id });
-
-        const rankingSet = new Set<string>();
-        for (const playerRank of findRankingItems) {
-          rankingSet.add(playerRank.player.toString());
-        }
-
-        for (const ipr of input) {
-          if (!rankingSet.has(ipr.player)) {
-            abesentPlayers.push(ipr.player);
-          }
-        }
-
         console.log({ abesentPlayers, teamPlayers: teamExist.players.map((p) => p.toString()), input });
+      }
+      */
 
-
+      if (abesentPlayers.length > 0) {
         // Add those players to rankings if not exists
         const insertedPlayersRank = [];
         for (const pr of playerRankings) {
@@ -118,7 +121,7 @@ export class PlayerRankingResolver {
           for (const ap of abesentPlayers) {
             const teamPlayers = teamExist.players.map((p) => p.toString());
             if (teamPlayers.includes(ap)) {
-              console.log({ msg: "This player is in the team: ", ap });
+              console.log({ msg: 'This player is in the team: ', ap });
               insertedPlayersRank.push(
                 this.playerRankingService.createAnItem({
                   player: ap,

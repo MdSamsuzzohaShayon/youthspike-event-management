@@ -440,6 +440,7 @@ export class MyGatWay implements OnModuleInit {
       }
 
       // Check already checked in to another match or not
+      /*
       if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
         if (checkIn.userId) {
           const captainPlayerExist = await this.playerService.findOne({
@@ -487,6 +488,7 @@ export class MyGatWay implements OnModuleInit {
           }
         }
       }
+      */
 
       // update round to checkin
       const currRoundObj = { ...roundList[roundI] };

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sortable from 'sortablejs';
 import { motion } from "framer-motion";
 
@@ -12,8 +12,6 @@ import {
   IEvent,
   IOption,
   ITeam,
-  IError,
-  IPlayerRankingItemExpRel,
   IPlayerRank,
 } from '@/types';
 import Image from 'next/image';
@@ -23,9 +21,9 @@ import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
-import { getRankedPlayers } from '@/utils/helper';
 import { useError } from '@/lib/ErrorContext';
 import { isISODateString } from '@/utils/datetime';
+import { setPlayerRankings } from '@/utils/localStorage';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -155,6 +153,9 @@ function PlayerList({
       // Setting state
       setRankingsMap(newRankingsMap);
       setPlayers(newRankedPlayers); // This need to rank properly
+
+      // Set it to local storage
+      setPlayerRankings(updatedRanking) // To local storage
 
       await handleUpdate(updatedRanking);
     }

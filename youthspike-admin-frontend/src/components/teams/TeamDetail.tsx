@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from "framer-motion";
 import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerRankingExpRel, ITeam } from '@/types';
-import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
+import { getPlayerRankings, removePlayerRankings, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { initialUserMenuList } from '@/utils/staticData';
@@ -66,6 +66,8 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
   const handleSelectGroup = (e: React.SyntheticEvent, tab: ETab) => {
     e.preventDefault();
     if(tab === ETab.ROSTER){
+      const playerRankings = getPlayerRankings();
+      // Set active players from here
       window.location.reload();
     }
     setSelectedItem(tab);
@@ -87,6 +89,10 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
   const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => { }
 
   useEffect(() => {
+    //Removing player rankings
+    removePlayerRankings();
+
+
     // Set division
     setDivisionToStore(team.division);
     setTeamToStore(team._id);

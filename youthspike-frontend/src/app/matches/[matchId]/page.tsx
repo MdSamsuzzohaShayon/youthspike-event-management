@@ -65,7 +65,7 @@ import { EEnv } from '@/types/elements';
  *
  * FC Barcelona
  * Captain
- * lionel101
+ * gerard391
  * Co captain
  * sergio101
  *

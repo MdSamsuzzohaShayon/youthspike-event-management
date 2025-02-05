@@ -37,3 +37,9 @@ export interface IPlayerRankingExpRel extends IPlayerRankingCommon{
   team: ITeam;
   match?: IMatch;
 }
+
+
+export interface IPlayerWithRank {
+  player: string;
+  rank: number;
+}

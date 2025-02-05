@@ -66,7 +66,7 @@ ___
  - Sorting matches -> group selected
  - Resize logos
  - Make it faster
- - DIvision and group select input (taking multiple times to click)
+ - Division and group select input (taking multiple times to click)
  - Team name change (bg color in the match)
  - Nginx load balancing
  - Node.js module (Clusters)

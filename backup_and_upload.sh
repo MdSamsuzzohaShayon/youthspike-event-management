@@ -3,7 +3,7 @@
 # Define variables
 DB_NAME="spikeball-matches"   # Change this to your database name
 BACKUP_DIR="dbbackup"         # Directory where MongoDB dump is stored
-TAR_FILE="spikeball_backup.tar.gz"   # Tar file name
+TAR_FILE="spikeball_backup_$(date +"%Y%m%d_%H%M%S").tar.gz"  # Tar file name
 FOLDER_ID="1oFkxjoRQ4V1FLJauAM82h_piKCDpayEY"
 
 # To get access token
