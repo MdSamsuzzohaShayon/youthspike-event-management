@@ -362,19 +362,6 @@ type GetNetResponse {
   data: Net!
 }
 
-type NetPointsAssign {
-  _id: String!
-  teamAScore: Float
-  teamBScore: Float
-}
-
-type RoundResoponse {
-  _id: String!
-  teamAScore: Float
-  teamBScore: Float
-  completed: Boolean!
-}
-
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
