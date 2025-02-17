@@ -14,7 +14,7 @@ import { RedisService } from '../redis/redis.service';
 export class MyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private logger: Logger = new Logger('MyGateway');
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly redisService: RedisService) { }
 
   async handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
@@ -27,7 +27,15 @@ export class MyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('message')
   async handleMessage(@MessageBody() data: { room: string; message: string }, @ConnectedSocket() client: Socket) {
     const { room, message } = data;
-    
+
+    // Log Redis cluster nodes
+    this.logger.log(
+      `Publishing message on cluster nodes: ${this.redisService
+        .getPubClient()
+        .nodes('master')
+        .map((node) => node.options.port)}`,
+    );
+
     // Use Redis Pub/Sub
     const pubClient = this.redisService.getPubClient();
     await pubClient.publish(room, JSON.stringify({ user: client.id, message }));
@@ -40,8 +48,28 @@ export class MyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.join(room);
     client.emit('join-room-response', `Joined room: ${room}`);
 
+    // Log Redis cluster nodes
+
+    console.log(
+      `Subscribing to room "${room}" on cluster nodes: ${this.redisService
+        .getSubClient()
+        .nodes('master')
+        .map((node) => node.options.port)}`
+    );
+
     // Subscribe to Redis channel
     const subClient = this.redisService.getSubClient();
-    await subClient.subscribe(room);
+    if (!subClient) {
+      console.error('🚨 Redis SubClient is undefined!');
+    } else {
+      console.log(`✅ Redis SubClient is initialized.`);
+    }
+    
+    try {
+      await subClient.subscribe(room);
+      console.log(`✅ Successfully subscribed to room "${room}"`);
+    } catch (err) {
+      console.error(`❌ Failed to subscribe to room "${room}": ${err.message}`);
+    }
   }
 }
