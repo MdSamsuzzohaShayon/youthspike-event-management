@@ -5,10 +5,9 @@
 /youthspike-nest-backend/.env
 /youthspike-nest-backend/.env.prod
 /youthspike-nest-backend/node_modules
+/youthspike-nest-backend/redis-cluster
 
 /youthspike-frontend/.env
 /youthspike-frontend/node_modules
 
-/youthspike-express-backend/node_modules 
-/youthspike-express-backend/.env
 
