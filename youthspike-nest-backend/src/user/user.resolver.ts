@@ -75,7 +75,7 @@ export class UserResolver {
     private ldoService: LdoService,
     private jwtService: JwtService,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
 
   @Mutation((_returns) => LoginResponse)
   async login(
@@ -106,7 +106,7 @@ export class UserResolver {
       const userObj = existingUser._doc;
       delete userObj.password;
 
-      // Advanced code
+      // advanced
       /*
       const roleMapping = {
         [UserRole.captain]: 'captainplayer',
@@ -124,6 +124,21 @@ export class UserResolver {
         }
       }
         */
+      if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
+        let teamExist = null;
+        if (userObj.role === UserRole.captain && userObj.captainplayer) {
+          teamExist = await this.teamService.findOne({ captainplayer: userObj.captainplayer });
+        } else if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
+          teamExist = await this.teamService.findOne({ cocaptainplayer: userObj.cocaptainplayer });
+        }
+        if (teamExist) {
+          userObj.event = teamExist.event;
+          userObj.team = teamExist.name;
+          userObj.teamLogo = teamExist.logo;
+        }
+      }
+        */
+
       if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
         let teamExist = null;
         if (userObj.role === UserRole.captain && userObj.captainplayer) {

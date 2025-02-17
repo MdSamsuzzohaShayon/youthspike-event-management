@@ -17,7 +17,6 @@ interface ITeamRowProps {
   selectedGroup?: string | null;
 }
 function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowProps) {
-
   const {ldoIdUrl} = useLdoId();
 
   return (

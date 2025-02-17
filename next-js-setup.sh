@@ -38,13 +38,8 @@ su - shayon
    63  sudo ssh-keygen -t rsa -b 4096 -C "mdsamsuzzoha5222@gmail.com" -f /home/shayon/.ssh/id_rsa
    64  ls -la
    65  cat id_rsa.pub 
-
-
-
-sudo npm install pm2 -g
-
-
-
+ 
+   sudo npm install pm2 -g
   110  sudo ufw status
   111  sudo ufw enable
   112  sudo ufw allow ssh
@@ -95,13 +90,3 @@ sudo npm install pm2 -g
   104  npm run build
   105  cd
   106  history
-
-
-
-
-
-
-
-
-
-
