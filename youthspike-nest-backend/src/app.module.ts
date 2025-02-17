@@ -23,6 +23,8 @@ import { RoomModule } from './room/room.module';
 import { EmailsenderModule } from './emailsender/emailsender.module';
 import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 import { GroupModule } from './group/group.module';
+import { RedisService } from './redis/redis.service';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -75,8 +77,10 @@ import { GroupModule } from './group/group.module';
     PlayerRankingModule,
 
     GroupModule,
+
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService, AboutResolver],
 })
-export class AppModule {}
+export class AppModule { }

@@ -19,7 +19,6 @@ import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
-import { EmailsenderService } from 'src/emailsender/emailsender.service';
 import { GroupService } from 'src/group/group.service';
 
 @ObjectType()

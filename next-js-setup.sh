@@ -9,11 +9,15 @@ su - shayon
     9  sudo nano ~/.ssh/authorized_keys
    10  sudo mkdir -p /home/shayon/.ssh
    11  pwd
+
+
    12  sudo touch /home/shayon/.ssh/authorized_keys
    13  sudo chmod 600 /home/shayon/.ssh/authorized_keys
    14  sudo chown shayon:shayon /home/shayon/.ssh/authorized_keys
    15  sudo nano /home/shayon/.ssh/authorized_keys
    16  sudo systemctl restart ssh
+
+
    46  sudo apt-get install -y curl
    47  curl -fsSL https://deb.nodesource.com/setup_22.x -o nodesource_setup.sh
    48  sudo -E bash nodesource_setup.sh
@@ -21,6 +25,8 @@ su - shayon
    50  sudo apt-get install -y nodejs
    51  node --version
    52  npm --version
+
+
    55  ls ~/.ssh
    56  sudo apt update
    57  sudo apt install apache2
@@ -32,7 +38,8 @@ su - shayon
    63  sudo ssh-keygen -t rsa -b 4096 -C "mdsamsuzzoha5222@gmail.com" -f /home/shayon/.ssh/id_rsa
    64  ls -la
    65  cat id_rsa.pub 
-sudo npm install pm2 -g
+ 
+   sudo npm install pm2 -g
   110  sudo ufw status
   111  sudo ufw enable
   112  sudo ufw allow ssh
@@ -50,6 +57,11 @@ sudo npm install pm2 -g
   125  sudo nano /var/www/html/index.html
   126  history
   127  sudo nano /var/www/html/index.html
+
+
+
+
+
    79  cat /home/shayon/.ssh/id_rsa.pub
    80  sudo cat /home/shayon/.ssh/id_rsa.pub
    81  touch /home/shayon/.ssh/known_hosts
@@ -58,6 +70,8 @@ sudo npm install pm2 -g
    84  chmod 644 /home/shayon/.ssh/known_hosts
    85  chmod 700 /home/shayon/.ssh
    86  git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
+
+
    89  cd youthspike-event-management/
    90  rm -rf youthspike-nest-backend
    91  cd ..

@@ -1,0 +1,4 @@
+Horizontally Scaling a Nest.js App on DigitalOcean with Load Balancing, Redis Clustering, and MongoDB
+
+
+For now, I am doing everything in one particular droplet
