@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Cluster } from 'ioredis';
+import { EEnv, NODE_ENV } from 'src/util/keys';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -8,15 +9,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     { host: 'localhost', port: 7000 },
     { host: 'localhost', port: 7001 },
     { host: 'localhost', port: 7002 },
-    // { host: 'localhost', port: 7003 },
-    // { host: 'localhost', port: 7004 },
-    // { host: 'localhost', port: 7005 },
   ];
   private roundRobinIndex = 0;
 
   constructor() {
     if (RedisService.clients.length === 0) {
-      RedisService.clients = this.nodes.map(node => new Cluster([node]));
+      RedisService.clients = this.nodes.map((node) => new Cluster([node]));
     }
   }
 
@@ -32,7 +30,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    console.log(`RedisService initialized with cluster nodes: [ ${this.nodes.map(n => n.port).join(', ')} ]`);
+    console.log(`RedisService initialized with cluster nodes: [ ${this.nodes.map((n) => n.port).join(', ')} ]`);
   }
 
   async onModuleDestroy() {

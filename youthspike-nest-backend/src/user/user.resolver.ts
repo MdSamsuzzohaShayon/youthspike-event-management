@@ -137,7 +137,7 @@ export class UserResolver {
           userObj.teamLogo = teamExist.logo;
         }
       }
-        */
+
 
       if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
         let teamExist = null;
