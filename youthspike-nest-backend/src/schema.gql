@@ -6,6 +6,7 @@ type AppAbout {
   app: String!
   version: String!
   author: String!
+  details: String!
   mode: String
 }
 
@@ -72,7 +73,7 @@ type Team {
   cocaptain: Player
   matches: [Match!]
   event: Event!
-  players: [Player!]!
+  players: [Player!]
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
   group: Group
@@ -313,6 +314,71 @@ type GetTeamsResponse {
   data: [Team!]
 }
 
+type TeamWithStringPlayers {
+  _id: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  rankLock: Boolean
+  sendCredentials: Boolean
+  num: Float
+  captain: Player
+  cocaptain: Player
+  matches: [Match!]
+  event: Event!
+  players: [String!]
+  nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  group: String
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
+type PlayerWithTeam {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [String!]
+  captainofteams: [Team!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type GroupWithTeam {
+  _id: String
+  name: String!
+  active: Boolean!
+  division: String!
+  rule: String!
+  teams: [String!]
+  matches: [Match!]!
+  event: Event!
+}
+
+type EventWithTeams {
+  event: Event
+  teams: [TeamWithStringPlayers!]
+  groups: [GroupWithTeam!]
+  players: [PlayerWithTeam!]
+}
+
+type GetEventWithTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventWithTeams
+}
+
 type GetTeamResponse {
   code: Int!
   success: Boolean!
@@ -376,6 +442,21 @@ type GetDirectorsLDOResponse {
   data: [LDO!]
 }
 
+type SystemDetails {
+  ldos: Int!
+  events: Int!
+  players: Int!
+  matches: Int!
+  teams: Int!
+}
+
+type GetSystemDetailsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: SystemDetails
+}
+
 type PlayerResponse {
   code: Int!
   success: Boolean!
@@ -417,6 +498,7 @@ type Query {
   getEvents(directorId: String): GetEventsResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
+  getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
@@ -425,6 +507,7 @@ type Query {
   getNet(netId: String!): Net!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
+  getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!

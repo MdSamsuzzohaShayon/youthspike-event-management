@@ -1,71 +1,76 @@
-'use client'
-
-import Loader from '@/components/elements/Loader';
-import { GET_LDOS_LIGHT } from '@/graphql/director';
-import { ILDOExpRel } from '@/types';
-import { useQuery } from '@apollo/client';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import React from 'react';
+import { GET_SYSTEM_DETAILS_RAW } from '@/graphql/director';
+import { BACKEND_URL } from '@/utils/keys';
 
-function AdminPage() {
-  /**
-   * Show list of directors
-   */
-  const { data, loading, error } = useQuery(GET_LDOS_LIGHT);
-  if (loading) return <Loader />;
+async function fetchSystemDetails() {
+  // const token = getCookie('token');
+  const res = await fetch(BACKEND_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Authorization: `Bearer ${token}`, // Ensure API token is stored securely
+    },
+    body: JSON.stringify({
+      query: GET_SYSTEM_DETAILS_RAW,
+    }),
+    cache: 'no-store', // Adjust caching as needed
+  });
 
-  const ldo = data?.getEventDirectors;
+  const { data } = await res.json();
+  if (!data?.getSystemDetails?.data) notFound();
+  
+  const { ldos, events, players, matches, teams } = data.getSystemDetails.data;
+  return [ldos, events, players, matches, teams];
+}
 
-  const getEvents = (allLdo: ILDOExpRel[]): React.ReactNode => {
-    let eventIds: string[] = [], matchIds: string[] = [], playerIds: string[] = [], teamIds: string[] = [];
-    for (const l of allLdo) {
-      const currEventIds: string[] = [];
-      if (l.events) {
-        for (const e of l.events) {
-          eventIds.push(e._id);
-          matchIds.push(...e.matches.map((m) => m._id));
-          playerIds.push(...e.players.map((p) => p._id));
-          teamIds.push(...e.teams.map((t) => t._id));
-        }
-      }
-      eventIds.push(...currEventIds);
-    }
+export default async function AdminPage() {
+  const [ldos, events, players, matches, teams] = await fetchSystemDetails();
 
-    // @ts-ignore
-    eventIds = [...new Set(eventIds)], matchIds = [...new Set(matchIds)], playerIds = [...new Set(playerIds)], teamIds = [...new Set(teamIds)];
-    return <>
-      <Link href={`/admin/events`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
-        <h4>Events</h4>
-        <p>{eventIds.length}</p>
-      </Link>
-      <Link href={`/admin/players`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
-        <h4>Players</h4>
-        <p>{playerIds.length}</p>
-      </Link>
-      <Link href={`/admin/matches`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
-        <h4>Matches</h4>
-        <p>{matchIds.length}</p>
-      </Link>
-      <Link href={`/admin/teams`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
-        <h4>Teams</h4>
-        <p>{teamIds.length}</p>
-      </Link>
-    </>;
-  }
 
 
   return (
-    <div className='container mx-auto px-4 min-h-screen'>
-      <h1 className='mt-4 text-center'>ASL - Admin</h1>
+    <div className="container mx-auto px-4 min-h-screen">
+      <h1 className="mt-4 text-center">ASL - Admin</h1>
       <div className="boxes flex justify-center items-center flex-wrap w-full gap-2 mt-4">
-        <Link href={`/admin/directors`} className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center" >
+        <Link
+          href={`/admin/directors`}
+          className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
+        >
           <h4>Directors</h4>
-          <p>{ldo?.data?.length}</p>
+          <p>{ldos}</p>
         </Link>
-        {getEvents(ldo.data)}
+        <>
+          <Link
+            href={`/admin/events`}
+            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
+          >
+            <h4>Events</h4>
+            <p>{events}</p>
+          </Link>
+          <Link
+            href={`/admin/players`}
+            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
+          >
+            <h4>Players</h4>
+            <p>{players}</p>
+          </Link>
+          <Link
+            href={`/admin/matches`}
+            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
+          >
+            <h4>Matches</h4>
+            <p>{matches}</p>
+          </Link>
+          <Link
+            href={`/admin/teams`}
+            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
+          >
+            <h4>Teams</h4>
+            <p>{teams}</p>
+          </Link>
+        </>
       </div>
     </div>
-  )
+  );
 }
-
-export default AdminPage;

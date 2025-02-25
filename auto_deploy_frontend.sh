@@ -1,3 +1,30 @@
+#!/bin/bash
+
+### Updating the server
+sudo apt update 
+sudo apt upgrade -y
+sudo apt autoremove -y
+
+### Clean up previous project
+pm2 stop all
+pm2 delete all
+
+pm2 list
+pm2 save --force
+pm2 flush
+
+rm -rf /home/shayon/youthspike-event-management
+
+### Setup from stratch
+echo "Setup from stratch"
+cd 
+git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
+cd /home/shayon/youthspike-event-management
+git log --oneline --graph --decorate --all -n 10
+cd
+
+rm -rf /home/shayon/youthspike-event-management/youthspike-nest-backend
+
 
 echo "Installing dependencies for youthspike-admin-frontend"
 cd /home/shayon/youthspike-event-management/youthspike-admin-frontend

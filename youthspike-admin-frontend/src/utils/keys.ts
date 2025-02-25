@@ -1,3 +1,4 @@
+
 const NODE_ENV: string  = "development";
 // const NODE_ENV: string  = "production";
 
@@ -8,10 +9,10 @@ let SOCKET_URL: string = 'ws://localhost:4000/websocket';
 
 
 if (NODE_ENV === 'production') {
-    BACKEND_URL = 'https://aslsquads.com/graphql';
+    BACKEND_URL = 'https://api.aslsquads.com/graphql';
     ADMIN_URL = 'https://admin.aslsquads.com';
     FRONTEND_URL = 'https://aslsquads.com';
-    SOCKET_URL = 'wss://aslsquads.com/websocket';
+    SOCKET_URL = 'wss://api.aslsquads.com/websocket';
 };
 
 const APP_NAME = 'Youthspike';

@@ -3,16 +3,12 @@ import { useMutation } from '@apollo/client';
 import { motion } from "framer-motion";
 import { ADD_DIRECTOR } from '@/graphql/director';
 import { IAddDirector, ILDO, ILdoUpdate, IError } from '@/types';
-import { UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW } from '@/graphql/director';
+import { UPDATE_DIRECTOR } from '@/graphql/director';
 import { useUser } from '@/lib/UserProvider';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
 import addOrUpdateDirector from '@/utils/requestHandlers/addOrUpdateDirector';
 import Loader from '../elements/Loader';
-import TextInput from '../elements/forms/TextInput';
-import EmailInput from '../elements/forms/EmailInput';
-import PasswordInput from '../elements/forms/PasswordInput';
 import FileInput from '../elements/forms/FileInput';
-import NumberInput from '../elements/forms/NumberInput';
 import { buttonVariants, containerVariants, inputVariants } from '@/utils/animation';
 import InputField from '../elements/forms/InputField';
 import { useError } from '@/lib/ErrorContext';
@@ -49,7 +45,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
     // Hooks
     const user = useUser();
     const { setActErr } = useError();
-    
+
     // Local State
     const [directorState, setDirectorState] = useState<IAddDirector>(prevLdo && prevLdo.director
         ? { ...initialDirector, ...prevLdo.director } : initialDirector);
@@ -69,10 +65,9 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
     const handleDirectorChange = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
+        setDirectorState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
         if (update) {
             setDirectorUpdate((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        } else {
-            setDirectorState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
         }
     }
 
@@ -101,7 +96,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
     const handleDirectorSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         addOrUpdateDirector({
-            directorUpdate, update, setActErr, directorState, ldoState, 
+            directorUpdate, update, setActErr, directorState, ldoState,
             ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
             initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc
         });

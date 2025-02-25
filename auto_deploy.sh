@@ -1,7 +1,9 @@
 #!/bin/bash
 
 ### Updating the server
-sudo apt update && sudo apt upgrade -y
+sudo apt update 
+sudo apt upgrade -y
+sudo apt autoremove -y
 
 ### Take backup of database
 FOLDER_NAME="db-backup"
@@ -41,24 +43,30 @@ mkdir /home/shayon/youthspike-nest-backend
 mv /home/shayon/youthspike-event-management/youthspike-nest-backend/* /home/shayon/youthspike-nest-backend
 rm -rf /home/shayon/youthspike-event-management
 
-# Set temporary development
-cd /home/shayon/youthspike-nest-backend
-echo "#Environment variables for youthspike-nest-backend" > .env
-nano .env
-echo "Installing dependencies for youthspike-nest-backend"
-npm install
-nano src/main.ts
-npm run build
-export NODE_ENV="production"
-pm2 start ecosystem.config.js
-pm2 save
-
 # Setup redis
 sudo systemctl restart redis
 sudo systemctl status redis
 ./redis_cluster.sh
 
+# Set temporary development
+cd /home/shayon/youthspike-nest-backend
+echo "#Environment variables for youthspike-nest-backend" > .env
+nano .env
+echo "Installing dependencies for youthspike-nest-backend"
+npm install --force
+nano src/util/keys.ts
+npm run build
+export NODE_ENV="production"
+pm2 start ecosystem.config.js
+pm2 save
+sudo systemctl restart redis
+
+
+
 cd
+
+curl -X POST 'https://api.aslsquads.com/graphql' -H 'Content-Type: application/json' -d '{"query":"{ getAbout { app author details mode version } }"}'
+pm2 logs
 
 
 

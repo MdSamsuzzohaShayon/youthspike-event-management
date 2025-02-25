@@ -27,7 +27,6 @@ function LDOSingle({ params }: { params: { ldoId: string } }) {
 
   return (
     <div className='container mx-auto px-4 min-h-screen'>
-      {error && <Message error={error} />}
       <DirectorAdd setIsLoading={setIsLoading} update prevLdo={prevLdo} ldoId={params.ldoId} refetchFunc={refetchFunc} />
     </div>
   )

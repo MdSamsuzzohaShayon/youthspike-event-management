@@ -67,11 +67,6 @@ const teamResponse = `
     }
 `;
 
-const groupResponse = `
-_id
-name
-`;
-
 const teamResponseMin = `
     _id
     active
@@ -178,26 +173,62 @@ const GET_TEAMS_BY_EVENT = gql`
 
 
 
-const GET_EVENT_WITH_TEAMS = gql`
-query GetEvent($eventId: String!) {
-  getEvent(eventId: $eventId) {
+const GET_EVENT_WITH_TEAMS_RAW = `
+query GetEventWithTeams($eventId: String) {
+  getEventWithTeams(eventId: $eventId) {
     code
-    success
     message
+    success
     data {
-      ${eventResponse}
-      teams {
-        ${teamResponseMin}
+      event {
+        _id
+        active
+        autoAssign
+        autoAssignLogic
+        coachPassword
+        description
+        divisions
+        endDate
+        fwango
+        homeTeam
+        rosterLock
+        tieBreaking
+        timeout
+        location
+        startDate
       }
-      ldo {
+      teams {
         _id
         name
         logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+        players
+        group
+        
       }
-      groups{
+      groups {
         _id
         name
+        active
         division
+        rule
+        teams
+      }
+      players {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        teams
       }
     }
   }
@@ -283,7 +314,7 @@ mutation DeleteTeams($teamIds: [String!]!) {
 }
 `;
 
-const GET_TEAMS_AND_MATCHES = gql`
+const GET_TEAMS_AND_MATCHES_RAW = `
 query GetEvent($eventId: String!) {
     getEvent(eventId: $eventId) {
       code
@@ -367,4 +398,4 @@ query GetEvent($eventId: String!) {
   }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES};
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS_RAW, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW};

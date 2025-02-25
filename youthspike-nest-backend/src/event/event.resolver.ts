@@ -36,6 +36,9 @@ import { FilterQuery } from 'mongoose';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { GroupService } from 'src/group/group.service';
+import { RedisService } from 'src/redis/redis.service';
+import { CACHE_EXPIRE } from 'src/util/keys';
+import { Player } from 'src/player/player.schema';
 
 @ObjectType()
 class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -70,6 +73,7 @@ export class EventResolver {
     private netService: NetService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
+    private redisService: RedisService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -255,7 +259,8 @@ export class EventResolver {
         for (const ps of prevSponsors) {
           if (!newSponsorIds.includes(ps.toString())) deleteSponsors.push(ps);
         }
-        if (deleteSponsors && deleteSponsors.length > 0) await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
+        if (deleteSponsors && deleteSponsors.length > 0)
+          await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
       }
 
       // ===== Update logo =====
@@ -476,9 +481,28 @@ export class EventResolver {
 
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
+    const cacheKey = `event:${eventId}`;
+    const redisClient = this.redisService.getPubClient();
+
     try {
+      // Check if the event is in the cache
+      const cachedEvent = await redisClient.get(cacheKey);
+
+      if (cachedEvent) {
+        // If cached, return the cached event
+        return {
+          code: HttpStatus.OK,
+          success: true,
+          data: JSON.parse(cachedEvent),
+        };
+      }
+
+      // If not cached, fetch from the database
       const eventExist = await this.eventService.findById(eventId);
-      if(!eventExist) return AppResponse.notFound('Event');
+      if (!eventExist) return AppResponse.notFound('Event');
+
+      // Store the event in the cache with an expiration time (e.g., 1 hour)
+      await redisClient.set(cacheKey, JSON.stringify(eventExist), 'EX', CACHE_EXPIRE);
 
       return {
         code: HttpStatus.OK,
@@ -564,24 +588,86 @@ export class EventResolver {
 
   @ResolveField()
   async teams(@Parent() event: Event) {
-    const teamList = await this.teamService.query({ _id: { $in: event.teams } });
-    return teamList;
+    const cacheKey = `event:${event._id}:teams`; // Unique cache key for the event's teams
+    const redisClient = this.redisService.getPubClient();
+
+    try {
+      // Check if the teams are already in the cache
+      const cachedTeams = await redisClient.get(cacheKey);
+
+      if (cachedTeams) {
+        // If cached, return the cached teams
+        return JSON.parse(cachedTeams);
+      }
+
+      // If not cached, fetch the teams from the database
+      const teamList = await this.teamService.query({ _id: { $in: event.teams } });
+
+      // Store the teams in the cache with an expiration time (e.g., 1 hour)
+      await redisClient.set(cacheKey, JSON.stringify(teamList), 'EX', CACHE_EXPIRE);
+
+      return teamList;
+    } catch (err) {
+      // Handle errors gracefully
+      console.error('Error resolving teams:', err);
+      throw err; // Re-throw the error to be handled by GraphQL
+    }
   }
 
   @ResolveField()
   async groups(@Parent() event: Event) {
-    const groupList = await this.groupService.find({ event: event._id.toString() });
-    return groupList;
-  }
+    try {
+      const cacheKey = `event:${event._id}:groups`;
 
+      // ✅ Check if groups are cached in Redis
+      const cachedGroups = await this.redisService.getPubClient().get(cacheKey);
+      if (cachedGroups) {
+        return JSON.parse(cachedGroups);
+      }
+
+      // ✅ Fetch from the database if not cached
+      const groupList = await this.groupService.find({ event: event._id.toString() });
+
+      // ✅ Cache the result in Redis with a TTL of 5 minutes (300 seconds)
+      await this.redisService.getPubClient().set(cacheKey, JSON.stringify(groupList), 'EX', CACHE_EXPIRE);
+
+      return groupList;
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+      throw new Error('Failed to fetch event groups');
+    }
+  }
   @ResolveField()
   async sponsors(@Parent() event: Event) {
     return this.sponsorService.query({ _id: { $in: event.sponsors } });
   }
 
-  @ResolveField()
-  async players(@Parent() event: Event) {
-    return this.playerService.find({ _id: { $in: event.players } });
+  @ResolveField(() => [Player]) // Specify the return type for "players"
+  async players(@Parent() event: Event): Promise<Player[]> {
+    const cacheKey = `event:${event._id}:players`; // Unique cache key for the event's players
+    const redisClient = this.redisService.getPubClient();
+
+    try {
+      // Check if the players are already in the cache
+      const cachedPlayers = await redisClient.get(cacheKey);
+
+      if (cachedPlayers) {
+        // If cached, return the cached players
+        return JSON.parse(cachedPlayers);
+      }
+
+      // If not cached, fetch the players from the database
+      const players = await this.playerService.find({ _id: { $in: event.players } });
+
+      // Store the players in the cache with an expiration time (e.g., 1 hour)
+      await redisClient.set(cacheKey, JSON.stringify(players), 'EX', CACHE_EXPIRE);
+
+      return players;
+    } catch (error) {
+      // Handle errors gracefully
+      console.error('Error resolving players:', error);
+      return []; // Return an empty array in case of error
+    }
   }
 
   @ResolveField()

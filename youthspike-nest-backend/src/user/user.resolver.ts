@@ -91,10 +91,6 @@ export class UserResolver {
       }
 
       const users: any = await this.userService.find({ email: { $regex: new RegExp(email, 'i') } });
-      if (users && users.length > 0) {
-        console.log('Found many users');
-        console.log(users);
-      }
 
       const passwordFromUser = existingUser.password;
       const passwordMatched = await bcrypt.compare(password, passwordFromUser);
@@ -137,7 +133,7 @@ export class UserResolver {
           userObj.teamLogo = teamExist.logo;
         }
       }
-        */
+
 
       if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
         let teamExist = null;
