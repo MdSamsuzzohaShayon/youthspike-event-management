@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ICheckedInput, IError, IEvent, IGroup, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'framer-motion';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorContext';
+import Pagination from '../elements/Pagination';
 
 interface TeamListProps {
   eventId: string;
@@ -22,6 +23,8 @@ interface TeamListProps {
   fefetchFunc?: () => Promise<void>;
 }
 
+
+const ITEMS_PER_PAGE = 20;
 
 function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefetchFunc }: TeamListProps) {
 
@@ -36,6 +39,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
   const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
   const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
   const [filteredGroupId, setFilteredGroupId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
 
@@ -190,6 +194,15 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     }
   }
 
+  const paginatedTeamList: ITeam[] = useMemo(() => {
+    // Paginated
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedTeams = teamList.slice(start, start + ITEMS_PER_PAGE);
+
+    // inactive players won't have rankings
+    return paginatedTeams;
+  }, [teamList, currentPage]);
+
   return (
     <div className="team-list w-full">
       <div className="action-section flex justify-between mb-4">
@@ -265,7 +278,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
 
       </div>
       <div className="team-list-card flex flex-col justify-between items-center gap-3">
-        {teamList.map((team) => {
+        {paginatedTeamList.map((team) => {
           if (!filteredGroupId || team.group?._id === filteredGroupId) {
             return (
               <TeamCard
@@ -284,6 +297,10 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
           }
           return null;
         })}
+      </div>
+
+      <div className="w-full">
+        <Pagination currentPage={currentPage} itemList={teamList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
 
       <dialog ref={cngGroupEl} className='w-4/6 md:w-3/6 py-4'>

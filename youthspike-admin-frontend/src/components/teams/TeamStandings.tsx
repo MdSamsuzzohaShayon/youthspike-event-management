@@ -38,10 +38,12 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
         if (match.completed) {
           if (match.teamA?._id) {
             if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
+            // @ts-ignore
             map.get(match.teamA._id)?.push(match);
           }
           if (match.teamB?._id) {
             if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
+            // @ts-ignore
             map.get(match.teamB._id)?.push(match);
           }
         }

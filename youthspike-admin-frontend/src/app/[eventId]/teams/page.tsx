@@ -1,6 +1,4 @@
-'use client';
-
-import TeamMain from '@/components/teams/TeamMain';
+import Team from '@/components/teams/Team';
 
 interface ITeamsOfEventPage {
   params: {
@@ -10,8 +8,8 @@ interface ITeamsOfEventPage {
 
 function TeamsPage({ params }: ITeamsOfEventPage) {
   return (
-    <div className="container mx-auto px-4 min-h-screen">
-      <TeamMain eventId={params.eventId} />
+    <div className="team-main container mx-auto px-4 py-6 min-h-screen">
+      <Team params={params} />
     </div>
   );
 }

@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Context, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Context,
+  Field,
+  Int,
+  Mutation,
+  ObjectType,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { LdoService } from 'src/ldo/ldo.service';
 import { LDO } from './ldo.schema';
 import { AppResponse } from 'src/shared/response';
@@ -36,6 +47,30 @@ class GetDirectorsLDOResponse extends AppResponse<LDO[]> {
   data?: LDO[];
 }
 
+@ObjectType()
+class SystemDetails {
+  @Field(() => Int, { nullable: false, defaultValue: 0 })
+  ldos: number;
+
+  @Field(() => Int, { nullable: false, defaultValue: 0 })
+  events: number;
+
+  @Field(() => Int, { nullable: false, defaultValue: 0 })
+  players: number;
+
+  @Field(() => Int, { nullable: false, defaultValue: 0 })
+  matches: number;
+
+  @Field(() => Int, { nullable: false, defaultValue: 0 })
+  teams: number;
+}
+
+@ObjectType()
+class GetSystemDetailsResponse extends AppResponse<SystemDetails> {
+  @Field(() => SystemDetails, { nullable: true })
+  data?: SystemDetails;
+}
+
 @Resolver((of) => LDO)
 export class LdoResolver {
   constructor(
@@ -49,7 +84,7 @@ export class LdoResolver {
     private matchService: MatchService,
     private roundsService: RoundService,
     private netService: NetService,
-  ) { }
+  ) {}
 
   refineObject(obj: Record<string, any>): Record<string, any> {
     return Object.fromEntries(
@@ -238,6 +273,35 @@ export class LdoResolver {
         success: true,
         message: 'List of all LDOs',
         data: ldosExist,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((returns) => GetSystemDetailsResponse)
+  async getSystemDetails() {
+    try {
+      // If the user is admin we must need ldoId otherwise get id from token
+      const [ldos, events, players, matches, teams] = await Promise.all([
+        this.ldoService.find({}),
+        this.eventService.find({}),
+        this.playerService.find({}),
+        this.matchService.find({}),
+        this.teamService.find({}),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of all LDOs',
+        data: {
+          ldos: ldos.length,
+          events: events.length,
+          players: players.length,
+          matches: matches.length,
+          teams: teams.length,
+        },
       };
     } catch (err) {
       return AppResponse.handleError(err);

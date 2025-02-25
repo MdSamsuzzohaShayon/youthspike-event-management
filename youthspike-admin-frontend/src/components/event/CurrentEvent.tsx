@@ -9,6 +9,7 @@ import cld from "@/config/cloudinary.config";
 
 const EventDetail = ({ currEvent }: { currEvent: IEvent }) => {
   const user = useUser();
+  
 
   const displayLogo: React.ReactNode = useMemo(() => {
     let logoEl = (

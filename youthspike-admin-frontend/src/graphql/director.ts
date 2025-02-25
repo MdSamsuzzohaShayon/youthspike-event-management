@@ -79,23 +79,18 @@ const GET_LDOS = gql`
   }
 `;
 
-const GET_LDOS_LIGHT = gql`
-  query GetEventDirectors {
-    getEventDirectors {
-      code
-      success
-      message
-      data {
-        _id
-      director {
-        _id
-      }
-      events {
-        ${eventResponseLight}
-      }
-      }
+const GET_SYSTEM_DETAILS_RAW = `
+query GetSystemDetails {
+  getSystemDetails {
+    data {
+      events
+      ldos
+      matches
+      players
+      teams
     }
   }
+}
 `;
 
 const GET_LDO = gql`
@@ -111,22 +106,6 @@ const GET_LDO = gql`
   }
 `;
 
-const GET_LDO_EVENTS_LIGHT = gql`
-  query GetEventDirector($dId: String) {
-    getEventDirector(dId: $dId) {
-      code
-      success
-      message
-      data {
-        events {
-          _id
-          name
-          divisions
-        }
-      }
-    }
-  }
-`;
 
 /**
  * Mutations
@@ -178,4 +157,4 @@ mutation DeleteEventDirector($dId: String!) {
 }
 `;
 
-export { GET_LDO, GET_LDOS, GET_LDOS_LIGHT, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR, GET_LDO_EVENTS_LIGHT };
+export { GET_LDO, GET_LDOS, GET_SYSTEM_DETAILS_RAW, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };

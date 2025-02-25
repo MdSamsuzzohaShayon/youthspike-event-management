@@ -64,7 +64,7 @@ export class Team extends AppDocument {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
   event: Event | string;
 
-  @Field(() => [Player], { nullable: false })
+  @Field(() => [Player], { nullable: true })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
   players?: Player[] | string[]; // Update the type of players to allow null values
 

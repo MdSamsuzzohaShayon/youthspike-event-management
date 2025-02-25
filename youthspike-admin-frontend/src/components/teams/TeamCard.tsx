@@ -5,19 +5,16 @@ import Link from 'next/link';
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
-import { SEND_CREDENTIALS } from '@/graphql/event';
 import { cardHeight, imgSize } from '@/utils/style';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
-import { divisionsToOptionList } from '@/utils/helper';
 import { UPDATE_GROUP } from '@/graphql/group';
-import { handleResponse } from '@/utils/handleError';
 import { AnimatePresence, motion } from 'framer-motion';
 import { menuVariants } from '@/utils/animation';
 
@@ -39,6 +36,7 @@ interface ITeamMove {
 }
 
 function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, fefetchFunc }: ITeamCardProps) {
+  
 
   const user = useUser();
   const router = useRouter();
@@ -254,7 +252,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
                 }))}
                 handleSelect={handleGroupChange}
                 vertical
-                defaultValue={team.group ? team.group._id : ''}
+                defaultValue={team.group ? team.group.toString() : ''}
               />
             </div>
           </div>
@@ -290,7 +288,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             </div>
           )}
           <p className="flex items-center text-sm mt-2 lg:mt-0">
-            Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team.players.length}</span>
+            Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team?.players?.length || 0}</span>
           </p>
         </div>
 

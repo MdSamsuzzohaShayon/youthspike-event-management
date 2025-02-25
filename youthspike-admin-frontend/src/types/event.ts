@@ -5,6 +5,7 @@ import { EAssignStrategies, IError } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
 import { ILDO } from './ldo';
+import { IGroup } from './group';
 
 export enum EEventPeriod {
   UPCOMING = 'UPCOMING',
@@ -60,6 +61,7 @@ export interface IEventExpRel extends IEvent {
   players: IPlayer[];
   teams: ITeam[];
   ldo: ILDO;
+  groups: IGroup[];
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

@@ -15,7 +15,7 @@ const fetchWithPolyfill = (uri: string, options: any) => {
 // Http link using the fetch API
 const httpLink = createHttpLink({
   uri: BACKEND_URL,
-  fetch: fetchWithPolyfill,  // Explicitly set fetch
+  // fetch: fetchWithPolyfill,  // Explicitly set fetch
 });
 
 const authLink = setContext((_, { headers }) => {
