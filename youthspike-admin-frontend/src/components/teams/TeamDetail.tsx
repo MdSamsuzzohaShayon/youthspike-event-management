@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+'use client'
+
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from "framer-motion";
-import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerRankingExpRel, ITeam } from '@/types';
+import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItem, ITeam } from '@/types';
 import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { initialUserMenuList } from '@/utils/staticData';
-import { getUserFromCookie } from '@/utils/cookie';
-import { getEventIdFromPath, rearrangeMenu } from '@/utils/helper';
-import { usePathname } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import { EPlayerStatus } from '@/types/player';
 import cld from '@/config/cloudinary.config';
@@ -17,18 +15,19 @@ import Image from 'next/image';
 import UserMenuList from '../layout/UserMenuList';
 import { useError } from '@/lib/ErrorContext';
 import MatchCard from '../match/MatchCard';
+import Pagination from '../elements/Pagination';
 
 interface ITeamDetailProps {
   event: IEvent;
   team: ITeam;
   eventId: string;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   divisionList: IOption[];
   teamList: ITeam[];
   refetchFunc?: () => Promise<void>;
   playerList: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
   matchList: IMatchExpRel[];
+  rankings: IPlayerRankingItem[];
 }
 
 // eslint-disable-next-line no-unused-vars, no-shadow
@@ -39,16 +38,20 @@ enum ETab {
   MATCHES = 'MATCHES',
 }
 
-function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList, refetchFunc, playerList, playerRanking, matchList }: ITeamDetailProps) {
-  const pathname = usePathname();
+
+const ITEMS_PER_PAGE = 20;
+
+function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc, playerList, playerRanking, matchList, rankings }: ITeamDetailProps) {
   const { setActErr } = useError();
+  
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [filteredPlayers, setFilteredPlayers] = useState<IPlayer[]>([]);
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<string[]>([]);
-  const [userMenuList, setUserMenuList] = useState<IMenuItem[]>(initialUserMenuList);
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // ===== GraphQL =====
   const [mutateTeam] = useMutation(UPDATE_TEAM);
@@ -65,7 +68,7 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
 
   const handleSelectGroup = (e: React.SyntheticEvent, tab: ETab) => {
     e.preventDefault();
-    if(tab === ETab.ROSTER){
+    if (tab === ETab.ROSTER) {
       window.location.reload();
     }
     setSelectedItem(tab);
@@ -90,33 +93,34 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
     // Set division
     setDivisionToStore(team.division);
     setTeamToStore(team._id);
-
-    // ===== Set Menu Items =====
-    const userDetail = getUserFromCookie();
-    if (userDetail) {
-      // ===== Check path has event Id or not
-      const eventPath = getEventIdFromPath(pathname);
-      const menuItemList = rearrangeMenu(userDetail, eventPath);
-      setUserMenuList(menuItemList);
-    }
   }, []);
 
   useEffect(() => {
     // Get available players from all player list
     const napList: IPlayer[] = playerList ? playerList.filter((p: IPlayer) => !p.teams || p.teams.length === 0) : []; // nap List = new available players List
     let nfpList = [...napList]; // fnp List = new filtered player List
-    
+
     nfpList = napList.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase());
     setFilteredPlayers(nfpList);
   }, []);
 
-  
 
-  const activePlayers = team?.players ? team.players.filter((p) => p.status === EPlayerStatus.ACTIVE) : [];
-  const inactivePlayers = team?.players ? team.players.filter((p) => p.status !== EPlayerStatus.ACTIVE) : [];
-  const filteredMatchList = matchList.filter((m) => m.teamA._id === team._id || m.teamB._id === team._id);
-  
-  
+  const paginatedMatchList: IMatchExpRel[] = useMemo(() => {
+    // Paginated
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedTeams = matchList.slice(start, start + ITEMS_PER_PAGE);
+
+    // inactive players won't have rankings
+    return paginatedTeams;
+  }, [matchList, currentPage]);
+
+
+
+  const activePlayers = (playerList ? playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
+  const inactivePlayers = (playerList ? playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
+
+
+
 
 
   return (
@@ -217,12 +221,16 @@ function TeamDetail({ event, team, eventId, setIsLoading, divisionList, teamList
         )
       )}
 
-      {selectedItem === ETab.MATCHES && (
+      {selectedItem === ETab.MATCHES && (<>
         <div className='w-full'>
-          {filteredMatchList.length > 0
-            ? filteredMatchList.map((match, i) => (<MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />))
+          {paginatedMatchList.length > 0
+            ? paginatedMatchList.map((match, i) => (<MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />))
             : <p>No match found of this team!</p>}
         </div>
+        <div className="w-full">
+          <Pagination currentPage={currentPage} itemList={matchList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+        </div>
+      </>
       )}
 
       {/* Show captain  */}

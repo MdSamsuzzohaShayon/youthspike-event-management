@@ -53,6 +53,10 @@ ___
       
 
 ### Requirements 
+ - Speed up
+    - Individual team (Make pagination) -> https://admin.aslsquads.com/679126dadf9ccad052a14765/teams/679126f5df9ccad052a14912?ldoId=6791265adf9ccad052a1460e 
+    - Matches (list of match must be updated)
+    - 
  - Email seing and staying at position
  - Roster lock and change to matches component
  - Make username unique

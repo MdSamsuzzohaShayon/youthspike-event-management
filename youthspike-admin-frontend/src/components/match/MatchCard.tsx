@@ -36,7 +36,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
   const [deleteMatch, { loading }] = useMutation(DELETE_MATCH);
   const [roundList, setRoundList] = useState<IRoundRelatives[]>(match?.rounds ? match.rounds : []);
   // @ts-ignore
-  const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []);
+  const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: (n.round?._id || n.round) })) : []);
+
+  
 
 
 
@@ -64,7 +66,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
     let opPointsOfRound = 0;
     const mE = teamE;
     const oE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
-    console.log({oE, mE});
     
     roundList.forEach((r) => {
       const myScore = calcRoundScore(allNets.filter((n) => n.round === r._id), r, mE);

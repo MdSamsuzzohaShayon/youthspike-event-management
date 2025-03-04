@@ -26,9 +26,11 @@ import { RedisService } from 'src/redis/redis.service';
 import {
   CreateOrUpdateTeamResponse,
   GetEventWithTeamsResponse,
+  GetTeamDetailsResponse,
   GetTeamResponse,
   GetTeamsResponse,
 } from './team.response';
+import { RoundService } from 'src/round/round.service';
 
 @Resolver((of) => Team)
 export class TeamResolver {
@@ -42,6 +44,7 @@ export class TeamResolver {
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
+    private roundService: RoundService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -455,7 +458,7 @@ export class TeamResolver {
   }
   Field;
   @Roles(UserRole.admin, UserRole.director)
-  @Query((returns) => GetTeamsResponse)
+  @Query((_returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
     try {
       const teams = await this.teamService.find({ event: eventId });
@@ -470,7 +473,7 @@ export class TeamResolver {
     }
   }
 
-  @Query((returns) => GetEventWithTeamsResponse)
+  @Query((_returns) => GetEventWithTeamsResponse)
   async getEventWithTeams(@Args('eventId', { nullable: true }) eventId: string) {
     try {
       const [eventExist, teams, groups, players] = await Promise.all([
@@ -480,9 +483,6 @@ export class TeamResolver {
         this.playerService.find({ event: eventId }),
       ]);
 
-      // Each team must have group
-      // Each must have team
-      // Each team must have players
       return {
         code: HttpStatus.OK,
         success: true,
@@ -509,6 +509,52 @@ export class TeamResolver {
         code: HttpStatus.OK,
         success: true,
         data: teamExist,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((_returns) => GetTeamDetailsResponse)
+  async getTeamDetails(@Args('teamId') teamId: string) {
+    try {
+      const [team, playerRanking] = await Promise.all([
+        this.teamService.findById(teamId),
+        this.playerRankingService.findOne({
+          team: teamId,
+          // rankLock: false,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
+      ]);
+      const [players, group, captain, event, matches, rankings] = await Promise.all([
+        this.playerService.find({ teams: { $in: [team._id] } }),
+        this.groupService.findOne({ _id: team.group }),
+        this.playerService.findOne({ _id: team.captain }),
+        this.eventService.findOne({ _id: team.event }),
+        this.matchService.find({
+          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+        }),
+        this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
+      ]);
+
+      // Attributes of matches
+      const matchIds = matches.map((m) => m._id);
+      const oponentTeamIds = [
+        ...new Set(matches.map((m) => (m.teamA.toString() === teamId ? m.teamB.toString() : m.teamA.toString()))),
+      ];
+      const [rounds, nets, oponentTeams] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+        this.teamService.find({ _id: { $in: oponentTeamIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: { team, playerRanking, players, group, captain, event, matches, rankings, rounds, nets, oponentTeams },
       };
     } catch (err) {
       return AppResponse.handleError(err);

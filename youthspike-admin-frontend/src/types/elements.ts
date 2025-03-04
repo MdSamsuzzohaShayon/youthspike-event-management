@@ -193,3 +193,10 @@ export interface ICheckedInput{
   _id: string;
   checked: boolean;
 }
+
+
+export interface IEventPageProps {
+  params: {
+    eventId: string;
+  };
+}

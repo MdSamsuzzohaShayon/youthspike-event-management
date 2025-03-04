@@ -1,67 +1,69 @@
-'use client'
-
-import React, { useEffect, useState } from 'react';
-import Loader from '@/components/elements/Loader';
+import { notFound } from 'next/navigation';
 import TeamDetail from '@/components/teams/TeamDetail';
-import { GET_A_TEAM } from '@/graphql/teams';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { useLazyQuery } from '@apollo/client';
-import { setTeamToStore } from '@/utils/localStorage';
-import { useError } from '@/lib/ErrorContext';
-import { GET_MATCHES } from '@/graphql/matches';
+import { divisionsToOptionList } from '@/utils/helper';
+import { IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import { getTeamData } from '../_fetch/team';
 
 interface TeamSingleMainProps {
-  params: { teamId: string, eventId: string },
+  params: { teamId: string; eventId: string };
 }
 
-function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
 
-  const [fetchTeam, { data, loading, error, refetch }] = useLazyQuery(GET_A_TEAM, { variables: { teamId }, fetchPolicy: "network-only" });
-  const [fetchMatches, { data: matchesData, refetch: matchesFetch }] = useLazyQuery(GET_MATCHES, { variables: { filter: { event: eventId } }, fetchPolicy: "network-only" });
-  const { setActErr } = useError();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const refetchFunc = async () => {
-    await refetch();
-    await matchesFetch();
+export default async function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
+  const teamData = await getTeamData(teamId);
+
+  if (!teamData) {
+    return notFound();
   }
 
-  useEffect(() => {
-    if (teamId) {
-      if (isValidObjectId(teamId)) {
-        fetchTeam({ variables: { teamId } });
-        fetchMatches({ variables: { filter: { event: eventId } } });
-        setTeamToStore(teamId);
-      } else {
-        setActErr({ success: false, message: "Can not fetch data due to invalid event ObjectId!" })
-      }
+  const { team, playerRanking, players, captain, group, event, matches, rankings, rounds, nets, oponentTeams } = teamData;
+  const divisionList = event?.divisions ? divisionsToOptionList(event.divisions) : [];
+
+  playerRanking.rankings = rankings;
+  team.captain = captain;
+
+  // Build lookup maps in a single pass (O(n) instead of multiple O(n) iterations)
+  const roundMap = new Map(rounds.map((r: IRoundRelatives) => [r._id, r]));
+  const netMap = new Map(nets.map((n: INetRelatives) => [n._id, n]));
+  const oponentTeamMap = new Map(oponentTeams.map((t: ITeam) => [t._id, t]));
+
+  // Process matches efficiently
+  const matchList = matches.map((m: IMatchExpRel) => {
+    const matchObj = { ...m };
+
+    // @ts-ignore
+    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
+    // @ts-ignore
+    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
+
+    if (oponentTeamMap.has(m.teamA)) {
+    // @ts-ignore
+      matchObj.teamA = oponentTeamMap.get(m.teamA);
+      matchObj.teamB = team;
+    } else if (oponentTeamMap.has(m.teamB)) {
+    // @ts-ignore
+      matchObj.teamB = oponentTeamMap.get(m.teamB);
+      matchObj.teamA = team;
     }
-  }, [teamId]);
 
-  if (loading || isLoading) return <Loader />;
-
-  const teamData = data?.getTeam?.data;
-  const eventData = data?.getTeam?.data?.event;
-  const divisionList = data?.getTeam?.data?.event?.divisions ? divisionsToOptionList(data?.getTeam?.data?.event?.divisions) : [];
-  const teamList = data?.getTeam?.data?.event?.teams ? data?.getTeam?.data?.event?.teams : [];
-  const playerList = data?.getTeam?.data?.event?.players ? data?.getTeam?.data?.event?.players : [];
-  const playerRanking = data?.getTeam?.data?.playerRanking;
-  const matchList = matchesData?.getMatches?.data || [];
-  
-
-  if (error) {
-    console.log(error);
-
-  }
+    return matchObj;
+  });
   
 
   return (
-    <div className='container mx-auto px-4 min-h-screen'>
-      {teamData && <TeamDetail event={eventData} team={teamData} eventId={eventId} setIsLoading={setIsLoading}
-        divisionList={divisionList} teamList={teamList} refetchFunc={refetchFunc} playerList={playerList} playerRanking={playerRanking} matchList={matchList} />}
-
+    <div className="container mx-auto px-4 min-h-screen">
+      <TeamDetail
+        event={event}
+        team={team}
+        eventId={eventId}
+        divisionList={divisionList}
+        teamList={oponentTeams}
+        playerList={players}
+        playerRanking={playerRanking}
+        matchList={matchList}
+        rankings={rankings}
+      />
     </div>
-  )
+  );
 }
-
-export default TeamSingleMain;

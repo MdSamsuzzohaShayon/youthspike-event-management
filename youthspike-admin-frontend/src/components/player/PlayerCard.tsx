@@ -265,7 +265,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
-                {!teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && <p className="text-yellow-logo uppercase">{playerAssignment ?? "Unassigned"}</p>}
+                {!showRank && !teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && <p className="text-yellow-logo uppercase">{playerAssignment ?? "Unassigned"}</p>}
               </div>
             </div>
 

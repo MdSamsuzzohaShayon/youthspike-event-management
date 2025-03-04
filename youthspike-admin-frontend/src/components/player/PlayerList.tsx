@@ -174,8 +174,11 @@ function PlayerList({
         if (playerRanking) {
           const newRankingsMap = new Map();
           if (playerRanking && playerRanking.rankings.length > 0) {
+            console.log(playerRanking.rankings);
+            
+            
             playerRanking.rankings.forEach((pr) => {
-              newRankingsMap.set(pr.player._id, pr.rank);
+              newRankingsMap.set(pr.player, pr.rank);
             });
           }
           setRankingsMap(newRankingsMap);

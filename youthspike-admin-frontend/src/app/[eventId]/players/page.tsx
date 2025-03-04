@@ -17,7 +17,6 @@ import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import { handleResponse } from '@/utils/handleError';
 import { useError } from '@/lib/ErrorContext';
-import PaginationWrapper from '@/components/elements/PaginationWrapper';
 
 function PlayersPage({ params }: { params: { eventId: string } }) {
   // ===== hooks =====

@@ -29,7 +29,8 @@ rm -rf /home/shayon/youthspike-nest-backend
 echo "Setup from stratch"
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
-git log --oneline --graph --decorate --all -n 10
+git log -n 10
+git log --oneline --graph --decorate --all 
 
 # Temp (Version before EID)
 # cd /home/shayon/youthspike-event-management
@@ -44,12 +45,12 @@ mv /home/shayon/youthspike-event-management/youthspike-nest-backend/* /home/shay
 rm -rf /home/shayon/youthspike-event-management
 
 # Setup redis
+cd /home/shayon/youthspike-nest-backend
 sudo systemctl restart redis
 sudo systemctl status redis
 ./redis_cluster.sh
 
 # Set temporary development
-cd /home/shayon/youthspike-nest-backend
 echo "#Environment variables for youthspike-nest-backend" > .env
 nano .env
 echo "Installing dependencies for youthspike-nest-backend"

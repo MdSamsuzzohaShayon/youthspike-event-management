@@ -25,6 +25,7 @@ import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 import { GroupModule } from './group/group.module';
 import { RedisService } from './redis/redis.service';
 import { RedisModule } from './redis/redis.module';
+import { EEnv, NODE_ENV } from './util/keys';
 
 @Module({
   imports: [
@@ -36,6 +37,9 @@ import { RedisModule } from './redis/redis.module';
       playground: false,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      // persistedQueries: {
+      //   cache: 'bounded',  // ✅ Enforce bounded cache to prevent memory exhaustion
+      // },
     }),
 
     MongooseModule.forRootAsync({
