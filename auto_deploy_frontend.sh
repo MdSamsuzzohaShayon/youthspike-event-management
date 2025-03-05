@@ -20,7 +20,8 @@ echo "Setup from stratch"
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 cd /home/shayon/youthspike-event-management
-git log --oneline --graph --decorate --all -n 10
+git log -n 10
+git log --oneline --graph --decorate --all 
 cd
 
 rm -rf /home/shayon/youthspike-event-management/youthspike-nest-backend

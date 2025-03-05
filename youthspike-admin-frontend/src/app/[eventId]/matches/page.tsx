@@ -1,245 +1,76 @@
-'use client';
-
 // React.js and Next.js
-import { useLazyQuery } from '@apollo/client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-// Components
-import Loader from '@/components/elements/Loader';
-import SelectInput from '@/components/elements/forms/SelectInput';
-import CurrentEvent from '@/components/event/CurrentEvent';
-import UserMenuList from '@/components/layout/UserMenuList';
-import MatchAdd from '@/components/match/MatchAdd';
-import MatchList from '@/components/match/MatchList';
 
 // GraphQL, helpers, utils, types
-import { GET_EVENT_WITH_MATCHES_TEAMS } from '@/graphql/matches';
-import { useUser } from '@/lib/UserProvider';
-import { IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
-import { IUserContext, UserRole } from '@/types/user';
-import { getUserFromCookie } from '@/utils/cookie';
-import { handleResponse } from '@/utils/handleError';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
-import { motion } from 'framer-motion';
+import { IEventPageProps, IGroupExpRel, IGroupRelatives, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
 
-import { headingAnimate, logoAnimate } from '@/utils/animation';
-import { useError } from '@/lib/ErrorContext';
+import { notFound } from 'next/navigation';
+import { getEventWithMatches } from './_fetch/match';
+import MatchesMain from '@/components/match/MatchesMain';
 
-const { animate: hAnimate, exit: hExit, initial: hInitial, transition: hTransition } = headingAnimate;
-
-function MatchesPage({ params }: { params: { eventId: string } }) {
-  const { setActErr } = useError();
+async function MatchesPage({ params: { eventId } }: IEventPageProps) {
 
 
-  // Local state
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [addMatch, setAddMatch] = useState<boolean>(false);
-  const [currDivision, setCurrDivision] = useState<string>('');
-  const [matchList, setMatchList] = useState<IMatchExpRel[]>([]);
-  const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
-  const [teamList, setTeamList] = useState<ITeam[]>([]);
-  const [groupList, setGroupList] = useState<IGroupExpRel[]>([]);
-  const [filteredGroupList, setFilteredGroupList] = useState<IGroupExpRel[]>([]);
-  const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
-  const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
-  const [divisionList, setDivisionList] = useState<IOption[]>([]);
+  const matchesData = await getEventWithMatches(eventId);
 
-  // Hooks
-  const user = useUser();
+  if (!matchesData) {
+    notFound();
+  }
 
-  // Fetch teams and players of the teams
-  const [getEvent, { data, loading, error }] = useLazyQuery(GET_EVENT_WITH_MATCHES_TEAMS, { variables: { eventId: params.eventId }, fetchPolicy: 'network-only' });
+  // Matches, 
+  const { event, matches, teams, ldo, nets, rounds, groups } = matchesData;
 
-  const captainsMatches = (localUser: IUserContext, prevFilteredTeams: ITeam[], prevFilteredMatches: IMatchExpRel[]): IMatchExpRel[] => {
-    let filteredMatches = [...prevFilteredMatches];
-    let findTeam: ITeam | null = null;
-    if (localUser.info?.role === UserRole.captain) {
-      findTeam = prevFilteredTeams.find((team) => team.captain?._id === localUser.info?.captainplayer) ?? null;
+  const teamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
+  const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives)=> [r._id, r]));
+  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives)=> [n._id, n]))
+
+  const matchList = matches.map((m: IMatchExpRel) => {
+    const matchObj = { ...m };
+
+    // @ts-ignore
+    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
+    // @ts-ignore
+    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
+
+    if (teamMap.has(m.teamA)) {
+      // @ts-ignore
+      matchObj.teamA = teamMap.get(m.teamA);
     }
-    if (localUser.info?.role === UserRole.co_captain) {
-      findTeam = prevFilteredTeams.find((team) => team.cocaptain?._id === localUser.info?.cocaptainplayer) ?? null;
-    }
-    if (findTeam) {
-      filteredMatches = prevFilteredMatches.filter((m) => findTeam && (m.teamA._id === findTeam._id || m.teamB._id === findTeam._id));
-    }
-    return filteredMatches;
-  };
-
-  const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    /**
-     * Filter Matches and teams
-     */
-    const inputEl = e.target as HTMLInputElement;
-    setCurrDivision(inputEl.value.trim());
-    // If logged in as captain check me I the captain of one of the team or not
-    const localUser = getUserFromCookie();
-    let newTeamList = [...teamList];
-    let newMatchList = [...matchList];
-    let newGroupList = [...groupList];
-    if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain) {
-      newMatchList = captainsMatches(localUser, newTeamList, newMatchList);
+    if (teamMap.has(m.teamB)) {
+      // @ts-ignore
+      matchObj.teamB = teamMap.get(m.teamB);
     }
 
-    if (inputEl.value === '') {
-      setFilteredTeamList([...teamList]);
-      setFilteredMatchList([...newMatchList]);
-      removeDivisionFromStore();
-    } else {
-      setDivisionToStore(inputEl.value.trim());
-      newTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredTeamList([...newTeamList]);
+    return matchObj;
+  });
 
-      newMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredMatchList([...newMatchList]);
-
-      newGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredGroupList(newGroupList);
+  // Teams inside group list
+  const groupList: IGroupExpRel[] = groups.map((g: IGroupRelatives) => {
+    const groupObj = {...g};
+    if(groupObj.teams.length > 0){
+      const groupTeams: ITeam[] = [];
+      groupObj.teams.forEach((gt)=>{
+        if(teamMap.has(gt)){
+          // @ts-ignore
+          groupTeams.push(teamMap.get(gt));
+        }
+      });
+      // @ts-ignore
+      groupObj.teams = groupTeams;
     }
-  };
+    return groupObj;
+  });
 
-  const fetchEvent = async () => {
-    try {
-      const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
-
-      const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
-      if (!success) return;
-
-      const newMatchList: IMatchExpRel[] = eventResponse?.data?.getEvent?.data?.matches ? eventResponse?.data.getEvent.data.matches : [];
-      let newFilteredMatchList = [...newMatchList];
-
-      const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];
-
-      let newFilteredTeamList = [...newTeamList];
-      const newGroupList: IGroupExpRel[] = eventResponse?.data?.getEvent?.data?.groups || [];
-      let newFilteredGroupList = [...newGroupList];
-
-
-      if (eventResponse?.data?.getEvent?.data) setCurrEvent(eventResponse.data.getEvent.data);
-
-      // Division and team value
-      removeTeamFromStore();
-      const divisionExist = getDivisionFromStore();
-      if (divisionExist) {
-        setCurrDivision(divisionExist);
-        newFilteredMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-        newFilteredTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-        newFilteredGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-      }
-
-      // If logged in as captain check me I the captain of one of the team or not
-      const localUser = getUserFromCookie();
-      if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain) {
-        newFilteredMatchList = captainsMatches(localUser, newFilteredTeamList, newFilteredMatchList);
-      }
-
-      setMatchList(newMatchList);
-      setFilteredMatchList(newFilteredMatchList);
-
-      setTeamList(newTeamList);
-      setFilteredTeamList(newFilteredTeamList);
-
-      setGroupList(newGroupList);
-      setFilteredGroupList(newFilteredGroupList);
-
-      // Making divisions list
-      const divisions = eventResponse?.data?.getEvent?.data?.divisions ? eventResponse?.data?.getEvent?.data?.divisions : '';
-      const divs = divisionsToOptionList(divisions);
-      setDivisionList(divs);
-    } catch (evtErr) {
-      console.log(evtErr);
-    }
-  };
-
-  const refetchFunc = async () => {
-    await fetchEvent();
-  };
-  const addMatchCB = (matchData: IMatchExpRel) => {
-    setMatchList((prevState) => [...prevState, matchData]);
-    setFilteredMatchList((prevState) => [...prevState, matchData]);
-    // refetchFunc();
-  };
-
-
-  useEffect(() => {
-    if (params.eventId) {
-      if (isValidObjectId(params.eventId)) {
-        fetchEvent();
-      } else {
-        setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' });
-      }
-    }
-  }, [params.eventId]);
-
-  if (loading || isLoading) return <Loader />;
 
 
   return (
     <div className="container mx-auto px-4 min-h-screen">
-      <motion.h1 initial={hInitial} animate={hAnimate} exit={hExit} transition={{ ...hTransition, delay: 1.2 }} className="mb-8 text-center">Matches</motion.h1>
-
-      {/* Event Menu Start */}
-      <div className="event-and-menu p-8 rounded-lg shadow-lg">
-        {currEvent && <CurrentEvent currEvent={currEvent} />}
-        <div className="navigator mt-4">
-          <UserMenuList eventId={params.eventId} />
-        </div>
-      </div>
-      {/* Event Menu End */}
-
-      <div className="mt-4">
-        {addMatch ? (
-          <div className='match-add-wrapper w-full'>
-            {/* Only director and admin can create match  */}
-            {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-              <>
-                <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(false)}>
-                  Match List
-                </button>
-
-                <div className="division-selection w-full">
-                  <SelectInput key={"matches-si-1"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
-                </div>
-
-                <MatchAdd
-                  eventData={currEvent}
-                  teamList={filteredTeamList}
-                  // teamList={teamList}
-                  eventId={params.eventId}
-                  addMatchCB={addMatchCB}
-                  setIsLoading={setIsLoading}
-                  showAddMatch={setAddMatch}
-                  groupList={filteredGroupList}
-                  currDivision={currDivision}
-                />
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="match-list-wrapper w-full">
-            {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-              <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(true)}>
-                Add Match
-              </button>
-            )}
-            <br />
-            {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-              <div className="division-selection w-full">
-                <SelectInput key={"matches-si-2"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
-              </div>
-            )}
-            {filteredMatchList.length > 0 ? (
-              <MatchList eventId={params.eventId} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teamList} refetchFunc={refetchFunc} groupList={filteredGroupList} />
-            ) : (
-              <p>No match created yet!</p>
-            )}
-          </div>
-        )}
-      </div>
-      <br />
+      <h1 className="mb-8 text-center">Matches</h1>
+      <MatchesMain matches={matchList} teams={teams} groups={groupList} currEvent={event} />
     </div>
   );
 }
 
 export default MatchesPage;
+

@@ -158,6 +158,132 @@ const GET_A_TEAM = gql`
   
 `;
 
+
+const GET_TEAM_DETAIL_RAW = `
+query GetTeamDetails($teamId: String!) {
+  getTeamDetails(teamId: $teamId) {
+    code
+    success
+    message
+    data {
+      team {
+        _id
+        name
+        logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+      }
+      playerRanking {
+        _id
+        rankLock
+      }
+      players {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+      }
+      group {
+        _id
+        name
+        active
+        division
+        rule
+      }
+      captain {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+      }
+      event {
+        _id
+        name
+        logo
+        startDate
+        endDate
+        active
+        sendCredentials
+        playerLimit
+        fwango
+      }
+      matches {
+        _id
+        date
+        division
+        numberOfNets
+        numberOfRounds
+        netVariance
+        homeTeam
+        autoAssign
+        autoAssignLogic
+        rosterLock
+        tieBreaking
+        timeout
+        location
+        description
+        fwango
+        completed
+        extendedOvertime
+        rounds 
+        nets
+        teamA 
+        teamB
+      }
+      rankings {
+        _id
+        rank
+        player
+      }
+      rounds {
+        _id
+        num
+        match
+        teamAScore
+        teamBScore
+        teamAProcess
+        teamBProcess
+        completed
+        firstPlacing
+        nets
+      }
+      nets {
+        _id
+        num
+        points
+        netType
+        teamAScore
+        teamBScore
+        pairRange
+        match
+        round
+        teamA
+        teamB
+      }
+      oponentTeams {
+        _id
+        name
+        logo
+        num
+      }
+    }
+  }
+}
+`;
+
 const GET_TEAMS_BY_EVENT = gql`
   query GetTeams($eventId: String) {
     getTeams(eventId: $eventId) {
@@ -398,4 +524,6 @@ query GetEvent($eventId: String!) {
   }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS_RAW, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW};
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, 
+  GET_EVENT_WITH_TEAMS_RAW, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, 
+  DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW, GET_TEAM_DETAIL_RAW};

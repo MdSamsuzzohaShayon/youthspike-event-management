@@ -95,7 +95,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       if (filterParams.group === '') {
         filteredList = [...filteredList];
       } else if (filterParams.group) {
-        filteredList = filteredList.filter((m) => m.group?._id === filterParams.group);
+        filteredList = filteredList.filter((m) => (m.group?._id || m.group) === filterParams.group);
       }
     }
 

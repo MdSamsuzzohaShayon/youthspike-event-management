@@ -386,6 +386,96 @@ type GetTeamResponse {
   data: Team
 }
 
+type CustomPlayerRankingItem {
+  _id: String
+  rank: Int!
+  player: String
+  playerRanking: PlayerRanking!
+}
+
+type CustomRound {
+  _id: String
+  num: Int!
+  match: String
+  nets: [String!]
+  players: [Player!]
+  subs: [Player!]
+  teamAScore: Int
+  teamBScore: Int
+  teamAProcess: EActionProcess!
+  teamBProcess: EActionProcess!
+  completed: Boolean
+  firstPlacing: ETeam!
+}
+
+type CustomNet {
+  _id: String
+  num: Int
+  match: String
+  round: String
+  teamA: String
+  teamB: String
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  points: Int!
+  netType: ETieBreaker
+  teamAScore: Int
+  teamBScore: Int
+  pairRange: Int!
+}
+
+type CustomMatch {
+  _id: String
+  date: String!
+  division: String!
+  numberOfNets: Int!
+  numberOfRounds: Int!
+  netVariance: Float
+  homeTeam: String
+  autoAssign: Boolean
+  autoAssignLogic: String
+  rosterLock: String
+  tieBreaking: String
+  timeout: Float
+  location: String
+  description: String
+  fwango: String
+  completed: Boolean
+  extendedOvertime: Boolean
+  event: Event!
+  nets: [String!]
+  rounds: [String!]
+  teamA: String
+  teamB: String
+  room: Room
+  teamARanking: PlayerRanking
+  teamBRanking: PlayerRanking
+  group: String
+}
+
+type TeamDetails {
+  team: Team
+  playerRanking: PlayerRanking
+  players: [Player!]
+  group: Group
+  captain: [Player!]
+  event: Event
+  matches: [CustomMatch!]
+  rankings: [CustomPlayerRankingItem!]
+  rounds: [CustomRound!]
+  nets: [CustomNet!]
+  oponentTeams: [Team!]
+}
+
+type GetTeamDetailsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamDetails
+}
+
 type GetMatchesResponse {
   code: Int!
   success: Boolean!
@@ -398,6 +488,56 @@ type GetMatchResponse {
   success: Boolean!
   message: String
   data: Match
+}
+
+type CustomTeam {
+  _id: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  rankLock: Boolean
+  sendCredentials: Boolean
+  num: Float
+  captain: String
+  cocaptain: String
+  matches: [String!]
+  event: Event!
+  players: [String!]
+  nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  group: Group
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
+type CustomGroup {
+  _id: String
+  name: String!
+  active: Boolean!
+  division: String!
+  rule: String!
+  teams: [String!]
+  matches: [Match!]!
+  event: Event!
+}
+
+type EventMatches {
+  event: Event!
+  matches: [CustomMatch!]!
+  teams: [CustomTeam!]!
+  ldo: LDO!
+  groups: [CustomGroup!]!
+  nets: [CustomNet!]!
+  rounds: [CustomRound!]!
+}
+
+type GetEventWithMatchesResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventMatches
 }
 
 type CreateOrUpdateRoundResponse {
@@ -471,6 +611,38 @@ type PlayersResponse {
   data: [Player!]
 }
 
+type CustomPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [String!]!
+  captainofteams: [Team!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type EventWithPlayers {
+  event: Event!
+  players: [CustomPlayer!]!
+  groups: [CustomGroup!]!
+  teams: [CustomTeam!]!
+}
+
+type GetEventWithPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventWithPlayers
+}
+
 type PlayerRankingResponse {
   code: Int!
   success: Boolean!
@@ -500,7 +672,9 @@ type Query {
   getTeams(eventId: String): GetTeamsResponse!
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
+  getTeamDetails(teamId: String!): GetTeamDetailsResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
+  getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
   getNets(roundId: String!): GetNetsResponse!
@@ -510,6 +684,7 @@ type Query {
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
+  getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
 }
