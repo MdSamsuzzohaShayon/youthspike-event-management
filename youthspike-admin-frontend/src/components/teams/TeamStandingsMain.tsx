@@ -114,7 +114,6 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
 
     return (
         <React.Fragment>
-            <h1 className="mb-8 text-center">Roster</h1>
             <div className="event-and-menu p-8 rounded-lg shadow-lg">
                 {currEvent && <CurrentEvent currEvent={currEvent} />}
                 <div className="navigator mt-4">

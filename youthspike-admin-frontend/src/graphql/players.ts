@@ -81,6 +81,63 @@ query GetPlayers($eventId: String!) {
 `;
 
 
+
+const GET_EVENT_WITH_PLAYERS_RAW = `
+query GetEventWithPlayers($eventId: String!) {
+  getEventWithPlayers(eventId: $eventId) {
+    code
+    success
+    message
+    data {
+      event {
+        _id
+        name
+        logo
+        startDate
+        endDate
+        active
+        sendCredentials
+        description
+        location
+      }
+      players {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        teams
+      }
+      groups {
+        _id
+        name
+        teams
+        rule
+        division
+        active
+      }
+      teams {
+        _id
+        name
+        logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+        players
+        captain
+        cocaptain
+      }
+    }
+  }
+}
+`;
+
 const GET_EVENT_WITH_PLAYERS = gql`
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
@@ -113,6 +170,8 @@ query GetEvent($eventId: String!) {
   }
 }
 `;
+
+
 
 /**
  * Mutations
@@ -192,7 +251,7 @@ mutation DeletePlayer($playerId: String!) {
 
 
 export {
-  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER,
+  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER, GET_EVENT_WITH_PLAYERS_RAW,
   CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER,
-  UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER, DELETE_A_PLAYER
+  UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER, DELETE_A_PLAYER,
 };

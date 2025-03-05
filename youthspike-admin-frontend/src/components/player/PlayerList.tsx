@@ -12,8 +12,6 @@ import {
   IEvent,
   IOption,
   ITeam,
-  IError,
-  IPlayerRankingItemExpRel,
   IPlayerRank,
 } from '@/types';
 import Image from 'next/image';
@@ -80,6 +78,7 @@ function PlayerList({
   const [canRank, setCanRank] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayerRank[]>([]);
   const [rankingsMap, setRankingsMap] = useState<Map<string, number>>(new Map());
+  
   // Pagination elements
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length, ITEMS_PER_PAGE]);

@@ -27,7 +27,14 @@ export class CustomTeam extends Team {
   @Field((_type) => [String], { nullable: true })
   matches: string[];
 
+  @Field((_type) => [String], { nullable: true })
+  players: string[];
 
+  @Field((_type) => String, { nullable: true })
+  captain: string;
+
+  @Field((_type) => String, { nullable: true })
+  cocaptain: string;
 }
 
 

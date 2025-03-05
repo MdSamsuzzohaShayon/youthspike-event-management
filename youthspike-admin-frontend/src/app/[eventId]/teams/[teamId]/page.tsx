@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import TeamDetail from '@/components/teams/TeamDetail';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam } from '@/types';
 import { getTeamData } from '../_fetch/team';
 
 interface TeamSingleMainProps {
@@ -49,6 +49,11 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
 
     return matchObj;
   });
+
+  const playerList = players.map((p: IPlayerExpRel)=> {
+    const playerObj = {...p, teams: team};
+    return playerObj;
+  });
   
 
   return (
@@ -59,7 +64,7 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
         eventId={eventId}
         divisionList={divisionList}
         teamList={oponentTeams}
-        playerList={players}
+        playerList={playerList}
         playerRanking={playerRanking}
         matchList={matchList}
         rankings={rankings}

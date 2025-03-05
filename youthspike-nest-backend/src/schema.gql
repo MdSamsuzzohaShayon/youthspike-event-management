@@ -499,11 +499,11 @@ type CustomTeam {
   rankLock: Boolean
   sendCredentials: Boolean
   num: Float
-  captain: Player
-  cocaptain: Player
+  captain: String
+  cocaptain: String
   matches: [String!]
   event: Event!
-  players: [Player!]
+  players: [String!]
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
   group: Group
@@ -611,6 +611,38 @@ type PlayersResponse {
   data: [Player!]
 }
 
+type CustomPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [String!]!
+  captainofteams: [Team!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type EventWithPlayers {
+  event: Event!
+  players: [CustomPlayer!]!
+  groups: [CustomGroup!]!
+  teams: [CustomTeam!]!
+}
+
+type GetEventWithPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventWithPlayers
+}
+
 type PlayerRankingResponse {
   code: Int!
   success: Boolean!
@@ -652,6 +684,7 @@ type Query {
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
+  getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
 }
