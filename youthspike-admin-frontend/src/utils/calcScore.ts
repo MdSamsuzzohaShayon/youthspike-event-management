@@ -57,12 +57,11 @@ function calcMatchScore(
     const netsByRound = new Map<string, INetRelatives[]>();
     for (const net of allNets) {
         // @ts-ignore
-        if (!netsByRound.has(net.round._id)) {
-            // @ts-ignore
-            netsByRound.set(net.round._id, []);
+        const roundId = net.round?._id || net.round;
+        if (!netsByRound.has(roundId)) {
+            netsByRound.set(roundId, []);
         }
-        // @ts-ignore
-        netsByRound.get(net.round._id)!.push(net);
+        netsByRound.get(roundId)!.push(net);
     }
 
     for (const round of roundList) {

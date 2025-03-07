@@ -92,6 +92,7 @@ function PlayerList({
   };
 
 
+
   /** Handle checkbox */
   const handleSelectPlayer = (e: React.SyntheticEvent, matchId: string) => {
     const inputEl = e.target as HTMLInputElement;

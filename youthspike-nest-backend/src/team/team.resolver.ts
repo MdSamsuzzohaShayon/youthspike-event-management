@@ -29,6 +29,7 @@ import {
   GetTeamDetailsResponse,
   GetTeamResponse,
   GetTeamsResponse,
+  GetTeamstandingsResponse,
 } from './team.response';
 import { RoundService } from 'src/round/round.service';
 
@@ -529,10 +530,11 @@ export class TeamResolver {
           ],
         }),
       ]);
-      const [players, group, captain, event, matches, rankings] = await Promise.all([
+      const [players, group, captain, cocaptain, event, matches, rankings] = await Promise.all([
         this.playerService.find({ teams: { $in: [team._id] } }),
         this.groupService.findOne({ _id: team.group }),
         this.playerService.findOne({ _id: team.captain }),
+        this.playerService.findOne({ _id: team.cocaptain }),
         this.eventService.findOne({ _id: team.event }),
         this.matchService.find({
           $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
@@ -554,13 +556,51 @@ export class TeamResolver {
       return {
         code: HttpStatus.OK,
         success: true,
-        data: { team, playerRanking, players, group, captain, event, matches, rankings, rounds, nets, oponentTeams },
+        data: {
+          team,
+          playerRanking,
+          players,
+          group,
+          captain,
+          cocaptain,
+          event,
+          matches,
+          rankings,
+          rounds,
+          nets,
+          oponentTeams,
+        },
       };
     } catch (err) {
       return AppResponse.handleError(err);
     }
   }
 
+  @Query((_returns) => GetTeamstandingsResponse)
+  async getTeamStandings(@Args('eventId') eventId: string) {
+    try {
+      const [event, groups, matches, teams] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find({ event: eventId }),
+        this.matchService.find({ event: eventId }),
+        this.teamService.find({ event: eventId }),
+      ]);
+
+      const matchIds = matches.map((m) => m._id.toString());
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: { event, groups, matches, teams, rounds, nets },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
   /**
    * POPULATE
    * ===============================================================================================

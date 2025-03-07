@@ -35,6 +35,8 @@ interface PlayerCardProps {
   rank?: number | null;
 }
 
+
+
 function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, isChecked, handleSelectPlayer, }: PlayerCardProps) {
 
   const { setActErr } = useError();
@@ -67,7 +69,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         const response = await mutateTeam({ variables: { input, teamId, eventId } });
         const success = handleResponse({ response: response.data.updateTeam, setActErr });
         if (!success) return;
-        await client.refetchQueries({ include: [GET_A_TEAM] });
+        // Not recommended
+        window.location.reload();
       }
     } catch (error: any) {
       handleError({ error, setActErr });

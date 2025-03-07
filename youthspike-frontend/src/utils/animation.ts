@@ -5,12 +5,7 @@ export const commonAnimate = {
   transition: { delay: 0.5, ease: 'easeInOut' },
 };
 
-export const logoAnimate = {
-  initial: { ...commonAnimate.initial, y: -200 },
-  animate: { ...commonAnimate.animate, y: 0 },
-  exit: { ...commonAnimate.exit, y: -200 },
-  transition: { ...commonAnimate.transition },
-};
+
 
 export const cardAnimate = {
   initial: { ...commonAnimate.initial, scale: 0.8 },

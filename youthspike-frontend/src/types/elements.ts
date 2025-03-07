@@ -158,6 +158,12 @@ export interface ILoginProps {
   setPassword: (state: string) => void;
 }
 
+export interface IEventPageProps {
+  params: {
+    eventId: string;
+  };
+}
+
 export enum EActionTexts {
   INITIALIZE = '',
 }

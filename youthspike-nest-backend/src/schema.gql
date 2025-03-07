@@ -279,25 +279,50 @@ type UserResponse {
   data: User
 }
 
-type CreateOrUpdateEventResponse {
+type PlayerResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: Event
+  data: Player
 }
 
-type GetEventsResponse {
+type PlayersResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: [Event!]
+  data: [Player!]
 }
 
-type GetEventResponse {
+type CustomPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [String!]!
+  captainofteams: [String!]
+  cocaptainofteams: [String!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type EventWithPlayers {
+  event: Event!
+  players: [CustomPlayer!]!
+  groups: [CustomGroup!]!
+  teams: [CustomTeam!]!
+}
+
+type GetEventWithPlayersResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: Event
+  data: EventWithPlayers
 }
 
 type CreateOrUpdateTeamResponse {
@@ -455,12 +480,49 @@ type CustomMatch {
   group: String
 }
 
+type CaptainPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [Team!]
+  captainofteams: [String!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type CoCaptainPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [Team!]
+  captainofteams: [Team!]
+  cocaptainofteams: [String!]
+  captainuser: User
+  cocaptainuser: User
+}
+
 type TeamDetails {
   team: Team
   playerRanking: PlayerRanking
-  players: [Player!]
+  players: [CustomPlayer!]
   group: Group
-  captain: [Player!]
+  captain: CaptainPlayer
+  cocaptain: CoCaptainPlayer
   event: Event
   matches: [CustomMatch!]
   rankings: [CustomPlayerRankingItem!]
@@ -474,6 +536,22 @@ type GetTeamDetailsResponse {
   success: Boolean!
   message: String
   data: TeamDetails
+}
+
+type Teamstandings {
+  event: Event
+  teams: [CustomTeam!]
+  groups: [CustomGroup!]
+  matches: [CustomMatch!]
+  rounds: [CustomRound!]
+  nets: [CustomNet!]
+}
+
+type GetTeamstandingsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Teamstandings
 }
 
 type GetMatchesResponse {
@@ -506,7 +584,7 @@ type CustomTeam {
   players: [String!]
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
-  group: Group
+  group: String
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
@@ -538,6 +616,46 @@ type GetEventWithMatchesResponse {
   success: Boolean!
   message: String
   data: EventMatches
+}
+
+type CreateOrUpdateEventResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Event
+}
+
+type GetEventsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [Event!]
+}
+
+type GetEventResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Event
+}
+
+type EventDetails {
+  event: Event!
+  matches: [CustomMatch!]!
+  teams: [CustomTeam!]!
+  ldo: LDO!
+  groups: [CustomGroup!]!
+  nets: [CustomNet!]!
+  rounds: [CustomRound!]!
+  players: [CustomPlayer!]!
+  sponsors: [Sponsor!]!
+}
+
+type GetEventDetailsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventDetails
 }
 
 type CreateOrUpdateRoundResponse {
@@ -597,52 +715,6 @@ type GetSystemDetailsResponse {
   data: SystemDetails
 }
 
-type PlayerResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Player
-}
-
-type PlayersResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: [Player!]
-}
-
-type CustomPlayer {
-  _id: String
-  firstName: String!
-  lastName: String!
-  username: String
-  email: String
-  status: EPlayerStatus!
-  profile: String
-  phone: String
-  division: String!
-  events: [Event!]
-  teams: [String!]!
-  captainofteams: [Team!]
-  cocaptainofteams: [Team!]
-  captainuser: User
-  cocaptainuser: User
-}
-
-type EventWithPlayers {
-  event: Event!
-  players: [CustomPlayer!]!
-  groups: [CustomGroup!]!
-  teams: [CustomTeam!]!
-}
-
-type GetEventWithPlayersResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: EventWithPlayers
-}
-
 type PlayerRankingResponse {
   code: Int!
   success: Boolean!
@@ -668,11 +740,13 @@ type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
+  getEventDetails(eventId: String!): GetEventDetailsResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
+  getTeamStandings(eventId: String!): GetTeamstandingsResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!

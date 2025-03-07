@@ -1,197 +1,146 @@
-import { gql } from '@apollo/client';
+/**
+ * Query
+ * =========================================================================================================================================
+ */
 
-const roundResponse = `
-rounds {
-  _id
-  num
-  teamAScore
-  teamBScore
-  teamAProcess
-  teamBProcess
-  nets {
-    _id
-    num
-    teamAPlayerA
-    teamAPlayerB
-    teamAScore
-    teamBPlayerA
-    teamBPlayerB
-    teamBScore
-  }
-}
-`;
-
-const netResponse = `
-nets {
-  _id
-  teamAScore
-  teamBScore
-  num
-  points
-  teamAPlayerA
-  teamAPlayerB
-  teamBPlayerA
-  teamBPlayerB
-  round{
-    _id
-  }
-}
-`;
-
-const matchResponse = `
-matches {
-  ${roundResponse}
-  ${netResponse}
-  _id
-  date
-  division
-  completed
-  group{
-    _id
-    name
-  }
-  teamA {
-    _id
-    name
-    active
-    division
-    logo
-    captain {
-      _id
-      firstName
-      lastName
-      email
-    }
-  }
-  teamB {
-    _id
-    name
-    active
-    division
-    logo
-    captain {
-      _id
-      firstName
-      lastName
-      email
-    }
-  }
-  description
-  location
-}
-`;
-
-const teamResponse = `
-teams{
-  _id
-  name
-  division
-  logo
-  group{
-    _id
-    name
-    division
-  }
-  captain {
-    _id
-    firstName
-    lastName
-    email
-    profile
-  }
-  playerRanking {
-    _id
-    rankLock
-    rankings {
-      _id
-      rank
-      player {
+const GET_AN_EVENT_RAW = `
+query GetEventDetails($eventId: String!) {
+  getEventDetails(eventId: $eventId) {
+    code
+    success
+    message
+    data {
+      event {
         _id
+        name
+        logo
+        startDate
+        endDate
+        active
+        sendCredentials
+        playerLimit
+        fwango
+        divisions
+        nets
+        rounds
+        netVariance
+        homeTeam
+        autoAssign
+        autoAssignLogic
+        rosterLock
+        tieBreaking
+        timeout
+        coachPassword
+        description
+        location
+      }
+      matches {
+        _id
+        date
+        division
+        numberOfNets
+        numberOfRounds
+        netVariance
+        homeTeam
+        autoAssign
+        autoAssignLogic
+        rosterLock
+        tieBreaking
+        timeout
+        location
+        description
+        fwango
+        completed
+        extendedOvertime
+        nets
+        rounds
+        teamA
+        teamB
+        group
+      }
+      teams {
+        _id
+        name
+        logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+        matches
+      }
+      ldo {
+        _id
+        name
+        phone
+        logo
+      }
+      nets {
+        _id
+        num
+        match
+        round
+        teamA
+        teamB
+        teamAPlayerA
+        teamAPlayerB
+        teamBPlayerA
+        teamBPlayerB
+        points
+        netType
+        teamAScore
+        teamBScore
+        pairRange
+      }
+      rounds {
+        _id
+        num
+        match
+        nets
+        teamAScore
+        teamBScore
+        teamAProcess
+        teamBProcess
+        completed
+        firstPlacing
+      }
+      groups {
+        _id
+        name
+        active
+        division
+        rule
+        teams
+      }
+      players {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        teams
+      }
+      sponsors {
+        _id
+        company
+        logo
       }
     }
   }
 }
 `;
 
-const playerResponse = `
-players {
-  _id
-  firstName
-  lastName
-  profile
-  email
-  division
-  ${teamResponse}
-}
-`;
-
-const sponsorResponse = `
-sponsors{
-  _id
-  company
-  logo
-}
-`;
-
-const eventResponse = `
-_id
-name
-startDate
-endDate
-active
-autoAssign
-autoAssignLogic
-coachPassword
-ldo {
-  _id
-  name
-  logo
-}
-divisions
-homeTeam
-description
-location
-nets
-rounds
-netVariance
-rosterLock
-timeout
-
-groups{
-  _id
-  name
-  division
-}
-
-${matchResponse}
-${playerResponse}
-${teamResponse}
-${sponsorResponse}
-`;
-
-/**
- * Query
- * =========================================================================================================================================
- */
-
-const GET_AN_EVENT = gql`
-query GetEvent($eventId: String!) {
-  getEvent(eventId: $eventId) {
-    code
-    message
-    success
-    data {
-      ${eventResponse}
-    }
-  }
-}`;
-
 /**
  * Mutation
  * =========================================================================================================================================
  */
 
-const GET_EVENTS = gql`
+
+const GET_EVENTS_RAW = `
   query GetEvents {
     getEvents {
       code
@@ -214,4 +163,6 @@ const GET_EVENTS = gql`
   }
 `;
 
-export { GET_AN_EVENT, GET_EVENTS };
+
+
+export { GET_AN_EVENT_RAW, GET_EVENTS_RAW };

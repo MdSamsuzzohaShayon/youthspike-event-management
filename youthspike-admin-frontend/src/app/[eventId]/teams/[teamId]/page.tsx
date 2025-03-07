@@ -16,12 +16,13 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
   if (!teamData) {
     return notFound();
   }
-
-  const { team, playerRanking, players, captain, group, event, matches, rankings, rounds, nets, oponentTeams } = teamData;
+  
+  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, oponentTeams } = teamData;
   const divisionList = event?.divisions ? divisionsToOptionList(event.divisions) : [];
 
   playerRanking.rankings = rankings;
   team.captain = captain;
+  team.cocaptain = cocaptain;
 
   // Build lookup maps in a single pass (O(n) instead of multiple O(n) iterations)
   const roundMap = new Map(rounds.map((r: IRoundRelatives) => [r._id, r]));
@@ -51,9 +52,17 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
   });
 
   const playerList = players.map((p: IPlayerExpRel)=> {
-    const playerObj = {...p, teams: team};
+    const playerObj = {...p, teams: [team]};
+    // Captain
+    if(playerObj.captainofteams && playerObj.captainofteams?.length > 0){
+      playerObj.captainofteams = [team._id];
+    }
+    if(playerObj.cocaptainofteams && playerObj.cocaptainofteams?.length > 0){
+      playerObj.cocaptainofteams = [team._id];
+    }
     return playerObj;
   });
+  
   
 
   return (

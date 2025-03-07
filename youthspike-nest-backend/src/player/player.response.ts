@@ -21,6 +21,11 @@ export class CustomPlayer extends Player {
     @Field((_type) => [String], { nullable: false })
   teams: string[];
 
+  @Field((_type) => [String], { nullable: true })
+  captainofteams: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  cocaptainofteams: string[];
 }
 
 

@@ -39,24 +39,12 @@ import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
 import { CACHE_EXPIRE } from 'src/util/keys';
 import { Player } from 'src/player/player.schema';
-
-@ObjectType()
-class CreateOrUpdateEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: true })
-  data?: Event;
-}
-
-@ObjectType()
-class GetEventsResponse extends AppResponse<Event[]> {
-  @Field((type) => [Event], { nullable: true })
-  data?: Event[];
-}
-
-@ObjectType()
-class GetEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: true })
-  data?: Event | null;
-}
+import {
+  CreateOrUpdateEventResponse,
+  GetEventDetailsResponse,
+  GetEventResponse,
+  GetEventsResponse,
+} from './event.response';
 
 @Resolver((of) => Event)
 export class EventResolver {
@@ -429,7 +417,7 @@ export class EventResolver {
     }
   }
 
-  @Query((returns) => GetEventsResponse)
+  @Query((_returns) => GetEventsResponse)
   async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
@@ -479,30 +467,46 @@ export class EventResolver {
     }
   }
 
+  @Query((_returns) => GetEventDetailsResponse)
+  async getEventDetails(@Args('eventId', { nullable: false }) eventId: string) {
+    try {
+      // Assuming matchService is injected in your class
+      const [event, matches, teams, players, ldo, groups, sponsors] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.matchService.find({ event: eventId }),
+        this.teamService.find({ event: eventId }),
+        this.playerService.find({ events: { $in: [eventId] } }),
+        this.ldoService.findOne({ events: { $in: [eventId] } }),
+        this.groupService.find({ event: eventId }),
+        this.sponsorService.find({ event: eventId }),
+      ]);
+
+      const matchIds = matches.map((m) => m._id.toString());
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
+        data: { event, matches, teams, players, ldo, groups, rounds, nets, sponsors },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
-    const cacheKey = `event:${eventId}`;
-    const redisClient = this.redisService.getPubClient();
 
     try {
       // Check if the event is in the cache
-      const cachedEvent = await redisClient.get(cacheKey);
-
-      if (cachedEvent) {
-        // If cached, return the cached event
-        return {
-          code: HttpStatus.OK,
-          success: true,
-          data: JSON.parse(cachedEvent),
-        };
-      }
 
       // If not cached, fetch from the database
       const eventExist = await this.eventService.findById(eventId);
       if (!eventExist) return AppResponse.notFound('Event');
-
-      // Store the event in the cache with an expiration time (e.g., 1 hour)
-      await redisClient.set(cacheKey, JSON.stringify(eventExist), 'EX', CACHE_EXPIRE);
 
       return {
         code: HttpStatus.OK,
@@ -588,23 +592,13 @@ export class EventResolver {
 
   @ResolveField()
   async teams(@Parent() event: Event) {
-    const cacheKey = `event:${event._id}:teams`; // Unique cache key for the event's teams
-    const redisClient = this.redisService.getPubClient();
+
 
     try {
-      // Check if the teams are already in the cache
-      const cachedTeams = await redisClient.get(cacheKey);
 
-      if (cachedTeams) {
-        // If cached, return the cached teams
-        return JSON.parse(cachedTeams);
-      }
 
       // If not cached, fetch the teams from the database
       const teamList = await this.teamService.query({ _id: { $in: event.teams } });
-
-      // Store the teams in the cache with an expiration time (e.g., 1 hour)
-      await redisClient.set(cacheKey, JSON.stringify(teamList), 'EX', CACHE_EXPIRE);
 
       return teamList;
     } catch (err) {
@@ -617,19 +611,8 @@ export class EventResolver {
   @ResolveField()
   async groups(@Parent() event: Event) {
     try {
-      const cacheKey = `event:${event._id}:groups`;
 
-      // ✅ Check if groups are cached in Redis
-      const cachedGroups = await this.redisService.getPubClient().get(cacheKey);
-      if (cachedGroups) {
-        return JSON.parse(cachedGroups);
-      }
-
-      // ✅ Fetch from the database if not cached
       const groupList = await this.groupService.find({ event: event._id.toString() });
-
-      // ✅ Cache the result in Redis with a TTL of 5 minutes (300 seconds)
-      await this.redisService.getPubClient().set(cacheKey, JSON.stringify(groupList), 'EX', CACHE_EXPIRE);
 
       return groupList;
     } catch (err) {

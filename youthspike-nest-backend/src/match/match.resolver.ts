@@ -22,6 +22,7 @@ import { PlayerService } from 'src/player/player.service';
 import { GroupService } from 'src/group/group.service';
 import { EventMatches, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
 import { LdoService } from 'src/ldo/ldo.service';
+import { SponsorService } from 'src/sponsor/sponsor.service';
 
 @Resolver((of) => Match)
 export class MatchResolver {
@@ -36,6 +37,7 @@ export class MatchResolver {
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
     private ldoService: LdoService,
+    private sponsorService: SponsorService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -284,7 +286,7 @@ export class MatchResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetMatchResponse)
+  @Mutation((_returns) => GetMatchResponse)
   async deleteMatch(@Args('matchId') matchId: string) {
     try {
       const matchExist = await this.matchService.findById(matchId);
@@ -304,7 +306,7 @@ export class MatchResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetMatchResponse)
+  @Mutation((_returns) => GetMatchResponse)
   async deleteMatches(@Args('matchIds', { type: () => [String] }) matchIds: string[]) {
     try {
       const deletePromises = [];
@@ -332,7 +334,7 @@ export class MatchResolver {
     }
   }
 
-  @Query((returns) => GetMatchesResponse)
+  @Query((_returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     try {
       // Assuming matchService is injected in your class
@@ -349,7 +351,7 @@ export class MatchResolver {
     }
   }
 
-  @Query((returns) => GetEventWithMatchesResponse)
+  @Query((_returns) => GetEventWithMatchesResponse)
   async getEventWithMatches(@Args('eventId', { nullable: false }) eventId: string) {
     try {
       // Assuming matchService is injected in your class
@@ -370,7 +372,7 @@ export class MatchResolver {
       return {
         code: HttpStatus.OK,
         success: true,
-        message: 'Get details of Matches, teams, ldo',
+        message: 'Get details of event, matches, teams, ldo, groups, rounds, nets',
         data: { event, matches, teams, ldo, groups, rounds, nets },
       };
     } catch (err) {

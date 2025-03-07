@@ -29,8 +29,10 @@ rm -rf /home/shayon/youthspike-nest-backend
 echo "Setup from stratch"
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
+cd /home/shayon/youthspike-event-management
 git log -n 10
 git log --oneline --graph --decorate --all 
+cd
 
 # Temp (Version before EID)
 # cd /home/shayon/youthspike-event-management

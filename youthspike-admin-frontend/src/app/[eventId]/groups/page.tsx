@@ -4,7 +4,7 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 import GroupList from '@/components/group/GroupList';
 import { GET_GROUPS } from '@/graphql/group';
 import { useLdoId } from '@/lib/LdoProvider';
-import { IGroup, IGroupExpRel } from '@/types';
+import { IGroupExpRel } from '@/types';
 import { divisionsToOptionList } from '@/utils/helper';
 import { imgSize } from '@/utils/style';
 import { useQuery } from '@apollo/client';
@@ -40,6 +40,7 @@ function GroupsPage({ params }: IGroupsPageProps) {
 
     const eventExist = data?.getEvent?.data;
     const groupList: IGroupExpRel[] = data?.getEvent?.data?.groups || [];
+    
     const divisionList = eventExist ? divisionsToOptionList(eventExist.divisions) : []
 
     if(isLoading) return <Loader />

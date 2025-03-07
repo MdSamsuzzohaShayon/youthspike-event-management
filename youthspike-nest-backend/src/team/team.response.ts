@@ -8,6 +8,8 @@ import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-rank
 import { Match } from 'src/match/match.schema';
 import { Round } from 'src/round/round.schema';
 import { Net } from 'src/net/net.schema';
+import { CustomPlayer } from 'src/player/player.response';
+import { CustomGroup, CustomTeam } from 'src/match/match.response';
 
 @ObjectType()
 export class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -75,7 +77,6 @@ export class CustomPlayerRankingItem extends PlayerRankingItem {
   player: string;
 }
 
-
 @ObjectType()
 export class CustomRound extends Round {
   @Field((_type) => String, { nullable: true })
@@ -100,7 +101,6 @@ export class CustomNet extends Net {
   teamB: string;
 }
 
-
 @ObjectType()
 export class CustomMatch extends Match {
   @Field((_type) => String, { nullable: true })
@@ -119,6 +119,22 @@ export class CustomMatch extends Match {
   teamB: string;
 }
 
+
+@ObjectType()
+export class CaptainPlayer extends Player {
+  @Field((_type) => [String], { nullable: true })
+  captainofteams: string[];
+}
+
+
+@ObjectType()
+export class CoCaptainPlayer extends Player {
+  @Field((_type) => [String], { nullable: true })
+  cocaptainofteams: string[];
+}
+
+
+
 // { team, playerRanking, players, group, captain, event }
 @ObjectType()
 export class TeamDetails {
@@ -128,14 +144,17 @@ export class TeamDetails {
   @Field((_type) => PlayerRanking, { nullable: true })
   playerRanking: PlayerRanking;
 
-  @Field((_type) => [Player], { nullable: true })
-  players: Player[];
+  @Field((_type) => [CustomPlayer], { nullable: true })
+  players: CustomPlayer[];
 
   @Field((_type) => Group, { nullable: true })
   group: Group;
 
-  @Field((_type) => [Player], { nullable: true })
-  captain: Player;
+  @Field((_type) => CaptainPlayer, { nullable: true })
+  captain: CaptainPlayer;
+
+  @Field((_type) => CoCaptainPlayer, { nullable: true })
+  cocaptain: CoCaptainPlayer;
 
   @Field((_type) => Event, { nullable: true })
   event: Event;
@@ -159,4 +178,34 @@ export class TeamDetails {
 export class GetTeamDetailsResponse extends AppResponse<TeamDetails> {
   @Field((_type) => TeamDetails, { nullable: true })
   data?: TeamDetails;
+}
+
+@ObjectType()
+class Teamstandings {
+  // event, groups, matches, teams
+  @Field((_type) => Event, { nullable: true })
+  event: Event;
+
+  @Field((_type) => [CustomTeam], { nullable: true })
+  teams: CustomTeam[];
+
+  @Field((_type) => [CustomGroup], { nullable: true })
+  groups: CustomGroup[];
+
+
+  @Field((_type) => [CustomMatch], { nullable: true })
+  matches: CustomMatch[];
+
+  @Field((_type) => [CustomRound], { nullable: true })
+  rounds: CustomRound[];
+
+  @Field((_type) => [CustomNet], { nullable: true })
+  nets: CustomNet[];
+}
+
+
+@ObjectType()
+export class GetTeamstandingsResponse extends AppResponse<Teamstandings> {
+  @Field((_type) => Teamstandings, { nullable: true })
+  data?: Teamstandings;
 }

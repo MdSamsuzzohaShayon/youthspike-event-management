@@ -7,6 +7,7 @@ import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
 import { tableVariant } from '@/utils/animation';
 import TeamRow from './TeamRow';
+import Pagination from '../elements/Pagination';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -31,8 +32,11 @@ PSG
 
 */
 
+const ITEMS_PER_PAGE: number = 20;
+
 function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   /**
    * Memoized Map of Matches by Team ID
@@ -114,10 +118,10 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   /**
    * Rank Teams
    */
-  const sortedTeams = useMemo(() => {
+  const paginatedSortedTeams = useMemo(() => {
     if (!teamList || teamScores.size === 0) return [];
 
-    return [...teamList].sort((teamA, teamB) => {
+    const sortedList =  [...teamList].sort((teamA, teamB) => {
       const scoreA = teamScores.get(teamA._id);
       const scoreB = teamScores.get(teamB._id);
 
@@ -148,7 +152,14 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
 
       return 0; // If all criteria are equal, retain the original order
     });
-  }, [teamList, teamScores, selectedGroup]); // Re-run when teamList, teamScores, or selectedGroup change
+
+
+    // Paginated
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedTeams = sortedList.slice(start, start + ITEMS_PER_PAGE);
+
+    return paginatedTeams;
+  }, [teamList, teamScores, currentPage, selectedGroup]); // Re-run when teamList, teamScores, or selectedGroup change
 
   /**
    * Trigger Calculations on Dependency Changes
@@ -171,11 +182,14 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
             </tr>
           </thead>
           <tbody>
-            {sortedTeams.map((team, index) => (
+            {paginatedSortedTeams.map((team, index) => (
               <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
             ))}
           </tbody>
         </motion.table>
+      </div>
+      <div className="w-full">
+        <Pagination currentPage={currentPage} itemList={teamList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
     </div>
   );
