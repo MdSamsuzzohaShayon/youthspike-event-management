@@ -23,7 +23,7 @@ async function MatchesPage({ params: { eventId } }: IEventPageProps) {
 
   const teamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
   const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives)=> [r._id, r]));
-  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives)=> [n._id, n]))
+  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives)=> [n._id, n]));
 
   const matchList = matches.map((m: IMatchExpRel) => {
     const matchObj = { ...m };

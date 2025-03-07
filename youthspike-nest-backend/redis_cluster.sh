@@ -32,15 +32,37 @@ setup_redis_directory() {
 
 # Stop running Redis instances
 stop_redis_instances() {
+    log "🔄 Stopping Redis system service (if running)..."
+    sudo systemctl stop redis || log "ℹ️ Redis system service not found."
+    sudo systemctl disable redis || log "ℹ️ Redis system service is already disabled."
+    sleep 2  
+
     log "🔄 Stopping any existing Redis instances..."
     sudo pkill redis-server || log "ℹ️ No existing Redis instances found."
-    sleep 2  # Ensure time for processes to stop
+    sleep 2  
+
+    # Force kill any remaining Redis processes
+    for pid in $(pgrep redis-server); do
+        log "⚠️ Killing Redis process $pid..."
+        sudo kill -9 $pid
+    done
+    sleep 2  
+
+    # Verify Redis is fully stopped
+    if pgrep redis-server > /dev/null; then
+        log "❌ Error: Redis instances are still running!"
+        ps aux | grep redis  # Show remaining processes
+        exit 1
+    else
+        log "✅ All Redis instances stopped successfully."
+    fi
 }
+
 
 # Remove old cluster data
 cleanup_old_data() {
     log "🧹 Removing old Redis cluster data..."
-    rm -rf "$REDIS_DIR/nodes-700"*.conf "$REDIS_DIR/dump.rdb" "$REDIS_DIR/appendonly.aof" || log "ℹ️ No old files to remove."
+    rm -rf "$REDIS_DIR/nodes-"*.conf "$REDIS_DIR/dump.rdb" "$REDIS_DIR/appendonly.aof" "$REDIS_DIR/data-"* || log "ℹ️ No old files to remove."
     sleep 1
 }
 

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { IEvent, ITeam } from '@/types';
@@ -67,7 +69,7 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
   }, [selectedItem, team.division, team.matches, team.players]);
 
   return (
-    <div className="min-h-screen">
+    <React.Fragment>
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold uppercase">Teams / Roster</h1>
         <h2 className="text-lg text-gray-300 uppercase">{event?.name}</h2>
@@ -82,7 +84,7 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
         <h3 className="text-xl font-semibold capitalize mb-4">{team.name}</h3>
 
         <Link
-          href={`/events/${team.event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+          href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
           className="btn-success bg-yellow-500 text-black py-2 px-4 rounded-md font-medium shadow hover:bg-yellow-400 transition mb-6"
         >
           Standings
@@ -111,7 +113,7 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
       </div>
 
       <div className="content mt-6">{showContent()}</div>
-    </div>
+    </React.Fragment>
   );
 }
 

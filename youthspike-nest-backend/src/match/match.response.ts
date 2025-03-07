@@ -6,8 +6,7 @@ import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
 import { CustomMatch, CustomNet, CustomRound } from 'src/team/team.response';
-import { Net } from 'src/net/net.schema';
-import { Round } from 'src/round/round.schema';
+
 
 @ObjectType()
 export class GetMatchesResponse extends AppResponse<Match[]> {
@@ -20,7 +19,6 @@ export class GetMatchResponse extends AppResponse<Match> {
   @Field((_type) => Match, { nullable: true })
   data?: Match | null;
 }
-
 
 @ObjectType()
 export class CustomTeam extends Team {
@@ -35,15 +33,16 @@ export class CustomTeam extends Team {
 
   @Field((_type) => String, { nullable: true })
   cocaptain: string;
-}
 
+  @Field((_type) => String, { nullable: true })
+  group: string;
+}
 
 @ObjectType()
 export class CustomGroup extends Group {
   @Field((_type) => [String], { nullable: true })
   teams: string[];
 }
-
 
 @ObjectType()
 export class EventMatches {

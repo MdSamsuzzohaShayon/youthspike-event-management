@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, IEventWMatch } from './event';
-import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps } from './elements';
+import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps, IEventPageProps } from './elements';
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
 import { IPlayer, IPlayerRecord, IPlayerRank } from './player';
@@ -41,6 +41,7 @@ export type {
   ILoginProps,
   IColMenu,
   ITextInputProps,
+  IEventPageProps,
 
   // Event
   IEvent,

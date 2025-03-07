@@ -11,8 +11,8 @@ import { Socket } from 'socket.io';
 import { RedisService } from '../redis/redis.service';
 
 @WebSocketGateway({ cors: true, namespace: 'websocket' })
-export class MyGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  private logger: Logger = new Logger('MyGateway');
+export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
+  private logger: Logger = new Logger('Gateway');
 
   constructor(private readonly redisService: RedisService) { }
 

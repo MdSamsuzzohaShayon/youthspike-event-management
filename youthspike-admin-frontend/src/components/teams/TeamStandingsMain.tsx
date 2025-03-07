@@ -1,12 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion';
-import { useLazyQuery } from '@apollo/client';
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import CurrentEvent from '@/components/event/CurrentEvent';
 import UserMenuList from '@/components/layout/UserMenuList';
 import TeamStandings from '@/components/teams/TeamStandings';
-import { useError } from '@/lib/ErrorContext';
 import { IEventExpRel, IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
 import { divisionsToOptionList } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
@@ -111,6 +108,9 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
         // inactive players won't have rankings
         return paginatedTeams;
       }, [filteredTeamList, currentPage]);
+
+      console.log({paginatedTeamList});
+      
 
     return (
         <React.Fragment>

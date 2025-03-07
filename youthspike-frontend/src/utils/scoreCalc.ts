@@ -57,12 +57,11 @@ function calcMatchScore(
   const netsByRound = new Map<string, INetRelatives[]>();
   for (const net of allNets) {
     // @ts-ignore
-    if (!netsByRound.has(net.round._id)) {
-      // @ts-ignore
-      netsByRound.set(net.round._id, []);
+    const roundId = net.round?._id || net.round;
+    if (!netsByRound.has(roundId)) {
+      netsByRound.set(roundId, []);
     }
-    // @ts-ignore
-    netsByRound.get(net.round._id)!.push(net);
+    netsByRound.get(roundId)!.push(net);
   }
 
   for (const round of roundList) {
@@ -109,6 +108,7 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
     matchLookup.get(teamAId)!.push(match);
     matchLookup.get(teamBId)!.push(match);
   });
+  
 
   return playerList.map((player) => {
     let myScore = 0;
@@ -122,6 +122,7 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
     const playerTeamIds = player.teams?.map((team) => team._id) ?? [];
     const relevantMatches = playerTeamIds.flatMap((teamId) => matchLookup.get(teamId) ?? []);
 
+
     relevantMatches.forEach((match) => {
       const isTeamA = playerTeamIds.includes(match.teamA._id);
       const isTeamB = playerTeamIds.includes(match.teamB._id);
@@ -133,6 +134,7 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
         return;
       }
 
+      
       match.nets.forEach((net) => {
         const isPlayerInNet = [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].includes(player._id);
 

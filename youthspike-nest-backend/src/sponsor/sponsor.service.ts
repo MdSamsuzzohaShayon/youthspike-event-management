@@ -20,6 +20,11 @@ export class SponsorService {
     return this.sponsorModel.find(filter);
   }
 
+  async find(filter: FilterQuery<Sponsor>) {
+    const sponsors = await this.sponsorModel.find(filter);
+    return sponsors;
+  }
+
   async deleteMany(filter: FilterQuery<Sponsor>) {
     return this.sponsorModel.deleteMany(filter);
   }

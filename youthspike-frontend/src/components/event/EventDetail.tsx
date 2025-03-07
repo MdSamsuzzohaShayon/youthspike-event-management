@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
@@ -7,7 +9,7 @@ import { AdvancedImage } from '@cloudinary/react';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import cld from '@/config/cloudinary.config';
-import { IEvent, IGroup, IMatchExpRel, IPlayer, ITeam } from '@/types';
+import { IEvent, IMatchExpRel, IPlayer, ITeam } from '@/types';
 import { EEventItem } from '@/types/event';
 import { setRankingMap, setTeamsPlayerRanking } from '@/redux/slices/playerRankingSlice';
 import { divisionsToOptionList } from '@/utils/helper';
@@ -76,6 +78,7 @@ function EventDetail({ event }: { event: IEventRelatives }) {
           ...team.playerRanking,
           team: { _id: team._id, name: team.name, division: team.division, event: event._id },
         });
+        // @ts-ignore
         team?.playerRanking?.rankings?.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
       }
       return rankings;
@@ -90,6 +93,8 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     const eventItem = searchParams.get(EVENT_ITEM) as EEventItem;
     if (eventItem) setSelectedItem(eventItem);
   }, [event, initializeLists, searchParams]);
+
+  
 
   const renderContent = useMemo(() => {
     const renderMap = {

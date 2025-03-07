@@ -2,7 +2,7 @@ import { GET_TEAMS_AND_MATCHES_RAW } from "@/graphql/teams";
 import { isValidObjectId } from "@/utils/helper";
 import { BACKEND_URL } from "@/utils/keys";
 
-async function getEventWithTeamstanding(eventId: string) {
+async function getTeamStandings(eventId: string) {
     if (!isValidObjectId(eventId)) {
       return null;
     }
@@ -20,7 +20,7 @@ async function getEventWithTeamstanding(eventId: string) {
     });
   
     const { data } = await res.json();
-    return data?.getEvent?.data || null;
+    return data?.getTeamStandings?.data || null;
   }
 
-  export {getEventWithTeamstanding};
+  export {getTeamStandings};

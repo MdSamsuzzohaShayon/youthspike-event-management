@@ -24,7 +24,7 @@ PSG
 
 */
 
-function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
+function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
 
   /**
@@ -79,9 +79,11 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
       let totalNets = 0;
 
       for (const match of teamMatches) {
+        
         const isTeamA = match.teamA._id === team._id;
         // @ts-ignore
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
+        
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
@@ -184,4 +186,4 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
   );
 }
 
-export default TeamStandingsPage;
+export default TeamStandings;
