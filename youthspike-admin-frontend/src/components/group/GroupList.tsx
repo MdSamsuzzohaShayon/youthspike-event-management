@@ -1,7 +1,7 @@
-import { IGroup, IGroupExpRel, IOption } from '@/types';
-import React, { useEffect, useState } from 'react';
+import { IGroupExpRel, IOption } from '@/types';
+import React, { useMemo } from 'react';
 import GroupCard from './GroupCard';
-import { ApolloQueryResult, OperationVariables, RefetchQueriesFunction } from '@apollo/client';
+import { ApolloQueryResult, OperationVariables } from '@apollo/client';
 
 interface IGroupListProps {
     currDivision: string;
@@ -12,19 +12,11 @@ interface IGroupListProps {
 }
 
 function GroupList({ currDivision, groupList, divisionList, setIsLoading, refetch }: IGroupListProps) {
-    const [filteredGroupList, setFilteredGroupList] = useState<IGroupExpRel[]>([]);
 
-    useEffect(()=>{
-        if(currDivision && currDivision !== ''){
-            setFilteredGroupList(groupList.filter((g)=> g.division.trim().toUpperCase() === currDivision.trim().toUpperCase()));
-        }else{
-            setFilteredGroupList(groupList);
-        }
-    }, [currDivision]);
-
-    useEffect(() => {
-        if (groupList && groupList.length > 0) setFilteredGroupList(groupList);
-    }, [groupList]);
+    const filteredGroupList: IGroupExpRel[] = useMemo(()=>{
+        if(!currDivision || currDivision === '') return groupList;
+        return groupList.filter((g)=> g.division.trim().toUpperCase() === currDivision.trim().toUpperCase());
+    }, [groupList, currDivision]);
 
     return (
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

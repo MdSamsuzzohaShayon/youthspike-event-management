@@ -19,6 +19,7 @@ import {
   IPasswordInputProps,
   IImageFileProps,
   ICheckedInput,
+  DivisionInputProps,
   ITeamSelectProps,
   IDateChangeHandlerProps,
   IEventPageProps
@@ -54,6 +55,7 @@ export type {
   ITextareaInputProps,
   ICheckboxInputProps,
   IPasswordInputProps,
+  DivisionInputProps,
   ITeamSelectProps,
   IDateChangeHandlerProps,
   IEventPageProps,

@@ -1,3 +1,5 @@
+'use client'
+
 import { IEvent, IUserContext } from "@/types";
 import { ISOToReadableDate } from "@/utils/helper";
 import { AdvancedImage } from "@cloudinary/react";

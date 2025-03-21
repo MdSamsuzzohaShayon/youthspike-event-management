@@ -56,13 +56,10 @@ export enum EEnv {
 
 export interface ITextInputProps {
   name: string;
-  handleInputChange: (e: React.SyntheticEvent) => void;
-  lw?: string;
-  rw?: string;
-  vertical?: boolean;
-  extraCls?: string;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   lblTxt?: string;
   required?: boolean;
+  placeholder?: string;
   defaultValue?: string | null | undefined;
 }
 

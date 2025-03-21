@@ -1,33 +1,30 @@
 import React from 'react';
 import { ITextInputProps } from '@/types';
-import { motion } from 'framer-motion';
 
 const TextareaInput = (props: ITextInputProps) => {
   const dv = props.defaultValue || '';
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : ''} items-start gap-2 ${props.extraCls}`}
+    <div
+      className="flex flex-col col-span-2"
     >
       <label
         htmlFor={props.name}
-        className={`capitalize font-medium ${props.vertical ? 'w-full' : props.lw}`}
+        className="capitalize text-lg font-semibold mb-1"
       >
-        {props.lblTxt || props.name}
+        {props.label || props.name}
       </label>
       <textarea
         onChange={props.handleInputChange}
         id={props.name}
         name={props.name}
-        className="form-control border border-gray-300 rounded-lg py-2 px-4 w-full"
+        className="p-3 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
         defaultValue={dv}
         required={props.required}
       />
-    </motion.div>
+    </div>
   );
 };
 
 export default TextareaInput;
+

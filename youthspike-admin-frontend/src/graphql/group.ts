@@ -43,7 +43,7 @@ mutation DeleteGroup($groupId: String) {
 
 
 // Queries
-const GET_EVENT_WITH_GROUP = gql`
+const GET_EVENT_WITH_GROUP_RAW = `
   query GetEvent($eventId: String!) {
     getEvent(eventId: $eventId) {
       code
@@ -70,8 +70,10 @@ const GET_EVENT_WITH_GROUP = gql`
     }
   }
 `;
+const GET_EVENT_WITH_GROUP = gql`${GET_EVENT_WITH_GROUP_RAW}`;
 
-const GET_GROUPS = gql`
+
+const GET_GROUPS_RAW = `
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
@@ -103,6 +105,7 @@ query GetEvent($eventId: String!) {
   }
 }
 `;
+const GET_GROUPS = gql`${GET_GROUPS_RAW}`;
 
 
 const GET_A_GROUP = gql`
@@ -131,4 +134,4 @@ query GetGroup($groupId: String!) {
 }
 `;
 
-export { GET_EVENT_WITH_GROUP, ADD_GROUP, UPDATE_GROUP, GET_GROUPS, GET_A_GROUP, DELETE_A_GROUP };
+export { GET_EVENT_WITH_GROUP, ADD_GROUP, UPDATE_GROUP, GET_GROUPS, GET_A_GROUP, DELETE_A_GROUP, GET_EVENT_WITH_GROUP_RAW, GET_GROUPS_RAW };

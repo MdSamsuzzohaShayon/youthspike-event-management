@@ -199,6 +199,7 @@ type Event {
   coachPassword: String!
   description: String
   location: String
+  defaultSponsor: Boolean
 }
 
 type Player {
@@ -857,6 +858,7 @@ input CreateEventInput {
   location: String!
   ldo: String!
   id: String
+  defaultSponsor: Boolean = false
 }
 
 input UpdateEventInput {
@@ -881,6 +883,7 @@ input UpdateEventInput {
   location: String
   ldo: String
   id: String
+  defaultSponsor: Boolean = false
 }
 
 input EventSponsorStringInput {

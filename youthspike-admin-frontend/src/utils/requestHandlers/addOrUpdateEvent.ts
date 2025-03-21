@@ -127,6 +127,7 @@ async function addOrUpdateEvent({
 
             // Add the event logo to formData
             if (eventLogo && eventLogo.current) {
+                // @ts-ignore
                 formData.set(`${sponsorFileList.length}`, eventLogo.current);
             }
 
@@ -159,6 +160,7 @@ async function addOrUpdateEvent({
             let eventRes = null;
             const mutationInput = { ...mutationVariables.input };
             if (mutationInput.logo) delete mutationInput.logo;
+            // @ts-ignore
             mutationVariables.input = mutationInput;
             if (update) {
                 eventRes = await eventUpdate({ variables: mutationVariables });

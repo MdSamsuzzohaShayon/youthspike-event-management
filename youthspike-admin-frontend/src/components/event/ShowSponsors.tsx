@@ -1,43 +1,63 @@
 import cld from '@/config/cloudinary.config';
 import { IEventSponsorAdd } from '@/types';
+import { APP_NAME } from '@/utils/keys';
 import { AdvancedImage } from '@cloudinary/react';
-import React from 'react'
+import React from 'react';
 
 interface IShowSponsors {
     fileList: IEventSponsorAdd[];
     handleImgRemove: (e: React.SyntheticEvent, company: string) => void;
+    defaultSponsor: boolean;
+    handleDefaultSponsor: (e: React.SyntheticEvent) => void;
 }
 
-function ShowSponsors({ fileList, handleImgRemove }: IShowSponsors) {
-    const imgElList: React.ReactNode[] = []
-    for (let i = 0; i < fileList.length; i += 1) {
-        let imgEl = null;
+const ShowSponsors: React.FC<IShowSponsors> = ({ fileList, handleImgRemove, defaultSponsor, handleDefaultSponsor }) => {
+    return (
+        <ul className="show-sponsors flex justify-between w-full items-center flex-wrap">
+            {/* Default Sponsor */}
+            {defaultSponsor && (
+                <li className="relative">
+                    <div className="w-20 static">
+                        <img src="/free-logo.png" alt={APP_NAME} className="w-full" />
+                        <p>{APP_NAME}</p>
+                    </div>
+                    <img 
+                        src="/icons/close.svg"
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full svg-white"
+                        role="presentation"
+                        onClick={handleDefaultSponsor}
+                    />
+                </li>
+            )}
 
-        
-        const imgFile = fileList[i].logo as File;
-        imgEl = (
-            <div className="w-20 static" >
-                {typeof imgFile === "string"
-                    ? <AdvancedImage cldImg={cld.image(imgFile)} alt={`Sponsor ${i + 1}`} className="w-full" key={imgFile + '' + i} />
-                    : (<img  src={URL.createObjectURL(imgFile)} alt={`Sponsor ${i + 1}`} className="w-full" key={imgFile.name + '' + i} />)}
+            {/* Sponsor List */}
+            {fileList.map(({ company, logo }, index) => {
+                const isStringLogo = typeof logo === 'string';
+                const imgSrc = isStringLogo ? cld.image(logo) : URL.createObjectURL(logo as File);
 
-                <p>{fileList[i].company}</p>
-            </div>
-        );
-
-        const liEl = (
-            <li className='relative' key={i}>
-                {imgEl}
-                <img src='/icons/close.svg' className='absolute top-1 right-1 w-6 h-6 rounded-full svg-white'
-                    role="presentation"
-                    onClick={e => handleImgRemove(e, typeof fileList[i] === "string" ? fileList[i].toString() : fileList[i].company)}
-                />
-            </li>
-        );
-        imgElList.push(liEl);
-    }
-
-    return (<ul className="show-sponsors flex justify-between w-full items-center flex-wrap">{imgElList}</ul>);
-}
+                return (
+                    <li className="relative" key={index}>
+                        <div className="w-20 static">
+                            {isStringLogo ? (
+                                // @ts-ignore 
+                                <AdvancedImage cldImg={imgSrc} alt={`Sponsor ${index + 1}`} className="w-full" />
+                            ) : (
+                                // @ts-ignore 
+                                <img src={imgSrc} alt={`Sponsor ${index + 1}`} className="w-full" />
+                            )}
+                            <p>{company}</p>
+                        </div>
+                        <img 
+                            src="/icons/close.svg"
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full svg-white"
+                            role="presentation"
+                            onClick={(e) => handleImgRemove(e, company)}
+                        />
+                    </li>
+                );
+            })}
+        </ul>
+    );
+};
 
 export default ShowSponsors;

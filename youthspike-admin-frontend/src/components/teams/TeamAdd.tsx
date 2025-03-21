@@ -1,9 +1,7 @@
 import { useMutation } from '@apollo/client';
-import React, { useState, useEffect, useRef } from 'react';
-import Message from '../elements/Message';
-import { IError, IOption, IPlayer, ITeam, ITeamAdd, IGroup, IGroupRelatives } from '@/types';
+import React, { useState, useRef } from 'react';
+import { IOption, IPlayer, ITeam, ITeamAdd, IGroup } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import TextInput from '../elements/forms/TextInput';
 import SelectInput from '../elements/forms/SelectInput';
 import { useRouter } from 'next/navigation';
 import FileInput from '../elements/forms/FileInput';
@@ -12,6 +10,7 @@ import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
 import { useError } from '@/lib/ErrorContext';
+import InputField from '../elements/forms/InputField';
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;
@@ -20,9 +19,8 @@ interface IPrevTeam extends ITeamAdd {
 
 interface ITeamAddProps {
     eventId: string;
-    availablePlayers: IPlayer[];
+    players: IPlayer[];
     groupList: IGroup[];
-    setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     teamAddCB?: (teamData: ITeam) => void;
@@ -42,7 +40,7 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlayers, setAvailablePlayers, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
+function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
 
     const router = useRouter();
     const { ldoIdUrl } = useLdoId();
@@ -52,6 +50,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
     const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
+    const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>(players || []);
 
     const uploadedLogo = useRef<File | null>(null);
 
@@ -106,6 +105,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
         const newPlayerList: IOption[] = [];
         for (let i = 0; i < ap.length; i += 1) {
             newPlayerList.push({
+                id: i+1,
                 text: ap[i].firstName + " " + ap[i].lastName,
                 value: ap[i]._id
             });
@@ -133,22 +133,17 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, availablePlaye
     const toBeCaptains = () => {
         const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
         const options = makeOptionList(playersWithEmail);
-        return <SelectInput name='captain' vertical lw='w-full' rw='w-full' optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />
+        return <SelectInput name='captain' optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />
     }
 
     return (
         <form onSubmit={handleTeamAdd} className='flex flex-col gap-2'>
-            <div className='input-group w-full flex flex-col'>
-                {error && <Message error={error} />}
-            </div>
-
-            <TextInput name='name' required={!update} vertical defaultValue={teamState.name} handleInputChange={handleInputChange} />
-
-            <SelectInput key="g-t-d" handleSelect={handleInputChange} name='group'
+            <InputField type="text" name='name' required={!update} defaultValue={teamState.name} className='mt-6' handleInputChange={handleInputChange} />
+            <SelectInput key="g-t-d" handleSelect={handleInputChange} name='group' className='mt-6'
                 {...(prevTeam?.group ? { defaultValue: prevTeam.group._id } : {})}
                 optionList={teamState.division && teamState.division !== ''
-                    ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g) => ({ text: g.name, value: g._id }))
-                    : groupList.map((g) => ({ text: g.name, value: g._id }))} vertical />
+                    ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI+1, text: g.name, value: g._id }))
+                    : groupList.map((g, gI) => ({ id: gI+1,text: g.name, value: g._id }))} />
             <Link className='underline underline-offset-1' href={`/${eventId}/groups/new/${ldoIdUrl}`}>Create new group!</Link>
 
             <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />

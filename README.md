@@ -58,8 +58,9 @@ ___
     - Matches (list of match must be updated)
     - 
  - Email seing and staying at position
+ - Filtering need to work properly
  - Roster lock and change to matches component
- - Make username unique
+ - Make username unique (every player will have a unique name at the beginning)
  - When making co-captain make sure he is not captain of any other team
  
  - So I think as far as list goes- 

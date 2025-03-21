@@ -1,55 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ISelectInputProps } from '@/types';
-import { motion } from 'framer-motion';
-import { liAnimate } from '@/utils/animation';
 
-const { initial: iInitial, animate: iAnimate, exit: iExit, transition: iTransition } = liAnimate;
 
 const SelectInput = (props: ISelectInputProps) => {
-  const selectStyle: React.CSSProperties = {};
-
-  if (!props.rw) selectStyle.width = '19%';
 
   return (
-    <div className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : 'flex-row'} justify-between items-center ${props.extraCls}`}>
-      {props.lblTxt && (
-        <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}>
-          {props.lblTxt ? props.lblTxt : props.name}
+    <div className={`flex flex-col col-span-2 ${props.className || ""}`}>
+        <label htmlFor={props.name} className="capitalize text-lg font-semibold mb-1" >
+          {props.label || props.name}
         </label>
-      )}
 
       <select
         onChange={props.handleSelect}
         name={props.name}
         id={props.name}
-        className={`form-control capitalize ${props.vertical ? 'w-full' : ''} ${props.rw}`}
-        style={!props.vertical ? selectStyle : {}}
+        className="p-3 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
         {...(props.defaultValue ? { defaultValue: props.defaultValue } : {})}
         {...(props.value ? { value: props.value } : {})}
       >
-        <motion.option
-          initial={iInitial}
-          animate={iAnimate}
-          exit={iExit}
-          transition={iTransition}
+        <option
           value=""
           className="bg-gray-400 text-gray-700"
         >
-          {props.defaultTxt || "Select an option"}
-        </motion.option>
+          {`Select ${props.name}`}
+        </option>
         {props.optionList.map((o, i) => (
-          <motion.option
-            initial={iInitial}
-            animate={iAnimate}
-            exit={iExit}
-            transition={iTransition}
+          <option
             value={o.value}
-            // style={{opacity: 1, transform: "none", width: "100%", whiteSpace: "normal", wordWrap: 'break-word', overflowWrap: "anywhere",}}
             key={i}
-            className="bg-white text-gray-900 capitalize"
+            className="capitalize"
           >
             {o.text ? o.text : o.value}
-          </motion.option>
+          </option>
         ))}
       </select>
     </div>

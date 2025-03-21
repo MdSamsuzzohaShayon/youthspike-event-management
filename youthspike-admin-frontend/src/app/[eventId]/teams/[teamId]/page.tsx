@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import TeamDetail from '@/components/teams/TeamDetail';
 import { divisionsToOptionList } from '@/utils/helper';
 import { IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam } from '@/types';
-import { getTeamData } from '../_fetch/team';
+import { getTeamData } from '../../../_requests/teams';
 
 interface TeamSingleMainProps {
   params: { teamId: string; eventId: string };

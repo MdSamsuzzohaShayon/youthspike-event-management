@@ -5,6 +5,7 @@ import { ApolloClient, useApolloClient, useMutation } from '@apollo/client';
 import { GET_A_EVENT, UPDATE_EVENT } from '@/graphql/event';
 import { clickedInside } from '@/utils/helper';
 import useClickOutside from '../../hooks/useClickOutside';
+import InputField from '../elements/forms/InputField';
 
 
 interface IShowDivisionsProps {
@@ -177,11 +178,11 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
 
 
 
-    return <ul className='flex gap-1 flex-wrap'>
+    return <ul className='flex gap-1 flex-wrap mt-2'>
         {/* New division add start  */}
         <dialog ref={addDivisionDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2' >
             <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white mt-2' />
-            <TextInput vertical handleInputChange={handleInputChange} name='division-new' lblTxt={addNew ? "Add Division" : "Update Division"} required={false} />
+            <InputField type='text' handleInputChange={handleInputChange} name='division-new' label={addNew ? "Add Division" : "Update Division"} required={false} />
             <button className='btn-info mt-4 text-center' onClick={handleAddDivision}>Ok</button>
         </dialog>
         {/* New division add end  */}

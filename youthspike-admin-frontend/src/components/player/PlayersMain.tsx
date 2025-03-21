@@ -13,7 +13,6 @@ import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, set
 import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
-import { useError } from '@/lib/ErrorContext';
 
 interface IPlayersMainProps {
   currEvent: IEvent;
@@ -25,7 +24,6 @@ interface IPlayersMainProps {
 function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
   // ===== hooks =====
   const user = useUser();
-  const { setActErr } = useError();
 
 
   // ===== Local State =====
@@ -150,7 +148,7 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
   }, [filteredPlayerList]);
 
 
-  
+
 
   if (isLoading) return <Loader />;
 
@@ -170,7 +168,7 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
 
       {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
         <div className="mb-4 division-selection w-full">
-          <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+          <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
         </div>
       )}
 
@@ -213,10 +211,12 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
 
 
 
-          <div className="w-full">
-            <h3 className="mt-4">Inactive Players List</h3>
-            <PlayerList key="inactive-players" inactive currEvent={currEvent} eventId={currEvent._id} playerList={inactiveList} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
-          </div>
+          {inactiveList.length > 0 && (
+            <div className="w-full">
+              <h3 className="mt-4">Inactive Players List</h3>
+              <PlayerList key="inactive-players" inactive currEvent={currEvent} eventId={currEvent._id} playerList={inactiveList} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+            </div>
+          )}
         </>
       )}
     </React.Fragment>

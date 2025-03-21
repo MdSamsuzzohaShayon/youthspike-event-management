@@ -206,7 +206,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
             <br />
             {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
               <div className="division-selection w-full">
-                <SelectInput key={"matches-si-2"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+                <SelectInput key={"matches-si-2"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
               </div>
             )}
             {paginatedMatchList.length > 0 ? (
