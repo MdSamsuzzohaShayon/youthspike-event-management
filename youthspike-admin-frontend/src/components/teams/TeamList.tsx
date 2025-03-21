@@ -308,12 +308,12 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
         {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
         <SelectInput
           name="group"
-          optionList={groupList.map((g) => ({
+          optionList={groupList.map((g, gI) => ({
+            id: gI+1,
             value: g._id,
             text: g.name,
           }))}
           handleSelect={handleBulkChangeGroup}
-          vertical
         />
       </dialog>
     </div>

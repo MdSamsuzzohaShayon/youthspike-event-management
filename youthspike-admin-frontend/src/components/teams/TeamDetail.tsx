@@ -16,6 +16,8 @@ import UserMenuList from '../layout/UserMenuList';
 import { useError } from '@/lib/ErrorContext';
 import MatchCard from '../match/MatchCard';
 import Pagination from '../elements/Pagination';
+import Link from 'next/link';
+import TextImg from '../elements/TextImg';
 
 interface ITeamDetailProps {
   event: IEvent;
@@ -43,7 +45,7 @@ const ITEMS_PER_PAGE = 20;
 
 function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc, playerList, playerRanking, matchList, rankings }: ITeamDetailProps) {
   const { setActErr } = useError();
-  
+
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -124,12 +126,12 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
 
   return (
-    <div>
-      <div className="team-detail bg-gray-700 rounded-lg">
+    <React.Fragment>
+      {/* <div className="team-detail bg-gray-700 rounded-lg">
         <h1 className="uppercase text-center">Teams/roster</h1>
         <h1 className="uppercase text-center">{event?.name}</h1>
 
-        {/* Team detail  */}
+  
         <div className="team-detail mt-4 w-full flex justify-center flex-col items-center">
           {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-20 md:w-32" /> : <Image src="/icons/sports-man.svg" width={100} height={100} alt='free-logo' className="w-20 md:w-32 h-20 md:h-32" />}
           <h1 className="capitalize">{team && team.name}</h1>
@@ -158,6 +160,67 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
             </motion.li>
           </motion.ul>
         </div>
+      </div> */}
+
+      <div className="flex flex-col items-center">
+        {/* Header Section */}
+        <div className="team-detail w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
+          {/* Decorative Glow */}
+          <div className="absolute inset-0 bg-yellow-400 opacity-10 rounded-2xl blur-lg" />
+
+          {/* Team Logo */}
+          {team.logo ? (
+            <AdvancedImage
+              cldImg={cld.image(team.logo)}
+              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
+            />
+          ) : (
+            <TextImg
+              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
+              fullText={team.name}
+              txtCls="text-2xl"
+            />
+          )}
+
+          {/* Team Name */}
+          <h3 className="text-2xl font-semibold mt-5 relative z-10">{team.name}</h3>
+
+          {/* Event Title */}
+          <div className="text-center mb-6 relative z-10">
+            <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">Teams / Roster</h1>
+            <h2 className="text-sm text-gray-300 uppercase mt-1">{event?.name}</h2>
+          </div>
+
+          {/* Standings Button */}
+          <Link
+            href={`/events/a`}
+            className="mt-5 bg-yellow-500 hover:bg-yellow-400 text-gray-900 transition py-3 px-6 rounded-lg text-md font-medium shadow-lg relative z-10"
+          >
+            View Standings
+          </Link>
+
+          {/* Tab Menu */}
+          <div className="tab-menu w-full mt-6 relative z-10">
+            <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
+              <li
+                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.ROSTER ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                role="presentation"
+                onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
+              >
+                Rosters
+              </li>
+              <li
+                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.MATCHES ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                role="presentation"
+                onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
+              >
+                Matches
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       {selectedItem === ETab.ROSTER && (
@@ -177,14 +240,17 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
             </form>
           </>
         ) : (
-          <div className="bulk-operations-players mt-8">
-            <div className="flex w-full justify-between items-center">
-              <h3 className="mt-4">Player List</h3>
-              <button className="btn-info mt-4" type="button" onClick={() => setAddPlayer(true)}>
+
+          <div className="bulk-operations-players mt-6 p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row w-full justify-between items-center gap-4">
+              <h3 className="text-xl text-white font-semibold text-center md:text-left">Player List</h3>
+              <button className="bg-yellow-500 text-black px-4 py-2 rounded-md font-semibold hover:bg-yellow-600 transition duration-300 w-full md:w-auto" onClick={() => setAddPlayer(true)}>
                 Add Player to Team
               </button>
             </div>
 
+            {/* Player List */}
             <div className="sortable-active-player-list mt-4">
               <PlayerList
                 playerList={activePlayers}
@@ -218,6 +284,9 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
               </div>
             )}
           </div>
+
+
+
         )
       )}
 
@@ -235,7 +304,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
       {/* Show captain  */}
       {/* <CaptainCard team={team} /> */}
-    </div>
+    </React.Fragment>
   );
 }
 

@@ -2,7 +2,7 @@
 import { IOption } from '@/types';
 import React from 'react';
 
-interface ISelectInputProps {
+interface ISelectGeneralInputProps {
   name: string;
   optionList: IOption[];
   defaultTxt?: string;
@@ -12,10 +12,10 @@ interface ISelectInputProps {
   lblTxt?: string;
 }
 
-function SelectInput({ lblTxt, name, defaultTxt, optionList, defaultValue, handleSelect }: ISelectInputProps) {
+function SelectGeneralInput({ lblTxt, name, defaultTxt, optionList, defaultValue, handleSelect }: ISelectGeneralInputProps) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={name} className="text-sm font-medium text-gray-300">
+      <label htmlFor={name} className="capitalize text-sm font-medium text-gray-300">
         {lblTxt || name}
       </label>
       <select
@@ -38,4 +38,4 @@ function SelectInput({ lblTxt, name, defaultTxt, optionList, defaultValue, handl
   );
 }
 
-export default SelectInput;
+export default SelectGeneralInput;

@@ -7,17 +7,16 @@ import Loader from '@/components/elements/Loader';
 
 import TeamList from '@/components/teams/TeamList';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IEvent, IEventExpRel, IGroup, IGroupExpRel, IOption, IPlayerExpRel, ITeam } from '@/types';
+import { IEventExpRel, IGroup, IGroupExpRel, IOption, IPlayerExpRel, ITeam } from '@/types';
 import MultiPlayerAdd from '@/components/player/MultiPlayerAdd';
 import Link from 'next/link';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import SelectInput from '../elements/forms/SelectInput';
 import CurrentEvent from '../event/CurrentEvent';
 import useClickOutside from '../../hooks/useClickOutside';
 import UserMenuList from '../layout/UserMenuList';
 import { useLdoId } from '@/lib/LdoProvider';
-import { motion } from 'framer-motion';
+import SelectGeneralInput from '../elements/forms/SelectGeneralInput';
 
 interface IEventDetail{
   event: IEventExpRel;
@@ -169,15 +168,17 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
       </div>
       {/* Event Menu End */}
 
+
+
+
+
+
+
       <div className="mb-4">
-        <SelectInput
-          handleSelect={handleDivisionSelection}
-          value={currDivision}
+        <SelectGeneralInput defaultTxt='Select a division' handleSelect={handleDivisionSelection}
           name="division"
           optionList={divisionList}
-          vertical
-          extraCls="w-full bg-gray-700 text-white"
-        />
+          />
       </div>
 
       <div className="actions flex flex-col sm:flex-row justify-between gap-4 mb-8">

@@ -7,12 +7,7 @@ export const commonAnimate = {
 
 
 
-export const cardAnimate = {
-  initial: { ...commonAnimate.initial, scale: 0.8 },
-  animate: { ...commonAnimate.animate, scale: 1 },
-  exit: { ...commonAnimate.exit, scale: 0 },
-  transition: { ...commonAnimate.transition },
-};
+
 
 export const menuBackdropVariants = {
   visible: { opacity: 1, transition: { duration: 0.3 } },

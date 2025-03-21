@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sortable from 'sortablejs';
 import { motion } from "framer-motion";
 
@@ -21,7 +21,6 @@ import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
-import { getRankedPlayers } from '@/utils/helper';
 import { useError } from '@/lib/ErrorContext';
 import { isISODateString } from '@/utils/datetime';
 

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import TeamMain from './TeamMain';
-import { getEventWithTeams } from '@/app/[eventId]/teams/_fetch/team';
+import { getEventWithTeams } from '@/app/_requests/teams';
 import { IEventPageProps } from '@/types';
 
 

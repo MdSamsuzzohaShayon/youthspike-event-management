@@ -126,7 +126,6 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
           prevEvent && (
             <EventAddUpdate
               update
-              setIsLoading={setIsLoading}
               prevEvent={prevEvent}
             />
           )

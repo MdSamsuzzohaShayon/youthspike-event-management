@@ -11,27 +11,32 @@ import { EEventPeriod } from '@/types/event';
 //     return formattedDate;
 // }
 
-const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthNamesShort: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// const monthNames: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 function readDate(isoDateString: string) {
   try {
     const newDate = isoDateString.split('T')[0].split('-');
 
     // Format the date string
-    const formattedDate = `${monthNames[parseInt(newDate[1], 10) - 1]} ${newDate[2]}, ${newDate[0]}`;
+    const formattedDate = `${monthNamesShort[parseInt(newDate[1], 10) - 1]} ${newDate[2]}, ${newDate[0]}`;
 
     return formattedDate;
   } catch (error) {
     const date = new Date(isoDateString);
 
     // Extract the month, date, and year
-    const month = monthNames[date.getMonth()];
+    const month = monthNamesShort[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
     const formattedDate = `${month} ${day}, ${year}`;
     return formattedDate;
   }
 }
+
+// function readDate(){
+//   `${monthNames[new Date(event.startDate).getMonth()]} ${new Date(event.startDate).getDate()}, ${new Date(event.startDate).getFullYear()} `
+// }
 
 function readTime(isoTimeString: string) {
   const date = new Date(isoTimeString);

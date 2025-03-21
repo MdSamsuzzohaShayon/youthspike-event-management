@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ADD_EVENT, UPDATE_EVENT } from '@/graphql/event';
@@ -7,7 +9,7 @@ import { useMutation } from '@apollo/client';
 import { useUser } from '@/lib/UserProvider';
 import { IEventAddProps, IEventAdd, IEventSponsorAdd, IDateChangeHandlerProps } from '@/types';
 import { UserRole } from '@/types/user';
-import { assignStrategies } from '@/utils/staticData';
+import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
 import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
 import { APP_NAME } from '@/utils/keys';
 import Image from 'next/image';
@@ -31,47 +33,49 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
 import { useError } from '@/lib/ErrorContext';
 import DateTimeInput from '../elements/forms/DateTimeInput';
-// Select Input Options
-const { homeTeamStrategy, rosterLockList } = staticData;
+import InputField from '../elements/forms/InputField';
+import { createEvent } from '@/app/actions/event';
+import DivisionInputField from '../elements/forms/DivisionInputField';
 
-const lockTimes = [
-  {
-    id: 1,
-    type: ERosterLock.FIRST_ROSTER_SUBMIT,
-    text: "First Roster Submit"
-  },
-  {
-    id: 2,
-    type: ERosterLock.PICK_A_DATE,
-    text: "Pick A Date"
-  },
-]
+interface IAddMutationVariables {
+  sponsorsInput: IEventSponsorAdd[];
+  logo: null | string;
+  // updateInput?: Partial<IEventAdd>;
+  input?: IEventAdd;
+}
 
+
+// Logo and division is missing
 const initialEvent: IEventAdd = {
   name: 'Unnamed Event',
-  divisions: '',
+  startDate: new Date().toISOString(),
+  endDate: new Date().toISOString(),
   nets: 3,
   rounds: 2,
   netVariance: 3,
+  fwango: null,
+
+  timeout: 3,
+  divisions: '',
+
   homeTeam: homeTeamStrategy[0].value,
   autoAssign: false,
-  autoAssignLogic: assignStrategies[0],
-  rosterLock: '',
-  startDate: new Date().toISOString(),
-  endDate: new Date().toISOString(),
+  autoAssignLogic: assignStrategies[0].value,
+  rosterLock: lockTimes[0].value,
+
+  tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
+  coachPassword: '',
+  location: 'USA',
+  description: 'USA',
+
+  defaultSponsor: true,
   playerLimit: 10,
   active: true,
-  timeout: 3,
-  fwango: null,
-  coachPassword: 'Spikeball',
-  tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
-  description: 'USA',
-  location: 'USA',
 };
 
 const initialCurrSponsor = { logo: null, company: '' };
 
-function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
+function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
   // Hooks
   const router = useRouter();
   const user = useUser();
@@ -90,6 +94,7 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
   const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
   const [directorId, setDirectorId] = useState<string | null>(null);
   const [eventId, setEventId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>([]);
 
@@ -136,19 +141,21 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
     }
   };
 
+  const handleToggleChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    if (!update) {
+      setEventState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.checked ?? false }));
+    } else {
+      setUpdateEvent((prevState) => ({ ...prevState, [inputEl.name]: inputEl.checked ?? false }));
+    }
+  };
+
   const handleDateChange = ({ name, value }: IDateChangeHandlerProps) => {
     if (!update) {
       setEventState((prevState) => ({ ...prevState, [name]: value }));
     } else {
       setUpdateEvent((prevState) => ({ ...prevState, [name]: value }));
-    }
-  }
-
-  const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
-    if (!update) {
-      setEventState((prevState) => ({ ...prevState, rosterLock: value }));
-    } else {
-      setUpdateEvent((prevState) => ({ ...prevState, rosterLock: value }));
     }
   }
 
@@ -169,6 +176,16 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
     }
   };
 
+
+  const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
+    if (!update) {
+      setEventState((prevState) => ({ ...prevState, rosterLock: value }));
+    } else {
+      setUpdateEvent((prevState) => ({ ...prevState, rosterLock: value }));
+    }
+  }
+
+
   const handleDivisionInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
@@ -186,6 +203,15 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
       return prevState.filter((imgFile) => (typeof imgFile === 'string' ? imgFile !== companyName : imgFile.company !== companyName));
     });
   };
+
+  const handleDefaultSponsor=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    if(update){
+      setUpdateEvent((prevState) => ({ ...prevState, defaultSponsor: false }));
+    }else{
+      setEventState((prevState) => ({ ...prevState, defaultSponsor: false }));
+    }
+  }
 
   /**
    * File Upload
@@ -256,42 +282,6 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
 
 
 
-  const fetchData = async () => {
-    const sl: IEventSponsorAdd[] = [];
-
-    try {
-      if (!update) {
-        const response = await fetch('/free-logo.png');
-        const blob = await response.blob(); // Convert the response to a Blob
-
-        const defaultLogoFile = new File([blob], 'default_logo.jpg', { type: 'image/jpeg' }); // Create a File object
-        sl.push({
-          company: APP_NAME,
-          logo: defaultLogoFile,
-        });
-      }
-
-      if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
-        for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
-          // @ts-ignore
-          sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
-        }
-      }
-
-      setSponsorImgList(sl); // Update the state with the fetched data
-    } catch (error) {
-      console.error('Error fetching default logo:', error);
-      // If fetching fails, fall back to using the previous event sponsors
-      if (prevEvent && prevEvent.sponsors && prevEvent.sponsors.length > 0) {
-        for (let i = 0; i < prevEvent.sponsors.length; i += 1) {
-          // @ts-ignore
-          sl.push({ company: prevEvent.sponsors[i].company, logo: prevEvent.sponsors[i].logo });
-        }
-      }
-      setSponsorImgList(sl); // Update the state with the fallback data
-    }
-  };
-
 
   /**
    * Lifecycle hooks
@@ -317,87 +307,91 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
   }, [user]);
 
 
-  /**
-   * Fetch the logo file from the local directory
-   * Create the initial sponsor image list with the default logo file
-   */
-  useEffect(() => {
-    fetchData();
-  }, [prevEvent, update]);
 
   return (
-    <form onSubmit={handleEventAdd} className="flex flex-col gap-2">
-      <TextInput key="ti-eau-1" required={!update} defaultValue={eventState.name} handleInputChange={handleInputChange} lblTxt="Name" name="name" lw="w-2/6" rw="w-4/6" />
+    <form className="w-full" onSubmit={handleEventAdd} >
+      <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Event Name */}
+        <InputField key="dau-1" name="name" type="text" label="Name" handleInputChange={handleInputChange} defaultValue={eventState.name} required={!update} />
+        {/* Logo Upload */}
+        <ImageInput handleFileChange={handleLogoChange} name="logo" />
 
-      <ImageInput handleFileChange={handleLogoChange} name="logo" />
+        <DateInput key="di-eau-1" label="Start Date" name="startDate" handleDateChange={handleDateChange} defaultValue={eventState.startDate}  required={!update} />
+        <DateInput key="di-eau-2" label="End Date" name="endDate" handleDateChange={handleDateChange} defaultValue={eventState.endDate}  required={!update} />
 
-      <DateInput required={!update} defaultValue={eventState.startDate} handleDateChange={handleDateChange} lblTxt="Start Date" name="startDate" lw="w-2/6" rw="w-4/6" />
-      <DateInput required={!update} defaultValue={eventState.endDate} handleDateChange={handleDateChange} lblTxt="End Date" name="endDate" lw="w-2/6" rw="w-4/6" />
 
-      {!update ? (
-        <TextInput key="ti-eau-2" required={!update} defaultValue={eventState.divisions} handleInputChange={handleDivisionInputChange} readOnly={update} lblTxt="DIVISIONS" name="divisions" lw="w-2/6" rw="w-4/6" />
-      ) : (
-        <h4>Divisions</h4>
-      )}
 
-      <ShowDivisions
-        update={update}
-        dStr={eventState.divisions}
-        prevDivisions={prevEvent && prevEvent.divisions ? prevEvent.divisions : ''}
-        setEventState={setEventState}
-        setUpdateEvent={setUpdateEvent}
-        eventId={eventId}
-        updateEvent={updateEvent}
-      />
-      {/* Default setting  */}
-      <h3 className="text-2xl capitalize mt-4">Default setting</h3>
 
-      <NumberInput defaultValue={eventState.nets} handleInputChange={handleNumberInputChange} lblTxt="Number of nets" name="nets" required={!update} rw="w-3/6" lw="w-3/6" />
-      <NumberInput defaultValue={eventState.rounds} handleInputChange={handleNumberInputChange} lblTxt="Number of rounds" name="rounds" required={!update} rw="w-3/6" lw="w-3/6" />
-      <NumberInput defaultValue={eventState.netVariance} handleInputChange={handleNumberInputChange} lblTxt="Net Variance" name="netVariance" required={!update} rw="w-3/6" lw="w-3/6" />
+        {/* Number of Nets */}
+        <InputField key="dau-2" required={!update} name="nets" type="number" handleInputChange={handleNumberInputChange} label="Number of nets" defaultValue={eventState.nets} />
+        <InputField key="dau-3" required={!update} name="rounds" type="number" handleInputChange={handleNumberInputChange} label="Number of rounds" defaultValue={eventState.rounds} />
+        <InputField key="dau-4" required={!update} name="netVariance" type="number" handleInputChange={handleNumberInputChange} label="Net Variance" defaultValue={eventState.netVariance} />
+        <InputField key="dau-7" name="fwango" type="text" label="Fwango Link" handleInputChange={handleInputChange} defaultValue={eventState.fwango || undefined} />
+      </div>
+      <div className="w-full mt-6">
+        {/* <DivisionInputField  defaultValue={eventState.divisions} name="divisions" /> */}
+        {!update ? (
+          <InputField key="dau-8" type='text'  required={!update} defaultValue={eventState.divisions} handleInputChange={handleDivisionInputChange} label="Divisions" name="divisions" />
+        ) : (
+          <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
+        )}
+        <ShowDivisions
+          update={update}
+          dStr={eventState.divisions}
+          prevDivisions={prevEvent && prevEvent.divisions ? prevEvent.divisions : ''}
+          setEventState={setEventState}
+          setUpdateEvent={setUpdateEvent}
+          eventId={eventId}
+          updateEvent={updateEvent}
+        />
+      </div>
 
-      <SelectInput key="eau-1" name="homeTeam" defaultValue={eventState.homeTeam} optionList={homeTeamStrategy} lblTxt="How is home team decided?" handleSelect={handleInputChange} rw="w-3/6" lw="w-3/6" />
-      <SelectInput key="eau-2" name="tieBreaking" defaultValue={eventState.tieBreaking}
-        optionList={[{ text: "Overtime round", value: ETieBreakingStrategy.OVERTIME_ROUND }, { text: "Two Points Net", value: ETieBreakingStrategy.TWO_POINTS_NET }]}
-        lblTxt="Tie breaking strategy" handleSelect={handleInputChange} rw="w-3/6" lw="w-3/6" />
+      <div className='part-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+        {/* Home Team Selection */}
+        <SelectInput key="si-dau-1" name='homeTeam' label='How is home team decided?' handleSelect={handleInputChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />
+        <SelectInput key="si-dau-2" name="tieBreaking"
+          optionList={tieBreakingRules}
+          defaultValue={eventState.tieBreaking}
+          handleSelect={handleInputChange}
+          label="Tie breaking strategy" />
+        {/* Auto Assign */}
+        <ToggleInput handleInputChange={handleToggleChange}
+          name="autoAssign" label='Auto assign when clock runs out' defaultValue={eventState.autoAssign} />
 
-      <ToggleInput
-        handleInputChange={handleInputChange}
-        lblTxt="Auto assign when clock runs out" value={eventState.autoAssign} name="autoAssign" />
-      <SelectInput key="eau-3"
-        defaultValue={eventState.autoAssignLogic}
-        name="autoAssignLogic"
-        optionList={assignStrategies.map((as) => ({ value: as, text: as }))}
-        lblTxt="Which auto assign logic when clock runs out?"
-        handleSelect={handleInputChange}
-        rw="w-3/6"
-        lw="w-3/6"
-      />
-      <SelectInput key="eau-4"
-        name="rosterLock"
-        optionList={lockTimes.map((lt) => ({ value: lt.type, text: lt.text }))}
-        lblTxt="When does the roster lock setting?"
-        defaultValue={eventState.rosterLock}
-        handleSelect={handleInputChange}
-        rw="w-3/6"
-        lw="w-3/6"
-      />
-      {eventState.rosterLock && eventState.rosterLock !== "" && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-        <DateTimeInput name='rosterLockDate' lblTxt='Set a time for locking roster ranking!' required handleDateChange={handleRosterLockDate} rw="w-3/6" lw="w-3/6" />
-      )}
-      <NumberInput required lblTxt="Sub Clock" name="timeout" defaultValue={eventState.timeout} handleInputChange={handleInputChange} rw="w-3/6" lw="w-3/6" />
-      <TextInput key="ti-eau-3" handleInputChange={handleInputChange} lblTxt="Coach Password" name="coachPassword" required defaultValue={eventState.coachPassword} rw="w-3/6" lw="w-3/6" />
-      <TextInput key="ti-eau-4" handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={eventState.fwango} rw="w-3/6" lw="w-3/6" />
-      <TextareaInput handleInputChange={handleInputChange} name="description" vertical required defaultValue={eventState.description} rw="w-3/6" lw="w-3/6" />
-      <TextareaInput handleInputChange={handleInputChange} name="location" vertical required defaultValue={eventState.location} rw="w-3/6" lw="w-3/6" />
 
-      {/* File upload start  */}
+        <SelectInput key="eau-2" name="autoAssignLogic"
+          optionList={assignStrategies}
+          handleSelect={handleInputChange}
+          label="Which auto assign logic when clock runs out?" defaultValue={eventState.autoAssignLogic} />
+
+        <SelectInput key="eau-4"
+          name="rosterLock"
+          optionList={lockTimes}
+          handleSelect={handleInputChange}
+          defaultValue={eventState.rosterLock}
+          label="When does the roster lock setting?"
+        />
+
+        {eventState.rosterLock && eventState.rosterLock !== "" && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+          <DateTimeInput name='rosterLockDate' label='Set a time for locking roster ranking!' required={!update} handleDateChange={handleRosterLockDate} />
+        )}
+      </div>
+
+      <div className='part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+        <InputField key="dau-5" name="timeout" type="number" handleInputChange={handleNumberInputChange} label="Sub Clock (in minutes)" defaultValue={eventState.timeout} />
+        <InputField key="dau-6" name="coachPassword" type="password" label="Coach Password" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.coachPassword} />
+      </div>
+      <div className='part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+        <TextareaInput key="ti-eau-1" name="description" label="Description" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.description} />
+        <TextareaInput key="ti-eau-2" name="location" label="Location" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.location} />
+      </div>
+
       <dialog ref={addSponsorDialogEl}>
         <div className="close-wrapper w-full flex justify-end items-center">
           <Image width={imgSize.logo} height={imgSize.logo} alt="close-icon" src="/icons/close.svg" role="presentation" onClick={handleCloseModal} className="svg-white w-6" />
         </div>
         <div className="flex items-center justify-center flex-col">
-          <TextInput key="ti-eau-5" vertical handleInputChange={handleFileNameChange} name="company" required={false} />
+          <InputField key="ti-eau-5" type='text' handleInputChange={handleFileNameChange} name="company" required={false} />
           <AnyFileInput handleFileChange={handleFileChange} name="logo" vertical lblTxt="Sponsor Logo" />
           <div className="input-group mt-4">
             <button type="button" className="btn-info" onClick={handleOk}>
@@ -412,12 +406,17 @@ function EventAddUpdate({ update, prevEvent, setIsLoading }: IEventAddProps) {
           Add New
         </button>
       </div>
-      {/* File upload end  */}
-      <ShowSponsors fileList={sponsorImgList} handleImgRemove={handleImgRemove} />
+      <ShowSponsors handleDefaultSponsor={handleDefaultSponsor} defaultSponsor={eventState.defaultSponsor} fileList={sponsorImgList} handleImgRemove={handleImgRemove} />
 
-      <button className="btn-info" type="submit">
-        {update ? 'Update' : 'Submit'}
-      </button>
+
+
+      {/* Submit Button */}
+      <div className="col-span-2 flex justify-center">
+        <button type="submit" className="bg-yellow-400 text-black px-6 py-3 rounded-md font-bold text-lg mt-4 hover:bg-yellow-300">Submit</button>
+      </div>
+      {/* <button className="btn-info" type="submit">
+            {update ? 'Update' : 'Submit'}
+          </button> */}
     </form>
   );
 }

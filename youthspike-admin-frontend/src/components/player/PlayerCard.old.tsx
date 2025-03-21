@@ -221,7 +221,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     const dl: IOption[] = [];
     for (let i = 0; i < teamList.length; i += 1) {
       if (teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
-        dl.push({ id: i+1, text: teamList[i].name, value: teamList[i]._id });
+        dl.push({ text: teamList[i].name, value: teamList[i]._id });
       }
     }
     setTeamOptions(dl);
@@ -367,7 +367,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
           <form onSubmit={handleCaptainEmail}>
             {/* @ts-ignore */}
-            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)}  />
+            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} vertical />
             <button className="btn-info mt-4" type="submit">
               Make Captain
             </button>
@@ -381,8 +381,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" />
           </button>
           <form className="w-full" onSubmit={(e) => handleMovePlayer(e, player._id)}>
-            <SelectInput key="division-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList || []} />
-            <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} name="team" optionList={teamOptions} />
+            <SelectInput key="division-1" handleSelect={handleDivisionChange} vertical name="division" optionList={divisionList || []} />
+            <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} vertical name="team" optionList={teamOptions} />
             <button className="btn-info mt-4" type="submit">
               Move
             </button>

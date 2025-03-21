@@ -52,6 +52,7 @@ export interface IEvent extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   sponsors: string[];
+  defaultSponsor: boolean;
   sendCredentials: boolean;
   autoAssignLogic: EAssignStrategies;
 }
@@ -75,10 +76,10 @@ export interface IEventAdd extends IDefaultEventMatch {
   divisions: string;
   // sponsors: File[];
   coachPassword: string;
+  defaultSponsor: boolean;
 }
 
 export interface IEventAddProps {
   update: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
 }

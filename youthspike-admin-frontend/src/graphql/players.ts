@@ -82,7 +82,7 @@ query GetPlayers($eventId: String!) {
 
 
 
-const GET_EVENT_WITH_PLAYERS_RAW = `
+const GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW = `
 query GetEventWithPlayers($eventId: String!) {
   getEventWithPlayers(eventId: $eventId) {
     code
@@ -99,6 +99,7 @@ query GetEventWithPlayers($eventId: String!) {
         sendCredentials
         description
         location
+        divisions
       }
       players {
         _id
@@ -138,7 +139,7 @@ query GetEventWithPlayers($eventId: String!) {
 }
 `;
 
-const GET_EVENT_WITH_PLAYERS = gql`
+const GET_EVENT_WITH_TEAM_PLAYERS_RAW = `
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
@@ -170,6 +171,8 @@ query GetEvent($eventId: String!) {
   }
 }
 `;
+
+const GET_EVENT_WITH_PLAYERS = gql`${GET_EVENT_WITH_TEAM_PLAYERS_RAW}`;
 
 
 
@@ -251,7 +254,8 @@ mutation DeletePlayer($playerId: String!) {
 
 
 export {
-  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER, GET_EVENT_WITH_PLAYERS_RAW,
+  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
   CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER,
   UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER, DELETE_A_PLAYER,
+  GET_EVENT_WITH_TEAM_PLAYERS_RAW,
 };

@@ -21,6 +21,7 @@ rosterLock
 timeout
 fwango
 tieBreaking
+defaultSponsor
 ldo {
   _id
   name

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -94,8 +94,6 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     if (eventItem) setSelectedItem(eventItem);
   }, [event, initializeLists, searchParams]);
 
-  
-
   const renderContent = useMemo(() => {
     const renderMap = {
       [EEventItem.PLAYER]: <PlayerStandings playerList={filteredData.players} matchList={filteredData.matches} />,
@@ -133,21 +131,9 @@ function EventDetail({ event }: { event: IEventRelatives }) {
         </div>
       )}
 
-      <div className="w-full mb-4 p-4 bg-gray-800 rounded-md">
-        <div className="w-full flex justify-center items-center">
-          <SelectInput
-            key="d-i-1"
-            handleSelect={(e) => setCurrDivision(e.target.value)}
-            defaultTxt="Select division"
-            defaultValue=""
-            name="division"
-            optionList={divisionList}
-            lblTxt="Division"
-            vertical
-            extraCls="text-center w-full lg:w-2/12"
-          />
-        </div>
-        <div className="w-full flex justify-center items-center">
+      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gradient-to-tl from-gray-900 via-gray-800 to-gray-900 p-6 rounded-lg shadow-lg">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SelectInput key="d-i-1" handleSelect={(e) => setCurrDivision(e.target.value)} defaultTxt="Select division" defaultValue="" name="division" optionList={divisionList} lblTxt="Division" />
           <SelectInput
             key="g-i-1"
             handleSelect={(e) => setSelectedGroup(e.target.value || null)}
@@ -156,13 +142,12 @@ function EventDetail({ event }: { event: IEventRelatives }) {
             name="group"
             optionList={groupList.map((g) => ({ value: g._id, text: g.name }))}
             lblTxt="Group"
-            vertical
-            extraCls="text-center w-full lg:w-2/12"
           />
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+
+      <div className="flex flex-col lg:flex-row gap-6 mt-8">
         <motion.div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:h-screen overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           {event.players?.length || event.teams?.length || event.matches?.length ? (
             <ul className="flex flex-col gap-2">

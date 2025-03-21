@@ -1,9 +1,18 @@
-import { EAssignStrategies, IMenuItem } from "@/types/elements";
-import { EEventPeriod } from "@/types/event";
+import { EAssignStrategies, IMenuItem, IOption } from "@/types/elements";
+import { EEventPeriod, ERosterLock, ETieBreakingStrategy } from "@/types/event";
 import { EGroupRule } from "@/types/group";
 
-const assignStrategies = [EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAssignStrategies.ANCHORING];
-const eventPeriods = [EEventPeriod.CURRENT, EEventPeriod.PAST,];
+const assignStrategies: IOption[] = [
+    // EAssignStrategies.AUTO, EAssignStrategies.RANDOM, EAssignStrategies.ANCHORING
+    { id: 1, value: EAssignStrategies.AUTO, text: "Auto" },
+    { id: 2, value: EAssignStrategies.RANDOM, text: "Random" }  ,
+    { id: 3, value: EAssignStrategies.ANCHORING, text: "Anchoring" }
+];
+const eventPeriods = [
+    // EEventPeriod.CURRENT, EEventPeriod.PAST,
+    { id: 1, value: EEventPeriod.CURRENT, text: "Current" },
+    { id: 2, value: EEventPeriod.PAST, text: "Past" }
+];
 
 const initialUserMenuList: IMenuItem[] = [
     // home, settings, teams, groups, players, matches, account, admin, ldo, 
@@ -55,7 +64,7 @@ const initialUserMenuList: IMenuItem[] = [
         text: 'Admin',
         link: '/admin'
     },
-    
+
     {
         id: 7,
         imgName: 'account',
@@ -70,11 +79,38 @@ const initialUserMenuList: IMenuItem[] = [
     },
 ];
 
+
+export const tieBreakingRules: IOption[] = [
+    // { text: "Overtime round", value: ETieBreakingStrategy.OVERTIME_ROUND }, { text: "Two Points Net", value: ETieBreakingStrategy.TWO_POINTS_NET }
+    { id: 1, value: ETieBreakingStrategy.OVERTIME_ROUND, text: "Overtime round" },
+    { id: 2, value: ETieBreakingStrategy.TWO_POINTS_NET, text: "Two Points Net" }
+];
+
 const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
 
 
-export const ruleList = [
-    EGroupRule.CAN_PLAY_EACH_OTHER, EGroupRule.CAN_NOT_PLAY_EACH_OTHER
+export const ruleList:IOption[] = [
+    { id: 1, text: EGroupRule.CAN_PLAY_EACH_OTHER, value: EGroupRule.CAN_PLAY_EACH_OTHER },
+    { id: 2, text: EGroupRule.CAN_NOT_PLAY_EACH_OTHER, value: EGroupRule.CAN_NOT_PLAY_EACH_OTHER }
 ]
 
-export { assignStrategies, eventPeriods, initialUserMenuList, eventPaths };
+const lockTimes: IOption[] = [
+    {
+        id: 1,
+        value: ERosterLock.FIRST_ROSTER_SUBMIT,
+        text: "First Roster Submit"
+    },
+    {
+        id: 2,
+        value: ERosterLock.PICK_A_DATE,
+        text: "Pick A Date"
+    },
+];
+
+const homeTeamStrategy = [{
+    id: 1,
+    value: "toss",
+    text: "Toss"
+}];
+
+export { assignStrategies, eventPeriods, initialUserMenuList, eventPaths, lockTimes, homeTeamStrategy };

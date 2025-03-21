@@ -1,0 +1,39 @@
+
+/*
+ * AS Roma
+ * Captain
+ * Username: pfn129
+ * Password: Spikeball
+ * 
+ * Inter Milan
+ * Captain
+ * Username: pfn328
+ * Password: Spikeball
+ * 
+ * Juventus FC
+ * Captain
+ * Username: pfn430
+ * Password: Spikeball
+ */
+
+
+This is my code:
+
+```
+
+```
+
+Make it very beautiful and very unique layout. Keep same color scheme (black, white, and yellow). Use tailwind css classes for styling.
+Everything should look eye catching and very responsive. Use gradient color if it looks beautiful.
+Follow UI/UX design principles. Convert it properly to JSX code
+
+
+
+
+
+
+
+
+Track classes:
+Single team gradient ->
+bulk-operations-players mt-6 p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto
