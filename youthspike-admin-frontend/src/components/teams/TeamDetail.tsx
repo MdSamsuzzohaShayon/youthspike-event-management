@@ -241,7 +241,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
           </>
         ) : (
 
-          <div className="bulk-operations-players mt-6 p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto">
+          <div className="bulk-operations-players mt-6 p-4 bg-gray-gradient rounded-xl shadow-lg max-w-5xl mx-auto">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row w-full justify-between items-center gap-4">
               <h3 className="text-xl text-white font-semibold text-center md:text-left">Player List</h3>

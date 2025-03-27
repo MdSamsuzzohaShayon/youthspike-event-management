@@ -89,7 +89,7 @@ function Login() {
     if (loading) return <Loader />;
 
     return (
-        <div className="flex w-full min-h-screen bg-gradient-to-r from-[#fce013] to-[#fff293]">
+        <div className="flex w-full min-h-screen bg-yellow-gradient">
             <div className="flex flex-col items-center justify-center w-full md:w-1/2 px-6 py-12 md:py-0">
                 <motion.h1
                     className="text-4xl font-bold text-white mb-6"
@@ -112,7 +112,7 @@ function Login() {
                     </motion.div>
                     <form
                         onSubmit={handleLogin}
-                        className="flex flex-col gap-4 bg-white p-8 rounded-lg shadow-lg text-gray-700"
+                        className="flex flex-col gap-4 bg-gray-900 p-8 rounded-lg shadow-lg bg-gray-gradient"
                     >
                         <motion.div
                             initial={cInitial}
@@ -120,7 +120,7 @@ function Login() {
                             exit={cExit}
                             transition={{ ...cTransition, delay: 0.6 }}
                         >
-                            <InputField type='email' name='email' handleInputChange={handleInputChange} />
+                            <InputField key="liif-1" type='email' name='email' handleInputChange={handleInputChange} value="" />
                         </motion.div>
                         <motion.div
                             initial={cInitial}
@@ -128,7 +128,7 @@ function Login() {
                             exit={cExit}
                             transition={{ ...cTransition, delay: 0.8 }}
                         >
-                            <InputField type='password' name='password' handleInputChange={handleInputChange} />
+                            <InputField key="liif-2" type='password' name='password' handleInputChange={handleInputChange} />
                         </motion.div>
                         {passcodeOpener && (
                             <motion.div
@@ -137,7 +137,7 @@ function Login() {
                                 exit={cExit}
                                 transition={{ ...cTransition, delay: 1.0 }}
                             >
-                                <InputField type='password' name='passcode' handleInputChange={handleInputChange} />
+                                <InputField key="liif-3" type='password' name='passcode' handleInputChange={handleInputChange} />
                             </motion.div>
                         )}
                         <motion.button

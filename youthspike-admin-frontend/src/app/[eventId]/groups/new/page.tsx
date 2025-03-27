@@ -27,7 +27,7 @@ async function NewGroup({ params: { eventId } }: IEventPageProps) {
         </div>
       </header>
 
-      <main className="container mt-6 p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto">
+      <main className="container mt-6 p-4 bg-gray-gradient rounded-xl shadow-lg max-w-5xl mx-auto">
 
         {/* Group Add or Update Form */}
         <section

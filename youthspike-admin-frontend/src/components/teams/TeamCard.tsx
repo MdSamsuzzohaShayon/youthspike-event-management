@@ -169,7 +169,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   
 
   return (
-    <div className="team-card w-full bg-gray-800 text-white rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
+    <div className="team-card w-full bg-gray-gradient rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 relative">
         {/* Action Menu */}
         {actionOpen && (

@@ -43,9 +43,13 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
 
   const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
 
+  console.log({teamList});
+  
+
   // eslint-disable-next-line no-unused-vars
   const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
     e.preventDefault();
+    
     setFilteredGroupId(groupId);
     setShowFilter(false);
     setShowBulkAction(false);
@@ -197,6 +201,8 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
   const paginatedTeamList: ITeam[] = useMemo(() => {
     // Paginated
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
+   
+    // filteredGroupId
     const paginatedTeams = teamList.slice(start, start + ITEMS_PER_PAGE);
 
     // inactive players won't have rankings
@@ -279,7 +285,8 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
       </div>
       <div className="team-list-card flex flex-col justify-between items-center gap-3">
         {paginatedTeamList.map((team) => {
-          if (!filteredGroupId || team.group?._id === filteredGroupId) {
+          // @ts-ignore 
+          if (!filteredGroupId || team.group?._id === filteredGroupId || team.group === filteredGroupId) {
             return (
               <TeamCard
                 key={team._id}
