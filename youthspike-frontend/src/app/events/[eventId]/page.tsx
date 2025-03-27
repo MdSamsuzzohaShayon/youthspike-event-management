@@ -1,67 +1,63 @@
-/* eslint-disable no-unused-vars */
-
-'use client';
-
-import { useLazyQuery } from '@apollo/client';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import Loader from '@/components/elements/Loader';
 import EventDetail from '@/components/event/EventDetail';
-import { GET_AN_EVENT } from '@/graphql/event';
-import { useUser } from '@/lib/UserProvider';
-import { useAppDispatch } from '@/redux/hooks';
-import { setActErr } from '@/redux/slices/elementSlice';
-import { UserRole } from '@/types/user';
-import { LDO_ID } from '@/utils/constant';
-import { isValidObjectId } from '@/utils/helper';
-import { setEvent } from '@/utils/localStorage';
+import { IEventPageProps, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
+import { notFound } from 'next/navigation';
+import getEventWithMatches from '../_fetch/event';
 
-function EventSingle({ params }: { params: { eventId: string } }) {
-  const user = useUser();
-  const dispatch = useAppDispatch();
-  const searchQuery = useSearchParams();
-  const pathname = usePathname();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+// Create pagination
+// Manipulate team and players properly to show all valid data
+async function EventSingle({ params: { eventId } }: IEventPageProps) {
+  const matchesData = await getEventWithMatches(eventId);
 
-  // Lazy query to fetch the event
-  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_AN_EVENT, {
-    variables: { eventId: params.eventId },
-    fetchPolicy: 'network-only',
-    onError: (err) => {
-      dispatch(
-        setActErr({
-          message: `Error fetching event: ${err.message}`,
-          code: 500,
-          success: false,
-        }),
-      );
-    },
-    onCompleted: (cData) => {
-      console.log({ msg: 'Completed fetching at: ', datetime: new Date() });
-    },
+  if (!matchesData) {
+    notFound();
+  }
+
+  // Matches,
+  const { event, matches, teams, players, ldo, nets, rounds, groups, sponsors } = matchesData;
+
+  const teamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
+  const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
+  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
+
+  const matchList = matches.map((m: IMatchExpRel) => {
+    const matchObj = { ...m };
+
+    // @ts-ignore
+    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
+    // @ts-ignore
+    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
+
+    if (teamMap.has(m.teamA)) {
+      // @ts-ignore
+      matchObj.teamA = teamMap.get(m.teamA);
+    }
+    if (teamMap.has(m.teamB)) {
+      // @ts-ignore
+      matchObj.teamB = teamMap.get(m.teamB);
+    }
+
+    return matchObj;
   });
 
-  // Fetch event data when eventId is valid
-  useEffect(() => {
-    if (params.eventId) {
-      if (isValidObjectId(params.eventId)) {
-        setEvent(params.eventId); // Save the event ID to localStorage
-        console.log({ msg: 'Started fetching at: ', datetime: new Date() });
-        fetchEvent({ variables: { eventId: params.eventId } });
-      } else {
-        dispatch(
-          setActErr({
-            message: 'Invalid Event ID! Please check and try again.',
-            code: 400,
-            success: false,
-          }),
-        );
-      }
+  const playerList = players.map((p: IPlayer) => {
+    const playerObj = { ...p };
+    if (p.teams && p.teams.length > 0 && teamMap.has(p.teams[0])) {
+      // @ts-ignore
+      playerObj.teams = [teamMap.get(p.teams[0])];
     }
-  }, [dispatch, fetchEvent, params.eventId]);
+    return playerObj;
+  });
+
+  const prevEvent = structuredClone(event);
+  prevEvent.ldo = ldo;
+  prevEvent.groups = groups;
+  prevEvent.matches = matchList;
+  prevEvent.teams = teams;
+  prevEvent.players = playerList;
+  prevEvent.sponsors = sponsors;
 
   // Handle admin-specific logic for LDO_ID in the query parameters
+  /*
   useEffect(() => {
     if (user && user.token && user.info?.role === UserRole.admin) {
       const ldoIdExist = searchQuery.get(LDO_ID);
@@ -72,28 +68,7 @@ function EventSingle({ params }: { params: { eventId: string } }) {
       }
     }
   }, [data, user, searchQuery, router, pathname]);
-
-  // Display loading state or error message if applicable
-  if (loading || isLoading) return <Loader />;
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-2 min-h-screen">
-        <p className="text-red-500 text-center">An error occurred: {error.message}</p>
-      </div>
-    );
-  }
-
-  // Handle case where no event data is returned
-  const prevEvent = data?.getEvent?.data;
-
-  if (!prevEvent) {
-    return (
-      <div className="container mx-auto px-2 min-h-screen">
-        <p className="text-gray-500 text-center">No event found with this ID.</p>
-      </div>
-    );
-  }
+  */
 
   // Render the event details
   return (

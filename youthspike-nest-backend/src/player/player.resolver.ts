@@ -18,18 +18,8 @@ import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { UpdateQuery } from 'mongoose';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-
-@ObjectType()
-class PlayerResponse extends AppResponse<Player> {
-  @Field((_type) => Player, { nullable: true })
-  data?: Player;
-}
-
-@ObjectType()
-class PlayersResponse extends AppResponse<Player[]> {
-  @Field((_type) => [Player], { nullable: true })
-  data?: Player[];
-}
+import { GetEventWithPlayersResponse, PlayerResponse, PlayersResponse } from './player.response';
+import { GroupService } from 'src/group/group.service';
 
 @Resolver((_of) => Player) // Specify the object type for the resolver
 export class PlayerResolver {
@@ -40,7 +30,8 @@ export class PlayerResolver {
     private userService: UserService,
     private cloudinaryService: CloudinaryService,
     private playerRankingService: PlayerRankingService,
-  ) { }
+    private groupService: GroupService,
+  ) {}
 
   private async handleTeamUpdate(
     playerId: string,
@@ -479,6 +470,28 @@ export class PlayerResolver {
       };
     } catch (error) {
       return AppResponse.handleError(error);
+    }
+  }
+
+  @Query((_returns) => GetEventWithPlayersResponse)
+  async getEventWithPlayers(@Args('eventId', { nullable: false }) eventId: string) {
+    try {
+      // Assuming matchService is injected in your class
+      const [event, players, teams, groups] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.playerService.find({ events: { $in: [eventId] } }),
+        this.teamService.find({ event: eventId }),
+        this.groupService.find({ event: eventId }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'Get details of Players, teams, groups',
+        data: { event, players, teams, groups },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
     }
   }
 

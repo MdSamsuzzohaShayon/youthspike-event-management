@@ -1,160 +1,60 @@
-'use client'
-
-import { motion } from 'framer-motion';
-import { useLazyQuery } from '@apollo/client';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState, useCallback } from 'react';
-import CurrentEvent from '@/components/event/CurrentEvent';
-import UserMenuList from '@/components/layout/UserMenuList';
-import TeamStandings from '@/components/teams/TeamStandings';
-import { GET_TEAMS_AND_MATCHES } from '@/graphql/teams';
-import { useError } from '@/lib/ErrorContext';
-import { IEventExpRel, IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
-import { handleResponse } from '@/utils/handleError';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
-import SelectInput from '@/components/elements/forms/SelectInput';
-import { getUserFromCookie } from '@/utils/cookie';
-import { UserRole } from '@/types/user';
-import { useUser } from '@/lib/UserProvider';
-
+import { notFound } from 'next/navigation';
+import TeamStandingsMain from '@/components/teams/TeamStandingsMain';
+import { getTeamStandings } from './_fetch/teamstanding';
+import { IGroup, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
 
 interface ITeamStandingsPageProps {
-    params: {
-        eventId: string;
-    };
+  params: {
+    eventId: string;
+  };
 }
 
-function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
 
-    const { setActErr } = useError();
-    const [currEvent, setCurrEvent] = useState<IEventExpRel | null>(null);
-    const [divisionList, setDivisionList] = useState<IOption[]>([]);
-    const [currDivision, setCurrDivision] = useState<string>('');
-    const [teamList, setTeamList] = useState<ITeam[]>([]);
-    const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
-    const [matchList, setMatchList] = useState<IMatchExpRel[]>([]);
-    const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-    const [groupList, setGroupList] = useState<IGroup[]>([]);
-    const [filteredGroupList, setFilteredGroupList] = useState<IGroup[]>([]);
 
-    const [getEvent, { loading, error }] = useLazyQuery(GET_TEAMS_AND_MATCHES, { fetchPolicy: "network-only" });
+export default async function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
+  const eventData = await getTeamStandings(eventId);
 
-    // Fetch event and handle the data
-    const fetchEvent = useCallback(async () => {
-        const eventResponse = await getEvent({ variables: { eventId }, fetchPolicy: 'network-only' });
+  if (!eventData) {
+    notFound();
+  }
 
-        const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
-        if (!success) return;
+  const { event, matches, teams, nets, rounds, groups } = eventData;
 
-        const eventData = eventResponse?.data?.getEvent?.data;
-        const newTeamList: ITeam[] = eventData?.teams || [];
-        setTeamList(newTeamList);
+  const teamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
+  const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
+  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
 
-        const divisions = eventData?.divisions || '';
-        const divs = divisionsToOptionList(divisions);
-        setDivisionList(divs);
+  const matchList = matches.map((m: IMatchExpRel) => {
+    const matchObj = { ...m };
 
-        const newGroupList: IGroup[] = eventData?.groups || [];
-        setGroupList(newGroupList);
+    // @ts-ignore
+    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
+    // @ts-ignore
+    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
 
-        const newMatchList: IMatchExpRel[] = eventData?.matches || [];
-        setMatchList(newMatchList);
+    if (teamMap.has(m.teamA)) {
+      // @ts-ignore
+      matchObj.teamA = teamMap.get(m.teamA);
+    }
+    if (teamMap.has(m.teamB)) {
+      // @ts-ignore
+      matchObj.teamB = teamMap.get(m.teamB);
+    }
 
-        // Filter teams based on stored division value
-        const divisionExist = getDivisionFromStore();
-        if (divisionExist) {
-            setCurrDivision(divisionExist);
-            filterDataByDivision(divisionExist, newTeamList, newGroupList, newMatchList);
-        } else {
-            setFilteredGroupList(newGroupList);
-            setFilteredTeamList(newTeamList);
-        }
+    return matchObj;
+  });
 
-        setCurrEvent(eventData);
-    }, [getEvent, setActErr, eventId]);
 
-    // Filter teams, matches, and groups by division
-    const filterDataByDivision = (division: string, newTeamList: ITeam[], newGroupList: IGroup[], newMatchList: IMatchExpRel[]) => {
-        const divisionLowerCase = division.trim().toLowerCase();
-        const filteredTeams = newTeamList.filter((t) => t.division?.trim().toLowerCase() === divisionLowerCase);
-        const filteredGroups = newGroupList.filter((g) => g.division?.trim().toLowerCase() === divisionLowerCase);
-        const filteredMatches = newMatchList.filter((m) => m.division?.trim().toLowerCase() === divisionLowerCase);
+  const currEvent = structuredClone(event);
+  currEvent.matches = matchList;
+  currEvent.teams = teams;
+  currEvent.groups = groups;
 
-        setFilteredTeamList(filteredTeams);
-        setFilteredGroupList(filteredGroups);
-    };
 
-    // Handle selection change for group
-    const handleSelectGroup = (e: React.SyntheticEvent, groupId: string | null) => {
-        e.preventDefault();
-        setSelectedGroup(groupId ?? null);
-        if (groupId) {
-            const filteredTeams = teamList.filter((t) => t.group?._id === groupId);
-            setFilteredTeamList(filteredTeams);
-        } else {
-            setFilteredTeamList(teamList);
-        }
-    };
-
-    // Handle division change
-    const handleDivisionChange = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const inputEl = e.target as HTMLInputElement;
-        const division = inputEl.value.trim();
-        setCurrDivision(division);
-
-        if (division === '') {
-            removeDivisionFromStore();
-            setFilteredTeamList(teamList);
-            setFilteredGroupList(groupList);
-        } else {
-            setDivisionToStore(division);
-            filterDataByDivision(division, teamList, groupList, matchList);
-        }
-    };
-
-    // Fetch event when component mounts or eventId changes
-    useEffect(() => {
-        if (eventId && isValidObjectId(eventId)) {
-            fetchEvent();
-        } else {
-            setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId!' });
-        }
-    }, [eventId, fetchEvent, setActErr]);
-
-    return (
-        <div className="container mx-auto px-4 min-h-screen">
-            <h1 className="mb-8 text-center">Roster</h1>
-            <div className="event-and-menu p-8 rounded-lg shadow-lg">
-                {currEvent && <CurrentEvent currEvent={currEvent} />}
-                <div className="navigator mt-4">
-                    <UserMenuList eventId={eventId} />
-                </div>
-            </div>
-            <div className="w-full mb-4 p-4 bg-gray-800 rounded-md mt-8">
-                <div className="w-full flex justify-center items-center">
-                    <SelectInput key="d-i-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" vertical 
-                    extraCls="text-center w-full lg:w-2/12" />
-                </div>
-                <div className="w-full flex justify-center items-center">
-                    <SelectInput
-                        handleSelect={(e) => handleSelectGroup(e, e.target?.value || null)}
-                        key="g-i-1"
-                        name="group"
-                        defaultTxt='Overall'
-                        optionList={filteredGroupList.map((g) => ({ value: g._id, text: g.name }))}
-                        lblTxt="Group"
-                        vertical
-                        extraCls="text-center w-full lg:w-2/12"
-                    />
-                </div>
-            </div>
-            <div className="team-standings mt-8">
-                <TeamStandings eventId={eventId} matchList={matchList} selectedGroup={selectedGroup} teamList={filteredTeamList} />
-            </div>
-        </div>
-    )
+  return (
+    <div className="container mx-auto px-4 min-h-screen">
+      <h1 className="mb-8 text-center">Team Standings</h1>
+      <TeamStandingsMain eventData={currEvent} />
+    </div>
+  );
 }
-
-export default TeamStandingsPage;

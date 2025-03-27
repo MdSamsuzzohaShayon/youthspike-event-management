@@ -19,8 +19,10 @@ import {
   IPasswordInputProps,
   IImageFileProps,
   ICheckedInput,
+  DivisionInputProps,
   ITeamSelectProps,
-  IDateChangeHandlerProps
+  IDateChangeHandlerProps,
+  IEventPageProps
 } from "./elements";
 import { IUser, IDirector, IAddDirector, IUserContext, IDirectorItem } from "./user";
 import { ILDO, ILDOItem, ILdoUpdate,ILDOExpRel } from "./ldo";
@@ -53,8 +55,10 @@ export type {
   ITextareaInputProps,
   ICheckboxInputProps,
   IPasswordInputProps,
+  DivisionInputProps,
   ITeamSelectProps,
   IDateChangeHandlerProps,
+  IEventPageProps,
 
   // Event
   IEvent,

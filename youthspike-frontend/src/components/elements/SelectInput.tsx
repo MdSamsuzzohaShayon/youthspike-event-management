@@ -1,41 +1,28 @@
-/* eslint-disable react/require-default-props */
-import { IOption } from '@/types';
-import React, { useState } from 'react';
+/* eslint-disable react/jsx-props-no-spreading */
+import { ISelectInputProps } from '@/types';
+import React from 'react';
 
-interface ISelectInputProps {
-  name: string;
-  optionList: IOption[];
-  defaultTxt?: string;
-  // eslint-disable-next-line no-unused-vars
-  handleSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  defaultValue?: string | number;
-  vertical?: boolean;
-  lw?: string;
-  rw?: string;
-  extraCls?: string;
-  lblTxt?: string;
-}
-
-function SelectInput({ lw = '', rw = 'form-control', extraCls = '', lblTxt, name, defaultTxt, vertical = false, optionList, defaultValue, handleSelect }: ISelectInputProps) {
-  const selectStyle: React.CSSProperties = !rw ? { width: '19%' } : {};
-
+function SelectInput({ className, name, optionList, label, defaultValue, value, handleSelect }: ISelectInputProps) {
   return (
-    <div className={`input-group mt-4 w-full flex ${vertical ? 'flex-col' : 'flex-row'} justify-between items-center ${extraCls}`}>
-      <label htmlFor={name} className={`capitalize ${vertical ? 'w-full' : ''} ${lw}`}>
-        {lblTxt || name}
+    <div className={`flex flex-col gap-1 ${className || ''}`}>
+      <label htmlFor={name} className="capitalize text-lg font-semibold mb-1">
+        {label || name}
       </label>
+
       <select
         onChange={handleSelect}
         name={name}
         id={name}
-        defaultValue={defaultValue}
-        className={`form-control capitalize ${vertical ? 'w-full' : ''} ${rw} max-w-full`}
-        style={vertical ? {} : selectStyle}
+        className="p-3 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        {...(defaultValue ? { defaultValue } : {})}
+        {...(value ? { value } : {})}
       >
-        <option value="">{defaultTxt || 'Select an option'}</option>
+        <option value="" className="bg-gray-400 text-gray-700">
+          {`Select ${name}`}
+        </option>
         {optionList.map((o) => (
-          <option value={o.value} key={o.value} className="bg-gray-500 text-black-logo">
-            {o.text || o.value}
+          <option value={o.value} key={o.id} className="capitalize">
+            {o.text ? o.text : o.value}
           </option>
         ))}
       </select>

@@ -26,26 +26,37 @@ export interface IMenuItem {
 }
 
 export interface ITextCommon {
-  lw?: string;
-  rw?: string;
-  vertical?: boolean;
-  extraCls?: string;
-  lblTxt?: string;
-  tooltip?: string;
   name: string;
+  label?: string;
+  className?: string;
   required?: boolean;
-  defaultValue?: string | null | undefined;
+  value?: string | number;
   readOnly?: boolean;
-  placeholder?: string;
-  handleInputChange: (e: React.SyntheticEvent) => void;
+  
 }
 
-export interface ITextInputProps extends ITextCommon { }
+export interface InputFieldProps extends ITextCommon {
+    type: string;
+    defaultValue?: string | number;
+    handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export interface DivisionInputProps extends ITextCommon {
+  defaultValue?: string;
+}
+
+export interface ITextInputProps extends ITextCommon { 
+  defaultValue?: string;
+  handleInputChange?: (e: React.SyntheticEvent) => void;
+}
 export interface IPasswordInputProps extends ITextInputProps {
   svgColor?: string;
  }
 
-export interface ITextareaInputProps extends ITextCommon { }
+export interface ITextareaInputProps extends ITextCommon {
+  defaultValue?: string;
+  handleInputChange?: (e: React.SyntheticEvent) => void;
+ }
 
 export interface IPlayerSelectProps {
   name: string;
@@ -70,17 +81,9 @@ export interface IDateChangeHandlerProps{
   value: string; 
 }
 
-export interface IDateinputProps {
-  name: string;
-  handleDateChange: ({ name, value }: IDateChangeHandlerProps) => void;
-  lw?: string;
-  rw?: string;
-  vertical?: boolean;
-  extraCls?: string;
-  lblTxt?: string;
-  required?: boolean;
+export interface IDateinputProps extends ITextCommon {
   defaultValue?: string;
-  value?: string;
+  handleDateChange?: ({ name, value }: IDateChangeHandlerProps) => void;  
 }
 
 export interface IFileFileProps {
@@ -94,15 +97,9 @@ export interface IFileFileProps {
   handleFileChange: (e: React.SyntheticEvent) => void;
 }
 
-export interface IImageFileProps {
-  lw?: string;
-  rw?: string;
-  vertical?: boolean;
-  extraCls?: string;
-  lblTxt?: string;
-  name: string;
-  defaultValue?: string | undefined | null;
-  handleFileChange: (uploadedFile: Blob | MediaSource) => void;
+export interface IImageFileProps extends ITextCommon {
+  defaultValue?: string;
+  handleFileChange?: (uploadedFile: Blob | MediaSource) => void;
 }
 
 export interface IAnyFileFileProps {
@@ -127,15 +124,11 @@ export interface INumberInputProps {
   lblTxt?: string;
 }
 
-export interface IToggleInputProps {
-  lw?: string;
-  widthCls?: number;
-  extraCls?: string;
-  lblTxt?: string;
-  name: string;
-  value: boolean | null | undefined;
+export interface IToggleInputProps extends ITextCommon {
+  defaultValue?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
+
 
 export interface ICheckboxInputProps {
   name: string;
@@ -146,22 +139,26 @@ export interface ICheckboxInputProps {
 }
 
 export interface IOption {
+  id: number;
   value: string;
   text?: string;
 }
-
-export interface ISelectInputProps {
-  lw?: string;
-  rw?: string;
-  extraCls?: string;
-  defaultTxt?:string;
-  lblTxt?: string;
+/*
+export interface ITextCommon {
   name: string;
-  vertical?: boolean;
+  label?: string;
+  className?: string;
+  required?: boolean;
+  value?: string | number;
+  readOnly?: boolean;
+  
+}
+*/
+
+export interface ISelectInputProps extends ITextCommon {
   optionList: IOption[];
   defaultValue?: string | number | null;
-  value?: string | number | null;
-  handleSelect: (e: React.SyntheticEvent) => void;
+  handleSelect?: (e: React.SyntheticEvent) => void;
 }
 
 export interface IButtonProps {
@@ -199,4 +196,18 @@ export interface ILoginProps {
 export interface ICheckedInput{
   _id: string;
   checked: boolean;
+}
+
+
+export interface IEventPageProps {
+  params: {
+    eventId: string;
+  };
+}
+
+
+export interface IEventIdProps{
+  params: {
+    eventId: string;
+  };
 }

@@ -5,19 +5,9 @@ export const commonAnimate = {
   transition: { delay: 0.5, ease: 'easeInOut' },
 };
 
-export const logoAnimate = {
-  initial: { ...commonAnimate.initial, y: -200 },
-  animate: { ...commonAnimate.animate, y: 0 },
-  exit: { ...commonAnimate.exit, y: -200 },
-  transition: { ...commonAnimate.transition },
-};
 
-export const cardAnimate = {
-  initial: { ...commonAnimate.initial, scale: 0.8 },
-  animate: { ...commonAnimate.animate, scale: 1 },
-  exit: { ...commonAnimate.exit, scale: 0 },
-  transition: { ...commonAnimate.transition },
-};
+
+
 
 export const menuBackdropVariants = {
   visible: { opacity: 1, transition: { duration: 0.3 } },

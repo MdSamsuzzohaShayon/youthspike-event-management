@@ -5,19 +5,16 @@ import Link from 'next/link';
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { AdvancedImage } from '@cloudinary/react';
 import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
-import { SEND_CREDENTIALS } from '@/graphql/event';
 import { cardHeight, imgSize } from '@/utils/style';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
-import { divisionsToOptionList } from '@/utils/helper';
 import { UPDATE_GROUP } from '@/graphql/group';
-import { handleResponse } from '@/utils/handleError';
 import { AnimatePresence, motion } from 'framer-motion';
 import { menuVariants } from '@/utils/animation';
 
@@ -39,6 +36,7 @@ interface ITeamMove {
 }
 
 function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, fefetchFunc }: ITeamCardProps) {
+  
 
   const user = useUser();
   const router = useRouter();
@@ -79,7 +77,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         const dl: IOption[] = [];
         for (let i = 0; i < divs.length; i += 1) {
           if (divs[i].trim().toLowerCase() !== '') {
-            dl.push({ text: divs[i].trim().toLowerCase(), value: divs[i].trim() });
+            dl.push({ id: i+ 1, text: divs[i].trim().toLowerCase(), value: divs[i].trim() });
           }
         }
         setDivisionOptions(dl);
@@ -159,7 +157,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
 
   useEffect(() => {
     if (eventList && eventList.length > 0) {
-      const newEventList = eventList.map((e) => ({ text: e.name, value: e._id }));
+      const newEventList = eventList.map((e, eI) => ({ id: eI + 1,text: e.name, value: e._id }));
       setEventOptions(newEventList);
     }
   }, [eventList]);
@@ -171,7 +169,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   
 
   return (
-    <div className="team-card w-full bg-gray-800 text-white rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
+    <div className="team-card w-full bg-gray-800 rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 relative">
         {/* Action Menu */}
         {actionOpen && (
@@ -248,13 +246,13 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
               <h3 className="text-lg font-semibold">{team.name}</h3>
               <SelectInput
                 name="group"
-                optionList={groupList.filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()).map((g) => ({
+                optionList={groupList.filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()).map((g, gI) => ({
+                  id: gI + 1,
                   value: g._id,
                   text: g.name,
                 }))}
                 handleSelect={handleGroupChange}
-                vertical
-                defaultValue={team.group ? team.group._id : ''}
+                defaultValue={team.group ? team.group.toString() : ''}
               />
             </div>
           </div>
@@ -290,7 +288,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             </div>
           )}
           <p className="flex items-center text-sm mt-2 lg:mt-0">
-            Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team.players.length}</span>
+            Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team?.players?.length || 0}</span>
           </p>
         </div>
 
@@ -327,8 +325,8 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             <Image width={24} height={24} src="/icons/close.svg" alt="close-button" className="svg-white" />
           </button>
           <form className="w-full" onSubmit={handleMoveTeam}>
-            <SelectInput handleSelect={selectEventInputChange} vertical name="event" optionList={eventOptions} />
-            <SelectInput handleSelect={selectInputChange} vertical name="division" optionList={divisionOptions} />
+            <SelectInput handleSelect={selectEventInputChange} name="event" optionList={eventOptions} />
+            <SelectInput handleSelect={selectInputChange} name="division" optionList={divisionOptions} />
             <button className="btn-info mt-4 w-full lg:w-auto" type="submit">
               Move
             </button>

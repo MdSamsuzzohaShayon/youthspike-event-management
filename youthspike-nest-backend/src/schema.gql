@@ -6,6 +6,7 @@ type AppAbout {
   app: String!
   version: String!
   author: String!
+  details: String!
   mode: String
 }
 
@@ -72,7 +73,7 @@ type Team {
   cocaptain: Player
   matches: [Match!]
   event: Event!
-  players: [Player!]!
+  players: [Player!]
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
   group: Group
@@ -198,6 +199,7 @@ type Event {
   coachPassword: String!
   description: String
   location: String
+  defaultSponsor: Boolean
 }
 
 type Player {
@@ -278,6 +280,345 @@ type UserResponse {
   data: User
 }
 
+type PlayerResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Player
+}
+
+type PlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [Player!]
+}
+
+type CustomPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [String!]!
+  captainofteams: [String!]
+  cocaptainofteams: [String!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type EventWithPlayers {
+  event: Event!
+  players: [CustomPlayer!]!
+  groups: [CustomGroup!]!
+  teams: [CustomTeam!]!
+}
+
+type GetEventWithPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventWithPlayers
+}
+
+type CreateOrUpdateTeamResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Team
+}
+
+type GetTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [Team!]
+}
+
+type TeamWithStringPlayers {
+  _id: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  rankLock: Boolean
+  sendCredentials: Boolean
+  num: Float
+  captain: Player
+  cocaptain: Player
+  matches: [Match!]
+  event: Event!
+  players: [String!]
+  nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  group: String
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
+type PlayerWithTeam {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [String!]
+  captainofteams: [Team!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type GroupWithTeam {
+  _id: String
+  name: String!
+  active: Boolean!
+  division: String!
+  rule: String!
+  teams: [String!]
+  matches: [Match!]!
+  event: Event!
+}
+
+type EventWithTeams {
+  event: Event
+  teams: [TeamWithStringPlayers!]
+  groups: [GroupWithTeam!]
+  players: [PlayerWithTeam!]
+}
+
+type GetEventWithTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventWithTeams
+}
+
+type GetTeamResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Team
+}
+
+type CustomPlayerRankingItem {
+  _id: String
+  rank: Int!
+  player: String
+  playerRanking: PlayerRanking!
+}
+
+type CustomRound {
+  _id: String
+  num: Int!
+  match: String
+  nets: [String!]
+  players: [Player!]
+  subs: [Player!]
+  teamAScore: Int
+  teamBScore: Int
+  teamAProcess: EActionProcess!
+  teamBProcess: EActionProcess!
+  completed: Boolean
+  firstPlacing: ETeam!
+}
+
+type CustomNet {
+  _id: String
+  num: Int
+  match: String
+  round: String
+  teamA: String
+  teamB: String
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  points: Int!
+  netType: ETieBreaker
+  teamAScore: Int
+  teamBScore: Int
+  pairRange: Int!
+}
+
+type CustomMatch {
+  _id: String
+  date: String!
+  division: String!
+  numberOfNets: Int!
+  numberOfRounds: Int!
+  netVariance: Float
+  homeTeam: String
+  autoAssign: Boolean
+  autoAssignLogic: String
+  rosterLock: String
+  tieBreaking: String
+  timeout: Float
+  location: String
+  description: String
+  fwango: String
+  completed: Boolean
+  extendedOvertime: Boolean
+  event: Event!
+  nets: [String!]
+  rounds: [String!]
+  teamA: String
+  teamB: String
+  room: Room
+  teamARanking: PlayerRanking
+  teamBRanking: PlayerRanking
+  group: String
+}
+
+type CaptainPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [Team!]
+  captainofteams: [String!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type CoCaptainPlayer {
+  _id: String
+  firstName: String!
+  lastName: String!
+  username: String
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [Team!]
+  captainofteams: [Team!]
+  cocaptainofteams: [String!]
+  captainuser: User
+  cocaptainuser: User
+}
+
+type TeamDetails {
+  team: Team
+  playerRanking: PlayerRanking
+  players: [CustomPlayer!]
+  group: Group
+  captain: CaptainPlayer
+  cocaptain: CoCaptainPlayer
+  event: Event
+  matches: [CustomMatch!]
+  rankings: [CustomPlayerRankingItem!]
+  rounds: [CustomRound!]
+  nets: [CustomNet!]
+  oponentTeams: [Team!]
+}
+
+type GetTeamDetailsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamDetails
+}
+
+type Teamstandings {
+  event: Event
+  teams: [CustomTeam!]
+  groups: [CustomGroup!]
+  matches: [CustomMatch!]
+  rounds: [CustomRound!]
+  nets: [CustomNet!]
+}
+
+type GetTeamstandingsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Teamstandings
+}
+
+type GetMatchesResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [Match!]!
+}
+
+type GetMatchResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Match
+}
+
+type CustomTeam {
+  _id: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  rankLock: Boolean
+  sendCredentials: Boolean
+  num: Float
+  captain: String
+  cocaptain: String
+  matches: [String!]
+  event: Event!
+  players: [String!]
+  nets: [Net!]!
+  playerRankings: [PlayerRanking!]
+  group: String
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
+type CustomGroup {
+  _id: String
+  name: String!
+  active: Boolean!
+  division: String!
+  rule: String!
+  teams: [String!]
+  matches: [Match!]!
+  event: Event!
+}
+
+type EventMatches {
+  event: Event!
+  matches: [CustomMatch!]!
+  teams: [CustomTeam!]!
+  ldo: LDO!
+  groups: [CustomGroup!]!
+  nets: [CustomNet!]!
+  rounds: [CustomRound!]!
+}
+
+type GetEventWithMatchesResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventMatches
+}
+
 type CreateOrUpdateEventResponse {
   code: Int!
   success: Boolean!
@@ -299,39 +640,23 @@ type GetEventResponse {
   data: Event
 }
 
-type CreateOrUpdateTeamResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Team
+type EventDetails {
+  event: Event!
+  matches: [CustomMatch!]!
+  teams: [CustomTeam!]!
+  ldo: LDO!
+  groups: [CustomGroup!]!
+  nets: [CustomNet!]!
+  rounds: [CustomRound!]!
+  players: [CustomPlayer!]!
+  sponsors: [Sponsor!]!
 }
 
-type GetTeamsResponse {
+type GetEventDetailsResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: [Team!]
-}
-
-type GetTeamResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Team
-}
-
-type GetMatchesResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: [Match!]!
-}
-
-type GetMatchResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Match
+  data: EventDetails
 }
 
 type CreateOrUpdateRoundResponse {
@@ -362,34 +687,6 @@ type GetNetResponse {
   data: Net!
 }
 
-type NetAssign {
-  _id: String!
-  teamAPlayerA: String
-  teamAPlayerB: String
-  teamBPlayerA: String
-  teamBPlayerB: String
-}
-
-type NetPointsAssign {
-  _id: String!
-  teamAScore: Float
-  teamBScore: Float
-}
-
-type RoundResoponse {
-  _id: String!
-  teamAScore: Float
-  teamBScore: Float
-  completed: Boolean!
-}
-
-type RoomRoundProcess {
-  _id: String!
-  num: Float!
-  teamAProcess: String!
-  teamBProcess: String!
-}
-
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
@@ -404,18 +701,19 @@ type GetDirectorsLDOResponse {
   data: [LDO!]
 }
 
-type PlayerResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Player
+type SystemDetails {
+  ldos: Int!
+  events: Int!
+  players: Int!
+  matches: Int!
+  teams: Int!
 }
 
-type PlayersResponse {
+type GetSystemDetailsResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: [Player!]
+  data: SystemDetails
 }
 
 type PlayerRankingResponse {
@@ -443,18 +741,25 @@ type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
+  getEventDetails(eventId: String!): GetEventDetailsResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
+  getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
+  getTeamDetails(teamId: String!): GetTeamDetailsResponse!
+  getTeamStandings(eventId: String!): GetTeamstandingsResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
+  getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
   getNets(roundId: String!): GetNetsResponse!
   getNet(netId: String!): Net!
   getEventDirector(dId: String): GetDirectorLDOResponse!
   getEventDirectors: GetDirectorsLDOResponse!
+  getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayers(eventId: String!): PlayersResponse!
+  getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
 }
@@ -553,6 +858,7 @@ input CreateEventInput {
   location: String!
   ldo: String!
   id: String
+  defaultSponsor: Boolean = false
 }
 
 input UpdateEventInput {
@@ -577,6 +883,7 @@ input UpdateEventInput {
   location: String
   ldo: String
   id: String
+  defaultSponsor: Boolean = false
 }
 
 input EventSponsorStringInput {

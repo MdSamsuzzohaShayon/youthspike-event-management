@@ -27,8 +27,8 @@ function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowPr
       initial="hidden"
       animate="visible"
     >
-       <td className="py-3 px-2 flex items-center gap-x-2">
-        <span>{index + 1}</span>
+      <td className="py-3 px-2 flex items-center gap-x-2">
+        {/* <span>{index + 1}</span> */}
         <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex justify-center items-center gap-2">
           <span>
             {team?.logo ? (

@@ -15,7 +15,7 @@ import { TeamModule } from './team/team.module';
 import { MatchModule } from './match/match.module';
 import { RoundModule } from './round/round.module';
 import { NetModule } from './net/net.module';
-import { GatewayModule } from './getway/getway.module';
+import { GatewayModule } from './gateway/geteway.module';
 import { LdoModule } from './ldo/ldo.module';
 import { PlayerModule } from './player/player.module';
 import { SponsorModule } from './sponsor/sponsor.module';
@@ -23,6 +23,8 @@ import { RoomModule } from './room/room.module';
 import { EmailsenderModule } from './emailsender/emailsender.module';
 import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 import { GroupModule } from './group/group.module';
+import { RedisModule } from './redis/redis.module';
+import { EEnv, NODE_ENV } from './util/keys';
 
 @Module({
   imports: [
@@ -30,10 +32,14 @@ import { GroupModule } from './group/group.module';
     GatewayModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      debug: true,
+      debug: NODE_ENV === EEnv.DEVELOPMENT,
       playground: false,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
+      persistedQueries: false, // 🔴 Disables persisted queries
+      // persistedQueries: {
+      //   cache: 'bounded',  // ✅ Enforce bounded cache to prevent memory exhaustion
+      // },
     }),
 
     MongooseModule.forRootAsync({
@@ -75,8 +81,10 @@ import { GroupModule } from './group/group.module';
     PlayerRankingModule,
 
     GroupModule,
+
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService, AboutResolver],
 })
-export class AppModule {}
+export class AppModule { }

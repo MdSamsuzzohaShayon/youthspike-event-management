@@ -5,6 +5,7 @@ import { EAssignStrategies, IError } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
 import { ILDO } from './ldo';
+import { IGroup } from './group';
 
 export enum EEventPeriod {
   UPCOMING = 'UPCOMING',
@@ -51,6 +52,7 @@ export interface IEvent extends IDefaultEventMatch {
   playerLimit: number;
   active: boolean;
   sponsors: string[];
+  defaultSponsor: boolean;
   sendCredentials: boolean;
   autoAssignLogic: EAssignStrategies;
 }
@@ -60,6 +62,7 @@ export interface IEventExpRel extends IEvent {
   players: IPlayer[];
   teams: ITeam[];
   ldo: ILDO;
+  groups: IGroup[];
 }
 
 export interface IEventAdd extends IDefaultEventMatch {
@@ -73,10 +76,10 @@ export interface IEventAdd extends IDefaultEventMatch {
   divisions: string;
   // sponsors: File[];
   coachPassword: string;
+  defaultSponsor: boolean;
 }
 
 export interface IEventAddProps {
   update: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
 }

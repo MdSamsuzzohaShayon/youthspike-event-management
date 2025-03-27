@@ -95,7 +95,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       if (filterParams.group === '') {
         filteredList = [...filteredList];
       } else if (filterParams.group) {
-        filteredList = filteredList.filter((m) => m.group?._id === filterParams.group);
+        filteredList = filteredList.filter((m) => (m.group?._id || m.group) === filterParams.group);
       }
     }
 
@@ -221,8 +221,8 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       <div className="search-filter w-full mb-8">
         <SelectInput
           name="period"
-          optionList={eventPeriods.map((p) => ({ text: p, value: p }))}
-          lblTxt="Date"
+          optionList={eventPeriods}
+          label="Date"
           rw="w-3/6"
           vertical
           defaultValue={EEventPeriod.CURRENT}

@@ -29,6 +29,7 @@ export interface IPlayer extends IDocument {
   event?: string;
   teams?: ITeam[];
   captainofteams: ITeam[];
+  cocaptainofteams: ITeam[];
 }
 
 export interface IPlayerRank extends IPlayer {

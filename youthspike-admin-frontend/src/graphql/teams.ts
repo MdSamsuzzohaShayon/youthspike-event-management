@@ -67,11 +67,6 @@ const teamResponse = `
     }
 `;
 
-const groupResponse = `
-_id
-name
-`;
-
 const teamResponseMin = `
     _id
     active
@@ -163,6 +158,147 @@ const GET_A_TEAM = gql`
   
 `;
 
+
+const GET_TEAM_DETAIL_RAW = `
+query GetTeamDetails($teamId: String!) {
+  getTeamDetails(teamId: $teamId) {
+    code
+    success
+    message
+    data {
+      team {
+        _id
+        name
+        logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+      }
+      playerRanking {
+        _id
+        rankLock
+      }
+      players {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        captainofteams
+        cocaptainofteams
+      }
+      group {
+        _id
+        name
+        active
+        division
+        rule
+      }
+      captain {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        captainofteams
+      }
+      cocaptain {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        cocaptainofteams
+      }
+      event {
+        _id
+        name
+        logo
+        startDate
+        endDate
+        active
+        sendCredentials
+        playerLimit
+        fwango
+      }
+      matches {
+        _id
+        date
+        division
+        numberOfNets
+        numberOfRounds
+        netVariance
+        homeTeam
+        autoAssign
+        autoAssignLogic
+        rosterLock
+        tieBreaking
+        timeout
+        location
+        description
+        fwango
+        completed
+        extendedOvertime
+        rounds 
+        nets
+        teamA 
+        teamB
+      }
+      rankings {
+        _id
+        rank
+        player
+      }
+      rounds {
+        _id
+        num
+        match
+        teamAScore
+        teamBScore
+        teamAProcess
+        teamBProcess
+        completed
+        firstPlacing
+        nets
+      }
+      nets {
+        _id
+        num
+        points
+        netType
+        teamAScore
+        teamBScore
+        pairRange
+        match
+        round
+        teamA
+        teamB
+      }
+      oponentTeams {
+        _id
+        name
+        logo
+        num
+      }
+    }
+  }
+}
+`;
+
 const GET_TEAMS_BY_EVENT = gql`
   query GetTeams($eventId: String) {
     getTeams(eventId: $eventId) {
@@ -178,26 +314,62 @@ const GET_TEAMS_BY_EVENT = gql`
 
 
 
-const GET_EVENT_WITH_TEAMS = gql`
-query GetEvent($eventId: String!) {
-  getEvent(eventId: $eventId) {
+const GET_EVENT_WITH_TEAMS_RAW = `
+query GetEventWithTeams($eventId: String) {
+  getEventWithTeams(eventId: $eventId) {
     code
-    success
     message
+    success
     data {
-      ${eventResponse}
-      teams {
-        ${teamResponseMin}
+      event {
+        _id
+        active
+        autoAssign
+        autoAssignLogic
+        coachPassword
+        description
+        divisions
+        endDate
+        fwango
+        homeTeam
+        rosterLock
+        tieBreaking
+        timeout
+        location
+        startDate
       }
-      ldo {
+      teams {
         _id
         name
         logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+        players
+        group
+        
       }
-      groups{
+      groups {
         _id
         name
+        active
         division
+        rule
+        teams
+      }
+      players {
+        _id
+        firstName
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+        teams
       }
     }
   }
@@ -283,88 +455,94 @@ mutation DeleteTeams($teamIds: [String!]!) {
 }
 `;
 
-const GET_TEAMS_AND_MATCHES = gql`
-query GetEvent($eventId: String!) {
-    getEvent(eventId: $eventId) {
-      code
-      message
-      success
-      data {
+const GET_TEAMS_AND_MATCHES_RAW = `
+query GetTeamStandings($eventId: String!) {
+  getTeamStandings(eventId: $eventId) {
+    code
+    success
+    message
+    data {
+      event {
         _id
-        active
-        autoAssign
-        autoAssignLogic
-        coachPassword
-        description
-        divisions
+        name
+        logo
         startDate
         endDate
+        active
+        sendCredentials
+        playerLimit
         fwango
-        homeTeam
-        location
-        logo
+        divisions
+      }
+      teams {
+        _id
         name
-        groups {
-          _id
-          name
-          division
-        }
-        matches {
-          _id
-          autoAssign
-          autoAssignLogic
-          completed
-          description
-          group {
-            _id
-            name
-          }
-          teamA {
-            _id
-            name
-          }
-          teamB {
-            _id
-            name
-          }
-          rounds {
-            _id
-            completed
-            num
-            teamAScore
-            teamBScore
-          }
-          nets {
-            _id
-            num
-            teamAPlayerA
-            teamAPlayerB
-            teamBPlayerA
-            teamBPlayerB
-            teamAScore
-            teamBScore
-            points
-            round {
-              _id
-            }
-          }
-        }
-        teams {
-          _id
-          active
-          division
-          name
-          num
-          logo
-          group {
-            _id
-            name
-          }
-
-        }
+        logo
+        active
+        division
+        rankLock
+        sendCredentials
+        num
+        captain
+        cocaptain
+        matches
+        players
+        group
+      }
+      groups {
+        _id
+        name
+        teams
+        rule
+        division
+        active
+      }
+      matches {
+        _id
+        date
+        division
+        group
+        teamB
+        teamA
+        rounds
+        nets
+        extendedOvertime
+        completed
+      }
+      rounds {
+        _id
+        num
+        match
+        nets
+        teamAScore
+        teamBScore
+        teamAProcess
+        teamBProcess
+        completed
+        firstPlacing
+      }
+      nets {
+        _id
+        num
+        match
+        round
+        teamA
+        teamB
+        teamAPlayerA
+        teamAPlayerB
+        teamBPlayerA
+        teamBPlayerB
+        points
+        netType
+        teamAScore
+        teamBScore
+        pairRange
       }
     }
   }
+}
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, GET_EVENT_WITH_TEAMS, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES};
+export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, 
+  GET_EVENT_WITH_TEAMS_RAW, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, 
+  DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW, GET_TEAM_DETAIL_RAW};

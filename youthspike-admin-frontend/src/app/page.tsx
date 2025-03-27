@@ -8,7 +8,6 @@ import { useUser } from '@/lib/UserProvider';
 import { CLONE_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS } from '@/graphql/event';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import EventCard from '@/components/event/EventCard';
 import { IEvent, IError } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -22,7 +21,6 @@ import { getUserFromCookie } from '@/utils/cookie';
 import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
-import { motion } from "framer-motion";
 import { useError } from '@/lib/ErrorContext';
 
 interface IItem {
@@ -209,7 +207,7 @@ function EventsPage() {
         ))}
       </div>
       <div className="events flex flex-wrap gap-2 justify-between">
-        <div className="event-card mb-1 p-2 bg-yellow-logo rounded-lg">
+        <div className="event-card mb-1 p-2 bg-yellow-gradient rounded-lg">
           <Link
             href={`/newevent/${ldoIdUrl}`}
             className="h-full w-full flex justify-center items-center flex-col gap-2 rounded-md"

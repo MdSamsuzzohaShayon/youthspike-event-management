@@ -1,20 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react'
-import TextInput from '../elements/forms/TextInput';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IError, IOption, ITeam } from '@/types';
+import { IOption, ITeam } from '@/types';
 import { useMutation } from '@apollo/client';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
-import EmailInput from '../elements/forms/EmailInput';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getDivisionFromStore, getTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import addOrUpdatePlayer from '@/utils/requestHandlers/addOrUpdatePlayer';
-import NumberInput from '../elements/forms/NumberInput';
 import ImageInput from '../elements/forms/ImageInput';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorContext';
+import InputField from '../elements/forms/InputField';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -138,18 +136,22 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
 
 
   return (
-    <form onSubmit={handleAddPlayer} className='flex justify-between items-center flex-wrap'>
-      <div className="w-full">
-        <ImageInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile} extraCls='md:w-5/12' />
+    <form onSubmit={handleAddPlayer} className='w-full'>
+      <ImageInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile || ''} className='mt-6' />
+      <div className='part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+        <InputField type="text" name='firstName' label='First Name' defaultValue={playerState?.firstName}
+          handleInputChange={handleInputChange} required={!update} />
+        <InputField type="text" name='lastName' label='Last Name' defaultValue={playerState?.lastName}
+          handleInputChange={handleInputChange} required={!update} />
+        {update && <InputField type='text' name='username' defaultValue={playerState?.username} handleInputChange={handleInputChange} required={!update} />}
+        <InputField type="email" key="eml-pa-1" name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} />
+        <InputField type="number" key="nml-pa-2" name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} />
       </div>
-      <TextInput name='firstName' lblTxt='First Name' defaultValue={playerState?.firstName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
-      <TextInput name='lastName' lblTxt='Last Name' defaultValue={playerState?.lastName} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />
-      {update && <TextInput name='username' defaultValue={playerState?.username} handleInputChange={handleInputChange} required={!update} vertical extraCls='md:w-5/12' />}
-      <EmailInput key="eml-pa-1" name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} vertical extraCls='md:w-5/12' />
-      <NumberInput name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} vertical extraCls='md:w-5/12' />
       {!update && (<React.Fragment>
-        <SelectInput key="player-add-1" defaultValue={playerState.team} name='team' optionList={teamList.map((t): IOption => ({ text: t.name, value: t._id }))} handleSelect={handleTeamChange} lw="w-full" rw="w-full" vertical extraCls='md:w-5/12' />
+        <SelectInput key="player-add-1" defaultValue={playerState.team} name='team' className='mt-6'
+          optionList={teamList.map((t, tI): IOption => ({ id: tI + 1, text: t.name, value: t._id }))} handleSelect={handleTeamChange} />
       </React.Fragment>)}
+
       <div className="input-group w-full mb-4">
         <button type="submit" className='btn-secondary mt-8'>{update ? "Save" : "Submit"}</button>
       </div>

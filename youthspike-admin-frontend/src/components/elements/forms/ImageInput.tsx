@@ -4,10 +4,10 @@
  * https://codesandbox.io/p/sandbox/react-easy-crop-v69ly910ql?file=%2Fsrc%2Findex.js
  * */
 import cld from '@/config/cloudinary.config';
-import { IFileFileProps, IImageFileProps } from '@/types';
+import { IImageFileProps } from '@/types';
 import { fileToImgSrc, getCroppedImgBlob, handleScaleImage } from '@/utils/croppedImage';
 import { AdvancedImage } from '@cloudinary/react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -16,14 +16,13 @@ interface IDimension {
   h: number;
 }
 
-const NO_CROP: Crop = { unit: '%', x: 0, y: 0, width: 100, height: 100 };
 const INIT_CROP: Crop = { unit: 'px', x: 0, y: 0, width: 200, height: 200 };
 
-function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue, extraCls }: IImageFileProps) {
+function ImageInput({ handleFileChange, name, label, className, defaultValue }: IImageFileProps) {
   const [srcUncropped, setSrcUncropped] = useState(null);
 
   const [crop, setCrop] = useState<Crop>(INIT_CROP);
-  const [croppedImageUrl, setCroppedImageUrl] = useState(null);
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
   const [filename, setFilename] = useState<string | null>(null);
 
   // Keep image size same with background element
@@ -54,7 +53,7 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
     if (inputEl.files && inputEl.files.length > 0) {
       setOrginalImg(inputEl.files[0]);
       setFilename(inputEl.files[0].name);
-      handleFileChange(inputEl.files[0]);
+      if (handleFileChange) handleFileChange(inputEl.files[0]);
 
       const uploadedImgUrl = await fileToImgSrc(inputEl.files[0]);
       // @ts-ignore
@@ -75,9 +74,10 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
 
   const setCroppedImg = async (updateCrop: Crop) => {
     const cib = await getCroppedImgBlob(scaledImgUrl, updateCrop); // Generate and set the cropped image URL
+    if (!cib) return;
     const ciu = URL.createObjectURL(cib);
     if (ciu) setCroppedImageUrl(ciu); // Set the URL of the cropped image
-    handleFileChange(cib);
+    if(handleFileChange)handleFileChange(cib);
   }
 
 
@@ -96,9 +96,10 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
   const handleCancelUpload = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     closeModal();
+    if (!orginalImg) return;
     const ciu = URL.createObjectURL(orginalImg);
     if (ciu) setCroppedImageUrl(ciu); // Set the URL of the cropped image
-    handleFileChange(orginalImg);
+    if(handleFileChange)handleFileChange(orginalImg);
 
   }
 
@@ -113,7 +114,7 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
 
           if (scaleedImgFile) {
             setOrginalImg(scaleedImgFile);
-            handleFileChange(scaleedImgFile);
+            if(handleFileChange)handleFileChange(scaleedImgFile);
             const url = await fileToImgSrc(scaleedImgFile);
             setScaledImgUrl(url);
           }
@@ -122,7 +123,7 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
     })()
   });
 
-  const renderImage = () => {
+  const renderImage = useCallback(() => {
     let imgEl: null | HTMLImageElement | React.ReactNode = null;
     if (!filename || filename === '') {
       if (defaultValue && typeof defaultValue === 'string') {
@@ -134,22 +135,21 @@ function ImageInput({ handleFileChange, name, vertical, lblTxt, lw, defaultValue
       }
     }
     return imgEl;
-  }
+  }, [filename, defaultValue, croppedImageUrl])
 
 
   return (
-    <div className={`w-full ${extraCls && extraCls}`}>
-      <label htmlFor={name} className={`capitalize ${vertical ? 'w-full' : ''} ${lw ? lw : ''}`}>{lblTxt ? lblTxt : name}</label>
-      <div className={`input-group w-full flex ${vertical ? 'flex-col' : ''} justify-between items-center flex-wrap`}>
+    <div className={`flex flex-col ${className || ""}`}>
+      <label htmlFor={name} className="capitalize text-lg font-semibold mb-1">{label || `Upload ${name}`}</label>
+      <div className={`flex items-center gap-4`}>
         <div className="w-full flex justify-between gap-2">
           <div className='w-3/6'>
             {renderImage()}
-
           </div>
           <div className="btn-text w-full flex flex-col w-3/6 justify-center gap-2">
             {filename && <p>{filename}</p>}
-            <button className={`btn-secondary h-fit flex justify-center items-center gap-2`} onClick={handleOpenImg} >File Upload
-              <img src='/icons/upload.svg' alt='upload' className='w-6 svg-white' />
+            <button className="w-full bg-yellow-400 text-black p-3 rounded-md font-semibold flex items-center gap-2" onClick={handleOpenImg} >File Upload
+              <img src='/icons/upload.svg' alt='upload' className='w-6 svg-black' />
             </button>
           </div>
         </div>

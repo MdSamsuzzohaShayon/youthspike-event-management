@@ -61,7 +61,7 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
 
 
   return (
-    <div key={event._id} className="event-card mb-1 p-2 bg-gray-700 flex justify-around items-center flex-col gap-2 rounded-md relative">
+    <div key={event._id} className="event-card mb-1 p-2 bg-gray-gradient flex justify-around items-center flex-col gap-2 rounded-md relative">
       {actionOpen && (
         <AnimatePresence>
           <motion.ul

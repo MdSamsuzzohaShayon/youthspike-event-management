@@ -7,6 +7,10 @@ function setDivisionToStore(division: string) {
 
 function getDivisionFromStore(): null | string {
     const division = window.localStorage.getItem("division");
+    if(division?.trim() === "undefined") {
+        removeDivisionFromStore();
+        return null;
+    }
     if (division && division.trim() !== '') return division.trim().toLowerCase()
     return null;
 }

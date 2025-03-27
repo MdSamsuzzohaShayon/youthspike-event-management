@@ -36,24 +36,15 @@ import { FilterQuery } from 'mongoose';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { GroupService } from 'src/group/group.service';
-
-@ObjectType()
-class CreateOrUpdateEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: true })
-  data?: Event;
-}
-
-@ObjectType()
-class GetEventsResponse extends AppResponse<Event[]> {
-  @Field((type) => [Event], { nullable: true })
-  data?: Event[];
-}
-
-@ObjectType()
-class GetEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: true })
-  data?: Event | null;
-}
+import { RedisService } from 'src/redis/redis.service';
+import { CACHE_EXPIRE } from 'src/util/keys';
+import { Player } from 'src/player/player.schema';
+import {
+  CreateOrUpdateEventResponse,
+  GetEventDetailsResponse,
+  GetEventResponse,
+  GetEventsResponse,
+} from './event.response';
 
 @Resolver((of) => Event)
 export class EventResolver {
@@ -70,6 +61,7 @@ export class EventResolver {
     private netService: NetService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
+    private redisService: RedisService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -255,7 +247,8 @@ export class EventResolver {
         for (const ps of prevSponsors) {
           if (!newSponsorIds.includes(ps.toString())) deleteSponsors.push(ps);
         }
-        if (deleteSponsors && deleteSponsors.length > 0) await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
+        if (deleteSponsors && deleteSponsors.length > 0)
+          await this.sponsorService.deleteMany({ _id: { $in: deleteSponsors } });
       }
 
       // ===== Update logo =====
@@ -424,7 +417,7 @@ export class EventResolver {
     }
   }
 
-  @Query((returns) => GetEventsResponse)
+  @Query((_returns) => GetEventsResponse)
   async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
@@ -474,11 +467,46 @@ export class EventResolver {
     }
   }
 
+  @Query((_returns) => GetEventDetailsResponse)
+  async getEventDetails(@Args('eventId', { nullable: false }) eventId: string) {
+    try {
+      // Assuming matchService is injected in your class
+      const [event, matches, teams, players, ldo, groups, sponsors] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.matchService.find({ event: eventId }),
+        this.teamService.find({ event: eventId }),
+        this.playerService.find({ events: { $in: [eventId] } }),
+        this.ldoService.findOne({ events: { $in: [eventId] } }),
+        this.groupService.find({ event: eventId }),
+        this.sponsorService.find({ event: eventId }),
+      ]);
+
+      const matchIds = matches.map((m) => m._id.toString());
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
+        data: { event, matches, teams, players, ldo, groups, rounds, nets, sponsors },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
   @Query((returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
+
     try {
+      // Check if the event is in the cache
+
+      // If not cached, fetch from the database
       const eventExist = await this.eventService.findById(eventId);
-      if(!eventExist) return AppResponse.notFound('Event');
+      if (!eventExist) return AppResponse.notFound('Event');
 
       return {
         code: HttpStatus.OK,
@@ -564,24 +592,65 @@ export class EventResolver {
 
   @ResolveField()
   async teams(@Parent() event: Event) {
-    const teamList = await this.teamService.query({ _id: { $in: event.teams } });
-    return teamList;
+
+
+    try {
+
+
+      // If not cached, fetch the teams from the database
+      const teamList = await this.teamService.query({ _id: { $in: event.teams } });
+
+      return teamList;
+    } catch (err) {
+      // Handle errors gracefully
+      console.error('Error resolving teams:', err);
+      throw err; // Re-throw the error to be handled by GraphQL
+    }
   }
 
   @ResolveField()
   async groups(@Parent() event: Event) {
-    const groupList = await this.groupService.find({ event: event._id.toString() });
-    return groupList;
-  }
+    try {
 
+      const groupList = await this.groupService.find({ event: event._id.toString() });
+
+      return groupList;
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+      throw new Error('Failed to fetch event groups');
+    }
+  }
   @ResolveField()
   async sponsors(@Parent() event: Event) {
     return this.sponsorService.query({ _id: { $in: event.sponsors } });
   }
 
-  @ResolveField()
-  async players(@Parent() event: Event) {
-    return this.playerService.find({ _id: { $in: event.players } });
+  @ResolveField(() => [Player]) // Specify the return type for "players"
+  async players(@Parent() event: Event): Promise<Player[]> {
+    const cacheKey = `event:${event._id}:players`; // Unique cache key for the event's players
+    const redisClient = this.redisService.getPubClient();
+
+    try {
+      // Check if the players are already in the cache
+      const cachedPlayers = await redisClient.get(cacheKey);
+
+      if (cachedPlayers) {
+        // If cached, return the cached players
+        return JSON.parse(cachedPlayers);
+      }
+
+      // If not cached, fetch the players from the database
+      const players = await this.playerService.find({ _id: { $in: event.players } });
+
+      // Store the players in the cache with an expiration time (e.g., 1 hour)
+      await redisClient.set(cacheKey, JSON.stringify(players), 'EX', CACHE_EXPIRE);
+
+      return players;
+    } catch (error) {
+      // Handle errors gracefully
+      console.error('Error resolving players:', error);
+      return []; // Return an empty array in case of error
+    }
   }
 
   @ResolveField()

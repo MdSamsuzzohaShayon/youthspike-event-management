@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { IMatchExpRel, IPlayer, IPlayerRecord } from '@/types';
 import { tableVariant } from '@/utils/animation';
 import { calculatePlayerRecords } from '@/utils/scoreCalc';
 import { useAppSelector } from '@/redux/hooks';
 import PlayerRow from './PlayerRow';
+import Pagination from '../elements/Pagination';
 
 interface IPlayerStandingsProps {
   // eslint-disable-next-line react/require-default-props, react/no-unused-prop-types
@@ -13,23 +14,13 @@ interface IPlayerStandingsProps {
   matchList: IMatchExpRel[];
 }
 
-// const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 50;
 
 function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsProps) {
   // Local state
   const [players, setPlayers] = useState<IPlayerRecord[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-
-  // const [currentPage, setCurrentPage] = useState<number>(1);
-  // const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length]);
-
-  // const handlePrev = () => {
-  //   setCurrentPage((prev) => Math.max(prev - 1, 1));
-  // };
-
-  // const handleNext = () => {
-  //   setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  // };
 
   // Redux state
   const { rankingMap } = useAppSelector((state) => state.playerRanking);
@@ -38,6 +29,7 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
     if (!playerList) return;
     let newMatchList: IMatchExpRel[] = [];
     if (matchList.length > 0) newMatchList = matchList;
+
     const newRankingMap = new Map<string, number>(rankingMap);
     const newPlayerList = calculatePlayerRecords(playerList, newMatchList, newRankingMap);
 
@@ -70,16 +62,16 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
       });
     }
 
-    // Paginated list
-    // const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    // const paginatedPlayers = sortedRecords.slice(start, start + ITEMS_PER_PAGE);
+    // Paginated
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedPlayers = sortedRecords.slice(start, start + ITEMS_PER_PAGE);
 
     // Update state with the sorted Map
-    setPlayers(sortedRecords);
-  }, [playerList, matchList, teamRank, rankingMap]);
+    setPlayers(paginatedPlayers);
+  }, [playerList, matchList, teamRank, rankingMap, currentPage]);
 
   return (
-    <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
+    <div className="playerList w-full flex flex-col rounded-lg shadow-lg">
       <div className="overflow-x-auto">
         <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
           <thead>
@@ -97,17 +89,9 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
           </motion.tbody>
         </motion.table>
       </div>
-      {/* <div className="flex items-center space-x-2 mt-4">
-        <button type="button" onClick={handlePrev} disabled={currentPage === 1} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
-          Prev
-        </button>
-        <span className="font-semibold">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button type="button" onClick={handleNext} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
-          Next
-        </button>
-      </div> */}
+      <div className="w-full">
+        <Pagination currentPage={currentPage} itemList={playerList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+      </div>
     </div>
   );
 }

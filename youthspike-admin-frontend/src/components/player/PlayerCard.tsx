@@ -35,6 +35,8 @@ interface PlayerCardProps {
   rank?: number | null;
 }
 
+
+
 function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, isChecked, handleSelectPlayer, }: PlayerCardProps) {
 
   const { setActErr } = useError();
@@ -67,7 +69,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         const response = await mutateTeam({ variables: { input, teamId, eventId } });
         const success = handleResponse({ response: response.data.updateTeam, setActErr });
         if (!success) return;
-        await client.refetchQueries({ include: [GET_A_TEAM] });
+        // Not recommended
+        window.location.reload();
       }
     } catch (error: any) {
       handleError({ error, setActErr });
@@ -218,7 +221,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     const dl: IOption[] = [];
     for (let i = 0; i < teamList.length; i += 1) {
       if (teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
-        dl.push({ text: teamList[i].name, value: teamList[i]._id });
+        dl.push({ id: i+1, text: teamList[i].name, value: teamList[i]._id });
       }
     }
     setTeamOptions(dl);
@@ -232,7 +235,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   };
 
 
-
+// O(n^2)
   const playerAssignment = useMemo((): null | string => {
     let teamFound = null;
     if (player?.teams && player?.teams.length > 0) {
@@ -243,11 +246,12 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   }, [player]);
 
 
+
+
   return (
     <>
       <div
-        className={`w-full flex justify-between items-center gap-y-2 relative rounded-md `}
-        style={{ minHeight: '6rem' }}
+        className={`flex items-center gap-3 w-full`}
       >
         {/* Draggable element start  */}
         <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>
@@ -265,7 +269,13 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
-                {!teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && <p className="text-yellow-logo uppercase">{playerAssignment ?? "Unassigned"}</p>}
+                {
+                  !showRank
+                  && !teamId
+                  && user.info?.role !== UserRole.captain
+                  && user.info?.role !== UserRole.co_captain
+                  && <p className="text-yellow-logo uppercase">{(player?.teams || [])[0]?.name || "Unassigned"}</p>
+                }
               </div>
             </div>
 
@@ -357,7 +367,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
           <form onSubmit={handleCaptainEmail}>
             {/* @ts-ignore */}
-            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} vertical />
+            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)}  />
             <button className="btn-info mt-4" type="submit">
               Make Captain
             </button>
@@ -371,8 +381,8 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" />
           </button>
           <form className="w-full" onSubmit={(e) => handleMovePlayer(e, player._id)}>
-            <SelectInput key="division-1" handleSelect={handleDivisionChange} vertical name="division" optionList={divisionList || []} />
-            <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} vertical name="team" optionList={teamOptions} />
+            <SelectInput key="division-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList || []} />
+            <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} name="team" optionList={teamOptions} />
             <button className="btn-info mt-4" type="submit">
               Move
             </button>

@@ -78,6 +78,7 @@ function PlayerList({
   const [canRank, setCanRank] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayerRank[]>([]);
   const [rankingsMap, setRankingsMap] = useState<Map<string, number>>(new Map());
+  
   // Pagination elements
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length, ITEMS_PER_PAGE]);
@@ -89,6 +90,7 @@ function PlayerList({
   const handleNext = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
+
 
 
   /** Handle checkbox */
@@ -175,8 +177,11 @@ function PlayerList({
         if (playerRanking) {
           const newRankingsMap = new Map();
           if (playerRanking && playerRanking.rankings.length > 0) {
+            console.log(playerRanking.rankings);
+            
+            
             playerRanking.rankings.forEach((pr) => {
-              newRankingsMap.set(pr.player._id, pr.rank);
+              newRankingsMap.set(pr.player, pr.rank);
             });
           }
           setRankingsMap(newRankingsMap);

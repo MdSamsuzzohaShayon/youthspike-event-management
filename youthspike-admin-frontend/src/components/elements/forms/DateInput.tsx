@@ -9,22 +9,21 @@ const DateInput = (props: IDateinputProps) => {
         
         const now = new Date();
         const inputValue= new Date(`${inputEl.value}T${now.toISOString().split("T")[1]}`);
-        props.handleDateChange({ name: props.name, value: inputValue.toISOString() });
+        if(props.handleDateChange)props.handleDateChange({ name: props.name, value: inputValue.toISOString() });
     };
 
     const inputProps: Record<string, any> = {
         onChange: handleDatetimeInputChange,
         id: props.name,
         name: props.name,
-        className: `${props.vertical ? 'w-full' : ''} border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center datetime-input ${
-            props.rw ? props.rw : 'w-20'
-        }`,
+        className: "w-full p-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400",
         type: 'date',
         required: props.required,
     };
 
     // Handle value and defaultValue
     if (props.value !== undefined) {
+        // @ts-ignore
         inputProps.value = defaultInputValue(props.value);
     } else if (props.defaultValue !== undefined) {
         inputProps.defaultValue = defaultInputValue(props.defaultValue);
@@ -32,15 +31,13 @@ const DateInput = (props: IDateinputProps) => {
 
     return (
         <div
-            className={`input-group mt-4 w-full flex ${
-                props.vertical ? 'flex-col' : ''
-            } justify-between items-center ${props.extraCls}`}
+            className={`flex flex-col gap-1 ${props.className || ""}`}
         >
             <label
                 htmlFor={props.name}
-                className={`capitalize ${props.vertical ? 'w-full' : ''} ${props.lw}`}
+                className="capitalize text-lg font-semibold mb-1"
             >
-                {props.lblTxt || props.name}
+                {props.label || props.name}
             </label>
             <input {...inputProps} />
         </div>
@@ -48,3 +45,4 @@ const DateInput = (props: IDateinputProps) => {
 };
 
 export default DateInput;
+

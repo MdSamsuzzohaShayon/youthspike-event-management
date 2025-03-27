@@ -41,12 +41,7 @@ export const menuAnimate = {
     transition: { ...commonAnimate.transition, delay: 0 },
 };
 
-export const liAnimate = {
-    initial: { ...commonAnimate.initial, x: -50 },
-    animate: { ...commonAnimate.animate, x: 0 },
-    exit: { ...commonAnimate.exit, x: -50 },
-    transition: { ...commonAnimate.transition, delay: 0.7 },
-};
+
 
 
 // Variants

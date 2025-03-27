@@ -1,0 +1,51 @@
+import { Field, ObjectType } from '@nestjs/graphql';
+import { AppResponse } from 'src/shared/response';
+import { Player } from './player.schema';
+import { CustomGroup, CustomTeam } from 'src/match/match.response';
+import { Event } from 'src/event/event.schema';
+
+@ObjectType()
+export class PlayerResponse extends AppResponse<Player> {
+  @Field((_type) => Player, { nullable: true })
+  data?: Player;
+}
+
+@ObjectType()
+export class PlayersResponse extends AppResponse<Player[]> {
+  @Field((_type) => [Player], { nullable: true })
+  data?: Player[];
+}
+
+@ObjectType()
+export class CustomPlayer extends Player {
+    @Field((_type) => [String], { nullable: false })
+  teams: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  captainofteams: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  cocaptainofteams: string[];
+}
+
+
+@ObjectType()
+export class EventWithPlayers {
+  @Field((_type) => Event, { nullable: false })
+  event: Event;
+
+  @Field((_type) => [CustomPlayer], { nullable: false })
+  players: CustomPlayer[];
+
+  @Field((_type) => [CustomGroup], { nullable: false })
+  groups: CustomGroup[];
+
+  @Field((_type) => [CustomTeam], { nullable: false })
+  teams: CustomTeam[];
+}
+
+@ObjectType()
+export class GetEventWithPlayersResponse extends AppResponse<EventWithPlayers> {
+  @Field((_type) => EventWithPlayers, { nullable: true })
+  data?: EventWithPlayers;
+}

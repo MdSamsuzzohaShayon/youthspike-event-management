@@ -2,13 +2,10 @@ import { useMutation } from '@apollo/client';
 import React, { useCallback, useEffect, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
 import { IAddMatch, IDateChangeHandlerProps, IEventExpRel, IGroupExpRel, IMatchExpRel, ITeam } from '@/types';
-import TextInput from '../elements/forms/TextInput';
-import NumberInput from '../elements/forms/NumberInput';
 import SelectInput from '../elements/forms/SelectInput';
-import staticData from '../../lib/data.json';
 import ToggleInput from '../elements/forms/ToggleInput';
 import { CREATE_MATCH, UPDATE_MATCH } from '@/graphql/matches';
-import { assignStrategies } from '@/utils/staticData';
+import { assignStrategies, homeTeamStrategy, lockTimes, tieBreakingRules } from '@/utils/staticData';
 import { EAssignStrategies } from '@/types/elements';
 import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
@@ -17,6 +14,8 @@ import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
 import { useError } from '@/lib/ErrorContext';
 import { ETeam } from '@/types/team';
 import TeamSelector from './TeamSelector';
+import InputField from '../elements/forms/InputField';
+import TextareaInput from '../elements/forms/TextareaInput';
 
 
 
@@ -35,18 +34,6 @@ interface IMatchAddProps {
 }
 
 
-const lockTimes = [
-    {
-        id: 1,
-        type: ERosterLock.FIRST_ROSTER_SUBMIT,
-        text: "First Roster Submit"
-    },
-    {
-        id: 2,
-        type: ERosterLock.PICK_A_DATE,
-        text: "Pick A Date"
-    },
-]
 
 
 
@@ -89,7 +76,6 @@ function MatchAdd({ eventId,
     const { ldoIdUrl } = useLdoId();
     const { setActErr } = useError();
 
-    const { homeTeamStrategy } = staticData;
 
     // Local State
     const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
@@ -250,56 +236,62 @@ function MatchAdd({ eventId,
 
 
     return (
-        <form onSubmit={handleAddMatch} className='flex flex-wrap w-full justify-between items-center'>
-            {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' lblTxt='Start time'
-                required={!update} value={addMatch.date} vertical />}
+        <form onSubmit={handleAddMatch} className='w-full'>
+            <div className='part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+                {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' label='Start time'
+                    required={!update} value={addMatch.date} />}
 
-            {!update && (<>
-                <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' lblTxt='Group' defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
-                    ? [{ text: "All", value: "all" }, ...groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g) => ({ text: g.name, value: g._id }))]
-                    : [{ text: "All", value: "all" }, ...groupList.map((g) => ({ text: g.name, value: g._id }))]} vertical />
-                {selectedGroup && (
-                    <>
-                        {/* <SelectInput name='teamA' lblTxt='Team A'
-                            optionList={filteredTeamList.map((t) => ({ value: t._id, text: t.name }))}
-                            handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' />
-                        <SelectInput name='teamB' lblTxt='Team B'
-                            optionList={filteredTeamList.map((t) => ({ value: t._id, text: t.name }))}
-                            handleSelect={handleSelectChange} vertical extraCls='md:w-5/12' /> */}
-                        <div className="w-full">
-                            {filteredTeamList && <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
-                        </div>
-                    </>
-                )}
-            </>)}
-            <div className="mt-4 w-full">
-                <h3 className='w-full capitalize'>Default settings</h3>
+                <InputField type="number" required={!update} label='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} />
+                <InputField type="number" required={!update} label='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} />
+                <InputField type="number" required={!update} label='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} />
             </div>
-            <NumberInput required={!update} lblTxt='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
-            <NumberInput required={!update} lblTxt='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
-            <NumberInput required={!update} lblTxt='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
 
-            <SelectInput key="si-1" name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} lblTxt='How is home team decided?' handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
-            <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking}
-                optionList={[{ text: "Overtime round", value: ETieBreakingStrategy.OVERTIME_ROUND }, { text: "Two Points Net", value: ETieBreakingStrategy.TWO_POINTS_NET }]}
-                lblTxt="Tie breaking strategy" handleSelect={handleInputChange} vertical extraCls='md:w-5/12' />
+            <div className='part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+                {!update && (<>
+                    <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' label='Group'
+                        defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
+                            ? [{ id: 1, text: "All", value: "all" }, ...groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 2, text: g.name, value: g._id }))]
+                            : [{ id: 1, text: "All", value: "all" }, ...groupList.map((g, gI) => ({ id: gI + 2, text: g.name, value: g._id }))]} />
+                    {selectedGroup && filteredTeamList &&  <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
+                </>)}
+            </div>
 
-            {/* @ts-ignore */}
-            <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
-                name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
-            <SelectInput key="si-3" defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies.map((as) => ({ value: as, text: as }))} lblTxt='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
+            <div className='part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+                <div className="mt-4 w-full">
+                    <h3 className='w-full capitalize'>Default settings</h3>
+                </div>
 
-            <SelectInput key="si-4" name='rosterLock'
-                defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE}
-                optionList={lockTimes.map((lt) => ({ value: lt.type, text: lt.text }))} lblTxt='When does the roster lock setting?' handleSelect={handleInputChange} rw='w-3/6' lw='w-3/6' extraCls='md:w-5/12' />
-            {addMatch.rosterLock && addMatch.rosterLock !== "" && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-                <DateInput name='rosterLockDate' lblTxt='Pick A date when ranking is going to lock' handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} vertical extraCls='md:w-5/12' />
-            )}
+                <SelectInput key="si-1" name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label='How is home team decided?' handleSelect={handleInputChange} />
+                <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking}
+                    optionList={tieBreakingRules}
+                    label="Tie breaking strategy" handleSelect={handleInputChange} />
+            </div>
 
-            <NumberInput required={!update} lblTxt='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} vertical extraCls='md:w-5/12' />
-            <TextInput handleInputChange={handleInputChange} lblTxt="Fwango Link" name="fwango" defaultValue={addMatch.fwango} vertical extraCls='md:w-5/12' />
-            <TextInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} vertical extraCls='md:w-5/12' />
-            <TextInput handleInputChange={handleInputChange} name='location' defaultValue={addMatch.location} vertical extraCls='md:w-5/12' />
+            <div className='part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+                {/* @ts-ignore */}
+                <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
+                    name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
+                <SelectInput key="si-3" defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies} label='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} />
+
+                <SelectInput key="si-4" name='rosterLock'
+                    defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE}
+                    optionList={lockTimes} label='When does the roster lock setting?' handleSelect={handleInputChange} />
+                {addMatch.rosterLock && addMatch.rosterLock !== "" && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+                    <DateInput name='rosterLockDate' label='Pick A date when ranking is going to lock' handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
+                )}
+            </div>
+
+            <div className='part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+
+                <InputField type="number" required={!update} label='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} />
+                <InputField type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ""} />
+            </div>
+            <div className='part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+                <TextareaInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} />
+                <TextareaInput handleInputChange={handleInputChange} name='location' defaultValue={addMatch.location} />
+            </div>
+
+
             <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
         </form>
     )

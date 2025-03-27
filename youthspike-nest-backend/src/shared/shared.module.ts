@@ -37,6 +37,7 @@ import {
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { Group, GroupSchemaFactory } from 'src/group/group.schema';
 import { GroupService } from 'src/group/group.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [
@@ -134,6 +135,7 @@ import { GroupService } from 'src/group/group.service';
     EmailsenderService,
     PlayerRankingService,
     GroupService,
+    RedisService,
   ],
   exports: [
     CloudinaryService,
@@ -151,6 +153,7 @@ import { GroupService } from 'src/group/group.service';
     EmailsenderService,
     PlayerRankingService,
     GroupService,
+    RedisService,
   ],
 })
 export class SharedModule {

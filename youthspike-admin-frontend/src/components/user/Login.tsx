@@ -1,38 +1,95 @@
-import { ILoginProps } from '@/types';
-import PasswordInput from '../elements/forms/PasswordInput';
-import TextInput from '../elements/forms/TextInput';
+'use client';
+
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cardAnimate, headingAnimate } from '@/utils/animation';
+import { useRouter } from 'next/navigation';
+import { useMutation } from '@apollo/client';
+import Loader from '@/components/elements/Loader';
+import { LOGIN_USER } from '@/graphql/admin';
+import { UserRole } from '@/types/user';
+import { setCookie } from '@/utils/cookie';
+import { useError } from '@/lib/ErrorContext';
+import InputField from '../elements/forms/InputField';
 import { useState } from 'react';
 
 const { initial: hInitial, animate: hAnimate, exit: hExit, transition: hTransition } = headingAnimate;
 const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
 
-function Login({ handleLogin, email, setEmail, password, setPassword, passcode, setPasscode }: ILoginProps) {
-    const [passcodeOpener, setPasscodeOpener] = useState<boolean>(false);
 
-    const handleSetEmail = (e: React.SyntheticEvent) => {
-        e.preventDefault();
+
+function Login() {
+    const [passcodeOpener, setPasscodeOpener] = useState<boolean>(false);
+    const router = useRouter();
+    const { setActErr } = useError();
+  
+    const [loginData, setLoginData] = useState<Record<string, string>>({});
+  
+    // Apollo mutation hook
+    const [loginUser, { loading }] = useMutation(LOGIN_USER, {
+      variables: loginData,
+      onError: (error) => {
+        setActErr({
+          success: false,
+          message: error.message || 'An unexpected error occurred, please try again.',
+        });
+        setCookie('token', '', -1);  // Clear cookies on error
+        setCookie('user', '', -1);
+      },
+      onCompleted: (data) => {
+        const resultData = data?.login;
+  
+        if (!resultData || resultData.code !== 202) {
+          setActErr({
+            success: false,
+            message: resultData?.message || 'Login failed, please try again.',
+          });
+          return;
+        }
+  
+        // Successful login - set cookies
+        setCookie('token', resultData.data.token, 7);
+        setCookie('user', JSON.stringify(resultData.data.user), 7);
+  
+        // Navigate based on user role
+        if (resultData.data.user.role === UserRole.admin) {
+          router.push('/admin/directors');
+        } else if ([UserRole.captain, UserRole.co_captain].includes(resultData.data.user.role)) {
+          const eventIdOfPlayer = resultData.data.user.event;
+          router.push(eventIdOfPlayer ? `/${eventIdOfPlayer}/matches` : '/');
+        } else {
+          router.push('/');
+        }
+      },
+    });
+  
+
+  
+    const handleInputChange= (e: React.SyntheticEvent) => {
         const inputEl = e.target as HTMLInputElement;
-        setEmail(inputEl.value);
+        setLoginData((prevState)=>({ ...prevState, [inputEl.name]: inputEl.value }));
     }
-    const handleSetPassword = (e: React.SyntheticEvent) => {
-        const inputEl = e.target as HTMLInputElement;
-        setPassword(inputEl.value);
-    }
-    const handlePasscodeChange = (e: React.SyntheticEvent) => {
+    
+    const handleLogin = async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        const inputEl = e.target as HTMLInputElement;
-        setPasscode(inputEl.value);
+        if (!loginData?.email || !loginData?.password) {
+            setActErr({ success: false, message: 'Set correct email and password!' });
+            return;
+          }
+      
+          try {
+            // Trigger the login mutation
+            await loginUser();
+          } catch (error) {
+            console.error('Login error:', error);
+          }
+
     }
-    const handleLoginLocal = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        handleLogin(e);
-    }
+
+    if (loading) return <Loader />;
 
     return (
-        <div className="flex w-full min-h-screen bg-gradient-to-r from-[#fce013] to-[#fff293]">
+        <div className="flex w-full min-h-screen bg-yellow-gradient">
             <div className="flex flex-col items-center justify-center w-full md:w-1/2 px-6 py-12 md:py-0">
                 <motion.h1
                     className="text-4xl font-bold text-white mb-6"
@@ -54,8 +111,8 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
                         <Image alt="Logo" src="/free-logo.png" width={80} height={80} className="rounded-full shadow-md" />
                     </motion.div>
                     <form
-                        onSubmit={handleLoginLocal}
-                        className="flex flex-col gap-4 bg-white p-8 rounded-lg shadow-lg text-gray-700"
+                        onSubmit={handleLogin}
+                        className="flex flex-col gap-4 bg-gray-900 p-8 rounded-lg shadow-lg bg-gray-gradient"
                     >
                         <motion.div
                             initial={cInitial}
@@ -63,14 +120,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
                             exit={cExit}
                             transition={{ ...cTransition, delay: 0.6 }}
                         >
-                            <TextInput
-                                name="email"
-                                vertical
-                                defaultValue={email}
-                                lblTxt="Username"
-                                handleInputChange={handleSetEmail}
-                                required
-                            />
+                            <InputField key="liif-1" type='email' name='email' handleInputChange={handleInputChange} value="" />
                         </motion.div>
                         <motion.div
                             initial={cInitial}
@@ -78,15 +128,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
                             exit={cExit}
                             transition={{ ...cTransition, delay: 0.8 }}
                         >
-                            <PasswordInput
-                                name="password"
-                                vertical
-                                defaultValue={password}
-                                lblTxt="Password"
-                                handleInputChange={handleSetPassword}
-                                svgColor='svg-black'
-                                required
-                            />
+                            <InputField key="liif-2" type='password' name='password' handleInputChange={handleInputChange} />
                         </motion.div>
                         {passcodeOpener && (
                             <motion.div
@@ -95,15 +137,7 @@ function Login({ handleLogin, email, setEmail, password, setPassword, passcode, 
                                 exit={cExit}
                                 transition={{ ...cTransition, delay: 1.0 }}
                             >
-                                <PasswordInput
-                                    name="passcode"
-                                    vertical
-                                    lblTxt="Passcode"
-                                    defaultValue={passcode}
-                                    handleInputChange={handlePasscodeChange}
-                                    svgColor='svg-black'
-                                    tooltip="This field is essential to grant permissions."
-                                />
+                                <InputField key="liif-3" type='password' name='passcode' handleInputChange={handleInputChange} />
                             </motion.div>
                         )}
                         <motion.button

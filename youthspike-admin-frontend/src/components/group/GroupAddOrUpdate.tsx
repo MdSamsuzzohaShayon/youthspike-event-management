@@ -1,3 +1,6 @@
+'use client'
+
+
 import { IError, IGroupAdd, ITeam } from '@/types';
 import React, { useEffect, useState } from 'react'
 import TextInput from '../elements/forms/TextInput';
@@ -10,6 +13,7 @@ import { handleError, handleResponse } from '@/utils/handleError';
 import { useRouter } from 'next/navigation';
 import { EGroupRule, IGroupExpRel } from '@/types/group';
 import { useError } from '@/lib/ErrorContext';
+import InputField from '../elements/forms/InputField';
 
 interface IGroupAddOrUpdateProps {
   divisions: string;
@@ -17,10 +21,9 @@ interface IGroupAddOrUpdateProps {
   update: boolean;
   prevGroup: IGroupAdd | null;
   eventId: string;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, setIsLoading }: IGroupAddOrUpdateProps) {
+function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup }: IGroupAddOrUpdateProps) {
 
   const [eventAdd] = useMutation(ADD_GROUP);
   const router = useRouter();
@@ -33,12 +36,14 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
     rule: EGroupRule.CAN_PLAY_EACH_OTHER,
     event: eventId,
     teams: [],
+    matches: []
   });
   
   
 
   const [updateGroup, setUpdateGroup] = useState<Partial<IGroupAdd>>({});
   const [filteredTeams, setFilteredTeams] = useState<ITeam[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -119,9 +124,11 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup, set
 
   return (
     <form onSubmit={handleGroupAdd} className="flex flex-col gap-2">
-      <TextInput key="ti-eau-1" required={!update} defaultValue={groupState.name}
-        handleInputChange={handleInputChange} lblTxt="Name" name="name" vertical />
-      <SelectInput key="division-1" name='division' handleSelect={handleDivisionInputChange} defaultValue={groupState.division ? groupState.division.toString().trim().toLocaleLowerCase() : null} optionList={divisionsToOptionList(divisions)} lblTxt="Division" vertical />
+      <InputField type="text" key="ti-eau-1" required={!update} defaultValue={groupState.name}
+        handleInputChange={handleInputChange} label="Name" name="name" />
+      <SelectInput key="division-1" name='division' handleSelect={handleDivisionInputChange} 
+      defaultValue={groupState.division ? groupState.division.toString().trim().toLocaleLowerCase() : null} 
+      optionList={divisionsToOptionList(divisions)} label="Division" />
 
       <div className="mt-4">
         <TeamSelectInput name='teams' teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import * as bcrypt from 'bcrypt';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserService } from 'src/user/user.service';
 import { AppResponse } from 'src/shared/response';
@@ -21,34 +20,18 @@ import { NetService } from 'src/net/net.service';
 import { MatchService } from 'src/match/match.service';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
-import { LdoService } from 'src/ldo/ldo.service';
 import { GroupService } from 'src/group/group.service';
 import { Match } from 'src/match/match.schema';
-import { ERosterLock } from 'src/event/event.schema';
-import { checkDateHasPassed } from 'src/util/helper';
-
-@ObjectType()
-class CreateOrUpdateTeamResponse extends AppResponse<Team> {
-  @Field((type) => Team, { nullable: true })
-  data?: Team;
-}
-
-@ObjectType()
-class GetTeamsResponse extends AppResponse<Team[]> {
-  @Field((type) => [Team], { nullable: true })
-  data?: Team[];
-}
-
-@ObjectType()
-class GetTeamResponse extends AppResponse<Team> {
-  @Field((type) => Team, { nullable: true })
-  data?: Team;
-}
-
-@ObjectType()
-class PlayerRankingItemResponse extends PlayerRankingItem {
-  playerRanking: PlayerRanking;
-}
+import { RedisService } from 'src/redis/redis.service';
+import {
+  CreateOrUpdateTeamResponse,
+  GetEventWithTeamsResponse,
+  GetTeamDetailsResponse,
+  GetTeamResponse,
+  GetTeamsResponse,
+  GetTeamstandingsResponse,
+} from './team.response';
+import { RoundService } from 'src/round/round.service';
 
 @Resolver((of) => Team)
 export class TeamResolver {
@@ -62,6 +45,8 @@ export class TeamResolver {
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
+    private roundService: RoundService,
+    private readonly redisService: RedisService,
   ) {}
 
   async singleDelete(teamExist: Team) {
@@ -472,9 +457,9 @@ export class TeamResolver {
       return AppResponse.handleError(err);
     }
   }
-
+  Field;
   @Roles(UserRole.admin, UserRole.director)
-  @Query((returns) => GetTeamsResponse)
+  @Query((_returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
     try {
       const teams = await this.teamService.find({ event: eventId });
@@ -483,6 +468,27 @@ export class TeamResolver {
         success: true,
         message: 'List of teams!',
         data: teams,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((_returns) => GetEventWithTeamsResponse)
+  async getEventWithTeams(@Args('eventId', { nullable: true }) eventId: string) {
+    try {
+      const [eventExist, teams, groups, players] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.teamService.find({ event: eventId }),
+        this.groupService.find({ event: eventId }),
+        this.playerService.find({ event: eventId }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of teams!',
+        data: { event: eventExist, teams, groups, players },
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -510,22 +516,109 @@ export class TeamResolver {
     }
   }
 
+  @Query((_returns) => GetTeamDetailsResponse)
+  async getTeamDetails(@Args('teamId') teamId: string) {
+    try {
+      const [team, playerRanking] = await Promise.all([
+        this.teamService.findById(teamId),
+        this.playerRankingService.findOne({
+          team: teamId,
+          // rankLock: false,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
+      ]);
+      const [players, group, captain, cocaptain, event, matches, rankings] = await Promise.all([
+        this.playerService.find({ teams: { $in: [team._id] } }),
+        this.groupService.findOne({ _id: team.group }),
+        this.playerService.findOne({ _id: team.captain }),
+        this.playerService.findOne({ _id: team.cocaptain }),
+        this.eventService.findOne({ _id: team.event }),
+        this.matchService.find({
+          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+        }),
+        this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
+      ]);
+
+      // Attributes of matches
+      const matchIds = matches.map((m) => m._id);
+      const oponentTeamIds = [
+        ...new Set(matches.map((m) => (m.teamA.toString() === teamId ? m.teamB.toString() : m.teamA.toString()))),
+      ];
+      const [rounds, nets, oponentTeams] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+        this.teamService.find({ _id: { $in: oponentTeamIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: {
+          team,
+          playerRanking,
+          players,
+          group,
+          captain,
+          cocaptain,
+          event,
+          matches,
+          rankings,
+          rounds,
+          nets,
+          oponentTeams,
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((_returns) => GetTeamstandingsResponse)
+  async getTeamStandings(@Args('eventId') eventId: string) {
+    try {
+      const [event, groups, matches, teams] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find({ event: eventId }),
+        this.matchService.find({ event: eventId }),
+        this.teamService.find({ event: eventId }),
+      ]);
+
+      const matchIds = matches.map((m) => m._id.toString());
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: { event, groups, matches, teams, rounds, nets },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
   /**
    * POPULATE
    * ===============================================================================================
    */
 
-  @ResolveField() // Specify the return type for "players"
+  @ResolveField(() => [Player]) // Specify the return type for "players"
   async players(@Parent() team: Team): Promise<Player[]> {
     try {
+      // If not cached, fetch the players from the database
       const players = await this.playerService.find({ teams: { $in: [team._id.toString()] } });
+
       return players;
     } catch (error) {
-      console.error(error);
-      return [];
+      // Handle errors gracefully
+      console.error('Error resolving players:', error);
+      return []; // Return an empty array in case of error
     }
   }
-
   @ResolveField(() => PlayerRanking, { nullable: true })
   async playerRanking(@Parent() team: Team): Promise<PlayerRanking> {
     try {

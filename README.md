@@ -53,11 +53,16 @@ ___
       
 
 ### Requirements 
+ - Speed up
+    - Individual team (Make pagination) -> https://admin.aslsquads.com/679126dadf9ccad052a14765/teams/679126f5df9ccad052a14912?ldoId=6791265adf9ccad052a1460e 
+    - Matches (list of match must be updated)
+    - 
  - Email seing and staying at position
+ - Filtering need to work properly
+ - Make username unique (every player will have a unique name at the beginning)
  - Roster lock and change to matches component
- - Make username unique
  - When making co-captain make sure he is not captain of any other team
-
+ 
  - So I think as far as list goes- 
   1.) loading speed on public view standings, 
   2.) in phone mostly having to hit a button up to 10 times, 

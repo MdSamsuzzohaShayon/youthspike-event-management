@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { IEvent, ITeam } from '@/types';
@@ -66,52 +68,74 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
     }
   }, [selectedItem, team.division, team.matches, team.players]);
 
+  // href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+
   return (
-    <div className="min-h-screen">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold uppercase">Teams / Roster</h1>
-        <h2 className="text-lg text-gray-300 uppercase">{event?.name}</h2>
-      </div>
+    <React.Fragment>
+      <div className="flex flex-col items-center">
+        {/* Header Section */}
+        <div className="team-detail w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
+          {/* Decorative Glow */}
+          <div className="absolute inset-0 bg-yellow-400 opacity-10 rounded-2xl blur-lg" />
 
-      <div className="team-detail flex flex-col items-center bg-gray-800 rounded-lg shadow-lg p-6">
-        {team.logo ? (
-          <AdvancedImage cldImg={cld.image(team.logo)} className="w-24 h-24 mb-4 rounded-full object-cover" />
-        ) : (
-          <TextImg className="w-24 h-24 mb-4 rounded-full bg-gray-700 flex items-center justify-center" fullText={team.name} txtCls="text-2xl" />
-        )}
-        <h3 className="text-xl font-semibold capitalize mb-4">{team.name}</h3>
+          {/* Team Logo */}
+          {team.logo ? (
+            <AdvancedImage
+              cldImg={cld.image(team.logo)}
+              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
+            />
+          ) : (
+            <TextImg
+              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
+              fullText={team.name}
+              txtCls="text-2xl"
+            />
+          )}
 
-        <Link
-          href={`/events/${team.event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
-          className="btn-success bg-yellow-500 text-black py-2 px-4 rounded-md font-medium shadow hover:bg-yellow-400 transition mb-6"
-        >
-          Standings
-        </Link>
+          {/* Team Name */}
+          <h3 className="text-2xl font-semibold mt-5 relative z-10">Barcelona FC</h3>
 
-        <div className="tab-menu w-full mb-6 bg-gray-700 rounded-lg p-4">
-          <motion.ul className="flex justify-around items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-            <motion.li
-              role="presentation"
-              onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
-              className={`p-3 w-1/2 text-center rounded-md cursor-pointer ${selectedItem === ETab.ROSTER ? 'bg-yellow-500 text-black font-bold' : 'bg-gray-600 text-white'}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              Rosters
-            </motion.li>
-            <motion.li
-              role="presentation"
-              onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
-              className={`p-3 w-1/2 text-center rounded-md cursor-pointer ${selectedItem === ETab.MATCHES ? 'bg-yellow-500 text-black font-bold' : 'bg-gray-600 text-white'}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              Matches
-            </motion.li>
-          </motion.ul>
+          {/* Event Title */}
+          <div className="text-center mb-6 relative z-10">
+            <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">Teams / Roster</h1>
+            <h2 className="text-sm text-gray-300 uppercase mt-1">Event-1</h2>
+          </div>
+
+          {/* Standings Button */}
+          <Link
+            href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+            className="mt-5 bg-yellow-500 hover:bg-yellow-400 text-gray-900 transition py-3 px-6 rounded-lg text-md font-medium shadow-lg relative z-10"
+          >
+            View Standings
+          </Link>
+
+          {/* Tab Menu */}
+          <div className="tab-menu w-full mt-6 relative z-10">
+            <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
+              <li
+                className={`w-1/2 text-center py-4 cursor-pointer ${
+                  selectedItem === ETab.ROSTER ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                }`}
+                role="presentation"
+                onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
+              >
+                Rosters
+              </li>
+              <li
+                className={`w-1/2 text-center py-4 cursor-pointer ${
+                  selectedItem === ETab.MATCHES ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                }`}
+                role="presentation"
+                onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
+              >
+                Matches
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-
       <div className="content mt-6">{showContent()}</div>
-    </div>
+    </React.Fragment>
   );
 }
 

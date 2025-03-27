@@ -35,7 +35,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
       const oponentE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
       let teamScore = 0;
       let oponentScore = 0;
-
+      
       roundList.forEach((r) => {
         const { score: ts } = calcRoundScore(
           allNets.filter((n) => n.round === r._id),

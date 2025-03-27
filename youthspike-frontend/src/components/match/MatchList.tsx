@@ -1,5 +1,5 @@
 import { IMatchExpRel, IPlayer, ITeam } from '@/types';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import SocketEventListener from '@/utils/socket/SocketEventListener';
@@ -8,6 +8,7 @@ import { validateMatchDatetime } from '@/utils/datetime';
 import { EEventPeriod } from '@/types/event';
 import MatchCard from './MatchCard';
 import SelectInput from '../elements/SelectInput';
+import Pagination from '../elements/Pagination';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -56,11 +57,13 @@ const filterOptions = [
   },
 ];
 
+const ITEMS_PER_PAGE = 30;
 function MatchList({ matchList }: IMatchListProps) {
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
   const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([]); // update this filtered match list when a round updated
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const handleMatchFilter = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -115,14 +118,29 @@ function MatchList({ matchList }: IMatchListProps) {
     };
   }, [dispatch, socket, filteredMatchList]);
 
+  const paginatedMatchList: IMatch[] = useMemo(() => {
+    if (!filteredMatchList) return [];
+
+    // Paginated
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedTeams = filteredMatchList.slice(start, start + ITEMS_PER_PAGE);
+
+    // inactive players won't have rankings
+    return paginatedTeams;
+  }, [filteredMatchList, currentPage]);
+
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
       <SelectInput lblTxt="Match Filter" name="matchFilter" optionList={filterOptions.map((o) => ({ text: o.text.replace(/_/g, ' '), value: o.text }))} handleSelect={handleMatchFilter} />
-      {filteredMatchList &&
-        filteredMatchList.map((match) => (
+      {paginatedMatchList &&
+        paginatedMatchList.map((match) => (
           // @ts-ignore
-          <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} allNets={match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id })) : []} />
+          <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} allNets={match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id || n.round })) : []} />
         ))}
+
+      <div className="w-full">
+        <Pagination currentPage={currentPage} itemList={filteredMatchList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+      </div>
     </div>
   );
 }

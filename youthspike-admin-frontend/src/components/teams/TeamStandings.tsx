@@ -24,7 +24,7 @@ PSG
 
 */
 
-function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
+function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
 
   /**
@@ -38,10 +38,12 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
         if (match.completed) {
           if (match.teamA?._id) {
             if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
+            // @ts-ignore
             map.get(match.teamA._id)?.push(match);
           }
           if (match.teamB?._id) {
             if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
+            // @ts-ignore
             map.get(match.teamB._id)?.push(match);
           }
         }
@@ -77,9 +79,11 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
       let totalNets = 0;
 
       for (const match of teamMatches) {
+        
         const isTeamA = match.teamA._id === team._id;
         // @ts-ignore
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
+        
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
@@ -182,4 +186,4 @@ function TeamStandingsPage({ eventId, teamList, matchList, selectedGroup }: ITea
   );
 }
 
-export default TeamStandingsPage;
+export default TeamStandings;

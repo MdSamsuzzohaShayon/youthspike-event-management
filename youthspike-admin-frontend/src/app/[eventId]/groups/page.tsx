@@ -1,55 +1,32 @@
-'use client';
-
-import SelectInput from '@/components/elements/forms/SelectInput';
-import GroupList from '@/components/group/GroupList';
-import { GET_GROUPS } from '@/graphql/group';
-import { useLdoId } from '@/lib/LdoProvider';
-import { IGroup, IGroupExpRel } from '@/types';
-import { divisionsToOptionList } from '@/utils/helper';
-import { imgSize } from '@/utils/style';
-import { useQuery } from '@apollo/client';
-import Image from 'next/image';
-import Link from 'next/link';
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { IEventPageProps } from '@/types';
 import UserMenuList from '@/components/layout/UserMenuList';
 import CurrentEvent from '@/components/event/CurrentEvent';
-import Loader from '@/components/elements/Loader';
+import { getAllGroups } from '@/app/_requests/groups';
+import { notFound } from 'next/navigation';
+import { divisionsToOptionList } from '@/utils/helper';
+import GroupAddSidebar from '@/components/group/GroupAddSidebar';
 
-interface IGroupsPageProps {
-    params: {
-        eventId: string;
-    };
-}
 
-function GroupsPage({ params }: IGroupsPageProps) {
-    const { ldoIdUrl } = useLdoId();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const { data, refetch } = useQuery(GET_GROUPS, {
-        variables: { eventId: params.eventId },
-        fetchPolicy: 'network-only',
-    });
-    const [currDivision, setCurrDivision] = useState<string>('');
+async function GroupsPage({ params }: IEventPageProps) {
 
-    const handleDivisionSelection = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const inputEl = e.target as HTMLInputElement;
-        setCurrDivision(inputEl.value.trim());
-    };
+    const eventGroups = await getAllGroups(params.eventId);
 
-    const eventExist = data?.getEvent?.data;
-    const groupList: IGroupExpRel[] = data?.getEvent?.data?.groups || [];
-    const divisionList = eventExist ? divisionsToOptionList(eventExist.divisions) : []
+    if (!eventGroups) {
+      notFound();
+    }
 
-    if(isLoading) return <Loader />
+
+    const groupList = eventGroups?.groups || [];
+    const divisionList = divisionsToOptionList(eventGroups.divisions) || [];
+    
 
     return (
         <div className="min-h-screen container mx-auto px-6 text-center flex flex-col">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Event Groups</h1>
             {/* Event Menu Start */}
             <div className="event-and-menu p-8 rounded-lg shadow-lg">
-                {data?.getEvent?.data && <CurrentEvent currEvent={data?.getEvent?.data} />}
+            <CurrentEvent currEvent={eventGroups} />
                 <div className="navigator mt-8">
                     <UserMenuList eventId={params.eventId} />
                 </div>
@@ -58,56 +35,7 @@ function GroupsPage({ params }: IGroupsPageProps) {
 
             <main className="container mx-auto py-10 flex flex-col lg:flex-row gap-10">
                 {/* Sidebar */}
-                <motion.aside
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="lg:w-1/3 bg-gray-800 p-6 rounded-lg shadow-lg"
-                >
-                    <h2 className="text-2xl font-semibold mb-4">Actions</h2>
-                    <Link
-                        href={`/${params.eventId}/groups/new/${ldoIdUrl}`}
-                        className="flex items-center gap-3 bg-yellow-logo text-black py-3 px-4 rounded-lg transition-all text-lg font-medium"
-                    >
-                        <Image
-                            width={imgSize.logo}
-                            height={imgSize.logo}
-                            src="/icons/plus.svg"
-                            alt="plus"
-                            className="w-6 h-6"
-                        />
-                        Add New Group
-                    </Link>
-
-                    <div className="mt-6">
-                        <h3 className="text-lg font-medium mb-2">Select Division</h3>
-                        <SelectInput
-                            key="division-select"
-                            handleSelect={handleDivisionSelection}
-                            defaultValue={currDivision}
-                            name="division"
-                            optionList={divisionList}
-                            vertical={false}
-                            extraCls="w-full"
-                            rw="w-full"
-                        />
-                    </div>
-                </motion.aside>
-
-                {/* Content Area */}
-                <motion.section
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="lg:w-2/3 bg-gray-800 p-6 rounded-lg shadow-lg"
-                >
-                    <h2 className="text-2xl font-semibold mb-6">Group List</h2>
-                    {groupList.length > 0 ? (
-                        <GroupList currDivision={currDivision} groupList={groupList} setIsLoading={setIsLoading} divisionList={divisionList} refetch={refetch} />
-                    ) : (
-                        <p className="text-gray-300">No groups found for this division.</p>
-                    )}
-                </motion.section>
+                <GroupAddSidebar divisionList={divisionList} eventId={params.eventId} groupList={groupList} />
             </main>
         </div>
     );

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Field, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
@@ -19,20 +19,10 @@ import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
-import { EmailsenderService } from 'src/emailsender/emailsender.service';
 import { GroupService } from 'src/group/group.service';
-
-@ObjectType()
-class GetMatchesResponse extends AppResponse<Match[]> {
-  @Field((type) => [Match], { nullable: false })
-  data?: Match[];
-}
-
-@ObjectType()
-class GetMatchResponse extends AppResponse<Match> {
-  @Field((type) => Match, { nullable: true })
-  data?: Match | null;
-}
+import { EventMatches, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
+import { LdoService } from 'src/ldo/ldo.service';
+import { SponsorService } from 'src/sponsor/sponsor.service';
 
 @Resolver((of) => Match)
 export class MatchResolver {
@@ -46,6 +36,8 @@ export class MatchResolver {
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
+    private ldoService: LdoService,
+    private sponsorService: SponsorService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -262,8 +254,7 @@ export class MatchResolver {
       createPromises.push(this.matchService.updateOne({ _id: newMatch._id }, { nets: netIds, rounds: roundIds }));
 
       await Promise.all(createPromises);
-      const updatedEvent = await this.eventService.findOne({ _id: input.event });
-      console.log(newMatch);
+      await this.eventService.findOne({ _id: input.event });
 
       return {
         data: newMatch,
@@ -295,7 +286,7 @@ export class MatchResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetMatchResponse)
+  @Mutation((_returns) => GetMatchResponse)
   async deleteMatch(@Args('matchId') matchId: string) {
     try {
       const matchExist = await this.matchService.findById(matchId);
@@ -315,7 +306,7 @@ export class MatchResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetMatchResponse)
+  @Mutation((_returns) => GetMatchResponse)
   async deleteMatches(@Args('matchIds', { type: () => [String] }) matchIds: string[]) {
     try {
       const deletePromises = [];
@@ -343,7 +334,7 @@ export class MatchResolver {
     }
   }
 
-  @Query((returns) => GetMatchesResponse)
+  @Query((_returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     try {
       // Assuming matchService is injected in your class
@@ -354,6 +345,35 @@ export class MatchResolver {
         success: true,
         message: 'List of matches',
         data: matches,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((_returns) => GetEventWithMatchesResponse)
+  async getEventWithMatches(@Args('eventId', { nullable: false }) eventId: string) {
+    try {
+      // Assuming matchService is injected in your class
+      const [event, matches, teams, ldo, groups] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.matchService.find({ event: eventId }),
+        this.teamService.find({ event: eventId }),
+        this.ldoService.findOne({ events: { $in: [eventId] } }),
+        this.groupService.find({ event: eventId }),
+      ]);
+
+      const matchIds = matches.map((m) => m._id.toString());
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'Get details of event, matches, teams, ldo, groups, rounds, nets',
+        data: { event, matches, teams, ldo, groups, rounds, nets },
       };
     } catch (err) {
       return AppResponse.handleError(err);

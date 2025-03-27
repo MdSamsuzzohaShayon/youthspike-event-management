@@ -149,6 +149,10 @@ export class Event extends AppDocument {
   @Field({ nullable: true })
   @Prop({ required: true })
   location: string;
+
+  @Field({ nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  defaultSponsor: boolean;
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
