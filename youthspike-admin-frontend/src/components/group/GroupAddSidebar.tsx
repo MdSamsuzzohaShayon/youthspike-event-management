@@ -51,7 +51,6 @@ function GroupAddSidebar({ eventId, divisionList, groupList }: IGroupAddSidebarP
                 </Link>
 
                 <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-2">Select Division</h3>
                     <SelectInput
                         key="division-select"
                         handleSelect={handleDivisionSelection}

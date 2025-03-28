@@ -149,13 +149,12 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
 
 
 
-
   if (isLoading) return <Loader />;
 
   return (
     <React.Fragment>
       {/* Event Menu Start */}
-      <div className="event-and-menu p-8 rounded-lg shadow-lg">
+      <div className="event-and-menu">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
         <div className="team-name text-center">
           {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
@@ -167,8 +166,8 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
       {/* Event Menu End */}
 
       {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-        <div className="mb-4 division-selection w-full">
-          <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
+        <div className="mb-4 division-selection w-full mt-6">
+          <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisionList} />
         </div>
       )}
 
@@ -179,22 +178,22 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
             Player List
           </button>
           <PlayerAdd
-            setIsLoading={setIsLoading}
             eventId={currEvent._id}
             setAddPlayer={setAddPlayer}
             teamList={filteredTeamList}
             division={currDivision}
-            playerAddCB={playerAddCB}
           />
         </>
       ) : (
         <>
-          <h3 className="mt-4">Player List</h3>
-          {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-            <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
-              Add player
-            </button>
-          )}
+          <div className="w-full bg-gray-800 flex justify-between items-centet mb-2 p-2 rounded-lg">
+            <h3 className="mt-4">Player List</h3>
+            {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+              <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
+                Add player
+              </button>
+            )}
+          </div>
           <PlayerList
             playerList={activeList}
             eventId={currEvent._id}

@@ -23,6 +23,7 @@ import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useError } from '@/lib/ErrorContext';
 import { isISODateString } from '@/utils/datetime';
+import { setPlayerRankings } from '@/utils/localStorage';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -62,7 +63,7 @@ function PlayerList({
   inactive,
 }: IPlayerListProps) {
 
-
+  
 
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
@@ -154,6 +155,9 @@ function PlayerList({
       // Setting state
       setRankingsMap(newRankingsMap);
       setPlayers(newRankedPlayers); // This need to rank properly
+
+      // Set it to local storage
+      setPlayerRankings(updatedRanking) // To local storage
 
       await handleUpdate(updatedRanking);
     }
@@ -261,7 +265,7 @@ function PlayerList({
         {sortedPlayerList.map((player) => (
           <motion.li
             key={player._id}
-            className="sortable-item mb-2 flex items-center bg-gray-700 rounded-lg"
+            className="sortable-item mb-2 flex items-center bg-gray-800 rounded-lg p-2"
             variants={itemVariants}
             initial="hidden"
             animate="visible"

@@ -25,7 +25,7 @@ async function GroupsPage({ params }: IEventPageProps) {
         <div className="min-h-screen container mx-auto px-6 text-center flex flex-col">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Event Groups</h1>
             {/* Event Menu Start */}
-            <div className="event-and-menu p-8 rounded-lg shadow-lg">
+            <div className="event-and-menu">
             <CurrentEvent currEvent={eventGroups} />
                 <div className="navigator mt-8">
                     <UserMenuList eventId={params.eventId} />

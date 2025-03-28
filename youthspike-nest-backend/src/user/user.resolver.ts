@@ -75,7 +75,7 @@ export class UserResolver {
     private ldoService: LdoService,
     private jwtService: JwtService,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   @Mutation((_returns) => LoginResponse)
   async login(
@@ -137,16 +137,33 @@ export class UserResolver {
 
       if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
         let teamExist = null;
+        let captainOrCoCaptainPlayerId = null;
         if (userObj.role === UserRole.captain && userObj.captainplayer) {
-          teamExist = await this.teamService.findOne({ captainplayer: userObj.captainplayer });
+          teamExist = await this.teamService.findOne({ captain: userObj.captainplayer });
+          captainOrCoCaptainPlayerId = userObj.captainplayer;
         } else if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
-          teamExist = await this.teamService.findOne({ cocaptainplayer: userObj.cocaptainplayer });
+          teamExist = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer });
+          captainOrCoCaptainPlayerId = userObj.cocaptainplayer;
         }
-        if (teamExist) {
-          userObj.event = teamExist.event;
-          userObj.team = teamExist.name;
-          userObj.teamLogo = teamExist.logo;
+        if (!captainOrCoCaptainPlayerId) {
+          return AppResponse.notFound('Captain player');
         }
+        if (!teamExist) {
+          return AppResponse.notFound('Team');
+        }
+        const playerExist = await this.playerService.findOne({ _id: captainOrCoCaptainPlayerId });
+        if (!playerExist) {
+          return AppResponse.notFound('Player');
+        }
+        if (playerExist.events[0].toString() !== teamExist.event.toString()) {
+          console.log('Player event and team event did not match, ', {
+            playerEvent: playerExist.events[0],
+            teamEvent: teamExist.event,
+          });
+        }
+        userObj.event = playerExist.events[0].toString();
+        userObj.team = teamExist.name;
+        userObj.teamLogo = teamExist.logo;
       }
 
       const payload = {

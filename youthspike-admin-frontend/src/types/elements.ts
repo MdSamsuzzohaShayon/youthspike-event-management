@@ -11,6 +11,13 @@ export enum EAssignStrategies {
   ANCHORING = 'ANCHORING',
 }
 
+
+export enum EEnv{
+  development = "development",
+  production = "production",
+}
+
+
 export interface IMenuItem {
   id: number;
   imgName: string;

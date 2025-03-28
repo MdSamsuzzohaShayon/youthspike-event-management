@@ -17,7 +17,7 @@ function EventCard({ event }: IEventCardProps) {
 
 
   return (
-    <div key={event._id} className="box p-6 bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300">
+    <div key={event._id} className="box p-6 bg-gray-800 hover:shadow-2xl transition-shadow duration-300">
       <a href={`/events/${event._id}`} className="block">
         <div className="img-wrapper flex justify-center items-center mb-4">
           <AdvancedImage className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg" alt={event.name} cldImg={cld.image(event.logo)} />

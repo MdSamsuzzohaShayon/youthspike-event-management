@@ -51,7 +51,7 @@ const EventDetail = ({ currEvent }: { currEvent: IEvent }) => {
     <div className="flex items-center justify-center py-6 px-0 md:px-6">
       <div className="relative bg-gray-800 rounded-3xl shadow-2xl overflow-visible w-full max-w-3xl flex flex-col items-center gap-6 py-10 px-0">
         {/* Background Gradient */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-tr from-yellow-500/10 to-gray-800/10 opacity-80"></div>
+        <div className="overflow-gradient"></div>
 
         {/* Floating Logo */}
         <div className="relative z-10 -mt-24 p-4 bg-gray-800 rounded-full shadow-lg">

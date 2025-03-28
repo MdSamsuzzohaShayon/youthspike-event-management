@@ -50,7 +50,8 @@ export class PlayerService {
   }
 
   async findById(playerId: string) {
-    return this.playerModel.findById(playerId);
+    const playerExist = await this.playerModel.findById(playerId);
+    return playerExist;
   }
 
   async findOne(filter: FilterQuery<Player>) {

@@ -53,15 +53,27 @@ ___
       
 
 ### Requirements 
+ - Ranking must work as expected
+ - No space in Username
+ - Using Redis with MongoDB follow **using_redis.txt** file
+ - Updating net with 0 point, If we put one 0 in a net others net must not fill with zeros.
+ - Sometime players are not available to re-rank on team page
+ - In team list page, make sure clicking on a team take to right team page
+ - In frontend, change text **main event** to **standing**
+ - Team standings must have team logo
+ - Admin should be able to re-rank after ranking lock
+
+___
+
  - Speed up
     - Individual team (Make pagination) -> https://admin.aslsquads.com/679126dadf9ccad052a14765/teams/679126f5df9ccad052a14912?ldoId=6791265adf9ccad052a1460e 
     - Matches (list of match must be updated)
     - 
  - Email seing and staying at position
  - Filtering need to work properly
- - Roster lock and change to matches component
  - Make username unique (every player will have a unique name at the beginning)
  - When making co-captain make sure he is not captain of any other team
+ - Roster lock and change to matches component
  
  - So I think as far as list goes- 
   1.) loading speed on public view standings, 
@@ -71,7 +83,7 @@ ___
  - Sorting matches -> group selected
  - Resize logos
  - Make it faster
- - DIvision and group select input (taking multiple times to click)
+ - Division and group select input (taking multiple times to click)
  - Team name change (bg color in the match)
  - Nginx load balancing
  - Node.js module (Clusters)

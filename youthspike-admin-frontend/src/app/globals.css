@@ -179,6 +179,19 @@ dialog::backdrop {
   background: #fce013;
 }
 
+.bg-yellow-gradient{
+  @apply bg-gradient-to-r from-[#fce013] to-[#fff293];
+}
+
+.bg-gray-gradient{
+  /* // bg-gradient-to-r from-[#fce013] to-[#fff293] */
+  @apply bg-gradient-to-b from-gray-900 to-gray-800;
+}
+
+.overflow-gradient{
+  @apply absolute inset-0 z-0 bg-gradient-to-tr from-yellow-500/10 to-gray-800/10 opacity-80;
+}
+
 .text-yellow{
   color: #fce013;
 }

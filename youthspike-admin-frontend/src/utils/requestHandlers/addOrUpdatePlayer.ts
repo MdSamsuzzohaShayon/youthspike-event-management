@@ -6,7 +6,6 @@ import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { getTeamFromStore } from "../localStorage";
 import { handleResponse } from "../handleError";
-import { useError } from "@/lib/ErrorContext";
 import { IError } from "@/types";
 
 interface IAddOrUpdatePlayer {
@@ -85,7 +84,11 @@ async function addOrUpdatePlayer({ setActErr, setIsLoading, playerState, divisio
 
         if (!update && playerRes?.data?.createPlayer?.data) {
             if (playerAddCB) playerAddCB(playerRes.data.createPlayer.data);
-            if (teamExist) return router.push(`/${eventId}/teams/${teamExist}/${ldoIdUrl}`);
+            if (teamExist) {
+                 router.push(`/${eventId}/teams/${teamExist}/${ldoIdUrl}`);
+                 router.refresh();
+                 return;
+            }
         } else {
             if (playerRes?.data?.updatePlayer?.data) {
                 if (playerUpdateCB) playerUpdateCB(playerRes?.data?.updatePlayer?.data);
@@ -111,8 +114,10 @@ async function addOrUpdatePlayer({ setActErr, setIsLoading, playerState, divisio
         if (update && success) {
             if (teamExist) {
                 router.push(`/${eventId}/teams/${teamExist}/${ldoIdUrl}`);
+                router.refresh();
             } else {
                 router.push(`/${eventId}/players/${ldoIdUrl}`);
+                router.refresh();
             }
         }
     }

@@ -29,6 +29,7 @@ async function getAllGroups(eventId: string) {
   }
 
   const res = await fetch(`${BACKEND_URL}/graphql`, {
+    next: { tags: ['groups'] },  // Attach a tag to this fetch request
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

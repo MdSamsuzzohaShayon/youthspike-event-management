@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from "framer-motion";
 import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItem, ITeam } from '@/types';
-import { setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
+import { removePlayerRankings, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { AdvancedImage } from '@cloudinary/react';
@@ -92,6 +92,10 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
   const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => { }
 
   useEffect(() => {
+    //Removing player rankings
+    removePlayerRankings();
+
+
     // Set division
     setDivisionToStore(team.division);
     setTeamToStore(team._id);
@@ -164,9 +168,9 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
       <div className="flex flex-col items-center">
         {/* Header Section */}
-        <div className="team-detail w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
+        <div className="team-detail relative w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
           {/* Decorative Glow */}
-          <div className="absolute inset-0 bg-yellow-400 opacity-10 rounded-2xl blur-lg" />
+          <div className="overflow-gradient" />
 
           {/* Team Logo */}
           {team.logo ? (
@@ -234,14 +238,14 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
             </div>
             <form onSubmit={handleAddPlayersToTeam} className="mb-4">
               <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
-              <button type="submit" className="btn-primary mt-4">
+              <button type="submit" className="btn-info mt-4">
                 Add
               </button>
             </form>
           </>
         ) : (
 
-          <div className="bulk-operations-players mt-6 p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto">
+          <div className="bulk-operations-players mt-6 p-4 bg-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row w-full justify-between items-center gap-4">
               <h3 className="text-xl text-white font-semibold text-center md:text-left">Player List</h3>

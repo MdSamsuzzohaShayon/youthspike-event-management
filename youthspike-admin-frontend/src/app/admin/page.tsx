@@ -1,31 +1,14 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { GET_SYSTEM_DETAILS_RAW } from '@/graphql/director';
-import { BACKEND_URL } from '@/utils/keys';
+import { getSystemDetails } from '../_requests/system';
 
-async function fetchSystemDetails() {
-  // const token = getCookie('token');
-  const res = await fetch(BACKEND_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Authorization: `Bearer ${token}`, // Ensure API token is stored securely
-    },
-    body: JSON.stringify({
-      query: GET_SYSTEM_DETAILS_RAW,
-    }),
-    cache: 'no-store', // Adjust caching as needed
-  });
-
-  const { data } = await res.json();
-  if (!data?.getSystemDetails?.data) notFound();
-  
-  const { ldos, events, players, matches, teams } = data.getSystemDetails.data;
-  return [ldos, events, players, matches, teams];
-}
 
 export default async function AdminPage() {
-  const [ldos, events, players, matches, teams] = await fetchSystemDetails();
+  const systemDetail = await getSystemDetails()
+
+  if (!systemDetail) notFound();
+    
+  const { ldos, events, players, matches, teams } = systemDetail;
 
 
 

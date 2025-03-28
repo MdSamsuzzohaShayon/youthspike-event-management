@@ -131,14 +131,19 @@ function MatchList({ matchList }: IMatchListProps) {
 
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
-      <SelectInput lblTxt="Match Filter" name="matchFilter" optionList={filterOptions.map((o) => ({ text: o.text.replace(/_/g, ' '), value: o.text }))} handleSelect={handleMatchFilter} />
+      <SelectInput
+        label="Match Filter"
+        name="matchFilter"
+        optionList={filterOptions.map((o, oI) => ({ id: oI + 1, text: o.text.replace(/_/g, ' '), value: o.text }))}
+        handleSelect={handleMatchFilter}
+      />
       {paginatedMatchList &&
         paginatedMatchList.map((match) => (
           // @ts-ignore
           <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} allNets={match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id || n.round })) : []} />
         ))}
 
-      <div className="w-full">
+      <div className="w-full mt-6">
         <Pagination currentPage={currentPage} itemList={filteredMatchList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
     </div>

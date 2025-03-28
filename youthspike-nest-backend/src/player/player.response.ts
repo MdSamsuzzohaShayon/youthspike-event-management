@@ -18,7 +18,7 @@ export class PlayersResponse extends AppResponse<Player[]> {
 
 @ObjectType()
 export class CustomPlayer extends Player {
-    @Field((_type) => [String], { nullable: false })
+  @Field((_type) => [String], { nullable: false })
   teams: string[];
 
   @Field((_type) => [String], { nullable: true })
@@ -27,7 +27,6 @@ export class CustomPlayer extends Player {
   @Field((_type) => [String], { nullable: true })
   cocaptainofteams: string[];
 }
-
 
 @ObjectType()
 export class EventWithPlayers {
@@ -48,4 +47,21 @@ export class EventWithPlayers {
 export class GetEventWithPlayersResponse extends AppResponse<EventWithPlayers> {
   @Field((_type) => EventWithPlayers, { nullable: true })
   data?: EventWithPlayers;
+}
+
+// getAPlayerAndAllTeams
+
+@ObjectType()
+export class PlayerAndTeams {
+  @Field((_type) => CustomPlayer, { nullable: true })
+  player?: CustomPlayer;
+
+  @Field((_type) => [CustomTeam], { nullable: true })
+  teams?: CustomTeam[];
+}
+
+@ObjectType()
+export class GetPlayerAndTeamsResponse extends AppResponse<PlayerAndTeams> {
+  @Field(() => PlayerAndTeams, { nullable: true })
+  data?: PlayerAndTeams;
 }

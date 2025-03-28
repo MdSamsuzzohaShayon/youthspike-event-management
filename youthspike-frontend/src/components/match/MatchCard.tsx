@@ -121,7 +121,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
   return (
     <motion.div
-      className="w-full bg-gray-700 flex flex-col justify-between items-center relative rounded-lg shadow-lg overflow-hidden"
+      className="w-full bg-gray-800 flex flex-col justify-between items-center relative rounded-lg shadow-lg overflow-hidden"
       style={{ minHeight: '6rem' }}
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}

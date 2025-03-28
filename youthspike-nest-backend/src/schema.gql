@@ -326,6 +326,18 @@ type GetEventWithPlayersResponse {
   data: EventWithPlayers
 }
 
+type PlayerAndTeams {
+  player: CustomPlayer
+  teams: [CustomTeam!]
+}
+
+type GetPlayerAndTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: PlayerAndTeams
+}
+
 type CreateOrUpdateTeamResponse {
   code: Int!
   success: Boolean!
@@ -758,6 +770,7 @@ type Query {
   getEventDirectors: GetDirectorsLDOResponse!
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
+  getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
   getPlayers(eventId: String!): PlayersResponse!
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!

@@ -4,7 +4,7 @@ import { ICommonMatchEvent, IMatch } from './match';
 import { EAssignStrategies, IError } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
-import { ILDO } from './ldo';
+import { ILDO, ILDOItem } from './ldo';
 import { IGroup } from './group';
 
 export enum EEventPeriod {
@@ -61,7 +61,7 @@ export interface IEventExpRel extends IEvent {
   matches: IMatch[];
   players: IPlayer[];
   teams: ITeam[];
-  ldo: ILDO;
+  ldo: ILDOItem;
   groups: IGroup[];
 }
 

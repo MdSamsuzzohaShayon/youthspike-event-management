@@ -251,7 +251,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   return (
     <>
       <div
-        className={`flex items-center gap-3 w-full`}
+        className={`relative flex items-center gap-3 w-full`}
       >
         {/* Draggable element start  */}
         <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>

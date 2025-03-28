@@ -160,7 +160,7 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
       </dialog>
       
       {/* Event Menu Start */}
-      <div className="event-and-menu p-8 rounded-lg shadow-lg">
+      <div className="event-and-menu">
         { eventDetail?.event && <CurrentEvent currEvent={ eventDetail.event} />}
         <div className="navigator mt-8">
           <UserMenuList eventId={ eventDetail.event._id} />

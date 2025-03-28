@@ -1,52 +1,35 @@
-'use client'
-
-import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
+import { getPlayerAndTeams } from '@/app/_requests/players';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import { GET_A_EVENT } from '@/graphql/event';
-import { GET_A_PLAYER } from '@/graphql/players';
-import { useError } from '@/lib/ErrorContext';
-import { IError, IPlayerExpRel } from '@/types';
-import { divisionsToOptionList } from '@/utils/helper';
-import { useQuery } from '@apollo/client';
-import React, { useEffect, useRef, useState } from 'react';
+import { IPlayerExpRel } from '@/types';
+import { notFound } from 'next/navigation';
 
 
-function PlayerSingle({ params }: { params: { eventId: string, playerId: string } }) {
-  // ====== Local State ========
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-    const {setActErr} = useError();
+interface IPlayerSingleProps{
+  params: {
+    eventId: string;
+    playerId: string;
+  }
+}
+// GET_A_PLAYER_RAW
+async function PlayerSingle({ params }: IPlayerSingleProps) {
+
+  const playerAndTeams = await getPlayerAndTeams(params.playerId, params.eventId);
   
 
-
-  const { data, error, loading, refetch } = useQuery(GET_A_PLAYER, { variables: { playerId: params.playerId }, fetchPolicy: "network-only" });
-  const { data: eventData, error: eventErr, loading: eventLoading } = useQuery(GET_A_EVENT, { variables: { eventId: params.eventId } });
-
-  // ======  Callback functions ====== 
-  const playerUpdateCB = (playerData: IPlayerExpRel) => { }
-  
-  const refetchFunc= async ()=>{
-    await refetch();
+  if(!playerAndTeams){
+    notFound();
   }
 
-  if (loading || isLoading || eventLoading) return <Loader />;
 
 
-  const prevPlayer = data?.getPlayer?.data;
 
-  const teamList = eventData?.getEvent?.data?.teams ? eventData?.getEvent?.data?.teams : [];
+  const {player, teams} = playerAndTeams;
 
-  if(error){
-    console.log(error);
-    
-  }
 
-  
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       <h1>Player Update</h1>
-      {prevPlayer && <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} update prevPlayer={prevPlayer} refetchFunc={refetchFunc} teamList={teamList} playerUpdateCB={playerUpdateCB} 
-       />}
+       <PlayerAdd eventId={params.eventId} update prevPlayer={player} teamList={teams} />
     </div>
   )
 }

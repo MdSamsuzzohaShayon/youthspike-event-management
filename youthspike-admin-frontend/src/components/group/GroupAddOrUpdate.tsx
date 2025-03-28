@@ -77,10 +77,6 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup }: I
 
   const handleGroupAdd = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (groupState.name === '') {
-      setActErr({ message: "Must set a name for the group", success: false });
-      return;
-    }
 
     if (groupState.division === '') {
       setActErr({ message: "Must a division for the group", success: false });
@@ -94,6 +90,7 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup }: I
       const success = await handleResponse({ response: groupResponse.data.createGroup, setActErr });
       if (success) {
         router.push(`/${eventId}/groups`);
+        router.refresh();
       }
 
     } catch (error: any) {
@@ -128,7 +125,7 @@ function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup }: I
         handleInputChange={handleInputChange} label="Name" name="name" />
       <SelectInput key="division-1" name='division' handleSelect={handleDivisionInputChange} 
       defaultValue={groupState.division ? groupState.division.toString().trim().toLocaleLowerCase() : null} 
-      optionList={divisionsToOptionList(divisions)} label="Division" />
+      optionList={divisionsToOptionList(divisions)} label="Division" required={!update} />
 
       <div className="mt-4">
         <TeamSelectInput name='teams' teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />

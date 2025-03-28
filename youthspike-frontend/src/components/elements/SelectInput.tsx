@@ -1,36 +1,28 @@
-/* eslint-disable react/require-default-props */
-import { IOption } from '@/types';
+/* eslint-disable react/jsx-props-no-spreading */
+import { ISelectInputProps } from '@/types';
 import React from 'react';
 
-interface ISelectInputProps {
-  name: string;
-  optionList: IOption[];
-  defaultTxt?: string;
-  // eslint-disable-next-line no-unused-vars
-  handleSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  defaultValue?: string | number;
-  lblTxt?: string;
-}
-
-function SelectInput({ lblTxt, name, defaultTxt, optionList, defaultValue, handleSelect }: ISelectInputProps) {
+function SelectInput({ className, name, optionList, label, defaultValue, value, handleSelect }: ISelectInputProps) {
   return (
-    <div className="flex flex-col gap-1">
-      <label htmlFor={name} className="text-sm font-medium text-gray-300">
-        {lblTxt || name}
+    <div className={`flex flex-col gap-1 ${className || ''}`}>
+      <label htmlFor={name} className="capitalize text-lg font-semibold mb-1">
+        {label || name}
       </label>
+
       <select
         onChange={handleSelect}
         name={name}
         id={name}
-        defaultValue={defaultValue}
-        className="w-full p-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        className="p-3 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        {...(defaultValue ? { defaultValue } : {})}
+        {...(value ? { value } : {})}
       >
-        <option value="" className="text-gray-400">
-          {defaultTxt || 'Select an option'}
+        <option value="" className="bg-gray-400 text-gray-700">
+          {`Select ${name}`}
         </option>
         {optionList.map((o) => (
-          <option value={o.value} key={o.value} className="text-gray-400">
-            {o.text || o.value}
+          <option value={o.value} key={o.id} className="capitalize">
+            {o.text ? o.text : o.value}
           </option>
         ))}
       </select>

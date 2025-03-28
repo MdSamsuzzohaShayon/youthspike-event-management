@@ -160,7 +160,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
     <React.Fragment>
 
       {/* Event Menu Start */}
-      <div className="event-and-menu p-8 rounded-lg shadow-lg">
+      <div className="event-and-menu">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
         <div className="navigator mt-4">
           <UserMenuList eventId={currEvent._id} />

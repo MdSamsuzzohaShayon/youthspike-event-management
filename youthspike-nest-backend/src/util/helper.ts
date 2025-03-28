@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 interface JwtPayload {
   _id: string;
   // Add other properties if necessary
+  passcode: string | null;
 }
 
 export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any> {
@@ -20,7 +21,7 @@ export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any
 
 export function tokenToUser(context, secret: string): JwtPayload | null {
   const authToken = context.req.headers.authorization;
-  if(!authToken) return null;
+  if (!authToken) return null;
   const token = authToken.split(' ');
   let user: JwtPayload | null = null;
   const baseToken = token[1];
@@ -30,7 +31,6 @@ export function tokenToUser(context, secret: string): JwtPayload | null {
   if (!user || !user._id) return null;
   return user;
 }
-
 
 export function checkDateHasPassed(isoDate: string): boolean {
   // Check if the date is a valid ISO date
@@ -54,12 +54,11 @@ export function checkDateHasPassed(isoDate: string): boolean {
   }
 }
 
-
 export function isISODateString(dateString) {
   // Check if it's a string and matches the ISO 8601 format
   const isoFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[\+\-]\d{2}:\d{2})?$/;
   if (typeof dateString !== 'string' || !isoFormat.test(dateString)) {
-      return false;
+    return false;
   }
 
   // Attempt to parse it as a Date and check if it's valid
@@ -70,11 +69,10 @@ export function isISODateString(dateString) {
 export function formatDate(isoString: string): string {
   const date = new Date(isoString);
   const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long', // Literal type: 'long', 'short', or 'narrow'
-      year: 'numeric', // Literal type: 'numeric' or '2-digit'
-      month: 'long', // Literal type: 'long', 'short', 'narrow', 'numeric', or '2-digit'
-      day: '2-digit', // Literal type: 'numeric' or '2-digit'
+    weekday: 'long', // Literal type: 'long', 'short', or 'narrow'
+    year: 'numeric', // Literal type: 'numeric' or '2-digit'
+    month: 'long', // Literal type: 'long', 'short', 'narrow', 'numeric', or '2-digit'
+    day: '2-digit', // Literal type: 'numeric' or '2-digit'
   };
   return new Intl.DateTimeFormat('en-US', options).format(date);
 }
-

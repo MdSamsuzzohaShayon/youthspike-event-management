@@ -9,7 +9,7 @@ import Loader from '@/components/elements/Loader';
 import { IError, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useLazyQuery } from '@apollo/client';
-import { GET_A_EVENT } from '@/graphql/event';
+import { GET_AN_EVENT } from '@/graphql/event';
 import { GET_A_PLAYER } from '@/graphql/players';
 import { isValidObjectId } from '@/utils/helper';
 import { useUser } from '@/lib/UserProvider';
@@ -38,7 +38,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
   const [teamList, setTeamList] = useState<ITeam[]>([]);
 
   // Queries
-  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_A_EVENT, {
+  const [fetchEvent, { data, loading, error }] = useLazyQuery(GET_AN_EVENT, {
     variables: { eventId: params.eventId },
   });
 
@@ -98,7 +98,7 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
       </motion.h1>
 
       {/* Event Menu Start */}
-      {/* <div className="event-and-menu p-8 rounded-lg shadow-lg">
+      {/* <div className="event-and-menu">
         {prevEvent && <CurrentEvent currEvent={prevEvent} />}
         <div className="team-name text-center mt-4">
           {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
@@ -114,12 +114,10 @@ const SettingsPage = ({ params }: { params: { eventId: string } }) => {
         {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? (
           prevPlayer && (
             <PlayerAdd
-              setIsLoading={setIsLoading}
               eventId={params.eventId}
               update
               prevPlayer={prevPlayer}
               teamList={teamList}
-              playerUpdateCB={playerUpdateCB}
             />
           )
         ) : (

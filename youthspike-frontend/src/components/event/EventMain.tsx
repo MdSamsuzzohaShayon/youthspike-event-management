@@ -12,7 +12,7 @@ import { validateMatchDatetime } from '@/utils/datetime';
 import EventList from './EventList';
 import Pagination from '../elements/Pagination';
 import SelectInput from '../elements/SelectInput';
-import TextInput from '../elements/TextInput';
+import InputField from '../elements/InputField';
 
 interface IEventMainProps {
   events: IEventWMatch[];
@@ -24,7 +24,7 @@ interface IFilterParams {
 
 const ITEMS_PER_PAGE = 20;
 
-const dateOptions = [EEventPeriod.CURRENT, EEventPeriod.PAST].map((o) => ({ text: o, value: o }));
+const dateOptions = [EEventPeriod.CURRENT, EEventPeriod.PAST].map((o) => ({ id: 1, text: o, value: o }));
 
 function EventMain({ events }: IEventMainProps) {
   // ===== Hooks =====
@@ -74,6 +74,8 @@ function EventMain({ events }: IEventMainProps) {
         const searchText = filterParams.search.toLowerCase();
         if (currEvent.name?.toLowerCase().includes(searchText) || currEvent.description?.toLowerCase().includes(searchText) || currEvent.location?.toLowerCase().includes(searchText)) {
           matchFound = true;
+        } else {
+          matchFound = false;
         }
       }
 
@@ -84,15 +86,15 @@ function EventMain({ events }: IEventMainProps) {
     const pe = newEventList.slice(start, start + ITEMS_PER_PAGE);
 
     return pe;
-  }, [currentPage, events, filterParams.date, filterParams.search]);
+  }, [currentPage, events, filterParams]);
 
   return (
     <React.Fragment>
-      {/* Search and Filter Section */}
-      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gradient-to-tl from-gray-900 via-gray-800 to-gray-900 p-6 rounded-lg shadow-lg">
+      {/* Search and Filter Section - bg-gradient-to-tl from-gray-900 via-gray-800 to-gray-900 */}
+      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
         <div className="input-group grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SelectInput handleSelect={handlePeriodChange} name="period" optionList={dateOptions} lblTxt="Event Date" defaultValue={EEventPeriod.CURRENT} />
-          <TextInput handleInputChange={handleInputChange} name="search" placeholder="Search events..." lblTxt="search events" />
+          <SelectInput handleSelect={handlePeriodChange} name="period" optionList={dateOptions} label="Event Date" defaultValue={EEventPeriod.CURRENT} />
+          <InputField type="text" handleInputChange={handleInputChange} name="search" label="search events" />
         </div>
       </div>
 

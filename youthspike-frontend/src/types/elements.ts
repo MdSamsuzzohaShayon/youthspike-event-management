@@ -54,6 +54,31 @@ export enum EEnv {
 //   handleInputChange: (e: React.SyntheticEvent) => void;
 // }
 
+export interface IOption {
+  id: number;
+  value: string;
+  text?: string;
+}
+
+interface IInputCommon {
+  name: string;
+  label?: string;
+  required?: boolean;
+  className?: string;
+  defaultValue?: string | number;
+  value?: string | number;
+}
+
+export interface InputFieldProps extends IInputCommon {
+  type: string;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+export interface ISelectInputProps extends IInputCommon {
+  optionList: IOption[];
+  handleSelect: (e:  React.ChangeEvent<HTMLSelectElement>) => void;
+}
+
 export interface ITextInputProps {
   name: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -109,22 +134,7 @@ export interface IToggleInputProps {
   handleValueChange: (e: React.SyntheticEvent, stateName: string) => void;
 }
 
-export interface IOption {
-  value: string;
-  text?: string;
-}
 
-export interface ISelectInputProps {
-  lw?: string;
-  rw?: string;
-  extraCls?: string;
-  lblTxt?: string;
-  name: string;
-  vertical?: boolean;
-  optionList: IOption[];
-  defaultValue?: string | number;
-  handleSelect: (e: React.SyntheticEvent) => void;
-}
 
 export interface IButtonProps {
   handleClickEvent: (e: React.SyntheticEvent) => void;

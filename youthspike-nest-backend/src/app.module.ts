@@ -15,7 +15,7 @@ import { TeamModule } from './team/team.module';
 import { MatchModule } from './match/match.module';
 import { RoundModule } from './round/round.module';
 import { NetModule } from './net/net.module';
-import { GatewayModule } from './getway/geteway.module';
+import { GatewayModule } from './gateway/geteway.module';
 import { LdoModule } from './ldo/ldo.module';
 import { PlayerModule } from './player/player.module';
 import { SponsorModule } from './sponsor/sponsor.module';

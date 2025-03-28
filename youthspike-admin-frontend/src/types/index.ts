@@ -32,7 +32,7 @@ import { IAddMatch, IMatch, IDefaultMatchProps, IMatchRelatives, IMatchExpRel} f
 import { IRoundBase, IRoundRelatives, IRoundExpRel } from "./round";
 import { IGroupAdd, IGroup, IGroupExpRel, IGroupRelatives } from "./group";
 import { INetRelatives, INetBase, INetExpRel } from "./net";
-import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from "./playerRanking";
+import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingExpRel, IPlayerRankingItemExpRel, IPlayerWithRank } from "./playerRanking";
 import { ICreateNewEventProps } from "./socket";
 
 export type {
@@ -121,6 +121,7 @@ export type {
   IPlayerRankingExpRel, 
   IPlayerRankingItemExpRel,
   IPlayerRank,
+  IPlayerWithRank,
 
   // Soicket
   ICreateNewEventProps,
