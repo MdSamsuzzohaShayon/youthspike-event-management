@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
+'use client'
+
+import React, { useEffect, useRef, useState } from 'react';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
 import { IOption, ITeam } from '@/types';
@@ -17,14 +19,11 @@ import InputField from '../elements/forms/InputField';
 interface IPlayerAddProps {
   eventId: string,
   prevPlayer?: IPlayer | null;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   teamList: ITeam[];
   division?: string;
   update?: boolean;
   playerAddCB?: (playerData: IPlayerExpRel) => void;
-  playerUpdateCB?: (playerData: IPlayerExpRel) => void;
-  refetchFunc?: () => Promise<void>;
 }
 
 const initialPlayerAdd = {
@@ -38,7 +37,7 @@ const initialPlayerAdd = {
   division: ''
 };
 
-function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB, playerUpdateCB, refetchFunc }: IPlayerAddProps) {
+function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB }: IPlayerAddProps) {
 
 
   // React Hooks
@@ -55,6 +54,8 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
   const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
   const uploadedProfile = useRef<File | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
+  // setIsLoading={setIsLoading}
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
 
@@ -68,6 +69,13 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       setPlayerState(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
     }
   }
+
+    // ======  Callback functions ====== 
+    const playerUpdateCB = (playerData: IPlayerExpRel) => { }
+  
+    const refetchFunc= async ()=>{
+      // await refetch();
+    }
 
   const handleFileChange = (uploadedFile: Blob | MediaSource) => {
     // @ts-ignore
@@ -153,7 +161,7 @@ function PlayerAdd({ eventId, setIsLoading, update, prevPlayer, setAddPlayer, te
       </React.Fragment>)}
 
       <div className="input-group w-full mb-4">
-        <button type="submit" className='btn-secondary mt-8'>{update ? "Save" : "Submit"}</button>
+        <button type="submit" className='btn-info mt-8'>{update ? "Update" : "Create"}</button>
       </div>
     </form>
   )

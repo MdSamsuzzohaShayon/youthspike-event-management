@@ -28,7 +28,7 @@ export class Player extends AppDocument {
 
   @Field((_type) => String, { nullable: true })
   @Prop({ required: false, unique: true })
-  username?: string | null;
+  username: string;
 
   @Field({ nullable: true })
   @Prop({ required: false })

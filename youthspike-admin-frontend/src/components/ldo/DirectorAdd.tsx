@@ -140,28 +140,28 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
                 {/* Input Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-1" name="name" type="text" label="Name" value={ldoState.name} onChange={handleLdoChange} required={!update} />
+                        <InputField key="dau-1" name="name" type="text" label="Name" value={ldoState.name} handleInputChange={handleLdoChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-2" name="firstName" type="text" label="First Name" value={directorState.firstName} onChange={handleDirectorChange} required={!update} />
+                        <InputField key="dau-2" name="firstName" type="text" label="First Name" value={directorState.firstName} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-3" name="lastName" type="text" label="Last Name" value={directorState.lastName} onChange={handleDirectorChange} required={!update} />
+                        <InputField key="dau-3" name="lastName" type="text" label="Last Name" value={directorState.lastName} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-4" name="phone" type="text" label="Phone" value={ldoState.phone} onChange={handleLdoChange} required={!update} />
+                        <InputField key="dau-4" name="phone" type="number" label="Phone" value={ldoState.phone} handleInputChange={handleLdoChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-5" name="email" type="email" label="Email" value={directorState.email} onChange={handleDirectorChange} required={!update} />
+                        <InputField key="dau-5" name="email" type="email" label="Email" value={directorState.email} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-6" name="passcode" type="password" label="Passcode" value={directorState.passcode} onChange={handleDirectorChange} required={!update} />
+                        <InputField key="dau-6" name="passcode" type="password" label="Passcode" value={directorState.passcode} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-7" name="password" type="password" label="Password" value={directorState.password} onChange={handleDirectorChange} required={!update} />
+                        <InputField key="dau-7" name="password" type="password" label="Password" value={directorState.password} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <InputField key="dau-8" name="confirmPassword" type="password" label="Confirm Password" value={directorState.confirmPassword} onChange={handleDirectorChange} required={!update} />
+                        <InputField key="dau-8" name="confirmPassword" type="password" label="Confirm Password" value={directorState.confirmPassword} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
                         <FileInput key="fil-da-1" defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' />

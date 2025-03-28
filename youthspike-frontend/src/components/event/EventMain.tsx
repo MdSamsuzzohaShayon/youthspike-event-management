@@ -74,6 +74,8 @@ function EventMain({ events }: IEventMainProps) {
         const searchText = filterParams.search.toLowerCase();
         if (currEvent.name?.toLowerCase().includes(searchText) || currEvent.description?.toLowerCase().includes(searchText) || currEvent.location?.toLowerCase().includes(searchText)) {
           matchFound = true;
+        } else {
+          matchFound = false;
         }
       }
 
@@ -84,7 +86,7 @@ function EventMain({ events }: IEventMainProps) {
     const pe = newEventList.slice(start, start + ITEMS_PER_PAGE);
 
     return pe;
-  }, [currentPage, events, filterParams.date, filterParams.search]);
+  }, [currentPage, events, filterParams]);
 
   return (
     <React.Fragment>

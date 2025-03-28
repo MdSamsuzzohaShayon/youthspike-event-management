@@ -24,7 +24,7 @@ function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: I
   if (totalPages < 1) return null;
 
   return (
-    <div className="flex items-center justify-center space-x-6 mt-6 p-4 bg-black rounded-lg shadow-xl">
+    <div className="flex items-center justify-center space-x-6">
       <button
         type="button"
         onClick={handlePrev}

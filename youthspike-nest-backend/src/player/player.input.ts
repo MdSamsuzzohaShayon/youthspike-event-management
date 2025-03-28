@@ -10,7 +10,7 @@ export class CreatePlayerInput {
   lastName: string;
 
   @Field({ nullable: true })
-  username: string;
+  username?: string;
 
   @Field()
   event: string;

@@ -139,7 +139,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     return (
         <form onSubmit={handleTeamAdd} className='flex flex-col gap-2'>
             <InputField type="text" name='name' required={!update} defaultValue={teamState.name} className='mt-6' handleInputChange={handleInputChange} />
-            <SelectInput key="g-t-d" handleSelect={handleInputChange} name='group' className='mt-6'
+            <SelectInput key="g-t-d" required={!update} handleSelect={handleInputChange} name='group' className='mt-6'
                 {...(prevTeam?.group ? { defaultValue: prevTeam.group._id } : {})}
                 optionList={teamState.division && teamState.division !== ''
                     ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI+1, text: g.name, value: g._id }))
@@ -154,8 +154,8 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
             {playerIdList.length > 0 && !update && toBeCaptains()}
 
             <div className="input-group w-full mb-4">
-                <button className='btn-primary mr-2' type='submit'>{update ? "Update" : "Save"}</button>
-                {!update && <button className='btn-primary' type='button' onClick={handleSaveAndCreate}>Save & Create Another</button>}
+                <button className='btn-info mr-2' type='submit'>{update ? "Update" : "Save"}</button>
+                {!update && <button className='btn-info' type='button' onClick={handleSaveAndCreate}>Save & Create Another</button>}
             </div>
         </form>
     )

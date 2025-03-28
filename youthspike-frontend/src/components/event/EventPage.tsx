@@ -13,7 +13,7 @@ async function EventPage() {
   }
 
   return (
-    <div className="event-wrapper w-full bg-black text-white min-h-screen">
+    <div className="event-wrapper w-full min-h-screen">
       <div className="container mx-auto px-4 py-8">
         {/* Logo Section */}
         <div className="logo-wrapper w-full flex items-center justify-center mt-8">

@@ -168,9 +168,9 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
       <div className="flex flex-col items-center">
         {/* Header Section */}
-        <div className="team-detail w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
+        <div className="team-detail relative w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
           {/* Decorative Glow */}
-          <div className="absolute inset-0 bg-yellow-400 opacity-10 rounded-2xl blur-lg" />
+          <div className="overflow-gradient" />
 
           {/* Team Logo */}
           {team.logo ? (
@@ -238,7 +238,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
             </div>
             <form onSubmit={handleAddPlayersToTeam} className="mb-4">
               <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
-              <button type="submit" className="btn-primary mt-4">
+              <button type="submit" className="btn-info mt-4">
                 Add
               </button>
             </form>

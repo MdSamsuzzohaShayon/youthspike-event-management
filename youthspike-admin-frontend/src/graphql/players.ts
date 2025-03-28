@@ -55,7 +55,44 @@ const playerResponse = `
  * =======================================================================================
  */
 
-const GET_A_PLAYER = gql`
+
+const GET_PLAYER_AND_TEAMS_RAW = `
+query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
+  getPlayerAndTeams(playerId: $playerId, eventId: $eventId) {
+    code
+    success
+    message
+    data {
+      player {
+        _id
+        firstName
+        teams
+        lastName
+        username
+        email
+        status
+        profile
+        phone
+        division
+      }
+      teams {
+        _id
+        name
+        logo
+        division
+        active
+        rankLock
+        players
+        group
+        captain
+        cocaptain
+      }
+    }
+  }
+}
+`;
+
+const GET_A_PLAYER_RAW = `
 query GetPlayer($playerId: String!) {
   getPlayer(playerId: $playerId) {
     code
@@ -67,6 +104,10 @@ query GetPlayer($playerId: String!) {
   }
 }
 `;
+
+const GET_A_PLAYER = gql`${GET_A_PLAYER_RAW}`;
+
+
 const GET_PLAYERS = gql`
 query GetPlayers($eventId: String!) {
   getPlayers(eventId: $eventId) {
@@ -254,8 +295,8 @@ mutation DeletePlayer($playerId: String!) {
 
 
 export {
-  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
+  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER, GET_A_PLAYER_RAW, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
   CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER,
   UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER, DELETE_A_PLAYER,
-  GET_EVENT_WITH_TEAM_PLAYERS_RAW,
+  GET_EVENT_WITH_TEAM_PLAYERS_RAW, GET_PLAYER_AND_TEAMS_RAW
 };

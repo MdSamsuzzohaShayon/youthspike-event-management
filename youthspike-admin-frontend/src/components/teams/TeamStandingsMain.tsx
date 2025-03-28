@@ -114,7 +114,7 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
 
     return (
         <React.Fragment>
-            <div className="event-and-menu p-8 rounded-lg shadow-lg">
+            <div className="event-and-menu">
                 {currEvent && <CurrentEvent currEvent={currEvent} />}
                 <div className="navigator mt-4">
                     {currEvent?._id && <UserMenuList eventId={currEvent?._id} />}
@@ -122,8 +122,7 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
             </div>
             <div className="w-full mb-4 p-4 bg-gray-800 rounded-md mt-8">
                 <div className="w-full flex justify-center items-center">
-                    <SelectInput key="d-i-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList} lblTxt="Division" vertical
-                        extraCls="text-center w-full lg:w-2/12" />
+                    <SelectInput key="d-i-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList} label="Division" />
                 </div>
                 <div className="w-full flex justify-center items-center">
                     <SelectInput
@@ -131,11 +130,8 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
                         handleSelect={(e) => handleSelectGroup(e, e.target?.value || null)}
                         key="g-i-1"
                         name="group"
-                        defaultTxt='Overall'
-                        optionList={filteredGroupList.map((g) => ({ value: g._id, text: g.name }))}
-                        lblTxt="Group"
-                        vertical
-                        extraCls="text-center w-full lg:w-2/12"
+                        optionList={filteredGroupList.map((g, gI) => ({ id: gI + 1, value: g._id, text: g.name }))}
+                        label="Group"
                     />
                 </div>
             </div>

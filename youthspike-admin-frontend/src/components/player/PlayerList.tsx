@@ -63,7 +63,7 @@ function PlayerList({
   inactive,
 }: IPlayerListProps) {
 
-
+  
 
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
@@ -265,7 +265,7 @@ function PlayerList({
         {sortedPlayerList.map((player) => (
           <motion.li
             key={player._id}
-            className="sortable-item mb-2 flex items-center bg-gray-700 rounded-lg"
+            className="sortable-item mb-2 flex items-center bg-gray-800 rounded-lg p-2"
             variants={itemVariants}
             initial="hidden"
             animate="visible"

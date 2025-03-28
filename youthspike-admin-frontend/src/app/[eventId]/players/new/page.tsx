@@ -118,12 +118,12 @@ function PlayerAddPage({ params }: IPlayerAddPageProps) {
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       <div className="mb-4 division-selection w-full">
-        <SelectInput key="player-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} vertical extraCls='text-center' />
+        <SelectInput key="player-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList}  />
       </div>
       <h1 className='mb-8 text-center'>Add Player</h1>
       {data?.getEvent?.data && (<CurrentEvent currEvent={data?.getEvent?.data} />)}
 
-      <PlayerAdd setIsLoading={setIsLoading} eventId={params.eventId} teamList={filteredTeamList} division={currDivision} playerAddCB={playerAddCB} />
+      <PlayerAdd eventId={params.eventId} teamList={filteredTeamList} division={currDivision} />
     </div>
   )
 }

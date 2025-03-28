@@ -18,7 +18,12 @@ import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { UpdateQuery } from 'mongoose';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { GetEventWithPlayersResponse, PlayerResponse, PlayersResponse } from './player.response';
+import {
+  GetEventWithPlayersResponse,
+  GetPlayerAndTeamsResponse,
+  PlayerResponse,
+  PlayersResponse,
+} from './player.response';
 import { GroupService } from 'src/group/group.service';
 
 @Resolver((_of) => Player) // Specify the object type for the resolver
@@ -106,6 +111,10 @@ export class PlayerResolver {
       if (playerObj.email === '') delete playerObj.email;
       if (playerObj.phone === '') delete playerObj.phone;
       if (input.team) playerObj.teams = [input.team];
+      if (!playerObj.username || playerObj.username === '') {
+        const now = new Date();
+        playerObj.username = `${playerObj.firstName.trim().toLowerCase()}${now.getMilliseconds()}${now.getMinutes()}`;
+      }
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;
 
@@ -452,6 +461,24 @@ export class PlayerResolver {
         code: playerExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: playerExist ? true : false,
         data: playerExist,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+  @Query((_returns) => GetPlayerAndTeamsResponse) // Specify the return type
+  async getPlayerAndTeams(@Args('playerId') playerId: string, @Args('eventId') eventId: string) {
+    try {
+      const [player, teams] = await Promise.all([
+        this.playerService.findById(playerId.toString()),
+        this.teamService.find({ event: eventId }),
+      ]);
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'Get one player and all teams of an event!',
+        data: { player, teams },
       };
     } catch (error) {
       return AppResponse.handleError(error);

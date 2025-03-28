@@ -115,6 +115,14 @@ function EventDetail({ event }: { event: IEventRelatives }) {
     [event.sponsors],
   );
 
+  if (event.players?.length === 0 && event.teams?.length === 0 && event.matches?.length === 0) {
+    return (
+      <div className="min-h-screen flex w-full justify-center items-center">
+        <h3 className="text-center">No matches, teams, or players have been created yet!</h3>;
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 mb-8">
       <div className="text-center w-full flex flex-col items-center mb-6">
@@ -131,40 +139,34 @@ function EventDetail({ event }: { event: IEventRelatives }) {
         </div>
       )}
 
-      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gradient-to-tl from-gray-900 via-gray-800 to-gray-900 p-6 rounded-lg shadow-lg">
+      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SelectInput key="d-i-1" handleSelect={(e) => setCurrDivision(e.target.value)} defaultTxt="Select division" defaultValue="" name="division" optionList={divisionList} lblTxt="Division" />
+          <SelectInput key="d-i-1" handleSelect={(e) => setCurrDivision(e.target.value)} defaultValue="" name="division" optionList={divisionList} label="Division" />
           <SelectInput
             key="g-i-1"
             handleSelect={(e) => setSelectedGroup(e.target.value || null)}
-            defaultTxt="Overall"
             defaultValue=""
             name="group"
-            optionList={groupList.map((g) => ({ value: g._id, text: g.name }))}
-            lblTxt="Group"
+            optionList={groupList.map((g, gI) => ({ id: gI + 1, value: g._id, text: g.name }))}
+            label="Group"
           />
         </div>
       </div>
 
-
       <div className="flex flex-col lg:flex-row gap-6 mt-8">
         <motion.div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:h-screen overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          {event.players?.length || event.teams?.length || event.matches?.length ? (
-            <ul className="flex flex-col gap-2">
-              {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (
-                <motion.li
-                  key={item}
-                  className={`cursor-pointer p-2 rounded-md uppercase text-center ${selectedItem === item ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
-                  onClick={() => setSelectedItem(item)}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  {item === EEventItem.TEAM ? `Standings / Teams` : item}
-                </motion.li>
-              ))}
-            </ul>
-          ) : (
-            <h3>No matches, teams, or players have been created yet!</h3>
-          )}
+          <ul className="flex flex-col gap-2">
+            {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (
+              <motion.li
+                key={item}
+                className={`cursor-pointer p-2 rounded-md uppercase text-center ${selectedItem === item ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
+                onClick={() => setSelectedItem(item)}
+                whileHover={{ scale: 1.05 }}
+              >
+                {item === EEventItem.TEAM ? `Standings / Teams` : item}
+              </motion.li>
+            ))}
+          </ul>
         </motion.div>
 
         <div className="content w-full lg:w-3/4 rounded-md">{renderContent}</div>

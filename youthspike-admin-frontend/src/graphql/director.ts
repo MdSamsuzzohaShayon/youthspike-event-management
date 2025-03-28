@@ -66,7 +66,8 @@ const ldoResponse = `
  * Queries
  * ==========================================================================================================
  */
-const GET_LDOS = gql`
+
+const GET_LDOS_RAW = `
   query GetEventDirectors {
     getEventDirectors {
       code
@@ -78,6 +79,7 @@ const GET_LDOS = gql`
     }
   }
 `;
+const GET_LDOS = gql`${GET_LDOS_RAW}`;
 
 const GET_SYSTEM_DETAILS_RAW = `
 query GetSystemDetails {
@@ -93,7 +95,8 @@ query GetSystemDetails {
 }
 `;
 
-const GET_LDO = gql`
+
+const GET_LDO_RAW = `
   query GetEventDirector($dId: String) {
     getEventDirector(dId: $dId) {
       code
@@ -105,6 +108,8 @@ const GET_LDO = gql`
     }
   }
 `;
+
+const GET_LDO = gql`${GET_LDO_RAW}`;
 
 
 /**
@@ -157,4 +162,4 @@ mutation DeleteEventDirector($dId: String!) {
 }
 `;
 
-export { GET_LDO, GET_LDOS, GET_SYSTEM_DETAILS_RAW, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };
+export { GET_LDO, GET_LDO_RAW, GET_LDOS, GET_LDOS_RAW, GET_SYSTEM_DETAILS_RAW, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };

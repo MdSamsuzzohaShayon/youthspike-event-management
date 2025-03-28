@@ -138,6 +138,13 @@ dialog::backdrop {
 .bg-gradient-dark{
   background: radial-gradient(circle, #4b4a4a 0%, #000000 100%);
 }
+/* .bg-gradient{
+  @apply bg-gradient-to-tl from-gray-900 via-gray-800 to-gray-900;
+} */
+
+/* .bg-gradient-redail{
+  @apply bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800;
+} */
 
 /* Loading animation  */
 @keyframes spin {

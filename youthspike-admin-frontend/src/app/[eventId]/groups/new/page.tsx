@@ -20,14 +20,14 @@ async function NewGroup({ params: { eventId } }: IEventPageProps) {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header
-        className="bg-gray-800 py-6 shadow-lg"
+        className="py-6 "
       >
         <div className="container mx-auto px-6 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold">Create a New Group</h1>
+          <h1 className="text-yellow-logo text-3xl md:text-4xl font-bold">Create a New Group</h1>
         </div>
       </header>
 
-      <main className="container mt-6 p-4 bg-gray-gradient rounded-xl shadow-lg max-w-5xl mx-auto">
+      <main className="container mt-6 p-4 mx-auto">
 
         {/* Group Add or Update Form */}
         <section

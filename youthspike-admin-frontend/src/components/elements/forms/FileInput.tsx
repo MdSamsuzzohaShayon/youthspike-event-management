@@ -56,8 +56,8 @@ const FileInput = (props: IFileFileProps) => {
                     </div>
                     <div className="btn-text w-full flex flex-col w-3/6 justify-center gap-2">
                         {fileName && <p>{fileName}</p>}
-                        <button className={`btn-secondary h-fit flex justify-center items-center gap-2`} onClick={handleOpenImg} >File Upload
-                            <img src='/icons/upload.svg' alt='upload' className='w-6 svg-white' />
+                        <button className={`btn-primary w-fit h-fit flex justify-center items-center gap-2`} onClick={handleOpenImg} >File Upload
+                            <img src='/icons/upload.svg' alt='upload' className='w-6 svg-black' />
                         </button>
                     </div>
                 </div>

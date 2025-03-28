@@ -71,7 +71,7 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
   }, [playerList, matchList, teamRank, rankingMap, currentPage]);
 
   return (
-    <div className="playerList w-full flex flex-col rounded-lg shadow-lg">
+    <div className="playerList w-full flex flex-col">
       <div className="overflow-x-auto">
         <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
           <thead>
@@ -89,7 +89,7 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
           </motion.tbody>
         </motion.table>
       </div>
-      <div className="w-full">
+      <div className="w-full mt-6">
         <Pagination currentPage={currentPage} itemList={playerList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
     </div>

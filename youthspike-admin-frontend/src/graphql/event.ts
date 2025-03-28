@@ -43,6 +43,29 @@ teams {
  * Query
  * =========================================================================================================================================
  */
+
+const GET_EVENTS_MIN_RAW = `
+query GetEvents {
+  getEvents {
+    code
+    success
+    message
+    data {
+      _id
+      name
+      logo
+      startDate
+      endDate
+      active
+      ldo {
+        _id
+        name
+        logo
+      }
+    }
+  }
+}
+`;
 const GET_EVENTS = gql`
   query GetEvents($directorId: String) {
     getEvents(directorId: $directorId) {
@@ -55,7 +78,8 @@ const GET_EVENTS = gql`
   }
 `;
 
-const GET_A_EVENT = gql`
+
+const GET_AN_EVENT_RAW = `
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
     code
@@ -66,6 +90,11 @@ query GetEvent($eventId: String!) {
     }
   }
 }
+`;
+
+
+const GET_AN_EVENT = gql`
+
 
 `;
 
@@ -138,4 +167,4 @@ mutation SendCredentials($eventId: String!, $teamIds: [String!], $captain: Strin
 }
 `;
 
-export { GET_EVENTS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_A_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS };
+export { GET_EVENTS, GET_EVENTS_MIN_RAW, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_AN_EVENT, GET_AN_EVENT_RAW, DELETE_AN_EVENT, SEND_CREDENTIALS };

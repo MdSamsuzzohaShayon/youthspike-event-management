@@ -169,7 +169,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   }, [calculateTeamScore]);
 
   return (
-    <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
+    <div className="teamList w-full flex flex-col">
       <div className="overflow-x-auto">
         <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
           <thead>
@@ -188,7 +188,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
           </tbody>
         </motion.table>
       </div>
-      <div className="w-full">
+      <div className="w-full mt-6">
         <Pagination currentPage={currentPage} itemList={teamList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
     </div>
