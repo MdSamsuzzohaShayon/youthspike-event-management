@@ -53,6 +53,8 @@ ___
       
 
 ### Requirements 
+ - Fix issue with socket.io on liver server
+ - Fix issue with building
  - Ranking must work as expected
  - No space in Username
  - Using Redis with MongoDB follow **using_redis.txt** file
