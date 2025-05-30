@@ -179,7 +179,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
                 </button>
 
                 <div className="division-selection w-full">
-                  <SelectInput key={"matches-si-1"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} vertical extraCls="text-center" />
+                  <SelectInput key={"matches-si-1"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList}  />
                 </div>
 
                 <MatchAdd

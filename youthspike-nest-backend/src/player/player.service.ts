@@ -16,6 +16,14 @@ type OptionalProps<T> = {
 export class PlayerService {
   constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>) {}
 
+
+  playerUsername(firstName: string) {
+    const now = new Date();
+    const randomNumber = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    const username = `${firstName.trim().toLowerCase()}${now.getMilliseconds()}${randomNumber}`;
+    return username;
+  }
+
   async create(input: CreatePlayerInput) {
     const inputObj = rmInvalidProps(input);
     return this.playerModel.create(inputObj);
@@ -98,6 +106,7 @@ export class PlayerService {
             playerObj = {
               firstName: fnv,
               lastName: lnv,
+              username: this.playerUsername(fnv),
               rank: null,
               email: ev,
               status: EPlayerStatus.ACTIVE,

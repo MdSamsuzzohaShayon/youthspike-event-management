@@ -112,8 +112,7 @@ export class PlayerResolver {
       if (playerObj.phone === '') delete playerObj.phone;
       if (input.team) playerObj.teams = [input.team];
       if (!playerObj.username || playerObj.username === '') {
-        const now = new Date();
-        playerObj.username = `${playerObj.firstName.trim().toLowerCase()}${now.getMilliseconds()}${now.getMinutes()}`;
+        playerObj.username = this.playerService.playerUsername(playerObj.firstName);
       }
       if (playerObj.team) delete playerObj.team;
       delete playerObj.event;

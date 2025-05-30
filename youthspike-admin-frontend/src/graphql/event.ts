@@ -94,8 +94,7 @@ query GetEvent($eventId: String!) {
 
 
 const GET_AN_EVENT = gql`
-
-
+  ${GET_AN_EVENT_RAW}
 `;
 
 /**

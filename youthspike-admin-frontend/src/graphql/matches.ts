@@ -232,6 +232,8 @@ query GetEventWithMatches($eventId: String!) {
         sendCredentials
         num
         matches
+        captain
+        cocaptain
       }
       ldo {
         _id

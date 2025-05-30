@@ -1,27 +1,115 @@
-# Youthspike tournament
+# Youthspike Tournament Management System
 
-___
- - **Design**
- - [Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?type=design&node-id=27-5&t=Ucn2d4Li6ufI8Q7j-1&scaling=scale-down&page-id=0%3A1)
- - [Landscape Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
- - [Backend/admin panel prototype](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
- - [Action box design](https://www.canva.com/design/DAF-9-GdNuM/8rUTuBtKb2hCfzOlmx2jCQ/edit)
- - [Todo](https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576)
- - [Redesign](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=514%3A336&type=design&node-id=514-337&viewport=720%2C444%2C0.16&t=eolk3WEtglEtDIz0-1&scaling=min-zoom&no_third_party_tracking=true)
- 
-___
+![Project Status](https://img.shields.io/badge/status-active-development-green)
+![Tech Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20Nest.js%20%7C%20GraphQL-blue)
 
- - **Testing**
- - [Edit event and navigation and moving a squad list](https://www.loom.com/share/5a4ca5cb6afe4351a2c06e4707d1b8f6)
- - [Location on the event settings. Consistency on the name of the event.](https://www.loom.com/share/d023edb6e8e04348a4770dfbd9267919)
- - [Changing captain. And updating rankings and refresh when you make a player inactive.](https://www.loom.com/share/fa723bb6904a4592b1e4833bdc95b124)
- - [Creating matches](https://www.loom.com/share/33de4bdff99740019875d7b4625be2d1)
- - [Player images from players tab to team tab area](https://www.loom.com/share/e89820eb179e4e2f88bd06ccaaa9a533)
- - [LDO profile and main screen](https://www.loom.com/share/05f3416d3c5f4c8ea46267a85ed8775e)
- - [Captains login.](https://www.loom.com/share/3682d0d55358406b9ecb265646107a37)
+A comprehensive tournament management system for spikeball events with admin panel, captain interface, and public viewing capabilities.
+
+## Table of Contents
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Installation](#installation)
+- [Development Setup](#development-setup)
+- [Deployment](#deployment)
+- [Design Resources](#design-resources)
+- [Testing](#testing)
+- [Learning Resources](#learning-resources)
+- [Database Operations](#database-operations)
+- [Performance Optimization](#performance-optimization)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+
+## Features
+
+### Core Functionality
+- Tournament creation and management
+- Team and player management
+- Match scheduling and scoring
+- Real-time updates via WebSocket
+- Ranking system with custom logic
+- Overtime and tiebreaker handling
+
+### User Roles
+- **Admin**: Full system access
+- **Director**: Event management
+- **Captain**: Team management
+- **Spectator**: Public view access
+
+## System Architecture
+
+### Applications
+1. **Admin Panel** (Next.js on port 3000)
+   - Management interface for admins, directors, and captains
+2. **Public Site** (Next.js on port 3001)
+   - Tournament viewing for spectators
+3. **Backend API** (Nest.js on port 4000)
+   - GraphQL API for all operations
+   - MongoDB for data persistence
+   - Redis for caching and real-time updates
+
+### Technology Stack
+- Frontend: Next.js 13/14
+- Backend: Nest.js with GraphQL
+- Database: MongoDB
+- Cache: Redis
+- WebSocket: Real-time communication
+- Deployment: Docker, Nginx, Apache
+
+## Installation
+
+### Prerequisites
+- Node.js 16+
+- MongoDB
+- Redis
+- Yarn or npm
+
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
+   ```
+2. Install dependencies for each application:
+   ```bash
+   cd youthspike-nest-backend && npm install
+   cd ../youthspike-admin-frontend && npm install
+   cd ../youthspike-frontend && npm install
+   ```
+3. Configure environment variables (see `.env.example` files in each directory)
+
+## Development Setup
+
+### Running Locally
+1. Start Redis and MongoDB services
+2. In separate terminals:
+   ```bash
+   # Backend
+   cd ../youthspike-nest-backend && npm run dev
+   
+   # Admin Panel
+   cd ../youthspike-admin-frontend && npm run dev
+   
+   # Public Site
+   cd ../youthspike-frontend && npm run dev
+   ```
+
+## Design Resources
+
+### Prototypes
+- [Main Prototype](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?type=design&node-id=27-5&t=Ucn2d4Li6ufI8Q7j-1&scaling=scale-down&page-id=0%3A1)
+- [Landscape View](https://www.figma.com/proto/8rXFB98j1R4fUG6Hug20FH/Alex?page-id=179%3A475&type=design&node-id=183-477&viewport=881%2C410%2C0.26&t=xvYj6qYCqbPEDKBX-1&scaling=scale-down)
+- [Admin Panel](https://www.figma.com/proto/PoBQKYzuq9IgmCLZMVu9MT/Dashboard-for-spikeball-app-(Client-file)?type=design&node-id=201-1660&t=a8dHq7FKsr2km2dX-1&scaling=min-zoom&page-id=0%3A1)
+
+### Todo List
+[Project Todo](https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576)
 
 
+## Troubleshooting
 
+### Common Issues
+- **Player ranking issues**: Ensure ranking is locked after round submission
+- **WebSocket disconnections**: Verify Redis Pub/Sub configuration
+- **Slow public views**: Implement pagination and optimize GraphQL queries
+- **Team logo display**: Check image processing and caching
 
 
 ### Learn
@@ -313,3 +401,4 @@ ___
 ### Ask
  - Plaase reply all those comments I have made in the to-do list
  - This is hours for last two days, jan 22 is not over yet, it is night, from the morning I will work more than 7 or 8 hours.
+**Note**: This project is under active development. Refer to the [Todo list](https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576) for current priorities.
