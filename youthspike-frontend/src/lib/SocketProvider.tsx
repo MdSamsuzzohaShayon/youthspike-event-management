@@ -16,11 +16,14 @@ function SocketProvider({ children }: React.PropsWithChildren<{}>) {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_URL);
+    const newSocket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      withCredentials: true,
+    });
+
     setSocket(newSocket);
 
     return () => {
-      // Cleanup on component unmount
       newSocket.disconnect();
     };
   }, []);

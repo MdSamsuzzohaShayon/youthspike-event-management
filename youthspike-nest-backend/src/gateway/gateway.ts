@@ -10,7 +10,7 @@ import { Logger } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { RedisService } from '../redis/redis.service';
 
-@WebSocketGateway({ cors: true, namespace: 'websocket' })
+@WebSocketGateway({ cors: true, namespace: 'websocket', transports: ['websocket'], })
 export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private logger: Logger = new Logger('Gateway');
 
@@ -38,24 +38,27 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Use Redis Pub/Sub
     const pubClient = this.redisService.getPubClient();
+    console.log(`Connected Room: ${room}`)
     await pubClient.publish(room, JSON.stringify({ user: client.id, message }));
 
     client.to(room).emit('message', { user: client.id, message });
   }
 
-  @SubscribeMessage('joinRoom')
+  @SubscribeMessage('join-room-from-client')
   async handleJoinRoom(@MessageBody() room: string, @ConnectedSocket() client: Socket) {
     client.join(room);
     client.emit('join-room-response', `Joined room: ${room}`);
 
     // Log Redis cluster nodes
-
+    console.log(room);
+    
     console.log(
-      `Subscribing to room "${room}" on cluster nodes: ${this.redisService
-        .getSubClient()
-        .nodes('master')
-        .map((node) => node.options.port)}`
-    );
+      `Subscribing to room on cluster nodes: `);
+    console.log(this.redisService
+      .getSubClient()
+      .nodes('master')
+      .map((node) => node.options.port));
+    
 
     // Subscribe to Redis channel
     const subClient = this.redisService.getSubClient();
@@ -67,9 +70,13 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     
     try {
       await subClient.subscribe(room);
-      console.log(`✅ Successfully subscribed to room "${room}"`);
+      console.log(`✅ Successfully subscribed to room`);
+      console.log();
+      
     } catch (err) {
-      console.error(`❌ Failed to subscribe to room "${room}": ${err.message}`);
+      console.error(`❌ Failed to subscribe to room : ${err.message}`);
+      console.log(room);
+      
     }
   }
 }

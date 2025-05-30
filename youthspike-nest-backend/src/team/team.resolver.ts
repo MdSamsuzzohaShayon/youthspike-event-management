@@ -133,7 +133,8 @@ export class TeamResolver {
       if (input.captain) {
         // =====  Create new user for captain =====
         const findPlayer = await this.playerService.findById(input.captain.toString());
-        const username = findPlayer.firstName.toLowerCase() + newTeam.num.toString();
+        // const username = findPlayer.firstName.toLowerCase() + newTeam.num.toString();
+        const username = this.playerService.playerUsername(findPlayer.username);
         promiseOperations.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
         const rawPassword = findEvent.coachPassword;
         const captainUser = await this.userService.create({
@@ -207,7 +208,8 @@ export class TeamResolver {
         const playerExist = await this.playerService.findById(input.captain.toString());
 
         if (playerExist) {
-          const newUsername = playerExist.firstName.trim().toLowerCase() + teamExist.num.toString();
+          // const newUsername = playerExist.firstName.trim().toLowerCase() + teamExist.num.toString();
+          const newUsername = this.playerService.playerUsername(playerExist.firstName);
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -253,7 +255,8 @@ export class TeamResolver {
         const playerExist = await this.playerService.findById(input.cocaptain.toString());
         if (playerExist) {
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
-          const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
+          // const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
+          const newUsername = this.playerService.playerUsername(playerExist.firstName);
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,

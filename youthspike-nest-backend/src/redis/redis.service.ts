@@ -1,41 +1,72 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Cluster } from 'ioredis';
 import { EEnv, NODE_ENV } from 'src/util/keys';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private static clients: Cluster[] = [];
-  private nodes = [
+  private static pubClient: Cluster;
+  private static subClient: Cluster;
+  private readonly logger = new Logger(RedisService.name);
+
+  private readonly nodes = [
     { host: 'localhost', port: 7000 },
     { host: 'localhost', port: 7001 },
     { host: 'localhost', port: 7002 },
   ];
-  private roundRobinIndex = 0;
+
+  private readonly redisOptions = {
+    scaleReads: 'slave' as const,
+    redisOptions: {
+      password: process.env.REDIS_PASSWORD,
+      tls: NODE_ENV === EEnv.PRODUCTION ? {} : undefined,
+      retryStrategy: (times: number) => Math.min(times * 50, 2000),
+    }
+  };
 
   constructor() {
-    if (RedisService.clients.length === 0) {
-      RedisService.clients = this.nodes.map((node) => new Cluster([node]));
+    if (!RedisService.pubClient) {
+      RedisService.pubClient = new Cluster(this.nodes, {
+        ...this.redisOptions,
+        slotsRefreshTimeout: 2000,
+      });
+    }
+
+    if (!RedisService.subClient) {
+      RedisService.subClient = new Cluster(this.nodes, {
+        ...this.redisOptions,
+      });
     }
   }
 
   getPubClient(): Cluster {
-    const client = RedisService.clients[this.roundRobinIndex];
-    this.roundRobinIndex = (this.roundRobinIndex + 1) % RedisService.clients.length; // Rotate index
-    console.log(`Publishing message on cluster node: ${this.nodes[this.roundRobinIndex].port}`);
-    return client;
+    return RedisService.pubClient;
   }
 
   getSubClient(): Cluster {
-    return RedisService.clients[0]; // Any node can handle subscriptions
+    return RedisService.subClient;
   }
 
   async onModuleInit() {
-    console.log(`RedisService initialized with cluster nodes: [ ${this.nodes.map((n) => n.port).join(', ')} ]`);
+    this.logger.log(`Redis Cluster initialized with nodes: ${this.nodes.map(n => `${n.host}:${n.port}`).join(', ')}`);
+    
+    // Test connection
+    try {
+      await RedisService.pubClient.ping();
+      this.logger.log('Redis Pub Client connected successfully');
+    } catch (err) {
+      this.logger.error('Failed to connect to Redis Pub Client', err.stack);
+    }
   }
 
   async onModuleDestroy() {
-    for (const client of RedisService.clients) {
-      await client.quit();
+    try {
+      await Promise.all([
+        RedisService.pubClient.quit(),
+        RedisService.subClient.quit(),
+      ]);
+      this.logger.log('Redis connections closed gracefully');
+    } catch (err) {
+      this.logger.error('Error closing Redis connections', err.stack);
     }
   }
 }

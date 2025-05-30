@@ -59,21 +59,21 @@ import { EEnv } from '@/types/elements';
  *
  * PSG
  * Captain
- * gianluigi103
+ * gianluigi52761
  * Co captain
- * marquinhos103
+ * marquinhos41775
  *
  * FC Barcelona
  * Captain
- * gerard391
+ * gerard62700
  * Co captain
- * sergio101
+ * sergio59322
  *
  * Liverpool FC
  * Captain
- * virgil102
+ * virgil72022
  * Co captain
- * alisson102
+ * alisson41793
  */
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
