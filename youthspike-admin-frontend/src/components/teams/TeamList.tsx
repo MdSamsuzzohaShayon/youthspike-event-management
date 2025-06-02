@@ -43,7 +43,6 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
 
   const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
 
-  console.log({teamList});
   
 
   // eslint-disable-next-line no-unused-vars

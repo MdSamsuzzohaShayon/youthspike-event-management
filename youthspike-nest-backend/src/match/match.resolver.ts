@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
@@ -10,7 +10,7 @@ import { RoundService } from 'src/round/round.service';
 import { TeamService } from 'src/team/team.service';
 import { UserRole } from 'src/user/user.schema';
 import { Match } from './match.schema';
-import { CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
+import { AccessCodeInput, CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
 import { ETieBreaker } from 'src/net/net.schema';
 import { HttpStatus, UseGuards } from '@nestjs/common';
@@ -20,9 +20,12 @@ import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { GroupService } from 'src/group/group.service';
-import { EventMatches, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
+import { EventMatches, GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
 import { LdoService } from 'src/ldo/ldo.service';
 import { SponsorService } from 'src/sponsor/sponsor.service';
+import { ConfigService } from '@nestjs/config';
+import { tokenToUser } from 'src/util/helper';
+import { UserService } from 'src/user/user.service';
 
 @Resolver((of) => Match)
 export class MatchResolver {
@@ -37,7 +40,8 @@ export class MatchResolver {
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
     private ldoService: LdoService,
-    private sponsorService: SponsorService,
+    private configService: ConfigService,
+    private userService: UserService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -128,6 +132,7 @@ export class MatchResolver {
         timeout: input.timeout ?? eventExist.timeout,
         description: input.description ?? eventExist.description,
         location: input.location ?? eventExist.location,
+        accessCode: input.accessCode ?? eventExist.accessCode,
         fwango: input.fwango ?? eventExist.fwango,
         extendedOvertime: false,
       };
@@ -296,6 +301,35 @@ export class MatchResolver {
       return {
         data: null,
         code: HttpStatus.NO_CONTENT,
+        message: 'Match Deleted successfully!',
+        success: true,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
+  @Mutation((_returns) => GetAccessCodeResponse)
+  async accessCodeValidation(@Args('input') input: AccessCodeInput, @Context() context: any,) {
+    try {
+       // Get user id
+       const secret = this.configService.get<string>('JWT_SECRET');
+       const userPayload = tokenToUser(context, secret);
+ 
+       // Get user
+       const loggedUser = await this.userService.findById(userPayload._id);
+       if (!loggedUser) return AppResponse.unauthorized();
+      // Get user detail
+      // Match with
+      const matchExist = await this.matchService.findOne({_id: input.matchId, accessCode: input.accessCode});
+      if (!matchExist) return AppResponse.notFound('Match');
+
+      // Response with access code and role
+      return {
+        data: {accessCode: input.accessCode, match: input.matchId},
+        code: HttpStatus.OK,
         message: 'Match Deleted successfully!',
         success: true,
       };

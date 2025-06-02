@@ -16,285 +16,286 @@ import { ETeam } from '@/types/team';
 import TeamSelector from './TeamSelector';
 import InputField from '../elements/forms/InputField';
 import TextareaInput from '../elements/forms/TextareaInput';
-
-
+import { getLocalDateTimeISO } from '@/utils/datetime';
 
 interface IMatchAddProps {
-    eventId: string;
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    groupList: IGroupExpRel[];
-    currDivision?: string;
-    update?: boolean;
-    teamList?: ITeam[];
-    matchId?: string;
-    eventData?: IEventExpRel | null;
-    showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-    prevMatch?: IMatchExpRel;
-    addMatchCB?: (matchData: IMatchExpRel) => void;
+  eventId: string;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  groupList: IGroupExpRel[];
+  currDivision?: string;
+  update?: boolean;
+  teamList?: ITeam[];
+  matchId?: string;
+  eventData?: IEventExpRel | null;
+  showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
+  prevMatch?: IMatchExpRel;
+  addMatchCB?: (matchData: IMatchExpRel) => void;
 }
-
-
-
 
 
 const initialAddMatch: IAddMatch = {
-    date: new Date().toISOString(),
-    event: "",
-    description: "",
-    location: "",
-    numberOfNets: 0,
-    numberOfRounds: 0,
-    teamA: "",
-    teamB: "",
-    autoAssignLogic: EAssignStrategies.AUTO,
-    // Default settings
-    autoAssign: false,
-    division: '',
-    netVariance: 0,
-    homeTeam: '',
-    rosterLock: '',
-    timeout: 0,
-    tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET
-    // group: "" // Optional
-}
+  date: getLocalDateTimeISO(),
+  event: '',
+  description: '',
+  location: '',
+  accessCode: '',
+  numberOfNets: 0,
+  numberOfRounds: 0,
+  teamA: '',
+  teamB: '',
+  autoAssignLogic: EAssignStrategies.AUTO,
+  // Default settings
+  autoAssign: false,
+  division: '',
+  netVariance: 0,
+  homeTeam: '',
+  rosterLock: '',
+  timeout: 0,
+  tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
+  // group: "" // Optional
+};
 
+function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
+  const router = useRouter();
+  const { ldoIdUrl } = useLdoId();
+  const { setActErr } = useError();
 
-function MatchAdd({ eventId,
-    setIsLoading,
-    teamList,
-    currDivision,
-    groupList,
-    update,
-    matchId,
-    eventData,
-    showAddMatch,
-    prevMatch, addMatchCB }: IMatchAddProps) {
+  // Local State
+  const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
+  const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
+  const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList ?? []);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
+  // GraphQL
+  const [createMatch, { client }] = useMutation(CREATE_MATCH);
+  const [mutateMatch, { client: updateClient }] = useMutation(UPDATE_MATCH);
 
+  /**
+   * Input change
+   */
+  const handleInputChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    if (update) {
+      setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    } else {
+      setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    }
+  };
 
-    const router = useRouter();
-    const { ldoIdUrl } = useLdoId();
-    const { setActErr } = useError();
+  const handleDateChange = ({ name, value }: { name: string; value: string }) => {
+    if (update) {
+      setUpdateMatch((prevState) => ({ ...prevState, [name]: value }));
+    } else {
+      setAddMatch((prevState) => ({ ...prevState, [name]: value }));
+    }
+  };
 
+  const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
+    if (update) {
+      setUpdateMatch((prevState) => ({ ...prevState, rosterLock: value }));
+    } else {
+      setAddMatch((prevState) => ({ ...prevState, rosterLock: value }));
+    }
+  };
 
-    // Local State
-    const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
-    const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
-    const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList ?? []);
-    const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const handleNumInputChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    if (update) {
+      setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: parseInt(inputEl.value, 10) }));
+    } else {
+      setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: parseInt(inputEl.value, 10) }));
+    }
+  };
 
-    // GraphQL
-    const [createMatch, { client }] = useMutation(CREATE_MATCH);
-    const [mutateMatch, { client: updateClient }] = useMutation(UPDATE_MATCH);
+  const handleSelectChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    if (update) {
+      setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    } else {
+      setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    }
+  };
 
+  const handleToggleInput = (e: React.SyntheticEvent, stateName: string) => {
+    e.preventDefault();
+    // @ts-ignore
+    const prevStateVal: boolean = addMatch[stateName] ? addMatch[stateName] : false;
+    if (update) {
+      setUpdateMatch((prevState) => ({ ...prevState, [stateName]: !prevStateVal }));
+    } else {
+      setAddMatch((prevState) => ({ ...prevState, [stateName]: !prevStateVal }));
+    }
+  };
 
-    /**
-     * Input change
-     */
-    const handleInputChange = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const inputEl = e.target as HTMLInputElement;
-        if (update) {
-            setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        } else {
-            setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+  const handleGroupChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    setSelectedGroup(inputEl.value !== '' ? inputEl.value : null);
+    if (inputEl.value.toLowerCase() === 'all') {
+      if (update) {
+        setUpdateMatch((prevState) => ({ ...prevState, group: undefined }));
+      } else {
+        setAddMatch((prevState) => ({ ...prevState, group: undefined }));
+      }
+    } else {
+      if (update) {
+        setUpdateMatch((prevState) => ({ ...prevState, group: inputEl.value }));
+      } else {
+        setAddMatch((prevState) => ({ ...prevState, group: inputEl.value }));
+      }
+    }
+    const groupExist = groupList.find((g) => g._id === inputEl.value);
+    if (groupExist && groupExist?.teams) {
+      const teamsOfGroup = groupExist.teams.map((gt) => gt._id);
+      const newTeamList = teamList?.filter((t) => teamsOfGroup.includes(t._id)) || [];
+      setFilteredTeamList(newTeamList);
+    } else if (inputEl.value.toLowerCase() === 'all' && teamList) {
+      setFilteredTeamList(teamList);
+    }
+  };
+
+  /**
+   * Submit add match
+   */
+  const handleAddMatch = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    await addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, updateMatch, update, showAddMatch, router, addMatchCB });
+  };
+
+  /**
+   * Show select items list
+   */
+  const showTeamOptions = useCallback(
+    (teamE: ETeam) => {
+      // showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)
+      let nList: ITeam[] = filteredTeamList;
+      if (teamE === ETeam.teamA) {
+        if (addMatch.teamB && addMatch.teamB !== '') {
+          nList = filteredTeamList.filter((t) => t._id !== addMatch.teamB);
         }
+      } else {
+        if (addMatch.teamA && addMatch.teamA !== '') {
+          nList = filteredTeamList.filter((t) => t._id !== addMatch.teamA);
+        }
+      }
+      return nList.map((t) => ({ value: t._id, text: t.name }));
+    },
+    [filteredTeamList, addMatch, selectedGroup],
+  );
+
+  // Need to show number of rounds and number of net and net variance etc
+  useEffect(() => {
+    let mObj = structuredClone(initialAddMatch);
+    if (prevMatch) {
+      // @ts-ignore
+      mObj = prevMatch;
+    } else {
+      if (eventData) {
+        mObj.numberOfRounds = eventData.rounds;
+        mObj.numberOfNets = eventData.nets;
+        mObj.date = eventData.startDate;
+        mObj.netVariance = eventData.netVariance;
+        mObj.autoAssign = eventData.autoAssign;
+        mObj.timeout = eventData.timeout;
+        mObj.rosterLock = eventData.rosterLock;
+        mObj.homeTeam = eventData.homeTeam;
+        mObj.description = eventData.description;
+        mObj.location = eventData.location;
+        mObj.accessCode = eventData.accessCode;
+        mObj.tieBreaking = eventData.tieBreaking;
+        mObj.fwango = eventData?.fwango;
+      }
     }
 
-    const handleDateChange = ({ name, value }: { name: string, value: string }) => {
-        if (update) {
-            setUpdateMatch((prevState) => ({ ...prevState, [name]: value }));
-        } else {
-            setAddMatch((prevState) => ({ ...prevState, [name]: value }));
-        }
-    }
+    setAddMatch(mObj);
+  }, [eventData, prevMatch]);
 
-    const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
+  return (
+    <form onSubmit={handleAddMatch} className="w-full">
+      <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {addMatch.date && <DateInput handleDateChange={handleDateChange} name="date" label="Start time" required={!update} value={addMatch.date} />}
 
-        if (update) {
-            setUpdateMatch((prevState) => ({ ...prevState, rosterLock: value }));
-        } else {
-            setAddMatch((prevState) => ({ ...prevState, rosterLock: value }));
-        }
-    }
+        <InputField type="number" required={!update} label="Number of nets" name="numberOfNets" defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} />
+        <InputField type="number" required={!update} label="Number of rounds" name="numberOfRounds" defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} />
+        <InputField type="number" required={!update} label="Net Variance" name="netVariance" defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} />
+      </div>
 
-    const handleNumInputChange = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const inputEl = e.target as HTMLInputElement;
-        if (update) {
-            setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: parseInt(inputEl.value, 10) }));
-        } else {
-            setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: parseInt(inputEl.value, 10) }));
-        }
-    }
+      <div className="part-3 grid grid-cols-1 gap-6 mt-6">
+        {!update && (
+          <>
+            <SelectInput
+              key="g-t-d"
+              handleSelect={handleGroupChange}
+              name="group"
+              label="Group"
+              defaultValue={addMatch.division}
+              optionList={
+                addMatch.division && addMatch.division !== ''
+                  ? [
+                      { id: 1, text: 'All', value: 'all' },
+                      ...groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 2, text: g.name, value: g._id })),
+                    ]
+                  : [{ id: 1, text: 'All', value: 'all' }, ...groupList.map((g, gI) => ({ id: gI + 2, text: g.name, value: g._id }))]
+              }
+            />
+          </>
+        )}
+      </div>
 
-    const handleSelectChange = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const inputEl = e.target as HTMLSelectElement;
-        if (update) {
-            setUpdateMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        } else {
-            setAddMatch((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        }
-    }
+      <div className="part-3.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">{selectedGroup && filteredTeamList && <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}</div>
 
+      <div className="mt-6 w-full">
+        <h3 className="w-full capitalize">Default settings</h3>
+      </div>
+      <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <SelectInput key="si-1" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
+        <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
+      </div>
 
-    const handleToggleInput = (e: React.SyntheticEvent, stateName: string) => {
-        e.preventDefault();
-        // @ts-ignore
-        const prevStateVal: boolean = addMatch[stateName] ? addMatch[stateName] : false;
-        if (update) {
-            setUpdateMatch((prevState) => ({ ...prevState, [stateName]: !prevStateVal }));
-        } else {
-            setAddMatch((prevState) => ({ ...prevState, [stateName]: !prevStateVal }));
-        }
-    }
+      <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        {/* @ts-ignore */}
+        <ToggleInput handleValueChange={handleToggleInput} lblTxt="Auto assign when clock runs out" value={addMatch.autoAssign} name="autoAssign" lw="w-3/6" extraCls="md:w-5/12" />
+      </div>
 
-    const handleGroupChange = (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const inputEl = e.target as HTMLSelectElement;
-        setSelectedGroup(inputEl.value !== '' ? inputEl.value : null);
-        if (inputEl.value.toLowerCase() === "all") {
-            if (update) {
-                setUpdateMatch((prevState) => ({ ...prevState, group: undefined }));
-            } else {
-                setAddMatch((prevState) => ({ ...prevState, group: undefined }));
-            }
-        } else {
-            if (update) {
-                setUpdateMatch((prevState) => ({ ...prevState, group: inputEl.value }));
-            } else {
-                setAddMatch((prevState) => ({ ...prevState, group: inputEl.value }));
-            }
-        }
-        const groupExist = groupList.find((g) => g._id === inputEl.value);
-        if (groupExist && groupExist?.teams) {
-            const teamsOfGroup = groupExist.teams.map((gt) => gt._id);
-            const newTeamList = teamList?.filter((t) => teamsOfGroup.includes(t._id)) || [];
-            setFilteredTeamList(newTeamList);
-        } else if (inputEl.value.toLowerCase() === "all" && teamList) {
-            setFilteredTeamList(teamList);
-        }
-    }
+      <div className="part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <SelectInput
+          key="si-3"
+          defaultValue={addMatch.autoAssignLogic}
+          name="autoAssignLogic"
+          optionList={assignStrategies}
+          label="Which auto assign logic when clock runs out?"
+          handleSelect={handleInputChange}
+        />
 
-    /**
-     * Submit add match
-     */
-    const handleAddMatch = async (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        await addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, updateMatch, update, showAddMatch, router, addMatchCB });
-    }
+        <SelectInput
+          key="si-4"
+          name="rosterLock"
+          defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE}
+          optionList={lockTimes}
+          label="When does the roster lock setting?"
+          handleSelect={handleInputChange}
+        />
+        {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+          <DateInput name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
+        )}
+      </div>
 
-    /**
-     * Show select items list
-     */
-    const showTeamOptions = useCallback((teamE: ETeam) => {
-        // showTeamList(addMatch.teamB && addMatch.teamB !== "" ? filteredTeamList.filter((t) => t._id !== addMatch.teamB) : filteredTeamList)
-        let nList: ITeam[] = filteredTeamList;
-        if (teamE === ETeam.teamA) {
-            if (addMatch.teamB && addMatch.teamB !== "") {
-                nList = filteredTeamList.filter((t) => t._id !== addMatch.teamB)
-            }
-        } else {
-            if (addMatch.teamA && addMatch.teamA !== "") {
-                nList = filteredTeamList.filter((t) => t._id !== addMatch.teamA)
-            }
-        }
-        return nList.map((t) => ({ value: t._id, text: t.name }));
-    }, [filteredTeamList, addMatch, selectedGroup]);
+      <div className="part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <InputField type="number" required={!update} label="Sub Clock" name="timeout" defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} />
+        <InputField type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
+      </div>
+      <div className="part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <TextareaInput handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
+        <InputField type="text" handleInputChange={handleInputChange} label="Location" name="location" defaultValue={addMatch.location} />
+        <InputField type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />
+      </div>
 
-
-
-
-    // Need to show number of rounds and number of net and net variance etc
-    useEffect(() => {
-        let mObj = structuredClone(initialAddMatch);
-        if (prevMatch) {
-            // @ts-ignore
-            mObj = prevMatch;
-        } else {
-            if (eventData) {
-                mObj.numberOfRounds = eventData.rounds;
-                mObj.numberOfNets = eventData.nets;
-                mObj.date = eventData.startDate;
-                mObj.netVariance = eventData.netVariance;
-                mObj.autoAssign = eventData.autoAssign;
-                mObj.timeout = eventData.timeout;
-                mObj.rosterLock = eventData.rosterLock;
-                mObj.homeTeam = eventData.homeTeam;
-                mObj.description = eventData.description;
-                mObj.location = eventData.location;
-                mObj.tieBreaking = eventData.tieBreaking;
-                mObj.fwango = eventData?.fwango;
-            }
-        }
-
-        setAddMatch(mObj);
-    }, [eventData, prevMatch]);
-
-
-
-
-    return (
-        <form onSubmit={handleAddMatch} className='w-full'>
-            <div className='part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-                {addMatch.date && <DateInput handleDateChange={handleDateChange} name='date' label='Start time'
-                    required={!update} value={addMatch.date} />}
-
-                <InputField type="number" required={!update} label='Number of nets' name='numberOfNets' defaultValue={addMatch.numberOfNets} handleInputChange={handleNumInputChange} />
-                <InputField type="number" required={!update} label='Number of rounds' name='numberOfRounds' defaultValue={addMatch.numberOfRounds} handleInputChange={handleNumInputChange} />
-                <InputField type="number" required={!update} label='Net Variance' name='netVariance' defaultValue={addMatch.netVariance} handleInputChange={handleNumInputChange} />
-            </div>
-
-            <div className='part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-                {!update && (<>
-                    <SelectInput key="g-t-d" handleSelect={handleGroupChange} name='group' label='Group'
-                        defaultValue={addMatch.division} optionList={addMatch.division && addMatch.division !== ''
-                            ? [{ id: 1, text: "All", value: "all" }, ...groupList.filter((g) => g.division.trim().toUpperCase() === addMatch.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 2, text: g.name, value: g._id }))]
-                            : [{ id: 1, text: "All", value: "all" }, ...groupList.map((g, gI) => ({ id: gI + 2, text: g.name, value: g._id }))]} />
-                    {selectedGroup && filteredTeamList &&  <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
-                </>)}
-            </div>
-
-            <div className='part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-                <div className="mt-4 w-full">
-                    <h3 className='w-full capitalize'>Default settings</h3>
-                </div>
-
-                <SelectInput key="si-1" name='homeTeam' defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label='How is home team decided?' handleSelect={handleInputChange} />
-                <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking}
-                    optionList={tieBreakingRules}
-                    label="Tie breaking strategy" handleSelect={handleInputChange} />
-            </div>
-
-            <div className='part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-                {/* @ts-ignore */}
-                <ToggleInput handleValueChange={handleToggleInput} lblTxt='Auto assign when clock runs out' value={addMatch.autoAssign}
-                    name="autoAssign" lw='w-3/6' extraCls='md:w-5/12' />
-                <SelectInput key="si-3" defaultValue={addMatch.autoAssignLogic} name='autoAssignLogic' optionList={assignStrategies} label='Which auto assign logic when clock runs out?' handleSelect={handleInputChange} />
-
-                <SelectInput key="si-4" name='rosterLock'
-                    defaultValue={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT || addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? addMatch.rosterLock : ERosterLock.PICK_A_DATE}
-                    optionList={lockTimes} label='When does the roster lock setting?' handleSelect={handleInputChange} />
-                {addMatch.rosterLock && addMatch.rosterLock !== "" && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-                    <DateInput name='rosterLockDate' label='Pick A date when ranking is going to lock' handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
-                )}
-            </div>
-
-            <div className='part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-
-                <InputField type="number" required={!update} label='Sub Clock' name='timeout' defaultValue={addMatch.timeout} handleInputChange={handleNumInputChange} />
-                <InputField type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ""} />
-            </div>
-            <div className='part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-                <TextareaInput handleInputChange={handleInputChange} name='description' required={!update} defaultValue={addMatch.description} />
-                <TextareaInput handleInputChange={handleInputChange} name='location' defaultValue={addMatch.location} />
-            </div>
-
-
-            <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
-        </form>
-    )
+      <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
+    </form>
+  );
 }
 
 export default MatchAdd;

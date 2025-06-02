@@ -101,6 +101,15 @@ function MatchSetting({ match, myTeam, opTeam }: IMatchSettingProps) {
             </div>
           </div>
 
+          <div className="score-keeping-wrapper bg-black-logo w-full flex justify-center items-center rounded-lg mt-2 p-2 gap-x-2">
+            <Link className="btn-light" href={`/matches/${match._id}/score-keeping`}>
+              Start New
+            </Link>
+            <Link className="btn-light" href={`/matches/${match._id}/score-keeping`}>
+              Edit
+            </Link>
+          </div>
+
           {/* Box 2 - Match Details */}
           <div className="box-2 border border-black-logo rounded-lg mt-4">
             <div className="detail m-2">

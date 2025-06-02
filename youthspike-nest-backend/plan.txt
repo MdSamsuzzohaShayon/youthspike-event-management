@@ -1,0 +1,1 @@
+1. Fix sponsors upload (Create and update with default logo)

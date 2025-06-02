@@ -45,7 +45,6 @@ import {
   GetEventResponse,
   GetEventsResponse,
 } from './event.response';
-import { RedisSessionStore } from 'src/redis/redis-session.store';
 
 @Resolver((of) => Event)
 export class EventResolver {

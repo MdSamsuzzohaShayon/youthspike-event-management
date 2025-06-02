@@ -31,6 +31,10 @@ export class MatchService {
     });
   }
 
+  async findOne(filter: FilterQuery<Match>) {
+    return this.matchModel.findOne(filter);
+  }
+
   async findById(id: string) {
     return this.matchModel.findById(id);
   }

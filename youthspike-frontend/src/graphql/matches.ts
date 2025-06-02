@@ -128,5 +128,24 @@ query GetMatch($matchId: String!) {
 }
 `;
 
+
+const ACCESS_CODE_VALIDATION_RAW = `
+mutation AccessCodeValidation($input: AccessCodeInput!) {
+  accessCodeValidation(input: $input) {
+    code
+    message
+    success
+    data {
+      accessCode
+      match
+    }
+  }
+}
+`;
+
+const ACCESS_CODE_VALIDATION = gql`${ACCESS_CODE_VALIDATION_RAW}`;
+
+
+
 // eslint-disable-next-line import/prefer-default-export
-export { GET_MATCH_DETAIL };
+export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION };

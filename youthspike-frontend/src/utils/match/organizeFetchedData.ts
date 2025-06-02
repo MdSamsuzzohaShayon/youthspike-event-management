@@ -11,7 +11,7 @@ import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser, ITeam } from '@/types';
 // import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { getLocalTeam, getMatch } from '../localStorage';
+import { getLocalTeam, getMatch, setMatch } from '../localStorage';
 import { APP_NAME } from '../keys';
 
 interface IOrganizeFetchedDataProps {
@@ -131,9 +131,9 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   }
 
   dispatch(setNets(formattedNets));
-  console.log('allNets: ', formattedNets);
+  // console.log('allNets: ', formattedNets);
 
-  console.log(`RoundList: `, formattedRounds);
+  // console.log(`RoundList: `, formattedRounds);
 
   dispatch(setRoundList(formattedRounds));
 
@@ -142,13 +142,18 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   if (formattedRounds.length > 0) {
     const matchRound = getMatch(matchData._id);
     const foundRound = formattedRounds.find((fr) => fr._id === (matchRound?.roundId || ''));
-    if (foundRound) selectedRound = foundRound;
+    if (foundRound) {
+      selectedRound = foundRound;
+    } else {
+      // Set default round
+      setMatch(_id, selectedRound._id);
+    }
     dispatch(setCurrentRound(selectedRound));
 
     const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
     dispatch(setCurrentRoundNets(filteredNets));
   }
-  console.log('Current round: ', selectedRound);
+  // console.log('Current round: ', selectedRound);
 
   // Setting room
   if (token && userInfo) {
@@ -186,7 +191,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     extendedOvertime,
   };
   dispatch(setMatchInfo(matchObj));
-  console.log('Match info: ', matchObj);
+  // console.log('Match info: ', matchObj);
 
   // Setting ranking
   dispatch(setTeamAPlayerRanking(teamARanking));

@@ -71,7 +71,7 @@ interface IInputCommon {
 
 export interface InputFieldProps extends IInputCommon {
   type: string;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export interface ISelectInputProps extends IInputCommon {

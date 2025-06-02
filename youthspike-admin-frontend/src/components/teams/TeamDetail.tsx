@@ -198,7 +198,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
           {/* Standings Button */}
           <Link
             href={`/events/a`}
-            className="mt-5 bg-yellow-500 hover:bg-yellow-400 text-gray-900 transition py-3 px-6 rounded-lg text-md font-medium shadow-lg relative z-10"
+            className="mt-5 btn-info"
           >
             View Standings
           </Link>
@@ -207,7 +207,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
           <div className="tab-menu w-full mt-6 relative z-10">
             <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
               <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.ROSTER ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.ROSTER ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                   }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
@@ -215,7 +215,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
                 Rosters
               </li>
               <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.MATCHES ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.MATCHES ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                   }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}

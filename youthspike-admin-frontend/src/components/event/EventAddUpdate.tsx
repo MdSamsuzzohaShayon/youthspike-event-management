@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -36,6 +36,7 @@ import DateTimeInput from '../elements/forms/DateTimeInput';
 import InputField from '../elements/forms/InputField';
 import { createEvent } from '@/app/actions/event';
 import DivisionInputField from '../elements/forms/DivisionInputField';
+import { getLocalDateTimeISO } from '@/utils/datetime';
 
 interface IAddMutationVariables {
   sponsorsInput: IEventSponsorAdd[];
@@ -44,12 +45,11 @@ interface IAddMutationVariables {
   input?: IEventAdd;
 }
 
-
 // Logo and division is missing
 const initialEvent: IEventAdd = {
   name: 'Unnamed Event',
-  startDate: new Date().toISOString(),
-  endDate: new Date().toISOString(),
+  startDate: getLocalDateTimeISO(),
+  endDate: getLocalDateTimeISO(),
   nets: 3,
   rounds: 2,
   netVariance: 3,
@@ -66,7 +66,8 @@ const initialEvent: IEventAdd = {
   tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
   coachPassword: '',
   location: 'USA',
-  description: 'USA',
+  accessCode: '', // With this access code a user can manage 7 actions of a match
+  description: 'A New Event is Idho, USA.',
 
   defaultSponsor: true,
   playerLimit: 10,
@@ -124,7 +125,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
       router,
       initialEvent,
       socket,
-      ldoIdUrl
+      ldoIdUrl,
     });
   };
 
@@ -157,7 +158,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     } else {
       setUpdateEvent((prevState) => ({ ...prevState, [name]: value }));
     }
-  }
+  };
 
   const handleNumberInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -176,15 +177,13 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   };
 
-
   const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
     if (!update) {
       setEventState((prevState) => ({ ...prevState, rosterLock: value }));
     } else {
       setUpdateEvent((prevState) => ({ ...prevState, rosterLock: value }));
     }
-  }
-
+  };
 
   const handleDivisionInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -195,7 +194,6 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   };
 
-
   const handleImgRemove = (e: React.SyntheticEvent, companyName: string) => {
     e.preventDefault();
     setSponsorImgList((prevState) => {
@@ -204,14 +202,14 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     });
   };
 
-  const handleDefaultSponsor=(e: React.SyntheticEvent)=>{
+  const handleDefaultSponsor = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if(update){
+    if (update) {
       setUpdateEvent((prevState) => ({ ...prevState, defaultSponsor: false }));
-    }else{
+    } else {
       setEventState((prevState) => ({ ...prevState, defaultSponsor: false }));
     }
-  }
+  };
 
   /**
    * File Upload
@@ -275,13 +273,9 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   };
 
-
   const handleLogoChange = (uploadedFile: MediaSource | Blob) => {
     eventLogo.current = uploadedFile;
   };
-
-
-
 
   /**
    * Lifecycle hooks
@@ -306,21 +300,16 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   }, [user]);
 
-
-
   return (
-    <form className="w-full" onSubmit={handleEventAdd} >
+    <form className="w-full" onSubmit={handleEventAdd}>
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Event Name */}
         <InputField key="dau-1" name="name" type="text" label="Name" handleInputChange={handleInputChange} defaultValue={eventState.name} required={!update} />
         {/* Logo Upload */}
         <ImageInput handleFileChange={handleLogoChange} name="logo" />
 
-        <DateInput key="di-eau-1" label="Start Date" name="startDate" handleDateChange={handleDateChange} defaultValue={eventState.startDate}  required={!update} />
-        <DateInput key="di-eau-2" label="End Date" name="endDate" handleDateChange={handleDateChange} defaultValue={eventState.endDate}  required={!update} />
-
-
-
+        <DateInput key="di-eau-1" label="Start Date" name="startDate" handleDateChange={handleDateChange} defaultValue={eventState.startDate} required={!update} />
+        <DateInput key="di-eau-2" label="End Date" name="endDate" handleDateChange={handleDateChange} defaultValue={eventState.endDate} required={!update} />
 
         {/* Number of Nets */}
         <InputField key="dau-2" required={!update} name="nets" type="number" handleInputChange={handleNumberInputChange} label="Number of nets" defaultValue={eventState.nets} />
@@ -331,9 +320,11 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
       <div className="w-full mt-6">
         {/* <DivisionInputField  defaultValue={eventState.divisions} name="divisions" /> */}
         {!update ? (
-          <InputField key="dau-8" type='text'  required={!update} defaultValue={eventState.divisions} handleInputChange={handleDivisionInputChange} label="Divisions" name="divisions" />
+          <InputField key="dau-8" type="text" required={!update} defaultValue={eventState.divisions} handleInputChange={handleDivisionInputChange} label="Divisions" name="divisions" />
         ) : (
-          <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
+          <>
+            <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
+          </>
         )}
         <ShowDivisions
           update={update}
@@ -346,44 +337,47 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
         />
       </div>
 
-      <div className='part-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+      <div className="part-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         {/* Home Team Selection */}
-        <SelectInput key="si-dau-1" name='homeTeam' label='How is home team decided?' handleSelect={handleInputChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />
-        <SelectInput key="si-dau-2" name="tieBreaking"
-          optionList={tieBreakingRules}
-          defaultValue={eventState.tieBreaking}
-          handleSelect={handleInputChange}
-          label="Tie breaking strategy" />
+        <SelectInput key="si-dau-1" name="homeTeam" label="How is home team decided?" handleSelect={handleInputChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />
+        <SelectInput key="si-dau-2" name="tieBreaking" optionList={tieBreakingRules} defaultValue={eventState.tieBreaking} handleSelect={handleInputChange} label="Tie breaking strategy" />
         {/* Auto Assign */}
-        <ToggleInput handleInputChange={handleToggleChange}
-          name="autoAssign" label='Auto assign when clock runs out' defaultValue={eventState.autoAssign} />
+        <ToggleInput handleInputChange={handleToggleChange} name="autoAssign" label="Auto assign when clock runs out" defaultValue={eventState.autoAssign} />
 
-
-        <SelectInput key="eau-2" name="autoAssignLogic"
+        <SelectInput
+          key="eau-2"
+          name="autoAssignLogic"
           optionList={assignStrategies}
           handleSelect={handleInputChange}
-          label="Which auto assign logic when clock runs out?" defaultValue={eventState.autoAssignLogic} />
-
-        <SelectInput key="eau-4"
-          name="rosterLock"
-          optionList={lockTimes}
-          handleSelect={handleInputChange}
-          defaultValue={eventState.rosterLock}
-          label="When does the roster lock setting?"
+          label="Which auto assign logic when clock runs out?"
+          defaultValue={eventState.autoAssignLogic}
         />
 
-        {eventState.rosterLock && eventState.rosterLock !== "" && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-          <DateTimeInput name='rosterLockDate' label='Set a time for locking roster ranking!' required={!update} handleDateChange={handleRosterLockDate} />
+        <SelectInput key="eau-4" name="rosterLock" optionList={lockTimes} handleSelect={handleInputChange} defaultValue={eventState.rosterLock} label="When does the roster lock setting?" />
+
+        {eventState.rosterLock && eventState.rosterLock !== '' && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+          <DateTimeInput name="rosterLockDate" label="Set a time for locking roster ranking!" required={!update} handleDateChange={handleRosterLockDate} />
         )}
       </div>
 
-      <div className='part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+      <div className="part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField key="dau-5" name="timeout" type="number" handleInputChange={handleNumberInputChange} label="Sub Clock (in minutes)" defaultValue={eventState.timeout} />
         <InputField key="dau-6" name="coachPassword" type="password" label="Coach Password" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.coachPassword} />
       </div>
-      <div className='part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+      <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <TextareaInput key="ti-eau-1" name="description" label="Description" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.description} />
-        <TextareaInput key="ti-eau-2" name="location" label="Location" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.location} />
+      </div>
+      <div className="part-4.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <InputField key="ti-eau-2" type="text" name="location" label="Location" required={!update} handleInputChange={handleInputChange} defaultValue={eventState.location} />
+        <InputField
+          key="ti-ac-3"
+          type="text"
+          tooltip="For scorekeeper, access code are needed to change the score!"
+          name="accessCode"
+          label="Access Code"
+          handleInputChange={handleInputChange}
+          defaultValue={eventState.accessCode}
+        />
       </div>
 
       <dialog ref={addSponsorDialogEl}>
@@ -391,7 +385,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
           <Image width={imgSize.logo} height={imgSize.logo} alt="close-icon" src="/icons/close.svg" role="presentation" onClick={handleCloseModal} className="svg-white w-6" />
         </div>
         <div className="flex items-center justify-center flex-col">
-          <InputField key="ti-eau-5" type='text' handleInputChange={handleFileNameChange} name="company" required={false} />
+          <InputField key="ti-eau-5" type="text" handleInputChange={handleFileNameChange} name="company" required={false} />
           <AnyFileInput handleFileChange={handleFileChange} name="logo" vertical lblTxt="Sponsor Logo" />
           <div className="input-group mt-4">
             <button type="button" className="btn-info" onClick={handleOk}>
@@ -402,17 +396,17 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
       </dialog>
       <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
         <h3 className="text-2xl capitalize">Sponsors</h3>
-        <button type="button" onClick={handleSponsorDialog} className="btn-primary">
+        <button type="button" onClick={handleSponsorDialog} className="btn-info">
           Add New
         </button>
       </div>
       <ShowSponsors handleDefaultSponsor={handleDefaultSponsor} defaultSponsor={eventState.defaultSponsor} fileList={sponsorImgList} handleImgRemove={handleImgRemove} />
 
-
-
       {/* Submit Button */}
       <div className="col-span-2 flex justify-center">
-        <button type="submit" className="bg-yellow-400 text-black px-6 py-3 rounded-md font-bold text-lg mt-4 hover:bg-yellow-300">Submit</button>
+        <button type="submit" className="bg-yellow-400 text-black px-6 py-3 rounded-md font-bold text-lg mt-4 hover:bg-yellow-300">
+          Submit
+        </button>
       </div>
       {/* <button className="btn-info" type="submit">
             {update ? 'Update' : 'Submit'}

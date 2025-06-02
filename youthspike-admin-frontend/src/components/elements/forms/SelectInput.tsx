@@ -5,7 +5,7 @@ import { ISelectInputProps } from '@/types';
 const SelectInput = (props: ISelectInputProps) => {
 
   return (
-    <div className={`flex flex-col col-span-2 ${props.className || ""}`}>
+    <div className={`flex flex-col ${props.className || ""}`}>
         <label htmlFor={props.name} className="capitalize text-lg font-semibold mb-1" >
           {props.label || props.name}
         </label>

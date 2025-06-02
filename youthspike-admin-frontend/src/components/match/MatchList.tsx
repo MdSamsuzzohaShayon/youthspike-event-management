@@ -199,8 +199,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     e.preventDefault();
   };
 
-  console.log({ matchList });
-
+  
   useEffect(() => {
     if (matchList) {
       const sortedMatch = [...matchList].sort((a, b) => {

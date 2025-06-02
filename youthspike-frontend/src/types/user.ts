@@ -17,6 +17,11 @@ export interface ILogin{
   password: string;
 }
 
+export interface IAccessCode{
+  code: string;
+  matchId: string;
+}
+
 /**
  * User
  */
@@ -29,6 +34,7 @@ export interface IUser extends IDocument {
   login: ILogin;
   captainplayer: string | null;
   cocaptainplayer: string | null;
+  accessCode?: IAccessCode[] | null;
 }
 
 /**

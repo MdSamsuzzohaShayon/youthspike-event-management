@@ -197,6 +197,7 @@ query GetEventWithMatches($eventId: String!) {
         coachPassword
         description
         location
+        accessCode
       }
       matches {
         _id

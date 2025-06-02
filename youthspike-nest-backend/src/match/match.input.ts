@@ -55,6 +55,9 @@ export class CreateMatchInput {
   @Field({ nullable: true })
   location?: string;
 
+  @Field({nullable: true})
+  accessCode?: string;
+
   @Field({ nullable: true })
   fwango?: string;
 }
@@ -115,4 +118,13 @@ export class FilterQueryInput {
 
   @Field({ nullable: true })
   location?: string;
+}
+
+@InputType()
+export class AccessCodeInput{
+  @Field({nullable: false})
+  accessCode: string;
+
+  @Field({nullable: false})
+  matchId: string;
 }

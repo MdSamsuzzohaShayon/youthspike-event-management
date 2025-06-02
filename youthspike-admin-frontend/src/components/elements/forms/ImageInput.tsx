@@ -7,7 +7,7 @@ import cld from '@/config/cloudinary.config';
 import { IImageFileProps } from '@/types';
 import { fileToImgSrc, getCroppedImgBlob, handleScaleImage } from '@/utils/croppedImage';
 import { AdvancedImage } from '@cloudinary/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -19,14 +19,14 @@ interface IDimension {
 const INIT_CROP: Crop = { unit: 'px', x: 0, y: 0, width: 200, height: 200 };
 
 function ImageInput({ handleFileChange, name, label, className, defaultValue }: IImageFileProps) {
-  const [srcUncropped, setSrcUncropped] = useState(null);
+  const [srcUncropped, setSrcUncropped] = useState<string | ArrayBuffer | null>(null);
 
   const [crop, setCrop] = useState<Crop>(INIT_CROP);
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
   const [filename, setFilename] = useState<string | null>(null);
 
   // Keep image size same with background element
-  const [orginalImg, setOrginalImg] = useState<null | File>(null);
+  const [orginalImg, setOriginalImg] = useState<null | File>(null);
   const [pDimension, setPDimension] = useState<IDimension>({ w: 0, h: 0 });
   const imgCropEl = useRef<HTMLImageElement | null>(null);
   const [scaledImgUrl, setScaledImgUrl] = useState<string | ArrayBuffer | null>(null);
@@ -48,20 +48,50 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     imageInputEl.current.click();
   }
 
-  const handleImgFileChange = async (e: React.SyntheticEvent) => {
+  const handleImgFile1Change = async (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
     if (inputEl.files && inputEl.files.length > 0) {
-      setOrginalImg(inputEl.files[0]);
+      setOriginalImg(inputEl.files[0]);
       setFilename(inputEl.files[0].name);
       if (handleFileChange) handleFileChange(inputEl.files[0]);
 
       const uploadedImgUrl = await fileToImgSrc(inputEl.files[0]);
-      // @ts-ignore
       if (uploadedImgUrl) setSrcUncropped(uploadedImgUrl);
 
       openModal();
     }
   };
+
+  const handleImgFileChange = useCallback(async (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    if (!inputEl.files?.[0]) return;
+  
+    const file = inputEl.files[0];
+    
+    // Validate file type
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!validImageTypes.includes(file.type)) {
+      alert('Please upload a valid image file (JPEG, PNG, GIF, WEBP, or SVG)');
+      return;
+    }
+  
+    // Validate file size if needed (example: 5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+  
+    setOriginalImg(file);
+    setFilename(file.name);
+    handleFileChange?.(file);
+  
+    const uploadedImgUrl = await fileToImgSrc(file);
+    if (uploadedImgUrl) {
+      setSrcUncropped(uploadedImgUrl);
+      openModal();
+    }
+  }, [handleFileChange, openModal]);
 
 
 
@@ -113,7 +143,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
           const scaleedImgFile = await handleScaleImage(orginalImg, imgCropEl.current.clientWidth, imgCropEl.current.clientHeight);
 
           if (scaleedImgFile) {
-            setOrginalImg(scaleedImgFile);
+            setOriginalImg(scaleedImgFile);
             if(handleFileChange)handleFileChange(scaleedImgFile);
             const url = await fileToImgSrc(scaleedImgFile);
             setScaledImgUrl(url);
@@ -123,7 +153,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     })()
   });
 
-  const renderImage = useCallback(() => {
+  const renderImage = useMemo(() => {
     let imgEl: null | HTMLImageElement | React.ReactNode = null;
     if (!filename || filename === '') {
       if (defaultValue && typeof defaultValue === 'string') {
@@ -144,7 +174,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
       <div className={`flex items-center gap-4`}>
         <div className="w-full flex justify-between gap-2">
           <div className='w-3/6'>
-            {renderImage()}
+            {renderImage}
           </div>
           <div className="btn-text w-full flex flex-col w-3/6 justify-center gap-2">
             {filename && <p>{filename}</p>}
@@ -166,6 +196,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
         <div className="px-2 flex flex-col items-center justify-center gap-2">
           {srcUncropped && (
             <ReactCrop crop={crop} onChange={handleCropChange} onComplete={onCropComplete} >
+              {/* @ts-ignore  */}
               <img id="img-to-crop" src={srcUncropped} alt="file-upload h-32" ref={imgCropEl} />
             </ReactCrop>
           )}

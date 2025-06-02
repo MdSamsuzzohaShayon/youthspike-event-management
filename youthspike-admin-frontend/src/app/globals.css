@@ -126,7 +126,8 @@ dialog::backdrop {
 
 .btn-info {
   /* @apply px-3 py-2 bg-yellow-logo text-gray-900 rounded-md hover:bg-yellow-700 font-bold text-xl; */
-  @apply  bg-yellow-400 text-black px-6 py-3 rounded-lg shadow-md font-semibold hover:bg-yellow-500 transition;
+  @apply text-black px-6 py-3 rounded-lg shadow-md font-semibold hover:bg-yellow-500 transition;
+  background: #fce013;
 }
 
 .btn-danger {
@@ -175,6 +176,14 @@ dialog::backdrop {
   color: #fce013;
 }
 
+/* Background styling start  */
+/* .bg-dark{
+  @apply bg-gray-900;
+}
+.bg-dark-light{
+  @apply bg-gray-700;
+} */
+
 .bg-yellow-logo{
   background: #fce013;
 }
@@ -183,10 +192,21 @@ dialog::backdrop {
   @apply bg-gradient-to-r from-[#fce013] to-[#fff293];
 }
 
-.bg-gray-gradient{
-  /* // bg-gradient-to-r from-[#fce013] to-[#fff293] */
+.bg-gray-gradient-linear {
   @apply bg-gradient-to-b from-gray-900 to-gray-800;
 }
+
+/* Horizontal linear */
+.bg-gray-gradient-horizontal {
+  @apply bg-gradient-to-r from-gray-900 to-gray-800;
+}
+
+/* Diagonal linear */
+.bg-gray-gradient-diagonal {
+  @apply bg-gradient-to-tr from-gray-900 to-gray-800;
+}
+/* Background styling end  */
+
 
 .overflow-gradient{
   @apply absolute inset-0 z-0 bg-gradient-to-tr from-yellow-500/10 to-gray-800/10 opacity-80;

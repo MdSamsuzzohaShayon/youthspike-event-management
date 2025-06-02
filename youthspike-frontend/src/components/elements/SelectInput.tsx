@@ -20,8 +20,8 @@ function SelectInput({ className, name, optionList, label, defaultValue, value, 
         <option value="" className="bg-gray-400 text-gray-700">
           {`Select ${name}`}
         </option>
-        {optionList.map((o) => (
-          <option value={o.value} key={o.id} className="capitalize">
+        {optionList.map((o, i) => (
+          <option value={o.value} key={o.id+ "_" + i} className="capitalize">
             {o.text ? o.text : o.value}
           </option>
         ))}

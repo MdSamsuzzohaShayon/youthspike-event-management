@@ -128,6 +128,7 @@ type Match {
   tieBreaking: String
   timeout: Float
   location: String
+  accessCode: String
   description: String
   fwango: String
   completed: Boolean
@@ -199,6 +200,7 @@ type Event {
   coachPassword: String!
   description: String
   location: String
+  accessCode: String
   defaultSponsor: Boolean
 }
 
@@ -478,6 +480,7 @@ type CustomMatch {
   tieBreaking: String
   timeout: Float
   location: String
+  accessCode: String
   description: String
   fwango: String
   completed: Boolean
@@ -579,6 +582,18 @@ type GetMatchResponse {
   success: Boolean!
   message: String
   data: Match
+}
+
+type AccessCode {
+  accessCode: String!
+  match: String!
+}
+
+type GetAccessCodeResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: AccessCode
 }
 
 type CustomTeam {
@@ -699,6 +714,19 @@ type GetNetResponse {
   data: Net!
 }
 
+type NetPointsAssign {
+  _id: String!
+  teamAScore: Float
+  teamBScore: Float
+}
+
+type RoundResoponse {
+  _id: String!
+  teamAScore: Float
+  teamBScore: Float
+  completed: Boolean!
+}
+
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!
@@ -810,6 +838,7 @@ type Mutation {
   createMatch(input: CreateMatchInput!): GetMatchResponse!
   updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
   deleteMatch(matchId: String!): GetMatchResponse!
+  accessCodeValidation(input: AccessCodeInput!): GetAccessCodeResponse!
   deleteMatches(matchIds: [String!]!): GetMatchResponse!
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
@@ -869,6 +898,7 @@ input CreateEventInput {
   fwango: String
   description: String!
   location: String!
+  accessCode: String
   ldo: String!
   id: String
   defaultSponsor: Boolean = false
@@ -894,6 +924,7 @@ input UpdateEventInput {
   fwango: String
   description: String
   location: String
+  accessCode: String
   ldo: String
   id: String
   defaultSponsor: Boolean = false
@@ -944,6 +975,7 @@ input CreateMatchInput {
   timeout: Int
   description: String!
   location: String
+  accessCode: String
   fwango: String
 }
 
@@ -965,7 +997,13 @@ input UpdateMatchInput {
   timeout: Int
   description: String
   location: String
+  accessCode: String
   fwango: String
+}
+
+input AccessCodeInput {
+  accessCode: String!
+  matchId: String!
 }
 
 input UpdateRoundInput {

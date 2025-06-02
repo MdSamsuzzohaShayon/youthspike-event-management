@@ -10,6 +10,7 @@ export interface ICommonMatchEvent{
   timeout: number;
   description: string;
   location: string;
+  accessCode?: string;
   tieBreaking: ETieBreakingStrategy;
   fwango?: string | null;
 }

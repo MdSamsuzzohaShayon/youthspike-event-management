@@ -14,7 +14,7 @@ function InputField({ name, type = 'text', label, value, defaultValue, handleInp
         type={type}
         {...(defaultValue && { defaultValue })}
         {...(value && { value })}
-        onChange={handleInputChange}
+        {...(handleInputChange && { onChange: handleInputChange })}
         required={required}
         className="w-full p-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
       />

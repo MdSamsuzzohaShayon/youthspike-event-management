@@ -65,6 +65,12 @@ export class Match extends AppDocument {
   @Prop({ required: false })
   location?: string;
 
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  accessCode?: string;
+
+
   @Field({ nullable: true })
   @Prop({ required: false })
   description?: string;

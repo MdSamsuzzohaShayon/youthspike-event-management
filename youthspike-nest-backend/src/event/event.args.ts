@@ -82,6 +82,9 @@ export class CreateEventInput {
   @Field({ nullable: false })
   location: string;
 
+  @Field({ nullable: true })
+  accessCode: string;
+
   @Field()
   ldo?: string;
 

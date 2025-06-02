@@ -20,6 +20,24 @@ export class GetMatchResponse extends AppResponse<Match> {
   data?: Match | null;
 }
 
+
+@ObjectType()
+export class AccessCode{
+  @Field((_type)=> String, {nullable: false})
+  accessCode: string;
+  
+  @Field((_type)=> String, {nullable: false})
+  match: string;
+}
+
+@ObjectType()
+export class GetAccessCodeResponse extends AppResponse<AccessCode> {
+  @Field((_type) => AccessCode, { nullable: true })
+  data?: AccessCode | null;
+}
+
+
+
 @ObjectType()
 export class CustomTeam extends Team {
   @Field((_type) => [String], { nullable: true })

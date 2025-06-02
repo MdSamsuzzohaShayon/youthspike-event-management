@@ -112,7 +112,7 @@ function Login() {
                     </motion.div>
                     <form
                         onSubmit={handleLogin}
-                        className="flex flex-col gap-4 bg-gray-900 p-8 rounded-lg shadow-lg bg-gray-gradient"
+                        className="flex flex-col gap-4 bg-gray-900 p-8 rounded-lg shadow-lg bg-gray-gradient-linear"
                     >
                         <motion.div
                             initial={cInitial}

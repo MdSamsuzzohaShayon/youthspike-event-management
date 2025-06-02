@@ -37,6 +37,7 @@ export interface ITextCommon {
 
 export interface InputFieldProps extends ITextCommon {
     type: string;
+    tooltip?: string;
     defaultValue?: string | number;
     handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

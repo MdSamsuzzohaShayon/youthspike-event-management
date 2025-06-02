@@ -1,12 +1,11 @@
 import { IEventAdd } from '@/types';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import TextInput from '../elements/forms/TextInput';
 import { ApolloClient, useApolloClient, useMutation } from '@apollo/client';
 import { GET_AN_EVENT, UPDATE_EVENT } from '@/graphql/event';
 import { clickedInside } from '@/utils/helper';
 import useClickOutside from '../../hooks/useClickOutside';
 import InputField from '../elements/forms/InputField';
-
 
 interface IShowDivisionsProps {
     update: boolean;
@@ -18,184 +17,202 @@ interface IShowDivisionsProps {
     setUpdateEvent: React.Dispatch<React.SetStateAction<Partial<IEventAdd>>>;
 }
 
-
 function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setEventState, setUpdateEvent }: IShowDivisionsProps) {
     const [eventUpdate, { error: euErr }] = useMutation(UPDATE_EVENT);
-
     const addDivisionDialogEl = useRef<HTMLDialogElement | null>(null);
     const [updatedDivisions, setUpdatedDivisions] = useState(prevDivisions);
     const [originalItem, setOriginalItem] = useState<string | null>(null);
     const [addNew, setAddNew] = useState<boolean>(false);
 
+    // Memoize the division list to avoid unnecessary recalculations
+    const divisionList = useMemo(() => {
+        return dStr.split(',').filter(item => item.trim() !== '');
+    }, [dStr]);
 
-    useClickOutside(addDivisionDialogEl, () => {
-        if (addDivisionDialogEl.current) {
-            addDivisionDialogEl.current.close();
-        }
+    // Optimized click outside handler
+    useClickOutside(addDivisionDialogEl, useCallback(() => {
+        addDivisionDialogEl.current?.close();
         setOriginalItem(null);
-    });
+    }, []));
 
-    const refreshServer = async (newDivisions: string) => {
+    // Memoized refresh function to avoid recreating on every render
+    const refreshServer = useCallback(async (newDivisions: string) => {
         const inputData = { ...updateEvent, divisions: newDivisions };
-        const mutationVariables = {
-            sponsorsInput: [],
-            input: inputData,
-            eventId
-        };
-        await eventUpdate({ variables: mutationVariables });
-        // client.refetchQueries({
-        //     include: [GET_A_EVENT],
-        // });
-    }
+        await eventUpdate({
+            variables: {
+                sponsorsInput: [],
+                updateInput: inputData,
+                eventId
+            }
+        });
+    }, [eventUpdate, eventId, updateEvent]);
 
-    const handleCutDivision = async (e: React.SyntheticEvent, item: string) => {
+    // Optimized division removal handler
+    const handleCutDivision = useCallback(async (e: React.SyntheticEvent, item: string) => {
         e.preventDefault();
         if (!eventId) return;
 
-        // Hit to backend
+        const prevDivList = prevDivisions.split(',').filter(Boolean);
+        const newDivisions = prevDivList
+            .filter(d => d.trim().toLowerCase() !== item.trim().toLowerCase())
+            .map(str => str.trim())
+            .join(', ');
 
-        const prevDivList = prevDivisions.split(',');
-        const findTargetIndex = prevDivList.findIndex((d) => d.trim().toLowerCase() === item.trim().toLowerCase());
-        if (findTargetIndex !== -1) {
-            prevDivList.splice(findTargetIndex, 1);
-        }
-        const newDivisions = prevDivList.map(str => str.trim()).join(', ');
-        setEventState((prevState) => ({ ...prevState, divisions: newDivisions }));
+        setEventState(prev => ({ ...prev, divisions: newDivisions }));
         if (update) {
-            setUpdateEvent((prevState) => ({ ...prevState, divisions: newDivisions }));
+            setUpdateEvent(prev => ({ ...prev, divisions: newDivisions }));
         }
 
         setUpdatedDivisions(newDivisions);
         await refreshServer(newDivisions);
+    }, [eventId, prevDivisions, update, refreshServer, setEventState, setUpdateEvent]);
 
-    }
-
-    const handleInputChange = (e: React.SyntheticEvent) => {
+    // Optimized input change handler
+    const handleInputChange = useCallback((e: React.SyntheticEvent) => {
         e.preventDefault();
-
         const inputEl = e.target as HTMLInputElement;
-        let divisions = `${prevDivisions}, ${inputEl.value.trim()}`, updateDivs = `${prevDivisions}, ${inputEl.value.trim()}`;
+        const value = inputEl.value.trim();
+
+        if (!value) return;
+
+        let divisions, updateDivs;
+
         if (!addNew && originalItem) {
-            // If it is updating make sure to have prev word with current work
-            // Make word format like prev_new_u
-            // find current work in new and prev
-            const prevDivList = prevDivisions.split(',');
+            const prevDivList = prevDivisions.split(',').filter(Boolean);
             const updateDivList = [...prevDivList];
-            const prevItemIndex = prevDivList.findIndex((d) => d.trim().toLowerCase().includes(originalItem.trim().toLowerCase()));
+            
+            const prevItemIndex = prevDivList.findIndex(d => 
+                d.trim().toLowerCase().includes(originalItem.trim().toLowerCase())
+            );
+
             if (prevItemIndex !== -1) {
-                let os = prevDivList[prevItemIndex].trim(), ns = inputEl.value.trim();
-                if (prevDivList[prevItemIndex].includes('_')) {
-                    os = prevDivList[prevItemIndex].split('_')[0].trim();
+                let originalStr = prevDivList[prevItemIndex].trim();
+                if (originalStr.includes('_')) {
+                    originalStr = originalStr.split('_')[0].trim();
                 }
-                const formattedStr = `${os}_${ns}_u`;
-                prevDivList[prevItemIndex] = inputEl.value.trim();
+                const formattedStr = `${originalStr}_${value}_u`;
+                
+                prevDivList[prevItemIndex] = value;
                 updateDivList[prevItemIndex] = formattedStr;
             }
+
             divisions = prevDivList.map(str => str.trim()).join(', ');
             updateDivs = updateDivList.map(str => str.trim()).join(', ');
+        } else {
+            divisions = `${prevDivisions}, ${value}`;
+            updateDivs = divisions;
         }
-        setEventState((prevState) => ({ ...prevState, divisions }));
+
+        setEventState(prev => ({ ...prev, divisions }));
         if (update) {
-            setUpdateEvent((prevState) => ({ ...prevState, divisions: updateDivs }));
+            setUpdateEvent(prev => ({ ...prev, divisions: updateDivs }));
         }
         setUpdatedDivisions(updateDivs);
-    }
+    }, [addNew, originalItem, prevDivisions, update, setEventState, setUpdateEvent]);
 
-
-
-    const handleAddDivision = async (e: React.SyntheticEvent) => {
+    // Optimized add division handler
+    const handleAddDivision = useCallback(async (e: React.SyntheticEvent) => {
         e.preventDefault();
-        // Make request to backend
         await refreshServer(updatedDivisions);
-
-        if (addDivisionDialogEl.current) {
-            addDivisionDialogEl.current.close();
-        }
+        addDivisionDialogEl.current?.close();
         setOriginalItem(null);
-    }
+    }, [refreshServer, updatedDivisions]);
 
-
-
-    /**
-     * Show and Close Modals
-     */
-    const handleShowEditDivision = (e: React.SyntheticEvent, item: string) => {
+    // Optimized modal handlers
+    const handleShowEditDivision = useCallback((e: React.SyntheticEvent, item: string) => {
         e.preventDefault();
-
         setAddNew(false);
-        if (addDivisionDialogEl.current) {
-            addDivisionDialogEl.current.showModal();
-        }
-
-        const inputEl = document.getElementById("division-new");
+        addDivisionDialogEl.current?.showModal();
+        
+        const inputEl = document.getElementById("division-new") as HTMLInputElement;
         if (inputEl) {
-            const inputElFound = inputEl as HTMLInputElement;
-            inputElFound.value = item;
+            inputEl.value = item;
             setOriginalItem(item);
         }
+    }, []);
 
-    }
-
-    const handleShowAddDivision = (e: React.SyntheticEvent) => {
+    const handleShowAddDivision = useCallback((e: React.SyntheticEvent) => {
         e.preventDefault();
         setAddNew(true);
-        if (addDivisionDialogEl.current) {
-            addDivisionDialogEl.current.showModal();
-        }
-
-        const inputEl = document.getElementById("division-new");
+        addDivisionDialogEl.current?.showModal();
+        
+        const inputEl = document.getElementById("division-new") as HTMLInputElement;
         if (inputEl) {
-            const inputElFound = inputEl as HTMLInputElement;
-            inputElFound.value = "";
+            inputEl.value = "";
         }
-    }
+    }, []);
 
-    const handleCloseModal = (e: React.SyntheticEvent) => {
+    const handleCloseModal = useCallback((e: React.SyntheticEvent) => {
         e.preventDefault();
-        if (addDivisionDialogEl.current) {
-            addDivisionDialogEl.current.close();
-        }
+        addDivisionDialogEl.current?.close();
         setOriginalItem(null);
-    }
+    }, []);
 
-
-    if (!dStr.includes(',')) return <ul>{dStr}</ul>;
-    const dList: string[] = dStr.split(',');
-    const listEl: React.ReactNode[] = [];
-    for (let i = 0; i < dList.length; i += 1) {
-        if (dList[i].trim() !== '') {
-            listEl.push(<li className='px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between' key={dList[i] + '-' + i}>
-                {dList[i]}
+    // Memoize the list elements to avoid recreating on every render
+    const listEl = useMemo(() => {
+        return divisionList.map((item, i) => (
+            <li className='px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between' key={`${item}-${i}`}>
+                {item}
                 {update && (
-                    <React.Fragment>
-                        <img className='w-4 h-4 svg-white ml-2' role="presentation" onClick={(e) => handleShowEditDivision(e, dList[i])} src='/icons/edit.svg' />
-                        <img className='w-4 h-4 svg-white ml-2' role="presentation" onClick={(e) => handleCutDivision(e, dList[i])} src='/icons/close.svg' />
-                    </React.Fragment>
+                    <>
+                        <img 
+                            className='w-4 h-4 svg-white ml-2' 
+                            role="presentation" 
+                            onClick={(e) => handleShowEditDivision(e, item)} 
+                            src='/icons/edit.svg' 
+                            alt="Edit" 
+                        />
+                        <img 
+                            className='w-4 h-4 svg-white ml-2' 
+                            role="presentation" 
+                            onClick={(e) => handleCutDivision(e, item)} 
+                            src='/icons/close.svg' 
+                            alt="Remove" 
+                        />
+                    </>
                 )}
-            </li>);
-        }
-    }
-
-
-
-    return <ul className='flex gap-1 flex-wrap mt-2'>
-        {/* New division add start  */}
-        <dialog ref={addDivisionDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2' >
-            <img src='/icons/close.svg' role="presentation" onClick={handleCloseModal} className='svg-white mt-2' />
-            <InputField type='text' handleInputChange={handleInputChange} name='division-new' label={addNew ? "Add Division" : "Update Division"} required={false} />
-            <button className='btn-info mt-4 text-center' onClick={handleAddDivision}>Ok</button>
-        </dialog>
-        {/* New division add end  */}
-
-        {listEl}
-
-        {update && (
-            <li className='px-4 py-2 rounded-full bg-yellow-logo text-black flex items-center justify-between' role="presentation" onClick={handleShowAddDivision} >
-                Add New
-                <img className='w-4 h-4 svg-black ml-2' src='/icons/plus.svg' />
             </li>
-        )}
-    </ul>
+        ));
+    }, [divisionList, update, handleShowEditDivision, handleCutDivision]);
+
+    // if (!dStr.includes(',')) return <ul>{dStr}</ul>;
+
+    return (
+        <ul className='flex gap-1 flex-wrap mt-2'>
+            <dialog ref={addDivisionDialogEl} className='w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2'>
+                <img 
+                    src='/icons/close.svg' 
+                    role="presentation" 
+                    onClick={handleCloseModal} 
+                    className='svg-white mt-2' 
+                    alt="Close" 
+                />
+                <InputField 
+                    type='text' 
+                    handleInputChange={handleInputChange} 
+                    name='division-new' 
+                    label={addNew ? "Add Division" : "Update Division"} 
+                    required={false} 
+                />
+                <button className='btn-info mt-4 text-center' onClick={handleAddDivision}>
+                    Ok
+                </button>
+            </dialog>
+
+            {listEl}
+
+            {update && (
+                <li 
+                    className='px-4 py-2 rounded-full bg-yellow-logo text-black flex items-center justify-between' 
+                    role="presentation" 
+                    onClick={handleShowAddDivision}
+                >
+                    Add New
+                    <img className='w-4 h-4 svg-black ml-2' src='/icons/plus.svg' alt="Add" />
+                </li>
+            )}
+        </ul>
+    );
 }
 
-export default ShowDivisions;
+export default React.memo(ShowDivisions);
