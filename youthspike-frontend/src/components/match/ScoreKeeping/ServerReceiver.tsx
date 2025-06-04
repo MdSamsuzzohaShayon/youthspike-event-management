@@ -1,206 +1,328 @@
-// components/ServerReceiver.tsx
 'use client';
 
 import SelectInput from '@/components/elements/SelectInput';
+import TextImg from '@/components/elements/TextImg';
+import cld from '@/config/cloudinary.config';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrNetNum } from '@/redux/slices/netSlice';
-import { IMatchExpRel, IPlayer, IUser } from '@/types';
+import { IMatchExpRel, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
+import { AdvancedImage } from '@cloudinary/react';
 import Image from 'next/image';
-import React, { useCallback, useEffect, useMemo } from 'react';
-import KeepTeamPlayers from './KeepTeamPlayers';
-import KeepPlayerCard from './KeepPlayerCard';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-interface ServerReceiverProps {
+interface IServerReceiverProps {
   matchId: string;
   matchData: IMatchExpRel;
   token: string | null;
   userInfo: IUser | null;
 }
 
-const ServerReceiver: React.FC<ServerReceiverProps> = ({ matchId, matchData, token, userInfo }) => {
+function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiverProps) {
   const dispatch = useAppDispatch();
-  const { current: currRound } = useAppSelector((state) => state.rounds);
+  const { roundList, current: currRound } = useAppSelector((state) => state.rounds);
   const { currNetNum, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
 
   // Local state
-  const [serverPlaceholder, setServerPlaceholder] = React.useState(false);
-  const [selectedServer, setSelectedServer] = React.useState<string | null>(null);
+  const [serverPlaceholder, setServerPlaceholder] = useState<boolean>(false);
+  const [receiverPlaceholder, setReceiverPlaceholder] = useState<boolean>(false);
+  const [selectedServer, setSelectedServer] = useState<string | null>(null);
+  const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
 
-  // Memoize players by ID for O(1) lookups
-  const playersById = useMemo(() => {
-    const map = new Map<string, IPlayer>();
-    teamAPlayers.forEach(p => map.set(p._id, p));
-    teamBPlayers.forEach(p => map.set(p._id, p));
-    return map;
-  }, [teamAPlayers, teamBPlayers]);
+  const handleNetChange = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    dispatch(setCurrNetNum(parseInt(inputEl.value, 10)));
+  }, []);
 
-  // Memoize current net players
-  const currentNetPlayers = useMemo(() => {
-    if (!currNetNum) return null;
-    const net = currRoundNets.find(n => n.num === currNetNum);
-    if (!net) return null;
-
-    return {
-      teamA: [net.teamAPlayerA, net.teamAPlayerB].map(id => id ? playersById.get(id) : undefined),
-      teamB: [net.teamBPlayerA, net.teamBPlayerB].map(id => id ? playersById.get(id) : undefined),
-    };
-  }, [currNetNum, currRoundNets, playersById]);
-
-  // Memoize server team info
-  const serverTeam = useMemo(() => {
-    if (!selectedServer || !currentNetPlayers) return null;
-
-    const server = playersById.get(selectedServer);
-    if (!server) return null;
-
-    // Find serving partner (the other player on the same team)
-    const isTeamA = currentNetPlayers.teamA.some(p => p?._id === selectedServer);
-    const partner = isTeamA 
-      ? currentNetPlayers.teamA.find(p => p?._id !== selectedServer)
-      : currentNetPlayers.teamB.find(p => p?._id !== selectedServer);
-
-    return { server, servingPartner: partner };
-  }, [selectedServer, currentNetPlayers, playersById]);
-
-  // Handlers
-  const handleNetChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setCurrNetNum(parseInt(e.target.value, 10)));
-  }, [dispatch]);
-
-  const handleAddServer = useCallback(() => {
+  const handleAddServer = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
     setServerPlaceholder(true);
   }, []);
 
-  const handlePlayerSelect = useCallback((playerId: string) => {
-    setSelectedServer(playerId);
+  const handleAddReceiver = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setReceiverPlaceholder(true);
+  }, []);
+
+  const handleServerSelection = useCallback((e: React.SyntheticEvent, playerId: string | undefined) => {
+    e.preventDefault();
+    setSelectedServer(playerId || null);
     setServerPlaceholder(false);
   }, []);
 
-  const handleClosePlayers = useCallback(() => {
+  const handleReceiverSelection = useCallback((e: React.SyntheticEvent, playerId: string | undefined) => {
+    e.preventDefault();
+    setSelectedReceiver(playerId || null);
+    setReceiverPlaceholder(false);
+  }, []);
+
+  // setReceiverPlaceholder(false);
+
+  const handleClosePlayers = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
     setSelectedServer(null);
     setServerPlaceholder(false);
+    setSelectedReceiver(null);
+    setReceiverPlaceholder(false);
   }, []);
 
-  // Initial data setup
   useEffect(() => {
-    organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
-  }, [matchData, token, userInfo, matchId, dispatch]);
+    // Setup fetched data
+    (async () => {
+      await organizeFetchedData({
+        matchData,
+        token,
+        userInfo,
+        matchId,
+        dispatch,
+      });
+    })();
+  }, []);
 
-  if (!currRound || currNetNum === 0) {
-    return <div>{!currRound && <h3 className="uppercase">No round has been selected!</h3>}</div>;
-  }
+  const playersOfSelectedNet = useMemo(() => {
+    if (!currNetNum) return null;
+    const currNet = currRoundNets.find((n) => n.num === currNetNum);
+    return {
+      teamAPlayerA: currNet?.teamAPlayerA,
+      teamAPlayerB: currNet?.teamAPlayerB,
+      teamBPlayerA: currNet?.teamBPlayerA,
+      teamBPlayerB: currNet?.teamBPlayerB,
+    };
+  }, [currRoundNets, currNetNum]);
 
-  if (serverPlaceholder && currentNetPlayers) {
+  const serverTeam = useMemo(() => {
+    if (!selectedServer) return null;
+
+    const teamAMap = new Map(teamAPlayers.map((p) => [p._id, p]));
+    const teamBMap = new Map(teamBPlayers.map((p) => [p._id, p]));
+
+    let server = null,
+      servingPartner = null;
+
+    if (teamAMap.has(selectedServer)) {
+      if (!currNetNum) return null;
+      const currNet = currRoundNets.find((n) => n.num === currNetNum);
+      if (selectedServer === currNet?.teamAPlayerA) {
+        server = teamAMap.get(currNet?.teamAPlayerA);
+        servingPartner = teamAMap.get(currNet?.teamAPlayerB || '') || null;
+      } else if (selectedServer === currNet?.teamAPlayerB) {
+        server = teamAMap.get(currNet?.teamAPlayerB);
+        servingPartner = teamAMap.get(currNet?.teamAPlayerA || '') || null;
+      } else {
+        return null;
+      }
+    }
+
+    if (teamBMap.has(selectedServer)) {
+      if (!currNetNum) return null;
+      const currNet = currRoundNets.find((n) => n.num === currNetNum);
+      if (selectedServer === currNet?.teamBPlayerA) {
+        server = teamBMap.get(currNet?.teamBPlayerA);
+        servingPartner = teamBMap.get(currNet?.teamBPlayerB || '') || null;
+      } else if (selectedServer === currNet?.teamBPlayerB) {
+        server = teamBMap.get(currNet?.teamBPlayerB);
+        servingPartner = teamBMap.get(currNet?.teamBPlayerA || '') || null;
+      } else {
+        return null;
+      }
+    }
+
+    return {
+      server,
+      servingPartner,
+    };
+  }, [selectedServer, teamAPlayers, teamBPlayers]);
+
+  const receiverTeam = useMemo(() => {
+    if (!selectedReceiver) return null;
+
+    const teamAMap = new Map(teamAPlayers.map((p) => [p._id, p]));
+    const teamBMap = new Map(teamBPlayers.map((p) => [p._id, p]));
+
+    let receiver = null,
+      receivingPartner = null;
+
+    if (teamAMap.has(selectedReceiver)) {
+      if (!currNetNum) return null;
+      const currNet = currRoundNets.find((n) => n.num === currNetNum);
+      if (selectedReceiver === currNet?.teamAPlayerA) {
+        receiver = teamAMap.get(currNet?.teamAPlayerA);
+        receivingPartner = teamAMap.get(currNet?.teamAPlayerB || '') || null;
+      } else if (selectedReceiver === currNet?.teamAPlayerB) {
+        receiver = teamAMap.get(currNet?.teamAPlayerB);
+        receivingPartner = teamAMap.get(currNet?.teamAPlayerA || '') || null;
+      } else {
+        return null;
+      }
+    }
+
+    if (teamBMap.has(selectedReceiver)) {
+      if (!currNetNum) return null;
+      const currNet = currRoundNets.find((n) => n.num === currNetNum);
+      if (selectedReceiver === currNet?.teamBPlayerA) {
+        receiver = teamBMap.get(currNet?.teamBPlayerA);
+        receivingPartner = teamBMap.get(currNet?.teamBPlayerB || '') || null;
+      } else if (selectedReceiver === currNet?.teamBPlayerB) {
+        receiver = teamBMap.get(currNet?.teamBPlayerB);
+        receivingPartner = teamBMap.get(currNet?.teamBPlayerA || '') || null;
+      } else {
+        return null;
+      }
+    }
+
+    return {
+      receiver,
+      receivingPartner,
+    };
+  }, [selectedReceiver, teamAPlayers, teamBPlayers]);
+
+  const renderTeamA = useMemo(() => {
+    const playersMap = new Map(teamAPlayers.map((p) => [p._id, p]));
+    const playerA = playersMap.get(playersOfSelectedNet?.teamAPlayerA || '');
+    const playerB = playersMap.get(playersOfSelectedNet?.teamAPlayerB || '');
+
     return (
-      <div className="display-server-receiver">
-        <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">
-          Select a server
-        </h3>
-        <div className="team-players mt-4">
-          <button 
-            onClick={handleClosePlayers}
-            className="absolute top-4 right-4 p-2"
-            aria-label="Close player selection"
-          >
-            <Image src="/icons/close.svg" width={24} height={24} className="invert" alt="Close" />
-          </button>
-          <KeepTeamPlayers
-            teamName="Team A"
-            players={currentNetPlayers.teamA}
-            onPlayerSelect={handlePlayerSelect}
-          />
-          <KeepTeamPlayers
-            teamName="Team B"
-            players={currentNetPlayers.teamB}
-            onPlayerSelect={handlePlayerSelect}
-          />
-        </div>
+      <div>
+        <h4>Team A</h4>
+        <ul>
+          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerA?._id) : handleReceiverSelection(e, playerA?._id))}>
+            {playerA?.firstName} {playerA?.lastName}
+          </li>
+          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerB?._id) : handleReceiverSelection(e, playerB?._id))}>
+            {playerB?.firstName} {playerB?.lastName}
+          </li>
+        </ul>
       </div>
     );
-  }
+  }, [teamAPlayers, serverPlaceholder, receiverPlaceholder, playersOfSelectedNet]);
+
+  const renderTeamB = useMemo(() => {
+    const playersMap = new Map(teamBPlayers.map((p) => [p._id, p]));
+    const playerA = playersMap.get(playersOfSelectedNet?.teamBPlayerA || '');
+    const playerB = playersMap.get(playersOfSelectedNet?.teamBPlayerB || '');
+
+    return (
+      <div>
+        <h4>Team B</h4>
+        <ul>
+          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerA?._id) : handleReceiverSelection(e, playerA?._id))}>
+            {playerA?.firstName} {playerA?.lastName}
+          </li>
+          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerB?._id) : handleReceiverSelection(e, playerB?._id))}>
+            {playerB?.firstName} {playerB?.lastName}
+          </li>
+        </ul>
+      </div>
+    );
+  }, [teamBPlayers, serverPlaceholder, receiverPlaceholder, playersOfSelectedNet]);
 
   return (
-    <div className="space-y-4">
-      <SelectInput
-        handleSelect={handleNetChange}
-        name="currNetNum"
-        optionList={currRoundNets.map((crn, i) => ({
-          id: i + 1,
-          value: String(crn.num),
-          text: `Net ${crn.num}`,
-        }))}
-      />
-
-      <div className="display-server-receiver">
-        <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">
-          Selected Server/Receiver
-        </h3>
-        
-        <div className="w-full flex flex-col lg:flex-row justify-center items-center gap-6">
-          {/* Serving Partner */}
-          <div className="w-full lg:w-1/3 flex flex-col items-center gap-4">
-            <div className="w-32 h-32" />
-            <KeepPlayerCard
-              player={serverTeam?.servingPartner}
-              size="md"
-              className="bg-white text-black shadow-md"
-            />
-            <h3 className="text-center uppercase text-yellow-400 font-semibold">
-              Serving <br /> Partner
-            </h3>
-            <div className="w-32 h-32" />
-          </div>
-
-          {/* Server/Receiver Section */}
-          <div className="w-full lg:w-1/3 flex justify-center items-center">
-            <div className="w-4/6 md:w-2/6 flex flex-col items-center gap-6 bg-white text-black rounded-xl p-6 shadow-lg">
-              <Image 
-                src="/imgs/spikeball-logo.webp" 
-                width={40} 
-                height={40} 
-                className="mb-2" 
-                alt="Spikeball logo" 
-              />
-
-              <KeepPlayerCard
-                player={serverTeam?.server}
-                onClick={handleAddServer}
-                className="border-4 border-yellow-400 bg-black"
-              />
-              <h3 className="uppercase text-center font-semibold text-yellow-400">Server</h3>
-
-              <div className="flex justify-center items-center py-2">
-                <Image 
-                  src="/imgs/spikeball-net.png" 
-                  width={80} 
-                  height={80} 
-                  alt="Spikeball net" 
-                />
+    <div>
+      <SelectInput handleSelect={handleNetChange} name="currNetNum" optionList={currRoundNets.map((crn, i) => ({ id: i + 1, value: String(crn.num), text: `Net ${crn.num}` }))} />
+      {!currRound || currNetNum === 0 ? (
+        <div>{!currRound && <h3 className="uppercase">No round has been selected!</h3>}</div>
+      ) : serverPlaceholder || receiverPlaceholder ? (
+        <div className="display-server-receiver">
+          <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">Select a server</h3>
+          {playersOfSelectedNet && (
+            <div className="team-players mt-4">
+              <img src="/icons/close.svg" className="svg-white" role="presentation" onClick={handleClosePlayers} />
+              {renderTeamA}
+              {renderTeamB}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="display-server-receiver">
+          <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">Selected Server/Receiver</h3>
+          <div className="w-full flex flex-col lg:flex-row justify-center items-center gap-6">
+            {/* Left Side */}
+            <div className="w-full lg:w-1/3 flex flex-col items-center gap-4">
+              <div className="w-32 h-32"></div>
+              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
+              <div className="h-24 w-24 bg-white text-black flex items-center justify-center rounded-xl shadow-md">
+                {selectedServer && serverTeam ? (
+                  serverTeam?.servingPartner?.profile ? (
+                    <AdvancedImage cldImg={cld.image(serverTeam?.servingPartner?.profile)} />
+                  ) : (
+                    <TextImg className="w-full h-full rounded-xl" fText={serverTeam?.servingPartner?.firstName} lText={serverTeam?.servingPartner?.lastName} />
+                  )
+                ) : (
+                  <div />
+                )}
               </div>
+              <h3 className="text-center uppercase text-yellow-400 font-semibold">
+                Serving <br /> Partner
+              </h3>
+              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
+              <div className="w-32 h-32"></div>
+            </div>
 
-              <KeepPlayerCard
-                onClick={() => {}}
-                className="border-4 border-yellow-400 bg-black"
-              />
-              <h3 className="uppercase text-center font-semibold text-yellow-400">Receiver</h3>
+            {/* Middle Side */}
+            <div className="w-full lg:w-1/3 flex justify-center items-center">
+              <div className="w-4/6 md:w-2/6 flex flex-col items-center gap-6 bg-white text-black rounded-xl p-6 shadow-lg">
+                <Image alt="Logo" src="/imgs/spikeball-logo.webp" width={40} height={40} className="mb-2" />
+
+                <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400" role="presentation" onClick={handleAddServer}>
+                  {selectedServer && serverTeam ? (
+                    serverTeam?.server?.profile ? (
+                      <AdvancedImage cldImg={cld.image(serverTeam?.server?.profile)} />
+                    ) : (
+                      <TextImg className="w-full h-full rounded-0" fText={serverTeam?.server?.firstName} lText={serverTeam?.server?.lastName} />
+                    )
+                  ) : (
+                    <Image alt="Add Server" src="/icons/plus.svg" width={50} height={50} className="invert" />
+                  )}
+                </div>
+                <h3 className="uppercase text-center font-semibold text-yellow-400">Server</h3>
+
+                <div className="flex justify-center items-center py-2">
+                  <Image alt="Net" src="/imgs/spikeball-net.png" width={80} height={80} />
+                </div>
+
+                <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400" role="presentation" onClick={handleAddReceiver}>
+                  {selectedReceiver && receiverTeam ? (
+                    receiverTeam?.receiver?.profile ? (
+                      <AdvancedImage cldImg={cld.image(receiverTeam?.receiver?.profile)} />
+                    ) : (
+                      <TextImg className="w-full h-full rounded-0" fText={receiverTeam?.receiver?.firstName} lText={receiverTeam?.receiver?.lastName} />
+                    )
+                  ) : (
+                    <Image alt="Add Receiver" src="/icons/plus.svg" width={50} height={50} className="invert" />
+                  )}
+                </div>
+                <h3 className="uppercase text-center font-semibold text-yellow-400">Receiver</h3>
+              </div>
+            </div>
+
+            {/* Right Side */}
+            <div className="w-full lg:w-1/3 flex flex-col items-center gap-4">
+              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
+              <div className="w-32 h-32"></div>
+              <div className="h-24 w-24 bg-white text-black flex items-center justify-center rounded-xl shadow-md">
+                {selectedReceiver && receiverTeam ? (
+                  receiverTeam?.receivingPartner?.profile ? (
+                    <AdvancedImage cldImg={cld.image(receiverTeam?.receivingPartner?.profile)} />
+                  ) : (
+                    <TextImg className="w-full h-full rounded-xl" fText={receiverTeam?.receivingPartner?.firstName} lText={receiverTeam?.receivingPartner?.lastName} />
+                  )
+                ) : (
+                  <div />
+                )}
+              </div>
+              <h3 className="text-center uppercase text-yellow-400 font-semibold">
+                Receiving <br /> Partner
+              </h3>
+              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
+              <div className="w-32 h-32"></div>
             </div>
           </div>
-
-          {/* Receiving Partner */}
-          <div className="w-full lg:w-1/3 flex flex-col items-center gap-4">
-            <div className="w-32 h-32" />
-            <div className="h-24 w-24 bg-white text-black flex items-center justify-center rounded-xl shadow-md" />
-            <h3 className="text-center uppercase text-yellow-400 font-semibold">
-              Receiving <br /> Partner
-            </h3>
-            <div className="w-32 h-32" />
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
-};
+}
 
 export default ServerReceiver;

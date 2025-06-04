@@ -60,7 +60,7 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
           </div>
         ) : (
           <div className="server-receiver-wrapper">
-            <ServerReceiver matchId={matchId} matchData={matchData} token={token || ""} userInfo={userInfo} />
+           {matchData && <ServerReceiver matchId={matchId} matchData={matchData} token={token || ""} userInfo={userInfo} />}
           </div>
         )}
       </div>

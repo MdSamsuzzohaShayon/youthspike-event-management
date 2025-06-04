@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Message from '@/components/elements/Message';
 import EventAddUpdate from '@/components/event/EventAddUpdate';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import UserMenuList from '@/components/layout/UserMenuList';
 import Loader from '@/components/elements/Loader';
 import { IError, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
@@ -13,10 +11,9 @@ import { GET_AN_EVENT } from '@/graphql/event';
 import { GET_A_PLAYER } from '@/graphql/players';
 import { isValidObjectId } from '@/utils/helper';
 import { useUser } from '@/lib/UserProvider';
-import { getCookie } from '@/utils/cookie';
 import { motion } from 'framer-motion';
-import CurrentEvent from '@/components/event/CurrentEvent';
 import { useError } from '@/lib/ErrorContext';
+import { getCookie } from '@/utils/clientCookie';
 
 const pageVariants = {
   hidden: { opacity: 0 },

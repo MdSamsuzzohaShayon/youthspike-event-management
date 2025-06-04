@@ -3,7 +3,7 @@
 
 import { cookies } from 'next/headers';
 import { IUserContext } from "@/types";
-import { ADMIN_URL, FRONTEND_URL, NODE_ENV } from "./keys";
+import { FRONTEND_URL, NODE_ENV } from "./keys";
 
 export async function getCookie(name: string): Promise<string | null> {
   return cookies().get(name)?.value ?? null;

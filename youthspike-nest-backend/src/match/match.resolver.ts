@@ -438,7 +438,8 @@ export class MatchResolver {
   async teamA(@Parent() match: Match) {
     try {
       if (!match.teamA) return null;
-      return this.teamService.findById(match.teamA.toString());
+      const teamExist = await this.teamService.findById(match.teamA.toString());
+      return teamExist;
     } catch {
       return null;
     }

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
 import { IError, ILDO } from '@/types';

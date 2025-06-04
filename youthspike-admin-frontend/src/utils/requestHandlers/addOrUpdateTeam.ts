@@ -1,10 +1,9 @@
 import { ADD_TEAM_RAW, UPDATE_TEAM_RAW } from "@/graphql/teams";
 import { IError, IPlayer, ITeam, ITeamAdd } from "@/types";
-import { getCookie, removeCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { ApolloError, MutationFunction } from "@apollo/client";
 import { handleError } from "../handleError";
-import { useError } from "@/lib/ErrorContext";
+import { getCookie } from "../clientCookie";
 
 interface IPrevTeam extends ITeamAdd {
     _id: string;

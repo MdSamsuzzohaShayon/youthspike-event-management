@@ -1,13 +1,13 @@
 import { ADD_EVENT_RAW, UPDATE_EVENT_RAW } from "@/graphql/event";
 import { IError, IEventAdd, IEventSponsorAdd } from "@/types";
 import React from "react";
-import { getCookie } from "../cookie";
 import { APP_NAME, BACKEND_URL } from "../keys";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { createNewEvent } from "../emitSocketEvent";
 import { Socket } from "socket.io-client";
 import { ERosterLock } from "@/types/event";
+import { getCookie } from "../clientCookie";
 
 interface IAddOrUpdateProps {
     e: React.SyntheticEvent;

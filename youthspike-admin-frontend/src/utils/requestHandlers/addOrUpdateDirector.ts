@@ -1,11 +1,11 @@
 import { ADD_DIRECTOR_RAW, UPDATE_DIRECTOR_RAW } from "@/graphql/director";
 import { IAddDirector, IError, ILDO, ILdoUpdate } from "@/types";
 import React from "react";
-import { getCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
 import { MutationFunction } from "@apollo/client";
 import { handleError } from "../handleError";
+import { getCookie } from "../clientCookie";
 
 interface IAddUpdateDirectorProps {
     directorUpdate: ILdoUpdate;

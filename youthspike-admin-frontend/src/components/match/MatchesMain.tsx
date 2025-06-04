@@ -15,13 +15,11 @@ import MatchList from '@/components/match/MatchList';
 import { useUser } from '@/lib/UserProvider';
 import { IEventExpRel, IGroupExpRel, IGroupRelatives, IMatchExpRel, IOption, ITeam } from '@/types';
 import { IUserContext, UserRole } from '@/types/user';
-import { getUserFromCookie } from '@/utils/cookie';
 import { divisionsToOptionList } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 
-import { headingAnimate, logoAnimate } from '@/utils/animation';
-import { useError } from '@/lib/ErrorContext';
 import Pagination from '@/components/elements/Pagination';
+import { getUserFromCookie } from '@/utils/clientCookie';
 
 
 
