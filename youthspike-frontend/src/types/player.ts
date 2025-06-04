@@ -27,7 +27,7 @@ export interface IPlayer extends IDocument {
   division: string;
   status: EPlayerStatus,
   event?: string;
-  teams?: ITeam[];
+  teams?: ITeam[] | string[];
   captainofteams: ITeam[];
   cocaptainofteams: ITeam[];
 }

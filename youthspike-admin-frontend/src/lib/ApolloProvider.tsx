@@ -4,7 +4,7 @@ import React from 'react';
 import { BACKEND_URL } from '@/utils/keys';
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, HttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-import { getCookie } from '@/utils/cookie';
+import { getCookie } from '@/utils/clientCookie';
 
 // Explicitly using the fetch API
 const fetchWithPolyfill = (uri: string, options: any) => {

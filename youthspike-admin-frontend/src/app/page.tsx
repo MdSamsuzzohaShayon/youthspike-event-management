@@ -40,7 +40,6 @@ async function EventsPage({ searchParams }: { searchParams: { [key: string]: str
   const eventDirector = await getEventDirector(directorId, userContext.token);
 
   if (!eventDirector) {
-    // Logout 
     notFound();
   }
 

@@ -70,7 +70,7 @@ function PlayerAddPage({ params }: IPlayerAddPageProps) {
     try {
 
       const eventResponse = await getEvent({ variables: { eventId: params.eventId } });
-      const success = handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
+      const success = await handleResponse({ response: eventResponse?.data?.getEvent, setActErr });
       if (!success) return;
 
       const newTeamList: ITeam[] = eventResponse?.data?.getEvent?.data?.teams ? eventResponse?.data.getEvent.data.teams : [];

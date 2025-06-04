@@ -35,7 +35,7 @@ function UpdateGroupPage({ params: { eventId, groupId } }: IUpdatePageProps) {
 
   const fetchGroup = async () => {
     const groupResponse = await getGroup();
-    const success = handleResponse({ response: groupResponse?.data?.getGroup, setActErr });
+    const success = await handleResponse({ response: groupResponse?.data?.getGroup, setActErr });
     if (success) {
       const groupExist = groupResponse.data.getGroup.data || null;
       if (groupExist) setGroupState(groupExist);

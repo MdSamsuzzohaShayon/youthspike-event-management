@@ -43,7 +43,7 @@ export interface IEvent {
 }
 
 export interface IEventWMatch extends IEvent {
-  matches: IMatchRelatives[];
+  matches: IMatchRelatives[] | string[];
 }
 
 export interface IEventAdd extends IDefaultEventMatch {

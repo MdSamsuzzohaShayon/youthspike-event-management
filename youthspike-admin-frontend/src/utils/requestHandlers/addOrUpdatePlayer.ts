@@ -1,12 +1,12 @@
 import { CREATE_PLAYER_RAW, UPDATE_PLAYER_RAW } from "@/graphql/players";
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from "@/types/player";
-import { getCookie } from "../cookie";
 import { BACKEND_URL } from "../keys";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { getTeamFromStore } from "../localStorage";
 import { handleResponse } from "../handleError";
 import { IError } from "@/types";
+import { getCookie } from "../clientCookie";
 
 interface IAddOrUpdatePlayer {
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
@@ -79,7 +79,7 @@ async function addOrUpdatePlayer({ setActErr, setIsLoading, playerState, divisio
             }
         }
 
-        success = handleResponse({ response: !update ? playerRes?.data?.createPlayer : playerRes?.data?.updatePlayer, setActErr });
+        success = await handleResponse({ response: !update ? playerRes?.data?.createPlayer : playerRes?.data?.updatePlayer, setActErr });
         if (!success) return;
 
         if (!update && playerRes?.data?.createPlayer?.data) {

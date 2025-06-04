@@ -10,7 +10,7 @@ import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
 import { ETieBreaker } from '@/types/net';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { getLocalTeam } from '../localStorage';
+import LocalStorageService from '../LocalStorageService';
 
 class EmitEvents {
   isAuthenticated: boolean;
@@ -234,7 +234,7 @@ class EmitEvents {
       return teamB._id;
     }
     if (userInfo.role === UserRole.admin || userInfo.role === UserRole.director) {
-      const teamId = await getLocalTeam();
+      const teamId = await LocalStorageService.getLocalTeam();
       this.teamIdStr = teamId;
       return teamId === ETeam.teamA ? teamA._id : teamB._id;
     }

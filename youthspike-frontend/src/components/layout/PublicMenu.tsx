@@ -4,7 +4,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import { getEvent } from '@/utils/localStorage';
+import LocalStorageService from '@/utils/LocalStorageService';
 import { EEventItem } from '@/types/event';
 import { EVENT_ITEM } from '@/utils/constant';
 import { buttonVariants, itemVariants, menuBackdropVariants, menuVariants } from '@/utils/animation';
@@ -24,7 +24,7 @@ function PublicMenu() {
 
   // ===== Component Mount =====
   useEffect(() => {
-    const eventExist = getEvent();
+    const eventExist = LocalStorageService.getEvent();
     if (eventExist) {
       setEventId(eventExist);
     }

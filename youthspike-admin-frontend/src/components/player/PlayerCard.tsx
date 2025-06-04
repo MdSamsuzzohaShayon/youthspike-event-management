@@ -67,7 +67,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setIsLoading(true);
       if (teamId && eventId) {
         const response = await mutateTeam({ variables: { input, teamId, eventId } });
-        const success = handleResponse({ response: response.data.updateTeam, setActErr });
+        const success = await handleResponse({ response: response.data.updateTeam, setActErr });
         if (!success) return;
         // Not recommended
         window.location.reload();
@@ -110,7 +110,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         },
       });
 
-      const success = handleResponse({ response: response.data.updatePlayer, setActErr });
+      const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
       if (!success) return;
 
       if (refetchFunc) await refetchFunc();
@@ -131,7 +131,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           playerId,
         },
       });
-      const success = handleResponse({ response: response.data.updatePlayer, setActErr });
+      const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
       if (!success) return;
 
       if (refetchFunc) {
@@ -147,7 +147,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       setActionOpen((prevState) => !prevState);
       setIsLoading(true);
       const response = await deleteAPlayer({ variables: { playerId } });
-      const success = handleResponse({ response: response.data.deletePlayer, setActErr });
+      const success = await handleResponse({ response: response.data.deletePlayer, setActErr });
       if (!success) return;
       if (refetchFunc) {
         await refetchFunc();

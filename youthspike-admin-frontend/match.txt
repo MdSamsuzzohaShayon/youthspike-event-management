@@ -1,16 +1,19 @@
 
 /*
- * AS Roma
+ * FC Barcelona
  * Captain
- * Username: pfn129
+ * Username: gerard7787
+ * Password: Spikeball
+ * Co-Captain
+ * Username: sergio11016
  * Password: Spikeball
  * 
- * Inter Milan
+ * PSG
  * Captain
  * Username: pfn328
  * Password: Spikeball
  * 
- * Juventus FC
+ * Liverpool FC
  * Captain
  * Username: pfn430
  * Password: Spikeball
@@ -37,3 +40,7 @@ Follow UI/UX design principles. Convert it properly to JSX code
 Track classes:
 Single team gradient ->
 bulk-operations-players mt-6 p-4 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto
+
+
+
+

@@ -1,89 +1,90 @@
-import { IError } from "@/types";
+import { IError } from '@/types';
 // import { OperationVariables, QueryResult } from "@apollo/client";
-import { removeCookie } from "./cookie";
-import { ApolloError } from "@apollo/client";
-import { useLdoId } from "@/lib/LdoProvider";
-import { useError } from "@/lib/ErrorContext";
+import { ApolloError } from '@apollo/client';
+// lib/handle-response.ts
+import { redirect } from 'next/navigation';
 
 interface IResponse {
-    message: string;
-    success: boolean;
-    code: number;
-    data?: any;
+  message: string;
+  success: boolean;
+  code: number;
+  data?: any;
 }
 
 interface IHandleResponseProps {
-    response: IResponse;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  response: IResponse;
+  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
 interface IHandleApolloErrorProps {
-    error: ApolloError | Error[];
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  error: ApolloError | Error[];
+  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
 }
 
-export function handleResponse({ response, setActErr }: IHandleResponseProps): boolean {
-    if (!response) return false;
-    let success = response.success;
-    if (success) return success;
 
-    if (response.message && setActErr) setActErr({ code: response.code, message: JSON.stringify(response), success });
-    if (response.code === 401) {
-        removeCookie("user");
-        removeCookie("token");
-        if (window) window.location.reload();
 
+
+export async function handleResponse({ response, setActErr }: IHandleResponseProps): Promise<boolean> {
+  if (!response) return false;
+
+  if (response.success) return true;
+
+  const message = response.message || 'Internal Server Error';
+  if (setActErr) setActErr({ code: response.code, message, success: response.success });
+
+  if (response.code === 401) {
+    if (typeof window !== 'undefined') {
+      // Client-side handling
+      await fetch('/api/logout', { method: 'GET' });
+      window.location.href = '/login';
+    } else {
+      // Server-side handling
+      // redirect('/api/logout');
     }
+  }
 
-    // Check response
-    // console.log(response);
-    return success;
-
+  return false;
 }
-
-
 
 
 export function handleError({ error, setActErr }: IHandleApolloErrorProps): void {
-    if (error instanceof ApolloError) {
-        const unauthenticatedError = error.graphQLErrors.find(
-            (err) => err.extensions?.code === "UNAUTHENTICATED"
-        );
+  if (error instanceof ApolloError) {
+    const unauthenticatedError = error.graphQLErrors.find((err) => err.extensions?.code === 'UNAUTHENTICATED');
 
-        if (unauthenticatedError) {
-            // Handle unauthenticated error
-            if (setActErr) {
-                setActErr({
-                    code: 401, // unauthenticatedError.extensions?.response?.statusCode ||
-                    // @ts-ignore
-                    message: unauthenticatedError.extensions?.response?.message || unauthenticatedError.message,
-                    success: false,
-                });
-            }
-            removeCookie("user");
-            removeCookie("token");
-            if (window) window.location.reload();
-        } else {
-            // Handle other types of GraphQL errors
-            if (setActErr) {
-                setActErr({
-                    code: 500,
-                    // @ts-ignore
-                    message: error.graphQLErrors[0]?.extensions?.response?.message || error.message,
-                    success: false,
-                });
-            }
-            console.log("GraphQL Error: ", error);
-        }
+    if (unauthenticatedError) {
+      // Handle unauthenticated error
+      if (setActErr) {
+        setActErr({
+          code: 401, // unauthenticatedError.extensions?.response?.statusCode ||
+          // @ts-ignore
+          message: unauthenticatedError.extensions?.response?.message || unauthenticatedError.message,
+          success: false,
+        });
+      }
+
+      if (window) window.location.reload();
     } else {
-        // Handle non-Apollo errors
-        console.log("Non-Apollo Error: ", error);
-        if (setActErr) {
-            setActErr({
-                code: 500,
-                message: `An unexpected error occurred: ${JSON.stringify(error)}`,
-                success: false,
-            });
-        }
+      // Handle other types of GraphQL errors
+
+      if (setActErr) {
+        setActErr({
+          code: 500,
+          // @ts-ignore
+          message: error.graphQLErrors[0]?.extensions?.response?.message || error.message,
+          success: false,
+        });
+      }
+      console.log('GraphQL Error: ', error);
     }
+  } else {
+    // Handle non-Apollo errors
+    console.log('Non-Apollo Error: ', error);
+    if (setActErr) {
+      setActErr({
+        code: 500,
+        message: `An unexpected error occurred: ${JSON.stringify(error)}`,
+        success: false,
+      });
+    }
+  }
 }

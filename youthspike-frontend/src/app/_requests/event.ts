@@ -18,4 +18,4 @@ async function getEvents() {
   return data?.getEvents?.data || null;
 }
 
-export default getEvents;
+export {getEvents};

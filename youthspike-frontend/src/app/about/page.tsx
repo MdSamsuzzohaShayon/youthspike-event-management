@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import React, { useEffect } from 'react';
 import { containerVariants, hoverVariants, itemVariants } from '@/utils/animation';
-import { getEvent, removeEvent } from '@/utils/localStorage';
+import { getEvent, removeEvent } from '@/utils/LocalStorageService';
 
 function AboutPage() {
   useEffect(() => {

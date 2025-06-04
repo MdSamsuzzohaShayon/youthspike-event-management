@@ -1,4 +1,5 @@
 import { GET_LDO_RAW, GET_LDOS, GET_LDOS_RAW } from "@/graphql/director";
+import { handleResponse } from "@/utils/handleError";
 import { BACKEND_URL } from "@/utils/keys";
 
 async function getEventDirector(directorId?: string | null, token?: string | null) {
@@ -19,6 +20,8 @@ async function getEventDirector(directorId?: string | null, token?: string | nul
   });
 
   const { data } = await res.json();
+
+  // const success = await handleResponse({response: data?.getEventDirector?.data || data?.getEventDirector});
 
   return data?.getEventDirector?.data || null;
 }

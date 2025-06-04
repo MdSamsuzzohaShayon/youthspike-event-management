@@ -4,7 +4,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { IEvent, IEventSponsor, IEventWMatch, ILDO } from '@/types';
 
 export interface EventState {
-  current?: IEvent | null;
+  current?: IEventWMatch | null;
   sponsors: IEventSponsor[];
   ldo?: ILDO | null;
   eventList: IEventWMatch[];

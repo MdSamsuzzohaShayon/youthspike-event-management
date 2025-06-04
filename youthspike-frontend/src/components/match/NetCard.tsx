@@ -6,7 +6,7 @@ import { setCurrNetNum } from '@/redux/slices/netSlice';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 
 // Types
-import { INetRelatives } from '@/types';
+import { INetRelatives, IRoom } from '@/types';
 import { EDirection } from '@/types/elements';
 import { EXTRA_HEIGHT } from '@/utils/constant';
 import { netCardVariant } from '@/utils/animation';
@@ -18,18 +18,18 @@ interface INetCardProps {
   screenWidth: number;
   boardHeight: number;
   net: INetRelatives | null;
+  currRoom: IRoom | null;
 }
 
 // Constant
 const touchThreshold: number = 50;
 
-function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
+function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
   const dispatch = useAppDispatch();
 
   // Redux State
   const { currNetNum, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { roundList } = useAppSelector((state) => state.rounds);
-  const currentRoom = useAppSelector((state) => state.rooms.current);
   const { myTeamE, opTeamE, } = useAppSelector((state) => state.matches);
 
   // Local State
@@ -89,7 +89,7 @@ function NetCard({ net, screenWidth, boardHeight }: INetCardProps) {
       {/* Vertically centered NetPointCard component */}
       <div className="flex-grow flex justify-center items-center cursor-pointer">
         {/* Pass direction prop */}
-        <NetPointCard net={net} handleRightShift={handleRightShift} handleLeftShift={handleLeftShift} screenWidth={screenWidth} currRoom={currentRoom} roundList={roundList} />
+        <NetPointCard net={net} handleRightShift={handleRightShift} handleLeftShift={handleLeftShift} screenWidth={screenWidth} currRoom={currRoom} roundList={roundList} />
       </div>
 
       {/* Net bottom section start */}

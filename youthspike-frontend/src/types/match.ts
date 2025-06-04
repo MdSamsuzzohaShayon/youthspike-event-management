@@ -2,6 +2,7 @@
 import { IEvent } from './event';
 import { IGroup } from './group';
 import { INetRelatives } from './net';
+import { IPlayerRanking, IPlayerRankingExpRel } from './playerRanking';
 import { IRoom } from './room';
 import { IRoundExpRel } from './round';
 import { ITeam } from './team';
@@ -64,4 +65,7 @@ export interface IMatchExpRel extends IMatchBase {
   nets: INetRelatives[];
   room: IRoom;
   group?: IGroup;
+
+  teamARanking?: IPlayerRankingExpRel;
+  teamBRanking?: IPlayerRankingExpRel;
 }

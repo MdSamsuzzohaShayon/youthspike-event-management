@@ -44,7 +44,7 @@ rankings {
 const teamARanking = `teamARanking {${teamRanking}}`;
 const teamBRanking = `teamBRanking {${teamRanking}}`;
 
-const GET_MATCH_DETAIL = gql`
+const GET_MATCH_DETAIL_RAW = `
 query GetMatch($matchId: String!) {
   getMatch(matchId: $matchId) {
     code
@@ -127,6 +127,7 @@ query GetMatch($matchId: String!) {
   }
 }
 `;
+const GET_MATCH_DETAIL = gql`${GET_MATCH_DETAIL_RAW}`;
 
 
 const ACCESS_CODE_VALIDATION_RAW = `
@@ -148,4 +149,4 @@ const ACCESS_CODE_VALIDATION = gql`${ACCESS_CODE_VALIDATION_RAW}`;
 
 
 // eslint-disable-next-line import/prefer-default-export
-export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION };
+export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION, GET_MATCH_DETAIL_RAW };

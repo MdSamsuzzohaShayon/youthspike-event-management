@@ -36,7 +36,7 @@ async function getEventPlayersGroupsTeams(eventId: string) {
       }),
       cache: 'no-store',
   });
-  // const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
+  // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
   const { data } = await res.json();
   return data?.getEventWithPlayers?.data || null;
@@ -59,7 +59,7 @@ async function getPlayerAndTeams(playerId: string, eventId: string) {
       }),
       cache: 'no-store',
   });
-  // const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
+  // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
   const { data } = await res.json();
   return data?.getPlayerAndTeams?.data || null;

@@ -2,244 +2,221 @@
 
 'use client';
 
-/* eslint-disable no-unused-vars */
-import React, { useEffect, useCallback, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useLazyQuery } from '@apollo/client';
+import { AdvancedImage } from '@cloudinary/react';
+import Image from 'next/image';
 
-// Hooks
+// Hooks & Utilities
 import useResizeObserver from '@/hooks/useResizeObserver';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { useUser } from '@/lib/UserProvider';
+import { useSocket } from '@/lib/SocketProvider';
+import { getUserFromCookie } from '@/utils/cookie';
+import { isValidObjectId } from '@/utils/helper';
+import { APP_NAME } from '@/utils/keys';
+import { calcRoundScore } from '@/utils/scoreCalc';
+import organizeFetchedData from '@/utils/match/organizeFetchedData';
+import localStorageService from '@/utils/LocalStorageService';
+import cld from '@/config/cloudinary.config';
 
 // Components
 import TeamPlayers from '@/components/player/TeamPlayers';
 import RoundRunner from '@/components/match/RoundRunner';
 import NetScoreOfRound from '@/components/match/NetScoreOfRound';
 import Loader from '@/components/elements/Loader';
-
-// GraphQL
-import { useLazyQuery } from '@apollo/client';
-import { GET_MATCH_DETAIL } from '@/graphql/matches';
-
-// Redux
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setActErr, setScreenSize } from '@/redux/slices/elementSlice';
-
-// Utils
-import { getUserFromCookie } from '@/utils/cookie';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
-// Types
-import { useUser } from '@/lib/UserProvider';
-import { useSocket } from '@/lib/SocketProvider';
-import { isValidObjectId } from '@/utils/helper';
-import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import { IUserContext, UserRole } from '@/types/user';
 import LineupStrategy from '@/components/match/LineupStrategy';
 import VerifyLineup from '@/components/ActionBoxes/VerifyLineup';
-import { EPlayerStatus } from '@/types/player';
 import NotTieBreaker from '@/components/ActionBoxes/NotTieBreaker';
-import { hasTimePassed, removeEvent, setEvent, setMusicPlayedTime } from '@/utils/localStorage';
-import { APP_NAME, NODE_ENV } from '@/utils/keys';
-import { imgW } from '@/utils/constant';
-import Image from 'next/image';
-import { ETeam } from '@/types/team';
-import { calcRoundScore } from '@/utils/scoreCalc';
+import SelectTeam from '@/components/match/SelectTeam';
+
+// GraphQL & Redux
+import { GET_MATCH_DETAIL } from '@/graphql/matches';
+import { setActErr, setScreenSize } from '@/redux/slices/elementSlice';
 import { setTeamScore } from '@/redux/slices/matchesSlice';
 
-import './Match.css';
-import SelectTeam from '@/components/match/SelectTeam';
-import { imgSize } from '@/utils/styles';
-import { IOvertimeData, IRoom, IRoomNets, IUpdateScoreResponse } from '@/types';
+// Types & Constants
+import { IUserContext, IRoom, IRoomNets, IOvertimeData, IUpdateScoreResponse } from '@/types';
+import { ITeiBreakerAction } from '@/types/room';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import SocketEventListener from '@/utils/socket/SocketEventListener';
-import { ITeiBreakerAction } from '@/types/room';
-import { EEnv } from '@/types/elements';
-
-/**
- * Test Match
- *
- * PSG
- * Captain
- * gianluigi52761
- * Co captain
- * marquinhos41775
- *
- * FC Barcelona
- * Captain
- * gerard62700
- * Co captain
- * sergio59322
- *
- * Liverpool FC
- * Captain
- * virgil72022
- * Co captain
- * alisson41793
- */
+import { ETeam } from '@/types/team';
+import { EPlayerStatus } from '@/types/player';
+import { UserRole } from '@/types/user';
+import { imgSize } from '@/utils/styles';
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
-  // ===== Hooks =====
+  // Refs
+  const audioPlayEl = useRef<HTMLButtonElement>(null);
+  const mainEl = useResizeObserver(
+    useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
+      dispatch(setScreenSize(entry.contentRect.width));
+    }, []),
+  );
+
+  // State
+  const [selectTeam, setSelectTeam] = useState(false);
+  const [getMatch, { loading }] = useLazyQuery(GET_MATCH_DETAIL, { variables: { matchId: params.matchId } });
+
+  // Context and Redux
   const dispatch = useAppDispatch();
   const user = useUser();
   const socket = useSocket();
 
-  // ===== Local State =====
-  const audioPlayEl = useRef<HTMLButtonElement>(null);
-  const [selectTeam, setSelectTeam] = useState<boolean>(false);
-
-  // ===== Redux States =====
+  // Selectors
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
-  const { screenWidth, actErr } = useAppSelector((state) => state.elements);
+  const { screenWidth } = useAppSelector((state) => state.elements);
   const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const { currentRoundNets: currRoundNets, nets: allNets, notTieBreakerNetId } = useAppSelector((state) => state.nets);
   const { myPlayers, opPlayers, myTeamE, verifyLineup, match: currMatch, teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
 
-  // ===== GraphAL =====
-  const [getMatch, { data, error, loading }] = useLazyQuery(GET_MATCH_DETAIL, { variables: { matchId: params.matchId } });
-
-  const handlePlayAudio = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const timePassed = hasTimePassed(5); // 5 seconds
-    if (timePassed) {
-      const audio = new Audio('/audio/notification.mp3');
-      audio.play().catch((musicErr) => console.error(musicErr));
-      setMusicPlayedTime();
+  // Memoized values
+  const myTeam = useMemo(() => (myTeamE === ETeam.teamA ? teamA : teamB), [myTeamE, teamA, teamB]);
+  const opTeam = useMemo(() => (myTeamE === ETeam.teamA ? teamB : teamA), [myTeamE, teamA, teamB]);
+  const myS = useMemo(() => (myTeamE === ETeam.teamA ? teamATotalScore : teamBTotalScore), [myTeamE, teamATotalScore, teamBTotalScore]);
+  const opS = useMemo(() => (myTeamE === ETeam.teamA ? teamBTotalScore : teamATotalScore), [myTeamE, teamATotalScore, teamBTotalScore]);
+  const activeMyPlayers = useMemo(() => myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE), [myPlayers]);
+  const activeOpPlayers = useMemo(() => opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE), [opPlayers]);
+  const showSponsors = useMemo(() => eventSponsors.length > 0 && (!user || !user.token), [eventSponsors.length, user]);
+  const captainAccess: boolean = useMemo(() => {
+    if (user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain) {
+      return true;
     }
-  };
+    if (user.info.captainplayer) {
+      if (user.info.captainplayer === teamA?.captain?._id || user.info.captainplayer === teamB?.captain?._id) {
+        return true;
+      }
+    }
+    if (user.info.cocaptainplayer) {
+      if (user.info.cocaptainplayer === teamA?.cocaptain?._id || user.info.captainplayer === teamB?.cocaptain?._id) {
+        return true;
+      }
+    }
+    return false;
+  }, [user, teamA, teamB]);
 
-  // ===== Component resize =====
-  const onResize = useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
-    dispatch(setScreenSize(entry.contentRect.width));
+  const handlePlayAudio = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (localStorageService.hasTimePassed(5)) {
+      const audio = new Audio('/audio/notification.mp3');
+      audio.play().catch(console.error);
+      localStorageService.setMusicPlayedTime();
+    }
   }, []);
 
-  const mainEl = useResizeObserver(onResize);
+  const fetchData = useCallback(
+    async (userDetail: IUserContext) => {
+      const result = await getMatch({ variables: { matchId: params.matchId } });
 
-  const fetchData = async (userDetail: IUserContext) => {
-    const result = await getMatch({ variables: { matchId: params.matchId } });
-
-    if (result?.data?.getMatch?.data) {
-      if (result.data.getMatch.data?.event?._id) {
-        setEvent(result.data.getMatch.data.event._id);
+      if (result?.data?.getMatch?.data) {
+        if (result.data.getMatch.data?.event?._id) {
+          localStorageService.setEvent(result.data.getMatch.data.event._id);
+        }
+        await organizeFetchedData({
+          matchData: result.data.getMatch.data,
+          token: userDetail.token,
+          userInfo: userDetail.info,
+          matchId: params.matchId,
+          dispatch,
+        });
+      } else {
+        dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
       }
-      // { matchData, token, userInfo, matchId, dispatch }
-      await organizeFetchedData({ matchData: result.data.getMatch.data, token: userDetail.token, userInfo: userDetail.info, matchId: params.matchId, dispatch });
-    } else {
-      dispatch(setActErr({ success: false, message: 'No data found with given ID!' }));
-    }
-  };
-  // ===== Fetch Data =====
+    },
+    [getMatch, params.matchId, dispatch],
+  );
+
+  // Effects
   useEffect(() => {
-    // Get user info here
     const userDetail = getUserFromCookie();
     if (userDetail && isValidObjectId(params.matchId)) {
       fetchData(userDetail);
     } else {
-      dispatch(setActErr({ success: false, message: 'Can not fetch data due to invalid event ObjectId or Invalid token!' }));
+      dispatch(setActErr({ success: false, message: 'Invalid event ID or token!' }));
     }
 
-    return () => {
-      removeEvent();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.getMatch?.data, getMatch, params.matchId]); // props, client
+    return () => localStorageService.removeEvent();
+  }, [params.matchId, fetchData, dispatch]);
 
-  // ===== Web Socket Real Time connection =====
   useEffect(() => {
+    if (!socket || roundList.length === 0) return;
+
     const userDetail = getUserFromCookie();
+    const emitEvents = new EmitEvents(socket, dispatch);
+    const socketEventListener = new SocketEventListener(socket, dispatch, audioPlayEl);
 
-    // Initialize socket event listener with required props
-    let socketEventListener: SocketEventListener | null = null;
+    emitEvents.joinRoom({
+      user: userDetail,
+      teamA,
+      teamB,
+      currRound: currentRound,
+      matchId: params.matchId,
+    });
 
-    if (socket && roundList?.length > 0) {
-      // Initialize emitEvents with the socket and dispatch props
-      const emitEvents = new EmitEvents(socket, dispatch);
-
-      // Emit join room event when the socket is available and round list has data
-      emitEvents.joinRoom({
-        user: userDetail,
-        teamA,
-        teamB,
-        currRound: currentRound,
-        matchId: params.matchId,
-      });
-
-      socketEventListener = new SocketEventListener(socket, dispatch, audioPlayEl);
-
-      // Listen to socket events for joining the room
-      socket.on('extend-overtime-response-all', (overtimeData: IOvertimeData) => socketEventListener?.updateExtendOvertime({ data: overtimeData, dispatch, match: currMatch }));
-      socket.on('join-room-response-all', (joinData: IRoom) => socketEventListener?.handleJoinRoom(joinData, dispatch));
-      socket.on('check-in-response-to-all', (checkInData: IRoom) => socketEventListener?.handleCheckInResponse({ data: checkInData, dispatch, roundList, currentRound }));
-      socket.on('submit-lineup-response-all', (lineUpData: IRoomNets) => socketEventListener?.handleLineupResponse({ data: lineUpData, dispatch, currRoundNets, allNets, roundList, currentRound }));
-      socket.on(
-        'update-points-response-all',
-        (pointsData: IUpdateScoreResponse) => socketEventListener?.handleUpdatePoints({ data: pointsData, dispatch, currRoundNets, allNets, currentRound, roundList, match: currMatch }),
-      );
-      socket.on(
-        'update-net-response-all',
-        (lineUpData: ITeiBreakerAction) => socketEventListener?.handleUpdateNet({ data: lineUpData, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
-      );
-      socket.on('error-from-server', (serverError: string) => socketEventListener?.handleError(serverError, dispatch));
-    }
-
-    return () => {
-      // Clean up event listeners to avoid memory leaks
-      socket?.off('extend-overtime-response-all');
-      socket?.off('join-room-response-all');
-      socket?.off('check-in-response-to-all');
-      socket?.off('submit-lineup-response-all');
-      socket?.off('update-points-response-all');
-      socket?.off('update-net-response-all');
+    const listeners = {
+      'extend-overtime-response-all': (data: IOvertimeData) => socketEventListener.updateExtendOvertime({ data, dispatch, match: currMatch }),
+      'join-room-response-all': (data: IRoom) => socketEventListener.handleJoinRoom(data, dispatch),
+      'check-in-response-to-all': (data: IRoom) => socketEventListener.handleCheckInResponse({ data, dispatch, roundList, currentRound }),
+      'submit-lineup-response-all': (data: IRoomNets) => socketEventListener.handleLineupResponse({ data, dispatch, currRoundNets, allNets, roundList, currentRound }),
+      'update-points-response-all': (data: IUpdateScoreResponse) => socketEventListener.handleUpdatePoints({ data, dispatch, currRoundNets, allNets, currentRound, roundList, match: currMatch }),
+      'update-net-response-all': (data: ITeiBreakerAction) => socketEventListener.handleUpdateNet({ data, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
+      'error-from-server': (error: string) => socketEventListener.handleError(error, dispatch),
     };
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, user, teamA, teamB, currentRound, roundList, currRoundNets, params.matchId]);
+    Object.entries(listeners).forEach(([event, handler]) => {
+      socket.on(event, handler);
+    });
 
-  // ===== Click on DOM by default to get rid of error when playing audio =====
+    return () => {
+      Object.keys(listeners).forEach((event) => {
+        socket.off(event);
+      });
+    };
+  }, [socket, teamA, teamB, currentRound, roundList, currRoundNets, params.matchId, dispatch, currMatch, allNets]);
+
   useEffect(() => {
-    if (mainEl && mainEl.current) {
-      mainEl.current.click();
-    }
+    mainEl.current?.click();
   }, [mainEl]);
 
-  // Set team score
   useEffect(() => {
-    let teamATS = 0;
-    let teamAPMS = 0; // pms = plus minus score
-    let teamBTS = 0;
-    let teamBPMS = 0; // pms = plus minus score
-    for (let i = 0; i < roundList.length; i += 1) {
-      const netList = allNets.filter((n) => n.round === roundList[i]._id);
-      const { score: tas, plusMinusScore: tapms } = calcRoundScore(netList, roundList[i], ETeam.teamA);
+    let teamATS = 0,
+      teamAPMS = 0,
+      teamBTS = 0,
+      teamBPMS = 0;
+
+    roundList.forEach((round) => {
+      const netList = allNets.filter((n) => n.round === round._id);
+      const { score: tas, plusMinusScore: tapms } = calcRoundScore(netList, round, ETeam.teamA);
       teamATS += tas;
       teamAPMS += tapms;
 
-      const { score: tbs, plusMinusScore: tbpms } = calcRoundScore(netList, roundList[i], ETeam.teamB);
+      const { score: tbs, plusMinusScore: tbpms } = calcRoundScore(netList, round, ETeam.teamB);
       teamBTS += tbs;
       teamBPMS += tbpms;
-    }
+    });
 
-    dispatch(setTeamScore({ teamATotalScore: teamATS, teamBTotalScore: teamBTS, teamBPMScore: teamBPMS, teamAPMScore: teamAPMS }));
-  }, [roundList, currMatch, myTeamE, allNets, dispatch]);
+    dispatch(
+      setTeamScore({
+        teamATotalScore: teamATS,
+        teamBTotalScore: teamBTS,
+        teamBPMScore: teamBPMS,
+        teamAPMScore: teamAPMS,
+      }),
+    );
+  }, [roundList, allNets, dispatch]);
 
   if (loading) return <Loader />;
 
-  const myTeam = myTeamE === ETeam.teamA ? teamA : teamB;
-  const opTeam = myTeamE === ETeam.teamA ? teamB : teamA;
-  const myS = myTeamE === ETeam.teamA ? teamATotalScore : teamBTotalScore;
-  const opS = myTeamE === ETeam.teamA ? teamBTotalScore : teamATotalScore;
-
   return (
     <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
-      {/* Level 2 start: hidden */}
-      <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden" id="playNotificationButton">
+      <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden">
         Button
       </button>
-      {/* Level 2 end: hidden */}
 
-      {/* Level 4 start: opponent rosters */}
       <div className="op-rosters-wrapper w-full bg-black-logo text-white">
-        {/* Level 4.1 start: opponent team name */}
         <motion.div
           className={`w-full bg-black-logo ${myS < opS && currMatch.completed ? 'bg-green-500 text-white' : 'text-gray-100'}`}
           initial={{ scale: 0.9 }}
@@ -248,12 +225,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
         >
           <h1 className="op-team-name text-2xl font-bold uppercase container px-4 mx-auto">{opTeam?.name}</h1>
         </motion.div>
-        {/* Level 4.1 end: opponent team name */}
-        <TeamPlayers teamPlayers={opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} roundList={roundList} screenWidth={screenWidth} onTop />
+        <TeamPlayers teamPlayers={activeOpPlayers} roundList={roundList} screenWidth={screenWidth} onTop />
       </div>
-      {/* Level 4 end: opponent rosters */}
 
-      {/* Level 6 start: main match */}
       <div className="main-match-wrapper w-full">
         {notTieBreakerNetId ? (
           <motion.div className="not-tie-breaker w-full bg-white text-black-logo shadow-md rounded-lg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
@@ -271,7 +245,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                   </motion.div>
                 )}
 
-                {/* // Temporary disabled in production  */}
                 <div className="line-up-strategy w-full">
                   <LineupStrategy
                     myTeamE={myTeamE}
@@ -284,23 +257,19 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                     currMatch={currMatch}
                   />
                 </div>
-                {user?.info &&
-                  currRoom &&
-                  (user.info.role === UserRole.director || user.info.role === UserRole.admin || user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) && (
-                    <motion.div className="my-round-runner w-full" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
-                      <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
-                    </motion.div>
-                  )}
+                {user?.info && currRoom && [UserRole.director, UserRole.admin, UserRole.captain, UserRole.co_captain].includes(user.info.role) && captainAccess && (
+                  <motion.div className="my-round-runner w-full" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
+                    <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />
+                  </motion.div>
+                )}
               </>
             )}
           </div>
         )}
       </div>
-      {/* Level 6 end: main match */}
 
-      {/* Level 7 start: My Rosters */}
       <div className="my-roster-wrapper w-full bg-black-logo text-white">
-        <TeamPlayers roundList={roundList} teamPlayers={myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE)} screenWidth={screenWidth} />
+        <TeamPlayers roundList={roundList} teamPlayers={activeMyPlayers} screenWidth={screenWidth} />
 
         <div className="team-name-selection">
           {selectTeam && teamA && teamB ? (
@@ -313,7 +282,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                 <h1 className="my-team-name text-xl font-bold uppercase">{myTeam?.name}</h1>
                 {(user.info?.role === UserRole.director || user.info?.role === UserRole.admin) && (
                   <button className="right-4 z-20" aria-label="select-team" type="button" onClick={() => setSelectTeam(true)}>
-                    <Image height={imgSize.tiny.height} width={imgSize.tiny.width} src="/icons/dropdown.svg" className="w-6 svg-white" alt="dropdown-icon" />
+                    <Image width={24} height={24} src="/icons/dropdown.svg" className="w-6 svg-white" alt="dropdown-icon" />
                   </button>
                 )}
               </div>
@@ -321,17 +290,15 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           )}
         </div>
       </div>
-      {/* Level 7 end: My Rosters */}
 
-      {/* Level 8 start: Sponsors */}
-      {eventSponsors.length > 0 && (!user || !user.token) && (
+      {showSponsors && (
         <motion.div className="sponsors w-full py-4 mx-auto bg-black-logo text-white rounded-lg shadow-md" initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
           <div className="container px-4 mx-auto">
             <h2 className="text-lg font-semibold">Sponsors</h2>
             <div className="flex items-center justify-between md:justify-start flex-wrap w-full gap-4">
               {eventSponsors.map((spon) =>
                 spon.company === APP_NAME ? (
-                  <Image key={spon._id} src={`/${spon.logo}`} height={imgW.xs} width={imgW.xs} alt="default-logo" className="w-20" />
+                  <Image key={spon._id} src={`/${spon.logo}`} width={40} height={40} alt="default-logo" className="w-20" />
                 ) : (
                   <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
                 ),
@@ -340,7 +307,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
           </div>
         </motion.div>
       )}
-      {/* Level 8 end: Sponsors */}
     </div>
   );
 }

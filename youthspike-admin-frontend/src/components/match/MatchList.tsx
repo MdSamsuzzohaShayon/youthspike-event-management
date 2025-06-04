@@ -184,7 +184,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         .filter(([_, isChecked]) => isChecked) // Filter for checked items
         .map(([matchId]) => matchId); // Map to just the match IDs
       const response = await deleteMultipleMatches({ variables: { matchIds: checkedMatchIds } });
-      const success = handleResponse({ response: response.data.deleteMatches, setActErr });
+      const success = await handleResponse({ response: response.data.deleteMatches, setActErr });
       if (!success) return;
       setCheckedMatches(new Map());
       if (refetchFunc) await refetchFunc();

@@ -2,8 +2,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import getEvents from '@/app/_fetch/match';
 import EventMain from './EventMain';
+import { getEvents } from '@/app/_requests/event';
 
 async function EventPage() {
   const eventsData = await getEvents();

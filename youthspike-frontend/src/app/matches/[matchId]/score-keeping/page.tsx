@@ -1,11 +1,11 @@
 import React from 'react';
 import { cookies } from 'next/headers';
 import { IUser } from '@/types';
-import InputField from '@/components/elements/InputField';
 import AccessCodeForm from '@/components/match/ScoreKeeping/AccessCodeForm';
-import Image from 'next/image';
 import ServerReceiver from '@/components/match/ScoreKeeping/ServerReceiver';
 import Link from 'next/link';
+import { getMatch } from '@/app/_requests/match';
+import { notFound } from 'next/navigation';
 
 interface IScoreKeepingPageProps {
   params: {
@@ -14,6 +14,7 @@ interface IScoreKeepingPageProps {
 }
 async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps) {
   /**
+   * Get value of localstorage (match list), check which round they are in
    * Check both team checked in or not, check both team submitted their lineup or not
    * In ther setting of particular match, create 2 buttons. 1) Start New 2) Edit. Those buttons will take us to this page.
    * Check in the cookie if the user is logged in or not
@@ -25,8 +26,15 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
    */
   const cookieStore = await cookies();
   const user = cookieStore.get('user');
+  const token = cookieStore.get('token')?.value;
   const userInfo: IUser | null = user ? JSON.parse(user.value) : null;
-  // console.log({userInfo});
+
+  const matchData = await getMatch(matchId);
+  if (!matchData) {
+    notFound();
+  }
+  
+  // Get round list, match, room, nets
 
   const checkAccessCode = (): boolean => {
     if (!userInfo || !userInfo.accessCode || userInfo.accessCode.length === 0) return false;
@@ -52,7 +60,7 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
           </div>
         ) : (
           <div className="server-receiver-wrapper">
-            <ServerReceiver />
+            <ServerReceiver matchId={matchId} matchData={matchData} token={token || ""} userInfo={userInfo} />
           </div>
         )}
       </div>

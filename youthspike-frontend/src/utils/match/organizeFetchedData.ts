@@ -9,9 +9,9 @@ import { setTeamAPlayerRanking, setTeamBPlayerRanking } from '@/redux/slices/pla
 import { UserRole } from '@/types/user';
 import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
 import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser, ITeam } from '@/types';
+import LocalStorageService from '../LocalStorageService';
 // import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
-import { getLocalTeam, getMatch, setMatch } from '../localStorage';
 import { APP_NAME } from '../keys';
 
 interface IOrganizeFetchedDataProps {
@@ -60,9 +60,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     room,
     netVariance,
     extendedOvertime,
-    // @ts-ignore
     teamARanking,
-    // @ts-ignore
     teamBRanking,
   } = matchData;
 
@@ -89,7 +87,8 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
 
   // Setting event
   if (event) {
-    dispatch(setCurrentEventInfo(event));
+    const eventObj = { ...event, matches: [matchId] };
+    dispatch(setCurrentEventInfo(eventObj));
     if (event.ldo) {
       dispatch(setLdo(event.ldo));
     }
@@ -107,9 +106,11 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
 
   // eslint-disable-next-line no-restricted-syntax
   for (const round of rounds) {
-    const { _id: roundId, players, subs, ...restRound } = round;
+    const { _id: roundId, players, subs, match: _, ...restRound } = round;
     const playerIds = players ? players.map((p) => p._id) : [];
     const subIds = subs ? subs.map((s) => s._id) : [];
+
+    // @ts-ignore 
     const roundObj: IRoundRelatives = {
       _id: roundId,
       players: playerIds,
@@ -123,6 +124,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
       // eslint-disable-next-line no-restricted-syntax
       for (const net of round.nets) {
         const { _id: netId, ...netProps } = net;
+        // @ts-ignore
         formattedNets.push({ _id: netId, round: roundId, ...netProps });
       }
       roundObj.nets = round.nets.map((n) => n._id);
@@ -140,13 +142,13 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   // Setting current round and nets
   let selectedRound = formattedRounds[0];
   if (formattedRounds.length > 0) {
-    const matchRound = getMatch(matchData._id);
+    const matchRound = LocalStorageService.getMatch(matchData._id);
     const foundRound = formattedRounds.find((fr) => fr._id === (matchRound?.roundId || ''));
     if (foundRound) {
       selectedRound = foundRound;
     } else {
       // Set default round
-      setMatch(_id, selectedRound._id);
+      LocalStorageService.setMatch(_id, selectedRound._id);
     }
     dispatch(setCurrentRound(selectedRound));
 
@@ -161,7 +163,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
       setCurrentRoom({
         _id: room._id,
         match: _id,
-        rounds: [], // [{_id, teamAProcess, teamBProcess}]
+        rounds: formattedRounds.map((r) => ({ _id: r._id, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess })), // [{_id, teamAProcess, teamBProcess}]
         teamA: teamAF?._id || null,
         teamAClient: null,
         // teamAProcess: formattedRounds[0].teamAProcess,
@@ -194,25 +196,29 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   // console.log('Match info: ', matchObj);
 
   // Setting ranking
-  dispatch(setTeamAPlayerRanking(teamARanking));
-  dispatch(setTeamBPlayerRanking(teamBRanking));
+  if (teamARanking) dispatch(setTeamAPlayerRanking(teamARanking));
+  if (teamBRanking) dispatch(setTeamBPlayerRanking(teamBRanking));
 
   // Setting variables for team A and team B
 
   // Main logic
   const isAdminDirector = userInfo?.role === UserRole.admin || userInfo?.role === UserRole.director;
-  const selectedTeam = await getLocalTeam();
+  const selectedTeam = await LocalStorageService.getLocalTeam();
   const isTeamACaptain = userInfo?.captainplayer === teamAF?.captain?._id || userInfo?.cocaptainplayer === teamAF?.cocaptain?._id;
 
   if (isAdminDirector && selectedTeam) {
     if (selectedTeam === ETeam.teamA) {
+      // @ts-ignore
       dispatchTeamData({ dispatch, myLocalTeam: teamAF, opLocalTeam: teamBF, myLocalPlayers: teamAPlayers, opLocalPlayers: teamBPlayers, myLocalTeamE: ETeam.teamA, opLocalTeamE: ETeam.teamB });
     } else {
+      // @ts-ignore
       dispatchTeamData({ dispatch, myLocalTeam: teamBF, opLocalTeam: teamAF, myLocalPlayers: teamBPlayers, opLocalPlayers: teamAPlayers, myLocalTeamE: ETeam.teamB, opLocalTeamE: ETeam.teamA });
     }
   } else if (isTeamACaptain) {
+    // @ts-ignore
     dispatchTeamData({ dispatch, myLocalTeam: teamAF, opLocalTeam: teamBF, myLocalPlayers: teamAPlayers, opLocalPlayers: teamBPlayers, myLocalTeamE: ETeam.teamA, opLocalTeamE: ETeam.teamB });
   } else {
+    // @ts-ignore
     dispatchTeamData({ dispatch, myLocalTeam: teamBF, opLocalTeam: teamAF, myLocalPlayers: teamBPlayers, opLocalPlayers: teamAPlayers, myLocalTeamE: ETeam.teamB, opLocalTeamE: ETeam.teamA });
   }
 };

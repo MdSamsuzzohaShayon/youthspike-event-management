@@ -120,7 +120,7 @@ function Login() {
                             exit={cExit}
                             transition={{ ...cTransition, delay: 0.6 }}
                         >
-                            <InputField key="liif-1" type='text' name='email' handleInputChange={handleInputChange} value="" />
+                            <InputField key="liif-1" type='text' name='email' label='Email or Username' handleInputChange={handleInputChange} value="" />
                         </motion.div>
                         <motion.div
                             initial={cInitial}

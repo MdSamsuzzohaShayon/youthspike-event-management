@@ -5,7 +5,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { removeEvent } from '@/utils/localStorage';
+import { removeEvent } from '@/utils/LocalStorageService';
 import { IEventWMatch } from '@/types';
 import { EEventPeriod } from '@/types/event';
 import { validateMatchDatetime } from '@/utils/datetime';

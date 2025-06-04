@@ -36,7 +36,7 @@ const AccountPage = () => {
 
     const { data } = await getLdo({ variables: { dId: ldoIdParam } });
     const ldoObj = data?.getEventDirector?.data;
-    const success = handleResponse({ response: data?.getEventDirector, setActErr });
+    const success = await handleResponse({ response: data?.getEventDirector, setActErr });
 
     if (!success) return;
 
@@ -83,9 +83,6 @@ const AccountPage = () => {
       >
         Account Setting (LDO)
       </motion.h1>
-
-      {/* Error Messages */}
-      {error && <Message error={error} />}
 
       {/* Director Form */}
       <DirectorAdd

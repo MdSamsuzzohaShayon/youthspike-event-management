@@ -1,5 +1,4 @@
-/* eslint-disable react/require-default-props */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAppSelector } from '@/redux/hooks';
 import { INetRelatives, IPlayer } from '@/types';
 import { ETeam } from '@/types/team';
@@ -13,27 +12,40 @@ interface INetBoxProps {
   netTitle?: string;
 }
 
-function IdToPlayer(playerId: string | null | undefined, teamPlayerList: IPlayer[]): IPlayer | null {
-  if (!playerId) return null;
-  // eslint-disable-next-line react/destructuring-assignment
-  return teamPlayerList.find((p) => p._id === playerId) || null;
-}
-
 function NetBox({ myTeamE, crn, teamPlayerList, netTitle }: INetBoxProps) {
-  const { teamAPlayerRanking, teamBPlayerRanking, screenWidth } = useAppSelector((state) => ({
-    teamAPlayerRanking: state.playerRanking.teamAPlayerRanking,
-    teamBPlayerRanking: state.playerRanking.teamBPlayerRanking,
-    screenWidth: state.elements.screenWidth,
-  }));
 
-  const playerA = IdToPlayer(myTeamE === ETeam.teamA ? crn.teamAPlayerA : crn.teamBPlayerA, teamPlayerList);
+  const teamAPlayerRanking = useAppSelector((state) => state.playerRanking.teamAPlayerRanking);
+  const teamBPlayerRanking = useAppSelector((state) => state.playerRanking.teamBPlayerRanking);
+  const screenWidth = useAppSelector((state) => state.elements.screenWidth);
 
-  const playerB = IdToPlayer(myTeamE === ETeam.teamA ? crn.teamAPlayerB : crn.teamBPlayerB, teamPlayerList);
+  // Create maps for quick access
+  const playerMap = useMemo(() => {
+    const map = new Map<string, IPlayer>();
+    for (const player of teamPlayerList) {
+      map.set(player._id, player);
+    }
+    return map;
+  }, [teamPlayerList]);
 
-  const rankings = [...(teamAPlayerRanking?.rankings || []), ...(teamBPlayerRanking?.rankings || [])];
+  const rankingMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of teamAPlayerRanking?.rankings ?? []) {
+      map.set(r.player._id, r.rank);
+    }
+    for (const r of teamBPlayerRanking?.rankings ?? []) {
+      map.set(r.player._id, r.rank);
+    }
+    return map;
+  }, [teamAPlayerRanking?.rankings, teamBPlayerRanking?.rankings]);
 
-  const playerARank = rankings.find((p) => p.player._id === playerA?._id)?.rank || 0;
-  const playerBRank = rankings.find((p) => p.player._id === playerB?._id)?.rank || 0;
+  const playerAId = myTeamE === ETeam.teamA ? crn.teamAPlayerA : crn.teamBPlayerA;
+  const playerBId = myTeamE === ETeam.teamA ? crn.teamAPlayerB : crn.teamBPlayerB;
+
+  const playerA = playerAId ? playerMap.get(playerAId) ?? null : null;
+  const playerB = playerBId ? playerMap.get(playerBId) ?? null : null;
+
+  const playerARank = playerA?._id ? rankingMap.get(playerA._id) ?? 0 : 0;
+  const playerBRank = playerB?._id ? rankingMap.get(playerB._id) ?? 0 : 0;
 
   return (
     <div className="net-box w-full mb-4 flex justify-center items-center" key={crn._id}>

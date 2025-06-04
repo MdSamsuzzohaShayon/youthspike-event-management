@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation'
-import { getCookie } from '@/utils/cookie';
 import { IUser, IUserContext } from '@/types/user';
+import { getCookie } from '@/utils/clientCookie';
 
 export const UserContext = createContext<IUserContext>({ token: null, info: null });
 

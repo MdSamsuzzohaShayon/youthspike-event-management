@@ -5,7 +5,7 @@ import { useUser } from '@/lib/UserProvider';
 import { EEventItem } from '@/types/event';
 import { EVENT_ITEM, LDO_ID } from '@/utils/constant';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import { getEvent } from '@/utils/localStorage';
+import LocalStorageService from '@/utils/LocalStorageService';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ function Footer() {
     if (params.eventId) {
       setNewEventId(params.eventId.toString());
     } else {
-      const eventId = getEvent();
+      const eventId = LocalStorageService.getEvent();
       if (eventId && eventId !== '') {
         setNewEventId(eventId);
       }

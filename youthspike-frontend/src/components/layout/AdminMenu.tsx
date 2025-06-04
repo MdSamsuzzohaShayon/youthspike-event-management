@@ -7,7 +7,7 @@ import { IUserContext, UserRole } from '@/types/user';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import { getEvent } from '@/utils/localStorage';
+import LocalStorageService from '@/utils/LocalStorageService';
 import { itemVariants, menuBackdropVariants, menuVariants } from '@/utils/animation';
 
 interface IAdminMenuProps {
@@ -34,7 +34,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
   };
 
   const fetchEvent = useCallback(() => {
-    const eventExist = getEvent();
+    const eventExist = LocalStorageService.getEvent();
     if (params.eventId) {
       // @ts-ignore
       setEventId(params.eventId);

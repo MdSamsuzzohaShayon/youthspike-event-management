@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getUserFromCookie, removeCookie } from '@/utils/cookie';
 import { IUserContext } from '@/types';
 import { useParams, useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
@@ -12,6 +11,7 @@ import Image from 'next/image';
 import { removeDivisionFromStore, removeTeamFromStore } from '@/utils/localStorage';
 import Link from 'next/link';
 import { itemVariants } from '@/utils/animation';
+import { getUserFromCookie, removeCookie } from '@/utils/clientCookie';
 
 const menuBackdropVariants = {
     visible: { opacity: 1, transition: { duration: 0.3 } },

@@ -1,5 +1,5 @@
 import TeamDetail from '@/components/team/TeamDetail';
-import getTeamData from '@/app/_fetch/team';
+import getTeamData from '@/app/_requests/team';
 import { notFound } from 'next/navigation';
 import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
 

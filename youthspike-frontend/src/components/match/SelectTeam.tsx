@@ -1,7 +1,7 @@
 import useClickOutside from '@/hooks/useClickOutside';
 import { ITeam } from '@/types';
 import { ETeam } from '@/types/team';
-import { setLocalTeam } from '@/utils/localStorage';
+import LocalStorageService from '@/utils/LocalStorageService';
 import React, { useEffect, useRef } from 'react';
 
 interface ISelectTeamProps {
@@ -23,7 +23,7 @@ function SelectTeam({ teamA, teamB, setSelectTeam }: ISelectTeamProps) {
     e.preventDefault();
     // Set team to localStorage and reload the page
     // When reload the page make sure to setMyTeam from localStorage if admin or director loggedIn
-    const success = await setLocalTeam(selectedTeam);
+    const success = await LocalStorageService.setLocalTeam(selectedTeam);
     if (success) {
       window.location.reload();
     }

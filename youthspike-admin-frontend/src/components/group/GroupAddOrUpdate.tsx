@@ -21,6 +21,7 @@ interface IGroupAddOrUpdateProps {
   update: boolean;
   prevGroup: IGroupAdd | null;
   eventId: string;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup }: IGroupAddOrUpdateProps) {

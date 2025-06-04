@@ -13,7 +13,7 @@ import { setCurrentRoundNets } from '@/redux/slices/netSlice';
 import { ETeam } from '@/types/team';
 import { EActionProcess } from '@/types/room';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setMatch } from '@/utils/localStorage';
+import LocalStorageService from '@/utils/LocalStorageService';
 import TextImg from '../elements/TextImg';
 
 interface ITeamScoreBoard {
@@ -48,7 +48,7 @@ function CompletedBox() {
     } else {
       newRoundObj.teamBProcess = newRoundObj.teamBProcess && newRoundObj.teamBProcess === EActionProcess.INITIATE ? EActionProcess.CHECKIN : newRoundObj.teamBProcess;
     }
-    setMatch(newRoundObj.match, newRoundObj._id);
+    LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
     dispatch(setCurrentRound(newRoundObj));
     const newRoundList = roundList.filter((r) => r._id !== newRoundObj._id);
     newRoundList.push(newRoundObj);

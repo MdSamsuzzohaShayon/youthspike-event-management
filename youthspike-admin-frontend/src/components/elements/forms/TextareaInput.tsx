@@ -6,7 +6,7 @@ const TextareaInput = (props: ITextInputProps) => {
 
   return (
     <div
-      className="flex flex-col col-span-2"
+      className="flex flex-col"
     >
       <label
         htmlFor={props.name}

@@ -1,6 +1,5 @@
 import { CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/players';
 import { IOption } from '@/types';
-import { getCookie } from '@/utils/cookie';
 import { BACKEND_URL } from '@/utils/keys';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -9,6 +8,8 @@ import { getDivisionFromStore } from '@/utils/localStorage';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorContext';
 import { handleError, handleResponse } from '@/utils/handleError';
+import { getCookie } from '@/utils/clientCookie';
+
 
 
 interface IMultiPlayerAddProps {
@@ -73,7 +74,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IM
             console.log({response});
             
             const jsonRes = await response.json();
-            const success = handleResponse({response: jsonRes?.data?.createMultiPlayers, setActErr});
+            const success = await handleResponse({response: jsonRes?.data?.createMultiPlayers, setActErr});
             if(success){
                 await router.push(`/${eventId}/teams/${ldoIdUrl}`);
                 if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
@@ -105,7 +106,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IM
                 <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
                 <input type="file" ref={uploadFileEl} className='form-control w-full' onChange={handleInputChange} />
             </div>
-            <SelectInput key="multi-player-add-select" vertical handleSelect={handleDivisionChange} name='division' optionList={divisionList} defaultValue={selectedDivision} />
+            <SelectInput key="multi-player-add-select" handleSelect={handleDivisionChange} name='division' optionList={divisionList} defaultValue={selectedDivision} />
             <div className="input-group mt-4">
                 <button type="submit" className="btn-info">Upload</button>
             </div>
