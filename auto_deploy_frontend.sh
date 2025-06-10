@@ -20,11 +20,10 @@ echo "Setup from stratch"
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 cd /home/shayon/youthspike-event-management
+git checkout f1fe65e9007029dc63a4fdce86d8e2b1f657e443
 git log -n 10
 git log --oneline --graph --decorate --all 
 cd
-
-rm -rf /home/shayon/youthspike-event-management/youthspike-nest-backend
 
 
 echo "Installing dependencies for youthspike-admin-frontend"
@@ -48,5 +47,3 @@ pm2 start ecosystem.config.js
 pm2 save --force
 sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u shayon --hp /home/shayon
 pm2 logs
-
-

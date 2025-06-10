@@ -30,14 +30,10 @@ echo "Setup from stratch"
 cd 
 git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
 cd /home/shayon/youthspike-event-management
+git checkout f1fe65e9007029dc63a4fdce86d8e2b1f657e443
 git log -n 10
 git log --oneline --graph --decorate --all 
 cd
-
-# Temp (Version before EID)
-# cd /home/shayon/youthspike-event-management
-# git checkout c36ec952df0a3aa48150c39ed42d6c8fee239507
-# cd ..
 
 
 # Backend
@@ -47,29 +43,27 @@ mv /home/shayon/youthspike-event-management/youthspike-nest-backend/* /home/shay
 rm -rf /home/shayon/youthspike-event-management
 
 # Setup redis
-cd /home/shayon/youthspike-nest-backend
-sudo systemctl restart redis
-sudo systemctl status redis
-./redis_cluster.sh
+#cd /home/shayon/youthspike-nest-backend
+#sudo systemctl restart redis
+#sudo systemctl status redis
+#./redis_cluster.sh
 
 # Set temporary development
+cd /home/shayon/youthspike-nest-backend
 echo "#Environment variables for youthspike-nest-backend" > .env
 nano .env
 echo "Installing dependencies for youthspike-nest-backend"
 npm install --force
-nano src/util/keys.ts
+nano src/main.ts
 npm run build
 export NODE_ENV="production"
 pm2 start ecosystem.config.js
 pm2 save
-sudo systemctl restart redis
+#sudo systemctl restart redis
 
 
 
 cd
 
-curl -X POST 'https://api.aslsquads.com/graphql' -H 'Content-Type: application/json' -d '{"query":"{ getAbout { app author details mode version } }"}'
+curl -X POST 'https://api.aslsquads.com/graphql' -H 'Content-Type: application/json' -d '{"query":"{ getAbout { app author mode version } }"}'
 pm2 logs
-
-
-

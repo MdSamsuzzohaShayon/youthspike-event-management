@@ -9,8 +9,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 4001,
-        REDIS_HOST: '127.0.0.1',
-        REDIS_PORT: '7000',
+        REDIS_CLUSTER_NODES: '127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005',
       },
     },
     {
@@ -19,8 +18,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 4002,
-        REDIS_HOST: '127.0.0.1',
-        REDIS_PORT: '7001',
+        REDIS_CLUSTER_NODES: '127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005',
       },
     },
     {
@@ -29,8 +27,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 4003,
-        REDIS_HOST: '127.0.0.1',
-        REDIS_PORT: '7002',
+        REDIS_CLUSTER_NODES: '127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005',
       },
     },
   ],
