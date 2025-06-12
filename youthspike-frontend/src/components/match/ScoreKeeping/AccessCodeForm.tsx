@@ -43,13 +43,27 @@ function AccessCodeForm({ matchId, userInfo }: IAccessCodeFormProps) {
     }
   };
 
+  // return (
+  //   <form onSubmit={handleAccessCodeValidation}>
+  //     <InputField name="accessCode" type="text" required />
+  //     <InputField name="matchId" type="text" defaultValue={matchId} required className="hidden" />
+  //     <button className="btn-info rounded-lg" type="submit">
+  //       Submit
+  //     </button>
+  //   </form>
+  // );
+
   return (
-    <form onSubmit={handleAccessCodeValidation}>
-      <InputField name="accessCode" type="text" required />
+    <form className="space-y-6" onSubmit={handleAccessCodeValidation}>
+      <InputField name="accessCode" type="text" required label='Access Code' />
+
       <InputField name="matchId" type="text" defaultValue={matchId} required className="hidden" />
-      <button className="btn-info rounded-lg" type="submit">
-        Submit
-      </button>
+
+      <div className="text-center">
+        <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-3 px-6 rounded-lg shadow-lg transition duration-200">
+          Submit
+        </button>
+      </div>
     </form>
   );
 }

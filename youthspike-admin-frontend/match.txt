@@ -2,20 +2,26 @@
 /*
  * FC Barcelona
  * Captain
- * Username: gerard7787
+ * Username: sergio30375
  * Password: Spikeball
  * Co-Captain
- * Username: sergio11016
- * Password: Spikeball
- * 
- * PSG
- * Captain
- * Username: pfn328
+ * Username: jordi14800
  * Password: Spikeball
  * 
  * Liverpool FC
  * Captain
- * Username: pfn430
+ * Username: sergio30375
+ * Password: Spikeball
+ * Co-Captain
+ * Username: jordi14800
+ * Password: Spikeball
+ *
+ * PSG
+ * Captain
+ * Username: sergio30375
+ * Password: Spikeball
+ * Co-Captain
+ * Username: jordi14800
  * Password: Spikeball
  */
 

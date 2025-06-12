@@ -57,7 +57,7 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
         }
 
         const success = await handleResponse({ response: matchRes, setActErr });
-        console.log({ success });
+        // console.log({ success });
 
         if (success) {
             if (showAddMatch) showAddMatch(false);

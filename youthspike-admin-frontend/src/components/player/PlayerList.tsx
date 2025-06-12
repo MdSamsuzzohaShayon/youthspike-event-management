@@ -177,7 +177,7 @@ function PlayerList({
         if (playerRanking) {
           const newRankingsMap = new Map();
           if (playerRanking && playerRanking.rankings.length > 0) {
-            console.log(playerRanking.rankings);
+            // console.log(playerRanking.rankings);
             
             
             playerRanking.rankings.forEach((pr) => {
@@ -190,7 +190,7 @@ function PlayerList({
             playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
           });
           setPlayers(playersWithRank);
-          console.log({ msg: "PlayerList when event mount: ", playersWithRank });
+          // console.log({ msg: "PlayerList when event mount: ", playersWithRank });
         } else {
           setPlayers(playerList);
         }

@@ -90,7 +90,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
 
   return (
     <div className="w-full">
-      <div className="px-4 mx-auto text-center">
+      <div className="mx-auto text-center">
         <div className="box w-full flex flex-col justify-center items-center">{currentRoom && renderActionBoxes()}</div>
       </div>
     </div>
