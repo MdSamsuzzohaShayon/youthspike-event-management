@@ -1,15 +1,13 @@
 'use client';
 
 import SelectInput from '@/components/elements/SelectInput';
-import TextImg from '@/components/elements/TextImg';
-import cld from '@/config/cloudinary.config';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrNetNum } from '@/redux/slices/netSlice';
-import { IMatchExpRel, IUser } from '@/types';
+import { IMatchExpRel, IReceiverTeam, IServerTeam, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import { AdvancedImage } from '@cloudinary/react';
-import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import ServerReceiverDisplay from './ServerReceiverDisplay';
+import PlayerSelection from './PlayerSelection';
 
 interface IServerReceiverProps {
   matchId: string;
@@ -58,8 +56,6 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     setReceiverPlaceholder(false);
   }, []);
 
-  // setReceiverPlaceholder(false);
-
   const handleClosePlayers = useCallback((e: React.SyntheticEvent) => {
     e.preventDefault();
     setSelectedServer(null);
@@ -92,7 +88,7 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     };
   }, [currRoundNets, currNetNum]);
 
-  const serverTeam = useMemo(() => {
+  const serverTeam: IServerTeam | null = useMemo(() => {
     if (!selectedServer) return null;
 
     const teamAMap = new Map(teamAPlayers.map((p) => [p._id, p]));
@@ -130,12 +126,12 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     }
 
     return {
-      server,
+      server: server || null,
       servingPartner,
     };
   }, [selectedServer, teamAPlayers, teamBPlayers]);
 
-  const receiverTeam = useMemo(() => {
+  const receiverTeam: IReceiverTeam | null = useMemo(() => {
     if (!selectedReceiver) return null;
 
     const teamAMap = new Map(teamAPlayers.map((p) => [p._id, p]));
@@ -173,152 +169,106 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     }
 
     return {
-      receiver,
+      receiver: receiver || null,
       receivingPartner,
     };
   }, [selectedReceiver, teamAPlayers, teamBPlayers]);
 
-  const renderTeamA = useMemo(() => {
-    const playersMap = new Map(teamAPlayers.map((p) => [p._id, p]));
-    const playerA = playersMap.get(playersOfSelectedNet?.teamAPlayerA || '');
-    const playerB = playersMap.get(playersOfSelectedNet?.teamAPlayerB || '');
-
-    return (
-      <div>
-        <h4>Team A</h4>
-        <ul>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerA?._id) : handleReceiverSelection(e, playerA?._id))}>
-            {playerA?.firstName} {playerA?.lastName}
-          </li>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerB?._id) : handleReceiverSelection(e, playerB?._id))}>
-            {playerB?.firstName} {playerB?.lastName}
-          </li>
-        </ul>
-      </div>
-    );
-  }, [teamAPlayers, serverPlaceholder, receiverPlaceholder, playersOfSelectedNet]);
-
-  const renderTeamB = useMemo(() => {
-    const playersMap = new Map(teamBPlayers.map((p) => [p._id, p]));
-    const playerA = playersMap.get(playersOfSelectedNet?.teamBPlayerA || '');
-    const playerB = playersMap.get(playersOfSelectedNet?.teamBPlayerB || '');
-
-    return (
-      <div>
-        <h4>Team B</h4>
-        <ul>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerA?._id) : handleReceiverSelection(e, playerA?._id))}>
-            {playerA?.firstName} {playerA?.lastName}
-          </li>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerB?._id) : handleReceiverSelection(e, playerB?._id))}>
-            {playerB?.firstName} {playerB?.lastName}
-          </li>
-        </ul>
-      </div>
-    );
-  }, [teamBPlayers, serverPlaceholder, receiverPlaceholder, playersOfSelectedNet]);
-
   return (
     <div>
       <SelectInput handleSelect={handleNetChange} name="currNetNum" optionList={currRoundNets.map((crn, i) => ({ id: i + 1, value: String(crn.num), text: `Net ${crn.num}` }))} />
-      {!currRound || currNetNum === 0 ? (
-        <div>{!currRound && <h3 className="uppercase">No round has been selected!</h3>}</div>
-      ) : serverPlaceholder || receiverPlaceholder ? (
-        <div className="display-server-receiver">
-          <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">Select a server</h3>
-          {playersOfSelectedNet && (
-            <div className="team-players mt-4">
-              <img src="/icons/close.svg" className="svg-white" role="presentation" onClick={handleClosePlayers} />
-              {renderTeamA}
-              {renderTeamB}
+
+      {selectedServer && selectedReceiver ? (
+        <div className="server-receiver-with-actions w-full ">
+          <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
+            {/* Left side start  */}
+            <div className="w-full md:w-2/6">
+              <div className="slider">31st Play</div>
+              <ServerReceiverDisplay
+                selectedServer={selectedServer}
+                selectedReceiver={selectedReceiver}
+                serverTeam={serverTeam}
+                receiverTeam={receiverTeam}
+                handleAddServer={handleAddServer}
+                handleAddReceiver={handleAddReceiver}
+              />
             </div>
-          )}
-        </div>
-      ) : (
-        <div className="display-server-receiver">
-          <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">Selected Server/Receiver</h3>
-          <div className="w-full flex flex-col lg:flex-row justify-center items-center gap-6">
-            {/* Left Side */}
-            <div className="w-full lg:w-1/3 flex flex-col items-center gap-4">
-              <div className="w-32 h-32"></div>
-              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
-              <div className="h-24 w-24 bg-white text-black flex items-center justify-center rounded-xl shadow-md">
-                {selectedServer && serverTeam ? (
-                  serverTeam?.servingPartner?.profile ? (
-                    <AdvancedImage cldImg={cld.image(serverTeam?.servingPartner?.profile)} />
-                  ) : (
-                    <TextImg className="w-full h-full rounded-xl" fText={serverTeam?.servingPartner?.firstName} lText={serverTeam?.servingPartner?.lastName} />
-                  )
-                ) : (
-                  <div />
-                )}
+            {/* Left side end  */}
+
+            {/* Middle side start  */}
+            <div className="w-full md:w-1/6 flex  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
+              <h2 className="uppercase">Freeze</h2>
+              <div className="bg-yellow-logo h-24 w-24 rounded-xl flex items-center justify-center">
+                <h2>13</h2>
               </div>
-              <h3 className="text-center uppercase text-yellow-400 font-semibold">
-                Serving <br /> Partner
-              </h3>
-              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
-              <div className="w-32 h-32"></div>
+              <div className="bg-white text-black h-24 w-24 rounded-xl flex items-center justify-center">
+                <h2>18</h2>
+              </div>
+              <h2 className="uppercase">Bucks</h2>
             </div>
+            {/* Middle side end  */}
 
-            {/* Middle Side */}
-            <div className="w-full lg:w-1/3 flex justify-center items-center">
-              <div className="w-4/6 md:w-2/6 flex flex-col items-center gap-6 bg-white text-black rounded-xl p-6 shadow-lg">
-                <Image alt="Logo" src="/imgs/spikeball-logo.webp" width={40} height={40} className="mb-2" />
-
-                <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400" role="presentation" onClick={handleAddServer}>
-                  {selectedServer && serverTeam ? (
-                    serverTeam?.server?.profile ? (
-                      <AdvancedImage cldImg={cld.image(serverTeam?.server?.profile)} />
-                    ) : (
-                      <TextImg className="w-full h-full rounded-0" fText={serverTeam?.server?.firstName} lText={serverTeam?.server?.lastName} />
-                    )
-                  ) : (
-                    <Image alt="Add Server" src="/icons/plus.svg" width={50} height={50} className="invert" />
-                  )}
-                </div>
-                <h3 className="uppercase text-center font-semibold text-yellow-400">Server</h3>
-
-                <div className="flex justify-center items-center py-2">
-                  <Image alt="Net" src="/imgs/spikeball-net.png" width={80} height={80} />
-                </div>
-
-                <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400" role="presentation" onClick={handleAddReceiver}>
-                  {selectedReceiver && receiverTeam ? (
-                    receiverTeam?.receiver?.profile ? (
-                      <AdvancedImage cldImg={cld.image(receiverTeam?.receiver?.profile)} />
-                    ) : (
-                      <TextImg className="w-full h-full rounded-0" fText={receiverTeam?.receiver?.firstName} lText={receiverTeam?.receiver?.lastName} />
-                    )
-                  ) : (
-                    <Image alt="Add Receiver" src="/icons/plus.svg" width={50} height={50} className="invert" />
-                  )}
-                </div>
-                <h3 className="uppercase text-center font-semibold text-yellow-400">Receiver</h3>
-              </div>
+            {/* Right side start  */}
+            <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
+              <button className="btn-light uppercase">
+                Change
+                Server/Receiver point 1
+              </button>
+              <button className="btn-info uppercase">
+                +1 POINTS 
+                STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1
+              </button>
             </div>
+            {/* Right side end  */}
+          </div>
 
-            {/* Right Side */}
-            <div className="w-full lg:w-1/3 flex flex-col items-center gap-4">
-              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
-              <div className="w-32 h-32"></div>
-              <div className="h-24 w-24 bg-white text-black flex items-center justify-center rounded-xl shadow-md">
-                {selectedReceiver && receiverTeam ? (
-                  receiverTeam?.receivingPartner?.profile ? (
-                    <AdvancedImage cldImg={cld.image(receiverTeam?.receivingPartner?.profile)} />
-                  ) : (
-                    <TextImg className="w-full h-full rounded-xl" fText={receiverTeam?.receivingPartner?.firstName} lText={receiverTeam?.receivingPartner?.lastName} />
-                  )
-                ) : (
-                  <div />
-                )}
-              </div>
-              <h3 className="text-center uppercase text-yellow-400 font-semibold">
-                Receiving <br /> Partner
-              </h3>
-              {/* <Image alt="Player" src="/imgs/player.png" width={100} height={100} className="w-32 h-32 object-cover rounded-xl border-4 border-yellow-400" /> */}
-              <div className="w-32 h-32"></div>
+          <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-between items-start">
+            <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
+              <h3 className="uppercase text-center">Serving Team</h3>
+              <button className="btn-light uppercase">ACE no-touch</button>
+              <button className="btn-light uppercase">Ace no 3rd touch</button>
+              <button className="btn-light uppercase">Receiving Hitting Error</button>
+              <button className="btn-light uppercase">Defensive Conversion</button>
+              <button className="btn-light uppercase">Don't know</button>
+            </div>
+            <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
+              <h3 className="uppercase text-center">Receiving Team</h3>
+              <button className="btn-light uppercase">Service Fault</button>
+              <button className="btn-info uppercase">1-2-3 put away</button>
+              <button className="btn-light uppercase">rally Conversion</button>
+              <button className="btn-light uppercase">Don't know</button>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="select-server-receiver">
+          {!currRound || currNetNum === 0 ? (
+            <div>{!currRound && <h3 className="uppercase">No round has been selected!</h3>}</div>
+          ) : serverPlaceholder || receiverPlaceholder ? (
+            <PlayerSelection
+              teamAPlayers={teamAPlayers}
+              teamBPlayers={teamBPlayers}
+              playersOfSelectedNet={playersOfSelectedNet}
+              serverPlaceholder={serverPlaceholder}
+              receiverPlaceholder={receiverPlaceholder}
+              handleServerSelection={handleServerSelection}
+              handleReceiverSelection={handleReceiverSelection}
+              handleClosePlayers={handleClosePlayers}
+            />
+          ) : (
+            <div className="w-full  flex flex-col justify-center items-center">
+              <div className="w-full md:w-3/6">
+                <ServerReceiverDisplay
+                  selectedServer={selectedServer}
+                  selectedReceiver={selectedReceiver}
+                  serverTeam={serverTeam}
+                  receiverTeam={receiverTeam}
+                  handleAddServer={handleAddServer}
+                  handleAddReceiver={handleAddReceiver}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

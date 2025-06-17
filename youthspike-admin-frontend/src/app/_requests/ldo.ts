@@ -1,6 +1,6 @@
 import { GET_LDO_RAW, GET_LDOS, GET_LDOS_RAW } from "@/graphql/director";
-import { handleResponse } from "@/utils/handleError";
 import { BACKEND_URL } from "@/utils/keys";
+import { UNAUTHORIZED } from "@/utils/constant";
 
 async function getEventDirector(directorId?: string | null, token?: string | null) {
   const body: Record<string, any> = { query: GET_LDO_RAW };
@@ -21,7 +21,9 @@ async function getEventDirector(directorId?: string | null, token?: string | nul
 
   const { data } = await res.json();
 
-  // const success = await handleResponse({response: data?.getEventDirector?.data || data?.getEventDirector});
+  if (data?.getEventDirector?.code === 401) {
+    throw new Error(UNAUTHORIZED);
+  }
 
   return data?.getEventDirector?.data || null;
 }

@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IEvent, IEventAdd, IEventAddProps, IDefaultEventMatch, IEventSponsor, IEventWMatch } from './event';
-import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps, IEventPageProps, InputFieldProps, ISelectInputProps } from './elements';
+import { IError, IOption, IButtonProps, IMenuItem, IMenuArrangeProps, ILoginProps, IColMenu, ITextInputProps, IEventPageProps, InputFieldProps, ISelectInputProps, IServerTeam, IReceiverTeam } from './elements';
 import { IUser, IDirector, IUserContext, IDirectorItem } from './user';
 import { ILDO, ILDOItem, ILdoUpdate } from './ldo';
 import { IPlayer, IPlayerRecord, IPlayerRank } from './player';
@@ -44,6 +44,7 @@ export type {
   IEventPageProps,
   InputFieldProps,
   ISelectInputProps,
+  IReceiverTeam,
 
   // Event
   IEvent,
@@ -52,6 +53,7 @@ export type {
   IDefaultEventMatch,
   IEventWMatch,
   IEventSponsor,
+  IServerTeam,
 
   // User
   IUser,

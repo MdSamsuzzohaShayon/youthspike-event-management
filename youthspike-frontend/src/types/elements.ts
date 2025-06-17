@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 import React from 'react';
 import { IUserContext, UserRole } from './user';
+import { IPlayer } from './player';
 
 export interface IMenuItem {
   id: number;
@@ -170,6 +171,17 @@ export interface IEventPageProps {
     eventId: string;
   };
 }
+
+export interface IServerTeam{
+  server: IPlayer | null;
+  servingPartner: IPlayer | null;
+}
+
+export interface IReceiverTeam{
+  receiver: IPlayer | null;
+  receivingPartner: IPlayer | null;
+}
+
 
 export enum EActionTexts {
   INITIALIZE = '',
