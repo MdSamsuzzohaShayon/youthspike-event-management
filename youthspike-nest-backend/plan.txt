@@ -1,5 +1,8 @@
 1. Fix sponsors upload (Create and update with default logo)
 
+Explain
+https://www.youtube.com/watch?v=irgTrG6d6eA
+
 Videos
 https://www.loom.com/share/115e4df232a242c6aa51f5fc77ab58f1?sid=affd6870-7d94-4cbb-a072-0889b7523feb
 https://www.loom.com/share/91e394d806a0439aaf4d5a753ca89c43?sid=a0312ad6-4e5b-449d-8a37-0fee95fb48e0
@@ -15,3 +18,9 @@ https://docs.google.com/spreadsheets/d/1VjcpJiyUoCzMq9pPOtp-yp3rD0qETlpC7qxI6XK2
 
 Drawings 
 https://www.canva.com/design/DAGM_3-BlrM/pv23qu-frcMQM4GZjLTopw/edit
+
+
+Spikeball rules
+1. Which team win by 21 points will be win by 2
+2. Server will continue to serve until receiving team get a point
+3. If service team wins a point, they switch position of players

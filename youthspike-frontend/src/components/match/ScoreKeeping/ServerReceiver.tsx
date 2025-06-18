@@ -8,6 +8,8 @@ import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
 import PlayerSelection from './PlayerSelection';
+import Link from 'next/link';
+import ActionHandler from './ActionHandler';
 
 interface IServerReceiverProps {
   matchId: string;
@@ -23,6 +25,7 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
 
   // Local state
+  const [actionPreview, setActionPreview] = useState<boolean>(false);
   const [serverPlaceholder, setServerPlaceholder] = useState<boolean>(false);
   const [receiverPlaceholder, setReceiverPlaceholder] = useState<boolean>(false);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
@@ -178,7 +181,7 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     <div>
       <SelectInput handleSelect={handleNetChange} name="currNetNum" optionList={currRoundNets.map((crn, i) => ({ id: i + 1, value: String(crn.num), text: `Net ${crn.num}` }))} />
 
-      {selectedServer && selectedReceiver ? (
+      {actionPreview ? (
         <div className="server-receiver-with-actions w-full ">
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
@@ -210,35 +213,25 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
 
             {/* Right side start  */}
             <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
-              <button className="btn-light uppercase">
-                Change
-                Server/Receiver point 1
-              </button>
-              <button className="btn-info uppercase">
-                +1 POINTS 
-                STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1
-              </button>
+              <button className="btn-light uppercase">Change Server/Receiver point 1</button>
+              <button className="btn-info uppercase">+1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1</button>
             </div>
             {/* Right side end  */}
           </div>
 
-          <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-between items-start">
-            <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-              <h3 className="uppercase text-center">Serving Team</h3>
-              <button className="btn-light uppercase">ACE no-touch</button>
-              <button className="btn-light uppercase">Ace no 3rd touch</button>
-              <button className="btn-light uppercase">Receiving Hitting Error</button>
-              <button className="btn-light uppercase">Defensive Conversion</button>
-              <button className="btn-light uppercase">Don't know</button>
+          <ActionHandler />
+
+          {actionPreview && (
+            <div className="text-center my-6">
+              <button
+                onClick={() => setActionPreview(false)}
+                type="button"
+                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+              >
+                Server/Receiver
+              </button>
             </div>
-            <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-              <h3 className="uppercase text-center">Receiving Team</h3>
-              <button className="btn-light uppercase">Service Fault</button>
-              <button className="btn-info uppercase">1-2-3 put away</button>
-              <button className="btn-light uppercase">rally Conversion</button>
-              <button className="btn-light uppercase">Don't know</button>
-            </div>
-          </div>
+          )}
         </div>
       ) : (
         <div className="select-server-receiver">
@@ -266,6 +259,17 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
                   handleAddServer={handleAddServer}
                   handleAddReceiver={handleAddReceiver}
                 />
+                {selectedServer && selectedReceiver && (
+                  <div className="text-center my-6">
+                    <button
+                      onClick={() => setActionPreview(true)}
+                      type="button"
+                      className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                    >
+                      Action Preview
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
