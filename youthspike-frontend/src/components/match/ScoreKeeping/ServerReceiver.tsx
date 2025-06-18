@@ -3,7 +3,7 @@
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrNetNum } from '@/redux/slices/netSlice';
-import { IMatchExpRel, IReceiverTeam, IServerTeam, IUser } from '@/types';
+import { IMatchExpRel, INetPlayers, IReceiverTeam, IServerTeam, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
@@ -80,14 +80,16 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     })();
   }, []);
 
-  const playersOfSelectedNet = useMemo(() => {
+  const playersOfSelectedNet: null | INetPlayers = useMemo(() => {
     if (!currNetNum) return null;
     const currNet = currRoundNets.find((n) => n.num === currNetNum);
+    if(!currNet) return null;
     return {
-      teamAPlayerA: currNet?.teamAPlayerA,
-      teamAPlayerB: currNet?.teamAPlayerB,
-      teamBPlayerA: currNet?.teamBPlayerA,
-      teamBPlayerB: currNet?.teamBPlayerB,
+      _id: currNet?._id || "",
+      teamAPlayerA: currNet?.teamAPlayerA || null,
+      teamAPlayerB: currNet?.teamAPlayerB || null,
+      teamBPlayerA: currNet?.teamBPlayerA || null,
+      teamBPlayerB: currNet?.teamBPlayerB || null,
     };
   }, [currRoundNets, currNetNum]);
 
@@ -241,6 +243,8 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
             <PlayerSelection
               teamAPlayers={teamAPlayers}
               teamBPlayers={teamBPlayers}
+              selectedServer={selectedServer}
+              selectedReceiver={selectedReceiver}
               playersOfSelectedNet={playersOfSelectedNet}
               serverPlaceholder={serverPlaceholder}
               receiverPlaceholder={receiverPlaceholder}

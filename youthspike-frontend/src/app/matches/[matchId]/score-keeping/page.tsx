@@ -87,3 +87,28 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
 }
 
 export default ScoreKeepingPage;
+
+
+/**
+ * Database fields   for each player in a match
+ * 1. Serve Opportunity (number) -> this will change for "Double Fault"
+ * 2. Serve Ace (number) -> This will increase for "Ace No Touch" button
+ * 3. Serve Completion Count (number) -> This will increase for "Ace No Touch" button
+ * 4. Serving Ace No Touch 
+ * 5. Receiver Opporitunity
+ * 6. Received count
+ * 7. No touch Aced Count
+ * 8. Hitting opporitunity
+ * 9. Hitting Completion
+ * 10. Cleans hit
+ * 11. Defensive opporitunity
+ * 12. Defensive conversion
+ * 13. Break
+ * 14. Broken
+ * 15. Match played
+ * -----> Related fields
+ * 16. match
+ * 17. player
+ * 
+ * */
+

@@ -62,10 +62,10 @@ interface IUpdateScoreResponse {
 
 interface INetPlayers {
   _id: string;
-  teamAPlayerA: string;
-  teamAPlayerB: string;
-  teamBPlayerA: string;
-  teamBPlayerB: string;
+  teamAPlayerA: string | null;
+  teamAPlayerB: string | null;
+  teamBPlayerA: string | null;
+  teamBPlayerB: string | null;
 }
 
 // eslint-disable-next-line no-shadow

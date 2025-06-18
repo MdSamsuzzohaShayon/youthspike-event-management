@@ -157,7 +157,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     let imgEl: null | HTMLImageElement | React.ReactNode = null;
     if (!filename || filename === '') {
       if (defaultValue && typeof defaultValue === 'string') {
-        imgEl = <AdvancedImage className='w-full object-cover object-center' cldImg={cld.image(defaultValue)} />
+        imgEl = <AdvancedImage className='w-full md:w-1/3 object-cover object-center' cldImg={cld.image(defaultValue)} />
       }
     } else {
       if (croppedImageUrl && croppedImageUrl !== '') {

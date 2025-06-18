@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
 import { IOption, ITeam } from '@/types';
@@ -15,6 +15,7 @@ import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorContext';
 import InputField from '../elements/forms/InputField';
+import Loader from '../elements/Loader';
 
 interface IPlayerAddProps {
   eventId: string,
@@ -26,109 +27,96 @@ interface IPlayerAddProps {
   playerAddCB?: (playerData: IPlayerExpRel) => void;
 }
 
-const initialPlayerAdd = {
+const initialPlayerAdd: IPlayerAdd = {
   firstName: '',
   lastName: '',
   username: '',
   email: '',
   event: '',
   phone: '',
-  rank: "0",
   division: ''
 };
 
 function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB }: IPlayerAddProps) {
 
-
-  // React Hooks
   const router = useRouter();
   const user = useUser();
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
 
-
-  // ===== local States =====
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
-  const [addPlayer, { data, client }] = useMutation(CREATE_PLAYER);
+  const [addPlayer] = useMutation(CREATE_PLAYER);
+  const [updatePlayer] = useMutation(UPDATE_PLAYER);
+
   const uploadedProfile = useRef<File | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
-  // setIsLoading={setIsLoading}
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [updatePlayer, { data: puData, client: mutateClient }] = useMutation(UPDATE_PLAYER);
-
-  /// ===== input Change =====
-  const handleInputChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLInputElement;
-    if (update) {
-      setPlayerUpdate(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    } else {
-      setPlayerState(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    }
-  }
-
-    // ======  Callback functions ====== 
-    const playerUpdateCB = (playerData: IPlayerExpRel) => { }
-  
-    const refetchFunc= async ()=>{
-      // await refetch();
-    }
-
-  const handleFileChange = (uploadedFile: Blob | MediaSource) => {
-    // @ts-ignore
-    uploadedProfile.current = uploadedFile;
-  }
-
-  const handleTeamChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLSelectElement;
-    setTeamToStore(inputEl.value);
-    if (update) {
-      setPlayerUpdate(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    } else {
-      setPlayerState(prevState => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    }
+  const refetchFunc = async () => {
+    // stub
   };
 
+  const playerUpdateCB = (playerData: IPlayerExpRel) => { };
 
-  /**
-   * Create or update player
-   */
-  const handleAddPlayer = async (e: React.SyntheticEvent) => {
+  // Unified field updater
+  const handleFieldChange = useCallback((name: string, value: string) => {
+    const updater = update ? setPlayerUpdate : setPlayerState;
+    updater((prev: IPlayerAdd) => ({ ...prev, [name]: value }));
+  }, [update]);
+
+  const handleInputChange = useCallback((e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    handleFieldChange(inputEl.name, inputEl.value);
+  }, [handleFieldChange]);
+
+  const handleTeamChange = useCallback((e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLSelectElement;
+    setTeamToStore(inputEl.value);
+    handleFieldChange(inputEl.name, inputEl.value);
+  }, [handleFieldChange]);
+
+  const handleFileChange = useCallback((uploadedFile: Blob | MediaSource) => {
+    uploadedProfile.current = uploadedFile as File;
+  }, []);
+
+  const handleAddPlayer = useCallback(async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    addOrUpdatePlayer({
-      setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate,
-      prevPlayer, updatePlayer, ldoIdUrl, addPlayer, playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, update, refetchFunc
+    await addOrUpdatePlayer({
+      setIsLoading, setActErr, playerState, division, eventId, uploadedProfile,
+      playerUpdate, prevPlayer, updatePlayer, ldoIdUrl, addPlayer,
+      playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd,
+      setAddPlayer, router, e, update, refetchFunc
     });
-  }
+  }, [setIsLoading, setActErr, playerState, division, eventId, uploadedProfile,
+    playerUpdate, prevPlayer, updatePlayer, ldoIdUrl, addPlayer,
+    playerAddCB, router, update]);
 
-  // Setting default player initially when update
+  // Set initial state when editing
   useEffect(() => {
     if (update && prevPlayer) {
-      const pObj = { ...initialPlayerAdd };
-      pObj.firstName = prevPlayer.firstName;
-      pObj.lastName = prevPlayer.lastName;
-      pObj.username = prevPlayer.username ?? '';
-      pObj.email = prevPlayer.email;
-      pObj.phone = prevPlayer.phone ? prevPlayer.phone.toString() : '';
-      setPlayerState(pObj);
+      setPlayerState({
+        ...initialPlayerAdd,
+        firstName: prevPlayer.firstName,
+        lastName: prevPlayer.lastName,
+        username: prevPlayer.username ?? '',
+        email: prevPlayer.email,
+        phone: prevPlayer.phone ? String(prevPlayer.phone) : '',
+      });
     }
   }, [update, prevPlayer]);
 
-  // Setting player with team and division from local storage
+  // Load from local storage once
   useEffect(() => {
-    const tdObj: { team?: string; division?: string } = {};
-    const teamExist = getTeamFromStore();
-    if (teamExist) tdObj.team = teamExist;
-    const divisionExist = getDivisionFromStore();
-    if (divisionExist) tdObj.division = divisionExist;
-    setPlayerState((prevState) => ({ ...prevState, ...tdObj }));
+    setPlayerState(prev => ({
+      ...prev,
+      ...(getTeamFromStore() ? { team: getTeamFromStore()! } : {}),
+      ...(getDivisionFromStore() ? { division: getDivisionFromStore()! } : {})
+    }));
   }, []);
 
-  // Setting director Id from query params
+  // Set director id
   useEffect(() => {
     if (user.info?.role === UserRole.admin) {
       const newDirectorId = searchParams.get('ldoId');
@@ -138,33 +126,37 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
       }
       setDirectorId(newDirectorId);
     } else {
-      setDirectorId(user.info?._id ? user.info._id : null);
+      setDirectorId(user.info?._id ?? null);
     }
   }, [eventId, user]);
 
+  // Memoized team options
+  const teamOptions = useMemo<IOption[]>(() =>
+    teamList.map((t, i) => ({ id: i + 1, text: t.name, value: t._id }))
+  , [teamList]);
+
+  if(isLoading) return <Loader />
 
   return (
     <form onSubmit={handleAddPlayer} className='w-full'>
       <ImageInput handleFileChange={handleFileChange} name='profile' defaultValue={prevPlayer?.profile || ''} className='mt-6' />
       <div className='part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
-        <InputField type="text" name='firstName' label='First Name' defaultValue={playerState?.firstName}
-          handleInputChange={handleInputChange} required={!update} />
-        <InputField type="text" name='lastName' label='Last Name' defaultValue={playerState?.lastName}
-          handleInputChange={handleInputChange} required={!update} />
-        {update && <InputField type='text' name='username' defaultValue={playerState?.username} handleInputChange={handleInputChange} required={!update} />}
-        <InputField type="email" key="eml-pa-1" name='email' defaultValue={playerState?.email} handleInputChange={handleInputChange} required={false} />
-        <InputField type="number" key="nml-pa-2" name='phone' defaultValue={playerState?.phone} handleInputChange={handleInputChange} />
+        <InputField type="text" name='firstName' label='First Name' defaultValue={playerState.firstName} handleInputChange={handleInputChange} required={!update} />
+        <InputField type="text" name='lastName' label='Last Name' defaultValue={playerState.lastName} handleInputChange={handleInputChange} required={!update} />
+        {update && <InputField type="text" name='username' defaultValue={playerState.username} handleInputChange={handleInputChange} required={false} />}
+        <InputField type="email" name='email' defaultValue={playerState.email} handleInputChange={handleInputChange} required={false} />
+        <InputField type="number" name='phone' defaultValue={playerState.phone} handleInputChange={handleInputChange} />
       </div>
-      {!update && (<React.Fragment>
-        <SelectInput key="player-add-1" defaultValue={playerState.team} name='team' className='mt-6'
-          optionList={teamList.map((t, tI): IOption => ({ id: tI + 1, text: t.name, value: t._id }))} handleSelect={handleTeamChange} />
-      </React.Fragment>)}
+
+      {!update && (
+        <SelectInput name='team' className='mt-6' defaultValue={playerState.team} optionList={teamOptions} handleSelect={handleTeamChange} />
+      )}
 
       <div className="input-group w-full mb-4">
         <button type="submit" className='btn-info mt-8'>{update ? "Update" : "Create"}</button>
       </div>
     </form>
-  )
+  );
 }
 
 export default PlayerAdd;

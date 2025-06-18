@@ -1,12 +1,17 @@
-// components/match/PlayerSelection.tsx
 'use client';
 
+import TextImg from '@/components/elements/TextImg';
+import cld from '@/config/cloudinary.config';
+import { INetPlayers, IPlayer } from '@/types';
+import { AdvancedImage } from '@cloudinary/react';
 import React from 'react';
 
 interface PlayerSelectionProps {
-  teamAPlayers: any[];
-  teamBPlayers: any[];
-  playersOfSelectedNet: any;
+  teamAPlayers: IPlayer[];
+  teamBPlayers: IPlayer[];
+  selectedServer: null | string;
+  selectedReceiver: null | string;
+  playersOfSelectedNet: null | INetPlayers;
   serverPlaceholder: boolean;
   receiverPlaceholder: boolean;
   handleServerSelection: (e: React.SyntheticEvent, playerId: string | undefined) => void;
@@ -17,6 +22,8 @@ interface PlayerSelectionProps {
 const PlayerSelection: React.FC<PlayerSelectionProps> = ({
   teamAPlayers,
   teamBPlayers,
+  selectedServer,
+  selectedReceiver,
   playersOfSelectedNet,
   serverPlaceholder,
   receiverPlaceholder,
@@ -24,55 +31,83 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
   handleReceiverSelection,
   handleClosePlayers,
 }) => {
- 
-  const renderTeamA = () => {
-    const playersMap = new Map(teamAPlayers.map((p) => [p._id, p]));
-    const playerA = playersMap.get(playersOfSelectedNet?.teamAPlayerA || '');
-    const playerB = playersMap.get(playersOfSelectedNet?.teamAPlayerB || '');
+  const getPlayersMap = (players: IPlayer[]) => new Map<string, IPlayer>(players.map((p) => [p._id, p]));
 
-    return (
-      <div>
-        <h4>Team A</h4>
-        <ul>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerA?._id) : handleReceiverSelection(e, playerA?._id))}>
-            {playerA?.firstName} {playerA?.lastName}
-          </li>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerB?._id) : handleReceiverSelection(e, playerB?._id))}>
-            {playerB?.firstName} {playerB?.lastName}
-          </li>
-        </ul>
-      </div>
-    );
+  const getTeamPlayers = (teamKeyPrefix: string, playersMap: Map<string, IPlayer>) => {
+    return ['PlayerA', 'PlayerB'].map((suffix) => {
+      const key = `${teamKeyPrefix}${suffix}` as keyof INetPlayers;
+      const playerId = playersOfSelectedNet ? playersOfSelectedNet[key] : undefined;
+      return playersMap.get(playerId || '') || null;
+    });
   };
 
-  const renderTeamB = () => {
-    const playersMap = new Map(teamBPlayers.map((p) => [p._id, p]));
-    const playerA = playersMap.get(playersOfSelectedNet?.teamBPlayerA || '');
-    const playerB = playersMap.get(playersOfSelectedNet?.teamBPlayerB || '');
+  const renderTeam = (label: string, players: IPlayer[], playerIdsKeyPrefix: string) => {
+    const playersMap = getPlayersMap(players);
+    const [playerA, playerB] = getTeamPlayers(playerIdsKeyPrefix, playersMap);
+
+    // Check player A or player B is selected or not
+    let teamSelected = false;
+    if (selectedServer === playerA?._id || selectedServer === playerB?._id) {
+      teamSelected = true;
+    }
+
+    if (selectedReceiver === playerA?._id || selectedReceiver === playerB?._id) {
+      teamSelected = true;
+    }
 
     return (
-      <div>
-        <h4>Team B</h4>
-        <ul>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerA?._id) : handleReceiverSelection(e, playerA?._id))}>
-            {playerA?.firstName} {playerA?.lastName}
-          </li>
-          <li role="presentation" onClick={(e) => (serverPlaceholder ? handleServerSelection(e, playerB?._id) : handleReceiverSelection(e, playerB?._id))}>
-            {playerB?.firstName} {playerB?.lastName}
-          </li>
-        </ul>
+      <div className="w-full md:w-1/2">
+        <h4 className="text-lg font-bold mb-4 text-center">{label}</h4>
+        <div className="space-y-4">
+          {[playerA, playerB].map((player, index) => {
+            if (!player) return null;
+
+            const handleClick = (e: React.SyntheticEvent) =>
+              teamSelected ? alert('This team is already selected!') : (serverPlaceholder ? handleServerSelection(e, player._id) : handleReceiverSelection(e, player._id));
+
+            return (
+              <div
+                key={player._id || index}
+                role="presentation"
+                onClick={handleClick}
+                className="flex items-center gap-4 bg-gray-800 p-4 rounded-xl shadow-md hover:shadow-lg hover:bg-gray-700 transition duration-200 cursor-pointer"
+              >
+                <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                  {player.profile ? (
+                    <AdvancedImage className="w-full h-full object-cover object-center" cldImg={cld.image(player.profile)} />
+                  ) : (
+                    <TextImg className="w-full h-full" fullText={`${player.firstName} ${player.lastName}`} />
+                  )}
+                </div>
+                <div className="text-lg font-medium">
+                  {player.firstName} {player.lastName}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="display-server-receiver">
-      <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400">Select a {serverPlaceholder ? "server" : (receiverPlaceholder ? "receiver" : "")}</h3>
+    <div className="max-w-5xl mx-auto p-6 rounded-xl shadow-lg relative">
+      {/* Close Button */}
+      <button
+        onClick={handleClosePlayers}
+        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded-full hover:bg-red-600 transition"
+        aria-label="Close"
+      >
+        ✕
+      </button>
+
+      {/* Title */}
+      <h3 className="text-2xl md:text-3xl font-bold text-center text-yellow-500 mb-10 uppercase tracking-wide">Select a {serverPlaceholder ? 'Server' : receiverPlaceholder ? 'Receiver' : ''}</h3>
+
       {playersOfSelectedNet && (
-        <div className="team-players mt-4">
-          <img src="/icons/close.svg" className="svg-white" role="presentation" onClick={handleClosePlayers} />
-          {renderTeamA()}
-          {renderTeamB()}
+        <div className="flex flex-col md:flex-row justify-between gap-8">
+          {renderTeam('Team A', teamAPlayers, 'teamA')}
+          {renderTeam('Team B', teamBPlayers, 'teamB')}
         </div>
       )}
     </div>
