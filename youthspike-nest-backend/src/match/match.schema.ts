@@ -5,6 +5,7 @@ import { ERosterLock, ETieBreakingStrategy, Event } from 'src/event/event.schema
 import { Group } from 'src/group/group.schema';
 import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Room } from 'src/room/room.schema';
 import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
@@ -65,11 +66,9 @@ export class Match extends AppDocument {
   @Prop({ required: false })
   location?: string;
 
-
   @Field({ nullable: true })
   @Prop({ required: false })
   accessCode?: string;
-
 
   @Field({ nullable: true })
   @Prop({ required: false })
@@ -123,6 +122,11 @@ export class Match extends AppDocument {
   @Field((type) => Group, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Group' })
   group?: Group | string;
+
+  // Check stats of all matches
+  @Field((_type) => [PlayerStats], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerStats' }] })
+  playerstats?: PlayerStats[] | string[];
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);

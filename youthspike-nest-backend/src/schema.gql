@@ -107,6 +107,27 @@ enum ETieBreaker {
   TIE_BREAKER_NET
 }
 
+type PlayerStats {
+  _id: String
+  serveOpportunity: Int!
+  serveAce: Int!
+  serveCompletionCount: Int!
+  servingAceNoTouch: Int!
+  receiverOpportunity: Int!
+  receivedCount: Int!
+  noTouchAcedCount: Int!
+  hittingOpportunity: Int!
+  hittingCompletion: Int!
+  cleanHits: Int!
+  defensiveOpportunity: Int!
+  defensiveConversion: Int!
+  break: Int!
+  broken: Int!
+  matchPlayed: Int!
+  match: Match
+  player: Player
+}
+
 type Room {
   _id: String
   teamA: Team!
@@ -142,6 +163,7 @@ type Match {
   teamARanking: PlayerRanking
   teamBRanking: PlayerRanking
   group: Group
+  playerstats: [PlayerStats!]
 }
 
 type Group {
@@ -220,6 +242,7 @@ type Player {
   cocaptainofteams: [Team!]
   captainuser: User
   cocaptainuser: User
+  playerstats: [PlayerStats!]
 }
 
 enum EPlayerStatus {
@@ -312,6 +335,7 @@ type CustomPlayer {
   cocaptainofteams: [String!]
   captainuser: User
   cocaptainuser: User
+  playerstats: [PlayerStats!]
 }
 
 type EventWithPlayers {
@@ -392,6 +416,7 @@ type PlayerWithTeam {
   cocaptainofteams: [Team!]
   captainuser: User
   cocaptainuser: User
+  playerstats: [PlayerStats!]
 }
 
 type GroupWithTeam {
@@ -494,6 +519,7 @@ type CustomMatch {
   teamARanking: PlayerRanking
   teamBRanking: PlayerRanking
   group: String
+  playerstats: [PlayerStats!]
 }
 
 type CaptainPlayer {
@@ -512,6 +538,7 @@ type CaptainPlayer {
   cocaptainofteams: [Team!]
   captainuser: User
   cocaptainuser: User
+  playerstats: [PlayerStats!]
 }
 
 type CoCaptainPlayer {
@@ -530,6 +557,7 @@ type CoCaptainPlayer {
   cocaptainofteams: [String!]
   captainuser: User
   cocaptainuser: User
+  playerstats: [PlayerStats!]
 }
 
 type TeamDetails {
@@ -777,6 +805,20 @@ type GetGroupResponse {
   data: Group!
 }
 
+type PlayerStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [PlayerStats!]
+}
+
+type PlayersStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [PlayerStats!]
+}
+
 type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
@@ -803,6 +845,8 @@ type Query {
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
+  getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
+  getPlayersStats: PlayersStatsResponse!
 }
 
 input FilterQueryInput {

@@ -77,6 +77,34 @@ export class NetAssign {
   teamBPlayerB: string | null | undefined;
 }
 
+
+@ObjectType()
+export class SetServerReceiverInput {
+  // Server ID, Receiver ID, Round ID, Net ID
+  @Field({ nullable: false })
+  match: string;
+ 
+  @Field({ nullable: false })
+  room: string;
+
+  @Field({ nullable: false })
+  server: string;
+
+  @Field({ nullable: true })
+  receiver: string;
+
+  @Field({ nullable: true })
+  round: string;
+
+  @Field({ nullable: true })
+  net: string;
+
+  @Field({ nullable: true })
+  accessCode: string;
+
+
+}
+
 @ObjectType()
 export class NetPointsAssign {
   @Field({ nullable: false })

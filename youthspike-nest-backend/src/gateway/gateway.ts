@@ -15,16 +15,15 @@ import {
   CheckInInput,
   SubmitLineupInput,
   UpdatePointsInput,
-  TieBreakerInput,
-  CreateEventInput,
   ETeam,
   RoundUpdatedResponse,
+  SetServerReceiverInput,
 } from './gateway.input';
 import { RoomService } from 'src/room/room.service';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { GeneralClient, MatchRoundNet, RoomLocal, RoomRoundProcess } from './gateway.response';
+import { GeneralClient, MatchRoundNet, RoomLocal, RoomRoundProcess, ServerReceiverOnNet } from './gateway.response';
 import { EventService } from 'src/event/event.service';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
@@ -207,7 +206,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { success: true, roomId };
     } catch (error) {
       this.logger.error(`Join room error: ${error.message}`);
-      client.emit('error-from-server', error.message);
+      // client.emit('error-from-server', error.message);
       return { success: false, error: error.message };
     }
   }
@@ -262,7 +261,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
       ]);
     } catch (error) {
       this.logger.error(error);
-      client.emit('error-from-server', error?.message || 'Internal error occurred');
+      await this.publishToRoom(checkIn.room, 'error-from-server', error?.message || 'Internal error occured');
     }
   }
 
@@ -411,13 +410,14 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('error-from-server', error?.message || 'Internal error occurred');
     }
   }
-  
 
   @SubscribeMessage('update-points-from-client')
-  async onPointsUpdate(client, updatePointsInput: UpdatePointsInput) {
+  async onPointsUpdate(@ConnectedSocket() client: Socket, @MessageBody() updatePointsInput: UpdatePointsInput) {
     try {
       const prevRoom = this.roomsLocal.get(updatePointsInput.room);
-      if (!prevRoom) return;
+      if (!prevRoom) {
+        throw new Error('Room not found, Incorrect room ID!');
+      }
 
       const [roundList, roundExist] = await Promise.all([
         this.roundService.find({ match: prevRoom.match }),
@@ -502,6 +502,163 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('set-server-receiver-from-client')
+  async onSetServerReceiver(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() serverReceiverInput: SetServerReceiverInput,
+  ) {
+    const prevRoom = this.roomsLocal.get(serverReceiverInput.room);
+    try {
+      if (!prevRoom) {
+        throw new Error('Room not found, Incorrect room ID!');
+      }
+
+      // match access code of the match
+      // There will be a net section in state, we will update state for each action or rotation
+      // Create player status for all 4 players in the net, initially in redis, at the end at mongod
+      // Response status for the net that server and receiver are set
+      // Set server, receiver, etc for a net
+
+      const [serverExist, receiverExist, matchExist, netExist] = await Promise.all([
+        this.playerService.findById(serverReceiverInput.server),
+        this.playerService.findById(serverReceiverInput.receiver),
+        this.matchService.findById(serverReceiverInput.match),
+        this.netService.findById(serverReceiverInput.net),
+      ]);
+
+      if (!serverExist || !receiverExist) {
+        throw new Error(
+          `Server or Receiver on the net not found! Input detail: ${JSON.stringify(serverReceiverInput)}`,
+        );
+      }
+
+      if (!matchExist) {
+        throw new Error(`Match not found! Input detail: ${JSON.stringify(serverReceiverInput)}`);
+      }
+
+      // Check access code is correct or not -> serverReceiverInput.accessCode !== matchExist.accessCode
+      if (serverReceiverInput.accessCode !== matchExist.accessCode) {
+        throw new Error(
+          `You do not have permission to do this, you can still try again by logout and logging in again and  put the access code for specific match! Input detail: ${JSON.stringify(
+            serverReceiverInput,
+          )}`,
+        );
+      }
+
+      if (
+        !netExist ||
+        !netExist?.teamAPlayerA ||
+        !netExist?.teamAPlayerB ||
+        !netExist?.teamBPlayerA ||
+        !netExist?.teamBPlayerB
+      ) {
+        throw new Error(
+          `Incomplete net, try submitting all players of both teams in the specific net! Input detail: ${JSON.stringify(
+            serverReceiverInput,
+          )}`,
+        );
+      }
+
+      let server = null,
+        receiver = null,
+        servingPartner = null,
+        receivingPartner = null;
+      let serverInTeamA = true;
+      let found = false;
+      if (
+        serverReceiverInput.server === netExist.teamAPlayerA ||
+        serverReceiverInput.server === netExist.teamAPlayerB
+      ) {
+        found = true;
+      }
+
+      if (
+        serverReceiverInput.server === netExist.teamBPlayerA ||
+        serverReceiverInput.server === netExist.teamBPlayerB
+      ) {
+        found = true;
+        serverInTeamA = false;
+      }
+
+      if (!found) {
+        throw new Error(
+          `Server or receiver not in the specific net! Input detail: ${JSON.stringify(serverReceiverInput)}`,
+        );
+      }
+
+      if (serverInTeamA) {
+        if (serverReceiverInput.server === netExist.teamAPlayerA) {
+          server = netExist.teamAPlayerA;
+          servingPartner = netExist.teamAPlayerB;
+        }
+        if (serverReceiverInput.server === netExist.teamAPlayerB) {
+          server = netExist.teamAPlayerB;
+          servingPartner = netExist.teamAPlayerA;
+        }
+
+        if (serverReceiverInput.receiver === netExist.teamBPlayerA) {
+          receiver = netExist.teamBPlayerA;
+          receivingPartner = netExist.teamBPlayerB;
+        }
+
+        if (serverReceiverInput.receiver === netExist.teamBPlayerB) {
+          receiver = netExist.teamBPlayerB;
+          receivingPartner = netExist.teamBPlayerA;
+        }
+      } else {
+        if (serverReceiverInput.server === netExist.teamBPlayerA) {
+          server = netExist.teamBPlayerA;
+          servingPartner = netExist.teamBPlayerB;
+        }
+        if (serverReceiverInput.server === netExist.teamBPlayerB) {
+          server = netExist.teamBPlayerB;
+          servingPartner = netExist.teamBPlayerA;
+        }
+
+        if (serverReceiverInput.receiver === netExist.teamAPlayerA) {
+          receiver = netExist.teamAPlayerA;
+          receivingPartner = netExist.teamAPlayerB;
+        }
+
+        if (serverReceiverInput.receiver === netExist.teamAPlayerB) {
+          receiver = netExist.teamAPlayerB;
+          receivingPartner = netExist.teamAPlayerA;
+        }
+      }
+
+      // For handling net state I am going to use Redis
+      // At the end of the match, update player stats
+      const actionData: ServerReceiverOnNet = {
+        // raw values
+        mutate: 0, // Every time stats of a player change, this value will be increased
+
+        // Changable values
+        server,
+        servingPartner,
+        receiver,
+        receivingPartner,
+
+        // Relationship
+        room: prevRoom._id,
+        match: serverReceiverInput.match,
+        net: serverReceiverInput.net,
+        round: serverReceiverInput.round,
+      };
+
+      // Set this data on redis
+
+      await this.publishToRoom(serverReceiverInput.room, 'set-players-from-server', actionData, client.id);
+    } catch (error) {
+      this.logger.error(error);
+      await this.publishToRoom(
+        serverReceiverInput.room,
+        'error-from-server',
+        error?.message || 'Internal error occured',
+      );
+    }
+  }
+
+  // Helper functions
   private async validateCaptainCheckIn(userId: string) {
     const captainPlayerExist = await this.playerService.findOne({
       $or: [{ captainuser: userId }, { cocaptainuser: userId }],

@@ -25,6 +25,7 @@ import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 import { GroupModule } from './group/group.module';
 import { RedisModule } from './redis/redis.module';
 import { EEnv, NODE_ENV } from './util/keys';
+import { PlayerStatsModule } from './player-stats/player-stats.module';
 
 @Module({
   imports: [
@@ -83,6 +84,9 @@ import { EEnv, NODE_ENV } from './util/keys';
     GroupModule,
 
     RedisModule,
+
+    PlayerStatsModule,
+
   ],
   controllers: [AppController],
   providers: [AppService, AboutResolver],

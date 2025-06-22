@@ -38,6 +38,8 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
 import { Group, GroupSchemaFactory } from 'src/group/group.schema';
 import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
+import { PlayerStats, PlayerStatsSchemaFactory } from 'src/player-stats/player-stats.schema';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 
 @Module({
   imports: [
@@ -111,6 +113,11 @@ import { RedisService } from 'src/redis/redis.service';
         name: Group.name,
         useFactory: GroupSchemaFactory,
       },
+
+      {
+        name: PlayerStats.name,
+        useFactory: PlayerStatsSchemaFactory,
+      },
     ]),
 
     ConfigModule,
@@ -136,6 +143,7 @@ import { RedisService } from 'src/redis/redis.service';
     PlayerRankingService,
     GroupService,
     RedisService,
+    PlayerStatsService,
   ],
   exports: [
     CloudinaryService,
@@ -154,6 +162,7 @@ import { RedisService } from 'src/redis/redis.service';
     PlayerRankingService,
     GroupService,
     RedisService,
+    PlayerStatsService,
   ],
 })
 export class SharedModule {
