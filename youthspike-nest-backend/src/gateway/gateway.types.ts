@@ -2,6 +2,8 @@ import { UserRole } from 'src/user/user.schema';
 import { EActionProcess } from 'src/round/round.schema';
 import { ERosterLock } from 'src/event/event.schema';
 import { EPlayerStatus } from 'src/player/player.schema';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { ETieBreaker } from 'src/net/net.schema';
 
 export enum ETeam {
   teamA = 'teamA',
@@ -58,6 +60,42 @@ export interface UpdatePointsInput {
     teamBScore?: number;
   }>;
 }
+
+@ObjectType()
+export class NetTieBreaker {
+  @Field({ nullable: false })
+  _id: string;
+  @Field({ nullable: true })
+  netType: ETieBreaker;
+}
+
+@InputType()
+export class TieBreakerInput {
+  @Field({ nullable: false })
+  room: string;
+
+  @Field({ nullable: false })
+  round: string;
+
+  @Field({ nullable: true })
+  teamAProcess: string;
+
+  @Field({ nullable: true })
+  teamBProcess: string;
+
+  @Field(() => [NetTieBreaker], { nullable: false })
+  nets: NetTieBreaker[];
+}
+
+@InputType()
+export class ExtendOvertimeInput {
+  @Field({ nullable: false })
+  round: string;
+
+  @Field({ nullable: false })
+  room: string;
+}
+
 
 export interface SetServerReceiverInput {
   userId: string;

@@ -5,7 +5,7 @@ import { INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { imgW } from '@/utils/constant';
 import { overflowNetH } from '@/utils/styles';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { setNotTieBreakerNetId } from '@/redux/slices/netSlice';
 import { Socket } from 'socket.io-client';
 import EmitEvents from '@/utils/socket/EmitEvents';
@@ -22,47 +22,64 @@ interface INotTieBreakerProps {
 
 function NotTieBreaker({ ntbnId, currRoundNets, socket, currRound, teamA, teamB }: INotTieBreakerProps) {
   const dispatch = useAppDispatch();
-
-  const [selectedNet, setSelectedNet] = useState<null | INetRelatives>(null);
-  const { currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
-  const currRoom = useAppSelector((state) => state.rooms.current);
+  const { current: currRoom } = useAppSelector((state) => state.rooms);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
+  const { nets: allNets } = useAppSelector((state) => state.nets);
 
-  const handleCloseLineup = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    dispatch(setNotTieBreakerNetId(null));
-  };
+  // ===== Derived Net from ID =====
+  const selectedNet = useMemo(() => currRoundNets.find((n) => n._id === ntbnId) || null, [ntbnId, currRoundNets]);
 
-  const handleConfirmNet = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // notTwoPointNet({ socket, netId: ntbnId, currRoom, currRound, currRoundNets, dispatch, allNets });
+  const handleCloseLineup = () => dispatch(setNotTieBreakerNetId(null));
+
+  const handleConfirmNet = () => {
+    if (!selectedNet || !currRoom) return;
     const emitEvents = new EmitEvents(socket, dispatch);
-    emitEvents.banANet({ netId: ntbnId, currRoom, currRound, currRoundNets, allNets });
+    emitEvents.banANet({
+      netId: selectedNet._id,
+      currRoom,
+      currRound,
+      currRoundNets,
+      allNets,
+    });
     dispatch(setNotTieBreakerNetId(null));
   };
 
-  useEffect(() => {
-    if (ntbnId && currentRoundNets && currentRoundNets.length > 0) {
-      const netExist = currentRoundNets.find((n) => n._id === ntbnId);
-      if (netExist) setSelectedNet(netExist);
-    }
-  }, [ntbnId, currentRoundNets]);
-
-  if (!selectedNet)
+  if (!selectedNet) {
     return (
-      <div className="container p-4 mx-auto ">
+      <div className="container p-4 mx-auto">
         <h2>No net found!</h2>
       </div>
     );
+  }
 
   return (
     <div className="w-full z-20 overflow-y-scroll" style={{ height: `${overflowNetH}rem` }}>
-      <div className="container p-4 mx-auto ">
-        <Image height={imgW.logo} width={imgW.logo} alt="close-icon" src="/icons/close.svg" className="svg-black w-8 h-8 mb-4" role="presentation" onClick={handleCloseLineup} />
+      <div className="container p-4 mx-auto">
+        <Image
+          height={imgW.logo}
+          width={imgW.logo}
+          alt="close-icon"
+          src="/icons/close.svg"
+          className="svg-black w-8 h-8 mb-4 cursor-pointer"
+          role="presentation"
+          onClick={handleCloseLineup}
+        />
+
         <h3 className="mb-4 text-center">Not 2 Points Net</h3>
+
         <div className="team-box">
-          <NetBox crn={selectedNet} myTeamE={ETeam.teamA} teamPlayerList={teamAPlayers} netTitle={teamA?.name} />
-          <NetBox crn={selectedNet} myTeamE={ETeam.teamB} teamPlayerList={teamBPlayers} netTitle={teamB?.name} />
+          <NetBox
+            crn={selectedNet}
+            myTeamE={ETeam.teamA}
+            teamPlayerList={teamAPlayers}
+            netTitle={teamA?.name}
+          />
+          <NetBox
+            crn={selectedNet}
+            myTeamE={ETeam.teamB}
+            teamPlayerList={teamBPlayers}
+            netTitle={teamB?.name}
+          />
         </div>
 
         <div className="w-full flex justify-center gap-x-2">

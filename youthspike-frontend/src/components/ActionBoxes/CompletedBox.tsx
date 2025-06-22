@@ -136,7 +136,8 @@ function CompletedBox() {
   };
 
   return (
-    <div className="flex py-2 w-full justify-between items-end gap-1 box-gradient">
+    <div className={`py-2 w-full bg-black text-white`}>
+    <div className="container px-4 mx-auto flex py-2 w-full justify-between items-end gap-1">
       {/* Left side */}
       <div className="w-2/6 md:w-1/6">{teamScoreBoard({ team: teamA ?? null, teamPoints: teamAPoints })}</div>
       <div className="w-2/6 flex justify-center items-center flex-col gap-y-2">
@@ -165,6 +166,7 @@ function CompletedBox() {
 
       {/* Right side */}
       <div className="w-2/6 md:w-1/6">{teamScoreBoard({ team: teamB ?? null, teamPoints: teamBPoints })}</div>
+    </div>
     </div>
   );
 }

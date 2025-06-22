@@ -5,7 +5,7 @@ import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { RoomHelper } from '../gateway.helpers/room.helper';
 import { EActionProcess } from 'src/round/round.schema';
-import { ERosterLock } from 'src/event/event.schema';
+import { ERosterLock, ETieBreakingStrategy } from 'src/event/event.schema';
 import { EPlayerStatus } from 'src/player/player.schema';
 
 export class SubmitLineupHandler {
@@ -27,14 +27,26 @@ export class SubmitLineupHandler {
       const prevRoom = roomsLocal.get(submitLineup.room);
       if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
 
+      
       const roomData = { ...prevRoom };
-      const roundList = [...roomData.rounds];
+      let roundList = [...roomData.rounds];
+      
+      const { roundService, eventService, playerRankingService, netService, teamService, matchService } =
+      this.gatewayService.getServices();
+      const matchExist = await matchService.findById(submitLineup.match);
+      if (!matchExist) throw new Error('Match not found, Incorrect match ID!');
+      if(matchExist.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND){
+        const newRoundList = await roundService.find({match: submitLineup.match});
+        roundList = newRoundList.map((r)=>({_id: r._id.toString(), num: r.num, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess}));
+      }
+      
+      
       const roundI = roundList.findIndex((r) => r._id === submitLineup.round);
+      if (roundI === -1){
+        // Check overtime round or not
+        throw new Error('Round not found with that round ID!');}
 
-      if (roundI === -1) throw new Error('Round not found with that round ID!');
 
-      const { roundService, eventService, playerRankingService, netService, teamService } =
-        this.gatewayService.getServices();
       const [roundExist, eventExist] = await Promise.all([
         roundService.findById(submitLineup.round),
         eventService.findById(submitLineup.eventId),

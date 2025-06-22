@@ -15,11 +15,13 @@ export class ServerReceiverHandler {
     @MessageBody() serverReceiverInput: SetServerReceiverInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
+    const inputStr = JSON.stringify(serverReceiverInput);
     try {
       const prevRoom = roomsLocal.get(serverReceiverInput.room);
       if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
 
       const { playerService, matchService, netService } = this.gatewayService.getServices();
+
       const [serverExist, receiverExist, matchExist, netExist] = await Promise.all([
         playerService.findById(serverReceiverInput.server),
         playerService.findById(serverReceiverInput.receiver),
@@ -28,101 +30,53 @@ export class ServerReceiverHandler {
       ]);
 
       if (!serverExist || !receiverExist) {
-        throw new Error(
-          `Server or Receiver on the net not found! Input detail: ${JSON.stringify(serverReceiverInput)}`,
-        );
+        throw new Error(`Server or Receiver not found! Input: ${inputStr}`);
       }
 
-      if (!matchExist) throw new Error(`Match not found! Input detail: ${JSON.stringify(serverReceiverInput)}`);
+      if (!matchExist) {
+        throw new Error(`Match not found! Input: ${inputStr}`);
+      }
 
       if (serverReceiverInput.accessCode !== matchExist.accessCode) {
-        throw new Error(
-          `You do not have permission to do this, you can still try again by logout and logging in again and  put the access code for specific match! Input detail: ${JSON.stringify(
-            serverReceiverInput,
-          )}`,
-        );
+        throw new Error(`Access denied! Try logging in again and re-entering access code. Input: ${inputStr}`);
       }
 
-      if (
-        !netExist ||
-        !netExist?.teamAPlayerA ||
-        !netExist?.teamAPlayerB ||
-        !netExist?.teamBPlayerA ||
-        !netExist?.teamBPlayerB
-      ) {
-        throw new Error(
-          `Incomplete net, try submitting all players of both teams in the specific net! Input detail: ${JSON.stringify(
-            serverReceiverInput,
-          )}`,
-        );
+      const requiredPlayers = [
+        netExist?.teamAPlayerA,
+        netExist?.teamAPlayerB,
+        netExist?.teamBPlayerA,
+        netExist?.teamBPlayerB,
+      ];
+
+      if (requiredPlayers.some(p => !p)) {
+        throw new Error(`Incomplete net! Ensure all players are submitted. Input: ${inputStr}`);
       }
 
-      let server = null,
-        receiver = null,
-        servingPartner = null,
-        receivingPartner = null;
-      let serverInTeamA = true;
-      let found = false;
-      if (
-        serverReceiverInput.server === netExist.teamAPlayerA ||
-        serverReceiverInput.server === netExist.teamAPlayerB
-      ) {
-        found = true;
+      const teamA = new Set([netExist.teamAPlayerA, netExist.teamAPlayerB]);
+      const teamB = new Set([netExist.teamBPlayerA, netExist.teamBPlayerB]);
+
+      const serverInTeamA = teamA.has(serverReceiverInput.server);
+      const serverInTeamB = teamB.has(serverReceiverInput.server);
+
+      if (!serverInTeamA && !serverInTeamB) {
+        throw new Error(`Server is not part of the net. Input: ${inputStr}`);
       }
 
-      if (
-        serverReceiverInput.server === netExist.teamBPlayerA ||
-        serverReceiverInput.server === netExist.teamBPlayerB
-      ) {
-        found = true;
-        serverInTeamA = false;
+      const isValidReceiver =
+        (serverInTeamA && teamB.has(serverReceiverInput.receiver)) ||
+        (serverInTeamB && teamA.has(serverReceiverInput.receiver));
+
+      if (!isValidReceiver) {
+        throw new Error(`Receiver is not on the opposite team. Input: ${inputStr}`);
       }
 
-      if (!found) {
-        throw new Error(
-          `Server or receiver not in the specific net! Input detail: ${JSON.stringify(serverReceiverInput)}`,
-        );
-      }
+      const [server, servingPartner] = serverInTeamA
+        ? [serverReceiverInput.server, [...teamA].find(p => p !== serverReceiverInput.server)!]
+        : [serverReceiverInput.server, [...teamB].find(p => p !== serverReceiverInput.server)!];
 
-      if (serverInTeamA) {
-        if (serverReceiverInput.server === netExist.teamAPlayerA) {
-          server = netExist.teamAPlayerA;
-          servingPartner = netExist.teamAPlayerB;
-        }
-        if (serverReceiverInput.server === netExist.teamAPlayerB) {
-          server = netExist.teamAPlayerB;
-          servingPartner = netExist.teamAPlayerA;
-        }
-
-        if (serverReceiverInput.receiver === netExist.teamBPlayerA) {
-          receiver = netExist.teamBPlayerA;
-          receivingPartner = netExist.teamBPlayerB;
-        }
-
-        if (serverReceiverInput.receiver === netExist.teamBPlayerB) {
-          receiver = netExist.teamBPlayerB;
-          receivingPartner = netExist.teamBPlayerA;
-        }
-      } else {
-        if (serverReceiverInput.server === netExist.teamBPlayerA) {
-          server = netExist.teamBPlayerA;
-          servingPartner = netExist.teamBPlayerB;
-        }
-        if (serverReceiverInput.server === netExist.teamBPlayerB) {
-          server = netExist.teamBPlayerB;
-          servingPartner = netExist.teamBPlayerA;
-        }
-
-        if (serverReceiverInput.receiver === netExist.teamAPlayerA) {
-          receiver = netExist.teamAPlayerA;
-          receivingPartner = netExist.teamAPlayerB;
-        }
-
-        if (serverReceiverInput.receiver === netExist.teamAPlayerB) {
-          receiver = netExist.teamAPlayerB;
-          receivingPartner = netExist.teamAPlayerA;
-        }
-      }
+      const [receiver, receivingPartner] = serverInTeamA
+        ? [serverReceiverInput.receiver, [...teamB].find(p => p !== serverReceiverInput.receiver)!]
+        : [serverReceiverInput.receiver, [...teamA].find(p => p !== serverReceiverInput.receiver)!];
 
       const actionData: ServerReceiverOnNet = {
         mutate: 0,
@@ -146,7 +100,7 @@ export class ServerReceiverHandler {
       await this.gatewayRedisService.publishToRoom(
         serverReceiverInput.room,
         'error-from-server',
-        error?.message || 'Internal error occured',
+        error?.message || 'Internal error occurred',
       );
     }
   }

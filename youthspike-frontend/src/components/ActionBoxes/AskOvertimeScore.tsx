@@ -26,7 +26,7 @@ function AskOvertimeScore({ currRoom, currRound }: IAskOvertimeScoreProps) {
     e.preventDefault();
   };
   return (
-    <div className="flex py-2 w-full justify-between items-center gap-1 box-success">
+    <div className="container px-4 mx-auto flex py-2 w-full justify-between items-center gap-1 box-success">
       <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
         <PointText txt="Match tied!" />
         <h3 className="font-script">Score of both teams are same, the match is tied!</h3>

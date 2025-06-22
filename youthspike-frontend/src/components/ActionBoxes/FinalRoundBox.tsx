@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { ETeam } from '@/types/team';
 import Image from 'next/image';
 import { imgW } from '@/utils/constant';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ETieBreaker, INetRelatives } from '@/types/net';
 import { setNotTieBreakerNetId } from '@/redux/slices/netSlice';
 import PointText from './PointText';
@@ -12,116 +12,85 @@ interface IBoxProps {
 }
 
 function FinalRoundBox({ myTeamE }: IBoxProps) {
-  // ===== Hooks =====
   const dispatch = useAppDispatch();
 
-  // ===== Local State =====
-  const [pTxt, setPTxt] = useState<string>('');
-  const [bgBox, setBgBox] = useState<string>('box-danger');
-  const [lockedNetId, setLockedNetId] = useState<string | null>(null);
-  const [lockedNetIds, setLockedNetIds] = useState<string[]>([]);
-
-  const { currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
+  const { currentRoundNets } = useAppSelector((state) => state.nets);
   const { current: currentRound } = useAppSelector((state) => state.rounds);
 
+  // ===== Derived Data (memoized) =====
+  const { pointText, bgClass, isFirstTeam, lockedNetId, lockedNetIds } = useMemo(() => {
+    const locked = currentRoundNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+    const lockedIds = locked.map((n) => n._id);
+    const lockedId = lockedIds[0] || null;
+    const isFirst = myTeamE === currentRound?.firstPlacing;
+    const pointText = `Round ${currentRound?.num} - 2-Point net selection`;
+    const bgClass = isFirst ? (lockedId ? 'box-danger' : 'box-success') : lockedId ? 'box-success' : 'box-danger';
+
+    return {
+      pointText,
+      bgClass,
+      isFirstTeam: isFirst,
+      lockedNetId: lockedId,
+      lockedNetIds: lockedIds,
+    };
+  }, [myTeamE, currentRound, currentRoundNets]);
+
+  // ===== Select Net Handler =====
   const handleSelectNet = (e: React.SyntheticEvent, netId: string) => {
     e.preventDefault();
-    if (myTeamE === currentRound?.firstPlacing && lockedNetIds.length === 1) {
-      return;
-    }
-    if (lockedNetIds.length > 1) return;
+    if ((isFirstTeam && lockedNetIds.length === 1) || lockedNetIds.length > 1) return;
     dispatch(setNotTieBreakerNetId(netId));
   };
 
-  useEffect(() => {
-    let pt = '';
-    let bb = 'box-danger';
-    let lni = null;
-    const lockedIds: string[] = [];
-
-    currRoundNets.forEach((n) => {
-      if (n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) {
-        lni = n._id;
-        lockedIds.push(n._id);
-      }
-    });
-
-    if (myTeamE === currentRound?.firstPlacing) {
-      pt = `Round ${currentRound?.num} - 2-Point net selection`;
-      bb = lni ? 'box-danger' : 'box-success';
-    } else {
-      pt = `Round ${currentRound?.num} - 2-Point net selection`;
-      bb = lni ? 'box-success' : 'box-danger';
-    }
-    setLockedNetId(lni);
-    setPTxt(pt);
-    setBgBox(bb);
-    setLockedNetIds(lockedIds);
-  }, [currentRound, myTeamE, currRoundNets]);
-
-
-  const netBtnRender = (net: INetRelatives | undefined) => {
+  // ===== Render Net Button =====
+  const netBtnRender = (net?: INetRelatives | undefined) => {
     if (!net) return null;
-    switch (net.netType) {
-      case ETieBreaker.FINAL_ROUND_NET:
-        return (
-          <button key={net._id} className="btn-light" type="button" onClick={(e) => handleSelectNet(e, net._id)}>
-            Net {net.num}
-          </button>
-        );
-      case ETieBreaker.FINAL_ROUND_NET_LOCKED:
-        return (
-          <button key={net._id} className="btn-light-outline" type="button">
-            Net {net.num} banned
-          </button>
-        );
 
-      case ETieBreaker.TIE_BREAKER_NET:
-        return (
-          <button key={net._id} className="btn-light" type="button" onClick={(e) => handleSelectNet(e, net._id)}>
-            Net {net.num}
-          </button>
-        );
+    const baseProps = {
+      key: net._id,
+      type: 'button' as const,
+      className: net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED ? 'btn-light-outline' : 'btn-light',
+    };
 
-      default:
-        return (
-          <button key={net._id} className="btn-light" type="button" onClick={(e) => handleSelectNet(e, net._id)}>
-            Net {net.num}
-          </button>
-        );
+    const content = net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED ? `Net ${net.num} banned` : `Net ${net.num}`;
+
+    if (net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) {
+      return <button {...baseProps}>{content}</button>;
     }
+
+    return (
+      <button {...baseProps} onClick={(e) => handleSelectNet(e, net._id)}>
+        {content}
+      </button>
+    );
   };
 
-  return (
-    <div className={`flex py-2 w-full justify-between items-center gap-1 ${bgBox}`}>
-      <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
-        <PointText txt={pTxt} />
-        {myTeamE === currentRound?.firstPlacing ? (
-          <>
-            <h2 className="font-black text-start">
-              {lockedNetIds.length === 0
-                ? 'One of the net of this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.'
-                : 'The other squad is choosing which net they do NOT want to be worth 2 points.'}
-            </h2>
+  // ===== JSX =====
+  const showNetButtons = isFirstTeam && lockedNetIds.length === 0;
+  const buttonsToRender = showNetButtons ? currentRoundNets.map(netBtnRender) : lockedNetId ? currentRoundNets.map(netBtnRender) : [];
 
-            <div className="net-btns w-full flex justify-start items-start gap-x-1">
-              {lockedNetIds.length === 0 ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))}
-              {/* {!lockedNetId ? currRoundNets.map((n) => netBtnRender(n)) : netBtnRender(currRoundNets.find((n) => n._id === lockedNetId))} */}
-            </div>
-          </>
-        ) : (
-          <>
-            <h2 className="font-black text-start">
-              {lockedNetIds.length > 0
-                ? 'Which of the remaining nets  do you NOT want to be worth 2 points?'
-                : 'One of the nets this round will be worth 2 points. The other squad is choosing a net they do NOT want to be worth 2 points.'}
-            </h2>
-            <div className="net-btns w-full flex justify-start items-start gap-x-1">{lockedNetId && currRoundNets.map((n) => netBtnRender(n))}</div>
-          </>
-        )}
-      </div>
-      <div className="hidden md:block w-2/6">
-        <Image width={imgW.xs} height={imgW.xs} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+  return (
+    <div className={`py-2 w-full ${bgClass}`}>
+      <div className={`container px-4 mx-auto flex py-2 w-full justify-between items-center gap-1 `}>
+        <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
+          <PointText txt={pointText} />
+
+          <h2 className="font-black text-start">
+            {isFirstTeam
+              ? lockedNetIds.length === 0
+                ? 'One of the nets in this round will be worth 2 points. Choose a net you do NOT want to be worth 2 points.'
+                : 'The other squad is choosing which net they do NOT want to be worth 2 points.'
+              : lockedNetIds.length > 0
+              ? 'Which of the remaining nets do you NOT want to be worth 2 points?'
+              : 'One of the nets this round will be worth 2 points. The other squad is choosing a net they do NOT want to be worth 2 points.'}
+          </h2>
+
+          <div className="net-btns w-full flex justify-start items-start gap-x-1">{buttonsToRender}</div>
+        </div>
+
+        <div className="hidden md:block w-2/6">
+          <Image width={imgW.xs} height={imgW.xs} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+        </div>
       </div>
     </div>
   );

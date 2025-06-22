@@ -168,7 +168,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       'check-in-response-to-all': (data: IRoom) => socketEventListener.handleCheckInResponse({ data, dispatch, roundList, currentRound }),
       'submit-lineup-response-all': (data: IRoomNets) => socketEventListener.handleLineupResponse({ data, dispatch, currRoundNets, allNets, roundList, currentRound }),
       'update-points-response-all': (data: IUpdateScoreResponse) => socketEventListener.handleUpdatePoints({ data, dispatch, currRoundNets, allNets, currentRound, roundList, match: currMatch }),
-      'update-net-response-all': (data: ITeiBreakerAction) => socketEventListener.handleUpdateNet({ data, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
+      'tie-breaker-response-all': (data: ITeiBreakerAction) => socketEventListener.handleUpdateNet({ data, dispatch, allNets, currRoundNets, roundList, match: currMatch }),
       'error-from-server': (error: string) => socketEventListener.handleError(error, dispatch),
     };
 

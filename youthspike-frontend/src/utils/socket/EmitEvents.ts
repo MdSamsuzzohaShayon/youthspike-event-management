@@ -210,7 +210,7 @@ class EmitEvents {
     }));
     actionData.nets = roundNetAssign;
 
-    if (this.socket) this.socket.emit('update-net-from-client', actionData);
+    if (this.socket) this.socket.emit('update-tie-breaker-from-client', actionData);
   }
 
   // Helper functions
