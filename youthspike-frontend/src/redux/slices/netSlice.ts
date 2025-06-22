@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { INetBase, INetUpdate, INetPlayers } from '@/types';
+import { INetBase, INetUpdate, INetPlayers, IServerReceiverOnNet } from '@/types';
 import { INetRelatives, INetScoreUpdate } from '@/types/net';
 import { ETeam } from '@/types/team';
 
@@ -12,11 +12,14 @@ interface INetState {
   currNetNum: number;
   updateNets: INetUpdate[];
   notTieBreakerNetId: string | null;
+
+
+  // Score keeper for specific match
+  serverReceiversOnNet: IServerReceiverOnNet[];
+  currentServerReceiver: IServerReceiverOnNet | null;
 }
 
-interface INetScore {
-  netId: string; teamScore: number; teamAorB: string;
-}
+
 
 const initialState: INetState = {
   nets: [],
@@ -24,6 +27,10 @@ const initialState: INetState = {
   currNetNum: 0,
   updateNets: [],
   notTieBreakerNetId: null,
+
+  // Score Keeper for specific match
+  serverReceiversOnNet: [],
+  currentServerReceiver: null
 };
 const netSlice = createSlice({
   name: 'net',
@@ -63,8 +70,18 @@ const netSlice = createSlice({
     setNotTieBreakerNetId:(state, action: PayloadAction<string | null>)=>{
       state.notTieBreakerNetId = action.payload;
     },
+
+
+    // Score keeper
+    setServerReceiversOnNet: (state, action: PayloadAction<IServerReceiverOnNet[]>) => {
+      state.serverReceiversOnNet = action.payload;
+    },
+    setCurrentServerReceiver: (state, action: PayloadAction<IServerReceiverOnNet | null>) => {
+      state.currentServerReceiver = action.payload;
+    },
+    
   },
 });
 
-export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer, setNotTieBreakerNetId} = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer, setNotTieBreakerNetId, setServerReceiversOnNet, setCurrentServerReceiver} = netSlice.actions;
 export default netSlice.reducer;

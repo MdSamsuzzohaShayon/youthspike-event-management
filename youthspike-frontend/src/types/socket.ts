@@ -2,12 +2,13 @@
 import { Socket } from 'socket.io-client';
 import React from 'react';
 // import { INetRelatives, IRoom, IRoundRelatives, ITeam, IUserContext } from '.';
-import type { INetRelatives } from './net';
-import type { EActionProcess, IRoom } from './room';
+import type { INetRelatives, INetScoreUpdate, IUpdateScoreResponse } from './net';
+import type { EActionProcess, IRoom, IRoomNets, ITeiBreakerAction } from './room';
 import type { IRoundRelatives } from './round';
 import { ETeam, ITeam } from './team';
-import type { IUserContext, UserRole } from './user';
-import { IMatchRelatives } from './match';
+import type { IUser, IUserContext, UserRole } from './user';
+import { IDefaultMatch, IMatchExpRel, IMatchRelatives } from './match';
+import { IPlayer } from './player';
 
 export interface IListenSocketProps {
   socket: Socket | null;
@@ -38,6 +39,19 @@ export interface IStatusChange {
   roundList: IRoundRelatives[];
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   myTeamE: ETeam;
+}
+
+// socket, dispatch, currRoom, currRound, currMatch, currNet, server, receiver 
+export interface ISetServerReceiverChange {
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currMatch: IMatchRelatives;
+  currRoom: IRoom | null;
+  currRound: IRoundRelatives | null;
+  currRoundNets: INetRelatives[]; 
+  currNetNum: number;
+  server: string | null;
+  receiver: string | null;
+  userInfo: IUser | null;
 }
 
 export interface ICheckInToLineupProps extends IStatusChange {
@@ -73,6 +87,16 @@ export interface ICheckInData {
   userId: string;
   userRole: UserRole;
   teamE?: ETeam;
+}
+
+export interface ISetServerReceiverData {
+  match: string;
+  room: string;
+  server: string;
+  receiver: string;
+  round: string;
+  net: string;
+  accessCode: string;
 }
 
 interface INetPoints {
@@ -136,3 +160,119 @@ export interface IOvertimeData {
   nets: INetRelatives[];
   extendedOvertime: boolean;
 }
+
+
+
+/**
+ * Score keeper
+ */
+export interface IServerReceiverOnNet{
+  mutate: number;
+  server: string;
+  servingPartner: string;
+  receiver: string;
+  receivingPartner: string;
+  room: string;
+  match: string;
+  net: string;
+  round: string;
+}
+
+
+
+/**
+ * Responses
+ */
+
+// Score keeper
+export interface IServerReceiverResponse {
+  data: IServerReceiverOnNet;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  serverReceiversOnNet: IServerReceiverOnNet[];
+}
+
+
+// Run match
+export interface ICheckInResponse {
+  data: IRoom;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  roundList: IRoundRelatives[];
+  currentRound: IRoundRelatives | null;
+}
+
+
+export interface ILineUpResponse {
+  data: IRoomNets;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  currentRound: IRoundRelatives | null;
+}
+
+export interface IUpdatePointsResponse {
+  data: IUpdateScoreResponse;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  currentRound: IRoundRelatives | null;
+  match: IMatchRelatives;
+}
+
+export interface IUpdateExtendOvertimeResponse {
+  data: IOvertimeData;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  match: IMatchRelatives;
+}
+
+export interface IUpdateNetResponse {
+  data: ITeiBreakerAction;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  match: IMatchRelatives;
+}
+
+
+/**
+ * Action data
+ */
+export interface IRoundMatchCommon {
+  _id: string;
+  match: string;
+}
+export interface IRoundUpdateData extends IRoundMatchCommon {
+  teamAProcess: EActionProcess;
+  teamBProcess: EActionProcess;
+}
+
+export interface INetUpdateData extends IRoundMatchCommon {
+  nets: INetScoreUpdate[];
+  matchCompleted: boolean;
+}
+
+export interface ITeamCaptain extends ITeam {
+  captain: IPlayer;
+}
+
+export interface IMatch extends IMatchExpRel {
+  teamA: ITeamCaptain;
+  teamB: ITeamCaptain;
+}
+
+export interface IUpdateRound {
+  setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
+  actionData: IRoundUpdateData;
+  matchList: IMatch[];
+}
+
+export interface IUpdateNet {
+  setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
+  actionData: INetUpdateData;
+  matchList: IMatch[];
+}
+
+// IServerReceiverResponse, ICheckInResponse, ILineUpResponse, IUpdatePointsResponse, IUpdateExtendOvertimeResponse, IUpdateNetResponse, IRoundMatchCommon, IRoundUpdateData, INetUpdateData, ITeamCaptain, IMatch, IUpdateRound, IUpdateNet
+

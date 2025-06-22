@@ -1,89 +1,24 @@
 import { setActErr } from '@/redux/slices/elementSlice';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
-import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setCurrNetNum, setNets, setServerReceiversOnNet, setCurrentServerReceiver } from '@/redux/slices/netSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IMatchExpRel, IMatchRelatives, INetRelatives, IOvertimeData, IPlayer, IRoom, IRoomNets, IRoundRelatives, ITeam, IUpdateScoreResponse } from '@/types';
-import { ETieBreaker, INetScoreUpdate } from '@/types/net';
+import {
+  ICheckInResponse,
+  ILineUpResponse,
+  IRoom,
+  IRoundRelatives,
+  IServerReceiverResponse,
+  IUpdateExtendOvertimeResponse,
+  IUpdateNet,
+  IUpdateNetResponse,
+  IUpdatePointsResponse,
+  IUpdateRound,
+} from '@/types';
+import { ETieBreaker } from '@/types/net';
 import { EActionProcess, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
 import React from 'react';
 import { Socket } from 'socket.io-client';
-
-interface ICheckInResponse {
-  data: IRoom;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
-  roundList: IRoundRelatives[];
-  currentRound: IRoundRelatives | null;
-}
-
-interface ILineUpResponse {
-  data: IRoomNets;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
-  currRoundNets: INetRelatives[];
-  allNets: INetRelatives[];
-  roundList: IRoundRelatives[];
-  currentRound: IRoundRelatives | null;
-}
-
-interface IUpdatePointsResponse {
-  data: IUpdateScoreResponse;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
-  currRoundNets: INetRelatives[];
-  allNets: INetRelatives[];
-  roundList: IRoundRelatives[];
-  currentRound: IRoundRelatives | null;
-  match: IMatchRelatives;
-}
-
-interface IUpdateExtendOvertimeResponse {
-  data: IOvertimeData;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
-  match: IMatchRelatives;
-}
-
-interface IUpdateNetResponse {
-  data: ITeiBreakerAction;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
-  currRoundNets: INetRelatives[];
-  allNets: INetRelatives[];
-  roundList: IRoundRelatives[];
-  match: IMatchRelatives;
-}
-
-interface IRoundMatchCommon {
-  _id: string;
-  match: string;
-}
-interface IRoundUpdateData extends IRoundMatchCommon {
-  teamAProcess: EActionProcess;
-  teamBProcess: EActionProcess;
-}
-
-interface INetUpdateData extends IRoundMatchCommon {
-  nets: INetScoreUpdate[];
-  matchCompleted: boolean;
-}
-
-interface ITeamCaptain extends ITeam {
-  captain: IPlayer;
-}
-
-interface IMatch extends IMatchExpRel {
-  teamA: ITeamCaptain;
-  teamB: ITeamCaptain;
-}
-
-interface IUpdateRound {
-  setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
-  actionData: IRoundUpdateData;
-  matchList: IMatch[];
-}
-
-interface IUpdateNet {
-  setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
-  actionData: INetUpdateData;
-  matchList: IMatch[];
-}
 
 // Class to handle socket events
 class SocketEventListener {
@@ -201,6 +136,7 @@ class SocketEventListener {
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
 
+    // Update points in the net
     for (let i = 0; i < data.nets.length; i += 1) {
       const findNetIndex = allNets.findIndex((n) => n._id === data.nets[i]._id);
       const findRoundNetIndex = netsOfRound.findIndex((n) => n._id === data.nets[i]._id);
@@ -257,7 +193,7 @@ class SocketEventListener {
       }
       // dispatch(setCurrentRound(itemWithMaxNum));
     }
-    dispatch(setMatchInfo({ ...match, extendedOvertime: data.extendedOvertime, rounds: data.roundList.map(r => r._id) }));
+    dispatch(setMatchInfo({ ...match, extendedOvertime: data.extendedOvertime, rounds: data.roundList.map((r) => r._id) }));
     dispatch(setNets(data.nets));
   }
 
@@ -367,6 +303,30 @@ class SocketEventListener {
     setMatchList(updatedMatchList);
 
     this.dispatch(setRoundList([]));
+  }
+
+  // Score Keeper
+  handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    if (data) {
+      dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
+      dispatch(setCurrentServerReceiver(data));
+    }
+
+    // Set current round and round list
+    // Change state
+    // Change player stats state -> later
+
+    // Update server receivers on net list
+    // This would typically involve fetching or updating the list
+    // For now, we'll add the current one to the list if it doesn't exist
+    // You may need to adjust this logic based on your specific requirements
+
+    // Set current round and round list
+    // Change state
+    // Change player stats state -> later
   }
 
   handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {

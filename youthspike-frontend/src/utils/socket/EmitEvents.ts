@@ -5,7 +5,7 @@ import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IJoinTheRoomProps, IStatusChange, IRoomNetAssign, IRoundRelatives, IJoinData, ICheckInData, IUpdatePointData, INetRelatives } from '@/types';
 import { IUser, IUserContext, UserRole } from '@/types/user';
 import { EActionProcess, IRoom, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
-import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps, ISubmitExtendOvertimeProps } from '@/types/socket';
+import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps, ISubmitExtendOvertimeProps, ISetServerReceiverChange, ISetServerReceiverData } from '@/types/socket';
 import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
 import { ETieBreaker } from '@/types/net';
@@ -48,10 +48,10 @@ class EmitEvents {
 
     if (!teamA || !teamB || !user.token || !user.info) {
       this.socket.emit('join-room-from-client', joinData);
-      return;
+      return this.dispatch(setActErr({success: false, message: "Team A, Team B, or User details is not found, try refreshing!"}));
     }
 
-    if (!this.isAuthorized(user.info)) return;
+    if (!this.isAuthorized(user.info)) return this.dispatch(setActErr({success: false, message: "This user is not authorized to do this operation!"}));
     if (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) {
       // Check if captain or co-captain in in team A or team B
       if (
@@ -62,7 +62,7 @@ class EmitEvents {
           (teamB.cocaptain && teamB.cocaptain._id === user.info.cocaptainplayer)
         )
       ) {
-        return;
+        return this.dispatch(setActErr({success: false, message: "This user is not captain or co-captain!"}));
       }
     }
 
@@ -315,6 +315,98 @@ class EmitEvents {
     this.dispatch(setRoundList(newRoundList));
     this.dispatch(setCurrentRound(updatedRound));
     this.dispatch(setVerifyLineup(false));
+  }
+
+  // Server/Receiver setup
+  setServerReceiver({ dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, server, receiver, userInfo }: ISetServerReceiverChange) {
+
+    if (!currNetNum) {
+      return dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'Please select a net before proceeding.',
+        }),
+      );
+    }
+
+    const currNet = currRoundNets.find((n) => n.num === currNetNum);
+    if (!currNet) {
+      return dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'Selected net not found. Try refreshing the page.',
+        }),
+      );
+    }
+
+
+    if (!server || !receiver) {
+      return dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'Both server and receiver must be selected to continue.',
+        }),
+      );
+    }
+
+    if (!currRoom || !currRound) {
+      return dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'No active round or room found. Please refresh and try again.',
+        }),
+      );
+    }
+
+    if (!userInfo || !userInfo?.accessCode) {
+      return dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'Access denied. You must have a valid access code for this match.',
+        }),
+      );
+    }
+
+    /*
+    // Socket event -> set-server-receiver-from-client
+    // Server ID, Receiver ID, Round ID, Net ID
+
+    // Do not show action preview button if all players are not set
+    // Create players stats for all 4 players in the net
+    // Check user has access code for specific match
+    */
+
+    // match, room,  server, receiver, round, net
+    const accessCode = userInfo.accessCode.find((ac)=> ac.matchId === currMatch._id);
+    if (!accessCode) {
+      return dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'Access denied. You must have a valid access code for this match.',
+        }),
+      );
+    }
+
+
+    const actionData: ISetServerReceiverData = {
+      match: currMatch._id,
+      room: currRoom._id,
+      server,
+      receiver,
+      round: currRound._id,
+      net: currNet._id,
+      accessCode: accessCode.code
+    };
+
+    // Update state
+    // this.updateRoundList(currRound, roundList, actionData);
+    this.socket?.emit('set-server-receiver-from-client', actionData);
   }
 }
 

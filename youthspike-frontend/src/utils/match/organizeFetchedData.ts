@@ -1,7 +1,7 @@
 import React from 'react';
 import { setCurrentEventInfo, setEventSponsors, setLdo } from '@/redux/slices/eventSlice';
 import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE } from '@/redux/slices/matchesSlice';
-import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
@@ -134,7 +134,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
 
   dispatch(setNets(formattedNets));
   // console.log('allNets: ', formattedNets);
-
+  dispatch(setCurrNetNum(1));
   // console.log(`RoundList: `, formattedRounds);
 
   dispatch(setRoundList(formattedRounds));

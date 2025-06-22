@@ -3,13 +3,16 @@
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrNetNum } from '@/redux/slices/netSlice';
-import { IMatchExpRel, INetPlayers, IReceiverTeam, IServerTeam, IUser } from '@/types';
+import { IMatchExpRel, INetPlayers, IReceiverTeam, IRoom, IServerReceiverOnNet, IServerTeam, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
 import PlayerSelection from './PlayerSelection';
-import Link from 'next/link';
 import ActionHandler from './ActionHandler';
+import EmitEvents from '@/utils/socket/EmitEvents';
+import { useSocket } from '@/lib/SocketProvider';
+import { getUserFromCookie } from '@/utils/cookie';
+import SocketEventListener from '@/utils/socket/SocketEventListener';
 
 interface IServerReceiverProps {
   matchId: string;
@@ -20,9 +23,15 @@ interface IServerReceiverProps {
 
 function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiverProps) {
   const dispatch = useAppDispatch();
+  const socket = useSocket();
+
+  // Redux State
   const { roundList, current: currRound } = useAppSelector((state) => state.rounds);
-  const { currNetNum, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
+  const { currNetNum, currentRoundNets: currRoundNets, serverReceiversOnNet } = useAppSelector((state) => state.nets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
+  const currMatch = useAppSelector((state) => state.matches.match);
+  const currRoom = useAppSelector((state) => state.rooms.current);
+  const { teamA, teamB } = useAppSelector((state) => state.teams);
 
   // Local state
   const [actionPreview, setActionPreview] = useState<boolean>(false);
@@ -67,6 +76,18 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     setReceiverPlaceholder(false);
   }, []);
 
+  const handleSetPlayers = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+
+      const emitEvents = new EmitEvents(socket, dispatch);
+      // match, room,  server, receiver, round, net
+      // currRoom, currMatch, c
+      emitEvents.setServerReceiver({ dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, server: selectedServer, receiver: selectedReceiver, userInfo });
+    },
+    [dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, selectedServer, selectedReceiver, userInfo],
+  );
+
   useEffect(() => {
     // Setup fetched data
     (async () => {
@@ -80,12 +101,45 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     })();
   }, []);
 
+  useEffect(() => {
+    if (!socket || roundList.length === 0) return;
+
+    const userDetail = getUserFromCookie();
+    const emitEvents = new EmitEvents(socket, dispatch);
+    // const socketEventListener = new SocketEventListener(socket, dispatch, audioPlayEl);
+
+    emitEvents.joinRoom({
+      user: userDetail,
+      teamA,
+      teamB,
+      currRound: currRound,
+      matchId,
+    });
+
+    // Listen events
+    const socketEventListener = new SocketEventListener(socket, dispatch);
+    const listeners = {
+      'error-from-server': (error: string) => socketEventListener.handleError(error, dispatch),
+      'set-players-from-server': (data: IServerReceiverOnNet) => socketEventListener.handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet }),
+    };
+
+    Object.entries(listeners).forEach(([event, handler]) => {
+      socket.on(event, handler);
+    });
+
+    return () => {
+      Object.keys(listeners).forEach((event) => {
+        socket.off(event);
+      });
+    };
+  }, [socket, teamA, teamB, currRound, roundList, matchId, dispatch, serverReceiversOnNet]);
+
   const playersOfSelectedNet: null | INetPlayers = useMemo(() => {
     if (!currNetNum) return null;
     const currNet = currRoundNets.find((n) => n.num === currNetNum);
-    if(!currNet) return null;
+    if (!currNet) return null;
     return {
-      _id: currNet?._id || "",
+      _id: currNet?._id || '',
       teamAPlayerA: currNet?.teamAPlayerA || null,
       teamAPlayerB: currNet?.teamAPlayerB || null,
       teamBPlayerA: currNet?.teamBPlayerA || null,
@@ -221,6 +275,7 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
             {/* Right side end  */}
           </div>
 
+          {/* Handle action for each button pressed  */}
           <ActionHandler />
 
           {actionPreview && (
@@ -264,7 +319,14 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
                   handleAddReceiver={handleAddReceiver}
                 />
                 {selectedServer && selectedReceiver && (
-                  <div className="text-center my-6">
+                  <div className="my-6 flex gap-x-2 justify-center">
+                    <button
+                      onClick={handleSetPlayers}
+                      type="button"
+                      className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                    >
+                      Set Players
+                    </button>
                     <button
                       onClick={() => setActionPreview(true)}
                       type="button"

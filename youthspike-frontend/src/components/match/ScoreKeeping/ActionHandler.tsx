@@ -33,6 +33,15 @@ function ActionHandler() {
 
     const handleServiceFault=(e: React.SyntheticEvent)=>{
         e.preventDefault();
+        // Only Service Opportunity will be increased by 1
+        const actionData = {
+          match: "",
+          server: "", 
+          net: "",
+          round: "",
+        };
+        
+
         
     }
 

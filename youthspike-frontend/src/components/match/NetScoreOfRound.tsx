@@ -97,11 +97,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   }, [dispatch]);
 
   // Effects
-  useEffect(() => {
-    if (currentRoundNets?.length > 0) {
-      dispatch(setCurrNetNum(currentRoundNets[0].num));
-    }
-  }, [currentRoundNets, dispatch]);
+  // useEffect(() => {
+  //   if (currentRoundNets?.length > 0) {
+  //     dispatch(setCurrNetNum(currentRoundNets[0].num));
+  //   }
+  // }, [currentRoundNets, dispatch]);
 
   useLayoutEffect(() => {
     const measureHeight = () => {

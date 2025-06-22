@@ -5,7 +5,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { removeEvent } from '@/utils/LocalStorageService';
+import LocalStorageService from '@/utils/LocalStorageService';
 import { IEventWMatch } from '@/types';
 import { EEventPeriod } from '@/types/event';
 import { validateMatchDatetime } from '@/utils/datetime';
@@ -44,7 +44,7 @@ function EventMain({ events }: IEventMainProps) {
   }, []);
 
   useEffect(() => {
-    removeEvent();
+    LocalStorageService.removeEvent();
     // setFilteredEventList(events);
   }, [dispatch, events]);
 
@@ -66,6 +66,7 @@ function EventMain({ events }: IEventMainProps) {
         matchFound =
           (currEvent.startDate && validateMatchDatetime(currEvent.startDate) === filterParams.date) ||
           (currEvent.endDate && validateMatchDatetime(currEvent.endDate) === filterParams.date) ||
+          // @ts-ignore 
           currEvent.matches.some((match) => match.date && validateMatchDatetime(match.date) === filterParams.date);
       }
 

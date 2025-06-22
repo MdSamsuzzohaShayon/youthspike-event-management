@@ -142,7 +142,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   }, [params.matchId, fetchData, dispatch]);
 
   useEffect(() => {
-    if (!socket || roundList.length === 0) return;
+    if (!socket || roundList.length === 0) {
+      console.warn("No socket or round list available", );
+      return;
+    }
+    console.log("Everything available");
+    
+
 
     const userDetail = getUserFromCookie();
     const emitEvents = new EmitEvents(socket, dispatch);
