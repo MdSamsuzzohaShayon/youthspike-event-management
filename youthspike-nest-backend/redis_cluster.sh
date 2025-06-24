@@ -56,11 +56,11 @@ setup_redis_directory() {
 stop_redis_instances() {
     log "🔄 Stopping Redis system service (if running)..."
 
-    # Detect service name based on OS
+    # Detect service name more reliably across distros
     if command_exists systemctl; then
-        if systemctl list-units --full -all | grep -q redis-server.service; then
+        if systemctl status redis-server.service >/dev/null 2>&1; then
             REDIS_SERVICE="redis-server"
-        elif systemctl list-units --full -all | grep -q redis.service; then
+        elif systemctl status redis.service >/dev/null 2>&1; then
             REDIS_SERVICE="redis"
         else
             REDIS_SERVICE=""
@@ -68,8 +68,8 @@ stop_redis_instances() {
     fi
 
     if [ -n "$REDIS_SERVICE" ]; then
-        sudo systemctl stop "$REDIS_SERVICE" || warn "ℹ️ Redis system service not found or not active."
-        sudo systemctl disable "$REDIS_SERVICE" || warn "ℹ️ Redis system service already disabled."
+        sudo systemctl stop "$REDIS_SERVICE" || warn "ℹ️ Failed to stop $REDIS_SERVICE or it was not active."
+        sudo systemctl disable "$REDIS_SERVICE" || warn "ℹ️ Failed to disable $REDIS_SERVICE or it was already disabled."
     else
         warn "ℹ️ Redis system service not found."
     fi
@@ -80,14 +80,12 @@ stop_redis_instances() {
     sudo pkill redis-server || warn "ℹ️ No existing Redis instances found."
     sleep 2  
 
-    # Force kill any remaining Redis processes
     for pid in $(pgrep redis-server); do
         warn "⚠️ Killing Redis process $pid..."
         sudo kill -9 $pid
     done
     sleep 2  
 
-    # Verify Redis is fully stopped
     if pgrep redis-server > /dev/null; then
         error "❌ Redis instances are still running!"
         ps aux | grep redis

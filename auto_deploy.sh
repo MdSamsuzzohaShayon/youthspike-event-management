@@ -111,7 +111,7 @@ success "PM2 process started."
 info "Testing API with GraphQL query..."
 curl -s -X POST 'https://api.aslsquads.com/graphql' \
   -H 'Content-Type: application/json' \
-  -d '{"query":"{ getAbout { app author mode version } }"}' | jq .
+  -d '{"query":"{ getAbout { app author mode version } }"}' 
 
 info "Showing PM2 logs..."
 pm2 logs
