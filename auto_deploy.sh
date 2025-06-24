@@ -1,69 +1,117 @@
 #!/bin/bash
 
-### Updating the server
-sudo apt update 
-sudo apt upgrade -y
-sudo apt autoremove -y
+# Enable strict mode
+set -euo pipefail
+trap 'echo -e "\033[1;31m[ERROR]\033[0m An error occurred. Exiting..."; exit 1' ERR
 
-### Take backup of database
+# Define colors
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+RED='\033[1;31m'
+CYAN='\033[1;36m'
+NC='\033[0m' # No color
+
+# Variables
 FOLDER_NAME="db-backup"
 DB_NAME="spikeball-matches"
+PROJECT_NAME="youthspike-nest-backend"
+GIT_REPO="git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git"
+PROJECT_DIR="/home/shayon/$PROJECT_NAME"
+CLONE_DIR="/home/shayon/youthspike-event-management"
+
+function info() {
+  echo -e "${CYAN}➤ $1${NC}"
+}
+
+function success() {
+  echo -e "${GREEN}✔ $1${NC}"
+}
+
+function warn() {
+  echo -e "${YELLOW}! $1${NC}"
+}
+
+function error_exit() {
+  echo -e "${RED}✘ $1${NC}"
+  exit 1
+}
+
+### Update & Upgrade System
+info "Updating system..."
+sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
+success "System updated."
+
+### Backup MongoDB Database
+info "Backing up MongoDB database '$DB_NAME'..."
 mkdir -p "$FOLDER_NAME"
-# Export
-mongodump --db "$DB_NAME" --out ./"$FOLDER_NAME"
-ls -la ./${FOLDER_NAME}/"$DB_NAME"
-nano ./backup_db.sh
-./backup_db.sh
+mongodump --db "$DB_NAME" --out "./$FOLDER_NAME"
+ls -la "./${FOLDER_NAME}/${DB_NAME}" || warn "Backup folder might be empty!"
+success "Database backup completed."
 
-### Clean up previous project
-pm2 stop all
-pm2 delete all
-
-pm2 list
-pm2 save --force
+### Stop and clean previous PM2 processes
+info "Stopping previous PM2 processes..."
+pm2 stop all || warn "No processes to stop."
+pm2 delete all || warn "No processes to delete."
 pm2 flush
+pm2 save --force
+success "PM2 cleaned up."
 
-rm -rf /home/shayon/youthspike-nest-backend
+### Remove old project
+info "Removing old project directory..."
+rm -rf "$PROJECT_DIR"
 
-### Setup from stratch
-echo "Setup from stratch"
-cd 
-git clone git@github.com:MdSamsuzzohaShayon/youthspike-event-management.git
-cd /home/shayon/youthspike-event-management
-git checkout f1fe65e9007029dc63a4fdce86d8e2b1f657e443
-git log -n 10
-git log --oneline --graph --decorate --all 
-cd
+### Clone project from Git
+info "Cloning project from GitHub..."
+rm -rf "$CLONE_DIR"
+git clone "$GIT_REPO" "$CLONE_DIR"
+success "Git repository cloned."
 
+### Move backend code
+info "Setting up backend directory..."
+mkdir -p "$PROJECT_DIR"
+mv "$CLONE_DIR/$PROJECT_NAME/"* "$PROJECT_DIR"
+rm -rf "$CLONE_DIR"
+success "Backend moved to $PROJECT_DIR"
 
-# Backend
-echo "Setting up backend"
-mkdir /home/shayon/youthspike-nest-backend
-mv /home/shayon/youthspike-event-management/youthspike-nest-backend/* /home/shayon/youthspike-nest-backend
-rm -rf /home/shayon/youthspike-event-management
+### Setup Redis
+info "Restarting Redis..."
+sudo systemctl restart redis-server
+sudo systemctl status redis-server --no-pager || warn "Redis might not be running properly."
+cd "$PROJECT_DIR"
+[ -f ./redis_cluster.sh ] && ./redis_cluster.sh || warn "redis_cluster.sh not found."
+success "Redis setup completed."
 
-# Setup redis
-#cd /home/shayon/youthspike-nest-backend
-#sudo systemctl restart redis
-#sudo systemctl status redis
-#./redis_cluster.sh
+### Environment setup
+info "Setting up environment variables..."
+ENV_FILE="$PROJECT_DIR/.env"
+echo "# Environment variables for $PROJECT_NAME" > "$ENV_FILE"
+nano "$ENV_FILE"
+success ".env file created."
 
-# Set temporary development
-cd /home/shayon/youthspike-nest-backend
-echo "#Environment variables for youthspike-nest-backend" > .env
-nano .env
-echo "Installing dependencies for youthspike-nest-backend"
+### Install dependencies
+info "Installing dependencies..."
+cd "$PROJECT_DIR"
 npm install --force
-nano src/main.ts
+success "Dependencies installed."
+
+### Optional manual review
+nano src/util/keys.ts
+
+### Build and run with PM2
+info "Building the app..."
 npm run build
+
+info "Starting PM2..."
 export NODE_ENV="production"
 pm2 start ecosystem.config.js
 pm2 save
-#sudo systemctl restart redis
+success "PM2 process started."
 
+### Test the deployment
+info "Testing API with GraphQL query..."
+curl -s -X POST 'https://api.aslsquads.com/graphql' \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"{ getAbout { app author mode version } }"}' | jq .
 
-
-cd
-
-curl -X POST 'https://api.aslsquads.com/graphql' -H 'Content-Type: application/json' -d '{"query":"{ getAbout { app author mode version } }"}'
+info "Showing PM2 logs..."
 pm2 logs
