@@ -1,6 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable import/no-cycle */
 import { ETieBreaker, INetPlayers } from './net';
+import { IServerReceiverOnNet } from './socket';
 import { ETeam } from './team';
 import { UserRole } from './user';
 
@@ -37,6 +38,8 @@ export interface IRoom {
   teamBClient: null | string;
   rounds: IRoomRoundProcess[];
 }
+
+
 
 export interface IRoomNets extends IRoom {
   nets: INetPlayers[];

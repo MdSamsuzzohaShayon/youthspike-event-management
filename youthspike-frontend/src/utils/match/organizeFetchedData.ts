@@ -1,7 +1,7 @@
 import React from 'react';
 import { setCurrentEventInfo, setEventSponsors, setLdo } from '@/redux/slices/eventSlice';
 import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE } from '@/redux/slices/matchesSlice';
-import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setCurrNetNum, setNets, setServerReceiversOnNet } from '@/redux/slices/netSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
@@ -62,6 +62,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     extendedOvertime,
     teamARanking,
     teamBRanking,
+    netsServerReceiver
   } = matchData;
 
   // Setting teams
@@ -154,6 +155,8 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
 
     const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
     dispatch(setCurrentRoundNets(filteredNets));
+
+    if(netsServerReceiver)dispatch(setServerReceiversOnNet(netsServerReceiver))
   }
   // console.log('Current round: ', selectedRound);
 

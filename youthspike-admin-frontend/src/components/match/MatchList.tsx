@@ -187,7 +187,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       const success = await handleResponse({ response: response.data.deleteMatches, setActErr });
       if (!success) return;
       setCheckedMatches(new Map());
-      if (refetchFunc) await refetchFunc();
+      window.location.reload();
     } catch (error: any) {
       handleError({ error, setActErr });
     } finally {

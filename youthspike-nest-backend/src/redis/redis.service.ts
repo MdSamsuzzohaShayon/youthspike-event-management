@@ -49,6 +49,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return RedisService.subClient;
   }
 
+  async set(key: string, value: any, expireInSec: number = 60 * 60 * 24): Promise<void> {
+    const client = this.getPubClient();
+    const stringValue = JSON.stringify(value);
+    if (expireInSec) {
+      await client.set(key, stringValue, 'EX', expireInSec);
+    } else {
+      await client.set(key, stringValue);
+    }
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    const client = this.getPubClient();
+    const data = await client.get(key);
+    if (data) {
+      return JSON.parse(data) as T;
+    }
+    return null;
+  }
+
   async onModuleInit() {
     this.logger.log(`Redis Cluster initialized with nodes: ${this.nodes.map(n => `${n.host}:${n.port}`).join(', ')}`);
     

@@ -118,16 +118,17 @@ function CompletedBox() {
       }
     }
 
+
     return (
-      <div className="w-full flex justify-center items-center flex-col">
+      <div className="w-full flex justify-center items-center flex-col gap-y-2">
         {team?.logo ? (
           <div className="advanced-img w-20">
             <AdvancedImage cldImg={cld.image(team.logo)} className="w-full" />
           </div>
         ) : (
-          <TextImg fullText={team?.name} className="w-20 h-20" />
+          <TextImg fullText={team?.name} className="w-20 h-20 rounded-lg" />
         )}
-        <h2>{team?.name}</h2>
+        <h2 className="break-words leading-4 uppercase font-bold text-sm">{team?.name}</h2>
         <div className={`h-20 w-20 ${bgColor} ${textColor} rounded-lg flex justify-center items-center`}>
           <h2 className="text-4xl">{teamPoints}</h2>
         </div>
@@ -140,13 +141,15 @@ function CompletedBox() {
     <div className="container px-4 mx-auto flex py-2 w-full justify-between items-end gap-1">
       {/* Left side */}
       <div className="w-2/6 md:w-1/6">{teamScoreBoard({ team: teamA ?? null, teamPoints: teamAPoints })}</div>
+
+      {/* Middle side  */}
       <div className="w-2/6 flex justify-center items-center flex-col gap-y-2">
         {roundList.length === currentRound?.num ? (
           <>
             {winningTeam && (
               <>
-                <h2 className="uppercase">{winningTeam === teamA?._id ? teamA.name : teamB?.name}</h2>
-                <h2 className="uppercase">Wins the match</h2>
+                <h2 className="break-words leading-4 uppercase font-bold text-sm">{winningTeam === teamA?._id ? teamA.name : teamB?.name}</h2>
+                <h2 className="break-words leading-4 uppercase font-bold text-sm">Wins the match</h2>
               </>
             )}
             <a href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${ldoIdUrl}`} className="btn-success">

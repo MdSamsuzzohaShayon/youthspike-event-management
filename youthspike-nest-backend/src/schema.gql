@@ -164,6 +164,7 @@ type Match {
   teamBRanking: PlayerRanking
   group: Group
   playerstats: [PlayerStats!]
+  netsServerReceiver: [ServerReceiverOnNet!]!
 }
 
 type Group {
@@ -520,6 +521,7 @@ type CustomMatch {
   teamBRanking: PlayerRanking
   group: String
   playerstats: [PlayerStats!]
+  netsServerReceiver: [ServerReceiverOnNet!]!
 }
 
 type CaptainPlayer {
@@ -712,6 +714,18 @@ type GetEventDetailsResponse {
   success: Boolean!
   message: String
   data: EventDetails
+}
+
+type ServerReceiverOnNet {
+  mutate: Float!
+  server: String!
+  servingPartner: String!
+  receiver: String!
+  receivingPartner: String!
+  room: String!
+  match: String!
+  net: String!
+  round: String!
 }
 
 type CreateOrUpdateRoundResponse {

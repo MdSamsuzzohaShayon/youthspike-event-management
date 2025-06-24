@@ -1,9 +1,28 @@
-import { WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer, SubscribeMessage, ConnectedSocket, MessageBody } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  WebSocketServer,
+  SubscribeMessage,
+  ConnectedSocket,
+  MessageBody,
+} from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { GatewayService } from './gateway.service';
 import { GatewayRedisService } from './gateway.redis';
-import { ROOM_PREFIX, CLIENT_TTL, RoomLocal, GeneralClient, JoinRoomInput, CheckInInput, SubmitLineupInput, UpdatePointsInput, SetServerReceiverInput, TieBreakerInput } from './gateway.types';
+import {
+  ROOM_PREFIX,
+  CLIENT_TTL,
+  RoomLocal,
+  GeneralClient,
+  JoinRoomInput,
+  CheckInInput,
+  SubmitLineupInput,
+  UpdatePointsInput,
+  TieBreakerInput,
+  SetPlayersInput,
+} from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
 import { ClientHelper } from './gateway.helpers/client.helper';
@@ -14,7 +33,8 @@ import { SubmitLineupHandler } from './gateway.handlers/submit-lineup.handler';
 import { UpdatePointsHandler } from './gateway.handlers/update-points.handler';
 import { ServerReceiverHandler } from './gateway.handlers/server-receiver.handler';
 import { TieBreakerHandler } from './gateway.handlers/tie-breraker.handler';
-import { ExtendOvertimeHandler } from './gateway.handlers/extend.overtime.handler';
+import { ExtendOvertimeHandler } from './gateway.handlers/extend-overtime.handler';
+import { SetPlayersHandler } from './gateway.handlers/set-players.handler';
 
 @WebSocketGateway({
   cors: true,
@@ -39,6 +59,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private serverReceiverHandler: ServerReceiverHandler;
   private tieBreakerHandler: TieBreakerHandler;
   private extendOvertimeHandler: ExtendOvertimeHandler;
+  private setPlayersHandler: SetPlayersHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -47,45 +68,26 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly clientHelper: ClientHelper,
     private readonly validationHelper: ValidationHelper,
   ) {
-    // Initialize handlers
-    this.joinRoomHandler = new JoinRoomHandler(
-      gatewayService,
-      gatewayRedisService,
-      roomHelper,
-      clientHelper
-    );
-    
-    this.checkInHandler = new CheckInHandler(
-      gatewayService,
-      gatewayRedisService,
-      validationHelper
-    );
-    
-    this.submitLineupHandler = new SubmitLineupHandler(
-      gatewayService,
-      gatewayRedisService,
-      roomHelper
-    );
-    
-    this.updatePointsHandler = new UpdatePointsHandler(
-      gatewayService,
-      gatewayRedisService
-    );
-    
-    this.serverReceiverHandler = new ServerReceiverHandler(
-      gatewayService,
-      gatewayRedisService
-    );
+    // Initialize handlers for a prticular match
+    this.joinRoomHandler = new JoinRoomHandler(gatewayService, gatewayRedisService, roomHelper, clientHelper);
 
-    this.tieBreakerHandler = new TieBreakerHandler(
-      gatewayService,
-      gatewayRedisService
-    );
+    this.checkInHandler = new CheckInHandler(gatewayService, gatewayRedisService, validationHelper);
 
-    this.extendOvertimeHandler = new ExtendOvertimeHandler(
-      gatewayService,
-      gatewayRedisService
-    );
+    this.submitLineupHandler = new SubmitLineupHandler(gatewayService, gatewayRedisService, roomHelper);
+
+    this.updatePointsHandler = new UpdatePointsHandler(gatewayService, gatewayRedisService);
+
+    this.tieBreakerHandler = new TieBreakerHandler(gatewayService, gatewayRedisService);
+
+    this.extendOvertimeHandler = new ExtendOvertimeHandler(gatewayService, gatewayRedisService);
+
+    /**
+     * Handlers for Score keeper
+     */
+    // Unused
+    this.serverReceiverHandler = new ServerReceiverHandler(gatewayService, gatewayRedisService);
+
+    this.setPlayersHandler = new SetPlayersHandler(gatewayService, gatewayRedisService);
   }
 
   afterInit() {
@@ -134,61 +136,37 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('join-room-from-client')
-  async handleJoinRoom(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() joinData: JoinRoomInput,
-  ) {
+  async handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() joinData: JoinRoomInput) {
     return this.joinRoomHandler.handle(client, joinData, this.roomsLocal, this.clientList);
   }
 
   @SubscribeMessage('check-in-from-client')
-  async onCheckIn(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() checkIn: CheckInInput,
-  ) {
+  async onCheckIn(@ConnectedSocket() client: Socket, @MessageBody() checkIn: CheckInInput) {
     return this.checkInHandler.handle(client, checkIn, this.roomsLocal);
   }
 
   @SubscribeMessage('submit-lineup-from-client')
-  async onSubmitLineup(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() submitLineup: SubmitLineupInput,
-  ) {
+  async onSubmitLineup(@ConnectedSocket() client: Socket, @MessageBody() submitLineup: SubmitLineupInput) {
     return this.submitLineupHandler.handle(client, submitLineup, this.roomsLocal);
   }
 
   @SubscribeMessage('update-points-from-client')
-  async onPointsUpdate(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() updatePointsInput: UpdatePointsInput,
-  ) {
+  async onPointsUpdate(@ConnectedSocket() client: Socket, @MessageBody() updatePointsInput: UpdatePointsInput) {
     return this.updatePointsHandler.handle(client, updatePointsInput, this.roomsLocal);
   }
 
   @SubscribeMessage('update-tie-breaker-from-client')
-  async onTieBreakerUpdate(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() tieBreakerInput: TieBreakerInput,
-  ) {
+  async onTieBreakerUpdate(@ConnectedSocket() client: Socket, @MessageBody() tieBreakerInput: TieBreakerInput) {
     return this.tieBreakerHandler.handle(client, tieBreakerInput, this.roomsLocal);
   }
 
   @SubscribeMessage('extend-overtime-from-client')
-  async onExtendOvertime(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() tieBreakerInput: TieBreakerInput,
-  ) {
+  async onExtendOvertime(@ConnectedSocket() client: Socket, @MessageBody() tieBreakerInput: TieBreakerInput) {
     return this.extendOvertimeHandler.handle(client, tieBreakerInput, this.roomsLocal);
   }
 
-
-  @SubscribeMessage('set-server-receiver-from-client')
-  async onSetServerReceiver(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() serverReceiverInput: SetServerReceiverInput,
-  ) {
-    return this.serverReceiverHandler.handle(client, serverReceiverInput, this.roomsLocal);
+  @SubscribeMessage('set-players-from-client')
+  async onSetPlayers(@ConnectedSocket() client: Socket, @MessageBody() setPlayerInput: SetPlayersInput) {
+    return this.setPlayersHandler.handle(client, setPlayerInput, this.roomsLocal);
   }
-
-
 }

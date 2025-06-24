@@ -88,6 +88,24 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     [dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, selectedServer, selectedReceiver, userInfo],
   );
 
+  // Handle initial data for serverReceiversOnNet
+  useEffect(() => {
+    if (serverReceiversOnNet && currNetNum !== 0) {
+      const netMap = new Map<string, IServerReceiverOnNet>(serverReceiversOnNet.map((srn) => [srn.net, srn]));
+      if (!currNetNum) return;
+      const currNet = currRoundNets.find((n) => n.num === currNetNum);
+      if (!currNet) return;
+      if (netMap.has(currNet._id)) {
+        const selectedNet = netMap.get(currNet._id);
+        if(selectedNet){
+          // setSelectedServer(selectedNet.server);
+          // setSelectedReceiver(selectedNet.receiver);
+        }
+      }
+    }
+  }, [currNetNum, currRoundNets, serverReceiversOnNet]);
+
+  // Handle fetched data
   useEffect(() => {
     // Setup fetched data
     (async () => {
@@ -101,6 +119,7 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
     })();
   }, []);
 
+  // Handle socket events
   useEffect(() => {
     if (!socket || roundList.length === 0) return;
 
@@ -235,7 +254,7 @@ function ServerReceiver({ matchId, matchData, token, userInfo }: IServerReceiver
 
   return (
     <div>
-      <SelectInput handleSelect={handleNetChange} name="currNetNum" optionList={currRoundNets.map((crn, i) => ({ id: i + 1, value: String(crn.num), text: `Net ${crn.num}` }))} />
+      <SelectInput handleSelect={handleNetChange} name="currNetNum" label="Current Net" optionList={currRoundNets.map((crn, i) => ({ id: i + 1, value: String(crn.num), text: `Net ${crn.num}` }))} />
 
       {actionPreview ? (
         <div className="server-receiver-with-actions w-full ">

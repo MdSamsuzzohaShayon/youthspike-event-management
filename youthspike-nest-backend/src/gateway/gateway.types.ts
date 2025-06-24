@@ -97,7 +97,7 @@ export class ExtendOvertimeInput {
 }
 
 
-export interface SetServerReceiverInput {
+export interface SetPlayersInput {
   userId: string;
   room: string;
   round: string;
@@ -129,15 +129,33 @@ export interface MatchRoundNet {
   matchCompleted: boolean;
 }
 
-export interface ServerReceiverOnNet {
+@ObjectType()
+export class ServerReceiverOnNet {
+  @Field({ nullable: false })
   mutate: number;
+
+  @Field({ nullable: false })
   server: string;
+
+  @Field({ nullable: false })
   servingPartner: string;
+
+  @Field({ nullable: false })
   receiver: string;
+
+  @Field({ nullable: false })
   receivingPartner: string;
+
+  @Field({ nullable: false })
   room: string;
+
+  @Field({ nullable: false })
   match: string;
+
+  @Field({ nullable: false })
   net: string;
+
+  @Field({ nullable: false })
   round: string;
 }
 

@@ -406,7 +406,7 @@ class EmitEvents {
 
     // Update state
     // this.updateRoundList(currRound, roundList, actionData);
-    this.socket?.emit('set-server-receiver-from-client', actionData);
+    this.socket?.emit('set-players-from-client', actionData);
   }
 }
 

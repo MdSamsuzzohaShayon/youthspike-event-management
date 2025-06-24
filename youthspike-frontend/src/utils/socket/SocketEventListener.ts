@@ -38,6 +38,7 @@ class SocketEventListener {
 
   handleJoinRoom(data: IRoom, dispatch: React.Dispatch<React.ReducerAction<any>>) {
     this.dispatch = dispatch;
+    
     dispatch(setCurrentRoom(data));
   }
 

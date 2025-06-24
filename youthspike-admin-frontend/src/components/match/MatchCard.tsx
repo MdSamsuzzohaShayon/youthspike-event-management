@@ -51,7 +51,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
   const handleDeleteMatch = async (e: React.SyntheticEvent, matchId: string) => {
     e.preventDefault();
     await deleteMatch({ variables: { matchId } });
-    if (refetchFunc) await refetchFunc();
+    window.location.reload();
   };
 
   const teamCard = (team: ITeam, teamE: ETeam) => {

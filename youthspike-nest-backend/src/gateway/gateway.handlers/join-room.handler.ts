@@ -5,6 +5,7 @@ import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { RoomHelper } from '../gateway.helpers/room.helper';
 import { ClientHelper } from '../gateway.helpers/client.helper';
+import { NetService } from 'src/net/net.service';
 
 export class JoinRoomHandler {
   constructor(
@@ -23,7 +24,7 @@ export class JoinRoomHandler {
     try {
       if (!joinData.match) throw new Error('Match ID is required');
 
-      const { roomService, roundService } = this.gatewayService.getServices();
+      const { roomService, roundService, netService } = this.gatewayService.getServices();
       const [roomExist, roundExist, roundsOfTheMatch] = await Promise.all([
         roomService.findOne({ match: joinData.match }),
         roundService.findById(joinData.round),
@@ -56,7 +57,25 @@ export class JoinRoomHandler {
       });
 
       roomsLocal.set(roomId, roomData);
+
+      // Redis score keeping
+      /*
+      const netServerReceiverPromises = [];
+      const netList = await netService.find({match: joinData.match});
+      for (let i = 0; i < netList.length; i++) {
+        const CACHE_KEY = `action:${netList[i]._id}:${roomId}`;
+        netServerReceiverPromises.push(this.gatewayRedisService.getAction(CACHE_KEY))
+      }
+      const netServerReceivers = await Promise.all(netServerReceiverPromises);
+
+      const roomDataWithServerReceivers = {
+        ...roomData,
+        netsServerReceiver: netServerReceivers // For score keeper
+      }
+      */
+
       await this.gatewayRedisService.publishToRoom(roomId, 'join-room-response-all', roomData, client.id);
+      // Get all updates of the room
       await this.gatewayRedisService.subscribeToRoom(roomId);
 
       return { success: true, roomId };

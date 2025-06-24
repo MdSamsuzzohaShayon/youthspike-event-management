@@ -50,9 +50,9 @@ function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp }: IB
         <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
           <PointText txt="Squad check in" />
           <h3>Welcome to your match VS {opTeam?.name}</h3>
-          <h2 className="uppercase font-black text-start">{currMatch?.description}</h2>
+          <h2 className="uppercase font-black text-center">{currMatch?.description}</h2>
           {mtp === EActionProcess.INITIATE && (
-            <button className="btn-light uppercase" type="button" onClick={handleInitToCheckIn}>
+            <button className="btn-light text-center uppercase" type="button" onClick={handleInitToCheckIn}>
               Check In
             </button>
           )}

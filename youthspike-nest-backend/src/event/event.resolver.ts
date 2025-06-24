@@ -37,7 +37,7 @@ import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
-import { CACHE_EXPIRE } from 'src/util/keys';
+import { REDIS_CACHE_EXPIRE } from 'src/util/keys';
 import { Player } from 'src/player/player.schema';
 import {
   CreateOrUpdateEventResponse,
@@ -628,22 +628,21 @@ export class EventResolver {
   @ResolveField(() => [Player]) // Specify the return type for "players"
   async players(@Parent() event: Event): Promise<Player[]> {
     const cacheKey = `event:${event._id}:players`; // Unique cache key for the event's players
-    const redisClient = this.redisService.getPubClient();
 
     try {
       // Check if the players are already in the cache
-      const cachedPlayers = await redisClient.get(cacheKey);
+      const cachedPlayers = await this.redisService.get(cacheKey);
 
       if (cachedPlayers) {
         // If cached, return the cached players
-        return JSON.parse(cachedPlayers);
+        return JSON.parse(cachedPlayers as string);
       }
 
       // If not cached, fetch the players from the database
       const players = await this.playerService.find({ _id: { $in: event.players } });
 
       // Store the players in the cache with an expiration time (e.g., 1 hour)
-      await redisClient.set(cacheKey, JSON.stringify(players), 'EX', CACHE_EXPIRE);
+      await this.redisService.set(cacheKey, JSON.stringify(players), REDIS_CACHE_EXPIRE);
 
       return players;
     } catch (error) {

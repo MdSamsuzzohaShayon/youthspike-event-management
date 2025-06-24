@@ -70,6 +70,17 @@ query GetMatch($matchId: String!) {
       timeout
       tieBreaking
       extendedOvertime
+      netsServerReceiver {
+        match
+        mutate
+        net
+        receiver
+        receivingPartner
+        room
+        round
+        server
+        servingPartner
+      }
       room {
         _id
       }

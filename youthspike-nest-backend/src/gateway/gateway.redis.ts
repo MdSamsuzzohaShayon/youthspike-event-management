@@ -59,6 +59,30 @@ export class GatewayRedisService {
     await pubClient.publish(channel, message);
   }
 
+  async setAction(key: string, data: any) {
+    try {
+      await this.redisService.set(key, data);
+      this.logger.log(`Set action data for key ${key}`);
+    } catch (error) {
+      this.logger.error(`Failed to set action data for key ${key}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getAction(key: string): Promise<any | null> {
+    try {
+      const data = await this.redisService.get<any>(key);
+      if (data) {
+        this.logger.log(`Got action data for key ${key}`);
+        return data;
+      }
+      return null;
+    } catch (error) {
+      this.logger.error(`Failed to get action data for key ${key}: ${error.message}`);
+      throw error;
+    }
+  }
+
   async subscribeToRoom(roomId: string) {
     try {
       const subClient = this.redisService.getSubClient();

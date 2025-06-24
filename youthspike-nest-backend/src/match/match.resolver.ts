@@ -26,6 +26,8 @@ import { SponsorService } from 'src/sponsor/sponsor.service';
 import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
+import { ServerReceiverOnNet } from 'src/gateway/gateway.types';
+import { RedisService } from 'src/redis/redis.service';
 
 @Resolver((of) => Match)
 export class MatchResolver {
@@ -42,6 +44,7 @@ export class MatchResolver {
     private ldoService: LdoService,
     private configService: ConfigService,
     private userService: UserService,
+    private redisService: RedisService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -458,7 +461,7 @@ export class MatchResolver {
   @ResolveField((returns) => [Round])
   async rounds(@Parent() match: Match) {
     try {
-      return this.roundService.query({ match: match._id.toString() });
+      return this.roundService.find({ match: match._id.toString() });
     } catch {
       return [];
     }
@@ -472,6 +475,25 @@ export class MatchResolver {
       return [];
     }
   }
+
+  @ResolveField(() => [ServerReceiverOnNet])
+  async netsServerReceiver(@Parent() match: Match): Promise<(ServerReceiverOnNet)[]> {
+    try {
+      const netList = await this.netService.find({ match: match._id.toString() });
+  
+      const netPromises = netList.map(net => {
+        const CACHE_KEY = `action:${net._id}:${match.room}`;
+        return this.redisService.get(CACHE_KEY);
+      });
+  
+      const serverReceiverOnNets = await Promise.all(netPromises);
+      const formattedData = serverReceiverOnNets ? serverReceiverOnNets.filter((srn)=> srn !== null) : [];
+      return formattedData as ServerReceiverOnNet[];
+    } catch {
+      return [];
+    }
+  }
+
 
   @ResolveField()
   async event(@Parent() match: Match) {
