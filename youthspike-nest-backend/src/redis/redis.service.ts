@@ -21,7 +21,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     scaleReads: 'slave' as const,
     redisOptions: {
       password: process.env.REDIS_PASSWORD,
-      tls: NODE_ENV === EEnv.PRODUCTION ? {} : undefined,
+      // tls: NODE_ENV === EEnv.PRODUCTION ? {} : undefined,
+      tls:  undefined,
       retryStrategy: (times: number) => Math.min(times * 50, 2000),
     }
   };

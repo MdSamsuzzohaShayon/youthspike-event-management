@@ -54,6 +54,12 @@ export interface ISetServerReceiverChange {
   userInfo: IUser | null;
 }
 
+export interface IServiceFaultInput{
+  match: string;
+  receiver: string;
+  net: string;
+}
+
 export interface ICheckInToLineupProps extends IStatusChange {
   myTeamE: ETeam;
   currRoundNets: INetRelatives[];

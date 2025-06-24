@@ -1104,7 +1104,6 @@ input CreatePlayerInput {
   division: String!
   email: String
   phone: String
-  rank: Float!
   team: String
 }
 
@@ -1116,7 +1115,6 @@ input UpdatePlayerInput {
   division: String
   email: String
   phone: String
-  rank: Float
   team: String
   status: String
   playerTeamId: String
@@ -1130,7 +1128,6 @@ input UpdatePlayersInput {
   division: String
   email: String
   phone: String
-  rank: Float
   team: String
   _id: String!
   status: String

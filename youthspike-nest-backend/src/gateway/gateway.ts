@@ -22,6 +22,7 @@ import {
   UpdatePointsInput,
   TieBreakerInput,
   SetPlayersInput,
+  ServiceFaultInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -35,6 +36,7 @@ import { ServerReceiverHandler } from './gateway.handlers/server-receiver.handle
 import { TieBreakerHandler } from './gateway.handlers/tie-breraker.handler';
 import { ExtendOvertimeHandler } from './gateway.handlers/extend-overtime.handler';
 import { SetPlayersHandler } from './gateway.handlers/set-players.handler';
+import { ServiceFaultHandler } from './gateway.handlers/service-fault';
 
 @WebSocketGateway({
   cors: true,
@@ -60,6 +62,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private tieBreakerHandler: TieBreakerHandler;
   private extendOvertimeHandler: ExtendOvertimeHandler;
   private setPlayersHandler: SetPlayersHandler;
+  private serviceFault: ServiceFaultHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -80,6 +83,8 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.tieBreakerHandler = new TieBreakerHandler(gatewayService, gatewayRedisService);
 
     this.extendOvertimeHandler = new ExtendOvertimeHandler(gatewayService, gatewayRedisService);
+
+    this.serviceFault = new ServiceFaultHandler(gatewayService, gatewayRedisService);
 
     /**
      * Handlers for Score keeper
@@ -168,5 +173,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('set-players-from-client')
   async onSetPlayers(@ConnectedSocket() client: Socket, @MessageBody() setPlayerInput: SetPlayersInput) {
     return this.setPlayersHandler.handle(client, setPlayerInput, this.roomsLocal);
+  }
+
+  // service-fault-from-client
+  @SubscribeMessage('service-fault-from-client')
+  async onServiceFault(@ConnectedSocket() client: Socket, @MessageBody() serviceFaultInput: ServiceFaultInput) {
+    return this.serviceFault.handle(client, serviceFaultInput, this.roomsLocal);
   }
 }

@@ -24,8 +24,6 @@ export class CreatePlayerInput {
   @Field({ nullable: true })
   phone: string;
 
-  @Field()
-  rank?: number;
 
   @Field({ nullable: true })
   team?: string;

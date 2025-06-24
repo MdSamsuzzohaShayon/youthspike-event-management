@@ -108,6 +108,17 @@ export interface SetPlayersInput {
   accessCode: string;
 }
 
+export class ServiceFaultInput{
+  @Field({nullable: false})
+  match: string;
+
+  @Field({nullable: false})
+  receiver: string;
+  
+  @Field({nullable: false})
+  net: string;
+}
+
 export interface RoundUpdatedResponse {
   nets: any[];
   room: string;

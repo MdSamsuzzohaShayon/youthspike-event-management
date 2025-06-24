@@ -5,7 +5,7 @@ import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import { IJoinTheRoomProps, IStatusChange, IRoomNetAssign, IRoundRelatives, IJoinData, ICheckInData, IUpdatePointData, INetRelatives } from '@/types';
 import { IUser, IUserContext, UserRole } from '@/types/user';
 import { EActionProcess, IRoom, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
-import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps, ISubmitExtendOvertimeProps, ISetServerReceiverChange, ISetServerReceiverData } from '@/types/socket';
+import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps, ISubmitExtendOvertimeProps, ISetServerReceiverChange, ISetServerReceiverData, IServiceFaultInput } from '@/types/socket';
 import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
 import { ETieBreaker } from '@/types/net';
@@ -48,10 +48,10 @@ class EmitEvents {
 
     if (!teamA || !teamB || !user.token || !user.info) {
       this.socket.emit('join-room-from-client', joinData);
-      return this.dispatch(setActErr({success: false, message: "Team A, Team B, or User details is not found, try refreshing!"}));
+      return this.dispatch(setActErr({ success: false, message: 'Team A, Team B, or User details is not found, try refreshing!' }));
     }
 
-    if (!this.isAuthorized(user.info)) return this.dispatch(setActErr({success: false, message: "This user is not authorized to do this operation!"}));
+    if (!this.isAuthorized(user.info)) return this.dispatch(setActErr({ success: false, message: 'This user is not authorized to do this operation!' }));
     if (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) {
       // Check if captain or co-captain in in team A or team B
       if (
@@ -62,7 +62,7 @@ class EmitEvents {
           (teamB.cocaptain && teamB.cocaptain._id === user.info.cocaptainplayer)
         )
       ) {
-        return this.dispatch(setActErr({success: false, message: "This user is not captain or co-captain!"}));
+        return this.dispatch(setActErr({ success: false, message: 'This user is not captain or co-captain!' }));
       }
     }
 
@@ -317,9 +317,10 @@ class EmitEvents {
     this.dispatch(setVerifyLineup(false));
   }
 
-  // Server/Receiver setup
+  /**
+   * Score keeper events to emit
+   */
   setServerReceiver({ dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, server, receiver, userInfo }: ISetServerReceiverChange) {
-
     if (!currNetNum) {
       return dispatch(
         setActErr({
@@ -340,7 +341,6 @@ class EmitEvents {
         }),
       );
     }
-
 
     if (!server || !receiver) {
       return dispatch(
@@ -382,7 +382,7 @@ class EmitEvents {
     */
 
     // match, room,  server, receiver, round, net
-    const accessCode = userInfo.accessCode.find((ac)=> ac.matchId === currMatch._id);
+    const accessCode = userInfo.accessCode.find((ac) => ac.matchId === currMatch._id);
     if (!accessCode) {
       return dispatch(
         setActErr({
@@ -393,7 +393,6 @@ class EmitEvents {
       );
     }
 
-
     const actionData: ISetServerReceiverData = {
       match: currMatch._id,
       room: currRoom._id,
@@ -401,12 +400,17 @@ class EmitEvents {
       receiver,
       round: currRound._id,
       net: currNet._id,
-      accessCode: accessCode.code
+      accessCode: accessCode.code,
     };
 
     // Update state
     // this.updateRoundList(currRound, roundList, actionData);
     this.socket?.emit('set-players-from-client', actionData);
+  }
+
+  serviceFault({ match, receiver, net }: IServiceFaultInput) {
+    const actionData = { match, receiver, net };
+    this.socket?.emit('service-fault-from-client', actionData);
   }
 }
 

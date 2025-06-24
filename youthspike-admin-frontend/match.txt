@@ -10,18 +10,18 @@
  * 
  * Liverpool FC
  * Captain
- * Username: sergio30375
+ * Username: sadio69536
  * Password: Spikeball
  * Co-Captain
- * Username: jordi14800
+ * Username: roberto82842
  * Password: Spikeball
  *
  * PSG
  * Captain
- * Username: sergio30375
+ * Username: ángel33544
  * Password: Spikeball
  * Co-Captain
- * Username: jordi14800
+ * Username: presnel24660
  * Password: Spikeball
  */
 

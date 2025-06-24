@@ -30,6 +30,7 @@ import {
   ISetServerReceiverChange,
   ISetServerReceiverData,
   IServerReceiverOnNet,
+  IServiceFaultInput,
 
   // Responses and actions
   IServerReceiverResponse, ICheckInResponse, ILineUpResponse, IUpdatePointsResponse, IUpdateExtendOvertimeResponse, IUpdateNetResponse, IRoundMatchCommon, IRoundUpdateData, INetUpdateData, ITeamCaptain, IMatch, IUpdateRound, IUpdateNet
@@ -130,6 +131,7 @@ export type {
   ISetServerReceiverChange,
   ISetServerReceiverData,
   IServerReceiverOnNet,
+  IServiceFaultInput,
   IServerReceiverResponse, ICheckInResponse, ILineUpResponse, IUpdatePointsResponse, IUpdateExtendOvertimeResponse, IUpdateNetResponse, IRoundMatchCommon, IRoundUpdateData, INetUpdateData, ITeamCaptain, IMatch, IUpdateRound, IUpdateNet,
 
   // Ranking

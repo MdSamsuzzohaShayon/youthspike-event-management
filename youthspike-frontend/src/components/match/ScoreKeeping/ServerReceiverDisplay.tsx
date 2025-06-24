@@ -14,8 +14,8 @@ interface ServerReceiverDisplayProps {
   selectedReceiver: string | null;
   serverTeam: IServerTeam | null;
   receiverTeam: IReceiverTeam | null;
-  handleAddServer: (e: React.SyntheticEvent) => void;
-  handleAddReceiver: (e: React.SyntheticEvent) => void;
+  handleAddServer?: (e: React.SyntheticEvent) => void;
+  handleAddReceiver?: (e: React.SyntheticEvent) => void;
 }
 
 const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedServer, selectedReceiver, serverTeam, receiverTeam, handleAddServer, handleAddReceiver }) => {
@@ -31,7 +31,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
           <div className="w-full flex flex-col items-center gap-6 bg-white text-black rounded-xl p-6 shadow-lg">
             <Image alt="Logo" src="/imgs/spikeball-logo.webp" width={40} height={40} className="mb-2" />
 
-            <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400 overflow-hidden" role="presentation" onClick={handleAddServer}>
+            <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400 overflow-hidden" role="presentation" onClick={handleAddServer ? handleAddServer : ()=>{}}>
               {selectedServer && serverTeam ? (
                 serverTeam?.server?.profile ? (
                   <AdvancedImage cldImg={cld.image(serverTeam?.server?.profile)} />
@@ -48,7 +48,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
               <Image alt="Net" src="/imgs/spikeball-net.png" width={80} height={80} />
             </div>
 
-            <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400 overflow-hidden" role="presentation" onClick={handleAddReceiver}>
+            <div className="bg-black h-24 w-24 flex items-center justify-center rounded-xl border-4 border-yellow-400 overflow-hidden" role="presentation" onClick={handleAddReceiver ? handleAddReceiver : ()=>{}}>
               {selectedReceiver && receiverTeam ? (
                 receiverTeam?.receiver?.profile ? (
                   <AdvancedImage cldImg={cld.image(receiverTeam?.receiver?.profile)} />

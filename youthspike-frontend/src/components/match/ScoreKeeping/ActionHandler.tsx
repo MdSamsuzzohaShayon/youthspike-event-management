@@ -1,6 +1,18 @@
+import { INetRelatives } from '@/types';
+import EmitEvents from '@/utils/socket/EmitEvents';
 import React from 'react';
+import { Socket } from 'socket.io-client';
 
-function ActionHandler() {
+interface IActionHandlerProps{
+  matchId: string;
+  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  socket: Socket | null;
+  server: string | null;
+  receiver: string | null;
+  currNet: string | null;
+}
+
+function ActionHandler({matchId, socket, dispatch, server, receiver, currNet}: IActionHandlerProps) {
 
     const handleAceNoTouch=(e: React.SyntheticEvent)=>{
         e.preventDefault();
@@ -33,16 +45,15 @@ function ActionHandler() {
 
     const handleServiceFault=(e: React.SyntheticEvent)=>{
         e.preventDefault();
-        // Only Service Opportunity will be increased by 1
-        const actionData = {
-          match: "",
-          server: "", 
-          net: "",
-          round: "",
-        };
-        
-
-        
+        if (receiver && currNet) {
+          const actionData = {
+            match: matchId,
+            receiver,
+            net: currNet,
+          };
+          const emit = new EmitEvents(socket, dispatch);
+          emit.serviceFault(actionData);
+        }
     }
 
     const handleOneTwoThreePutAway=(e: React.SyntheticEvent)=>{
