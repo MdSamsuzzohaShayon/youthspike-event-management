@@ -40,8 +40,8 @@ export class ServiceFaultHandler {
     //     this.gatewayRedisService.publishToRoom(serviceFault.room, 'round-update-all-pages', presizedRoundData, client.id),
     //   ]);
     } catch (error) {
-      await this.gatewayRedisService.publishToRoom(
-        "serviceFault.room",
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
         'error-from-server',
         error?.message || 'Internal error occured',
       );

@@ -77,10 +77,15 @@ export class JoinRoomHandler {
       await this.gatewayRedisService.publishToRoom(roomId, 'join-room-response-all', roomData, client.id);
       // Get all updates of the room
       await this.gatewayRedisService.subscribeToRoom(roomId);
+      await this.gatewayRedisService.subscribeToSocket(client.id);
 
       return { success: true, roomId };
     } catch (error) {
-      return { success: false, error: error.message };
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
+        'error-from-server',
+        error?.message || 'Internal error occured',
+      );
     }
   }
 }

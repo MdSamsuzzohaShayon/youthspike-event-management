@@ -192,6 +192,7 @@ query GetTeamDetails($teamId: String!) {
         division
         captainofteams
         cocaptainofteams
+        teams
       }
       group {
         _id

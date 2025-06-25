@@ -15,6 +15,15 @@ export class ServerReceiverHandler {
     // @MessageBody() serverReceiverInput: SetServerReceiverInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
-    
+    try {
+      console.log("Working");
+      
+    } catch (error) {
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
+        'error-from-server',
+        error?.message || 'Internal error occured',
+      );
+    }
   }
 }

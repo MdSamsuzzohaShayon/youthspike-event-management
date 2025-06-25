@@ -534,7 +534,8 @@ export class TeamResolver {
         }),
       ]);
       const [players, group, captain, cocaptain, event, matches, rankings] = await Promise.all([
-        this.playerService.find({ teams: { $in: [team._id] } }),
+        // this.playerService.find({ teams: { $in: [team._id] } }),
+        this.playerService.find({ events: {$in: [team.event]} }),
         this.groupService.findOne({ _id: team.group }),
         this.playerService.findOne({ _id: team.captain }),
         this.playerService.findOne({ _id: team.cocaptain }),

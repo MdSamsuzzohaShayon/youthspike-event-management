@@ -52,9 +52,10 @@ export interface IMatch extends IMatchBase{
 
 export interface IMatchRelatives extends IMatchBase{
   _id: string;
-  teamA: ITeam;
-  teamB: ITeam;
-  rounds: IRoundRelatives[];
+  teamA: string;
+  teamB: string;
+  rounds: string[];
+  nets: string[];
   group?: string;
 }
 

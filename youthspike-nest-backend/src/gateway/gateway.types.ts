@@ -11,6 +11,7 @@ export enum ETeam {
 }
 
 export const ROOM_PREFIX = 'room:';
+export const SOCKET_PREFIX = 'socket:';
 export const CLIENT_TTL = 60 * 60 * 2; // 2 hours TTL for client data
 
 export interface JoinRoomInput {

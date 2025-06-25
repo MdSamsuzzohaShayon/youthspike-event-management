@@ -27,6 +27,7 @@ interface ITeamDetailProps {
   teamList: ITeam[];
   refetchFunc?: () => Promise<void>;
   playerList: IPlayer[];
+  unassignedPlayers: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
   matchList: IMatchExpRel[];
   rankings: IPlayerRankingItem[];
@@ -43,7 +44,7 @@ enum ETab {
 
 const ITEMS_PER_PAGE = 20;
 
-function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc, playerList, playerRanking, matchList, rankings }: ITeamDetailProps) {
+function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc, playerList, unassignedPlayers, playerRanking, matchList, rankings }: ITeamDetailProps) {
   const { setActErr } = useError();
 
 
@@ -110,6 +111,11 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     setFilteredPlayers(nfpList);
   }, []);
 
+  const divisionalPlayers = useMemo(()=>{
+    const nfpList = unassignedPlayers ? unassignedPlayers.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase()) : [];
+    return nfpList;
+  }, [unassignedPlayers, team]);
+
 
   const paginatedMatchList: IMatchExpRel[] = useMemo(() => {
     // Paginated
@@ -122,8 +128,20 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
 
 
-  const activePlayers = (playerList ? playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
-  const inactivePlayers = (playerList ? playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
+  // const activePlayers = (playerList ? playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
+  // const inactivePlayers = (playerList ? playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
+  const activePlayers: IPlayerExpRel[] = useMemo(()=>{
+    if(!playerList) return [];
+    return playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
+  }, [playerList]);
+
+  const inactivePlayers: IPlayerExpRel[] = useMemo(()=>{
+    if(!playerList) return [];
+    return playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
+  }, [playerList]);
+
+  console.log({playerList});
+  
 
 
 
@@ -131,41 +149,6 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
   return (
     <React.Fragment>
-      {/* <div className="team-detail bg-gray-700 rounded-lg">
-        <h1 className="uppercase text-center">Teams/roster</h1>
-        <h1 className="uppercase text-center">{event?.name}</h1>
-
-  
-        <div className="team-detail mt-4 w-full flex justify-center flex-col items-center">
-          {team.logo ? <AdvancedImage cldImg={cld.image(team.logo)} className="w-20 md:w-32" /> : <Image src="/icons/sports-man.svg" width={100} height={100} alt='free-logo' className="w-20 md:w-32 h-20 md:h-32" />}
-          <h1 className="capitalize">{team && team.name}</h1>
-          <div className="navigator mb-4">
-            <UserMenuList eventId={eventId} />
-          </div>
-        </div>
-
-        <div className="tab-menu w-full mb-6 bg-gray-700 rounded-lg p-4">
-          <motion.ul className="flex justify-around items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-            <motion.li
-              role="presentation"
-              onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
-              className={`p-3 w-1/2 text-center rounded-md cursor-pointer ${selectedItem === ETab.ROSTER ? 'bg-yellow-500 text-black font-bold' : 'bg-gray-600 text-white'}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              Rosters
-            </motion.li>
-            <motion.li
-              role="presentation"
-              onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
-              className={`p-3 w-1/2 text-center rounded-md cursor-pointer ${selectedItem === ETab.MATCHES ? 'bg-yellow-500 text-black font-bold' : 'bg-gray-600 text-white'}`}
-              whileHover={{ scale: 1.05 }}
-            >
-              Matches
-            </motion.li>
-          </motion.ul>
-        </div>
-      </div> */}
-
       <div className="flex flex-col items-center">
         {/* Header Section */}
         <div className="team-detail relative w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
@@ -237,7 +220,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
               </button>
             </div>
             <form onSubmit={handleAddPlayersToTeam} className="mb-4">
-              <PlayerSelectInput availablePlayers={filteredPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
+              <PlayerSelectInput availablePlayers={divisionalPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
               <button type="submit" className="btn-info mt-4">
                 Add
               </button>

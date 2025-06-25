@@ -62,8 +62,8 @@ export class CheckInHandler {
         this.gatewayRedisService.publishToRoom(checkIn.room, 'round-update-all-pages', presizedRoundData, client.id),
       ]);
     } catch (error) {
-      await this.gatewayRedisService.publishToRoom(
-        checkIn.room,
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
         'error-from-server',
         error?.message || 'Internal error occured',
       );

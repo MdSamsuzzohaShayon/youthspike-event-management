@@ -85,13 +85,13 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     if (user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain) {
       return true;
     }
-    if (user.info.captainplayer) {
+    if (user?.info?.captainplayer) {
       if (user.info.captainplayer === teamA?.captain?._id || user.info.captainplayer === teamB?.captain?._id) {
         return true;
       }
     }
-    if (user.info.cocaptainplayer) {
-      if (user.info.cocaptainplayer === teamA?.cocaptain?._id || user.info.captainplayer === teamB?.cocaptain?._id) {
+    if (user?.info?.cocaptainplayer) {
+      if (user.info.cocaptainplayer === teamA?.cocaptain?._id || user.info.cocaptainplayer === teamB?.cocaptain?._id) {
         return true;
       }
     }
@@ -106,6 +106,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       localStorageService.setMusicPlayedTime();
     }
   }, []);
+
+  
 
   const fetchData = useCallback(
     async (userDetail: IUserContext) => {
@@ -146,7 +148,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
       console.warn("No socket or round list available", );
       return;
     }
-    console.log("Everything available");
     
 
 

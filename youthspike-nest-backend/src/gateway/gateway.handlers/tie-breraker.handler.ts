@@ -67,8 +67,8 @@ export class TieBreakerHandler {
 
       await this.gatewayRedisService.publishToRoom(tieBreakerInput.room, 'tie-breaker-response-all', roomDataWithNets);
     } catch (error) {
-      await this.gatewayRedisService.publishToRoom(
-        tieBreakerInput.room,
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
         'error-from-server',
         error?.message || 'Internal error occured',
       );

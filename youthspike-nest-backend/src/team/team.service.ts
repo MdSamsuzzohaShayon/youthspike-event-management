@@ -67,4 +67,8 @@ export class TeamService {
   async delete(filter: FilterQuery<Team>) {
     return this.teamModel.deleteMany(filter);
   }
+
+  async countDocuments(filter: FilterQuery<Team>) {
+    return this.teamModel.countDocuments();
+  }
 }

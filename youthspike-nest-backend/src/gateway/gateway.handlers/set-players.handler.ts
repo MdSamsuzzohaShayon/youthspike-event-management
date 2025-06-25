@@ -116,10 +116,10 @@ export class SetPlayersHandler {
         client.id,
       );
     } catch (error) {
-      await this.gatewayRedisService.publishToRoom(
-        serverReceiverInput.room,
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
         'error-from-server',
-        error?.message || 'Internal error occurred',
+        error?.message || 'Internal error occured',
       );
     }
   }

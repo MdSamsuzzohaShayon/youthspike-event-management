@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
-import { ROOM_PREFIX } from './gateway.types';
+import { ROOM_PREFIX, SOCKET_PREFIX } from './gateway.types';
 import { Server } from 'socket.io';
 
 @Injectable()
@@ -32,11 +32,20 @@ export class GatewayRedisService {
 
         const { event, data, senderId } = JSON.parse(message);
 
+        /* ---------- room broadcast ---------- */
         if (channel.startsWith(ROOM_PREFIX)) {
           const roomId = channel.replace(ROOM_PREFIX, '');
           this.server.to(roomId).except(senderId).emit(event, data);
           this.logger.debug(`Redis broadcast to ${roomId}: ${event}`);
         }
+
+        /* ---------- direct-to-socket ---------- */
+        if (channel.startsWith(SOCKET_PREFIX)) {
+          const socketId = channel.replace(SOCKET_PREFIX, '');
+          this.server.to(socketId).emit(event, data);
+          this.logger.debug(`Redis direct to ${socketId}: ${event}`);
+        }
+        return;
       } catch (error) {
         this.logger.error(`Error processing Redis message: ${error.message}`);
       }
@@ -47,6 +56,7 @@ export class GatewayRedisService {
     });
   }
 
+  // Broadcast
   async publishToRoom(roomId: string, event: string, data: any, senderId?: string) {
     const channel = `${ROOM_PREFIX}${roomId}`;
     const message = JSON.stringify({
@@ -54,6 +64,14 @@ export class GatewayRedisService {
       data,
       senderId,
     });
+
+    const pubClient = await this.redisService.getPubClient();
+    await pubClient.publish(channel, message);
+  }
+
+  async publishToSocket(socketId: string, event: string, data: any) {
+    const channel = `${SOCKET_PREFIX}${socketId}`;
+    const message = JSON.stringify({ event, data });
 
     const pubClient = await this.redisService.getPubClient();
     await pubClient.publish(channel, message);
@@ -90,6 +108,16 @@ export class GatewayRedisService {
       this.logger.log(`Subscribed to Redis channel for room ${roomId}`);
     } catch (error) {
       this.logger.error(`Failed to subscribe to room ${roomId}: ${error.message}`);
+    }
+  }
+
+  async subscribeToSocket(socketId: string) {
+    try {
+      const subClient = this.redisService.getSubClient();
+      await subClient.subscribe(`${SOCKET_PREFIX}${socketId}`);
+      this.logger.log(`Subscribed to Redis channel for socket ${socketId}`);
+    } catch (error) {
+      this.logger.error(`Failed to subscribe to socket ${socketId}: ${error.message}`);
     }
   }
 }

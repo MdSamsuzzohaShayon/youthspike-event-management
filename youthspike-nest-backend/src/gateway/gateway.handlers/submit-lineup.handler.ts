@@ -162,7 +162,11 @@ export class SubmitLineupHandler {
         ),
       ]);
     } catch (error) {
-      client.emit('error-from-server', error?.message || 'Internal error occurred');
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
+        'error-from-server',
+        error?.message || 'Internal error occured',
+      );
     }
   }
 }

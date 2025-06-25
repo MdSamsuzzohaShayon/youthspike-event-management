@@ -99,8 +99,8 @@ export class ExtendOvertimeHandler {
         actionData,
       );
     } catch (error) {
-      await this.gatewayRedisService.publishToRoom(
-        extendOvertimeInput.room,
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
         'error-from-server',
         error?.message || 'Internal error occured',
       );

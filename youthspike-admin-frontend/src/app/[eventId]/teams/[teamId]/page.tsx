@@ -1,79 +1,128 @@
 import { notFound } from 'next/navigation';
 import TeamDetail from '@/components/teams/TeamDetail';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam } from '@/types';
+import {
+  IMatchExpRel,
+  IMatchRelatives,
+  INetRelatives,
+  IPlayer,
+  IPlayerExpRel,
+  IRoundRelatives,
+  ITeam,
+} from '@/types';
 import { getTeamData } from '../../../_requests/teams';
 
 interface TeamSingleMainProps {
   params: { teamId: string; eventId: string };
 }
 
-
-
 export default async function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
   const teamData = await getTeamData(teamId);
+  if (!teamData) return notFound();
 
-  if (!teamData) {
-    return notFound();
-  }
-  
-  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, oponentTeams } = teamData;
+  const {
+    team,
+    playerRanking,
+    players,
+    captain,
+    cocaptain,
+    group,
+    event,
+    matches,
+    rankings,
+    rounds,
+    nets,
+    oponentTeams
+  } = teamData;
+
   const divisionList = event?.divisions ? divisionsToOptionList(event.divisions) : [];
 
+  // Assign captain/cocaptain
   playerRanking.rankings = rankings;
   team.captain = captain;
   team.cocaptain = cocaptain;
 
-  // Build lookup maps in a single pass (O(n) instead of multiple O(n) iterations)
-  const roundMap = new Map(rounds.map((r: IRoundRelatives) => [r._id, r]));
-  const netMap = new Map(nets.map((n: INetRelatives) => [n._id, n]));
-  const oponentTeamMap = new Map(oponentTeams.map((t: ITeam) => [t._id, t]));
+  // --- Build lookup maps in O(n) ---
+  const roundMap = new Map<string, IRoundRelatives>(
+    rounds.map((r: IRoundRelatives) => [r._id, r])
+  );
+  const netMap = new Map<string, INetRelatives>(
+    nets.map((n: INetRelatives) => [n._id, n])
+  );
+  const oponentTeamMap = new Map<string, ITeam>(
+    oponentTeams.map((t: ITeam) => [t._id, t])
+  );
 
-  // Process matches efficiently
-  const matchList = matches.map((m: IMatchExpRel) => {
-    const matchObj = { ...m };
-
-    // @ts-ignore
-    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
-    // @ts-ignore
-    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
+  // --- Process Matches Efficiently ---
+  const matchList = matches.map((m: any) => {
+    const enrichedMatch: IMatchExpRel = {
+      ...m,
+      rounds: m.rounds.map((id: string) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[],
+      nets: m.nets.map((id: string) => netMap.get(id)).filter(Boolean) as INetRelatives[],
+    };
 
     if (oponentTeamMap.has(m.teamA)) {
-    // @ts-ignore
-      matchObj.teamA = oponentTeamMap.get(m.teamA);
-      matchObj.teamB = team;
+      enrichedMatch.teamA = oponentTeamMap.get(m.teamA)!;
+      enrichedMatch.teamB = team;
     } else if (oponentTeamMap.has(m.teamB)) {
-    // @ts-ignore
-      matchObj.teamB = oponentTeamMap.get(m.teamB);
-      matchObj.teamA = team;
+      enrichedMatch.teamB = oponentTeamMap.get(m.teamB)!;
+      enrichedMatch.teamA = team;
     }
 
-    return matchObj;
+    return enrichedMatch;
   });
 
-  const playerList = players.map((p: IPlayerExpRel)=> {
-    const playerObj = {...p, teams: [team]};
-    // Captain
-    if(playerObj.captainofteams && playerObj.captainofteams?.length > 0){
-      playerObj.captainofteams = [team._id];
-    }
-    if(playerObj.cocaptainofteams && playerObj.cocaptainofteams?.length > 0){
-      playerObj.cocaptainofteams = [team._id];
-    }
-    return playerObj;
-  });
+  console.log({players});
   
+
+  // --- Separate Players into assigned/unassigned ---
+  const classifyPlayers = (players: IPlayerExpRel[]) => {
+    const teamPlayers: IPlayerExpRel[] = [];
+    const unassignedPlayers: IPlayerExpRel[] = [];
+
+    for (const p of players) {
+      const playerObj = structuredClone(p);
+
+      if (p.teams?.length && p.teams?.length > 0) {
+        if(playerObj.teams?.includes(team._id) ){
+          playerObj.teams = [team];
+  
+          if (playerObj.captainofteams?.length) {
+            playerObj.captainofteams = [team._id];
+          }
+  
+          if (playerObj.cocaptainofteams?.length) {
+            playerObj.cocaptainofteams = [team._id];
+          }
+  
+          teamPlayers.push(playerObj);
+        }
+      } else {
+        playerObj.teams = [];
+        unassignedPlayers.push(playerObj);
+      }
+    }
+
+    return { teamPlayers, unassignedPlayers };
+  };
+
+  const { teamPlayers, unassignedPlayers } = classifyPlayers(players);
+  
+  console.log({pl: teamPlayers.length, upl: unassignedPlayers.length});
   
 
   return (
     <div className="container mx-auto px-4 min-h-screen">
       <TeamDetail
         event={event}
+        // @ts-ignore
+        unassignedPlayers={unassignedPlayers}
         team={team}
         eventId={eventId}
         divisionList={divisionList}
         teamList={oponentTeams}
-        playerList={playerList}
+        // @ts-ignore
+        playerList={teamPlayers}
         playerRanking={playerRanking}
         matchList={matchList}
         rankings={rankings}

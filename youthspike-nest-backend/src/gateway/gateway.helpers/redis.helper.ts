@@ -8,4 +8,8 @@ export class RedisHelper {
   async subscribeToRoom(roomId: string) {
     await this.gatewayRedisService.subscribeToRoom(roomId);
   }
+
+  async subscribeToSocket(socketId: string) {
+    await this.gatewayRedisService.subscribeToSocket(socketId);
+  }
 }

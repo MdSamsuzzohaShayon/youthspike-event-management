@@ -101,8 +101,8 @@ export class UpdatePointsHandler {
         ),
       ]);
     } catch (error) {
-      await this.gatewayRedisService.publishToRoom(
-        updatePointsInput.room,
+      await this.gatewayRedisService.publishToSocket(
+        client.id,
         'error-from-server',
         error?.message || 'Internal error occured',
       );
