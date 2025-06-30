@@ -48,19 +48,6 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     imageInputEl.current.click();
   }
 
-  const handleImgFile1Change = async (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLInputElement;
-    if (inputEl.files && inputEl.files.length > 0) {
-      setOriginalImg(inputEl.files[0]);
-      setFilename(inputEl.files[0].name);
-      if (handleFileChange) handleFileChange(inputEl.files[0]);
-
-      const uploadedImgUrl = await fileToImgSrc(inputEl.files[0]);
-      if (uploadedImgUrl) setSrcUncropped(uploadedImgUrl);
-
-      openModal();
-    }
-  };
 
   const handleImgFileChange = useCallback(async (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;

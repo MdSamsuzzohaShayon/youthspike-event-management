@@ -8,10 +8,10 @@ import { useUser } from '@/lib/UserProvider';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
 import addOrUpdateDirector from '@/utils/requestHandlers/addOrUpdateDirector';
 import Loader from '../elements/Loader';
-import FileInput from '../elements/forms/FileInput';
 import { buttonVariants, containerVariants, inputVariants } from '@/utils/animation';
 import InputField from '../elements/forms/InputField';
 import { useError } from '@/lib/ErrorContext';
+import ImageInput from '../elements/forms/ImageInput';
 
 interface DirectorAddProps {
     update: boolean;
@@ -52,7 +52,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
     const [ldoState, setLdoState] = useState<ILDO>(prevLdo ? prevLdo : initialLdo);
     const [ldoUpdate, setLdoUpdate] = useState({});
     const [directorUpdate, setDirectorUpdate] = useState<ILdoUpdate>({});
-    const uploadedLogo = useRef<File | null>(null);
+    const uploadedLogo = useRef<null | MediaSource | Blob>(null);
 
     // Graphql
     const [registerDirector, { loading, error }] = useMutation(ADD_DIRECTOR);
@@ -81,12 +81,10 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
         }
     }
 
-    const handleFileChange = (e: React.SyntheticEvent) => {
-        const fileInputEl = e.target as HTMLInputElement;
-        if (fileInputEl && fileInputEl.files && fileInputEl.files.length > 0) {
-            uploadedLogo.current = fileInputEl.files[0];
-        }
-    }
+
+    const handleLogoChange = (uploadedFile: MediaSource | Blob) => {
+        uploadedLogo.current = uploadedFile;
+      };
 
     /**
      * Handles the form submission event.
@@ -164,7 +162,8 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
                         <InputField key="dau-8" name="confirmPassword" type="password" label="Confirm Password" value={directorState.confirmPassword} handleInputChange={handleDirectorChange} required={!update} />
                     </motion.div>
                     <motion.div variants={inputVariants}>
-                        <FileInput key="fil-da-1" defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' />
+                        {/* <FileInput key="fil-da-1" defaultValue={ldoState.logo} handleFileChange={handleFileChange} name='logo' /> */}
+                        <ImageInput handleFileChange={handleLogoChange} name="logo" defaultValue={ldoState?.logo || null} />
                     </motion.div>
                 </div>
 
@@ -172,7 +171,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
                 <motion.div className="w-full mt-8 text-center" variants={inputVariants}>
                     <motion.button
                         type="submit"
-                        className="w-full md:w-1/2 py-3 px-6 bg-yellow-400 text-black font-semibold rounded-md shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
+                        className="w-full py-3 px-6 bg-yellow-400 text-black font-semibold rounded-md shadow-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-300 transition-all"
                         whileHover="hover"
                         whileTap="tap"
                         variants={buttonVariants}

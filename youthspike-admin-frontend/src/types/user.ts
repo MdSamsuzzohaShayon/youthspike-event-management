@@ -39,6 +39,7 @@ export interface IDirector {
   lastName: string;
   email: string;
   phone?:string;
+  logo?: string;
 }
 
 export interface IAddDirector extends IDirector{

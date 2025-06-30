@@ -1,33 +1,21 @@
-'use client'
+import { getEventDirector } from '@/app/_requests/ldo';
+import { notFound } from 'next/navigation';
+import LDOSingleMain from '@/components/ldo/LDOSingleMain';
 
-import DirectorAdd from '@/components/ldo/DirectorAdd';
-import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
-import { GET_LDO, GET_LDOS } from '@/graphql/director';
-import { useApolloClient, useLazyQuery, useQuery } from '@apollo/client';
-import React, { useEffect, useState } from 'react';
-import { IError } from '@/types';
+async function LDOSingle({ params }: { params: { ldoId: string } }) {
 
-function LDOSingle({ params }: { params: { ldoId: string } }) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { data, error, loading, refetch } = useQuery(GET_LDO, { variables: { dId: params.ldoId } });
-
-  const refetchFunc=async ()=>{
-    await refetch();
+  const ldoExist = await getEventDirector(params.ldoId);
+  if(!ldoExist){
+    notFound();
   }
 
-  if (loading || isLoading) return <Loader />;
-  const prevLdo = data?.getEventDirector?.data;
+  console.log({ldo: ldoExist});
   
-  if(error){
-    console.log(error);
-    
-  }
   
 
   return (
     <div className='container mx-auto px-4 min-h-screen'>
-      <DirectorAdd setIsLoading={setIsLoading} update prevLdo={prevLdo} ldoId={params.ldoId} refetchFunc={refetchFunc} />
+      <LDOSingleMain ldo={ldoExist} ldoId={params.ldoId}  />
     </div>
   )
 }

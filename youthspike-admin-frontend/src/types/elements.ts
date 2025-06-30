@@ -99,7 +99,7 @@ export interface IFileFileProps {
 }
 
 export interface IImageFileProps extends ITextCommon {
-  defaultValue?: string;
+  defaultValue?: string | null;
   handleFileChange?: (uploadedFile: Blob | MediaSource) => void;
 }
 

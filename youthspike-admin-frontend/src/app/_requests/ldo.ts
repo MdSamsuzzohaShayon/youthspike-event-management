@@ -2,11 +2,11 @@ import { GET_LDO_RAW, GET_LDOS, GET_LDOS_RAW } from "@/graphql/director";
 import { BACKEND_URL } from "@/utils/keys";
 import { UNAUTHORIZED } from "@/utils/constant";
 
-async function getEventDirector(directorId?: string | null, token?: string | null) {
+async function getEventDirector(dId?: string | null, token?: string | null) {
   const body: Record<string, any> = { query: GET_LDO_RAW };
 
-  if (directorId) {
-    body.variables = { dId: directorId };
+  if (dId) {
+    body.variables = { dId: dId };
   }
 
   const res = await fetch(`${BACKEND_URL}/graphql`, {

@@ -306,7 +306,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
         {/* Event Name */}
         <InputField key="dau-1" name="name" type="text" label="Name" handleInputChange={handleInputChange} defaultValue={eventState.name} required={!update} />
         {/* Logo Upload */}
-        <ImageInput handleFileChange={handleLogoChange} name="logo" />
+        <ImageInput handleFileChange={handleLogoChange} name="logo" defaultValue={eventState?.logo || null} />
 
         <DateInput key="di-eau-1" label="Start Date" name="startDate" handleDateChange={handleDateChange} defaultValue={eventState.startDate} required={!update} />
         <DateInput key="di-eau-2" label="End Date" name="endDate" handleDateChange={handleDateChange} defaultValue={eventState.endDate} required={!update} />

@@ -14,7 +14,7 @@ interface IAddUpdateDirectorProps {
     ldoState: ILDO;
     setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
     ldoUpdate: ILdoUpdate;
-    uploadedLogo: React.RefObject<File | null>;
+    uploadedLogo: React.RefObject<null | MediaSource | Blob>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     user: IUserContext;
     mutateUser: MutationFunction;
@@ -61,7 +61,7 @@ async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoS
 
 
     const addFileToFormData = () => {
-        if (uploadedLogo.current) {
+        if (uploadedLogo && uploadedLogo.current) {
             const variables = { input: update ? updateArgs : inputArgs, logo: null };
             // @ts-ignore
             if (update && user.info?.role === UserRole.admin) variables.dId = ldoId;
@@ -71,6 +71,7 @@ async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoS
             }));
 
             formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
+            // @ts-ignore
             formData.set('0', uploadedLogo.current);
         }
     };
