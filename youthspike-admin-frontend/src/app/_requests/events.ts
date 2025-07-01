@@ -1,4 +1,5 @@
 import { GET_AN_EVENT_RAW, GET_EVENTS_MIN_RAW } from "@/graphql/event";
+import { IEvent } from "@/types";
 import { isValidObjectId } from "@/utils/helper";
 import { BACKEND_URL } from "@/utils/keys";
 
@@ -18,26 +19,26 @@ async function getMinEvents() {
     return data?.getEvents?.data || null;
 }
 
-// async function getAnEvent(eventId: string) {
-//      if (!isValidObjectId(eventId)) {
-//           return null;
-//       }
+async function getAnEvent(eventId: string): Promise<IEvent | null> {
+     if (!isValidObjectId(eventId)) {
+          return null;
+      }
 
-//     const res = await fetch(`${BACKEND_URL}/graphql`, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//             query: GET_AN_EVENT_RAW,
-//             variables: {eventId}
-//         }),
-//         cache: 'no-store',
-//     });
+    const res = await fetch(`${BACKEND_URL}/graphql`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query: GET_AN_EVENT_RAW,
+            variables: {eventId}
+        }),
+        cache: 'no-store',
+    });
 
-//     const { data } = await res.json();
+    const { data } = await res.json();
     
-//     return data?.getEvent?.data || null;
-// }
+    return data?.getEvent?.data || null;
+}
 
 
-export { getMinEvents };
+export { getMinEvents, getAnEvent };
 

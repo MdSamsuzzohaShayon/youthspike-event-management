@@ -11,7 +11,7 @@ import SocketProvider from '@/lib/SocketProvider';
 import "../utils/polyfills";
 import LdoProvider from '@/lib/LdoProvider';
 import AdminMenu from '@/components/layout/AdminMenu';
-import { ErrorProvider } from '@/lib/ErrorContext';
+import { ErrorProvider } from '@/lib/ErrorProvider';
 import Message from '@/components/elements/Message';
 
 const inter = Inter({ subsets: ['latin'] });

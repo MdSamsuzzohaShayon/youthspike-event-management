@@ -4,7 +4,7 @@ import Loader from '@/components/elements/Loader';
 import Message from '@/components/elements/Message';
 import NetList from '@/components/net/NetList';
 import { GET_A_ROUND } from '@/graphql/round';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import { IError, IRoundRelatives } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';

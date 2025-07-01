@@ -11,7 +11,7 @@ import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import { ETeam } from '@/types/team';
 import TeamSelector from './TeamSelector';
 import InputField from '../elements/forms/InputField';

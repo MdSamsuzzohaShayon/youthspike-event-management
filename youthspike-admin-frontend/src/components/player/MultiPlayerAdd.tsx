@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { getCookie } from '@/utils/clientCookie';
 

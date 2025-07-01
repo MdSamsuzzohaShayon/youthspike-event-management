@@ -8,7 +8,7 @@ import { useMutation } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import { LOGIN_USER } from '@/graphql/admin';
 import { UserRole } from '@/types/user';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 import { useState } from 'react';
 import { setCookie } from '@/utils/clientCookie';
@@ -96,7 +96,6 @@ function Login() {
                     initial={hInitial}
                     animate={hAnimate}
                     exit={hExit}
-                    transition={{ ...hTransition, delay: 0.3 }}
                 >
                     Login
                 </motion.h1>
@@ -105,7 +104,6 @@ function Login() {
                         initial={cInitial}
                         animate={cAnimate}
                         exit={cExit}
-                        transition={{ ...cTransition, delay: 0.5 }}
                         className="flex justify-center mb-6"
                     >
                         <Image alt="Logo" src="/free-logo.png" width={80} height={80} className="rounded-full shadow-md" />
@@ -118,15 +116,13 @@ function Login() {
                             initial={cInitial}
                             animate={cAnimate}
                             exit={cExit}
-                            transition={{ ...cTransition, delay: 0.6 }}
                         >
-                            <InputField key="liif-1" type='text' name='email' label='Email or Username' handleInputChange={handleInputChange} value="" />
+                            <InputField key="liif-1" type='text' name='email' label='Email or Username' handleInputChange={handleInputChange} />
                         </motion.div>
                         <motion.div
                             initial={cInitial}
                             animate={cAnimate}
                             exit={cExit}
-                            transition={{ ...cTransition, delay: 0.8 }}
                         >
                             <InputField key="liif-2" type='password' name='password' handleInputChange={handleInputChange} />
                         </motion.div>
@@ -135,7 +131,6 @@ function Login() {
                                 initial={cInitial}
                                 animate={cAnimate}
                                 exit={cExit}
-                                transition={{ ...cTransition, delay: 1.0 }}
                             >
                                 <InputField key="liif-3" type='password' name='passcode' handleInputChange={handleInputChange} />
                             </motion.div>
@@ -146,7 +141,6 @@ function Login() {
                             initial={cInitial}
                             animate={cAnimate}
                             exit={cExit}
-                            transition={{ ...cTransition, delay: 1.2 }}
                         >
                             Submit
                         </motion.button>

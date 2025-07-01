@@ -194,17 +194,5 @@ export interface ICheckedInput {
   checked: boolean;
 }
 
-export interface IEventPageProps {
-  params: {
-    eventId: string;
-  };
-}
-
-export interface IEventIdProps {
-  params: {
-    eventId: string;
-  };
-}
-
 // export type TParams = { [key: string]: string | string[] | undefined };
-export type TParams = Record<string, string>;
+export type TParams = Promise<Record<string, string>>;

@@ -1,16 +1,20 @@
-import { IEventPageProps } from '@/types';
 import UserMenuList from '@/components/layout/UserMenuList';
 import CurrentEvent from '@/components/event/CurrentEvent';
 import { getAllGroups } from '@/app/_requests/groups';
 import { notFound } from 'next/navigation';
 import { divisionsToOptionList } from '@/utils/helper';
 import GroupAddSidebar from '@/components/group/GroupAddSidebar';
+import { TParams } from '@/types';
 
 
+interface IGroupsPageProps{
+    params: TParams;
+}
 
-async function GroupsPage({ params }: IEventPageProps) {
+async function GroupsPage({ params }: IGroupsPageProps) {
+    const pathParams = await params;
 
-    const eventGroups = await getAllGroups(params.eventId);
+    const eventGroups = await getAllGroups(pathParams.eventId);
 
     if (!eventGroups) {
       notFound();
@@ -28,14 +32,14 @@ async function GroupsPage({ params }: IEventPageProps) {
             <div className="event-and-menu">
             <CurrentEvent currEvent={eventGroups} />
                 <div className="navigator mt-8">
-                    <UserMenuList eventId={params.eventId} />
+                    <UserMenuList eventId={pathParams.eventId} />
                 </div>
             </div>
             {/* Event Menu End */}
 
             <main className="container mx-auto py-10 flex flex-col lg:flex-row gap-10">
                 {/* Sidebar */}
-                <GroupAddSidebar divisionList={divisionList} eventId={params.eventId} groupList={groupList} />
+                <GroupAddSidebar divisionList={divisionList} eventId={pathParams.eventId} groupList={groupList} />
             </main>
         </div>
     );

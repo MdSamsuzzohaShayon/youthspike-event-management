@@ -946,7 +946,7 @@ input CreateEventInput {
   accessCode: String
   ldo: String!
   id: String
-  defaultSponsor: Boolean = false
+  defaultSponsor: Boolean = true
 }
 
 input UpdateEventInput {
@@ -972,7 +972,7 @@ input UpdateEventInput {
   accessCode: String
   ldo: String
   id: String
-  defaultSponsor: Boolean = false
+  defaultSponsor: Boolean = true
 }
 
 input EventSponsorStringInput {

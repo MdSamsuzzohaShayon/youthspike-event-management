@@ -33,7 +33,7 @@ export interface IEventSponsor {
 }
 
 export interface IEventSponsorAdd {
-  company: string;
+  company: string | null;
   logo: File | string | null;
 }
 

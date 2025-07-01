@@ -11,7 +11,7 @@ import { ApolloQueryResult, OperationVariables, useMutation } from '@apollo/clie
 import { DELETE_A_GROUP, UPDATE_GROUP } from '@/graphql/group';
 import { handleError } from '@/utils/handleError';
 import SelectInput from '../elements/forms/SelectInput';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 
 interface IGroupCardProps {
   group: IGroupExpRel;

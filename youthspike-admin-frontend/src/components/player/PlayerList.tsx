@@ -21,7 +21,7 @@ import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import { isISODateString } from '@/utils/datetime';
 import { setPlayerRankings } from '@/utils/localStorage';
 

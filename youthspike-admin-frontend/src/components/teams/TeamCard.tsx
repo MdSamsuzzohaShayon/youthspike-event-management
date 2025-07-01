@@ -108,7 +108,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     e.preventDefault();
     try {
       const dRes = await deleteTeam({ variables: { teamId } });
-      console.log(dRes);
 
       if (fefetchFunc) await fefetchFunc();
     } catch (error) {

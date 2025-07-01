@@ -69,7 +69,7 @@ export class EventResolver {
   @Mutation((returns) => CreateOrUpdateEventResponse)
   async createEvent(
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
-    @Args('input') args: CreateEventInput,
+    @Args('input') input: CreateEventInput,
     @Context() context: any,
     @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
@@ -95,13 +95,13 @@ export class EventResolver {
       if (loggedUser.role === UserRole.director) {
         directorId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin) {
-        if (!args.ldo) {
+        if (!input.ldo) {
           return AppResponse.handleError({
             success: false,
             message: 'You must provide a LDO id in order to create an Event!',
           });
         }
-        directorId = args.ldo;
+        directorId = input.ldo;
       }
       const findLdo = await this.ldoService.findByDirectorId(directorId);
       if (!findLdo)
@@ -129,7 +129,7 @@ export class EventResolver {
 
       // Arrange data and save to database
       const eventData = {
-        ...args,
+        ...input,
         ldo: findLdo._id,
         logo: logoUrl,
         sendCredentials: false,
@@ -230,8 +230,9 @@ export class EventResolver {
           newSponsorIds.push(...sponsorList.map((doc) => doc._id.toString()));
         }
 
+        // Find new sponsors
         if (sponsorsStringInput.length > 0) {
-          const prevSponsorList = await this.sponsorService.query({ event: eventId });
+          const prevSponsorList = await this.sponsorService.find({ event: eventId });
           if (prevSponsorList && prevSponsorList.length > 0) {
             for (const ps of prevSponsorList) {
               const matchedSponsor = sponsorsStringInput.find(
@@ -627,22 +628,22 @@ export class EventResolver {
 
   @ResolveField(() => [Player]) // Specify the return type for "players"
   async players(@Parent() event: Event): Promise<Player[]> {
-    const cacheKey = `event:${event._id}:players`; // Unique cache key for the event's players
+    // const cacheKey = `event:${event._id}:players`; // Unique cache key for the event's players
 
     try {
       // Check if the players are already in the cache
-      const cachedPlayers = await this.redisService.get(cacheKey);
+      // const cachedPlayers = await this.redisService.get(cacheKey);
 
-      if (cachedPlayers) {
-        // If cached, return the cached players
-        return JSON.parse(cachedPlayers as string);
-      }
+      // if (cachedPlayers) {
+      //   // If cached, return the cached players
+      //   return JSON.parse(cachedPlayers as string);
+      // }
 
       // If not cached, fetch the players from the database
       const players = await this.playerService.find({ _id: { $in: event.players } });
 
       // Store the players in the cache with an expiration time (e.g., 1 hour)
-      await this.redisService.set(cacheKey, JSON.stringify(players), REDIS_CACHE_EXPIRE);
+      // await this.redisService.set(cacheKey, JSON.stringify(players), REDIS_CACHE_EXPIRE);
 
       return players;
     } catch (error) {

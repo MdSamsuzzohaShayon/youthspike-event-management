@@ -91,7 +91,7 @@ export class CreateEventInput {
   @Field({ nullable: true })
   id?: string;
 
-  @Field({ nullable: true, defaultValue: false })
+  @Field({ nullable: true, defaultValue: true })
   defaultSponsor: boolean;
 }
 

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion } from "motion/react";
+import { motion } from 'motion/react';
 import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItem, ITeam } from '@/types';
 import { removePlayerRankings, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
@@ -10,11 +10,13 @@ import { CldImage } from 'next-cloudinary';
 import { EPlayerStatus } from '@/types/player';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import MatchCard from '../match/MatchCard';
 import Pagination from '../elements/Pagination';
 import Link from 'next/link';
 import TextImg from '../elements/TextImg';
+import useLdoUrl from '@/hooks/useLdoUrl';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface ITeamDetailProps {
   event: IEvent;
@@ -38,12 +40,11 @@ enum ETab {
   MATCHES = 'MATCHES',
 }
 
-
 const ITEMS_PER_PAGE = 20;
 
 function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc, playerList, unassignedPlayers, playerRanking, matchList, rankings }: ITeamDetailProps) {
   const { setActErr } = useError();
-
+  const { ldoIdUrl } = useLdoId();
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -78,21 +79,19 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     e.preventDefault();
     try {
       await mutateTeam({ variables: { input: { players: playerIdsToAdd }, teamId: team._id, eventId: event._id } });
-      if (refetchFunc) refetchFunc();
-      setAddPlayer(false);
+      window.location.reload();
     } catch (error) {
       console.log(error);
       // @ts-ignore
-      setActErr({ message: error?.message || "", success: false });
+      setActErr({ message: error?.message || '', success: false });
     }
   };
 
-  const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => { }
+  const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => {};
 
   useEffect(() => {
     //Removing player rankings
     removePlayerRankings();
-
 
     // Set division
     setDivisionToStore(team.division);
@@ -108,11 +107,10 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     setFilteredPlayers(nfpList);
   }, []);
 
-  const divisionalPlayers = useMemo(()=>{
+  const divisionalPlayers = useMemo(() => {
     const nfpList = unassignedPlayers ? unassignedPlayers.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase()) : [];
     return nfpList;
   }, [unassignedPlayers, team]);
-
 
   const paginatedMatchList: IMatchExpRel[] = useMemo(() => {
     // Paginated
@@ -123,26 +121,17 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     return paginatedTeams;
   }, [matchList, currentPage]);
 
-
-
   // const activePlayers = (playerList ? playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
   // const inactivePlayers = (playerList ? playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
-  const activePlayers: IPlayerExpRel[] = useMemo(()=>{
-    if(!playerList) return [];
+  const activePlayers: IPlayerExpRel[] = useMemo(() => {
+    if (!playerList) return [];
     return playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
   }, [playerList]);
 
-  const inactivePlayers: IPlayerExpRel[] = useMemo(()=>{
-    if(!playerList) return [];
+  const inactivePlayers: IPlayerExpRel[] = useMemo(() => {
+    if (!playerList) return [];
     return playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
   }, [playerList]);
-
-  console.log({playerList});
-  
-
-
-
-
 
   return (
     <React.Fragment>
@@ -150,11 +139,13 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
         {/* Header Section */}
         <div className="team-detail relative w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
           {/* Decorative Glow */}
-          <div className="overflow-gradient" />
+          {/* <div className="overflow-gradient" /> */}
 
           {/* Team Logo */}
           {team.logo ? (
-            <CldImage width={100} height={100} 
+            <CldImage
+              width={100}
+              height={100}
               src={team.logo}
               alt="Team logo"
               className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
@@ -177,10 +168,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
           </div>
 
           {/* Standings Button */}
-          <Link
-            href={`/events/a`}
-            className="mt-5 btn-info"
-          >
+          <Link href={`/${eventId}/${ldoIdUrl}`} className="mt-5 btn-info">
             View Standings
           </Link>
 
@@ -188,16 +176,18 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
           <div className="tab-menu w-full mt-6 relative z-10">
             <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
               <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.ROSTER ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
+                className={`w-1/2 text-center py-4 cursor-pointer ${
+                  selectedItem === ETab.ROSTER ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
               >
                 Rosters
               </li>
               <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${selectedItem === ETab.MATCHES ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
+                className={`w-1/2 text-center py-4 cursor-pointer ${
+                  selectedItem === ETab.MATCHES ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
               >
@@ -208,8 +198,8 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
         </div>
       </div>
 
-      {selectedItem === ETab.ROSTER && (
-        addPlayer ? (
+      {selectedItem === ETab.ROSTER &&
+        (addPlayer ? (
           <>
             <div className="flex w-full justify-between items-center mb-4">
               <h3>Add Player to Team</h3>
@@ -225,12 +215,11 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
             </form>
           </>
         ) : (
-
           <div className="bulk-operations-players mt-6 p-4 bg-gray-800 rounded-xl shadow-lg max-w-5xl mx-auto">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row w-full justify-between items-center gap-4">
               <h3 className="text-xl text-white font-semibold text-center md:text-left">Player List</h3>
-              <button className="bg-yellow-500 text-black px-4 py-2 rounded-md font-semibold hover:bg-yellow-600 transition duration-300 w-full md:w-auto" onClick={() => setAddPlayer(true)}>
+              <button className="bg-yellow-logo text-black px-4 py-2 rounded-md font-semibold hover:bg-yellow-600 transition duration-300 w-full md:w-auto" onClick={() => setAddPlayer(true)}>
                 Add Player to Team
               </button>
             </div>
@@ -269,22 +258,21 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
               </div>
             )}
           </div>
+        ))}
 
-
-
-        )
-      )}
-
-      {selectedItem === ETab.MATCHES && (<>
-        <div className='w-full'>
-          {paginatedMatchList.length > 0
-            ? paginatedMatchList.map((match, i) => (<MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />))
-            : <p>No match found of this team!</p>}
-        </div>
-        <div className="w-full">
-          <Pagination currentPage={currentPage} itemList={matchList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
-        </div>
-      </>
+      {selectedItem === ETab.MATCHES && (
+        <>
+          <div className="w-full">
+            {paginatedMatchList.length > 0 ? (
+              paginatedMatchList.map((match, i) => <MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />)
+            ) : (
+              <p>No match found of this team!</p>
+            )}
+          </div>
+          <div className="w-full">
+            <Pagination currentPage={currentPage} itemList={matchList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+          </div>
+        </>
       )}
 
       {/* Show captain  */}

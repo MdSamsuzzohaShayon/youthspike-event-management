@@ -9,15 +9,17 @@ import {
   IPlayerExpRel,
   IRoundRelatives,
   ITeam,
+  TParams,
 } from '@/types';
 import { getTeamData } from '../../../_requests/teams';
 
 interface TeamSingleMainProps {
-  params: { teamId: string; eventId: string };
+  params: TParams;
 }
 
-export default async function TeamSingleMain({ params: { teamId, eventId } }: TeamSingleMainProps) {
-  const teamData = await getTeamData(teamId);
+export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
+  const pathParams = await params;
+  const teamData = await getTeamData(pathParams.teamId);
   if (!teamData) return notFound();
 
   const {
@@ -72,7 +74,6 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
     return enrichedMatch;
   });
 
-  console.log({players});
   
 
   // --- Separate Players into assigned/unassigned ---
@@ -107,8 +108,7 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
   };
 
   const { teamPlayers, unassignedPlayers } = classifyPlayers(players);
-  
-  console.log({pl: teamPlayers.length, upl: unassignedPlayers.length});
+
   
 
   return (
@@ -118,7 +118,7 @@ export default async function TeamSingleMain({ params: { teamId, eventId } }: Te
         // @ts-ignore
         unassignedPlayers={unassignedPlayers}
         team={team}
-        eventId={eventId}
+        eventId={pathParams.eventId}
         divisionList={divisionList}
         teamList={oponentTeams}
         // @ts-ignore

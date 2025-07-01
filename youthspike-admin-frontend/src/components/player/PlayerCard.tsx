@@ -17,7 +17,7 @@ import { handleError, handleResponse } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 
 interface PlayerCardProps {
   player: IPlayerRank;

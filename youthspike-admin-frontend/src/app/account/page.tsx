@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React, { useEffect, useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
@@ -8,7 +8,8 @@ import { GET_LDO } from '@/graphql/director';
 import { IError, ILDO } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 import { motion } from 'motion/react';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
+import { useSearchParams } from 'next/navigation';
 
 const pageVariants = {
   hidden: { opacity: 0 },
@@ -23,6 +24,8 @@ const titleVariants = {
 const AccountPage = () => {
 
   const { setActErr } = useError();
+  const searchParams = useSearchParams()
+  const ldoIdParam = searchParams.get('ldoId');
 
   const [isLoading, setIsLoading] = useState(false);
   const [ldoState, setLdoState] = useState<ILDO | null>(null);
@@ -30,8 +33,6 @@ const AccountPage = () => {
   const [getLdo, { loading, error, refetch }] = useLazyQuery(GET_LDO, { fetchPolicy: 'network-only' });
 
   const fetchLDO = async () => {
-    const searchParams = new URLSearchParams(location.search);
-    const ldoIdParam = searchParams.get('ldoId');
 
     const { data } = await getLdo({ variables: { dId: ldoIdParam } });
     const ldoObj = data?.getEventDirector?.data;

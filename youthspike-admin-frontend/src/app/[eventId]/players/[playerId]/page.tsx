@@ -1,19 +1,18 @@
 import { getPlayerAndTeams } from '@/app/_requests/players';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import { IPlayerExpRel } from '@/types';
+import { IPlayerExpRel, TParams } from '@/types';
 import { notFound } from 'next/navigation';
 
 
 interface IPlayerSingleProps{
-  params: {
-    eventId: string;
-    playerId: string;
-  }
+  params: TParams
 }
 // GET_A_PLAYER_RAW
 async function PlayerSingle({ params }: IPlayerSingleProps) {
 
-  const playerAndTeams = await getPlayerAndTeams(params.playerId, params.eventId);
+  const pathParams = await params;
+
+  const playerAndTeams = await getPlayerAndTeams(pathParams.playerId, pathParams.eventId);
   
 
   if(!playerAndTeams){
@@ -29,7 +28,7 @@ async function PlayerSingle({ params }: IPlayerSingleProps) {
   return (
     <div className='container mx-auto px-4 min-h-screen'>
       <h1>Player Update</h1>
-       <PlayerAdd eventId={params.eventId} update prevPlayer={player} teamList={teams} />
+       <PlayerAdd eventId={pathParams.eventId} update prevPlayer={player} teamList={teams} />
     </div>
   )
 }

@@ -1,12 +1,9 @@
 'use client'
 
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import NetTeamCard from '@/components/net/NetTeamCard';
 import { GET_A_NET } from '@/graphql/net';
-import { useError } from '@/lib/ErrorContext';
-import { useLdoId } from '@/lib/LdoProvider';
-import { IError, INetRelatives } from '@/types';
+import { useError } from '@/lib/ErrorProvider';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery } from '@apollo/client';
 import React, { useEffect, useState } from 'react';

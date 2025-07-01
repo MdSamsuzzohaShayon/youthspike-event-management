@@ -1,18 +1,18 @@
 import { notFound } from 'next/navigation';
 import TeamStandingsMain from '@/components/teams/TeamStandingsMain';
 import { getTeamStandings } from './_fetch/teamstanding';
-import { IGroup, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import { IGroup, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam, TParams } from '@/types';
 
 interface ITeamStandingsPageProps {
-  params: {
-    eventId: string;
-  };
+  params: TParams;
 }
 
 
 
-export default async function TeamStandingsPage({ params: { eventId } }: ITeamStandingsPageProps) {
-  const eventData = await getTeamStandings(eventId);
+export default async function TeamStandingsPage({ params }: ITeamStandingsPageProps) {
+  const pathParams = await params;
+
+  const eventData = await getTeamStandings(pathParams.eventId);
 
   if (!eventData) {
     notFound();

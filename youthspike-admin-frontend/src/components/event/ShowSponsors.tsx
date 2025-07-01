@@ -6,12 +6,13 @@ import Image from 'next/image';
 
 interface IShowSponsors {
     fileList: IEventSponsorAdd[];
-    handleImgRemove: (e: React.SyntheticEvent, company: string) => void;
+    handleImgRemove: (e: React.SyntheticEvent, company: string | null) => void;
     defaultSponsor: boolean;
     handleDefaultSponsor: (e: React.SyntheticEvent) => void;
 }
 
 const ShowSponsors: React.FC<IShowSponsors> = ({ fileList, handleImgRemove, defaultSponsor, handleDefaultSponsor }) => {
+    
     return (
         <ul className="show-sponsors flex justify-between w-full items-center flex-wrap">
             {/* Default Sponsor */}

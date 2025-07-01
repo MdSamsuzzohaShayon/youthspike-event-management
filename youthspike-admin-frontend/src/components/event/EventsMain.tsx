@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 
 interface IItem {
   id: number;
@@ -140,7 +140,7 @@ function EventsMain({events, ldo}: IEventsMainProps) {
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {ldo?.logo ? (
           <div className="w-28 h-28 advanced-img rounded-full">
-            <CldImage width={100} height={100}  alt="LDO logo" className="" src={ldo?.logo} />
+            <CldImage width={100} height={100}  alt="LDO logo" className="w-24" src={ldo?.logo} />
           </div>
         ) : (
           <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 rounded-full object-cover object-fill" />
@@ -163,7 +163,7 @@ function EventsMain({events, ldo}: IEventsMainProps) {
           <p key={item.id} className="px-6 py-2 rounded-full bg-gray-800 flex items-center justify-between">
             {item.text}{' '}
             <span role="presentation" onClick={(e) => handleRemoveFilter(e, item.id)}>
-              <img src="/icons/close.svg" className="svg-white w-6 ml-2 p-0 m-0" alt="close" />
+              <Image height={50} width={50} src="/icons/close.svg" className="svg-white w-6 ml-2 p-0 m-0" alt="close" />
             </span>
           </p>
         ))}

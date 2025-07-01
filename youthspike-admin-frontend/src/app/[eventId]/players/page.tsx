@@ -1,22 +1,26 @@
-import { IEventPageProps, IPlayerExpRel, ITeam } from '@/types';
+import { IPlayerExpRel, ITeam, TParams } from '@/types';
 import { notFound } from 'next/navigation';
 import PlayersMain from '@/components/player/PlayersMain';
 import { getEventPlayersGroupsTeams } from '@/app/_requests/players';
 
-async function PlayersPage({ params: { eventId } }: IEventPageProps) {
+interface IPlayersPageProps {
+  params: TParams;
+}
 
-  const playersData = await getEventPlayersGroupsTeams(eventId);
+async function PlayersPage({ params }: IPlayersPageProps) {
+
+  const pathParams = await params;
+
+  const playersData = await getEventPlayersGroupsTeams(pathParams.eventId);
 
   if (!playersData) {
     notFound();
   }
 
-  // Matches, 
+  // Matches,
   const { event, players, groups, teams } = playersData;
 
-
   const teamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
-
 
   const playerList = players.map((p: IPlayerExpRel) => {
     const playerObj = { ...p };
@@ -24,7 +28,7 @@ async function PlayersPage({ params: { eventId } }: IEventPageProps) {
     if (p.teams && p.teams?.length > 0) {
       if (teamMap.has(p.teams[0])) {
         // @ts-ignore
-        playerTeams = [teamMap.get(p.teams[0])]
+        playerTeams = [teamMap.get(p.teams[0])];
       }
     }
     // @ts-ignore
@@ -32,9 +36,6 @@ async function PlayersPage({ params: { eventId } }: IEventPageProps) {
 
     return playerObj;
   });
-
-  
-
 
   return (
     <div className="container mx-auto px-4 min-h-screen">

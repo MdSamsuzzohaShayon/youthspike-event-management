@@ -21,7 +21,7 @@ const ToggleInput = ({ name, label, defaultValue, handleInputChange }: IToggleIn
   };
 
   return (
-    <div className="flex justify-between items-center bg-gray-800 px-3 py-1 rounded-md border border-gray-700 col-span-2">
+    <div className="flex justify-between items-center bg-gray-800 px-3 py-1 rounded-md border border-gray-700">
       <span className="capitalize text-lg font-semibold">{label || name}</span>
       <div
         className={`border border-yellow-logo ${isChecked ? 'bg-yellow-logo text-black' : 'bg-transparent'} 

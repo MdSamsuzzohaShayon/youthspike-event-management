@@ -2,11 +2,17 @@ import GroupAddOrUpdate from '@/components/group/GroupAddOrUpdate';
 import React from 'react';
 import { getEventWithGroups } from '@/app/_requests/groups';
 import { notFound } from 'next/navigation';
-import { IEventPageProps } from '@/types';
+import { TParams } from '@/types';
 
 
-async function NewGroup({ params: { eventId } }: IEventPageProps) {
-  const groupDetail = await getEventWithGroups(eventId);
+interface INewGroupProps{
+  params: TParams;
+}
+
+async function NewGroup({ params }: INewGroupProps) {
+  const pathParams = await params;
+
+  const groupDetail = await getEventWithGroups(pathParams.eventId);
 
   if (!groupDetail) {
     notFound();
@@ -38,7 +44,7 @@ async function NewGroup({ params: { eventId } }: IEventPageProps) {
             prevGroup={null}
             divisions={divisions}
             teamList={teams}
-            eventId={eventId}
+            eventId={pathParams.eventId}
           />
         </section>
       </main>

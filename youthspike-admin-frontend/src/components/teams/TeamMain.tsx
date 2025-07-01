@@ -121,7 +121,8 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
 
 
   const fefetchFunc = async () => {
-    await fetchEvent();
+    // await fetchEvent();
+    window.location.reload();
   };
 
 

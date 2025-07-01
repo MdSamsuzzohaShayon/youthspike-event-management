@@ -6,6 +6,7 @@ function setDivisionToStore(division: string) {
 }
 
 function getDivisionFromStore(): null | string {
+    if (typeof window === 'undefined') return null;
     const division = window.localStorage.getItem("division");
     if(division?.trim() === "undefined") {
         removeDivisionFromStore();
@@ -26,6 +27,7 @@ function setTeamToStore(teamId: string) {
 }
 
 function getTeamFromStore(): null | string {
+    if (typeof window === 'undefined') return null;
     const teamId = window.localStorage.getItem("team");
     if (teamId && teamId.trim() !== '') return teamId;
     return null;

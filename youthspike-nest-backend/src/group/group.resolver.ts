@@ -85,6 +85,7 @@ export class GroupResolver {
       if (updateInput.teams && updateInput.teams.length > 0) {
         for (const team of updateInput.teams) {
           const teamExist = await this.teamService.findOne({ _id: team });
+          // Remove from previous group
           if (teamExist && teamExist.group) {
             updatePromises.push(
               this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id } }),

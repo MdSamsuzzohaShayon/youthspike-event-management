@@ -4,7 +4,6 @@ import React from "react";
 import { APP_NAME, BACKEND_URL } from "../keys";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { createNewEvent } from "../emitSocketEvent";
 import { Socket } from "socket.io-client";
 import { ERosterLock } from "@/types/event";
 import { getCookie } from "../clientCookie";
@@ -77,7 +76,7 @@ async function addOrUpdateEvent({
         const sponsorStringList: IEventSponsorAdd[] = [];
         sponsorImgList.forEach((sponsor) => {
             if (typeof sponsor.logo === "string") {
-                sponsorStringList.push(sponsor);
+                sponsorStringList.push({company: sponsor.company, logo: sponsor.logo});
             } else {
                 sponsorFileList.push(sponsor);
             }
@@ -106,7 +105,7 @@ async function addOrUpdateEvent({
             }));
 
             // Sponsors
-            const mapObj: any = {};
+            const mapObj: Record<string, any> = {};
             for (let i = 0; i < sponsorFileList.length; i += 1) {
                 mapObj[i.toString()] = [`variables.sponsorsInput.${i}.logo`];
             }
@@ -187,7 +186,6 @@ async function addOrUpdateEvent({
         formEl.reset();
 
         if (newEventId) {
-            createNewEvent({ socket, eventId: newEventId })
             router.push(`/${newEventId}/${ldoIdUrl}`);
         };
     } catch (error) {

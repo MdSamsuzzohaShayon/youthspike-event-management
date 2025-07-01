@@ -31,12 +31,13 @@ import ImageInput from '../elements/forms/ImageInput';
 import { useSocket } from '@/lib/SocketProvider';
 import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import DateTimeInput from '../elements/forms/DateTimeInput';
 import InputField from '../elements/forms/InputField';
 import { createEvent } from '@/app/actions/event';
 import DivisionInputField from '../elements/forms/DivisionInputField';
 import { getLocalDateTimeISO } from '@/utils/datetime';
+import FileInput from '../elements/forms/FileInput';
 
 interface IAddMutationVariables {
   sponsorsInput: IEventSponsorAdd[];
@@ -74,7 +75,7 @@ const initialEvent: IEventAdd = {
   active: true,
 };
 
-const initialCurrSponsor = { logo: null, company: '' };
+const initialCurrSponsor = { logo: null, company: null };
 
 function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
   // Hooks
@@ -97,7 +98,15 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
   const [eventId, setEventId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>([]);
+  const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(
+    prevEvent
+      ? Array.isArray(prevEvent.sponsors)
+        ? prevEvent.sponsors.map((s) =>
+            typeof s === 'string' ? { company: s, logo: null } : s
+          )
+        : []
+      : []
+  );
 
   // GraphQL
   const [eventAdd] = useMutation(ADD_EVENT);
@@ -194,7 +203,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   };
 
-  const handleImgRemove = (e: React.SyntheticEvent, companyName: string) => {
+  const handleImgRemove = (e: React.SyntheticEvent, companyName: string | null) => {
     e.preventDefault();
     setSponsorImgList((prevState) => {
       // Need to update
@@ -235,17 +244,33 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   };
 
-  useClickOutside(addSponsorDialogEl, () => {
-    closeModal();
-  });
+  // useClickOutside(addSponsorDialogEl, () => {
+  //   closeModal();
+  // });
 
   const handleCloseModal = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    setCurrSponsor(initialCurrSponsor);
     closeModal();
   };
 
   const handleOk = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    // Check curr sponsor name and logo, then add them to list
+    // Find prev sponsor
+    // const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
+    // // const prevSponsor = currSponsor.company === ;
+    // const sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: inputedFile };
+
+    // setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
+    if(!currSponsor.company || !currSponsor.logo){
+      setActErr({code: 400, message: "Company name and logo can not be empty!", success: false});
+      return;
+    }
+
+    const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
+    const sponsorObj = prevSponsor ? { ...prevSponsor, ...currSponsor } : currSponsor;
+    setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
     closeModal();
   };
 
@@ -261,16 +286,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     if (!fileInputEl.files || fileInputEl.files.length === 0) return;
 
     const inputedFile = fileInputEl.files[0];
-
-    if (currSponsor.company && currSponsor.company !== '') {
-      const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
-      const sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: inputedFile };
-      setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
-      setCurrSponsor((prevState) => ({ ...prevState, logo: inputedFile }));
-    } else {
-      setCurrSponsor((prevState) => ({ ...prevState, logo: inputedFile }));
-      setSponsorImgList((prevState) => [...prevState, { company: currSponsor.company, logo: inputedFile }]);
-    }
+    setCurrSponsor((prevState) => ({ ...prevState, logo: inputedFile }));
   };
 
   const handleLogoChange = (uploadedFile: MediaSource | Blob) => {
@@ -380,13 +396,14 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
         />
       </div>
 
-      <dialog ref={addSponsorDialogEl}>
+      {/* Sponsor dialog start  */}
+      <dialog ref={addSponsorDialogEl} className="w-5/6">
         <div className="close-wrapper w-full flex justify-end items-center">
           <Image width={imgSize.logo} height={imgSize.logo} alt="close-icon" src="/icons/close.svg" role="presentation" onClick={handleCloseModal} className="svg-white w-6" />
         </div>
         <div className="flex items-center justify-center flex-col">
           <InputField key="ti-eau-5" type="text" handleInputChange={handleFileNameChange} name="company" required={false} />
-          <AnyFileInput handleFileChange={handleFileChange} name="logo" vertical lblTxt="Sponsor Logo" />
+          <FileInput handleFileChange={handleFileChange} name="logo" vertical lblTxt="Sponsor Logo" />
           <div className="input-group mt-4">
             <button type="button" className="btn-info" onClick={handleOk}>
               Ok
@@ -394,6 +411,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
           </div>
         </div>
       </dialog>
+      {/* Sponsor dialog start  */}
       <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
         <h3 className="text-2xl capitalize">Sponsors</h3>
         <button type="button" onClick={handleSponsorDialog} className="btn-info">
@@ -405,12 +423,9 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
       {/* Submit Button */}
       <div className="col-span-2 flex justify-center">
         <button type="submit" className="bg-yellow-400 text-black px-6 py-3 rounded-md font-bold text-lg mt-4 hover:bg-yellow-300">
-          Submit
+        {update ? 'Update' : 'Submit'}
         </button>
       </div>
-      {/* <button className="btn-info" type="submit">
-            {update ? 'Update' : 'Submit'}
-          </button> */}
     </form>
   );
 }

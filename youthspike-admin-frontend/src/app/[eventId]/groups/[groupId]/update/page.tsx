@@ -1,11 +1,9 @@
 'use client'
 
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import GroupAddOrUpdate from '@/components/group/GroupAddOrUpdate';
 import { GET_A_GROUP, GET_EVENT_WITH_GROUP } from '@/graphql/group';
-import { useError } from '@/lib/ErrorContext';
-import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorProvider';
 import { IError, IGroupAdd, IGroupExpRel, ITeam } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 import { useLazyQuery } from '@apollo/client';

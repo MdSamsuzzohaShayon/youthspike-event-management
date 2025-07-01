@@ -22,7 +22,6 @@ import {
   DivisionInputProps,
   ITeamSelectProps,
   IDateChangeHandlerProps,
-  IEventPageProps,
   TParams
 } from "./elements";
 import { IUser, IDirector, IAddDirector, IUserContext, IDirectorItem } from "./user";
@@ -59,7 +58,6 @@ export type {
   DivisionInputProps,
   ITeamSelectProps,
   IDateChangeHandlerProps,
-  IEventPageProps,
   TParams,
 
   // Event

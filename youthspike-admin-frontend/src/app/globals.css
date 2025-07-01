@@ -76,7 +76,7 @@ input:-ms-autofill:focus {
 
 /* New  */
 dialog {
-  @apply bg-gray-800 text-gray-100 p-2 rounded-lg;
+  @apply bg-gray-800 text-gray-100 p-2 rounded-lg fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10;
 }
 
 dialog::backdrop {
@@ -201,7 +201,7 @@ dialog::backdrop {
 
 /* Diagonal linear */
 .bg-gray-gradient-diagonal {
-  @apply bg-gradient-to-tr from-gray-900 to-gray-800;
+  @apply md:bg-gradient-to-tr md:from-gray-900 md:to-gray-800;
 }
 /* Background styling end  */
 

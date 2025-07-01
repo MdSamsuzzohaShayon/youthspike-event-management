@@ -11,7 +11,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import Pagination from '../elements/Pagination';
 
 interface TeamListProps {
@@ -207,6 +207,9 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     // inactive players won't have rankings
     return paginatedTeams;
   }, [teamList, currentPage]);
+
+  // console.log({paginatedTeamList, groupList});
+  
 
   return (
     <div className="team-list w-full">

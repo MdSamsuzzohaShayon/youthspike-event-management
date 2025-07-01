@@ -1,14 +1,17 @@
 import { notFound } from 'next/navigation';
 import TeamMain from './TeamMain';
 import { getEventWithTeams } from '@/app/_requests/teams';
-import { IEventPageProps } from '@/types';
+import { TParams } from '@/types';
 
 
 
 
-
-export default async function Team({ params: { eventId } }: IEventPageProps) {
-  const eventDetail = await getEventWithTeams(eventId);
+interface ITeamProps{
+  params: TParams;
+}
+export default async function Team({params}: ITeamProps) {
+  const pathParams = await params;
+  const eventDetail = await getEventWithTeams(pathParams.eventId);
 
   if (!eventDetail) {
     notFound();

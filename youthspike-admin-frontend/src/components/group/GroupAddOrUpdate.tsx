@@ -12,7 +12,7 @@ import { ADD_GROUP } from '@/graphql/group';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useRouter } from 'next/navigation';
 import { EGroupRule, IGroupExpRel } from '@/types/group';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 
 interface IGroupAddOrUpdateProps {
@@ -21,7 +21,6 @@ interface IGroupAddOrUpdateProps {
   update: boolean;
   prevGroup: IGroupAdd | null;
   eventId: string;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function GroupAddOrUpdate({ eventId, divisions, teamList, update, prevGroup }: IGroupAddOrUpdateProps) {

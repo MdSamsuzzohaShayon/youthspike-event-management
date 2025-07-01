@@ -13,18 +13,17 @@ import ImageInput from '../elements/forms/ImageInput';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 import Loader from '../elements/Loader';
 
 interface IPlayerAddProps {
   eventId: string,
-  prevPlayer?: IPlayer | null;
-  setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   teamList: ITeam[];
   division?: string;
+  prevPlayer?: IPlayer | null;
+  setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   update?: boolean;
-  playerAddCB?: (playerData: IPlayerExpRel) => void;
 }
 
 const initialPlayerAdd: IPlayerAdd = {
@@ -37,7 +36,7 @@ const initialPlayerAdd: IPlayerAdd = {
   division: ''
 };
 
-function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, division, playerAddCB }: IPlayerAddProps) {
+function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, division }: IPlayerAddProps) {
 
   const router = useRouter();
   const user = useUser();
@@ -53,12 +52,14 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
   const uploadedProfile = useRef<File | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [teamId, setTeamId] = useState<string | null>(null);
 
-  const refetchFunc = async () => {
-    // stub
-  };
+  
 
-  const playerUpdateCB = (playerData: IPlayerExpRel) => { };
+
+  const refetch = async () => {
+    window.location.reload();
+   };
 
   // Unified field updater
   const handleFieldChange = useCallback((name: string, value: string) => {
@@ -86,12 +87,13 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
     await addOrUpdatePlayer({
       setIsLoading, setActErr, playerState, division, eventId, uploadedProfile,
       playerUpdate, prevPlayer, updatePlayer, ldoIdUrl, addPlayer,
-      playerAddCB, playerUpdateCB, setPlayerState, initialPlayerAdd,
-      setAddPlayer, router, e, update, refetchFunc
+      setPlayerState, initialPlayerAdd,
+      setAddPlayer, router, e, update, refetch,
+      team: teamId
     });
   }, [setIsLoading, setActErr, playerState, division, eventId, uploadedProfile,
     playerUpdate, prevPlayer, updatePlayer, ldoIdUrl, addPlayer,
-    playerAddCB, router, update]);
+    router, update]);
 
   // Set initial state when editing
   useEffect(() => {
@@ -114,6 +116,9 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
       ...(getTeamFromStore() ? { team: getTeamFromStore()! } : {}),
       ...(getDivisionFromStore() ? { division: getDivisionFromStore()! } : {})
     }));
+
+    const teamExist = getTeamFromStore();
+    setTeamId(teamExist || null);
   }, []);
 
   // Set director id
@@ -149,7 +154,7 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
       </div>
 
       {!update && (
-        <SelectInput name='team' className='mt-6' defaultValue={playerState.team} optionList={teamOptions} handleSelect={handleTeamChange} />
+        <SelectInput name='team' className='mt-6' value={playerState.team} optionList={teamOptions} handleSelect={handleTeamChange} />
       )}
 
       <div className="input-group w-full mb-4">

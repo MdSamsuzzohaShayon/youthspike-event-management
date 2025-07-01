@@ -4,7 +4,7 @@ import Loader from '@/components/elements/Loader';
 import MatchAdd from '@/components/match/MatchAdd';
 import RoundList from '@/components/round/RoundList';
 import { GET_A_MATCH } from '@/graphql/matches';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import React, { useState, useEffect } from 'react';

@@ -136,7 +136,7 @@ const eventResponse = `
  * Query
  * =========================================================================================================================================
  */
-const GET_A_TEAM = gql`
+const GET_A_TEAM_RAW = `
   query GetTeam($teamId: String!) {
     getTeam(teamId: $teamId) {
       code
@@ -155,8 +155,9 @@ const GET_A_TEAM = gql`
       }
     }
   }
-  
 `;
+
+const GET_A_TEAM = gql`${GET_A_TEAM_RAW}`;
 
 
 const GET_TEAM_DETAIL_RAW = `
@@ -546,4 +547,4 @@ query GetTeamStandings($eventId: String!) {
 
 export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, 
   GET_EVENT_WITH_TEAMS_RAW, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, 
-  DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW, GET_TEAM_DETAIL_RAW};
+  DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW, GET_TEAM_DETAIL_RAW, GET_A_TEAM_RAW};

@@ -36,8 +36,6 @@ const FileInput = (props: IFileFileProps) => {
                 imgEl = (
                     <CldImage width={100} height={100} 
                         className='w-32 h-32 object-cover object-center'
-                        width="960"
-                        height="600"
                         src={props.defaultValue}
                         sizes="100vw"
                         alt="Description of my image"

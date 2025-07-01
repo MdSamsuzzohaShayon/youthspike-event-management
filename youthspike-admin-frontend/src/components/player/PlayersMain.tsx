@@ -62,11 +62,6 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
     }
   };
 
-  // ===== Callback functions =====
-  const playerAddCB = (playerData: IPlayerExpRel) => {
-    setPlayerList((prevState) => [...prevState, playerData]);
-    setFilteredPlayerList((prevState) => [...prevState, playerData]);
-  };
 
 
   const refetchFunc = async () => {

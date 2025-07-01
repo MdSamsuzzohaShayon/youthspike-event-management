@@ -21,9 +21,6 @@ function NewTeamMain({ eventId, divisionList, players, groups }: INewTeamMainPro
         e.preventDefault();
     }
 
-    const teamAddCB = async (teamData: ITeam) => {
-        // await fetchPlayers();
-    }
 
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
         e.preventDefault();
@@ -39,22 +36,25 @@ function NewTeamMain({ eventId, divisionList, players, groups }: INewTeamMainPro
 
 
     const filteredPlayers = useMemo(() => {
+        if(!currDivision) return players;
         return players.filter((t) => t.division && t.division.trim().toLowerCase() === currDivision.trim().trim().toLowerCase());
     }, [currDivision, players]);
 
 
     const filteredGroupList = useMemo(()=>{
+        if(!currDivision) return groups;
         return groups.filter((g) => g.division.toLowerCase() === currDivision.trim().toLowerCase());
     }, [currDivision, groups]);
 
     
+
     return (
         <div>
             <div className="mt-2 division-selection w-full">
                 <SelectInput key="teams-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name='division' optionList={divisionList} />
             </div>
             <TeamAdd groupList={filteredGroupList} setIsLoading={setIsLoading} players={filteredPlayers} handleClose={handleClose}
-                eventId={eventId} currDivision={currDivision} teamAddCB={teamAddCB} />
+                eventId={eventId} currDivision={currDivision} />
         </div>
     )
 }

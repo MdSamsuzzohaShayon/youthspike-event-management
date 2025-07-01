@@ -17,6 +17,7 @@ interface IEventsPageProps{
 
 async function EventsPage({ searchParams }: IEventsPageProps) {
   const params = await searchParams;
+  
   const cookieStore = await cookies();
   const user = cookieStore.get('user')?.value;
   const token = cookieStore.get('token')?.value;

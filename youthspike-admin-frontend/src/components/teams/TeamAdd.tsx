@@ -1,15 +1,15 @@
 import { useMutation } from '@apollo/client';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { IOption, IPlayer, ITeam, ITeamAdd, IGroup } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import FileInput from '../elements/forms/FileInput';
 import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 
 interface IPrevTeam extends ITeamAdd {
@@ -23,11 +23,9 @@ interface ITeamAddProps {
     groupList: IGroup[];
     handleClose: (e: React.SyntheticEvent) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    teamAddCB?: (teamData: ITeam) => void;
     currDivision?: string;
     update?: boolean;
     prevTeam?: IPrevTeam;
-    refetchFunc?: () => Promise<void>;
 }
 
 const initialTeamState = {
@@ -40,7 +38,7 @@ const initialTeamState = {
     captain: ''
 };
 
-function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, teamAddCB, refetchFunc }: ITeamAddProps) {
+function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision }: ITeamAddProps) {
 
     const router = useRouter();
     const { ldoIdUrl } = useLdoId();
@@ -50,7 +48,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
     const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
     const [playerIdList, setPlayerIdList] = useState<string[]>([]);
-    const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>(players || []);
+    const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
 
     const uploadedLogo = useRef<File | null>(null);
 
@@ -58,11 +56,14 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     const [addTeam, { data, loading, error }] = useMutation(ADD_A_TEAM);
     const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation(UPDATE_TEAM);
 
-
-    console.log(prevTeam);
-
-
-
+    const refetch = (url?: string) => {
+        if (url) {
+            router.push(url);
+        } else {
+            router.push(`/${eventId}/teams/${ldoIdUrl}`);
+        }
+    };
+    
 
     // Handle events
     const handleTeamAdd = async (e: React.SyntheticEvent) => {
@@ -70,15 +71,15 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         const success = await addOrUpdateTeam({
             setActErr,
             eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
+            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision
         });
 
         if (success) {
-            if (refetchFunc) await refetchFunc();
             const formEl = e.target as HTMLFormElement;
             formEl.reset();
             handleClose(e);
-            router.push(`/${eventId}/teams/${ldoIdUrl}`);
+            refetch();
+            // router.push(`/${eventId}/teams/${ldoIdUrl}`);
         }
     }
 
@@ -87,9 +88,10 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         await addOrUpdateTeam({
             setActErr,
             eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision, teamAddCB
+            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision
         });
-        if (refetchFunc) await refetchFunc();
+        // refetch(`/${eventId}/teams/new/${ldoIdUrl}`);
+        window.location.reload();
     }
 
 
@@ -129,12 +131,16 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         }
     }
 
+    useEffect(()=>{
+        setAvailablePlayers(players || []);
+    }, [players]);
+
     // Renders
-    const toBeCaptains = () => {
+    const toBeCaptains = useMemo(() => {
         const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
         const options = makeOptionList(playersWithEmail);
         return <SelectInput name='captain' optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />
-    }
+    }, [availablePlayers, playerIdList])
 
     return (
         <form onSubmit={handleTeamAdd} className='flex flex-col gap-2'>
@@ -151,7 +157,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
             {!update && (<div className="player-input mb-4">
                 <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />
             </div>)}
-            {playerIdList.length > 0 && !update && toBeCaptains()}
+            {playerIdList.length > 0 && !update && toBeCaptains}
 
             <div className="input-group w-full mb-4">
                 <button className='btn-info mr-2' type='submit'>{update ? "Update" : "Save"}</button>

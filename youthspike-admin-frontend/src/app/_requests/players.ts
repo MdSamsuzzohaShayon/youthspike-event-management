@@ -2,6 +2,23 @@ import { GET_A_PLAYER_RAW, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW, GET_EVENT_WITH_TE
 import { isValidObjectId } from "@/utils/helper";
 import { BACKEND_URL } from "@/utils/keys";
 
+async function getAPlayer(playerId: string | null) {
+  if (!isValidObjectId(playerId)) return null;
+
+  const res = await fetch(`${BACKEND_URL}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: GET_A_PLAYER_RAW,
+      variables: { playerId }, // { playerId: params.playerId }
+    }),
+    cache: 'no-store',
+  });
+
+  const { data } = await res.json();
+  return data?.getEvent?.data || null;
+}
+
 async function getEventWithPlayers(eventId: string) {
   if (!isValidObjectId(eventId)) return null;
 
@@ -67,4 +84,4 @@ async function getPlayerAndTeams(playerId: string, eventId: string) {
 
 
 
-export {getEventWithPlayers, getEventPlayersGroupsTeams, getPlayerAndTeams};
+export {getEventWithPlayers, getEventPlayersGroupsTeams, getPlayerAndTeams, getAPlayer};

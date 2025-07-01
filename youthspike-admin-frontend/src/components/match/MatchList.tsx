@@ -17,7 +17,7 @@ import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
 import { getDivisionFromStore } from '@/utils/localStorage';
 import { UserRole } from '@/types/user';
-import { useError } from '@/lib/ErrorContext';
+import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 
 const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
