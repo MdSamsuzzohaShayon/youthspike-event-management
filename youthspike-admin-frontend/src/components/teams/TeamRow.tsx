@@ -1,11 +1,10 @@
 /* eslint-disable react/require-default-props */
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import { rowVariant } from '@/utils/animation';
-import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
 import { useLdoId } from '@/lib/LdoProvider';
 
@@ -32,7 +31,7 @@ function TeamRow({ eventId, team, teamScores, index, selectedGroup }: ITeamRowPr
         <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex justify-center items-center gap-2">
           <span>
             {team?.logo ? (
-              <AdvancedImage cldImg={cld.image(team.logo)} className="w-14 h-14 object-fit object-cover" />
+              <CldImage width={100} height={100}  alt="Team logo" src={team.logo} className="w-14 h-14 object-fit object-cover" />
             ) : (
               <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
             )}

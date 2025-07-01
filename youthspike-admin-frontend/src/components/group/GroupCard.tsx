@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cardVariants, menuVariants } from '@/utils/animation';
 import { ApolloQueryResult, OperationVariables, useMutation } from '@apollo/client';
 import { DELETE_A_GROUP, UPDATE_GROUP } from '@/graphql/group';

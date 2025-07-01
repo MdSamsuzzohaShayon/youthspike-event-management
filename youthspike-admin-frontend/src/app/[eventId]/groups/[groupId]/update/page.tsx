@@ -9,7 +9,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { IError, IGroupAdd, IGroupExpRel, ITeam } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 import { useLazyQuery } from '@apollo/client';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import React, { useEffect, useState } from 'react';
 
 interface IUpdatePageProps {

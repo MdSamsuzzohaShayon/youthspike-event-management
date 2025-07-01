@@ -3,13 +3,20 @@
 import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { getEventDirector } from './_requests/ldo';
-import { IUserContext } from '@/types';
+import { IUserContext, TParams } from '@/types';
 import { UserRole } from '@/types/user';
 import { LDO_ID, UNAUTHORIZED } from '@/utils/constant';
 import EventsMain from '@/components/event/EventsMain';
 import { logoutAction } from './actions/auth';
 
-async function EventsPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+
+
+interface IEventsPageProps{
+  searchParams: Promise<TParams> 
+}
+
+async function EventsPage({ searchParams }: IEventsPageProps) {
+  const params = await searchParams;
   const cookieStore = await cookies();
   const user = cookieStore.get('user')?.value;
   const token = cookieStore.get('token')?.value;
@@ -23,7 +30,7 @@ async function EventsPage({ searchParams }: { searchParams: { [key: string]: str
 
   // http://localhost:3000/?ldoId=skwhj4i2u2j3g23j
   if (userContext.info?.role === UserRole.admin) {
-    directorId = searchParams[LDO_ID] as string;
+    directorId = params[LDO_ID] as string;
 
     if (!directorId) {
       redirect('/admin');

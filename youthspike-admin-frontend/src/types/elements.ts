@@ -11,12 +11,10 @@ export enum EAssignStrategies {
   ANCHORING = 'ANCHORING',
 }
 
-
-export enum EEnv{
-  development = "development",
-  production = "production",
+export enum EEnv {
+  development = 'development',
+  production = 'production',
 }
-
 
 export interface IMenuItem {
   id: number;
@@ -32,32 +30,31 @@ export interface ITextCommon {
   required?: boolean;
   value?: string | number;
   readOnly?: boolean;
-  
 }
 
 export interface InputFieldProps extends ITextCommon {
-    type: string;
-    tooltip?: string;
-    defaultValue?: string | number;
-    handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type: string;
+  tooltip?: string;
+  defaultValue?: string | number;
+  handleInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export interface DivisionInputProps extends ITextCommon {
   defaultValue?: string;
 }
 
-export interface ITextInputProps extends ITextCommon { 
+export interface ITextInputProps extends ITextCommon {
   defaultValue?: string;
   handleInputChange?: (e: React.SyntheticEvent) => void;
 }
 export interface IPasswordInputProps extends ITextInputProps {
   svgColor?: string;
- }
+}
 
 export interface ITextareaInputProps extends ITextCommon {
   defaultValue?: string;
   handleInputChange?: (e: React.SyntheticEvent) => void;
- }
+}
 
 export interface IPlayerSelectProps {
   name: string;
@@ -77,14 +74,14 @@ export interface ITeamSelectProps {
   eventId: string;
 }
 
-export interface IDateChangeHandlerProps{ 
-  name: string; 
-  value: string; 
+export interface IDateChangeHandlerProps {
+  name: string;
+  value: string;
 }
 
 export interface IDateinputProps extends ITextCommon {
   defaultValue?: string;
-  handleDateChange?: ({ name, value }: IDateChangeHandlerProps) => void;  
+  handleDateChange?: ({ name, value }: IDateChangeHandlerProps) => void;
 }
 
 export interface IFileFileProps {
@@ -129,7 +126,6 @@ export interface IToggleInputProps extends ITextCommon {
   defaultValue?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
-
 
 export interface ICheckboxInputProps {
   name: string;
@@ -190,15 +186,13 @@ export interface ILoginProps {
   password: string;
   setPassword: React.Dispatch<React.SetStateAction<string>>;
   passcode: string;
-  setPasscode: React.Dispatch<React.SetStateAction<string>>
+  setPasscode: React.Dispatch<React.SetStateAction<string>>;
 }
 
-
-export interface ICheckedInput{
+export interface ICheckedInput {
   _id: string;
   checked: boolean;
 }
-
 
 export interface IEventPageProps {
   params: {
@@ -206,9 +200,11 @@ export interface IEventPageProps {
   };
 }
 
-
-export interface IEventIdProps{
+export interface IEventIdProps {
   params: {
     eventId: string;
   };
 }
+
+// export type TParams = { [key: string]: string | string[] | undefined };
+export type TParams = Record<string, string>;

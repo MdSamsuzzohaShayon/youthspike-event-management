@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { ADD_DIRECTOR } from '@/graphql/director';
 import { IAddDirector, ILDO, ILdoUpdate, IError } from '@/types';
 import { UPDATE_DIRECTOR } from '@/graphql/director';

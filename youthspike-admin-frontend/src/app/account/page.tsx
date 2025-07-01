@@ -7,7 +7,7 @@ import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
 import { IError, ILDO } from '@/types';
 import { handleResponse } from '@/utils/handleError';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useError } from '@/lib/ErrorContext';
 
 const pageVariants = {

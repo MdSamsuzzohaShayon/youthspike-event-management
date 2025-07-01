@@ -1,47 +1,25 @@
-'use client'
+'use client';
 
-import { IEvent, IUserContext } from "@/types";
-import { ISOToReadableDate } from "@/utils/helper";
-import { AdvancedImage } from "@cloudinary/react";
-import React, { useMemo } from "react";
-import { useUser } from "@/lib/UserProvider";
-import { UserRole } from "@/types/user";
-import Image from "next/image";
-import cld from "@/config/cloudinary.config";
+import { IEvent, IUserContext } from '@/types';
+import { ISOToReadableDate } from '@/utils/helper';
+import { CldImage } from 'next-cloudinary';
+import React, { useMemo } from 'react';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types/user';
+import Image from 'next/image';
 
 const EventDetail = ({ currEvent }: { currEvent: IEvent }) => {
   const user = useUser();
-  
 
   const displayLogo: React.ReactNode = useMemo(() => {
-    let logoEl = (
-      <Image
-        width={128}
-        height={128}
-        alt="default-logo"
-        src="/free-logo.png"
-        className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400"
-      />
-    );
+    let logoEl = <Image width={128} height={128} alt="default-logo" src="/free-logo.png" className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" />;
     if (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) {
       if (user?.info?.teamLogo) {
-        logoEl = (
-          <AdvancedImage
-            cldImg={cld.image(user.info.teamLogo)}
-            className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400"
-            alt="event-logo"
-          />
-        );
+        logoEl = <CldImage width={100} height={100}  className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" alt="event-logo" width="960" height="600" src={user.info.teamLogo} sizes="100vw" />;
       }
     } else if (user.info?.role === UserRole.admin || user.info?.role === UserRole.director) {
       if (currEvent?.logo) {
-        logoEl = (
-          <AdvancedImage
-            cldImg={cld.image(currEvent.logo)}
-            className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400"
-            alt="event-logo"
-          />
-        );
+        logoEl = <CldImage width={100} height={100}  src={currEvent.logo} className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" alt="event-logo" width="960" height="600" sizes="100vw" />;
       }
     }
     return <React.Fragment>{logoEl}</React.Fragment>;
@@ -54,23 +32,18 @@ const EventDetail = ({ currEvent }: { currEvent: IEvent }) => {
         <div className="overflow-gradient"></div>
 
         {/* Floating Logo */}
-        <div className="relative z-10 -mt-24 p-4 bg-gray-800 rounded-full shadow-lg">
-          {displayLogo}
-        </div>
+        <div className="relative z-10 -mt-24 p-4 bg-gray-800 rounded-full shadow-lg">{displayLogo}</div>
 
         {/* Event Title */}
-        <h1 className="relative z-10 text-2xl md:text-4xl font-extrabold text-center tracking-wide text-white">
-          {currEvent.name}
-        </h1>
+        <h1 className="relative z-10 text-2xl md:text-4xl font-extrabold text-center tracking-wide text-white">{currEvent.name}</h1>
 
         {/* Team Name with Badge */}
-        {(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && ( <div className="team-name relative z-10 flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
-          <span className="bg-yellow-500 text-black text-sm md:text-base px-3 py-1 rounded-full shadow">
-            Featured Team
-          </span>
-          <h3 className="text-lg md:text-xl font-medium text-yellow-400">{ user.info?.team }</h3>
-        </div>)}
-
+        {(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && (
+          <div className="team-name relative z-10 flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
+            <span className="bg-yellow-500 text-black text-sm md:text-base px-3 py-1 rounded-full shadow">Featured Team</span>
+            <h3 className="text-lg md:text-xl font-medium text-yellow-400">{user.info?.team}</h3>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="relative z-10 w-10 h-1 bg-yellow-400 rounded-full"></div>
@@ -79,25 +52,13 @@ const EventDetail = ({ currEvent }: { currEvent: IEvent }) => {
         <div className="relative z-10 grid grid-cols-1 gap-4 text-gray-300 text-sm md:text-base w-full">
           {/* Location */}
           <div className="flex items-center justify-center gap-3">
-            <Image
-              width={20}
-              height={20}
-              alt="location-icon"
-              className="w-6 h-6 svg-white object-fit object-cover"
-              src="/icons/location.svg"
-            />
+            <Image width={20} height={20} alt="location-icon" className="w-6 h-6 svg-white object-fit object-cover" src="/icons/location.svg" />
             <p className="font-medium text-center md:text-left">{currEvent.location}</p>
           </div>
 
           {/* Event Date */}
           <div className="flex items-center justify-center gap-3">
-            <Image
-              width={20}
-              height={20}
-              alt="clock-icon"
-              className="w-6 h-6 svg-white object-fit object-cover"
-              src="/icons/clock.svg"
-            />
+            <Image width={20} height={20} alt="clock-icon" className="w-6 h-6 svg-white object-fit object-cover" src="/icons/clock.svg" />
             <p className="font-medium text-center md:text-left">
               {ISOToReadableDate(currEvent.startDate)} - {ISOToReadableDate(currEvent.endDate)}
             </p>

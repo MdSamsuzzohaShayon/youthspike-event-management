@@ -3,10 +3,9 @@
  * https://codesandbox.io/p/sandbox/react-image-crop-demo-s8xr4?file=%2Fsrc%2Findex.js%3A100%2C12-100%2C21
  * https://codesandbox.io/p/sandbox/react-easy-crop-v69ly910ql?file=%2Fsrc%2Findex.js
  * */
-import cld from '@/config/cloudinary.config';
 import { IImageFileProps } from '@/types';
 import { fileToImgSrc, getCroppedImgBlob, handleScaleImage } from '@/utils/croppedImage';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -144,7 +143,10 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     let imgEl: null | HTMLImageElement | React.ReactNode = null;
     if (!filename || filename === '') {
       if (defaultValue && typeof defaultValue === 'string') {
-        imgEl = <AdvancedImage className='w-full md:w-1/3 object-cover object-center' cldImg={cld.image(defaultValue)} />
+        imgEl = <CldImage width={100} height={100}  className='w-full md:w-1/3 object-cover object-center' width="960"
+        height="600"
+        sizes="100vw"
+        alt="Description of my image" src={defaultValue} />
       }
     } else {
       if (croppedImageUrl && croppedImageUrl !== '') {

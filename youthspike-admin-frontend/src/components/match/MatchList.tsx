@@ -10,7 +10,7 @@ import { EEventPeriod } from '@/types/event';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCHES } from '@/graphql/matches';
 import { handleError, handleResponse } from '@/utils/handleError';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { cardAnimate } from '@/utils/animation';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';

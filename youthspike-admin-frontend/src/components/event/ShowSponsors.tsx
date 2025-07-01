@@ -1,8 +1,8 @@
-import cld from '@/config/cloudinary.config';
 import { IEventSponsorAdd } from '@/types';
 import { APP_NAME } from '@/utils/keys';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import React from 'react';
+import Image from 'next/image';
 
 interface IShowSponsors {
     fileList: IEventSponsorAdd[];
@@ -33,17 +33,15 @@ const ShowSponsors: React.FC<IShowSponsors> = ({ fileList, handleImgRemove, defa
             {/* Sponsor List */}
             {fileList.map(({ company, logo }, index) => {
                 const isStringLogo = typeof logo === 'string';
-                const imgSrc = isStringLogo ? cld.image(logo) : URL.createObjectURL(logo as File);
+                const imgSrc = isStringLogo ? logo : URL.createObjectURL(logo as File);
 
                 return (
                     <li className="relative" key={index}>
                         <div className="w-20 static">
                             {isStringLogo ? (
-                                // @ts-ignore 
-                                <AdvancedImage cldImg={imgSrc} alt={`Sponsor ${index + 1}`} className="w-full" />
+                                <CldImage width={100} height={100}  src={imgSrc} alt={`Sponsor ${index + 1}`} className="w-full" />
                             ) : (
-                                // @ts-ignore 
-                                <img src={imgSrc} alt={`Sponsor ${index + 1}`} className="w-full" />
+                                <Image width={100} height={100} src={imgSrc} alt={`Sponsor ${index + 1}`} className="w-full" />
                             )}
                             <p>{company}</p>
                         </div>

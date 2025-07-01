@@ -2,7 +2,7 @@ import { RefObject, useEffect } from "react";
 
 
 
-const useClickOutside = (elRef: RefObject<HTMLElement>, handleClose: () => void) => {
+const useClickOutside = (elRef: RefObject<HTMLElement | null>, handleClose: () => void) => {
     const handleClickOutside = (e: MouseEvent) => {
         if (elRef.current) {
             const elementDimensions = elRef.current.getBoundingClientRect();

@@ -1,9 +1,8 @@
-import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 import { IMatchExpRel } from '@/types/match';
 import { UserRole } from '@/types/user';
 import { FRONTEND_URL } from '@/utils/keys';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import { readDate, readDateTemp } from '@/utils/datetime';
@@ -16,7 +15,7 @@ import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 
 interface MatchCardProps {
@@ -78,7 +77,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
     return (
       <React.Fragment>
-        <div className="advanced-img w-14">{team?.logo ? <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" /> : <img src="/free-logo.png" className="w-full h-full" />}</div>
+        <div className="advanced-img w-14">{team?.logo ? <CldImage width={100} height={100}  alt="team logo" src={team?.logo} className="w-full h-full" /> : <img src="/free-logo.png" className="w-full h-full" />}</div>
         <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && win ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
         <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${match.completed && win ? 'bg-green-600' : ''}`}>{myPointsOfRound}</h1>
       </React.Fragment>

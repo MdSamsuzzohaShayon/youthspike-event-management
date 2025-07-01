@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sortable from 'sortablejs';
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 import "./PlayerList.css";
 import useScreenWidth from '../../hooks/useScreenWidth';

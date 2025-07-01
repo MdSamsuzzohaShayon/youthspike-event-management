@@ -1,15 +1,12 @@
 /* eslint-disable no-unused-vars */
-import cld from '@/config/cloudinary.config';
-import { IUserContext } from '@/types';
 import { IEvent } from '@/types/event';
-import { UserRole } from '@/types/user';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useLdoId } from '@/lib/LdoProvider';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 
 interface IEventCardProps {
@@ -27,7 +24,8 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
   const { ldoIdUrl } = useLdoId();
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const ulEl = useRef<HTMLUListElement | null>(null);
+  const ulEl = useRef<HTMLElement | null>(null);
+
 
   useClickOutside(ulEl, () => {
     setActionOpen(false);
@@ -108,7 +106,9 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
       </div>
       <Link href={`/${event._id}/${ldoIdUrl}`}>
         <div className="img-wrapper w-full flex justify-center items-center">
-          {event.logo ? <AdvancedImage cldImg={cld.image(event.logo)} alt="logo" className="w-12" /> : <Image src="/free-logo.png" width={20} height={20} alt='free-logo' className="w-12 h-12" />}
+          {event.logo ? <CldImage width={100} height={100}   src={event.logo} alt="logo" 
+
+ className="w-12" /> : <Image src="/free-logo.png" width={20} height={20} alt='free-logo' className="w-12 h-12" />}
         </div>
         <div className="text-box text-center">
           <h3 className="text-lg font-bold mb-0">{event.name}</h3>

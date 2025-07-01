@@ -11,8 +11,7 @@ import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
 import { IEvent, ILDO } from '@/types';
 import { useRouter } from 'next/navigation';
-import cld from '@/config/cloudinary.config';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
@@ -141,7 +140,7 @@ function EventsMain({events, ldo}: IEventsMainProps) {
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {ldo?.logo ? (
           <div className="w-28 h-28 advanced-img rounded-full">
-            <AdvancedImage className="" cldImg={cld.image(ldo?.logo)} />
+            <CldImage width={100} height={100}  alt="LDO logo" className="" src={ldo?.logo} />
           </div>
         ) : (
           <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 rounded-full object-cover object-fill" />

@@ -9,7 +9,7 @@ import { ILDO, ILDOItem } from '@/types';
 interface IDirectorsMainProps{
     ldoList: ILDOItem[];
 }
-async function DirectorsMain({ldoList}: IDirectorsMainProps) {
+function DirectorsMain({ldoList}: IDirectorsMainProps) {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addNewDirector, setAddNetDirector] = useState<boolean>(false);

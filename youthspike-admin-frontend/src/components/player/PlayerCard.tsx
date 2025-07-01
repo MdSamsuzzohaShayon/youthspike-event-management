@@ -1,9 +1,8 @@
-import cld from '@/config/cloudinary.config';
 import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { IPlayerExpRel, EPlayerStatus } from '@/types/player';
 import { ApolloError, useMutation } from '@apollo/client';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { IError, IOption, IPlayerRank, ITeam } from '@/types';
@@ -16,7 +15,7 @@ import EmailInput from '../elements/forms/EmailInput';
 import SelectInput from '../elements/forms/SelectInput';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorContext';
 
@@ -259,7 +258,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
               <div className="advanced-img w-20 h-20 border border-yellow rounded-lg border-4">
                 {player.profile ? (
-                  <AdvancedImage className="w-full h-full " cldImg={cld.image(player.profile)} />
+                  <CldImage width={100} height={100}  alt="player's profile picture" className="w-full h-full " src={player.profile} />
                 ) : (
                   <Image width={imgSize.xs} height={imgSize.xs} src="/icons/sports-man.svg" alt="" className="svg-white w-full h-full" />
                 )}

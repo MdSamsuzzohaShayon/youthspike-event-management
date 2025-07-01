@@ -1,18 +1,15 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItem, ITeam } from '@/types';
 import { removePlayerRankings, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import { EPlayerStatus } from '@/types/player';
-import cld from '@/config/cloudinary.config';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
-import Image from 'next/image';
-import UserMenuList from '../layout/UserMenuList';
 import { useError } from '@/lib/ErrorContext';
 import MatchCard from '../match/MatchCard';
 import Pagination from '../elements/Pagination';
@@ -157,8 +154,9 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
 
           {/* Team Logo */}
           {team.logo ? (
-            <AdvancedImage
-              cldImg={cld.image(team.logo)}
+            <CldImage width={100} height={100} 
+              src={team.logo}
+              alt="Team logo"
               className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
             />
           ) : (

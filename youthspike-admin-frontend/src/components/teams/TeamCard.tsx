@@ -6,8 +6,7 @@ import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { useRouter } from 'next/navigation';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
+import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
 import { cardHeight, imgSize } from '@/utils/style';
 import useClickOutside from '../../hooks/useClickOutside';
@@ -15,7 +14,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import { UPDATE_GROUP } from '@/graphql/group';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 
 interface ITeamCardProps {
@@ -231,7 +230,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           <div className="flex items-center gap-4">
             {team.logo ? (
               <div className="rounded-full overflow-hidden w-14 h-14 border border-yellow-400">
-                <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} />
+                <CldImage width={100} height={100}  src={team.logo} alt={team.name} />
               </div>
             ) : (
               <Image
@@ -268,7 +267,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             <div className="flex flex-col lg:flex-row items-center gap-3">
               {team.captain.profile ? (
                 <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden">
-                  <AdvancedImage cldImg={cld.image(team.captain.profile)} alt={team.captain.firstName} />
+                  <CldImage width={100} height={100}  src={team.captain.profile} alt={team.captain.firstName} />
                 </div>
               ) : (
                 <Image

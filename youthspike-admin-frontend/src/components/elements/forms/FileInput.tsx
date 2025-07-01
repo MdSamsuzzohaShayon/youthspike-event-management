@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IFileFileProps, ITextInputProps } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
+import { CldImage } from 'next-cloudinary';
 
 const FileInput = (props: IFileFileProps) => {
     const fileInputEl = useRef<HTMLInputElement>(null);
@@ -34,7 +33,16 @@ const FileInput = (props: IFileFileProps) => {
         let imgEl: null | HTMLImageElement | React.ReactNode = null;
         if (!fileName || fileName === '') {
             if (props.defaultValue && typeof props.defaultValue === 'string') {
-                imgEl = <AdvancedImage className='w-32 h-32 object-cover object-center' cldImg={cld.image(props.defaultValue)} />
+                imgEl = (
+                    <CldImage width={100} height={100} 
+                        className='w-32 h-32 object-cover object-center'
+                        width="960"
+                        height="600"
+                        src={props.defaultValue}
+                        sizes="100vw"
+                        alt="Description of my image"
+                    />
+                );
             }
         } else {
             if (fileUrl && fileUrl !== '') {

@@ -1,6 +1,5 @@
-import cld from '@/config/cloudinary.config';
 import { ILDOItem } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React from 'react';
 
@@ -15,7 +14,7 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
         <tr className='border-b border-gray-800 hover:bg-gray-800 text-center'  >
             <td className="py-2 px-4 capitalize" >{ldo.name}</td>
             <td className="py-2 px-4 capitalize" >
-                {ldo?.logo ? <AdvancedImage className="w-8" cldImg={cld.image(ldo?.logo)} /> : ''}
+                {ldo?.logo ? <CldImage width={100} height={100} alt="Ldo Logo" className="w-8" src={ldo?.logo} /> : ''}
             </td>
             <td className="py-2 px-4 capitalize break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
             <td className="py-2 px-4 lowercase" >{ldo.phone}</td>

@@ -9,7 +9,7 @@ import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorContext';
 import Pagination from '../elements/Pagination';

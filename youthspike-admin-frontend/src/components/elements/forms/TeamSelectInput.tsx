@@ -19,7 +19,6 @@ function TeamSelectInput(props: ITeamSelectProps) {
                 {props.teamList.map((ap) => (
                     <li key={ap._id} className='flex gap-1 items-center'>
                         <input type="checkbox" onChange={(e) => handleCheckboxChange(e, ap._id)} />
-                        {/* {ap.profile && <AdvancedImage cldImg={cld.image(ap.profile)} className="w-12" alt={`${ap.firstName}-profile`} /> } */}
                         <span className='capitalize'>{`${ap.name}`}</span>
                     </li>
                 ))}

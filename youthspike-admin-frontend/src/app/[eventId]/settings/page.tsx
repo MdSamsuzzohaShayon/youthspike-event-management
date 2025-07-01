@@ -11,7 +11,7 @@ import { GET_AN_EVENT } from '@/graphql/event';
 import { GET_A_PLAYER } from '@/graphql/players';
 import { isValidObjectId } from '@/utils/helper';
 import { useUser } from '@/lib/UserProvider';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useError } from '@/lib/ErrorContext';
 import { getCookie } from '@/utils/clientCookie';
 

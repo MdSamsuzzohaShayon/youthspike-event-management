@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useMutation } from '@apollo/client';
 import Image from 'next/image';
 import { DELETE_DIRECTOR } from '@/graphql/director';

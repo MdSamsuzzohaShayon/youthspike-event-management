@@ -34,6 +34,7 @@ export const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+
 function ApolloWrapper({ children }: React.PropsWithChildren) {
   return (
     <ApolloProvider client={client}>

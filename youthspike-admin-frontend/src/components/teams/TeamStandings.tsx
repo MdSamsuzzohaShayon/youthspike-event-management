@@ -2,7 +2,7 @@
 /* eslint-disable react/require-default-props */
 import { IMatch, IMatchExpRel, IPlayer, ITeam } from '@/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ETeam, ITeamScore } from '@/types/team';
 import { tableVariant } from '@/utils/animation';
 import TeamRow from './TeamRow';

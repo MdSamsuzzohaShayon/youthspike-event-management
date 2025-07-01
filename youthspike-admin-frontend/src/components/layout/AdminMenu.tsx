@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { IUserContext } from '@/types';
 import { useParams, useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
