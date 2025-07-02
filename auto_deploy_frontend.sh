@@ -56,7 +56,7 @@ success "Old project removed."
 info "Cloning project from GitHub..."
 git clone "$GIT_REPO" "$CLONE_DIR"
 cd "$CLONE_DIR"
-# git switch "$GIT_BRANCH"
+git switch "$GIT_BRANCH"
 git log -n 10
 # git log --oneline --graph --decorate --all
 cd ~
@@ -65,18 +65,31 @@ success "Repository cloned and switched to branch '$GIT_BRANCH'."
 ### Setup youthspike-admin-frontend
 info "Setting up youthspike-admin-frontend..."
 cd "$CLONE_DIR/youthspike-admin-frontend"
-export NODE_ENV="development"
+export NODE_ENV="production"
 npm install
+npm install --production
 nano src/utils/keys.ts
+
+info "Copy environment variables..."
+nano .env
+cat .env
+success "Done copying environment variable."
+
+info "Build before deployment..."
 npm run build
+success "Done building for production."
+
+info "Deploying..."
 pm2 start ecosystem.config.js
+pm2 list
 success "Admin frontend deployed."
 
 ### Setup youthspike-frontend
 info "Setting up youthspike-frontend..."
 cd "$CLONE_DIR/youthspike-frontend"
-export NODE_ENV="development"
+export NODE_ENV="production"
 npm install
+npm install --production
 nano src/utils/keys.ts
 npm run build
 pm2 start ecosystem.config.js
