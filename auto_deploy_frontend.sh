@@ -35,7 +35,9 @@ function error_exit() {
 
 ### Update & Upgrade System
 info "Updating system packages..."
-sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
+sudo apt update -y
+sudo apt upgrade -y 
+sudo apt autoremove -y
 success "System updated."
 
 ### Stop and clean PM2
@@ -67,7 +69,6 @@ info "Setting up youthspike-admin-frontend..."
 cd "$CLONE_DIR/youthspike-admin-frontend"
 export NODE_ENV="production"
 npm install
-npm install --production
 nano src/utils/keys.ts
 
 info "Copy environment variables..."
@@ -89,7 +90,6 @@ info "Setting up youthspike-frontend..."
 cd "$CLONE_DIR/youthspike-frontend"
 export NODE_ENV="production"
 npm install
-npm install --production
 nano src/utils/keys.ts
 npm run build
 pm2 start ecosystem.config.js
