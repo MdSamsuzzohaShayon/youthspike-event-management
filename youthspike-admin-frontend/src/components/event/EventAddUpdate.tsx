@@ -403,7 +403,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
         </div>
         <div className="flex items-center justify-center flex-col">
           <InputField key="ti-eau-5" type="text" handleInputChange={handleFileNameChange} name="company" required={false} />
-          <FileInput handleFileChange={handleFileChange} name="logo" vertical lblTxt="Sponsor Logo" />
+          <FileInput handleFileChange={handleFileChange} name="sponsorLogo" vertical lblTxt="Sponsor Logo" />
           <div className="input-group mt-4">
             <button type="button" className="btn-info" onClick={handleOk}>
               Ok

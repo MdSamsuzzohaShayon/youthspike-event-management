@@ -2,13 +2,13 @@
 
 import Loader from '@/components/elements/Loader';
 import GroupAddOrUpdate from '@/components/group/GroupAddOrUpdate';
-import { GET_A_GROUP, GET_EVENT_WITH_GROUP } from '@/graphql/group';
+import { GET_A_GROUP } from '@/graphql/group';
 import { useError } from '@/lib/ErrorProvider';
-import { IError, IGroupAdd, IGroupExpRel, ITeam } from '@/types';
+import { IGroupAdd, ITeam } from '@/types';
 import { handleResponse } from '@/utils/handleError';
 import { useLazyQuery } from '@apollo/client';
 import { motion } from 'motion/react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface IUpdatePageProps {
   params: {
@@ -18,7 +18,7 @@ interface IUpdatePageProps {
 }
 
 function UpdateGroupPage({ params: { eventId, groupId } }: IUpdatePageProps) {
-  const [getGroup, { data, loading, error }] = useLazyQuery(GET_A_GROUP, {
+  const [getGroup, { loading }] = useLazyQuery(GET_A_GROUP, {
     variables: { groupId },
     fetchPolicy: 'network-only',
   });

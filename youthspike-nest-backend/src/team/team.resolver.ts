@@ -548,13 +548,13 @@ export class TeamResolver {
 
       // Attributes of matches
       const matchIds = matches.map((m) => m._id);
-      const oponentTeamIds = [
-        ...new Set(matches.map((m) => (m.teamA.toString() === teamId ? m.teamB.toString() : m.teamA.toString()))),
-      ];
-      const [rounds, nets, oponentTeams] = await Promise.all([
+      // const oponentTeamIds = [
+      //   ...new Set(matches.map((m) => (m.teamA.toString() === teamId ? m.teamB.toString() : m.teamA.toString()))),
+      // ];
+      const [rounds, nets, teams] = await Promise.all([
         this.roundService.find({ match: { $in: matchIds } }),
         this.netService.find({ match: { $in: matchIds } }),
-        this.teamService.find({ _id: { $in: oponentTeamIds } }),
+        this.teamService.find({ event: team.event }),
       ]);
 
       return {
@@ -572,7 +572,7 @@ export class TeamResolver {
           rankings,
           rounds,
           nets,
-          oponentTeams,
+          teams,
         },
       };
     } catch (err) {

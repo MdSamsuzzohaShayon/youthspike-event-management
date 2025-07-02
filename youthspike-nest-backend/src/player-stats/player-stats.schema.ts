@@ -68,6 +68,8 @@ export class PlayerStats extends AppDocument {
   @Prop({ default: 0 })
   matchPlayed: number;
 
+
+  // Relationship
   @Field(() => Match, { nullable: true })
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Match', required: true })
   match: string | Match;

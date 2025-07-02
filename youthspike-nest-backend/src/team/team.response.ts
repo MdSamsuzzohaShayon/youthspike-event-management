@@ -171,8 +171,10 @@ export class TeamDetails {
   @Field((_type) => [CustomNet], { nullable: true })
   nets: CustomNet[];
 
+  // @Field((_type) => [Team], { nullable: true })
+  // oponentTeams: Team[];
   @Field((_type) => [Team], { nullable: true })
-  oponentTeams: Team[];
+  teams: Team[];
 }
 @ObjectType()
 export class GetTeamDetailsResponse extends AppResponse<TeamDetails> {

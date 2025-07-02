@@ -5,6 +5,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import TeamAdd from './TeamAdd';
 import { removeDivisionFromStore, setDivisionToStore } from '@/utils/localStorage';
 import { IGroup, IOption, IPlayer, ITeam } from '@/types';
+import Loader from '../elements/Loader';
 
 interface INewTeamMainProps{
     eventId: string;
@@ -45,6 +46,8 @@ function NewTeamMain({ eventId, divisionList, players, groups }: INewTeamMainPro
         if(!currDivision) return groups;
         return groups.filter((g) => g.division.toLowerCase() === currDivision.trim().toLowerCase());
     }, [currDivision, groups]);
+
+    if(isLoading) return <Loader />
 
     
 

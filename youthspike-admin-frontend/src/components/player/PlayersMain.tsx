@@ -25,7 +25,6 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
   // ===== hooks =====
   const user = useUser();
 
-
   // ===== Local State =====
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -36,11 +35,9 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
   const [currDivision, setCurrDivision] = useState<string>('');
   const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
   const [filteredPlayerList, setFilteredPlayerList] = useState<IPlayerExpRel[]>([]);
-  const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
-
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -62,23 +59,19 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
     }
   };
 
-
-
   const refetchFunc = async () => {
     // await refetch();
     // fetchPlayer();
     window.location.reload();
   };
 
-
   /**
- * Lifecycle hooks
- * Getting and setting event ID & director ID
- * Fetching players
- */
+   * Lifecycle hooks
+   * Getting and setting event ID & director ID
+   * Fetching players
+   */
   useEffect(() => {
-    const divs = currEvent?.divisions ? divisionsToOptionList(currEvent?.divisions) : []; // divs = divisions
-    setDivisionList(divs);
+   
 
     // ===== Show players of captain's team =====
     let npList: IPlayerExpRel[] = [...players];
@@ -93,7 +86,7 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
         if (teamId) {
           const teamExist = teams.find((t) => t._id === teamId);
           if (teamExist && teamExist) {
-            setTeamId(teamId)
+            setTeamId(teamId);
             if (teamExist.playerRanking) {
               setTeamPlayerRanking(teamExist.playerRanking);
             }
@@ -112,7 +105,7 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
         npList = [];
       }
     }
-    setPlayerList(npList)
+    setPlayerList(npList);
 
     let fpList = [...npList]; // fp list = filtered players list
     let ftList = teams; // fp list = filtered players list
@@ -130,19 +123,18 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
     setFilteredTeamList(ftList);
   }, [currEvent, user]);
 
-
-
-
-
   const activeList = useMemo(() => {
-    return filteredPlayerList.filter(p => p.status === EPlayerStatus.ACTIVE);
+    return filteredPlayerList.filter((p) => p.status === EPlayerStatus.ACTIVE);
   }, [filteredPlayerList]);
 
   const inactiveList = useMemo(() => {
-    return filteredPlayerList.filter(p => p.status === EPlayerStatus.INACTIVE);
+    return filteredPlayerList.filter((p) => p.status === EPlayerStatus.INACTIVE);
   }, [filteredPlayerList]);
 
-
+  const divisions = useMemo(() => {
+    return currEvent?.divisions ? divisionsToOptionList(currEvent?.divisions) : [];
+  }, [currEvent]);
+  
 
   if (isLoading) return <Loader />;
 
@@ -151,64 +143,68 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
       {/* Event Menu Start */}
       <div className="event-and-menu">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
-        <div className="team-name text-center">
-          {(user && user.info?.team) && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
-        </div>
+        <div className="team-name text-center">{user && user.info?.team && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}</div>
         <div className="navigator mt-8">
           <UserMenuList eventId={currEvent._id} />
         </div>
       </div>
       {/* Event Menu End */}
 
-      {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
-        <div className="mb-4 division-selection w-full mt-6">
-          <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisionList} />
-        </div>
-      )}
-
       {addPlayer ? (
         <>
-          <h3 className="mt-4">Player Add</h3>
-          <button className="btn-info mt-4" type="button" onClick={() => setAddPlayer(false)}>
-            Player List
-          </button>
-          <PlayerAdd
-            eventId={currEvent._id}
-            setAddPlayer={setAddPlayer}
-            teamList={filteredTeamList}
-            division={currDivision}
-          />
+          <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
+            <h3 className="">Player Add</h3>
+            <button className="btn-info" type="button" onClick={() => setAddPlayer(false)}>
+              Player List
+            </button>
+          </div>
+          {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+            <div className="mb-4 division-selection w-full mt-6">
+              <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
+            </div>
+          )}
+          <PlayerAdd eventId={currEvent._id} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} />
         </>
       ) : (
         <>
-          <div className="w-full bg-gray-800 flex justify-between items-centet mb-2 p-2 rounded-lg">
-            <h3 className="mt-4">Player List</h3>
+          <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
+            <h3 className="">Player List</h3>
             {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-              <button className="btn-info mt-4 mb-4" type="button" onClick={() => setAddPlayer(true)}>
+              <button className="btn-info" type="button" onClick={() => setAddPlayer(true)}>
                 Add player
               </button>
             )}
           </div>
-          <PlayerList
-            playerList={activeList}
-            eventId={currEvent._id}
-            setIsLoading={setIsLoading}
-            rankControls={rankControls && !lockRank}
-            refetchFunc={refetchFunc}
-            teamList={filteredTeamList}
-            divisionList={divisionList}
-            showRank={showRank}
-            playerRanking={teamPlayerRanking}
-            teamId={teamId}
-            currEvent={currEvent}
-          />
-
-
+          <div className="player-list mt-6">
+            <PlayerList
+              playerList={activeList}
+              eventId={currEvent._id}
+              setIsLoading={setIsLoading}
+              rankControls={rankControls && !lockRank}
+              refetchFunc={refetchFunc}
+              teamList={filteredTeamList}
+              divisionList={divisions}
+              showRank={showRank}
+              playerRanking={teamPlayerRanking}
+              teamId={teamId}
+              currEvent={currEvent}
+            />
+          </div>
 
           {inactiveList.length > 0 && (
             <div className="w-full">
               <h3 className="mt-4">Inactive Players List</h3>
-              <PlayerList key="inactive-players" inactive currEvent={currEvent} eventId={currEvent._id} playerList={inactiveList} setIsLoading={setIsLoading} refetchFunc={refetchFunc} teamList={filteredTeamList} divisionList={divisionList} />
+              <PlayerList
+                key="inactive-players"
+                inactive
+                currEvent={currEvent}
+                eventId={currEvent._id}
+                playerList={inactiveList}
+                setIsLoading={setIsLoading}
+                refetchFunc={refetchFunc}
+                teamList={filteredTeamList}
+                divisionList={divisions}
+              />
             </div>
           )}
         </>

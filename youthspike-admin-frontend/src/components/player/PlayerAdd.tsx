@@ -158,7 +158,7 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
       )}
 
       <div className="input-group w-full mb-4">
-        <button type="submit" className='btn-info mt-8'>{update ? "Update" : "Create"}</button>
+        <button type="submit" className='btn-info mt-8 w-full'>{update ? "Update" : "Create"}</button>
       </div>
     </form>
   );

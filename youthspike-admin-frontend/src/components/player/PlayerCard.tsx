@@ -34,10 +34,7 @@ interface PlayerCardProps {
   rank?: number | null;
 }
 
-
-
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, isChecked, handleSelectPlayer, }: PlayerCardProps) {
-
+function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, isChecked, handleSelectPlayer }: PlayerCardProps) {
   const { setActErr } = useError();
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
@@ -48,6 +45,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
   const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
   const [newEmail, setNewEmail] = useState<string>('');
   const dialogEl = useRef<HTMLDialogElement | null>(null);
+  const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
@@ -89,17 +87,18 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     e.preventDefault();
     setMovePlayer(true);
     setActionOpen((prevState) => !prevState);
+    dialogMoveEl.current?.showModal();
   };
   const handleMovePlayer = async (e: React.SyntheticEvent, playerId: string) => {
     e.preventDefault();
     try {
-      const playerInputObj: { playerTeamId?: string; team: string | null } = { team: newTeamId };
       const prevTeamId = teamId;
+      const playerInputObj: { newTeamId?: string; team: string | null } = { team: teamId || null };
       if (prevTeamId && player?.teams && player?.teams.length > 0) {
-        const nti = player?.teams[0];
-        const teamExist = teamList?.find((t) => t._id === nti._id);
+        // const nti = player?.teams[0];
+        const teamExist = teamList?.find((t) => t._id === newTeamId);
         if (teamExist) {
-          playerInputObj.playerTeamId = teamExist._id;
+          playerInputObj.newTeamId = teamExist._id;
         }
       }
       const response = await mutatePlayer({
@@ -115,6 +114,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       if (refetchFunc) await refetchFunc();
       setActionOpen(false);
       setMovePlayer(false);
+      dialogMoveEl.current?.close();
     } catch (error: any) {
       handleError({ error, setActErr });
     }
@@ -182,6 +182,12 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     closeModal();
   };
 
+  const handleCloseMovePlayer = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setMovePlayer(false);
+    dialogMoveEl.current?.close();
+  };
+
   const handleCaptainEmail = async (e: React.SyntheticEvent) => {
     /**
      * Add email for player
@@ -219,12 +225,13 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     const inputEl = e.target as HTMLSelectElement;
     const dl: IOption[] = [];
     for (let i = 0; i < teamList.length; i += 1) {
-      if (teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
-        dl.push({ id: i+1, text: teamList[i].name, value: teamList[i]._id });
+      if (teamList[i]._id !== teamId && teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
+        dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
       }
     }
     setTeamOptions(dl);
-  };
+  }; 
+  
 
   // eslint-disable-next-line no-unused-vars
   const handleTeamChange = async (e: React.SyntheticEvent, playerId: string) => {
@@ -233,8 +240,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     setNewTeamId(inputEl.value);
   };
 
-
-// O(n^2)
+  // O(n^2)
   const playerAssignment = useMemo((): null | string => {
     let teamFound = null;
     if (player?.teams && player?.teams.length > 0) {
@@ -244,21 +250,16 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     return teamFound ? teamFound.name : null;
   }, [player]);
 
-
-
-
   return (
     <>
-      <div
-        className={`relative flex items-center gap-3 w-full`}
-      >
+      <div className={`relative flex items-center gap-3 w-full`}>
         {/* Draggable element start  */}
         <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>
           <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
             <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
               <div className="advanced-img w-20 h-20 border border-yellow rounded-lg border-4">
                 {player.profile ? (
-                  <CldImage width={100} height={100}  alt="player's profile picture" className="w-full h-full " src={player.profile} />
+                  <CldImage width={100} height={100} alt="player's profile picture" className="w-full h-full " src={player.profile} />
                 ) : (
                   <Image width={imgSize.xs} height={imgSize.xs} src="/icons/sports-man.svg" alt="" className="svg-white w-full h-full" />
                 )}
@@ -268,13 +269,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
-                {
-                  !showRank
-                  && !teamId
-                  && user.info?.role !== UserRole.captain
-                  && user.info?.role !== UserRole.co_captain
-                  && <p className="text-yellow-logo uppercase">{(player?.teams || [])[0]?.name || "Unassigned"}</p>
-                }
+                {!showRank && !teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && (
+                  <p className="text-yellow-logo uppercase">{(player?.teams || [])[0]?.name || 'Unassigned'}</p>
+                )}
               </div>
             </div>
 
@@ -306,20 +303,29 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
               exit="exit"
               transition={{ duration: 0.2 }}
             >
-              <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' >
+              <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
                 <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
               {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
                 <React.Fragment>
                   {rankControls && player.status === EPlayerStatus.ACTIVE && (
                     <>
-                      <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
-
+                      <li
+                        role="presentation"
+                        className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}
+                      >
                         Make Captain
                       </li>
-                      <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}>
-
+                      <li
+                        role="presentation"
+                        className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}
+                      >
                         Make Co-Captain
+                      </li>
+                      <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={handleMovePlayerBox}>
+                        Move Player
                       </li>
                     </>
                   )}
@@ -327,15 +333,15 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                     Move Player
                   </li> */}
                   {player.status === EPlayerStatus.ACTIVE ? (
-                    <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
+                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
                       Make Inactive
                     </li>
                   ) : (
-                    <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
+                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
                       Make Active
                     </li>
                   )}
-                  <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleDelete(e, player._id)}>
+                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleDelete(e, player._id)}>
                     Delete
                   </li>
                 </React.Fragment>
@@ -350,13 +356,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
             className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             aria-label="Options"
           >
-            <Image
-              width={imgSize.logo}
-              height={imgSize.logo}
-              src="/icons/dots-vertical.svg"
-              alt="options"
-              className="w-5 h-5 svg-white"
-            />
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
           </button>
         </div>
         {/* Operation menu ende  */}
@@ -366,17 +366,17 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
           <form onSubmit={handleCaptainEmail}>
             {/* @ts-ignore */}
-            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)}  />
+            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} />
             <button className="btn-info mt-4" type="submit">
               Make Captain
             </button>
           </form>
         </dialog>
         {/* Add email operation end  */}
-      </div>
-      {movePlayer && (
-        <div className="w-full move-team w-full p-2 bg-gray-800 flex flex-col items-start justify-end relative">
-          <button type="button" className="close" aria-label="close" onClick={() => setMovePlayer(false)}>
+
+        {/* Move player operation start  */}
+        <dialog ref={dialogMoveEl} className="w-5/6">
+          <button type="button" className="close" aria-label="close" onClick={handleCloseMovePlayer}>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" />
           </button>
           <form className="w-full" onSubmit={(e) => handleMovePlayer(e, player._id)}>
@@ -386,8 +386,9 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
               Move
             </button>
           </form>
-        </div>
-      )}
+        </dialog>
+        {/* Move player operation end  */}
+      </div>
     </>
   );
 }

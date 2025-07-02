@@ -574,7 +574,7 @@ type TeamDetails {
   rankings: [CustomPlayerRankingItem!]
   rounds: [CustomRound!]
   nets: [CustomNet!]
-  oponentTeams: [Team!]
+  teams: [Team!]
 }
 
 type GetTeamDetailsResponse {
@@ -1117,7 +1117,7 @@ input UpdatePlayerInput {
   phone: String
   team: String
   status: String
-  playerTeamId: String
+  newTeamId: String
 }
 
 input UpdatePlayersInput {

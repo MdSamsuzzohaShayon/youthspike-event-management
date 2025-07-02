@@ -24,7 +24,6 @@ interface ITeamDetailProps {
   eventId: string;
   divisionList: IOption[];
   teamList: ITeam[];
-  refetchFunc?: () => Promise<void>;
   playerList: IPlayer[];
   unassignedPlayers: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
@@ -42,7 +41,7 @@ enum ETab {
 
 const ITEMS_PER_PAGE = 20;
 
-function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc, playerList, unassignedPlayers, playerRanking, matchList, rankings }: ITeamDetailProps) {
+function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, unassignedPlayers, playerRanking, matchList, rankings }: ITeamDetailProps) {
   const { setActErr } = useError();
   const { ldoIdUrl } = useLdoId();
 
@@ -74,6 +73,11 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     }
     setSelectedItem(tab);
   };
+
+
+  const refetchFunc=()=>{
+    window.location.reload();
+  }
 
   const handleAddPlayersToTeam = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -107,6 +111,8 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     setFilteredPlayers(nfpList);
   }, []);
 
+  
+
   const divisionalPlayers = useMemo(() => {
     const nfpList = unassignedPlayers ? unassignedPlayers.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase()) : [];
     return nfpList;
@@ -121,8 +127,6 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
     return paginatedTeams;
   }, [matchList, currentPage]);
 
-  // const activePlayers = (playerList ? playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
-  // const inactivePlayers = (playerList ? playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) : []) as IPlayerExpRel[];
   const activePlayers: IPlayerExpRel[] = useMemo(() => {
     if (!playerList) return [];
     return playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
@@ -177,7 +181,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
             <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
               <li
                 className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.ROSTER ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  selectedItem === ETab.ROSTER ? 'bg-yellow-logo text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                 }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
@@ -186,7 +190,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, refetchFunc,
               </li>
               <li
                 className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.MATCHES ? 'bg-yellow-400 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  selectedItem === ETab.MATCHES ? 'bg-yellow-logo text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                 }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}

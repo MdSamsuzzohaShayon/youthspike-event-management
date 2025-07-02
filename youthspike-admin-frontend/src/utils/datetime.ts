@@ -132,7 +132,7 @@ function getLocalDateTimeISO(): string {
   const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, '0');
   const offset = `${sign}${pad(offsetMin / 60)}:${pad(offsetMin % 60)}`;
 
-  console.log(`${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`);
+  // console.log(`${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`);
   return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
 }
 

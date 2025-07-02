@@ -236,6 +236,7 @@ query GetTeamDetails($teamId: String!) {
         sendCredentials
         playerLimit
         fwango
+        divisions
       }
       matches {
         _id
@@ -290,11 +291,12 @@ query GetTeamDetails($teamId: String!) {
         teamA
         teamB
       }
-      oponentTeams {
+      teams {
         _id
         name
         logo
         num
+        division
       }
     }
   }

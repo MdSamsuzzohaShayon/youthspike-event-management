@@ -1,16 +1,7 @@
 import { notFound } from 'next/navigation';
 import TeamDetail from '@/components/teams/TeamDetail';
 import { divisionsToOptionList } from '@/utils/helper';
-import {
-  IMatchExpRel,
-  IMatchRelatives,
-  INetRelatives,
-  IPlayer,
-  IPlayerExpRel,
-  IRoundRelatives,
-  ITeam,
-  TParams,
-} from '@/types';
+import { IMatchExpRel, IMatchRelatives, INetRelatives, IPlayer, IPlayerExpRel, IRoundRelatives, ITeam, TParams } from '@/types';
 import { getTeamData } from '../../../_requests/teams';
 
 interface TeamSingleMainProps {
@@ -22,20 +13,8 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
   const teamData = await getTeamData(pathParams.teamId);
   if (!teamData) return notFound();
 
-  const {
-    team,
-    playerRanking,
-    players,
-    captain,
-    cocaptain,
-    group,
-    event,
-    matches,
-    rankings,
-    rounds,
-    nets,
-    oponentTeams
-  } = teamData;
+  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = teamData;
+  
 
   const divisionList = event?.divisions ? divisionsToOptionList(event.divisions) : [];
 
@@ -45,15 +24,9 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
   team.cocaptain = cocaptain;
 
   // --- Build lookup maps in O(n) ---
-  const roundMap = new Map<string, IRoundRelatives>(
-    rounds.map((r: IRoundRelatives) => [r._id, r])
-  );
-  const netMap = new Map<string, INetRelatives>(
-    nets.map((n: INetRelatives) => [n._id, n])
-  );
-  const oponentTeamMap = new Map<string, ITeam>(
-    oponentTeams.map((t: ITeam) => [t._id, t])
-  );
+  const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
+  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
+  const oponentTeamMap = new Map<string, ITeam>(teams.map((t: ITeam) => [t._id, t]));
 
   // --- Process Matches Efficiently ---
   const matchList = matches.map((m: any) => {
@@ -74,8 +47,6 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
     return enrichedMatch;
   });
 
-  
-
   // --- Separate Players into assigned/unassigned ---
   const classifyPlayers = (players: IPlayerExpRel[]) => {
     const teamPlayers: IPlayerExpRel[] = [];
@@ -85,17 +56,17 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
       const playerObj = structuredClone(p);
 
       if (p.teams?.length && p.teams?.length > 0) {
-        if(playerObj.teams?.includes(team._id) ){
+        if (playerObj.teams?.includes(team._id)) {
           playerObj.teams = [team];
-  
+
           if (playerObj.captainofteams?.length) {
             playerObj.captainofteams = [team._id];
           }
-  
+
           if (playerObj.cocaptainofteams?.length) {
             playerObj.cocaptainofteams = [team._id];
           }
-  
+
           teamPlayers.push(playerObj);
         }
       } else {
@@ -109,8 +80,6 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
 
   const { teamPlayers, unassignedPlayers } = classifyPlayers(players);
 
-  
-
   return (
     <div className="container mx-auto px-4 min-h-screen">
       <TeamDetail
@@ -120,7 +89,7 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
         team={team}
         eventId={pathParams.eventId}
         divisionList={divisionList}
-        teamList={oponentTeams}
+        teamList={teams}
         // @ts-ignore
         playerList={teamPlayers}
         playerRanking={playerRanking}

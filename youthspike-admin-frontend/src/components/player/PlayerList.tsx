@@ -257,6 +257,8 @@ function PlayerList({
     return showRank && rankControls ? [...paginatedPlayers].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : paginatedPlayers;
   }, [players, showRank, rankControls, playerRanking, currentPage]);
 
+  
+
 
   /** Render List **/
   return (

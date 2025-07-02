@@ -43,46 +43,54 @@ export class PlayerResolver {
     currentTeams: string[],
     newTeamId: string,
     updatePromises: Promise<any>[],
+    playerObj: Player,
+    input: UpdateQuery<Player>,
   ) {
-    // Remove player from current teams
+    // Remove player from old team(s)
     if (currentTeams.length > 0) {
-      updatePromises.push(
-        this.teamService.updateMany({ _id: { $in: currentTeams } }, { $pull: { players: playerId } }),
-      );
+      updatePromises.push(this.teamService.updateOne({ _id: { $in: currentTeams } }, { $pull: { players: playerId } }));
+      // 1️⃣ Normalise: always end up with string[]
+      const existingTeams: string[] = Array.isArray(playerObj?.teams)
+        ? (playerObj.teams as unknown[]).map((t) => t.toString())
+        : [];
+
+      // 2️⃣ Filter out the teams you’re removing
+      input.teams = existingTeams.filter((t) => !currentTeams.includes(t));
     }
 
     // Add player to the new team
     updatePromises.push(this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }));
+    // Later, when you add the new team:
+    input.teams.push(newTeamId);
 
-    // Update rankings in the current team <- currently removing all players in the team
-    const currentTeamRankings = await this.playerRankingService.find({ team: currentTeams[0] });
-    for (const ranking of currentTeamRankings) {
-      // const rankingIds = ranking.rankings.map((id) => id.toString());
-      const rankings = await this.playerRankingService.findItems({ player: playerId });
-      if (rankings.length > 0) {
-        const rankingIds = rankings.map((r) => r._id);
+    // Remove player rankings from previous team
+    const currentRankings = await this.playerRankingService.find({ team: currentTeams[0] });
+    const rankingItems = await this.playerRankingService.findItems({ player: playerId });
+
+    if (rankingItems.length) {
+      const rankingItemIds = rankingItems.map((r) => r._id);
+      for (const ranking of currentRankings) {
         updatePromises.push(
-          this.playerRankingService.updateOne({ _id: ranking._id }, { $pull: { rankings: { $in: rankingIds } } }),
+          this.playerRankingService.updateOne({ _id: ranking._id }, { $pull: { rankings: { $in: rankingItemIds } } }),
         );
-        updatePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: rankingIds } }));
       }
+      updatePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: rankingItemIds } }));
     }
 
-    // Update rankings in the new team
+    // Add player to new team's rankings
     const newTeam = await this.teamService.findById(newTeamId);
     if (newTeam) {
       const newTeamRankings = await this.playerRankingService.find({ team: newTeam._id });
-      let index = 0;
-      for (const ranking of newTeamRankings) {
+      for (let i = 0; i < newTeamRankings.length; i++) {
+        const ranking = newTeamRankings[i];
         const newRankingItem = await this.playerRankingService.createAnItem({
           player: playerId,
           playerRanking: ranking._id,
-          rank: ranking.rankings.length + 1 + index,
+          rank: ranking.rankings.length + 1 + i,
         });
         updatePromises.push(
           this.playerRankingService.updateOne({ _id: ranking._id }, { $addToSet: { rankings: newRankingItem._id } }),
         );
-        index += 1;
       }
     }
   }
@@ -170,30 +178,31 @@ export class PlayerResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((_returns) => PlayerResponse)
+  @Mutation(() => PlayerResponse)
   async updatePlayer(
     @Args('input') input: UpdatePlayerInput,
     @Args('playerId') playerId: string,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true })
-    profile?: Upload,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
   ): Promise<PlayerResponse> {
     try {
-      // ===== Upload image to cloudinary =====
-      const playerObj: UpdateQuery<Player> = { ...input };
-      if (profile) {
-        const profileUrl = await this.cloudinaryService.uploadFiles(profile);
-        playerObj.profile = profileUrl;
-      }
-
+      const updatePromises: Promise<any>[] = [];
       const playerExist = await this.playerService.findById(playerId);
       if (!playerExist) return AppResponse.notFound('Player');
 
-      const updatePromises = [];
+      const playerObj: UpdateQuery<Player> = { ...input };
 
-      // ===== Check duplicate email =====
+      // Upload image if profile is provided
+      if (profile) {
+        playerObj.profile = await this.cloudinaryService.uploadFiles(profile);
+      }
+
+      // Check for duplicate username
       if (input.username) {
-        const duplicateExist = await this.playerService.findOne({ username: input.username.toLowerCase() });
-        if (duplicateExist && duplicateExist.username !== playerExist.username) {
+        const newUsername = input.username.toLowerCase();
+        const duplicateUser = await this.playerService.findOne({ username: newUsername });
+
+        const isDuplicate = duplicateUser && duplicateUser.username !== playerExist.username;
+        if (isDuplicate) {
           return AppResponse.handleError({
             name: 'Duplicate username',
             statusCode: HttpStatus.NOT_ACCEPTABLE,
@@ -202,42 +211,54 @@ export class PlayerResolver {
           });
         }
 
-        // Captain && Co captain to be updated
+        // Update captain/co-captain user email
+        const updateUserEmail = { email: newUsername };
         updatePromises.push(
-          this.userService.updateOne({ captainplayer: playerExist._id }, { email: input.username.toLowerCase() }),
-        );
-        updatePromises.push(
-          this.userService.updateOne({ cocaptainplayer: playerExist._id }, { email: input.username.toLowerCase() }),
+          this.userService.updateOne({ captainplayer: playerExist._id }, updateUserEmail),
+          this.userService.updateOne({ cocaptainplayer: playerExist._id }, updateUserEmail),
         );
       }
 
-      // ===== Remove from Previous Team =====
-      if (input.playerTeamId && input.team) {
-        if (input.team === input.playerTeamId) {
-          return AppResponse.handleError({
-            name: 'Invalid team',
-            message: 'New team and previous team both are same, therefore no need to change',
-          });
-        }
-        await this.handleTeamUpdate(playerId, [input.playerTeamId], input.team, updatePromises);
+      // If changing teams
+      const isTeamChange = input.newTeamId && input.team && input.team !== input.newTeamId;
+
+      if (input.newTeamId && input.team && !isTeamChange) {
+        return AppResponse.handleError({
+          name: 'Invalid team',
+          message: 'New team and previous team both are same, therefore no need to change',
+        });
       }
 
-      if (playerObj.team) delete playerObj.team;
-
-      if ((playerExist.captainuser || playerExist.cocaptainuser) && (input.firstName || input.lastName)) {
-        const userObj: any = {};
-        if (input.firstName) userObj.firstName = input.firstName;
-        if (input.lastName) userObj.lastName = input.lastName;
-        if (playerExist.captainuser) {
-          await this.userService.updateOne({ _id: playerExist.captainuser.toString() }, userObj);
-        } else if (playerExist.cocaptainuser) {
-          await this.userService.updateOne({ _id: playerExist.cocaptainuser.toString() }, userObj);
-        }
+      if (isTeamChange) {
+        const currTeamIds = playerExist.teams.map((p) => p.toString());
+        await this.handleTeamUpdate(
+          playerId,
+          [...currTeamIds],
+          input.newTeamId,
+          updatePromises,
+          playerExist,
+          playerObj,
+        );
       }
 
-      if (playerObj.playerTeamId) delete playerObj.playerTeamId;
-      if (Object.entries(playerObj).length > 0)
+      // Update firstName/lastName in user if player is captain/co-captain
+      const updateUserName: Partial<{ firstName: string; lastName: string }> = {};
+      if (input.firstName) updateUserName.firstName = input.firstName;
+      if (input.lastName) updateUserName.lastName = input.lastName;
+
+      if ((playerExist.captainuser || playerExist.cocaptainuser) && Object.keys(updateUserName).length) {
+        const userId = playerExist.captainuser || playerExist.cocaptainuser;
+        updatePromises.push(this.userService.updateOne({ _id: userId.toString() }, updateUserName));
+      }
+
+      // Cleanup fields that shouldn't be updated
+      delete playerObj.team;
+      delete playerObj.newTeamId;
+
+      if (Object.keys(playerObj).length) {
         updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));
+      }
+
       await Promise.all(updatePromises);
       const findPlayer = await this.playerService.findById(playerId);
 
@@ -267,10 +288,10 @@ export class PlayerResolver {
           const playerExist = await this.playerService.findById(playerId);
           if (!playerExist) continue;
           teamIds = playerExist.teams;
-          const playerObj = { ...input[i], teams: teamIds || [] };
+          const playerObj: UpdateQuery<Player> = { ...input[i], teams: teamIds || [] };
           // Move one team to another
           if (playerObj.team) {
-            await this.handleTeamUpdate(playerId, teamIds, playerObj.team, updatePromises);
+            await this.handleTeamUpdate(playerId, teamIds, playerObj.team, updatePromises, playerExist, playerObj);
             playerObj.teams = [playerObj.team];
             delete playerObj.team;
           }
