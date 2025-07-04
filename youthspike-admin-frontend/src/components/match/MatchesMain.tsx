@@ -183,7 +183,6 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
                 <MatchAdd
                   eventData={currEvent}
                   teamList={filteredTeamList}
-                  // teamList={teamList}
                   eventId={currEvent._id}
                   addMatchCB={addMatchCB}
                   setIsLoading={setIsLoading}

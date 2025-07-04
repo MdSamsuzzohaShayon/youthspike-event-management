@@ -3,6 +3,7 @@ import { AppResponse } from 'src/shared/response';
 import { Player } from './player.schema';
 import { CustomGroup, CustomTeam } from 'src/match/match.response';
 import { Event } from 'src/event/event.schema';
+import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {
@@ -29,6 +30,27 @@ export class CustomPlayer extends Player {
 }
 
 @ObjectType()
+export class CustomPlayerRanking extends PlayerRanking {
+  @Field((_type) => String, { nullable: false })
+  team: string;
+
+  @Field((_type) => String, { nullable: true })
+  match: string;
+
+  @Field((_type) => [String], { nullable: false })
+  rankings: string[];
+}
+
+@ObjectType()
+export class CustomPlayerRankingItem extends PlayerRankingItem {
+  @Field((_type) => String, { nullable: false })
+  player: string;
+
+  @Field((_type) => String, { nullable: true })
+  playerRanking: string;
+}
+
+@ObjectType()
 export class EventWithPlayers {
   @Field((_type) => Event, { nullable: false })
   event: Event;
@@ -41,6 +63,14 @@ export class EventWithPlayers {
 
   @Field((_type) => [CustomTeam], { nullable: false })
   teams: CustomTeam[];
+
+  // playerRankings, rankings
+  @Field((_type) => [CustomPlayerRanking], { nullable: false })
+  playerRankings: CustomPlayerRanking[];
+
+  @Field((_type) => [CustomPlayerRankingItem], { nullable: false })
+  rankings: CustomPlayerRankingItem[];
+
 }
 
 @ObjectType()

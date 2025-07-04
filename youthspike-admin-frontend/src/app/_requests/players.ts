@@ -16,7 +16,7 @@ async function getAPlayer(playerId: string | null) {
   });
 
   const { data } = await res.json();
-  return data?.getEvent?.data || null;
+  return data?.getPlayer?.data || null;
 }
 
 async function getEventWithPlayers(eventId: string) {
@@ -37,7 +37,7 @@ async function getEventWithPlayers(eventId: string) {
 }
 
 
-async function getEventPlayersGroupsTeams(eventId: string) {
+async function getEventPlayersGroupsTeams(eventId: string, token?: string | null) {
   if (!isValidObjectId(eventId)) {
       return null;
   }
@@ -46,6 +46,7 @@ async function getEventPlayersGroupsTeams(eventId: string) {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token || ''}`
       },
       body: JSON.stringify({
           query: GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,

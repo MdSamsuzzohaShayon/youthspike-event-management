@@ -11,15 +11,15 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
     
 
     return (
-        <tr className='border-b border-gray-800 hover:bg-gray-800 text-center'  >
-            <td className="py-2 px-4 capitalize" >{ldo.name}</td>
-            <td className="py-2 px-4 capitalize" >
+        <tr className='hover:bg-gray-900 transition'  >
+            <td className="py-4 px-6" >{ldo.name}</td>
+            <td className="py-4 px-6" >
                 {ldo?.logo ? <CldImage width={100} height={100} alt="Ldo Logo" className="w-8" src={ldo?.logo} /> : ''}
             </td>
-            <td className="py-2 px-4 capitalize break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
-            <td className="py-2 px-4 lowercase" >{ldo.phone}</td>
-            <td className="py-2 px-4 lowercase" >{ldo.director?.email}</td>
-            <td className="py-2 px-4 capitalize flex justify-center items-center gap-2" >
+            <td className="py-4 px-6 break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
+            <td className="py-4 px-6 lowercase" >{ldo.phone}</td>
+            <td className="py-4 px-6 lowercase" >{ldo.director?.email}</td>
+            <td className="py-4 px-6 flex justify-center items-center gap-2" >
                 <Link href={`/?ldoId=${ldo._id}`}>
                     <img src='/icons/event.svg' alt='edit' className='w-6 svg-white' />
                 </Link>

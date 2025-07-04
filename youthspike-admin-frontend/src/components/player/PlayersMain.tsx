@@ -2,14 +2,19 @@
 
 import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Loader from '@/components/elements/Loader';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IEvent, IGroupRelatives, IOption, IPlayerRankingExpRel, ITeam } from '@/types';
+import { IEvent, IGroupRelatives, IPlayerRankingExpRel, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import CurrentEvent from '@/components/event/CurrentEvent';
-import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import {
+  getDivisionFromStore,
+  removeDivisionFromStore,
+  removeTeamFromStore,
+  setDivisionToStore
+} from '@/utils/localStorage';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
@@ -19,162 +24,159 @@ interface IPlayersMainProps {
   players: IPlayerExpRel[];
   groups: IGroupRelatives[];
   teams: ITeam[];
+  playerRanking: IPlayerRankingExpRel | null;
 }
 
-function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
-  // ===== hooks =====
+function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlayersMainProps) {
   const user = useUser();
 
-  // ===== Local State =====
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [addPlayer, setAddPlayer] = useState<boolean>(false);
-  const [showRank, setShowRank] = useState<boolean>(false);
-  const [rankControls, setRankControls] = useState<boolean>(false);
-  const [lockRank, setLockRank] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [addPlayer, setAddPlayer] = useState(false);
+  const [showRank, setShowRank] = useState(false);
+  const [rankControls, setRankControls] = useState(false);
+  const [lockRank, setLockRank] = useState(false);
 
-  const [currDivision, setCurrDivision] = useState<string>('');
-  const [playerList, setPlayerList] = useState<IPlayerExpRel[]>([]);
-  const [filteredPlayerList, setFilteredPlayerList] = useState<IPlayerExpRel[]>([]);
-  const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
-  const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
+  const [currDivision, setCurrDivision] = useState('');
+  // const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // ===== Filter Players =====
     const inputEl = e.target as HTMLInputElement;
-    setCurrDivision(inputEl.value.trim());
-    if (inputEl.value === '') {
-      setFilteredTeamList([...teams]);
-      setFilteredPlayerList([...playerList]);
+    const value = inputEl.value.trim();
+    setCurrDivision(value);
+
+    if (!value) {
       removeDivisionFromStore();
     } else {
-      setDivisionToStore(inputEl.value.trim());
-      const ntList = teams.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredTeamList([...ntList]);
-
-      const npList = playerList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-
-      setFilteredPlayerList([...npList]);
+      setDivisionToStore(value);
     }
   };
 
   const refetchFunc = async () => {
-    // await refetch();
-    // fetchPlayer();
     window.location.reload();
   };
 
-  /**
-   * Lifecycle hooks
-   * Getting and setting event ID & director ID
-   * Fetching players
-   */
+  // Filter captain's team players if captain/co-captain
+  const teamScopedPlayers = useMemo(() => {
+    if (
+      user?.info?.role === undefined ||
+      ![UserRole.captain, UserRole.co_captain].includes(user.info.role)
+    ) return players;
+
+    const pId = user.info?.captainplayer || user.info?.cocaptainplayer;
+    const playerExist = players.find((p) => p._id === pId);
+
+    if (!playerExist || !playerExist.teams?.[0]) return [];
+
+    const tId = playerExist.teams[0]._id;
+    const teamExist = teams.find((t) => t._id === tId);
+    if (!teamExist) return [];
+
+    setShowRank(true);
+    setRankControls(true);
+    setTeamId(tId);
+
+    return players.filter((p) =>
+      p.teams?.some((t) => t._id === tId)
+    );
+  }, [user, players, teams]);
+
+  // Filtered by division
+  const [filteredPlayerList, filteredTeamList] = useMemo(() => {
+    const basePlayers = teamScopedPlayers;
+    const baseTeams = teams;
+
+    if (!currDivision) return [basePlayers, baseTeams];
+
+    const div = currDivision.trim().toLowerCase();
+
+    const fp = basePlayers.filter((p) =>
+      p.division?.trim().toLowerCase() === div
+    );
+    const ft = baseTeams.filter((t) =>
+      t.division?.trim().toLowerCase() === div
+    );
+
+    return [fp, ft];
+  }, [currDivision, teamScopedPlayers, teams]);
+
+  // Load division from store initially
   useEffect(() => {
-   
-
-    // ===== Show players of captain's team =====
-    let npList: IPlayerExpRel[] = [...players];
-    if (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) {
-      setShowRank(true);
-      setRankControls(true);
-      const pId = user.info.captainplayer ? user.info.captainplayer : user.info.cocaptainplayer;
-      const playerExist = players.find((p) => p._id === pId);
-      if (playerExist) {
-        // Make sure captain of which team
-        const teamId = playerExist.teams && playerExist.teams.length > 0 ? playerExist.teams[0]._id : null;
-        if (teamId) {
-          const teamExist = teams.find((t) => t._id === teamId);
-          if (teamExist && teamExist) {
-            setTeamId(teamId);
-            if (teamExist.playerRanking) {
-              setTeamPlayerRanking(teamExist.playerRanking);
-            }
-          }
-          npList = players.filter((p): boolean => {
-            if (p.teams && p.teams.length > 0) {
-              const tIds = p.teams.map((t) => t._id);
-              if (tIds.includes(teamId)) {
-                return true; // Keep this element in the filtered array
-              }
-            }
-            return false; // Exclude this element from the filtered array
-          });
-        }
-      } else {
-        npList = [];
-      }
-    }
-    setPlayerList(npList);
-
-    let fpList = [...npList]; // fp list = filtered players list
-    let ftList = teams; // fp list = filtered players list
-
-    // ===== Division and team value =====
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
     if (divisionExist) {
       setCurrDivision(divisionExist);
-      fpList = players.filter((p) => p.division && p.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-      ftList = teams.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
     }
+  }, []);
 
-    setFilteredPlayerList(fpList);
-    setFilteredTeamList(ftList);
-  }, [currEvent, user]);
+  const activeList = useMemo(
+    () => filteredPlayerList.filter((p) => p.status === EPlayerStatus.ACTIVE),
+    [filteredPlayerList]
+  );
 
-  const activeList = useMemo(() => {
-    return filteredPlayerList.filter((p) => p.status === EPlayerStatus.ACTIVE);
-  }, [filteredPlayerList]);
+  const inactiveList = useMemo(
+    () => filteredPlayerList.filter((p) => p.status === EPlayerStatus.INACTIVE),
+    [filteredPlayerList]
+  );
 
-  const inactiveList = useMemo(() => {
-    return filteredPlayerList.filter((p) => p.status === EPlayerStatus.INACTIVE);
-  }, [filteredPlayerList]);
-
-  const divisions = useMemo(() => {
-    return currEvent?.divisions ? divisionsToOptionList(currEvent?.divisions) : [];
-  }, [currEvent]);
-  
+  const divisions = useMemo(
+    () => (currEvent?.divisions ? divisionsToOptionList(currEvent.divisions) : []),
+    [currEvent]
+  );
 
   if (isLoading) return <Loader />;
 
   return (
-    <React.Fragment>
-      {/* Event Menu Start */}
+    <>
+      {/* Event Header */}
       <div className="event-and-menu">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
-        <div className="team-name text-center">{user && user.info?.team && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}</div>
+        <div className="team-name text-center">
+          {user?.info?.team && <h3 className="text-yellow-500 text-gray-400">{user.info.team}</h3>}
+        </div>
         <div className="navigator mt-8">
           <UserMenuList eventId={currEvent._id} />
         </div>
       </div>
-      {/* Event Menu End */}
 
+      {/* Player Add Mode */}
       {addPlayer ? (
         <>
           <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
-            <h3 className="">Player Add</h3>
-            <button className="btn-info" type="button" onClick={() => setAddPlayer(false)}>
-              Player List
-            </button>
+            <h3>Player Add</h3>
+            <button className="btn-info" onClick={() => setAddPlayer(false)}>Player List</button>
           </div>
-          {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+
+          {(user?.info?.role === undefined ||
+            ![UserRole.captain, UserRole.co_captain].includes(user.info.role)) && (
             <div className="mb-4 division-selection w-full mt-6">
-              <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
+              <SelectInput
+                key="players-pg-1"
+                handleSelect={handleDivisionSelection}
+                value={currDivision}
+                name="division"
+                optionList={divisions}
+              />
             </div>
           )}
-          <PlayerAdd eventId={currEvent._id} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} />
+
+          <PlayerAdd
+            eventId={currEvent._id}
+            setAddPlayer={setAddPlayer}
+            teamList={filteredTeamList}
+            division={currDivision}
+          />
         </>
       ) : (
         <>
+          {/* Player List Mode */}
           <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
-            <h3 className="">Player List</h3>
-            {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-              <button className="btn-info" type="button" onClick={() => setAddPlayer(true)}>
-                Add player
-              </button>
+            <h3>Player List</h3>
+            {(user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director) && (
+              <button className="btn-info" onClick={() => setAddPlayer(true)}>Add player</button>
             )}
           </div>
+
           <div className="player-list mt-6">
             <PlayerList
               playerList={activeList}
@@ -185,7 +187,7 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
               teamList={filteredTeamList}
               divisionList={divisions}
               showRank={showRank}
-              playerRanking={teamPlayerRanking}
+              playerRanking={playerRanking}
               teamId={teamId}
               currEvent={currEvent}
             />
@@ -209,7 +211,7 @@ function PlayersMain({ currEvent, players, groups, teams }: IPlayersMainProps) {
           )}
         </>
       )}
-    </React.Fragment>
+    </>
   );
 }
 

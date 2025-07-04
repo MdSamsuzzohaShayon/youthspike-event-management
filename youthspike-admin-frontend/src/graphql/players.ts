@@ -32,7 +32,6 @@ playerRanking {
 }
 `;
 
-
 const playerResponse = `
   _id
   firstName
@@ -49,12 +48,10 @@ const playerResponse = `
   }
 `;
 
-
 /**
  * Queries
  * =======================================================================================
  */
-
 
 const GET_PLAYER_AND_TEAMS_RAW = `
 query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
@@ -105,8 +102,9 @@ query GetPlayer($playerId: String!) {
 }
 `;
 
-const GET_A_PLAYER = gql`${GET_A_PLAYER_RAW}`;
-
+const GET_A_PLAYER = gql`
+  ${GET_A_PLAYER_RAW}
+`;
 
 const GET_PLAYERS = gql`
 query GetPlayers($eventId: String!) {
@@ -120,8 +118,6 @@ query GetPlayers($eventId: String!) {
   }
 }
 `;
-
-
 
 const GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW = `
 query GetEventWithPlayers($eventId: String!) {
@@ -175,6 +171,19 @@ query GetEventWithPlayers($eventId: String!) {
         captain
         cocaptain
       }
+      rankings {
+        _id
+        player
+        playerRanking
+        rank
+      }
+      playerRankings {
+        _id
+        match
+        rankLock
+        rankings
+        team
+      }
     }
   }
 }
@@ -213,9 +222,9 @@ query GetEvent($eventId: String!) {
 }
 `;
 
-const GET_EVENT_WITH_PLAYERS = gql`${GET_EVENT_WITH_TEAM_PLAYERS_RAW}`;
-
-
+const GET_EVENT_WITH_PLAYERS = gql`
+  ${GET_EVENT_WITH_TEAM_PLAYERS_RAW}
+`;
 
 /**
  * Mutations
@@ -234,7 +243,9 @@ mutation CreateMultiPlayers($uploadedFile: Upload!, $eventId: String!, $division
 }
 `;
 
-const CREATE_MULTIPLE_PLAYERS = gql`${CREATE_MULTIPLE_PLAYERS_RAW}`;
+const CREATE_MULTIPLE_PLAYERS = gql`
+  ${CREATE_MULTIPLE_PLAYERS_RAW}
+`;
 
 const CREATE_PLAYER_RAW = `
   mutation CreatePlayer($input: CreatePlayerInput!, $profile: Upload) {
@@ -248,7 +259,9 @@ const CREATE_PLAYER_RAW = `
     }
   }
 `;
-const CREATE_PLAYER = gql`${CREATE_PLAYER_RAW}`;
+const CREATE_PLAYER = gql`
+  ${CREATE_PLAYER_RAW}
+`;
 
 const UPDATE_PLAYER_RAW = `
   mutation UpdatePlayer($input: UpdatePlayerInput!, $playerId: String!, $profile: Upload) {
@@ -263,7 +276,9 @@ const UPDATE_PLAYER_RAW = `
   }
 `;
 
-const UPDATE_PLAYER = gql`${UPDATE_PLAYER_RAW}`;
+const UPDATE_PLAYER = gql`
+  ${UPDATE_PLAYER_RAW}
+`;
 
 const UPDATE_PLAYERS = gql`
 mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
@@ -278,25 +293,33 @@ mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
 }
 `;
 
-
 const DELETE_A_PLAYER = gql`
-mutation DeletePlayer($playerId: String!) {
-  deletePlayer(playerId: $playerId) {
-    code
-    success
-    message
-    data {
-      _id
+  mutation DeletePlayer($playerId: String!) {
+    deletePlayer(playerId: $playerId) {
+      code
+      success
+      message
+      data {
+        _id
+      }
     }
   }
-}
 `;
 
-
-
 export {
-  GET_PLAYERS, GET_EVENT_WITH_PLAYERS, GET_A_PLAYER, GET_A_PLAYER_RAW, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
-  CREATE_MULTIPLE_PLAYERS_RAW, CREATE_MULTIPLE_PLAYERS, CREATE_PLAYER_RAW, CREATE_PLAYER,
-  UPDATE_PLAYER_RAW, UPDATE_PLAYERS, UPDATE_PLAYER, DELETE_A_PLAYER,
-  GET_EVENT_WITH_TEAM_PLAYERS_RAW, GET_PLAYER_AND_TEAMS_RAW
+  GET_PLAYERS,
+  GET_EVENT_WITH_PLAYERS,
+  GET_A_PLAYER,
+  GET_A_PLAYER_RAW,
+  GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
+  CREATE_MULTIPLE_PLAYERS_RAW,
+  CREATE_MULTIPLE_PLAYERS,
+  CREATE_PLAYER_RAW,
+  CREATE_PLAYER,
+  UPDATE_PLAYER_RAW,
+  UPDATE_PLAYERS,
+  UPDATE_PLAYER,
+  DELETE_A_PLAYER,
+  GET_EVENT_WITH_TEAM_PLAYERS_RAW,
+  GET_PLAYER_AND_TEAMS_RAW,
 };

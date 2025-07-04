@@ -85,7 +85,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
   };
 
   return (
-    <div className="w-full bg-gray-700 relative rounded-lg" style={{ minHeight: '6rem' }}>
+    <div className="w-full bg-gray-800 relative rounded-lg" style={{ minHeight: '6rem' }}>
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6 md:py-4 py-2">
         {user.info?.role === UserRole.admin || user.info?.role === UserRole.director ? (

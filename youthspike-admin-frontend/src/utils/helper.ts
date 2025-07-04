@@ -22,7 +22,7 @@ export const divisionsToOptionList = (divisions: string) => {
     const dl = divisions.split(',');
     for (let i = 0; i < dl.length; i++) {
       if (dl[i].trim() !== "") {
-        divs.push({ text: dl[i].trim(), value: dl[i].trim().toLowerCase() });
+        divs.push({ id: i+1, text: dl[i].trim(), value: dl[i].trim().toLowerCase() });
       }
     }
   }

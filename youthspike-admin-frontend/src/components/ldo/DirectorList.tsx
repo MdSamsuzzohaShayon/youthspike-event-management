@@ -48,24 +48,24 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
 
   return (
     <div className="directorList w-full flex flex-col gap-4 rounded-lg shadow-lg">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto shadow-lg rounded-lg border border-gray-700">
         <motion.table
-          className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden min-w-[600px]"
+          className="w-full border-collapse"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <thead className="bg-gray-700 text-white text-center">
+          <thead className="bg-yellow-logo text-black">
             <tr>
-              <th className="py-3 px-4">Name</th>
-              <th className="py-3 px-4">Logo</th>
-              <th className="py-3 px-4">Director</th>
-              <th className="py-3 px-4">Phone</th>
-              <th className="py-3 px-4">Email</th>
-              <th className="py-3 px-4">Actions</th>
+              <th className="py-4 px-6 text-left">Name</th>
+              <th className="py-4 px-6 text-left">Logo</th>
+              <th className="py-4 px-6 text-left">Director</th>
+              <th className="py-4 px-6 text-left">Phone</th>
+              <th className="py-4 px-6 text-left">Email</th>
+              <th className="py-4 px-6 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className='divide-y divide-gray-700'>
             {ldoList?.map((ldo, i) => (
               <DirectorRow
                 key={ldo._id}

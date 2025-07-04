@@ -1,4 +1,4 @@
-import { Args, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, Field, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { PlayerService } from './player.service';
 import { CreatePlayerInput, UpdatePlayerInput, UpdatePlayersInput } from './player.input';
 import { Player } from './player.schema';
@@ -25,6 +25,8 @@ import {
   PlayersResponse,
 } from './player.response';
 import { GroupService } from 'src/group/group.service';
+import { ConfigService } from '@nestjs/config';
+import { tokenToUser } from 'src/util/helper';
 
 @Resolver((_of) => Player) // Specify the object type for the resolver
 export class PlayerResolver {
@@ -36,6 +38,7 @@ export class PlayerResolver {
     private cloudinaryService: CloudinaryService,
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
+    private configService: ConfigService,
   ) {}
 
   private async handleTeamUpdate(
@@ -521,8 +524,15 @@ export class PlayerResolver {
   }
 
   @Query((_returns) => GetEventWithPlayersResponse)
-  async getEventWithPlayers(@Args('eventId', { nullable: false }) eventId: string) {
+  async getEventWithPlayers(@Context() context: any, @Args('eventId', { nullable: false }) eventId: string) {
     try {
+      // Get user id
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get user
+      const loggedUser = userPayload && userPayload?._id ? await this.userService.findById(userPayload._id) : null;
+
       // Assuming matchService is injected in your class
       const [event, players, teams, groups] = await Promise.all([
         this.eventService.findById(eventId),
@@ -531,11 +541,22 @@ export class PlayerResolver {
         this.groupService.find({ event: eventId }),
       ]);
 
+      // Get player ranking
+      let playerRankings = [],
+        rankings = [];
+      if (loggedUser?.role === UserRole.captain || loggedUser?.role === UserRole.co_captain) {
+        const capPlayer = await this.playerService.findOne({$or: [{captainuser: loggedUser._id}, {cocaptainuser: loggedUser._id}]});
+        const teamIds = capPlayer.teams.map((t) => t._id.toString());
+        playerRankings = await this.playerRankingService.find({ team: { $in: teamIds } });
+        const playerRankingIds = playerRankings.map((pr) => pr._id.toString());
+        rankings = await this.playerRankingService.findItems({ playerRanking: { $in: playerRankingIds } });
+      }
+
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'Get details of Players, teams, groups',
-        data: { event, players, teams, groups },
+        data: { event, players, teams, groups, playerRankings, rankings },
       };
     } catch (err) {
       return AppResponse.handleError(err);

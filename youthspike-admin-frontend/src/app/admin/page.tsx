@@ -2,57 +2,40 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getSystemDetails } from '../_requests/system';
 
-
 export default async function AdminPage() {
-  const systemDetail = await getSystemDetails()
+  const systemDetail = await getSystemDetails();
 
   if (!systemDetail) notFound();
-    
+
   const { ldos, events, players, matches, teams } = systemDetail;
 
-
+  const cards = [
+    { title: 'Directors', count: ldos, href: '/directors' },
+    { title: 'Events', count: events, href: '/events' },
+    { title: 'Players', count: players, href: '/players' },
+    { title: 'Matches', count: matches, href: '/matches' },
+    { title: 'Teams', count: teams, href: '/teams' },
+  ];
 
   return (
-    <div className="container mx-auto px-4 min-h-screen">
-      <h1 className="mt-4 text-center">ASL - Admin</h1>
-      <div className="boxes flex justify-center items-center flex-wrap w-full gap-2 mt-4">
-        <Link
-          href={`/admin/directors`}
-          className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
-        >
-          <h4>Directors</h4>
-          <p>{ldos}</p>
-        </Link>
-        <>
-          <Link
-            href={`/admin/events`}
-            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
-          >
-            <h4>Events</h4>
-            <p>{events}</p>
-          </Link>
-          <Link
-            href={`/admin/players`}
-            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
-          >
-            <h4>Players</h4>
-            <p>{players}</p>
-          </Link>
-          <Link
-            href={`/admin/matches`}
-            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
-          >
-            <h4>Matches</h4>
-            <p>{matches}</p>
-          </Link>
-          <Link
-            href={`/admin/teams`}
-            className="box box-1 w-3/12 bg-gray-800 px-2 md:px-4 py-2 rounded-lg text-center"
-          >
-            <h4>Teams</h4>
-            <p>{teams}</p>
-          </Link>
-        </>
+    <div className="min-h-screen py-12 px-4">
+      <div className="max-w-6xl mx-auto text-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-8">
+          ASL - Admin Dashboard
+        </h1>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+          {cards.map(({ title, count, href }) => (
+            <Link
+              key={title}
+              href={href}
+              className="bg-gray-800 hover:bg-yellow-500 hover:text-black transition-colors duration-300 rounded-xl p-6 shadow-lg flex flex-col justify-between items-center"
+            >
+              <h3 className="text-xl font-semibold mb-2">{title}</h3>
+              <p className="text-3xl font-bold">{count}</p>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -339,11 +339,28 @@ type CustomPlayer {
   playerstats: [PlayerStats!]
 }
 
+type CustomPlayerRanking {
+  _id: String
+  rankLock: Int!
+  rankings: [String!]!
+  team: String!
+  match: String
+}
+
+type CustomPlayerRankingItem {
+  _id: String
+  rank: Int!
+  player: String!
+  playerRanking: String
+}
+
 type EventWithPlayers {
   event: Event!
   players: [CustomPlayer!]!
   groups: [CustomGroup!]!
   teams: [CustomTeam!]!
+  playerRankings: [CustomPlayerRanking!]!
+  rankings: [CustomPlayerRankingItem!]!
 }
 
 type GetEventWithPlayersResponse {
@@ -450,13 +467,6 @@ type GetTeamResponse {
   success: Boolean!
   message: String
   data: Team
-}
-
-type CustomPlayerRankingItem {
-  _id: String
-  rank: Int!
-  player: String
-  playerRanking: PlayerRanking!
 }
 
 type CustomRound {

@@ -1,19 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Sortable from 'sortablejs';
-import { motion } from "motion/react";
+import { motion } from 'motion/react';
 
-import "./PlayerList.css";
+import './PlayerList.css';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-import {
-  IPlayerExpRel,
-  IPlayerRankingExpRel,
-  IEvent,
-  IOption,
-  ITeam,
-  IPlayerRank,
-} from '@/types';
+import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank } from '@/types';
 import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
 import { useMutation } from '@apollo/client';
@@ -40,7 +33,6 @@ interface IPlayerListProps {
   inactive?: boolean;
 }
 
-
 interface IUpdateRank {
   player: string;
   rank: number;
@@ -48,28 +40,13 @@ interface IUpdateRank {
 
 const ITEMS_PER_PAGE = 20;
 
-function PlayerList({
-  playerList,
-  eventId,
-  setIsLoading,
-  rankControls,
-  refetchFunc,
-  teamList,
-  showRank,
-  divisionList,
-  teamId,
-  playerRanking,
-  currEvent,
-  inactive,
-}: IPlayerListProps) {
-
-  
-
+function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, playerRanking, currEvent, inactive }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
   const user = useUser();
   const { setActErr } = useError();
+  
 
   const [mutatePlayerRanking] = useMutation(UPDATE_PLAYER_RANKING);
 
@@ -78,7 +55,7 @@ function PlayerList({
   const [canRank, setCanRank] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayerRank[]>([]);
   const [rankingsMap, setRankingsMap] = useState<Map<string, number>>(new Map());
-  
+
   // Pagination elements
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length, ITEMS_PER_PAGE]);
@@ -91,8 +68,6 @@ function PlayerList({
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-
-
   /** Handle checkbox */
   const handleSelectPlayer = (e: React.SyntheticEvent, matchId: string) => {
     const inputEl = e.target as HTMLInputElement;
@@ -104,8 +79,7 @@ function PlayerList({
     }
     setCheckedPlayers(newCheckedMatches);
     // e.preventDefault();
-  }
-
+  };
 
   const handleUpdate = async (upr: IUpdateRank[]) => {
     // upr = update player ranking
@@ -125,8 +99,6 @@ function PlayerList({
     }
   };
 
-
-
   const handleSortEnd = async (evt: Sortable.SortableEvent) => {
     const { oldIndex, newIndex } = evt;
 
@@ -135,7 +107,7 @@ function PlayerList({
 
       // Moving player one index to another index
       let sortedPlayers = [...players];
-      sortedPlayers = sortedPlayers.sort((a, b) => (a.rank && b.rank) ? a.rank - b.rank : 0)
+      sortedPlayers = sortedPlayers.sort((a, b) => (a.rank && b.rank ? a.rank - b.rank : 0));
       const [movedItem] = sortedPlayers.splice(oldIndex, 1);
       sortedPlayers.splice(newIndex, 0, movedItem);
 
@@ -144,10 +116,10 @@ function PlayerList({
       const newRankingsMap = new Map();
       const newRankedPlayers: IPlayerRank[] = [];
       sortedPlayers.forEach((player, index) => {
-        updatedRanking.push(({
+        updatedRanking.push({
           player: player._id,
           rank: index + 1,
-        }));
+        });
         newRankingsMap.set(player._id, index + 1);
         newRankedPlayers.push({ ...player, rank: index + 1 });
       });
@@ -157,7 +129,7 @@ function PlayerList({
       setPlayers(newRankedPlayers); // This need to rank properly
 
       // Set it to local storage
-      setPlayerRankings(updatedRanking) // To local storage
+      setPlayerRankings(updatedRanking); // To local storage
 
       await handleUpdate(updatedRanking);
     }
@@ -170,16 +142,16 @@ function PlayerList({
   useEffect(() => {
     if (playerList.length > 0) {
       if (!isMounted.current && inactive && playerList) {
-        setPlayers(playerList);
+        if (players.length === 0) setPlayers(playerList);
         isMounted.current = true;
       }
       if (!isMounted.current && playerList && playerList.length > 0) {
+        
         if (playerRanking) {
           const newRankingsMap = new Map();
           if (playerRanking && playerRanking.rankings.length > 0) {
             // console.log(playerRanking.rankings);
-            
-            
+
             playerRanking.rankings.forEach((pr) => {
               newRankingsMap.set(pr.player, pr.rank);
             });
@@ -189,17 +161,16 @@ function PlayerList({
           playerList.forEach((p) => {
             playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
           });
-          setPlayers(playersWithRank);
+          if (players.length === 0) setPlayers(playersWithRank);
           // console.log({ msg: "PlayerList when event mount: ", playersWithRank });
         } else {
-          setPlayers(playerList);
+          if (players.length === 0) setPlayers(playerList);
         }
 
         isMounted.current = true;
       }
     }
   }, [playerList, playerRanking, inactive]);
-
 
   /** Memoize Sortable Initialization **/
   useEffect(() => {
@@ -211,7 +182,6 @@ function PlayerList({
         const { role, passcode } = user.info;
         const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
 
-
         if (isCaptainRole) {
           const isIsoTime = isISODateString(currEvent.rosterLock);
           if (isIsoTime) {
@@ -221,7 +191,6 @@ function PlayerList({
           // playerRanking
         }
       }
-
 
       // Return true unless user is captain/co-captain, event has ended, and they lack a passcode
       return true;
@@ -243,7 +212,6 @@ function PlayerList({
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, currEvent]);
 
-
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
     // Paginated
@@ -256,9 +224,6 @@ function PlayerList({
     // If ranking is allowed then sort them or keep it as it is
     return showRank && rankControls ? [...paginatedPlayers].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : paginatedPlayers;
   }, [players, showRank, rankControls, playerRanking, currentPage]);
-
-  
-
 
   /** Render List **/
   return (
@@ -277,13 +242,7 @@ function PlayerList({
             {/* Drag Handle */}
             {canRank && (
               <div className="drag-handle cursor-grab flex items-center justify-center">
-                <Image
-                  height={20}
-                  width={20}
-                  src="/icons/sort.svg"
-                  alt="sort-icon"
-                  className="svg-white w-8"
-                />
+                <Image height={20} width={20} src="/icons/sort.svg" alt="sort-icon" className="svg-white w-8" />
               </div>
             )}
 
@@ -307,21 +266,13 @@ function PlayerList({
       </ul>
       {totalPages > 1 && (
         <div className="flex items-center space-x-2 mt-4">
-          <button
-            onClick={handlePrev}
-            disabled={currentPage === 1}
-            className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300"
-          >
+          <button onClick={handlePrev} disabled={currentPage === 1} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
             Prev
           </button>
           <span className="font-semibold">
             Page {currentPage} of {totalPages}
           </span>
-          <button
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300"
-          >
+          <button onClick={handleNext} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
             Next
           </button>
         </div>

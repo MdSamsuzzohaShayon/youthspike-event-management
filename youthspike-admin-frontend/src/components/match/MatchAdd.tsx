@@ -212,6 +212,9 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     ];
   }, [groupList, addMatch.division]);
 
+  console.log(addMatch);
+  
+
   return (
     <form onSubmit={handleAddMatch} className="w-full">
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -226,6 +229,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         )}
 
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="number" 
           required={!update} 
           label="Number of nets" 
@@ -234,6 +238,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           handleInputChange={handleNumInputChange} 
         />
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="number" 
           required={!update} 
           label="Number of rounds" 
@@ -242,6 +247,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           handleInputChange={handleNumInputChange} 
         />
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="number" 
           required={!update} 
           label="Net Variance" 
@@ -337,6 +343,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
 
       <div className="part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="number" 
           required={!update} 
           label="Sub Clock" 
@@ -345,6 +352,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           handleInputChange={handleNumInputChange} 
         />
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="text" 
           handleInputChange={handleInputChange} 
           label="Fwango Link" 
@@ -362,6 +370,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
       </div>
       <div className="part-8 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="text" 
           handleInputChange={handleInputChange} 
           label="Location" 
@@ -369,6 +378,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           defaultValue={addMatch.location} 
         />
         <InputField 
+        key={`if-${Math.floor(Math.random() * 1000)}`}
           type="text" 
           handleInputChange={handleInputChange} 
           label="Access Code" 

@@ -8,7 +8,7 @@ import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-rank
 import { Match } from 'src/match/match.schema';
 import { Round } from 'src/round/round.schema';
 import { Net } from 'src/net/net.schema';
-import { CustomPlayer } from 'src/player/player.response';
+import { CustomPlayer, CustomPlayerRankingItem } from 'src/player/player.response';
 import { CustomGroup, CustomTeam } from 'src/match/match.response';
 
 @ObjectType()
@@ -69,12 +69,6 @@ export class GetEventWithTeamsResponse extends AppResponse<EventWithTeams> {
 export class GetTeamResponse extends AppResponse<Team> {
   @Field((_type) => Team, { nullable: true })
   data?: Team;
-}
-
-@ObjectType()
-export class CustomPlayerRankingItem extends PlayerRankingItem {
-  @Field((_type) => String, { nullable: true })
-  player: string;
 }
 
 @ObjectType()

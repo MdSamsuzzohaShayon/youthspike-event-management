@@ -19,11 +19,11 @@ interface ISettingsMainProps {
 const SettingsMain = ({ eventId, prevPlayer, prevEvent }: ISettingsMainProps) => {
   // Hooks
   const user = useUser();
-  const { setActErr } = useError();
 
   // Local State
   const [isLoading, setIsLoading] = useState(false);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
+  
 
 
   if (isLoading) return <Loader />;

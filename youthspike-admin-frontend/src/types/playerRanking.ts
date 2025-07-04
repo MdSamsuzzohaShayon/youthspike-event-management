@@ -2,7 +2,7 @@ import { IMatch, IPlayer, ITeam } from ".";
 import { IDocument } from "./document";
 
 interface IPlayerRankingCommon extends IDocument{
-  rankLock: boolean;
+  rankLock: boolean | number;
 }
 
 interface IPlayerRankingItemCommon extends IDocument{
