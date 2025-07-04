@@ -2,17 +2,7 @@ import { InputFieldProps } from '@/types/elements';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-const InputField: React.FC<InputFieldProps> = ({
-  name,
-  type = 'text',
-  label,
-  value,
-  defaultValue,
-  handleInputChange,
-  className = '',
-  required = false,
-  tooltip,
-}) => {
+const InputField: React.FC<InputFieldProps> = ({ name, type = 'text', label, value, defaultValue, handleInputChange, className = '', required = false, tooltip, placeholder }) => {
   const isPassword = type === 'password';
   const [visible, setVisible] = useState(false);
 
@@ -21,7 +11,7 @@ const InputField: React.FC<InputFieldProps> = ({
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label htmlFor={name} className="capitalize text-lg font-semibold mb-1">
+      <label htmlFor={name} className="uppercase text-lg font-semibold mb-1 text-gray-300">
         {label || name}
       </label>
 
@@ -32,6 +22,7 @@ const InputField: React.FC<InputFieldProps> = ({
           type={inputType}
           {...(defaultValue !== undefined && { defaultValue })}
           {...(value !== undefined && { value })}
+          {...(placeholder && { placeholder })}
           onChange={handleInputChange}
           required={required}
           className="w-full p-3 pr-10 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
@@ -40,12 +31,12 @@ const InputField: React.FC<InputFieldProps> = ({
         {isPassword && (
           <button
             type="button"
-            onClick={() => setVisible(v => !v)}
+            onClick={() => setVisible((v) => !v)}
             aria-label={visible ? 'Hide password' : 'Show password'}
             className="absolute inset-y-0 right-3 flex items-center focus:outline-none"
           >
             <Image
-              src={visible ? '/icons/eye-open.svg': '/icons/eye-close.svg' }
+              src={visible ? '/icons/eye-open.svg' : '/icons/eye-close.svg'}
               alt={visible ? 'Hide password' : 'Show password'}
               width={20}
               height={20}

@@ -126,7 +126,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     try {
       const response = await mutatePlayer({
         variables: {
-          input: { status: newStatus, playerTeamId: teamId },
+          input: { status: newStatus, newTeamId: teamId },
           playerId,
         },
       });

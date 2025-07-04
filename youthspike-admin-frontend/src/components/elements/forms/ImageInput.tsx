@@ -144,7 +144,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     let imgEl: null | HTMLImageElement | React.ReactNode = null;
     if (!filename || filename === '') {
       if (defaultValue && typeof defaultValue === 'string') {
-        imgEl = <CldImage width={100} height={100} role="presentation" onClick={handleOpenImg} className="w-full md:w-1/3 object-cover object-center" sizes="100vw" alt="Description of my image" src={defaultValue} />;
+        imgEl = <CldImage width={100} height={100} role="presentation" onClick={handleOpenImg} className="w-full object-cover object-center" sizes="100vw" alt="Description of my image" src={defaultValue} />;
       }
     } else {
       if (croppedImageUrl && croppedImageUrl !== '') {
@@ -159,13 +159,13 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
       {/* Label */}
       <label
         htmlFor={name}
-        className="text-lg font-semibold text-gray-800 dark:text-gray-100"
+        className="uppercase text-lg font-semibold text-gray-300 dark:text-gray-100"
       >
         {label || `Upload ${name}`}
       </label>
 
       {/* Main container */}
-      <div className="flex flex-col sm:flex-row gap-6">
+      <div className="flex flex-col gap-6">
         {/* ─────────── Preview / Placeholder ─────────── */}
         <div className="flex-1">
           {renderImage ? (
@@ -202,15 +202,6 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
             </p>
           )}
 
-          {/* Upload button (same click handler) */}
-          {/* <button
-            type="button"
-            onClick={handleOpenImg}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-yellow-400 px-5 py-3 font-semibold text-black transition hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-500"
-          >
-            File Upload
-            <img src="/icons/upload.svg" alt="" className="w-5 h-5" />
-          </button> */}
 
           {/* Hidden file input */}
           <input
@@ -271,46 +262,3 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
 
 export default ImageInput;
 
-/*
-<div class="flex flex-col mt-8 w-full max-w-xl mx-auto">
-  <!-- Label -->
-  <label for="profile" class="text-lg font-semibold text-gray-800 mb-3">Upload Profile</label>
-
-  <!-- Upload Box -->
-  <div class="relative flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-6 bg-white transition hover:border-yellow-400 hover:shadow-md">
-    <!-- Before Upload -->
-    <div id="upload-prompt" class="flex flex-col items-center gap-3 text-gray-600">
-      <img src="/icons/upload.svg" alt="Upload" class="w-10 h-10 svg-black opacity-70" />
-      <p class="text-sm">Click the button below to select a file</p>
-      <label for="profile" class="cursor-pointer">
-        <div class="bg-yellow-400 text-black px-5 py-2 rounded-md font-semibold flex items-center gap-2 transition hover:bg-yellow-300">
-          File Upload
-          <img src="/icons/upload.svg" alt="Upload" class="w-5 h-5 svg-black" />
-        </div>
-      </label>
-    </div>
-
-    <!-- After Upload (hidden by default) -->
-    <div id="file-info" class="hidden w-full mt-4 text-sm text-gray-700">
-      <span class="font-medium">Selected file:</span>
-      <span id="file-name" class="ml-1"></span>
-    </div>
-
-    <!-- Hidden File Input -->
-    <input id="profile" class="hidden" type="file" name="profile" onchange="handleFileUpload(event)" />
-  </div>
-
-  <!-- Optional Dialog -->
-  <dialog id="confirmDialog" class="w-full max-w-md mt-6 rounded-md shadow-lg border border-gray-200 p-4">
-    <div class="flex flex-col items-center gap-4">
-      <p class="text-center text-gray-800 text-sm">Are you sure you want to upload this file?</p>
-      <div class="flex gap-4">
-        <button type="button" class="btn-primary px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Ok</button>
-        <button type="button" class="btn-danger px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Cancel</button>
-      </div>
-    </div>
-  </dialog>
-</div>
-
-
-*/

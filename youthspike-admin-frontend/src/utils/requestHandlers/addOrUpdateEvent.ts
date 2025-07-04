@@ -7,6 +7,7 @@ import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.share
 import { Socket } from "socket.io-client";
 import { ERosterLock } from "@/types/event";
 import { getCookie } from "../clientCookie";
+import { handleResponse } from "../handleError";
 
 interface IAddOrUpdateProps {
     e: React.SyntheticEvent;
@@ -34,7 +35,9 @@ interface IMutationVariables {
     sponsorsInput: IEventSponsorAdd[];
     logo: null | string;
     updateInput?: Partial<IEventAdd>;
-    input?: IEventAdd;
+    input?: Partial<IEventAdd>;
+    eventId?: string;
+    sponsorsStringInput?: IEventSponsorAdd[];
 }
 
 /**
@@ -64,10 +67,9 @@ async function addOrUpdateEvent({
     if (update) {
         mutationVariables.updateInput = inputData;
     } else {
-        // @ts-ignore
         mutationVariables.input = inputData
     }
-    // @ts-ignore
+
     if (update && eventId) mutationVariables.eventId = eventId;
 
     try {
@@ -84,7 +86,7 @@ async function addOrUpdateEvent({
 
         if (sponsorFileList.length === 1 && sponsorFileList[0].company === APP_NAME) sponsorFileList = [];
 
-        // @ts-ignore
+
         if (update && sponsorStringList.length > 0) mutationVariables.sponsorsStringInput = sponsorStringList;
 
         if ((sponsorFileList.length > 0) || eventLogo.current) {
@@ -96,7 +98,7 @@ async function addOrUpdateEvent({
             for (let i = 0; i < sponsorFileList.length; i += 1) {
                 sponsorsInputList.push({ company: sponsorFileList[i].company, logo: null });
             }
-            // @ts-ignore
+
             mutationVariables.sponsorsInput = sponsorsInputList;
 
             formData.set('operations', JSON.stringify({
@@ -113,7 +115,7 @@ async function addOrUpdateEvent({
             // formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
             // formData.set('0', uploadedLogo.current);
 
-            if (eventLogo && eventLogo.current) {
+            if (eventLogo && eventLogo.current instanceof Blob) {
                 mapObj[sponsorFileList.length] = [`variables.logo`];
             }
             formData.set("map", JSON.stringify(mapObj));
@@ -125,8 +127,7 @@ async function addOrUpdateEvent({
             }
 
             // Add the event logo to formData
-            if (eventLogo && eventLogo.current) {
-                // @ts-ignore
+            if (eventLogo && eventLogo.current instanceof Blob) {
                 formData.set(`${sponsorFileList.length}`, eventLogo.current);
             }
 
@@ -144,13 +145,9 @@ async function addOrUpdateEvent({
 
             const responseData = await response.json();
             const eventRes = update ? responseData?.data?.updateEvent : responseData?.data?.createEvent;
-            if (eventRes?.code !== 201 && eventRes?.code !== 202) {
-                setActErr({
-                    code: eventRes?.code,
-                    message: eventRes?.message,
-                    success: false
-                });
-            } else {
+
+            const success = await handleResponse({response: eventRes, setActErr});
+            if(success){
                 newEventId = eventRes?.data?._id;
             }
         } else {
@@ -159,7 +156,6 @@ async function addOrUpdateEvent({
             let eventRes = null;
             const mutationInput = { ...mutationVariables.input };
             if (mutationInput.logo) delete mutationInput.logo;
-            // @ts-ignore
             mutationVariables.input = mutationInput;
             if (update) {
                 eventRes = await eventUpdate({ variables: mutationVariables });
@@ -171,10 +167,9 @@ async function addOrUpdateEvent({
 
 
             eventRes = update ? eventRes.data?.updateEvent : eventRes.data?.createEvent;
-            if (eventRes?.code !== 201 && eventRes?.code !== 202) {
-                setActErr({ code: eventRes.code, message: eventRes.message, success: false })
-            } else {
-                newEventId = eventRes.data._id
+            const success = await handleResponse({response: eventRes, setActErr});
+            if(success){
+                newEventId = eventRes?.data?._id;
             }
 
         }
@@ -189,8 +184,7 @@ async function addOrUpdateEvent({
             router.push(`/${newEventId}/${ldoIdUrl}`);
         };
     } catch (error) {
-        // @ts-ignore
-        setActErr({ message: error?.message || '', success: false });
+        setActErr({ message: (typeof error === "object" && error && "message" in error) ? (error as any).message : String(error), success: false });
     } finally {
         setIsLoading(false);
     }

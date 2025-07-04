@@ -35,7 +35,7 @@ const DateInput = (props: IDateinputProps) => {
         >
             <label
                 htmlFor={props.name}
-                className="capitalize text-lg font-semibold mb-1"
+                className="uppercase text-lg text-gray-300 font-semibold mb-1"
             >
                 {props.label || props.name}
             </label>

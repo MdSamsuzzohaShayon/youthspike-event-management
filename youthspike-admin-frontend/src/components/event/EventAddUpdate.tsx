@@ -11,20 +11,13 @@ import { IEventAddProps, IEventAdd, IEventSponsorAdd, IDateChangeHandlerProps } 
 import { UserRole } from '@/types/user';
 import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
 import addOrUpdateEvent from '@/utils/requestHandlers/addOrUpdateEvent';
-import { APP_NAME } from '@/utils/keys';
 import Image from 'next/image';
-import { imgSize } from '@/utils/style';
 import ToggleInput from '../elements/forms/ToggleInput';
 import SelectInput from '../elements/forms/SelectInput';
-import TextInput from '../elements/forms/TextInput';
-import NumberInput from '../elements/forms/NumberInput';
 
-import staticData from '../../lib/data.json';
 import DateInput from '../elements/forms/DateInput';
 import ShowDivisions from './ShowDivisions';
 import ShowSponsors from './ShowSponsors';
-import useClickOutside from '../../hooks/useClickOutside';
-import AnyFileInput from '../elements/forms/AnyFileInput';
 import TextareaInput from '../elements/forms/TextareaInput';
 import ImageInput from '../elements/forms/ImageInput';
 
@@ -34,17 +27,10 @@ import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
 import { useError } from '@/lib/ErrorProvider';
 import DateTimeInput from '../elements/forms/DateTimeInput';
 import InputField from '../elements/forms/InputField';
-import { createEvent } from '@/app/actions/event';
-import DivisionInputField from '../elements/forms/DivisionInputField';
 import { getLocalDateTimeISO } from '@/utils/datetime';
 import FileInput from '../elements/forms/FileInput';
+import Loader from '../elements/Loader';
 
-interface IAddMutationVariables {
-  sponsorsInput: IEventSponsorAdd[];
-  logo: null | string;
-  // updateInput?: Partial<IEventAdd>;
-  input?: IEventAdd;
-}
 
 // Logo and division is missing
 const initialEvent: IEventAdd = {
@@ -99,13 +85,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(
-    prevEvent
-      ? Array.isArray(prevEvent.sponsors)
-        ? prevEvent.sponsors.map((s) =>
-            typeof s === 'string' ? { company: s, logo: null } : s
-          )
-        : []
-      : []
+    prevEvent ? (Array.isArray(prevEvent.sponsors) ? prevEvent.sponsors.map((s) => (typeof s === 'string' ? { company: s, logo: null } : s)) : []) : [],
   );
 
   // GraphQL
@@ -186,7 +166,7 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
     }
   };
 
-  const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
+  const handleRosterLockDate = ({ value }: IDateChangeHandlerProps) => {
     if (!update) {
       setEventState((prevState) => ({ ...prevState, rosterLock: value }));
     } else {
@@ -256,15 +236,8 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
 
   const handleOk = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    // Check curr sponsor name and logo, then add them to list
-    // Find prev sponsor
-    // const prevSponsor = sponsorImgList.find((si) => si.company === currSponsor.company);
-    // // const prevSponsor = currSponsor.company === ;
-    // const sponsorObj = prevSponsor ? { ...prevSponsor } : { company: currSponsor.company, logo: inputedFile };
-
-    // setSponsorImgList((prevState) => [...prevState.filter((ps) => ps.company !== currSponsor.company), sponsorObj]);
-    if(!currSponsor.company || !currSponsor.logo){
-      setActErr({code: 400, message: "Company name and logo can not be empty!", success: false});
+    if (!currSponsor.company || !currSponsor.logo) {
+      setActErr({ code: 400, message: 'Company name and logo can not be empty!', success: false });
       return;
     }
 
@@ -315,6 +288,8 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
       setDirectorId(user.info?._id ? user.info._id : null);
     }
   }, [user]);
+
+  if (isLoading) return <Loader />;
 
   return (
     <form className="w-full" onSubmit={handleEventAdd}>
@@ -396,21 +371,31 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
         />
       </div>
 
-      {/* Sponsor dialog start  */}
+
       <dialog ref={addSponsorDialogEl} className="w-5/6">
-        <div className="close-wrapper w-full flex justify-end items-center">
-          <Image width={imgSize.logo} height={imgSize.logo} alt="close-icon" src="/icons/close.svg" role="presentation" onClick={handleCloseModal} className="svg-white w-6" />
-        </div>
-        <div className="flex items-center justify-center flex-col">
-          <InputField key="ti-eau-5" type="text" handleInputChange={handleFileNameChange} name="company" required={false} />
-          <FileInput handleFileChange={handleFileChange} name="sponsorLogo" vertical lblTxt="Sponsor Logo" />
-          <div className="input-group mt-4">
-            <button type="button" className="btn-info" onClick={handleOk}>
-              Ok
+        <div className="relative flex w-full flex-col rounded-2xl bg-gray-800 text-white" >
+          <button type="reset" aria-label="Close" className="absolute right-4 top-4 rounded-full p-1 transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            <Image width={20} height={20} src="/icons/close.svg" alt="close-icon" className="h-6 w-6 svg-white opacity-60" role="presentation" onClick={handleCloseModal} />
+          </button>
+
+          <div className="space-y-6 px-8 py-10">
+            <InputField key="ti-eau-5" type="text" handleInputChange={handleFileNameChange} name="company" required={false} placeholder='e. g. Microsoft' />
+
+            <FileInput handleFileChange={handleFileChange} name="sponsorLogo" vertical lblTxt="Sponsor Logo" />
+
+            
+
+            <button
+              type="submit"
+              className="w-full btn-info"
+              onClick={handleOk}
+            >
+              Save Sponsor
             </button>
           </div>
         </div>
       </dialog>
+
       {/* Sponsor dialog start  */}
       <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
         <h3 className="text-2xl capitalize">Sponsors</h3>
@@ -421,9 +406,9 @@ function EventAddUpdate({ update, prevEvent }: IEventAddProps) {
       <ShowSponsors handleDefaultSponsor={handleDefaultSponsor} defaultSponsor={eventState.defaultSponsor} fileList={sponsorImgList} handleImgRemove={handleImgRemove} />
 
       {/* Submit Button */}
-      <div className="col-span-2 flex justify-center">
-        <button type="submit" className="bg-yellow-400 text-black px-6 py-3 rounded-md font-bold text-lg mt-4 hover:bg-yellow-300">
-        {update ? 'Update' : 'Submit'}
+      <div className="mt-6 flex justify-center">
+        <button type="submit" className="w-full btn-info">
+          {update ? 'Update' : 'Submit'}
         </button>
       </div>
     </form>
