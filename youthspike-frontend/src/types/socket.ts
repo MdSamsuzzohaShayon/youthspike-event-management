@@ -58,6 +58,7 @@ export interface IServiceFaultInput{
   match: string;
   receiver: string;
   net: string;
+  room: string;
 }
 
 export interface ICheckInToLineupProps extends IStatusChange {
@@ -182,6 +183,8 @@ export interface IServerReceiverOnNet{
   match: string;
   net: string;
   round: string;
+  teamAScore: number;
+  teamBScore: number;
 }
 
 

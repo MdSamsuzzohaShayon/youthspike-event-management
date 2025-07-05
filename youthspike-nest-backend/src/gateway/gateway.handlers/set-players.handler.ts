@@ -2,18 +2,12 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import {
-  ETeam,
-  ExtendOvertimeInput,
   RoomLocal,
   ServerReceiverOnNet,
   SetPlayersInput,
-  TieBreakerInput,
 } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { ETieBreaker } from 'src/net/net.schema';
-import { ETieBreakingStrategy } from 'src/event/event.schema';
-import { EActionProcess } from 'src/round/round.schema';
 
 export class SetPlayersHandler {
   constructor(
@@ -32,7 +26,7 @@ export class SetPlayersHandler {
       if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
 
       // For setting and getting
-      const CACHE_KEY = `action:${serverReceiverInput.net}:${serverReceiverInput.room}`; // each net will have a unique key
+      const SR_CACHE_KEY = `sr:${serverReceiverInput.net}:${serverReceiverInput.room}`; // each net will have a unique key
 
       const { playerService, matchService, netService } = this.gatewayService.getServices();
 
@@ -92,7 +86,7 @@ export class SetPlayersHandler {
         ? [serverReceiverInput.receiver, [...teamB].find((p) => p !== serverReceiverInput.receiver)!]
         : [serverReceiverInput.receiver, [...teamA].find((p) => p !== serverReceiverInput.receiver)!];
 
-    //   const prevAction = await this.gatewayRedisService.getAction(CACHE_KEY);
+    //   const prevAction = await this.gatewayRedisService.getAction(SR_CACHE_KEY);
 
       const actionData: ServerReceiverOnNet = {
         mutate: 0,
@@ -104,10 +98,12 @@ export class SetPlayersHandler {
         match: serverReceiverInput.match,
         net: serverReceiverInput.net,
         round: serverReceiverInput.round,
+        teamAScore: 0,
+        teamBScore: 0,
       };
 
       // Setting initially
-      await this.gatewayRedisService.setAction(CACHE_KEY, actionData);
+      await this.gatewayRedisService.setAction(SR_CACHE_KEY, actionData);
 
       await this.gatewayRedisService.publishToRoom(
         serverReceiverInput.room,

@@ -118,6 +118,9 @@ export class ServiceFaultInput{
   
   @Field({nullable: false})
   net: string;
+
+  @Field({nullable: false})
+  room: string;
 }
 
 export interface RoundUpdatedResponse {
@@ -169,6 +172,12 @@ export class ServerReceiverOnNet {
 
   @Field({ nullable: false })
   round: string;
+
+  @Field({ nullable: false, defaultValue: 0 })
+  teamAScore: number;
+
+  @Field({ nullable: false, defaultValue: 0 })
+  teamBScore: number;
 }
 
 export interface GeneralClient {

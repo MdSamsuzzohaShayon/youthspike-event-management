@@ -1,45 +1,87 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { ETeam, RoomLocal, ServiceFaultInput } from '../gateway.types';
+import { RoomLocal, ServerReceiverOnNet, ServiceFaultInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { ValidationHelper } from '../gateway.helpers/validation.helper';
-import { UserRole } from 'src/user/user.schema';
-import { EActionProcess } from 'src/round/round.schema';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { initPlayerStat } from 'src/util/helper';
 
 export class ServiceFaultHandler {
   constructor(
     private readonly gatewayService: GatewayService,
-    private readonly gatewayRedisService: GatewayRedisService
+    private readonly gatewayRedisService: GatewayRedisService,
   ) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
-    @MessageBody() serviceFault: ServiceFaultInput,
+    @MessageBody() serviceFaultInput: ServiceFaultInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-        console.log(serviceFault);
-        
+      // Receiving team Scores
 
-    /**
-     * Get a match
-     */
-    //   const prevRoom = roomsLocal.get(serviceFault.room);
-    //   if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
+      const NET_CACHE_KEY = `sr:${serviceFaultInput.net}:${serviceFaultInput.room}`;
 
-    //   const roomData = { ...prevRoom };
-    //   const roundList = [...roomData.rounds];
-    //   const roundI = roundList.findIndex((r) => r._id === serviceFault.round);
+      // player service opportunity increase
+      const netCacheData = await this.gatewayRedisService.getAction(NET_CACHE_KEY);
+      if (!netCacheData) {
+        throw new Error(`Net data not found, try setting players on the net again: ${serviceFaultInput}`);
+      }
 
-    //   if (roundI === -1) throw new Error('Round not found with that round ID!');
+      const actionData: ServerReceiverOnNet = { ...netCacheData };
 
+      const { netService, playerStatsService } = this.gatewayService.getServices();
 
-    //   await Promise.all([
-    //     this.gatewayRedisService.publishToRoom(serviceFault.room, 'check-in-response-to-all', roomData, client.id),
-    //     this.gatewayRedisService.publishToRoom(serviceFault.room, 'round-update-all-pages', presizedRoundData, client.id),
-    //   ]);
-    } catch (error) {
+      const [netExist] = await Promise.all([netService.findById(serviceFaultInput.net)]);
+
+      const teamA = new Set([netExist.teamAPlayerA, netExist.teamAPlayerB]);
+      const teamB = new Set([netExist.teamBPlayerA, netExist.teamBPlayerB]);
+
+      // Add a point to server, cache it, will save on the server later
+      const SERVER_PLAYER_CACHE = `player:${actionData.server}`;
+      let serverStats = await this.gatewayRedisService.getAction(SERVER_PLAYER_CACHE);
+      if (!serverStats) {
+        serverStats = initPlayerStat(actionData.match, actionData.server);
+      }
+      const serverStatsData: PlayerStats = { ...serverStats };
+      serverStatsData.serveOpportunity = serverStatsData.serveOpportunity + 1;
+      await this.gatewayRedisService.setAction(SERVER_PLAYER_CACHE, serverStatsData);
+
+      // Score update in the net
+      const receiverInTeamA = teamA.has(actionData.receiver);
+      const receiverInTeamB = teamB.has(actionData.receiver);
+
+      if (!receiverInTeamA && !receiverInTeamB) {
+        throw new Error(`Server is not part of the net. Input: ${serviceFaultInput}`);
+      }
+
+      if (receiverInTeamA) {
+        actionData.teamAScore = actionData.teamAScore + 1;
+      }
+      if (receiverInTeamB) {
+        actionData.teamBScore = actionData.teamBScore + 1;
+      }
+
+      // Swep server and receiver
+      const tempServer = actionData.server;
+      actionData.server = actionData.receiver;
+      actionData.receiver = tempServer;
+      const tempPartner = actionData.servingPartner;
+      actionData.servingPartner = actionData.receivingPartner;
+      actionData.receivingPartner = tempPartner;
+
+      // Track number of update
+      actionData.mutate += 1;
+      await this.gatewayRedisService.setAction(NET_CACHE_KEY, actionData);
+
+      // Response back
+      await this.gatewayRedisService.publishToRoom(
+        serviceFaultInput.room,
+        'service-fault-from-server',
+        actionData,
+        // client.id,
+      );
+    } catch (error: any) {
       await this.gatewayRedisService.publishToSocket(
         client.id,
         'error-from-server',

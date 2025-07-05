@@ -25,6 +25,7 @@ function TeamUpdateMain({ groups, team, eventId, players }: ITeamUpdateMainProps
   const handleRefetch = async () => {
     // You can call refetch here to manually refetch the data
     // await refetch({ variables: { teamId: params.teamId } });
+    window.location.reload();
   };
 
   if (isLoading) return <Loader />;

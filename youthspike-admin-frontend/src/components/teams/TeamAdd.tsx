@@ -11,160 +11,197 @@ import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
 import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
+import ImageInput from '../elements/forms/ImageInput';
 
 interface IPrevTeam extends ITeamAdd {
-    _id: string;
-    group?: IGroup;
+  _id: string;
+  group?: IGroup;
 }
 
 interface ITeamAddProps {
-    eventId: string;
-    players: IPlayer[];
-    groupList: IGroup[];
-    handleClose: (e: React.SyntheticEvent) => void;
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    currDivision?: string;
-    update?: boolean;
-    prevTeam?: IPrevTeam;
+  eventId: string;
+  players: IPlayer[];
+  groupList: IGroup[];
+  handleClose: (e: React.SyntheticEvent) => void;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  currDivision?: string;
+  update?: boolean;
+  prevTeam?: IPrevTeam;
 }
 
 const initialTeamState = {
-    active: true,
-    name: '',
-    logo: null,
-    event: '',
-    division: '',
-    players: [],
-    captain: ''
+  active: true,
+  name: '',
+  logo: null,
+  event: '',
+  division: '',
+  players: [],
+  captain: '',
 };
 
 function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision }: ITeamAddProps) {
+  const router = useRouter();
+  const { ldoIdUrl } = useLdoId();
+  const { setActErr } = useError();
 
-    const router = useRouter();
-    const { ldoIdUrl } = useLdoId();
-    const { setActErr } = useError();
+  const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
+  const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
+  const [playerIdList, setPlayerIdList] = useState<string[]>([]);
+  const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
 
+  const uploadedLogo = useRef<null | MediaSource | Blob>(null);
 
-    const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
-    const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
-    const [playerIdList, setPlayerIdList] = useState<string[]>([]);
-    const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
+  // GraphQL
+  const [addTeam, { data, loading, error }] = useMutation(ADD_A_TEAM);
+  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation(UPDATE_TEAM);
 
-    const uploadedLogo = useRef<File | null>(null);
+  const refetch = (url?: string) => {
+    // if (url) {
+    //   router.push(url);
+    // } else {
+    //   router.push(`/${eventId}/teams/${ldoIdUrl}`);
+    // }
+  };
 
-    // GraphQL
-    const [addTeam, { data, loading, error }] = useMutation(ADD_A_TEAM);
-    const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation(UPDATE_TEAM);
+  // Handle events
+  const handleTeamAdd = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const success = await addOrUpdateTeam({
+      setActErr,
+      eventId,
+      teamState,
+      setIsLoading,
+      update,
+      uploadedLogo,
+      prevTeam,
+      updateTeamState,
+      playerIdList,
+      mutateTeam,
+      addTeam,
+      setAvailablePlayers,
+      setPlayerIdList,
+      currDivision,
+    });
 
-    const refetch = (url?: string) => {
-        if (url) {
-            router.push(url);
-        } else {
-            router.push(`/${eventId}/teams/${ldoIdUrl}`);
-        }
-    };
-    
-
-    // Handle events
-    const handleTeamAdd = async (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        const success = await addOrUpdateTeam({
-            setActErr,
-            eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision
-        });
-
-        if (success) {
-            const formEl = e.target as HTMLFormElement;
-            formEl.reset();
-            handleClose(e);
-            refetch();
-            // router.push(`/${eventId}/teams/${ldoIdUrl}`);
-        }
+    if (success) {
+      const formEl = e.target as HTMLFormElement;
+      formEl.reset();
+      handleClose(e);
+      refetch();
+      // router.push(`/${eventId}/teams/${ldoIdUrl}`);
     }
+  };
 
-    const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
-        e.preventDefault();
-        await addOrUpdateTeam({
-            setActErr,
-            eventId, teamState, setIsLoading, update, uploadedLogo, prevTeam, updateTeamState,
-            playerIdList, mutateTeam, addTeam, setAvailablePlayers, setPlayerIdList, currDivision
-        });
-        // refetch(`/${eventId}/teams/new/${ldoIdUrl}`);
-        window.location.reload();
+  const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    await addOrUpdateTeam({
+      setActErr,
+      eventId,
+      teamState,
+      setIsLoading,
+      update,
+      uploadedLogo,
+      prevTeam,
+      updateTeamState,
+      playerIdList,
+      mutateTeam,
+      addTeam,
+      setAvailablePlayers,
+      setPlayerIdList,
+      currDivision,
+    });
+    // refetch(`/${eventId}/teams/new/${ldoIdUrl}`);
+    window.location.reload();
+  };
+
+  const handleInputChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement | HTMLSelectElement;
+    setTeamState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    if (update) {
+      setUpdateTeamState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
     }
+  };
 
+  const makeOptionList = (ap: IPlayer[]): IOption[] => {
+    const newPlayerList: IOption[] = [];
+    for (let i = 0; i < ap.length; i += 1) {
+      newPlayerList.push({
+        id: i + 1,
+        text: ap[i].firstName + ' ' + ap[i].lastName,
+        value: ap[i]._id,
+      });
+    }
+    return newPlayerList;
+  };
 
-    const handleInputChange = (e: React.SyntheticEvent) => {
-        const inputEl = e.target as HTMLInputElement | HTMLSelectElement;
-        setTeamState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-        if (update) {
-            setUpdateTeamState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+  const handleCheckboxChange = (playerId: string, isChecked: boolean) => {
+    if (isChecked) {
+      // @ts-ignore
+      setPlayerIdList((prevState) => [...new Set([...prevState, playerId])]);
+    } else {
+      setPlayerIdList((prevState) => prevState.filter((p) => p !== playerId));
+    }
+  };
+
+  const handleFileChange = (uploadedFile: MediaSource | Blob) => {
+    uploadedLogo.current = uploadedFile;
+  };
+
+  useEffect(() => {
+    setAvailablePlayers(players || []);
+  }, [players]);
+
+  // Renders
+  const toBeCaptains = useMemo(() => {
+    const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
+    const options = makeOptionList(playersWithEmail);
+    return <SelectInput name="captain" optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />;
+  }, [availablePlayers, playerIdList]);
+
+  return (
+    <form onSubmit={handleTeamAdd} className="flex flex-col gap-2">
+      <InputField type="text" name="name" required={!update} defaultValue={teamState.name} className="mt-6" handleInputChange={handleInputChange} />
+      <SelectInput
+        key="g-t-d"
+        required={!update}
+        handleSelect={handleInputChange}
+        name="group"
+        className="mt-6"
+        {...(prevTeam?.group ? { defaultValue: prevTeam.group._id } : {})}
+        optionList={
+          teamState.division && teamState.division !== ''
+            ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
+            : groupList.map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
         }
-    }
+      />
+      <Link className="underline underline-offset-1" href={`/${eventId}/groups/new/${ldoIdUrl}`}>
+        Create new group!
+      </Link>
 
-    const makeOptionList = (ap: IPlayer[]): IOption[] => {
-        const newPlayerList: IOption[] = [];
-        for (let i = 0; i < ap.length; i += 1) {
-            newPlayerList.push({
-                id: i+1,
-                text: ap[i].firstName + " " + ap[i].lastName,
-                value: ap[i]._id
-            });
-        }
-        return newPlayerList;
-    }
+      {/* <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' /> */}
+      <div className="w-full md:w-2/6">
+        <ImageInput name="logo" handleFileChange={handleFileChange} />
+      </div>
 
-    const handleCheckboxChange = (playerId: string, isChecked: boolean) => {
-        if (isChecked) {
-            // @ts-ignore
-            setPlayerIdList((prevState) => ([...new Set([...prevState, playerId])]));
-        } else {
-            setPlayerIdList((prevState) => prevState.filter((p) => p !== playerId));
-        }
-    }
+      {!update && (
+        <div className="player-input mb-4">
+          <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="player-select" />
+        </div>
+      )}
+      {playerIdList.length > 0 && !update && toBeCaptains}
 
-    const handleFileChange = (e: React.SyntheticEvent) => {
-        const fileInputEl = e.target as HTMLInputElement;
-        if (fileInputEl && fileInputEl.files && fileInputEl.files.length > 0) {
-            uploadedLogo.current = fileInputEl.files[0];
-        }
-    }
-
-    useEffect(()=>{
-        setAvailablePlayers(players || []);
-    }, [players]);
-
-    // Renders
-    const toBeCaptains = useMemo(() => {
-        const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
-        const options = makeOptionList(playersWithEmail);
-        return <SelectInput name='captain' optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />
-    }, [availablePlayers, playerIdList])
-
-    return (
-        <form onSubmit={handleTeamAdd} className='flex flex-col gap-2'>
-            <InputField type="text" name='name' required={!update} defaultValue={teamState.name} className='mt-6' handleInputChange={handleInputChange} />
-            <SelectInput key="g-t-d" required={!update} handleSelect={handleInputChange} name='group' className='mt-6'
-                {...(prevTeam?.group ? { defaultValue: prevTeam.group._id } : {})}
-                optionList={teamState.division && teamState.division !== ''
-                    ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI+1, text: g.name, value: g._id }))
-                    : groupList.map((g, gI) => ({ id: gI+1,text: g.name, value: g._id }))} />
-            <Link className='underline underline-offset-1' href={`/${eventId}/groups/new/${ldoIdUrl}`}>Create new group!</Link>
-
-            <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' />
-
-            {!update && (<div className="player-input mb-4">
-                <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name='player-select' />
-            </div>)}
-            {playerIdList.length > 0 && !update && toBeCaptains}
-
-            <div className="input-group w-full mb-4">
-                <button className='btn-info mr-2' type='submit'>{update ? "Update" : "Save"}</button>
-                {!update && <button className='btn-info' type='button' onClick={handleSaveAndCreate}>Save & Create Another</button>}
-            </div>
-        </form>
-    )
+      <div className="input-group w-full mb-4">
+        <button className="btn-info mr-2" type="submit">
+          {update ? 'Update' : 'Save'}
+        </button>
+        {!update && (
+          <button className="btn-info" type="button" onClick={handleSaveAndCreate}>
+            Save & Create Another
+          </button>
+        )}
+      </div>
+    </form>
+  );
 }
 
 export default TeamAdd;

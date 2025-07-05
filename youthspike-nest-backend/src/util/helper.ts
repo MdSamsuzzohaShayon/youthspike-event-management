@@ -76,3 +76,27 @@ export function formatDate(isoString: string): string {
   };
   return new Intl.DateTimeFormat('en-US', options).format(date);
 }
+
+
+export function initPlayerStat(match: string, player: string){
+  return {
+    serveOpportunity: 0,
+    serveAce: 0,
+    serveCompletionCount: 0,
+    servingAceNoTouch: 0,
+    receiverOpportunity: 0,
+    receivedCount: 0,
+    noTouchAcedCount: 0,
+    hittingOpportunity: 0,
+    hittingCompletion: 0,
+    cleanHits: 0,
+    defensiveOpportunity: 0,
+    defensiveConversion: 0,
+    break: 0,
+    broken: 0,
+    matchPlayed: 0,
+    // Relationship
+    match,
+    player,
+  }
+}

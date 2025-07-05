@@ -408,8 +408,8 @@ class EmitEvents {
     this.socket?.emit('set-players-from-client', actionData);
   }
 
-  serviceFault({ match, receiver, net }: IServiceFaultInput) {
-    const actionData = { match, receiver, net };
+  serviceFault({ match, receiver, net, room }: IServiceFaultInput) {
+    const actionData = { match, receiver, net, room };
     this.socket?.emit('service-fault-from-client', actionData);
   }
 }

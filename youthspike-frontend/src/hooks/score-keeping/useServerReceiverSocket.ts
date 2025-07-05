@@ -43,9 +43,12 @@ export default function useServerReceiverSocket({
       'error-from-server': (err: string) => listener.handleError(err, dispatch),
       'set-players-from-server': (data: IServerReceiverOnNet) =>
         listener.handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet }),
+      'service-fault-from-server': (data: IServerReceiverOnNet)=> listener.handleServiceFaultResponse({ data, dispatch, serverReceiversOnNet }),
     } as const;
 
     Object.entries(handlers).forEach(([evt, fn]) => socket.on(evt, fn));
+
     return () => Object.keys(handlers).forEach((evt) => socket.off(evt));
+
   }, [socket, dispatch, roundList, teamA, teamB, currRound, matchId, serverReceiversOnNet]);
 }

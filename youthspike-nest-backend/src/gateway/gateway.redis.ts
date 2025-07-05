@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
-import { ROOM_PREFIX, SOCKET_PREFIX } from './gateway.types';
+import { ROOM_PREFIX, ServerReceiverOnNet, SOCKET_PREFIX } from './gateway.types';
 import { Server } from 'socket.io';
 
 @Injectable()

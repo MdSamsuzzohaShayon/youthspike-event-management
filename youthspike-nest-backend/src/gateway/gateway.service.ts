@@ -8,6 +8,8 @@ import { EventService } from 'src/event/event.service';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
 import { PlayerService } from 'src/player/player.service';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 
 @Injectable()
 export class GatewayService {
@@ -21,6 +23,7 @@ export class GatewayService {
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
     private readonly playerService: PlayerService,
+    private readonly playerStatsService: PlayerStatsService
   ) {}
 
   getServices() {
@@ -34,6 +37,7 @@ export class GatewayService {
       teamService: this.teamService,
       matchService: this.matchService,
       playerService: this.playerService,
+      playerStatsService: this.playerStatsService
     };
   }
 }

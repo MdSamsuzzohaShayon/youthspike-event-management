@@ -32,7 +32,7 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
 
   /* Redux slices */
   const { roundList, current: currRound } = useAppSelector((s) => s.rounds);
-  const { currNetNum, currentRoundNets, serverReceiversOnNet } = useAppSelector((s) => s.nets);
+  const { currNetNum, currentRoundNets, serverReceiversOnNet, currentServerReceiver: currServerReceiver } = useAppSelector((s) => s.nets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((s) => s.players);
   const currMatch = useAppSelector((s) => s.matches.match);
   const currRoom = useAppSelector((s) => s.rooms.current);
@@ -85,6 +85,8 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
 
   const receiverTeam = useMemo(() => makeTeam(selectedReceiver, currNetNum, false) as IReceiverTeam | null, [selectedReceiver, currNetNum, makeTeam]);
 
+  const net = netByNum.get(currNetNum);
+
   /* ───── Handlers ───── */
   const handleNetChange = useCallback((e: React.SyntheticEvent) => dispatch(setCurrNetNum(Number((e.target as HTMLSelectElement).value))), [dispatch]);
 
@@ -105,7 +107,6 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ← run exactly once
 
   /* ───── UI ───── */
@@ -137,7 +138,7 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
             <div className="w-full md:w-1/6 flex  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
               <h2 className="uppercase">Freeze</h2>
               <div className="bg-yellow-logo h-24 w-24 rounded-xl flex items-center justify-center">
-                <h2>13</h2>
+                <h2 className="text-black">13</h2>
               </div>
               <div className="bg-white text-black h-24 w-24 rounded-xl flex items-center justify-center">
                 <h2>18</h2>
@@ -155,7 +156,15 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
           </div>
 
           {/* Handle action for each button pressed  */}
-          <ActionHandler dispatch={dispatch} server={selectedServer} receiver={selectedReceiver} socket={socket} currNet={netByNum.get(currNetNum)?._id ?? null} matchId={matchId} />
+          <ActionHandler
+            dispatch={dispatch}
+            server={selectedServer}
+            receiver={selectedReceiver}
+            socket={socket}
+            currNet={netByNum.get(currNetNum)?._id ?? null}
+            matchId={matchId}
+            room={currRoom?._id || ''}
+          />
 
           {actionPreview && (
             <div className="text-center my-6">
@@ -214,12 +223,14 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
                     <button onClick={handleSetPlayers} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
                       Set Players
                     </button>
-                    <button
-                      onClick={() => setActionPreview(true)}
-                      className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
-                    >
-                      Action Preview
-                    </button>
+                    {currServerReceiver && (
+                      <button
+                        onClick={() => setActionPreview(true)}
+                        className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                      >
+                        Action Preview
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

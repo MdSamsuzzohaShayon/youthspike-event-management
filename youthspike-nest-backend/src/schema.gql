@@ -736,6 +736,8 @@ type ServerReceiverOnNet {
   match: String!
   net: String!
   round: String!
+  teamAScore: Float!
+  teamBScore: Float!
 }
 
 type CreateOrUpdateRoundResponse {

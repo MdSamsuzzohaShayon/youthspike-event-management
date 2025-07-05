@@ -1,7 +1,7 @@
 import React from 'react';
 import { setCurrentEventInfo, setEventSponsors, setLdo } from '@/redux/slices/eventSlice';
 import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE } from '@/redux/slices/matchesSlice';
-import { setCurrentRoundNets, setCurrNetNum, setNets, setServerReceiversOnNet } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setCurrentServerReceiver, setCurrNetNum, setNets, setServerReceiversOnNet } from '@/redux/slices/netSlice';
 import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
@@ -62,8 +62,10 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     extendedOvertime,
     teamARanking,
     teamBRanking,
-    netsServerReceiver
+    netsServerReceiver,
   } = matchData;
+
+  const CURRENT_NET_NUM = 1;
 
   // Setting teams
   dispatch(setTeamA({ ...teamAF }));
@@ -111,7 +113,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     const playerIds = players ? players.map((p) => p._id) : [];
     const subIds = subs ? subs.map((s) => s._id) : [];
 
-    // @ts-ignore 
+    // @ts-ignore
     const roundObj: IRoundRelatives = {
       _id: roundId,
       players: playerIds,
@@ -135,7 +137,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
 
   dispatch(setNets(formattedNets));
   // console.log('allNets: ', formattedNets);
-  dispatch(setCurrNetNum(1));
+  dispatch(setCurrNetNum(CURRENT_NET_NUM));
   // console.log(`RoundList: `, formattedRounds);
 
   dispatch(setRoundList(formattedRounds));
@@ -156,7 +158,13 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
     dispatch(setCurrentRoundNets(filteredNets));
 
-    if(netsServerReceiver)dispatch(setServerReceiversOnNet(netsServerReceiver))
+    if (netsServerReceiver) dispatch(setServerReceiversOnNet(netsServerReceiver));
+
+    const selectedNet = filteredNets.find((n) => n.num === CURRENT_NET_NUM);
+    if (selectedNet) {
+      const currServerReceiver = netsServerReceiver?.find((sr) => sr.net === selectedNet._id);
+      if (currServerReceiver) dispatch(setCurrentServerReceiver(currServerReceiver));
+    }
   }
   // console.log('Current round: ', selectedRound);
 

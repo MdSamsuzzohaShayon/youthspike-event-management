@@ -482,8 +482,8 @@ export class MatchResolver {
       const netList = await this.netService.find({ match: match._id.toString() });
   
       const netPromises = netList.map(net => {
-        const CACHE_KEY = `action:${net._id}:${match.room}`;
-        return this.redisService.get(CACHE_KEY);
+        const SR_CACHE_KEY = `sr:${net._id}:${match.room}`;
+        return this.redisService.get(SR_CACHE_KEY);
       });
   
       const serverReceiverOnNets = await Promise.all(netPromises);

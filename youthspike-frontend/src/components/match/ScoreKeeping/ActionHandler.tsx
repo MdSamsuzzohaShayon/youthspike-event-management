@@ -10,9 +10,10 @@ interface IActionHandlerProps{
   server: string | null;
   receiver: string | null;
   currNet: string | null;
+  room: string | null;
 }
 
-function ActionHandler({matchId, socket, dispatch, server, receiver, currNet}: IActionHandlerProps) {
+function ActionHandler({matchId, socket, dispatch, server, receiver, currNet, room}: IActionHandlerProps) {
 
     const handleAceNoTouch=(e: React.SyntheticEvent)=>{
         e.preventDefault();
@@ -45,11 +46,12 @@ function ActionHandler({matchId, socket, dispatch, server, receiver, currNet}: I
 
     const handleServiceFault=(e: React.SyntheticEvent)=>{
         e.preventDefault();
-        if (receiver && currNet) {
+        if (receiver && currNet && room) {
           const actionData = {
             match: matchId,
             receiver,
             net: currNet,
+            room
           };
           const emit = new EmitEvents(socket, dispatch);
           emit.serviceFault(actionData);

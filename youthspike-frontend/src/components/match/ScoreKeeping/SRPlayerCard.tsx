@@ -2,6 +2,7 @@ import TextImg from '@/components/elements/TextImg';
 import cld from '@/config/cloudinary.config';
 import { IPlayer, IReceiverTeam, IServerTeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
+import Image from 'next/image';
 import React from 'react';
 
 interface ISPPlayerCardProps {
@@ -9,22 +10,30 @@ interface ISPPlayerCardProps {
   team: IServerTeam | IReceiverTeam | null;
   player: IPlayer | null;
   role: string;
+  dark?: boolean;
+  handlePlayerSelection?: (e: React.SyntheticEvent) => void;
 }
 
 // SRPlayerCard = Server Receiver Player Card
-const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({ selected, team, player, role }) => {
+const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({ selected, team, player, role, dark, handlePlayerSelection }) => {
   return (
     <div>
       {/* Avatar container */}
-      <div className="h-24 w-24 bg-white flex items-center justify-center rounded-2xl shadow-lg overflow-hidden border-2 border-yellow-400">
+      <div
+        className={`h-24 w-24 bg-tansparent flex items-center justify-center rounded-2xl shadow-lg overflow-hidden border-2 border-yellow-400`}
+        role="presentation"
+        onClick={handlePlayerSelection}
+      >
         {selected && team ? (
           player?.profile ? (
             <AdvancedImage cldImg={cld.image(player?.profile)} />
           ) : (
             <TextImg className="w-full h-full rounded-xl" fText={player?.firstName} lText={player?.lastName} />
           )
-        ) : (
+        ) : dark ? (
           <div />
+        ) : (
+          <Image alt="Add Server" src="/icons/plus.svg" width={50} height={50} className={dark ? "hidden" : ""} />
         )}
       </div>
 
