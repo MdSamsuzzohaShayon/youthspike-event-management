@@ -80,6 +80,8 @@ query GetMatch($matchId: String!) {
         round
         server
         servingPartner
+        teamAScore
+        teamBScore
       }
       room {
         _id

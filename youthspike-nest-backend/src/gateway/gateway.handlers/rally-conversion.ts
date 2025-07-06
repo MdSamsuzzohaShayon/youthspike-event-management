@@ -1,14 +1,14 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { RoomLocal, ServerReceiverOnNet, ServiceFaultInput } from '../gateway.types';
+import { RoomLocal, ServerReceiverOnNet, RallyConversionInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { initPlayerStat } from 'src/util/helper';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { ClientHelper } from '../gateway.helpers/client.helper';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
-export class ServiceFaultHandler {
+export class RallyConversionHandler {
   constructor(
     private readonly gatewayService: GatewayService,
     private readonly gatewayRedisService: GatewayRedisService,
@@ -18,29 +18,31 @@ export class ServiceFaultHandler {
 
   async handle(
     @ConnectedSocket() client: Socket,
-    @MessageBody() serviceFaultInput: ServiceFaultInput,
+    @MessageBody() rallyConversionInput: RallyConversionInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
       // Receiving team Scores
-      const NET_CACHE_KEY = `sr:${serviceFaultInput.net}:${serviceFaultInput.room}`;
+      // Switch the position with partner
+      const NET_CACHE_KEY = `sr:${rallyConversionInput.net}:${rallyConversionInput.room}`;
 
       // player service opportunity increase
       const netCacheData = await this.gatewayRedisService.getAction(NET_CACHE_KEY);
       if (!netCacheData) {
-        throw new Error(`Net data not found, try setting players on the net again: ${serviceFaultInput}`);
+        throw new Error(`Net data not found, try setting players on the net again: ${rallyConversionInput}`);
       }
 
       const actionData: ServerReceiverOnNet = { ...netCacheData };
 
       const { netService } = this.gatewayService.getServices();
 
-      const [netExist] = await Promise.all([netService.findById(serviceFaultInput.net)]);
+      const netExist = await netService.findById(rallyConversionInput.net);
 
       const teamA = new Set([netExist.teamAPlayerA, netExist.teamAPlayerB]);
       const teamB = new Set([netExist.teamBPlayerA, netExist.teamBPlayerB]);
 
-      // Add a point to server, cache it, will save on the server later
+      // player point calculate
+      // Server: +1 server opportunity, +1 serve conpletion count, +1 serving ace, +1 break
       const SERVER_PLAYER_CACHE = `player:${actionData.server}`;
       let serverStats = await this.gatewayRedisService.getAction(SERVER_PLAYER_CACHE);
       if (!serverStats) {
@@ -48,6 +50,8 @@ export class ServiceFaultHandler {
       }
       const serverStatsData: PlayerStats = { ...serverStats };
       serverStatsData.serveOpportunity = serverStatsData.serveOpportunity + 1;
+      serverStatsData.serveCompletionCount = serverStatsData.serveCompletionCount + 1;
+      serverStatsData.defensiveOpportunity = serverStatsData.defensiveOpportunity + 1;
       await this.gatewayRedisService.setAction(SERVER_PLAYER_CACHE, serverStatsData);
 
       // Score update in the net
@@ -55,7 +59,7 @@ export class ServiceFaultHandler {
       const receiverInTeamB = teamB.has(actionData.receiver);
 
       if (!receiverInTeamA && !receiverInTeamB) {
-        throw new Error(`Server is not part of the net. Input: ${serviceFaultInput}`);
+        throw new Error(`Server is not part of the net. Input: ${rallyConversionInput}`);
       }
 
       if (receiverInTeamA) {
@@ -65,7 +69,7 @@ export class ServiceFaultHandler {
         actionData.teamBScore = actionData.teamBScore + 1;
       }
 
-      // Swep server and receiver
+      // Swep receiver with receiving partner
       const tempServer = actionData.server;
       actionData.server = actionData.receiver;
       actionData.receiver = tempServer;
@@ -79,8 +83,8 @@ export class ServiceFaultHandler {
 
       // Response back
       await this.gatewayRedisService.publishToRoom(
-        serviceFaultInput.room,
-        'service-fault-from-server',
+        rallyConversionInput.room,
+        'one-two-three-put-away-from-server',
         actionData,
         // client.id,
       );

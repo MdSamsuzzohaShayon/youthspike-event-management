@@ -37,7 +37,6 @@ import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
-import { REDIS_CACHE_EXPIRE } from 'src/util/keys';
 import { Player } from 'src/player/player.schema';
 import {
   CreateOrUpdateEventResponse,

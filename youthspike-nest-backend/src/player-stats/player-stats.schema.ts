@@ -38,6 +38,14 @@ export class PlayerStats extends AppDocument {
 
   @Field(() => Int)
   @Prop({ default: 0 })
+  settingOpportunity: number;
+
+  @Field(() => Int)
+  @Prop({ default: 0 })
+  settingCompletion: number;
+
+  @Field(() => Int)
+  @Prop({ default: 0 })
   hittingOpportunity: number;
 
   @Field(() => Int)

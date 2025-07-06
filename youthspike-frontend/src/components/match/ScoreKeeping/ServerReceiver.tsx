@@ -138,10 +138,10 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
             <div className="w-full md:w-1/6 flex  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
               <h2 className="uppercase">Freeze</h2>
               <div className="bg-yellow-logo h-24 w-24 rounded-xl flex items-center justify-center">
-                <h2 className="text-black">13</h2>
+                <h2 className="text-black">{currServerReceiver?.teamAScore || 0}</h2>
               </div>
               <div className="bg-white text-black h-24 w-24 rounded-xl flex items-center justify-center">
-                <h2>18</h2>
+                <h2>{currServerReceiver?.teamBScore || 0}</h2>
               </div>
               <h2 className="uppercase">Bucks</h2>
             </div>

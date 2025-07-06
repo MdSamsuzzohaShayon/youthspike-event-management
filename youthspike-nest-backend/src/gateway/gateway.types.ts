@@ -97,7 +97,6 @@ export class ExtendOvertimeInput {
   room: string;
 }
 
-
 export interface SetPlayersInput {
   userId: string;
   room: string;
@@ -109,19 +108,38 @@ export interface SetPlayersInput {
   accessCode: string;
 }
 
-export class ServiceFaultInput{
-  @Field({nullable: false})
+@InputType()
+class CommonActionInput {
+  @Field({ nullable: false })
   match: string;
 
-  @Field({nullable: false})
+  @Field({ nullable: false })
   receiver: string;
-  
-  @Field({nullable: false})
+
+  @Field({ nullable: false })
   net: string;
 
-  @Field({nullable: false})
+  @Field({ nullable: false })
   room: string;
 }
+@InputType()
+export class ServiceFaultInput extends CommonActionInput {}
+
+@InputType()
+export class AceNoTouchInput extends CommonActionInput {}
+
+@InputType()
+export class AceNoThirdTouchInput extends CommonActionInput {}
+
+@InputType()
+export class ReceivingHittingErrorInput extends CommonActionInput {}
+
+@InputType()
+export class OneTwoThreePutAwayInput extends CommonActionInput {}
+
+@InputType()
+export class RallyConversionInput extends CommonActionInput {}
+
 
 export interface RoundUpdatedResponse {
   nets: any[];

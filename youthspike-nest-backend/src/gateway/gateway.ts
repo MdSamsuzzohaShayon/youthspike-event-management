@@ -23,6 +23,10 @@ import {
   TieBreakerInput,
   SetPlayersInput,
   ServiceFaultInput,
+  AceNoThirdTouchInput,
+  ReceivingHittingErrorInput,
+  OneTwoThreePutAwayInput,
+  RallyConversionInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -37,6 +41,11 @@ import { TieBreakerHandler } from './gateway.handlers/tie-breraker.handler';
 import { ExtendOvertimeHandler } from './gateway.handlers/extend-overtime.handler';
 import { SetPlayersHandler } from './gateway.handlers/set-players.handler';
 import { ServiceFaultHandler } from './gateway.handlers/service-fault';
+import { AceNoTouchHandler } from './gateway.handlers/ace-no-touch';
+import { AceNoThirdTouchHandler } from './gateway.handlers/ace-no-third-touch';
+import { ReceivingHittingErrorHandler } from './gateway.handlers/receiving-hitting-error';
+import { OneTwoThreePutAwayHandler } from './gateway.handlers/one-two-three-put-away';
+import { RallyConversionHandler } from './gateway.handlers/rally-conversion';
 
 @WebSocketGateway({
   cors: true,
@@ -63,6 +72,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private extendOvertimeHandler: ExtendOvertimeHandler;
   private setPlayersHandler: SetPlayersHandler;
   private serviceFault: ServiceFaultHandler;
+  private aceNoTouch: AceNoTouchHandler;
+  private aceNoThirdTouch: AceNoThirdTouchHandler;
+  private receivingHittingError: ReceivingHittingErrorHandler;
+  private oneTwoThreePutAway: OneTwoThreePutAwayHandler;
+  private rallyConversion: RallyConversionHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -73,18 +87,19 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     // Initialize handlers for a prticular match
     this.joinRoomHandler = new JoinRoomHandler(gatewayService, gatewayRedisService, roomHelper, clientHelper);
-
     this.checkInHandler = new CheckInHandler(gatewayService, gatewayRedisService, validationHelper);
-
     this.submitLineupHandler = new SubmitLineupHandler(gatewayService, gatewayRedisService, roomHelper);
-
     this.updatePointsHandler = new UpdatePointsHandler(gatewayService, gatewayRedisService);
-
     this.tieBreakerHandler = new TieBreakerHandler(gatewayService, gatewayRedisService);
-
     this.extendOvertimeHandler = new ExtendOvertimeHandler(gatewayService, gatewayRedisService);
 
-    this.serviceFault = new ServiceFaultHandler(gatewayService, gatewayRedisService);
+    // Score keeper handlers
+    this.serviceFault = new ServiceFaultHandler(gatewayService, gatewayRedisService, clientHelper, validationHelper);
+    this.aceNoTouch = new AceNoTouchHandler(gatewayService, gatewayRedisService, clientHelper, validationHelper);
+    this.aceNoThirdTouch =  new AceNoThirdTouchHandler(gatewayService, gatewayRedisService, clientHelper, validationHelper);
+    this.receivingHittingError =  new ReceivingHittingErrorHandler(gatewayService, gatewayRedisService, clientHelper, validationHelper);
+    this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(gatewayService, gatewayRedisService, clientHelper, validationHelper);
+    this.rallyConversion = new RallyConversionHandler(gatewayService, gatewayRedisService, clientHelper, validationHelper);
 
     /**
      * Handlers for Score keeper
@@ -170,14 +185,42 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.extendOvertimeHandler.handle(client, tieBreakerInput, this.roomsLocal);
   }
 
+  // Score keeper events handle
+  // ======================================================================================================
   @SubscribeMessage('set-players-from-client')
   async onSetPlayers(@ConnectedSocket() client: Socket, @MessageBody() setPlayerInput: SetPlayersInput) {
     return this.setPlayersHandler.handle(client, setPlayerInput, this.roomsLocal);
   }
 
-  // service-fault-from-client
   @SubscribeMessage('service-fault-from-client')
   async onServiceFault(@ConnectedSocket() client: Socket, @MessageBody() serviceFaultInput: ServiceFaultInput) {
     return this.serviceFault.handle(client, serviceFaultInput, this.roomsLocal);
   }
+
+  @SubscribeMessage('ace-no-touch-from-client')
+  async onAceNoTouch(@ConnectedSocket() client: Socket, @MessageBody() aceNoTouchInput: ServiceFaultInput) {
+    return this.aceNoTouch.handle(client, aceNoTouchInput, this.roomsLocal);
+  }
+
+
+  @SubscribeMessage('ace-no-third-touch-from-client')
+  async onAceNoThirdTouch(@ConnectedSocket() client: Socket, @MessageBody() aceNoThirdTouchInput: AceNoThirdTouchInput) {
+    return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput, this.roomsLocal);
+  }
+
+  @SubscribeMessage('receiving-hitting-error-from-client')
+  async onReceivingHittingError(@ConnectedSocket() client: Socket, @MessageBody() receivingHittingErrorInput: ReceivingHittingErrorInput) {
+    return this.receivingHittingError.handle(client, receivingHittingErrorInput, this.roomsLocal);
+  }
+
+  @SubscribeMessage('one-two-three-put-away-from-client')
+  async onOneTwoThreePutAway(@ConnectedSocket() client: Socket, @MessageBody() oneTwoThreePutAwayInput: OneTwoThreePutAwayInput) {
+    return this.oneTwoThreePutAway.handle(client, oneTwoThreePutAwayInput, this.roomsLocal);
+  }
+
+  @SubscribeMessage('rally-conversion-from-client')
+  async onORallyConversion(@ConnectedSocket() client: Socket, @MessageBody() rallyConversionInput: RallyConversionInput) {
+    return this.rallyConversion.handle(client, rallyConversionInput, this.roomsLocal);
+  }
+
 }

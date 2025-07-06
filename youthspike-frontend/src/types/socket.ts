@@ -41,25 +41,33 @@ export interface IStatusChange {
   myTeamE: ETeam;
 }
 
-// socket, dispatch, currRoom, currRound, currMatch, currNet, server, receiver 
+// socket, dispatch, currRoom, currRound, currMatch, currNet, server, receiver
 export interface ISetServerReceiverChange {
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   currMatch: IMatchRelatives;
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
-  currRoundNets: INetRelatives[]; 
+  currRoundNets: INetRelatives[];
   currNetNum: number;
   server: string | null;
   receiver: string | null;
   userInfo: IUser | null;
 }
 
-export interface IServiceFaultInput{
+interface ICommonAction {
   match: string;
   receiver: string;
   net: string;
   room: string;
 }
+
+export interface IServiceFaultInput extends ICommonAction {}
+export interface IOneTwoThreePutAwayInput extends ICommonAction {}
+export interface IRallyConversionInput extends ICommonAction {}
+
+export interface IAceNoTouchInput extends ICommonAction {}
+export interface IAceNoThirdTouchInput extends ICommonAction {}
+export interface IReceivingHittingErrorInput extends ICommonAction {}
 
 export interface ICheckInToLineupProps extends IStatusChange {
   myTeamE: ETeam;
@@ -168,12 +176,10 @@ export interface IOvertimeData {
   extendedOvertime: boolean;
 }
 
-
-
 /**
  * Score keeper
  */
-export interface IServerReceiverOnNet{
+export interface IServerReceiverOnNet {
   mutate: number;
   server: string;
   servingPartner: string;
@@ -187,8 +193,6 @@ export interface IServerReceiverOnNet{
   teamBScore: number;
 }
 
-
-
 /**
  * Responses
  */
@@ -200,7 +204,6 @@ export interface IServerReceiverResponse {
   serverReceiversOnNet: IServerReceiverOnNet[];
 }
 
-
 // Run match
 export interface ICheckInResponse {
   data: IRoom;
@@ -208,7 +211,6 @@ export interface ICheckInResponse {
   roundList: IRoundRelatives[];
   currentRound: IRoundRelatives | null;
 }
-
 
 export interface ILineUpResponse {
   data: IRoomNets;
@@ -243,7 +245,6 @@ export interface IUpdateNetResponse {
   roundList: IRoundRelatives[];
   match: IMatchRelatives;
 }
-
 
 /**
  * Action data
@@ -284,4 +285,3 @@ export interface IUpdateNet {
 }
 
 // IServerReceiverResponse, ICheckInResponse, ILineUpResponse, IUpdatePointsResponse, IUpdateExtendOvertimeResponse, IUpdateNetResponse, IRoundMatchCommon, IRoundUpdateData, INetUpdateData, ITeamCaptain, IMatch, IUpdateRound, IUpdateNet
-

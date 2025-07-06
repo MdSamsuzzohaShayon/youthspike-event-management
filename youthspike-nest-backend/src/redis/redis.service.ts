@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Cluster } from 'ioredis';
-import { EEnv, NODE_ENV } from 'src/util/keys';
+import { EEnv, NODE_ENV, REDIS_CACHE_EXPIRE } from 'src/util/keys';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -50,7 +50,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return RedisService.subClient;
   }
 
-  async set(key: string, value: any, expireInSec: number = 60 * 60 * 24): Promise<void> {
+  async set(key: string, value: any, expireInSec: number = REDIS_CACHE_EXPIRE): Promise<void> {
     const client = this.getPubClient();
     const stringValue = JSON.stringify(value);
     if (expireInSec) {

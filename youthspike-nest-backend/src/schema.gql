@@ -116,6 +116,8 @@ type PlayerStats {
   receiverOpportunity: Int!
   receivedCount: Int!
   noTouchAcedCount: Int!
+  settingOpportunity: Int!
+  settingCompletion: Int!
   hittingOpportunity: Int!
   hittingCompletion: Int!
   cleanHits: Int!

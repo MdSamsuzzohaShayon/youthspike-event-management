@@ -346,6 +346,54 @@ class SocketEventListener {
     }
   }
 
+  handleAceNoTouchResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    if (data) {
+      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
+      if (exist) {
+        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
+        dispatch(setServerReceiversOnNet(newSrList));
+      } else {
+        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
+      }
+      dispatch(setCurrentServerReceiver(data));
+    }
+  }
+
+  handleAceNoThirdTouchResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    if (data) {
+      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
+      if (exist) {
+        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
+        dispatch(setServerReceiversOnNet(newSrList));
+      } else {
+        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
+      }
+      dispatch(setCurrentServerReceiver(data));
+    }
+  }
+
+  handleOneTwoThreePutAwayResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    if (data) {
+      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
+      if (exist) {
+        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
+        dispatch(setServerReceiversOnNet(newSrList));
+      } else {
+        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
+      }
+      dispatch(setCurrentServerReceiver(data));
+    }
+  }
+
   handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {
     console.log({ error });
     this.dispatch = dispatch;
