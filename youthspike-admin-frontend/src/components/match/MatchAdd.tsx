@@ -69,58 +69,71 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   const filteredTeamList = useMemo(() => {
     if (!teamList) return [];
     if (!selectedGroup || selectedGroup.toLowerCase() === 'all') return teamList;
-    
-    const group = groupList.find(g => g._id === selectedGroup);
+
+    const group = groupList.find((g) => g._id === selectedGroup);
     if (!group?.teams) return [];
-    
-    const teamIds = new Set(group.teams.map(gt => gt._id));
-    return teamList.filter(t => teamIds.has(t._id));
+
+    const teamIds = new Set(group.teams.map((gt) => gt._id));
+    return teamList.filter((t) => teamIds.has(t._id));
   }, [teamList, selectedGroup, groupList]);
 
   // Generic handlers
-  const createChangeHandler = <T extends unknown>(
-    isUpdate: boolean, 
-    stateSetter: React.Dispatch<React.SetStateAction<IAddMatch>> | React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>, 
-    transformer?: (value: string) => T
-  ) => (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLInputElement;
-    const value = transformer ? transformer(inputEl.value) : inputEl.value;
-    if (isUpdate) {
-      (stateSetter as React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>)(prev => ({ ...prev, [inputEl.name]: value }));
-    } else {
-      (stateSetter as React.Dispatch<React.SetStateAction<IAddMatch>>)(prev => ({ ...prev, [inputEl.name]: value }));
-    }
-  };
+  const createChangeHandler =
+    <T extends unknown>(
+      isUpdate: boolean,
+      stateSetter: React.Dispatch<React.SetStateAction<IAddMatch>> | React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>,
+      transformer?: (value: string) => T,
+    ) =>
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      const inputEl = e.target as HTMLInputElement;
+      const value = transformer ? transformer(inputEl.value) : inputEl.value;
+      if (isUpdate) {
+        (stateSetter as React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>)((prev) => ({ ...prev, [inputEl.name]: value }));
+      } else {
+        (stateSetter as React.Dispatch<React.SetStateAction<IAddMatch>>)((prev) => ({ ...prev, [inputEl.name]: value }));
+      }
+    };
 
   const handleInputChange = createChangeHandler(!!update, update ? setUpdateMatch : setAddMatch);
-  const handleNumInputChange = createChangeHandler(!!update, update ? setUpdateMatch : setAddMatch, parseInt);
+  // const handleNumInputChange = createChangeHandler(!!update, update ? setUpdateMatch : setAddMatch, parseInt);
   const handleSelectChange = handleInputChange;
+
+  const handleNumInputChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    const newValue = parseInt(inputEl.value, 10);
+    if (update) {
+      setUpdateMatch((prev) => ({ ...prev, [inputEl.name]: newValue }));
+    } else {
+      setAddMatch((prev) => ({ ...prev, [inputEl.name]: newValue }));
+    }
+  };
 
   const handleToggleInput = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const state = update ? updateMatch : addMatch;
     const newValue = !(state.autoAssign ?? false);
     if (update) {
-      setUpdateMatch(prev => ({ ...prev, autoAssign: newValue }));
+      setUpdateMatch((prev) => ({ ...prev, autoAssign: newValue }));
     } else {
-      setAddMatch(prev => ({ ...prev, autoAssign: newValue }));
+      setAddMatch((prev) => ({ ...prev, autoAssign: newValue }));
     }
   };
 
   const handleDateChange = ({ name, value }: { name: string; value: string }) => {
     if (update) {
-      setUpdateMatch(prev => ({ ...prev, [name]: value }));
+      setUpdateMatch((prev) => ({ ...prev, [name]: value }));
     } else {
-      setAddMatch(prev => ({ ...prev, [name]: value }));
+      setAddMatch((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
     if (update) {
-      setUpdateMatch(prev => ({ ...prev, rosterLock: value }));
+      setUpdateMatch((prev) => ({ ...prev, rosterLock: value }));
     } else {
-      setAddMatch(prev => ({ ...prev, rosterLock: value }));
+      setAddMatch((prev) => ({ ...prev, rosterLock: value }));
     }
   };
 
@@ -129,37 +142,37 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     const inputEl = e.target as HTMLSelectElement;
     const newGroup = inputEl.value !== '' ? inputEl.value : undefined;
     setSelectedGroup(newGroup);
-    
+
     if (update) {
-      setUpdateMatch(prev => ({ 
-        ...prev, 
-        group: newGroup?.toLowerCase() === 'all' ? undefined : newGroup 
+      setUpdateMatch((prev) => ({
+        ...prev,
+        group: newGroup?.toLowerCase() === 'all' ? undefined : newGroup,
       }));
     } else {
-      setAddMatch(prev => ({ 
-        ...prev, 
-        group: newGroup?.toLowerCase() === 'all' ? undefined : newGroup 
+      setAddMatch((prev) => ({
+        ...prev,
+        group: newGroup?.toLowerCase() === 'all' ? undefined : newGroup,
       }));
     }
   };
 
   const handleAddMatch = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await addOrUpdateMatch({ 
-      setActErr, 
-      setIsLoading, 
-      eventId, 
-      mutateMatch, 
-      createMatch, 
-      matchId, 
-      addMatch, 
-      ldoIdUrl, 
-      currDivision, 
-      updateMatch, 
-      update, 
-      showAddMatch, 
-      router, 
-      addMatchCB 
+    await addOrUpdateMatch({
+      setActErr,
+      setIsLoading,
+      eventId,
+      mutateMatch,
+      createMatch,
+      matchId,
+      addMatch,
+      ldoIdUrl,
+      currDivision,
+      updateMatch,
+      update,
+      showAddMatch,
+      router,
+      addMatchCB,
     });
   };
 
@@ -167,13 +180,13 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   useEffect(() => {
     if (!prevMatch && !eventData) return;
 
-    const mObj = prevMatch 
-      ? { 
-          ...initialAddMatch, 
+    const mObj = prevMatch
+      ? {
+          ...initialAddMatch,
           ...prevMatch,
           teamA: prevMatch.teamA._id,
           teamB: prevMatch.teamB._id,
-          group: typeof prevMatch.group === 'object' ? prevMatch.group._id : prevMatch.group
+          group: typeof prevMatch.group === 'object' ? prevMatch.group._id : prevMatch.group,
         }
       : {
           ...initialAddMatch,
@@ -189,7 +202,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           location: eventData!.location,
           accessCode: eventData!.accessCode,
           tieBreaking: eventData!.tieBreaking,
-          fwango: eventData!.fwango
+          fwango: eventData!.fwango,
         };
 
     setAddMatch(mObj);
@@ -198,113 +211,67 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   // Memoized group options
   const groupOptions = useMemo(() => {
     const baseOptions = [{ id: 1, text: 'All', value: 'all' }];
-    
+
     if (!addMatch.division) {
       return [...baseOptions, ...groupList.map((g, i) => ({ id: i + 2, text: g.name, value: g._id }))];
     }
-    
-    const divisionUpper = addMatch.division.trim().toUpperCase();
-    return [
-      ...baseOptions,
-      ...groupList
-        .filter(g => g.division.trim().toUpperCase() === divisionUpper)
-        .map((g, i) => ({ id: i + 2, text: g.name, value: g._id }))
-    ];
-  }, [groupList, addMatch.division]);
 
-  console.log(addMatch);
-  
+    const divisionUpper = addMatch.division.trim().toUpperCase();
+    return [...baseOptions, ...groupList.filter((g) => g.division.trim().toUpperCase() === divisionUpper).map((g, i) => ({ id: i + 2, text: g.name, value: g._id }))];
+  }, [groupList, addMatch.division]);
 
   return (
     <form onSubmit={handleAddMatch} className="w-full">
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        {addMatch.date && (
-          <DateInput 
-            handleDateChange={handleDateChange} 
-            name="date" 
-            label="Start time" 
-            required={!update} 
-            value={addMatch.date} 
-          />
-        )}
+        {addMatch.date && <DateInput handleDateChange={handleDateChange} name="date" label="Start time" required={!update} value={addMatch.date} />}
 
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="number" 
-          required={!update} 
-          label="Number of nets" 
-          name="numberOfNets" 
-          defaultValue={addMatch.numberOfNets} 
-          handleInputChange={handleNumInputChange} 
+        <InputField
+          key={`if-${Math.floor(Math.random() * 1000)}`}
+          type="number"
+          required={!update}
+          label="Number of nets"
+          name="numberOfNets"
+          defaultValue={addMatch.numberOfNets}
+          handleInputChange={handleNumInputChange}
         />
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="number" 
-          required={!update} 
-          label="Number of rounds" 
-          name="numberOfRounds" 
-          defaultValue={addMatch.numberOfRounds} 
-          handleInputChange={handleNumInputChange} 
+        <InputField
+          key={`if-${Math.floor(Math.random() * 1000)}`}
+          type="number"
+          required={!update}
+          label="Number of rounds"
+          name="numberOfRounds"
+          defaultValue={addMatch.numberOfRounds}
+          handleInputChange={handleNumInputChange}
         />
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="number" 
-          required={!update} 
-          label="Net Variance" 
-          name="netVariance" 
-          defaultValue={addMatch.netVariance} 
-          handleInputChange={handleNumInputChange} 
+        <InputField
+          key={`if-${Math.floor(Math.random() * 1000)}`}
+          type="number"
+          required={!update}
+          label="Net Variance"
+          name="netVariance"
+          defaultValue={addMatch.netVariance}
+          handleInputChange={handleNumInputChange}
         />
       </div>
 
       <div className="part-3 grid grid-cols-1 gap-6 mt-6">
-        {!update && (
-          <SelectInput
-            key="g-t-d"
-            handleSelect={handleGroupChange}
-            name="group"
-            label="Group"
-            defaultValue={addMatch.division}
-            optionList={groupOptions}
-          />
-        )}
+        {!update && <SelectInput key="g-t-d" handleSelect={handleGroupChange} name="group" label="Group" defaultValue={addMatch.division} optionList={groupOptions} />}
       </div>
 
       <div className="part-3.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        {selectedGroup && filteredTeamList.length > 0 && (
-          <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />
-        )}
+        {selectedGroup && filteredTeamList.length > 0 && <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
       </div>
 
       <div className="mt-6 w-full">
         <h3 className="w-full capitalize">Default settings</h3>
       </div>
       <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <SelectInput 
-          key="si-1" 
-          name="homeTeam" 
-          defaultValue={addMatch.homeTeam} 
-          optionList={homeTeamStrategy} 
-          label="How is home team decided?" 
-          handleSelect={handleInputChange} 
-        />
-        <SelectInput 
-          key="si-2" 
-          name="tieBreaking" 
-          value={addMatch.tieBreaking} 
-          optionList={tieBreakingRules} 
-          label="Tie breaking strategy" 
-          handleSelect={handleInputChange} 
-        />
+        <SelectInput key="si-1" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
+        <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
       </div>
 
       <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <ToggleInput 
-          handleInputChange={handleToggleInput} 
-          name="autoAssign" 
-          label="Auto assign when clock runs out" 
-          defaultValue={addMatch.autoAssign} 
-        />
+        <ToggleInput handleInputChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
       </div>
 
       <div className="part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -320,76 +287,37 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         <SelectInput
           key="si-4"
           name="rosterLock"
-          value={
-            addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT 
-              ? ERosterLock.FIRST_ROSTER_SUBMIT 
-              : ERosterLock.PICK_A_DATE
-          }
+          value={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? ERosterLock.FIRST_ROSTER_SUBMIT : ERosterLock.PICK_A_DATE}
           optionList={lockTimes}
           label="When does the roster lock setting?"
           handleSelect={handleInputChange}
         />
-        {addMatch.rosterLock && 
-          addMatch.rosterLock !== '' && 
-          addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-            <DateInput 
-              name="rosterLockDate" 
-              label="Pick A date when ranking is going to lock" 
-              handleDateChange={handleRosterLockDate} 
-              defaultValue={addMatch.rosterLock} 
-            />
-          )}
+        {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+          <DateInput name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
+        )}
       </div>
 
       <div className="part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="number" 
-          required={!update} 
-          label="Sub Clock" 
-          name="timeout" 
-          defaultValue={addMatch.timeout} 
-          handleInputChange={handleNumInputChange} 
+        <InputField
+          key={`if-${Math.floor(Math.random() * 1000)}`}
+          type="number"
+          required={!update}
+          label="Sub Clock"
+          name="timeout"
+          defaultValue={addMatch.timeout}
+          handleInputChange={handleNumInputChange}
         />
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="text" 
-          handleInputChange={handleInputChange} 
-          label="Fwango Link" 
-          name="fwango" 
-          defaultValue={addMatch.fwango || ''} 
-        />
+        <InputField key={`if-${Math.floor(Math.random() * 1000)}`} type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
       </div>
       <div className="part-7 grid grid-cols-1 gap-6 mt-6">
-        <TextareaInput 
-          handleInputChange={handleInputChange} 
-          name="description" 
-          required={!update} 
-          defaultValue={addMatch.description} 
-        />
+        <TextareaInput handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
       </div>
       <div className="part-8 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="text" 
-          handleInputChange={handleInputChange} 
-          label="Location" 
-          name="location" 
-          defaultValue={addMatch.location} 
-        />
-        <InputField 
-        key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="text" 
-          handleInputChange={handleInputChange} 
-          label="Access Code" 
-          name="accessCode" 
-          defaultValue={addMatch.accessCode || ''} 
-        />
+        <InputField key={`if-${Math.floor(Math.random() * 1000)}`} type="text" handleInputChange={handleInputChange} label="Location" name="location" defaultValue={addMatch.location} />
+        <InputField key={`if-${Math.floor(Math.random() * 1000)}`} type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />
       </div>
 
-      <button className="btn-info mt-4 w-full">
-        {update ? 'Update' : 'Create'}
-      </button>
+      <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
     </form>
   );
 }

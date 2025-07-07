@@ -856,7 +856,7 @@ type Query {
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
-  getPlayers(eventId: String!): PlayersResponse!
+  getPlayers(eventId: String): PlayersResponse!
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!

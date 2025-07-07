@@ -1,6 +1,6 @@
-import { GET_A_PLAYER_RAW, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW, GET_EVENT_WITH_TEAM_PLAYERS_RAW, GET_PLAYER_AND_TEAMS_RAW } from "@/graphql/players";
-import { isValidObjectId } from "@/utils/helper";
-import { BACKEND_URL } from "@/utils/keys";
+import { GET_A_PLAYER_RAW, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW, GET_EVENT_WITH_TEAM_PLAYERS_RAW, GET_PLAYER_AND_TEAMS_RAW, GET_PLAYERS_MIN_RAW } from '@/graphql/players';
+import { isValidObjectId } from '@/utils/helper';
+import { BACKEND_URL } from '@/utils/keys';
 
 async function getAPlayer(playerId: string | null) {
   if (!isValidObjectId(playerId)) return null;
@@ -36,23 +36,22 @@ async function getEventWithPlayers(eventId: string) {
   return data?.getEvent?.data || null;
 }
 
-
 async function getEventPlayersGroupsTeams(eventId: string, token?: string | null) {
   if (!isValidObjectId(eventId)) {
-      return null;
+    return null;
   }
 
   const res = await fetch(`${BACKEND_URL}/graphql`, {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token || ''}`
-      },
-      body: JSON.stringify({
-          query: GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
-          variables: { eventId },
-      }),
-      cache: 'no-store',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token || ''}`,
+    },
+    body: JSON.stringify({
+      query: GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
+      variables: { eventId },
+    }),
+    cache: 'no-store',
   });
   // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
@@ -60,22 +59,21 @@ async function getEventPlayersGroupsTeams(eventId: string, token?: string | null
   return data?.getEventWithPlayers?.data || null;
 }
 
-
 async function getPlayerAndTeams(playerId: string, eventId: string) {
   if (!isValidObjectId(playerId) || !isValidObjectId(eventId)) {
-      return null;
+    return null;
   }
 
   const res = await fetch(`${BACKEND_URL}/graphql`, {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-          query: GET_PLAYER_AND_TEAMS_RAW,
-          variables: { playerId, eventId },
-      }),
-      cache: 'no-store',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: GET_PLAYER_AND_TEAMS_RAW,
+      variables: { playerId, eventId },
+    }),
+    cache: 'no-store',
   });
   // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
@@ -83,6 +81,21 @@ async function getPlayerAndTeams(playerId: string, eventId: string) {
   return data?.getPlayerAndTeams?.data || null;
 }
 
+async function getPlayersMin() {
+  const res = await fetch(`${BACKEND_URL}/graphql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: GET_PLAYERS_MIN_RAW,
+    }),
+    cache: 'no-store',
+  });
+  // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
+  const { data } = await res.json();
+  return data?.getPlayers?.data || null;
+}
 
-export {getEventWithPlayers, getEventPlayersGroupsTeams, getPlayerAndTeams, getAPlayer};
+export { getEventWithPlayers, getEventPlayersGroupsTeams, getPlayerAndTeams, getAPlayer, getPlayersMin };

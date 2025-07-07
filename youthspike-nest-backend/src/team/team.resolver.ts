@@ -465,7 +465,9 @@ export class TeamResolver {
   @Query((_returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
     try {
-      const teams = await this.teamService.find({ event: eventId });
+      const query: Record<string, any> = {};
+      if (eventId) query.event = eventId;
+      const teams = await this.teamService.find(query);
       return {
         code: HttpStatus.OK,
         success: true,
@@ -535,7 +537,7 @@ export class TeamResolver {
       ]);
       const [players, group, captain, cocaptain, event, matches, rankings] = await Promise.all([
         // this.playerService.find({ teams: { $in: [team._id] } }),
-        this.playerService.find({ events: {$in: [team.event]} }),
+        this.playerService.find({ events: { $in: [team.event] } }),
         this.groupService.findOne({ _id: team.group }),
         this.playerService.findOne({ _id: team.captain }),
         this.playerService.findOne({ _id: team.cocaptain }),

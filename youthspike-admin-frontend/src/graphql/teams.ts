@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 const rankingResponse = `
 playerRanking {
@@ -157,8 +157,9 @@ const GET_A_TEAM_RAW = `
   }
 `;
 
-const GET_A_TEAM = gql`${GET_A_TEAM_RAW}`;
-
+const GET_A_TEAM = gql`
+  ${GET_A_TEAM_RAW}
+`;
 
 const GET_TEAM_DETAIL_RAW = `
 query GetTeamDetails($teamId: String!) {
@@ -303,6 +304,34 @@ query GetTeamDetails($teamId: String!) {
 }
 `;
 
+const GET_TEAMS_MIN_RAW = `
+query GetTeams {
+  getTeams {
+    code
+    data {
+      _id
+      name
+      group {
+        _id
+        name
+      }
+      event {
+        _id
+        name
+        ldo {
+          _id
+          name
+        }
+      }
+      division
+      logo
+    }
+    message
+    success
+  }
+}
+`;
+
 const GET_TEAMS_BY_EVENT = gql`
   query GetTeams($eventId: String) {
     getTeams(eventId: $eventId) {
@@ -315,8 +344,6 @@ const GET_TEAMS_BY_EVENT = gql`
     }
   }
 `;
-
-
 
 const GET_EVENT_WITH_TEAMS_RAW = `
 query GetEventWithTeams($eventId: String) {
@@ -398,7 +425,9 @@ const ADD_TEAM_RAW = `
   }
 `;
 
-const ADD_A_TEAM = gql`${ADD_TEAM_RAW}`;
+const ADD_A_TEAM = gql`
+  ${ADD_TEAM_RAW}
+`;
 
 const UPDATE_TEAM_RAW = `
   mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!, $eventId: String!, $logo: Upload) {
@@ -434,29 +463,28 @@ const UPDATE_TEAM_RAW = `
   }
 `;
 
-const UPDATE_TEAM = gql`${UPDATE_TEAM_RAW}`;
-
-
-
-const DELETE_TEAM = gql`
-mutation DeleteTeam($teamId: String!) {
-  deleteTeam(teamId: $teamId) {
-    code
-    success
-    message
-  }
-}
+const UPDATE_TEAM = gql`
+  ${UPDATE_TEAM_RAW}
 `;
 
+const DELETE_TEAM = gql`
+  mutation DeleteTeam($teamId: String!) {
+    deleteTeam(teamId: $teamId) {
+      code
+      success
+      message
+    }
+  }
+`;
 
 const DELETE_MULTIPLE_TEAMS = gql`
-mutation DeleteTeams($teamIds: [String!]!) {
-  deleteTeams(teamIds: $teamIds) {
-    code
-    message
-    success
+  mutation DeleteTeams($teamIds: [String!]!) {
+    deleteTeams(teamIds: $teamIds) {
+      code
+      message
+      success
+    }
   }
-}
 `;
 
 const GET_TEAMS_AND_MATCHES_RAW = `
@@ -547,6 +575,18 @@ query GetTeamStandings($eventId: String!) {
 }
 `;
 
-export { GET_TEAMS_BY_EVENT, ADD_A_TEAM, ADD_TEAM_RAW, GET_A_TEAM, 
-  GET_EVENT_WITH_TEAMS_RAW, UPDATE_TEAM_RAW, UPDATE_TEAM, DELETE_TEAM, 
-  DELETE_MULTIPLE_TEAMS, GET_TEAMS_AND_MATCHES_RAW, GET_TEAM_DETAIL_RAW, GET_A_TEAM_RAW};
+export {
+  GET_TEAMS_BY_EVENT,
+  ADD_A_TEAM,
+  ADD_TEAM_RAW,
+  GET_A_TEAM,
+  GET_EVENT_WITH_TEAMS_RAW,
+  UPDATE_TEAM_RAW,
+  UPDATE_TEAM,
+  DELETE_TEAM,
+  DELETE_MULTIPLE_TEAMS,
+  GET_TEAMS_AND_MATCHES_RAW,
+  GET_TEAM_DETAIL_RAW,
+  GET_A_TEAM_RAW,
+  GET_TEAMS_MIN_RAW,
+};

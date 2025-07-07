@@ -1,4 +1,4 @@
-import { GET_A_TEAM_RAW, GET_EVENT_WITH_TEAMS_RAW, GET_TEAM_DETAIL_RAW } from "@/graphql/teams";
+import { GET_A_TEAM_RAW, GET_EVENT_WITH_TEAMS_RAW, GET_TEAM_DETAIL_RAW, GET_TEAMS_MIN_RAW } from "@/graphql/teams";
 import { isValidObjectId } from "@/utils/helper";
 import { BACKEND_URL } from "@/utils/keys";
 
@@ -17,6 +17,26 @@ async function getTeamData(teamId: string) {
 
   const { data } = await res.json();
   return data?.getTeamDetails?.data || null;
+}
+
+async function getTeamsMin(eventId?: string) {
+  if (eventId && !isValidObjectId(eventId)) return null;
+
+  const variables:  Record<string, any> = {};
+  if(eventId) variables.event = eventId;
+
+  const res = await fetch(`${BACKEND_URL}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: GET_TEAMS_MIN_RAW,
+      variables,
+    }),
+    cache: 'no-store',
+  });
+
+  const { data } = await res.json();
+  return data?.getTeams?.data || null;
 }
 
 async function getATeam(teamId: string) {
@@ -59,4 +79,4 @@ async function getEventWithTeams(eventId: string) {
 }
 
 
-export { getTeamData, getEventWithTeams, getATeam };
+export { getTeamData, getEventWithTeams, getATeam, getTeamsMin };

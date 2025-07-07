@@ -119,6 +119,33 @@ query GetPlayers($eventId: String!) {
 }
 `;
 
+const GET_PLAYERS_MIN_RAW = `
+query GetPlayers {
+  getPlayers {
+    code
+    message
+    success
+    data {
+      _id
+      division
+      firstName
+      lastName
+      profile
+      teams {
+        _id
+        name
+        logo
+      }
+      events {
+        _id
+        name
+        logo
+      }
+    }
+  }
+}
+`;
+
 const GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW = `
 query GetEventWithPlayers($eventId: String!) {
   getEventWithPlayers(eventId: $eventId) {
@@ -322,4 +349,5 @@ export {
   DELETE_A_PLAYER,
   GET_EVENT_WITH_TEAM_PLAYERS_RAW,
   GET_PLAYER_AND_TEAMS_RAW,
+  GET_PLAYERS_MIN_RAW,
 };

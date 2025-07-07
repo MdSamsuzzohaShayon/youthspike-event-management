@@ -154,7 +154,7 @@ const teamResponse = `
  * QUERIES
  * ===========================================================================================
  */
-const GET_A_MATCH = gql`
+const GET_A_MATCH_RAW = `
   query GetMatch($matchId: String!) {
     getMatch(matchId: $matchId) {
       code
@@ -166,6 +166,7 @@ const GET_A_MATCH = gql`
     }
   }
 `;
+const GET_A_MATCH = gql`${GET_A_MATCH_RAW}`;
 
 const GET_EVENT_WITH_MATCHES_RAW = `
 query GetEventWithMatches($eventId: String!) {
@@ -284,6 +285,52 @@ query GetEventWithMatches($eventId: String!) {
 }
 `;
 
+
+const GET_MATCHES_MIN_RAW = `
+query GetMatches {
+  getMatches {
+    code
+    message
+    success
+    data {
+      _id
+      completed
+      date
+      event {
+        _id
+        name
+        ldo {
+          _id
+          name
+        }
+      }
+      division
+      description
+      numberOfRounds
+      numberOfNets
+      location
+      teamB {
+        _id
+        name
+        logo
+      }
+      teamA {
+        _id
+        name
+        logo
+        num
+        division
+      }
+      group {
+        _id
+        name
+      }
+    }
+  }
+}
+
+`;
+
 /**
  * MUTATIONS
  * ===========================================================================================
@@ -334,4 +381,4 @@ mutation DeleteMatches($matchIds: [String!]!) {
 
 
 
-export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_RAW, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES };
+export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_RAW, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES, GET_A_MATCH_RAW, GET_MATCHES_MIN_RAW };

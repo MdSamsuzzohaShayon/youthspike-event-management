@@ -16,7 +16,7 @@ import { UserService } from 'src/user/user.service';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
-import { UpdateQuery } from 'mongoose';
+import { QueryOptions, UpdateQuery } from 'mongoose';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import {
   GetEventWithPlayersResponse,
@@ -509,9 +509,11 @@ export class PlayerResolver {
   }
 
   @Query((_returns) => PlayersResponse) // Specify the return type
-  async getPlayers(@Args('eventId') eventId: string): Promise<PlayersResponse> {
+  async getPlayers(@Args('eventId', { nullable: true }) eventId: string): Promise<PlayersResponse> {
     try {
-      const players = await this.playerService.find({ events: { $in: [eventId] } });
+      let query: QueryOptions<Player> = {};
+      if (eventId) query = { events: { $in: [eventId] } };
+      const players = await this.playerService.find(query);
       return {
         code: HttpStatus.OK,
         success: true,
@@ -545,7 +547,9 @@ export class PlayerResolver {
       let playerRankings = [],
         rankings = [];
       if (loggedUser?.role === UserRole.captain || loggedUser?.role === UserRole.co_captain) {
-        const capPlayer = await this.playerService.findOne({$or: [{captainuser: loggedUser._id}, {cocaptainuser: loggedUser._id}]});
+        const capPlayer = await this.playerService.findOne({
+          $or: [{ captainuser: loggedUser._id }, { cocaptainuser: loggedUser._id }],
+        });
         const teamIds = capPlayer.teams.map((t) => t._id.toString());
         playerRankings = await this.playerRankingService.find({ team: { $in: teamIds } });
         const playerRankingIds = playerRankings.map((pr) => pr._id.toString());
