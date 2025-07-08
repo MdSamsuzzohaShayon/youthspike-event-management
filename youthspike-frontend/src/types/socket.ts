@@ -62,6 +62,7 @@ interface ICommonAction {
 }
 
 export interface IServiceFaultInput extends ICommonAction {}
+export interface IDefensiveConversionInput extends ICommonAction {}
 export interface IOneTwoThreePutAwayInput extends ICommonAction {}
 export interface IRallyConversionInput extends ICommonAction {}
 

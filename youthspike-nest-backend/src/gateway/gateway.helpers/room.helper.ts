@@ -1,6 +1,8 @@
 import { EActionProcess } from 'src/round/round.schema';
 import { RoomLocal, RoomRoundProcess, ETeam, SubmitLineupInput } from '../gateway.types';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class RoomHelper {
   createInitialRoomData(roomExist: any, roundsOfTheMatch: any[]): RoomLocal {
     return {

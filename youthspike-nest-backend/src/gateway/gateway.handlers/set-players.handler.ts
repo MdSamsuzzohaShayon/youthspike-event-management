@@ -109,7 +109,7 @@ export class SetPlayersHandler {
         serverReceiverInput.room,
         'set-players-from-server',
         actionData,
-        client.id,
+        // client.id,
       );
     } catch (error) {
       await this.gatewayRedisService.publishToSocket(

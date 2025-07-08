@@ -1,11 +1,13 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { RoomLocal, RallyConversionInput } from '../gateway.types';
+import { RoomLocal, ServerReceiverOnNet, DefensiveConversionInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
+import { initPlayerStat } from 'src/util/helper';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 
-export class RallyConversionHandler {
+export class DefensiveConversionHandler {
   constructor(
     private readonly gatewayService: GatewayService,
     private readonly gatewayRedisService: GatewayRedisService,
@@ -14,11 +16,10 @@ export class RallyConversionHandler {
 
   async handle(
     @ConnectedSocket() client: Socket,
-    @MessageBody() body: RallyConversionInput,
+    @MessageBody() body: DefensiveConversionInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      // Receiving team Scores
       /* 1️⃣ load “net” action + team splits */
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
@@ -31,18 +32,19 @@ export class RallyConversionHandler {
       this.scoreKeeperHelper.increment(stats[net.server], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        defensiveOpportunity: 1
+        defensiveOpportunity: 0.5,
       });
 
       this.scoreKeeperHelper.increment(stats[net.servingPartner], {
-        defensiveOpportunity: 1,
+        defensiveOpportunity: 0.5
       });
-      
+
       this.scoreKeeperHelper.increment(stats[net.receiver], {
         receiverOpportunity: 1,
         receivedCount: 1,
         hittingOpportunity: 1,
         hittingCompletion: 1,
+        cleanHits: 1,
         defensiveOpportunity: 0.5,
         defensiveConversion: 0.5,
       });
@@ -58,15 +60,15 @@ export class RallyConversionHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.receiver) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.server) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      this.scoreKeeperHelper.rotateServerReceiver(net);
+      this.scoreKeeperHelper.rotateServer(net);
       net.mutate += 1;
 
       /* 6️⃣ persist & broadcast */
       await this.scoreKeeperHelper.saveNetAction(body.net, body.room, net);
-      await this.scoreKeeperHelper.publishRoom(body.room, 'rally-conversion-from-server', net);
+      await this.scoreKeeperHelper.publishRoom(body.room, 'defensive-conversion-from-server', net);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');
     }

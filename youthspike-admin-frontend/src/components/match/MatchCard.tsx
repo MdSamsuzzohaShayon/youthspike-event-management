@@ -77,7 +77,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
     return (
       <React.Fragment>
-        <div className="advanced-img w-14">{team?.logo ? <CldImage width={100} height={100}  alt="team logo" src={team?.logo} className="w-full h-full" /> : <img src="/free-logo.png" className="w-full h-full" />}</div>
+        <div className="advanced-img w-14">
+          {team?.logo ? <CldImage width={100} height={100} alt="team logo" src={team?.logo} className="w-full h-full" /> : <img src="/free-logo.png" className="w-full h-full" />}
+        </div>
         <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && win ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
         <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${match.completed && win ? 'bg-green-600' : ''}`}>{myPointsOfRound}</h1>
       </React.Fragment>
@@ -96,9 +98,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
         <div className="w-10/12 flex items-center justify-center">
           {/* <h2>Match Name</h2> */}
-          <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
+          <a href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
             Enter
-          </Link>
+          </a>
         </div>
         <img src="/icons/dots-vertical.svg" alt="dot-vertical" className="w-1/12 md:h-10 svg-white" role="presentation" onClick={handleOpenAction} />
       </div>

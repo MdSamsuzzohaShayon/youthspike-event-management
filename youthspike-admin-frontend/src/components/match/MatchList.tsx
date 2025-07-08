@@ -275,7 +275,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
 
       <div className="match-list w-full flex justify-between items-center flex-wrap">
         {filteredMatchList.map((match: IMatchExpRel, i) => (
-          <motion.div initial={cInitial} animate={cAnimate} exit={cExit} transition={cTransition} className="match-card w-full md:w-5/12 " key={match._id}>
+          <motion.div initial={cInitial} animate={cAnimate} exit={cExit} className="match-card w-full md:w-5/12 " key={match._id}>
             <MatchCard eventId={eventId} match={match} isChecked={checkedMatches.get(match._id) ?? false} sl={i + 1} refetchFunc={refetchFunc} handleSelectMatch={handleSelectMatch} />
           </motion.div>
         ))}

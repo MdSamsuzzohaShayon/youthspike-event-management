@@ -67,6 +67,17 @@ function ActionHandler({matchId, socket, dispatch, server, receiver, currNet, ro
     const handleDefensiveConversion=(e: React.SyntheticEvent)=>{
         e.preventDefault();
         console.log("The receiving team won the point by getting a defensive touch and put the ball away");
+
+        if (receiver && currNet && room) {
+          const actionData = {
+            match: matchId,
+            receiver,
+            net: currNet,
+            room
+          };
+          const emit = new EmitEvents(socket, dispatch);
+          emit.defensiveConversion(actionData);
+        }
         
     }
 

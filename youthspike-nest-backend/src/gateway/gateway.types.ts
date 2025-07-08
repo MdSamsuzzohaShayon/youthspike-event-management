@@ -141,6 +141,9 @@ export class OneTwoThreePutAwayInput extends CommonActionInput {}
 export class RallyConversionInput extends CommonActionInput {}
 
 
+@InputType()
+export class DefensiveConversionInput extends CommonActionInput {}
+
 export interface RoundUpdatedResponse {
   nets: any[];
   room: string;

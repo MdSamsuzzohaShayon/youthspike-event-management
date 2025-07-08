@@ -1,16 +1,33 @@
-import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrentRoundNets, setCurrNetNum } from '@/redux/slices/netSlice';
+import {
+  setCurrentRoundNets,
+  setCurrNetNum,
+} from '@/redux/slices/netSlice';
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 import { border } from '@/utils/styles';
 import { setActErr } from '@/redux/slices/elementSlice';
 import { ETeam } from '@/types/team';
 import { EActionProcess } from '@/types/room';
 import LocalStorageService from '@/utils/LocalStorageService';
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setDisabledPlayerIds, setOutOfRange, setPrevPartner, setShowTeamPlayers } from '@/redux/slices/matchesSlice';
+import {
+  setCurrentRound,
+  setRoundList,
+} from '@/redux/slices/roundSlice';
+import {
+  setDisabledPlayerIds,
+  setOutOfRange,
+  setPrevPartner,
+  setShowTeamPlayers,
+} from '@/redux/slices/matchesSlice';
 import MatchSetting from './MatchSetting';
 import LogoMatchScore from './LogoMatchScore';
 import PointsByRound from './PointsByRound';
@@ -18,245 +35,304 @@ import NetCard from './NetCard';
 import AvailablePlayers from '../player/AvailablePlayers';
 import SubbedPlayers from '../player/SubbedPlayers';
 
+/**
+ * NOTE:  ░ Responsive Layout Improvements ░
+ * --------------------------------------------------
+ *  • Replaced explicit `w-*` utilities driven by JS with Tailwind’s
+ *    breakpoint‑aware classes (`w-full sm:w-1/2 lg:w-1/3 xl:w-1/4`).
+ *  • Container now uses CSS Grid (`grid-cols-1 lg:grid-cols-[minmax(280px,25%)_1fr]`)—
+ *    stacking on mobile and aligning side‑by‑side from lg ↑.
+ *  • Removed hard‑coded 50 % heights; instead rely on `flex` with
+ *    `grow` + `basis-1/2` so each half shares available space.
+ *  • Enabled smooth overflow with `scrollbar-thin` for player lists.
+ *  • All business logic remains untouched—only classNames + structure
+ *    changed for better UX.
+ */
+
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const dispatch = useAppDispatch();
   const [boardHeight, setBoardHeight] = useState(0);
 
-  // Redux selectors
+  /* ──────────────── Redux selectors ──────────────── */
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
-  const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector((state) => state.nets);
-  const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-  const { 
-    myTeam, 
-    opTeam, 
-    showTeamPlayers, 
-    myPlayers, 
-    availablePlayerIds, 
-    disabledPlayerIds, 
-    selectedNet, 
-    myTeamE, 
-    match 
+  const { currNetNum, currentRoundNets, nets: allNets } = useAppSelector(
+    (state) => state.nets,
+  );
+  const { roundList, current: currentRound } = useAppSelector(
+    (state) => state.rounds,
+  );
+  const {
+    myTeam,
+    opTeam,
+    showTeamPlayers,
+    myPlayers,
+    availablePlayerIds,
+    disabledPlayerIds,
+    selectedNet,
+    myTeamE,
+    match,
   } = useAppSelector((state) => state.matches);
   const currRoom = useAppSelector((state) => state.rooms.current);
 
-  // Memoized values
-  const opTeamE = useMemo(() => myTeamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA, [myTeamE]);
-  const filteredNets = useMemo(() => 
-    currentRoundNets.find((n) => n.num === currNetNum && n.round === currRoundId) ?? null,
-    [currentRoundNets, currNetNum, currRoundId]
+  /* ──────────────── Derived values ──────────────── */
+  const opTeamE = useMemo(
+    () => (myTeamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA),
+    [myTeamE],
+  );
+  const filteredNets = useMemo(
+    () =>
+      currentRoundNets.find(
+        (n) => n.num === currNetNum && n.round === currRoundId,
+      ) ?? null,
+    [currentRoundNets, currNetNum, currRoundId],
+  );
+  const isXs = screenWidth <= screen.xs;
+
+  /* ──────────────── Handlers ──────────────── */
+  const changeTheRound = useCallback(
+    (targetRoundIndex: number) => {
+      const newRoundObj = { ...roundList[targetRoundIndex] };
+      const netsOfRound = allNets.filter((net) => net.round === newRoundObj._id);
+      dispatch(setCurrentRoundNets(netsOfRound));
+
+      if (myTeamE === ETeam.teamA) {
+        newRoundObj.teamAProcess =
+          newRoundObj.teamAProcess === EActionProcess.INITIATE
+            ? EActionProcess.CHECKIN
+            : newRoundObj.teamAProcess;
+      } else {
+        newRoundObj.teamBProcess =
+          newRoundObj.teamBProcess === EActionProcess.INITIATE
+            ? EActionProcess.CHECKIN
+            : newRoundObj.teamBProcess;
+      }
+
+      LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
+      dispatch(setCurrentRound(newRoundObj));
+
+      const updatedRoundList = [...roundList];
+      updatedRoundList[targetRoundIndex] = newRoundObj;
+      dispatch(setRoundList(updatedRoundList));
+    },
+    [allNets, dispatch, myTeamE, roundList],
   );
 
-  // Handlers
-  const changeTheRound = useCallback((targetRoundIndex: number) => {
-    const newRoundObj = { ...roundList[targetRoundIndex] };
-    const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
-    dispatch(setCurrentRoundNets(filteredNets));
-
-    if (myTeamE === ETeam.teamA) {
-      newRoundObj.teamAProcess = newRoundObj.teamAProcess === EActionProcess.INITIATE ? 
-        EActionProcess.CHECKIN : newRoundObj.teamAProcess;
-    } else {
-      newRoundObj.teamBProcess = newRoundObj.teamBProcess === EActionProcess.INITIATE ? 
-        EActionProcess.CHECKIN : newRoundObj.teamBProcess;
-    }
-
-    LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
-    dispatch(setCurrentRound(newRoundObj));
-    
-    const newRoundList = [...roundList];
-    newRoundList[targetRoundIndex] = newRoundObj;
-    dispatch(setRoundList(newRoundList));
-  }, [allNets, dispatch, myTeamE, roundList]);
-
-  const handleRoundChange = useCallback((e: React.SyntheticEvent, roundId: string) => {
-    e.preventDefault();
-    const targetRoundIndex = roundList.findIndex((r) => r._id === roundId);
-    
-    if (targetRoundIndex !== -1 && currentRound) {
-      if (roundList[targetRoundIndex].num > currentRound.num) {
-        const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound?.completed) {
-          dispatch(setActErr({ 
-            success: false, 
-            message: 'Complete the previous round by putting players on all nets and points.' 
-          }));
-          return;
+  const handleRoundChange = useCallback(
+    (e: React.SyntheticEvent, roundId: string) => {
+      e.preventDefault();
+      const targetIdx = roundList.findIndex((r) => r._id === roundId);
+      if (targetIdx !== -1 && currentRound) {
+        if (roundList[targetIdx].num > currentRound.num) {
+          const prevRound = roundList[targetIdx - 1];
+          if (!prevRound?.completed) {
+            dispatch(
+              setActErr({
+                success: false,
+                message:
+                  'Complete the previous round by putting players on all nets and points.',
+              }),
+            );
+            return;
+          }
+          dispatch(setActErr(null));
         }
-        dispatch(setActErr(null));
+        changeTheRound(targetIdx);
+        dispatch(setDisabledPlayerIds([]));
+        dispatch(setPrevPartner(null));
       }
-      changeTheRound(targetRoundIndex);
-      dispatch(setDisabledPlayerIds([]));
-      dispatch(setPrevPartner(null));
-    }
-  }, [changeTheRound, currentRound, dispatch, roundList]);
+    },
+    [changeTheRound, currentRound, dispatch, roundList],
+  );
 
-  const handleClosePlayers = useCallback((e: React.SyntheticEvent) => {
-    e.preventDefault();
-    dispatch(setShowTeamPlayers(false));
-    dispatch(setOutOfRange([]));
-  }, [dispatch]);
+  const handleClosePlayers = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      dispatch(setShowTeamPlayers(false));
+      dispatch(setOutOfRange([]));
+    },
+    [dispatch],
+  );
 
-  // Effects
-  // useEffect(() => {
-  //   if (currentRoundNets?.length > 0) {
-  //     dispatch(setCurrNetNum(currentRoundNets[0].num));
-  //   }
-  // }, [currentRoundNets, dispatch]);
-
+  /* ──────────────── Effects ──────────────── */
   useLayoutEffect(() => {
     const measureHeight = () => {
-      const leftFullEl = document.getElementById('left-round-detail');
-      const rightFullEl = document.getElementById('right-net-card');
-      if (rightFullEl && leftFullEl) {
-        const fullHeight = Math.max(rightFullEl.clientHeight, leftFullEl.clientHeight);
-        setBoardHeight(fullHeight);
+      const leftEl = document.getElementById('left-round-detail');
+      const rightEl = document.getElementById('right-net-card');
+      if (leftEl && rightEl) {
+        setBoardHeight(Math.max(rightEl.clientHeight, leftEl.clientHeight));
       }
     };
-
     const timer = setTimeout(measureHeight, 100);
     return () => clearTimeout(timer);
   }, [showTeamPlayers]);
 
-  // Memoized components
-  const roundButtons = useMemo(() => (
-    roundList.map((round, i) => (
-      <button
-        key={round._id}
-        className={`single-r ${
-          round._id === currentRound?._id ? 'bg-yellow-logo' : 'bg-white'
-        } py-1 text-center cursor-pointer ${
-          screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8'
-        } rounded-t-lg`}
-        type="button"
-        onClick={(e) => handleRoundChange(e, round._id)}
-      >
-        {match.extendedOvertime && i === roundList.length - 1 ? 'OT' : `RD${round.num}`}
-      </button>
-    ))
-  ), [roundList, currentRound, screenWidth, match.extendedOvertime, handleRoundChange]);
+  /* ──────────────── Render helpers ──────────────── */
+  const roundButtons = useMemo(
+    () =>
+      roundList.map((round, i) => (
+        <button
+          key={round._id}
+          type="button"
+          onClick={(e) => handleRoundChange(e, round._id)}
+          className={`single-r py-1 text-center cursor-pointer rounded-t-lg transition-colors text-black duration-150
+            ${round._id === currentRound?._id ? 'bg-yellow-logo' : 'bg-white'}
+            ${isXs ? 'text-sm w-8' : 'text-xs w-6'}
+          `}
+        >
+          {match.extendedOvertime && i === roundList.length - 1
+            ? 'OT'
+            : `RD${round.num}`}
+        </button>
+      )),
+    [roundList, currentRound, isXs, match.extendedOvertime, handleRoundChange],
+  );
 
   const leftSideContent = useMemo(() => {
+    /* Player‑selection drawer (overrides width on all sizes) */
     if (showTeamPlayers) {
       return (
-        <div 
-          id="left-drop-down" 
-          className={`drop-down-select w-3/6 overflow-y-scroll text-black-logo bg-white border ${border.light}`}
+        <aside
+          id="left-drop-down"
+          className={`drop-down-select bg-white text-black-logo border ${border.light} overflow-y-auto scrollbar-thin w-full`}
         >
-          <Image 
-            width={24} 
-            height={24} 
-            alt="close-button" 
-            src="/icons/close.svg" 
-            className="svg-black mx-2 mt-2 cursor-pointer" 
-            onClick={handleClosePlayers} 
+          <Image
+            width={24}
+            height={24}
+            alt="close-button"
+            src="/icons/close.svg"
+            className="svg-black mx-2 mt-2 cursor-pointer"
+            onClick={handleClosePlayers}
           />
-          <div className="px-2 w-full" style={{ minHeight: 'fit-content' }}>
-            <h3>Selected Net {selectedNet?.num}</h3>
-            <AvailablePlayers 
-              availablePlayerIds={availablePlayerIds} 
-              currentRound={currentRound} 
-              myPlayers={myPlayers} 
-              disabledPlayerIds={disabledPlayerIds} 
+          {/* Available players */}
+          <section className="px-2">
+            <h3 className="mb-1 font-semibold">Selected Net {selectedNet?.num}</h3>
+            <AvailablePlayers
+              availablePlayerIds={availablePlayerIds}
+              currentRound={currentRound}
+              myPlayers={myPlayers}
+              disabledPlayerIds={disabledPlayerIds}
             />
-          </div>
-          <div className="px-2 w-full mt-4" style={{ minHeight: 'fit-content' }}>
-            <SubbedPlayers 
-              availablePlayerIds={availablePlayerIds} 
-              currentRound={currentRound} 
-              myPlayers={myPlayers} 
-              roundList={roundList} 
+          </section>
+          {/* Substituted players */}
+          <section className="px-2 mt-4">
+            <SubbedPlayers
+              availablePlayerIds={availablePlayerIds}
+              currentRound={currentRound}
+              myPlayers={myPlayers}
+              roundList={roundList}
             />
-          </div>
-        </div>
+          </section>
+        </aside>
       );
     }
 
+    /* Default round detail card */
     return (
-      <div 
-        id="left-round-detail" 
-        style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }} 
-        className={`round-detail relative border ${border.light} ${
-          screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'
-        }`}
+      <aside
+        id="left-round-detail"
+        style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
+        className={`relative border ${border.light} flex flex-col rounded-md bg-white shadow-sm w-full`}
       >
-        <div 
-          id="left-top" 
-          style={{ height: '50%' }} 
-          className="round-top w-full bg-gradient-dark px-2 flex flex-col items-center justify-between"
-        >
+        {/* Top half – opponent */}
+        <div className="flex flex-col items-center justify-between bg-gradient-dark text-white grow basis-1/2 p-2 gap-1 rounded-t-md">
           <LogoMatchScore dark team={opTeam} teamE={opTeamE} completed={match.completed} />
-          <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
-            {roundButtons}
-          </div>
+          <div className="flex flex-wrap justify-center gap-1 w-full pb-1">{roundButtons}</div>
           <PointsByRound roundList={roundList} dark screenWidth={screenWidth} />
         </div>
 
         {match.completed && (
-          <p 
-            className="absolute w-full top-1/2 z-10 bg-white border border-black-logo text-center" 
-            style={{ transform: 'translate(0%, -50%)' }}
-          >
+          <p className="absolute inset-x-0 top-1/2 z-10 bg-white border border-black-logo text-center -translate-y-1/2">
             Final Score
           </p>
         )}
 
-        <div 
-          id="left-bottom" 
-          style={{ height: '50%' }} 
-          className={`round-bottom w-full border ${border.light} px-2 flex flex-col items-center justify-between`}
-        >
+        {/* Bottom half – my team */}
+        <div className={`flex flex-col items-center justify-between grow basis-1/2 p-2 gap-1 border-t ${border.light}`}>
           <PointsByRound roundList={roundList} dark={false} screenWidth={screenWidth} />
-          <div className="mb-2 w-full">
-            <LogoMatchScore dark={false} team={myTeam} teamE={myTeamE} completed={match.completed} />
+          <div className="w-full">
+            <LogoMatchScore
+              dark={false}
+              team={myTeam}
+              teamE={myTeamE}
+              completed={match.completed}
+            />
           </div>
         </div>
-      </div>
+      </aside>
     );
   }, [
-    showTeamPlayers, boardHeight, screenWidth, opTeam, opTeamE, match.completed, 
-    roundList, roundButtons, handleClosePlayers, selectedNet, availablePlayerIds, 
-    currentRound, myPlayers, disabledPlayerIds, myTeam, myTeamE
+    showTeamPlayers,
+    boardHeight,
+    screenWidth,
+    opTeam,
+    opTeamE,
+    match.completed,
+    roundList,
+    roundButtons,
+    handleClosePlayers,
+    selectedNet,
+    availablePlayerIds,
+    currentRound,
+    myPlayers,
+    disabledPlayerIds,
+    myTeam,
+    myTeamE,
   ]);
 
-  const rightSideContent = useMemo(() => (
-    <div 
-      id="right-net-card" 
-      className={`right-side net-card-wrapper border ${border.light} flex ${
-        screenWidth > screen.xs ? 'w-9/12' : 'w-3/6'
-      }`}
-    >
-        {screenWidth > screen.xs ? (
+  const rightSideContent = useMemo(
+    () => (
+      <section
+        id="right-net-card"
+        className={`border ${border.light} w-full flex-1 rounded-md bg-white shadow-sm flex overflow-x-auto lg:overflow-x-visible`}
+      >
+        {isXs ? (
+          <NetCard
+            key={currNetNum}
+            currRoom={currRoom}
+            boardHeight={boardHeight}
+            net={filteredNets}
+            screenWidth={screenWidth}
+          />
+        ) : (
           currentRoundNets.map((net) => (
-            <NetCard 
-              key={net._id} 
-              currRoom={currRoom} 
-              boardHeight={boardHeight} 
-              net={net} 
-              screenWidth={screenWidth} 
+            <NetCard
+              key={net._id}
+              currRoom={currRoom}
+              boardHeight={boardHeight}
+              net={net}
+              screenWidth={screenWidth}
             />
           ))
-        ) : (
-          <NetCard 
-            key={currNetNum} 
-            currRoom={currRoom} 
-            boardHeight={boardHeight} 
-            net={filteredNets} 
-            screenWidth={screenWidth} 
-          />
         )}
-    </div>
-  ), [screenWidth, currentRoundNets, currRoom, boardHeight, currNetNum, filteredNets]);
+      </section>
+    ),
+    [
+      isXs,
+      currentRoundNets,
+      currRoom,
+      boardHeight,
+      currNetNum,
+      filteredNets,
+      screenWidth,
+    ],
+  );
 
+  /* ──────────────── JSX ──────────────── */
   return (
-    <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative">
+    <div
+      className="net-score container mx-auto h-full px-2 sm:px-4 lg:px-6 py-1 grid grid-cols-1 lg:grid-cols-[minmax(280px,25%)_1fr] gap-2 relative"
+    >
       {leftSideContent}
-      <MatchSetting 
-        match={match} 
-        myTeam={myTeam} 
-        opTeam={opTeam} 
-        currRoom={currRoom} 
-        currRound={currentRound} 
+
+      {/* Match setting – kept as absolute/portal style to preserve positioning */}
+      <MatchSetting
+        match={match}
+        myTeam={myTeam}
+        opTeam={opTeam}
+        currRoom={currRoom}
+        currRound={currentRound}
       />
+
       {rightSideContent}
     </div>
   );

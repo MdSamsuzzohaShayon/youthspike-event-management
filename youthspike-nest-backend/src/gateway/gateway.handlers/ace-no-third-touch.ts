@@ -1,122 +1,67 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { RoomLocal, ServerReceiverOnNet, AceNoThirdTouchInput } from '../gateway.types';
+import { RoomLocal, AceNoThirdTouchInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { initPlayerStat } from 'src/util/helper';
-import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { ClientHelper } from '../gateway.helpers/client.helper';
-import { ValidationHelper } from '../gateway.helpers/validation.helper';
+import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 
 export class AceNoThirdTouchHandler {
   constructor(
     private readonly gatewayService: GatewayService,
     private readonly gatewayRedisService: GatewayRedisService,
-    private readonly clientHelper: ClientHelper,
-    private readonly validationHelper: ValidationHelper,
+    private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
-    @MessageBody() aceNoThirdTouchInput: AceNoThirdTouchInput,
+    @MessageBody() body: AceNoThirdTouchInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
       // Serving team Scores
-      // Switch the position with partner
+      /* 1️⃣ load “net” action + team splits */
+      const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
+      const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
 
-      const NET_CACHE_KEY = `sr:${aceNoThirdTouchInput.net}:${aceNoThirdTouchInput.room}`;
+      /* 2️⃣ load / initialise the four player stat docs */
+      const ids = [net.server, net.receiver, net.receivingPartner];
+      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, ids);
 
-      // player service opportunity increase
-      const netCacheData = await this.gatewayRedisService.getAction(NET_CACHE_KEY);
-      if (!netCacheData) {
-        throw new Error(`Net data not found, try setting players on the net again: ${aceNoThirdTouchInput}`);
-      }
+      /* 3️⃣ mutate the stats (only the deltas differ per handler) */
+      this.scoreKeeperHelper.increment(stats[net.server], {
+        serveOpportunity: 1,
+        serveCompletionCount: 1,
+        serveAce: 1,
+        break: 1,
+      });
 
-      const actionData: ServerReceiverOnNet = { ...netCacheData };
+      this.scoreKeeperHelper.increment(stats[net.receiver], {
+        receiverOpportunity: 1,
+        receivedCount: 1,
+        broken: 1,
+      });
 
-      const { netService } = this.gatewayService.getServices();
+      this.scoreKeeperHelper.increment(stats[net.receivingPartner], {
+        settingOpportunity: 1,
+      });
 
-      const netExist = await netService.findById(aceNoThirdTouchInput.net);
+      /* 4️⃣ save the four player docs in parallel */
+      await this.scoreKeeperHelper.savePlayerStats(stats);
 
-      const teamA = new Set([netExist.teamAPlayerA, netExist.teamAPlayerB]);
-      const teamB = new Set([netExist.teamBPlayerA, netExist.teamBPlayerB]);
+      /* 5️⃣ scoring + rotation */
+      const scoringTeam = teamA.has(net.server) ? 'A' : 'B';
+      this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      // player point calculate
-      // Server: +1 server opportunity, +1 serve conpletion count, +1 serving ace, +1 break
-      const SERVER_PLAYER_CACHE = `player:${actionData.server}`;
-      let serverStats = await this.gatewayRedisService.getAction(SERVER_PLAYER_CACHE);
-      if (!serverStats) {
-        serverStats = initPlayerStat(actionData.match, actionData.server);
-      }
-      const serverStatsData: PlayerStats = { ...serverStats };
-      serverStatsData.serveOpportunity = serverStatsData.serveOpportunity + 1;
-      serverStatsData.serveCompletionCount = serverStatsData.serveCompletionCount + 1;
-      serverStatsData.serveAce = serverStatsData.serveAce + 1;
-      serverStatsData.break = serverStatsData.break + 1;
-      await this.gatewayRedisService.setAction(SERVER_PLAYER_CACHE, serverStatsData);
+      this.scoreKeeperHelper.rotateServerReceiver(net);
+      net.mutate += 1;
 
-
-      // Receiver: +1 receiver opportunity, +1 No touch aced count, +1 broken
-      const RECEIVER_PLAYER_CACHE = `player:${actionData.receiver}`;
-      let receiverStats = await this.gatewayRedisService.getAction(RECEIVER_PLAYER_CACHE);
-      if (!receiverStats) {
-        receiverStats = initPlayerStat(actionData.match, actionData.server);
-      }
-      const receiverStatsData: PlayerStats = { ...receiverStats };
-      receiverStatsData.receiverOpportunity = receiverStatsData.receiverOpportunity + 1;
-      receiverStatsData.receivedCount = receiverStatsData.receivedCount + 1;
-      receiverStatsData.broken = receiverStatsData.broken + 1;
-      await this.gatewayRedisService.setAction(RECEIVER_PLAYER_CACHE, receiverStatsData);
+      /* 6️⃣ persist & broadcast */
+      await this.scoreKeeperHelper.saveNetAction(body.net, body.room, net);
+      await this.scoreKeeperHelper.publishRoom(body.room, 'ace-no-third-touch-from-server', net);
 
 
-       // Receiver Partner / Setter
-       const RECEIVER_PARTNER_PLAYER_CACHE = `player:${actionData.receiver}`;
-       let receiverPartnerStats = await this.gatewayRedisService.getAction(RECEIVER_PARTNER_PLAYER_CACHE);
-       if (!receiverPartnerStats) {
-         receiverPartnerStats = initPlayerStat(actionData.match, actionData.server);
-       }
-       const receiverPartnerStatsData: PlayerStats = { ...receiverPartnerStats };
-       receiverPartnerStatsData.settingOpportunity = receiverPartnerStatsData.settingOpportunity + 1;
-       await this.gatewayRedisService.setAction(RECEIVER_PARTNER_PLAYER_CACHE, receiverPartnerStatsData);
-
-      // Score update in the net
-      const serverInTeamA = teamA.has(actionData.server);
-      const serverInTeamB = teamB.has(actionData.server);
-
-      if (!serverInTeamA && !serverInTeamB) {
-        throw new Error(`Server is not part of the net. Input: ${aceNoThirdTouchInput}`);
-      }
-
-      if (serverInTeamA) {
-        actionData.teamAScore = actionData.teamAScore + 1;
-      }
-      if (serverInTeamB) {
-        actionData.teamBScore = actionData.teamBScore + 1;
-      }
-
-      // Swep receiver with receiving partner
-      const tempReceiver = actionData.receiver;
-      actionData.receiver = actionData.receivingPartner;
-      actionData.receivingPartner = tempReceiver;
-
-      // Track number of update
-      actionData.mutate += 1;
-      await this.gatewayRedisService.setAction(NET_CACHE_KEY, actionData);
-
-      // Response back
-      await this.gatewayRedisService.publishToRoom(
-        aceNoThirdTouchInput.room,
-        'ace-no-third-touch-from-server',
-        actionData,
-        // client.id,
-      );
-    } catch (error: any) {
-      await this.gatewayRedisService.publishToSocket(
-        client.id,
-        'error-from-server',
-        error?.message || 'Internal error occured',
-      );
+    } catch (err: any) {
+      await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');
     }
   }
 }

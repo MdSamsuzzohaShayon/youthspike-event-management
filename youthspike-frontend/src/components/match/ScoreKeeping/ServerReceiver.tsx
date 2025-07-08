@@ -186,6 +186,8 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
             <PlayerSelection
               teamAPlayers={teamAPlayers}
               teamBPlayers={teamBPlayers}
+              teamA={teamA}
+              teamB={teamB}
               selectedServer={selectedServer}
               selectedReceiver={selectedReceiver}
               playersOfSelectedNet={playersOfSelectedNet}

@@ -1,6 +1,8 @@
 import { UserRole } from 'src/user/user.schema';
 import { GeneralClient } from '../gateway.types';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ClientHelper {
   updateClientData(
     clientList: Map<string, GeneralClient>,

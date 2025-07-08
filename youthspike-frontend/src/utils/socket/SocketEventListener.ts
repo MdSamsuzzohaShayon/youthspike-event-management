@@ -307,6 +307,21 @@ class SocketEventListener {
   }
 
   // Score Keeper
+  private handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    if (data) {
+      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
+      if (exist) {
+        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
+        dispatch(setServerReceiversOnNet(newSrList));
+      } else {
+        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
+      }
+      dispatch(setCurrentServerReceiver(data));
+    }
+  }
   handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
     this.dispatch = dispatch;
 
@@ -331,67 +346,31 @@ class SocketEventListener {
   }
 
   handleServiceFaultResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
-    this.dispatch = dispatch;
-
-    // Score Keeper
-    if (data) {
-      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
-      if (exist) {
-        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
-        dispatch(setServerReceiversOnNet(newSrList));
-      } else {
-        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
-      }
-      dispatch(setCurrentServerReceiver(data));
-    }
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
   }
 
   handleAceNoTouchResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
-    this.dispatch = dispatch;
-
-    // Score Keeper
-    if (data) {
-      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
-      if (exist) {
-        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
-        dispatch(setServerReceiversOnNet(newSrList));
-      } else {
-        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
-      }
-      dispatch(setCurrentServerReceiver(data));
-    }
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
   }
 
   handleAceNoThirdTouchResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
-    this.dispatch = dispatch;
-
-    // Score Keeper
-    if (data) {
-      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
-      if (exist) {
-        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
-        dispatch(setServerReceiversOnNet(newSrList));
-      } else {
-        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
-      }
-      dispatch(setCurrentServerReceiver(data));
-    }
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
   }
 
   handleOneTwoThreePutAwayResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
-    this.dispatch = dispatch;
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
+  }
 
-    // Score Keeper
-    if (data) {
-      const exist = serverReceiversOnNet.find((sr) => sr.net === data.net);
-      if (exist) {
-        const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net), data];
-        dispatch(setServerReceiversOnNet(newSrList));
-      } else {
-        dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
-      }
-      dispatch(setCurrentServerReceiver(data));
-    }
+  handleRalleyConversionResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
+  }
+
+  handleDefensiveConversionResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
+  }
+
+  handleHittingErrorResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
   }
 
   handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {
@@ -401,15 +380,5 @@ class SocketEventListener {
   }
 }
 
-/*
-  export const listenSocketEvents = (props: IListenSocketProps) => {
-    new SocketEventListener(props);
-  };
 
-  export const listenPublicSocketEvents = ({ socket }: IListenPublicSocketProps) => {
-    socket.on('event-created-from-server', (data: ICreateEvent) => {
-      console.log({ eventId: data.eventId, msg: 'Created a new event' });
-    });
-  };
-*/
 export default SocketEventListener;

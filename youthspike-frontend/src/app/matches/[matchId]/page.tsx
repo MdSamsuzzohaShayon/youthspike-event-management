@@ -44,7 +44,6 @@ import SocketEventListener from '@/utils/socket/SocketEventListener';
 import { ETeam } from '@/types/team';
 import { EPlayerStatus } from '@/types/player';
 import { UserRole } from '@/types/user';
-import { imgSize } from '@/utils/styles';
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // Refs
@@ -218,7 +217,7 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
   if (loading) return <Loader />;
 
   return (
-    <div className="h-full relative bg-white text-black-logo" ref={mainEl}>
+    <div className="relative bg-white text-black-logo" ref={mainEl}>
       <button ref={audioPlayEl} onClick={handlePlayAudio} type="button" className="hidden">
         Button
       </button>

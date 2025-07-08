@@ -2,13 +2,17 @@
 
 import TextImg from '@/components/elements/TextImg';
 import cld from '@/config/cloudinary.config';
-import { INetPlayers, IPlayer } from '@/types';
+import { useAppDispatch } from '@/redux/hooks';
+import { setActErr } from '@/redux/slices/elementSlice';
+import { INetPlayers, IPlayer, ITeam } from '@/types';
 import { AdvancedImage } from '@cloudinary/react';
 import React from 'react';
 
 interface PlayerSelectionProps {
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
+  teamA: ITeam | null | undefined;
+  teamB: ITeam | null | undefined;
   selectedServer: null | string;
   selectedReceiver: null | string;
   playersOfSelectedNet: null | INetPlayers;
@@ -22,6 +26,8 @@ interface PlayerSelectionProps {
 const PlayerSelection: React.FC<PlayerSelectionProps> = ({
   teamAPlayers,
   teamBPlayers,
+  teamA,
+  teamB,
   selectedServer,
   selectedReceiver,
   playersOfSelectedNet,
@@ -31,6 +37,7 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
   handleReceiverSelection,
   handleClosePlayers,
 }) => {
+  const dispatch = useAppDispatch();
   const getPlayersMap = (players: IPlayer[]) => new Map<string, IPlayer>(players.map((p) => [p._id, p]));
 
   const getTeamPlayers = (teamKeyPrefix: string, playersMap: Map<string, IPlayer>) => {
@@ -63,7 +70,11 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
             if (!player) return null;
 
             const handleClick = (e: React.SyntheticEvent) =>
-              teamSelected ? alert('This team is already selected!') : (serverPlaceholder ? handleServerSelection(e, player._id) : handleReceiverSelection(e, player._id));
+              teamSelected
+                ? dispatch(setActErr({ message: 'This team is already selected!', success: false, code: 406 }))
+                : serverPlaceholder
+                  ? handleServerSelection(e, player._id)
+                  : handleReceiverSelection(e, player._id);
 
             return (
               <div
@@ -106,8 +117,18 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
 
       {playersOfSelectedNet && (
         <div className="flex flex-col md:flex-row justify-between gap-8">
-          {renderTeam('Team A', teamAPlayers, 'teamA')}
-          {renderTeam('Team B', teamBPlayers, 'teamB')}
+          {selectedReceiver || selectedReceiver ? (
+            <>
+            {/* Check player from which team has been selected */}
+              {renderTeam(teamA?.name || '', teamAPlayers, 'teamA')}
+              {renderTeam(teamB?.name || '', teamBPlayers, 'teamB')}
+            </>
+          ) : (
+            <>
+              {renderTeam(teamA?.name || '', teamAPlayers, 'teamA')}
+              {renderTeam(teamB?.name || '', teamBPlayers, 'teamB')}
+            </>
+          )}
         </div>
       )}
     </div>

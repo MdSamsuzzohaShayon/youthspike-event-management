@@ -37,6 +37,10 @@ export default function useServerReceiverSocket({ socket, dispatch, roundList, t
       'ace-no-touch-from-server': (data: IServerReceiverOnNet) => listener.handleAceNoTouchResponse({ data, dispatch, serverReceiversOnNet }),
       'ace-no-third-touch-from-server': (data: IServerReceiverOnNet) => listener.handleAceNoThirdTouchResponse({ data, dispatch, serverReceiversOnNet }),
       'one-two-three-put-away-from-server': (data: IServerReceiverOnNet) => listener.handleOneTwoThreePutAwayResponse({ data, dispatch, serverReceiversOnNet }),
+      'rally-conversion-from-server': (data: IServerReceiverOnNet) => listener.handleRalleyConversionResponse({ data, dispatch, serverReceiversOnNet }),
+      'defensive-conversion-from-server': (data: IServerReceiverOnNet) => listener.handleDefensiveConversionResponse({ data, dispatch, serverReceiversOnNet }),
+      'receiving-hitting-error-from-server': (data: IServerReceiverOnNet) => listener.handleHittingErrorResponse({ data, dispatch, serverReceiversOnNet }),
+      // 
     } as const;
 
     Object.entries(handlers).forEach(([evt, fn]) => socket.on(evt, fn));

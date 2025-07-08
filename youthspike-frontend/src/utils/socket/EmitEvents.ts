@@ -2,11 +2,33 @@ import React from 'react';
 import { setActErr } from '@/redux/slices/elementSlice';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { IJoinTheRoomProps, IStatusChange, IRoomNetAssign, IRoundRelatives, IJoinData, ICheckInData, IUpdatePointData, INetRelatives, IAceNoThirdTouchInput, 
-  IReceivingHittingErrorInput, IOneTwoThreePutAwayInput, IRallyConversionInput } from '@/types';
+import {
+  IJoinTheRoomProps,
+  IStatusChange,
+  IRoomNetAssign,
+  IRoundRelatives,
+  IJoinData,
+  ICheckInData,
+  IUpdatePointData,
+  INetRelatives,
+  IAceNoThirdTouchInput,
+  IReceivingHittingErrorInput,
+  IOneTwoThreePutAwayInput,
+  IRallyConversionInput,
+  IDefensiveConversionInput,
+} from '@/types';
 import { IUser, IUserContext, UserRole } from '@/types/user';
 import { EActionProcess, IRoom, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
-import { INotTwoPointNetProps, ISubmitLineupProps, ISubmitUpdatePointsProps, ISubmitExtendOvertimeProps, ISetServerReceiverChange, ISetServerReceiverData, IServiceFaultInput, IAceNoTouchInput } from '@/types/socket';
+import {
+  INotTwoPointNetProps,
+  ISubmitLineupProps,
+  ISubmitUpdatePointsProps,
+  ISubmitExtendOvertimeProps,
+  ISetServerReceiverChange,
+  ISetServerReceiverData,
+  IServiceFaultInput,
+  IAceNoTouchInput,
+} from '@/types/socket';
 import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
 import { ETieBreaker } from '@/types/net';
@@ -414,6 +436,11 @@ class EmitEvents {
     this.socket?.emit('service-fault-from-client', actionData);
   }
 
+  defensiveConversion({ match, receiver, net, room }: IDefensiveConversionInput) {
+    const actionData = { match, receiver, net, room };
+    this.socket?.emit('defensive-conversion-from-client', actionData);
+  }
+
   aceNoTouch({ match, receiver, net, room }: IAceNoTouchInput) {
     const actionData = { match, receiver, net, room };
     this.socket?.emit('ace-no-touch-from-client', actionData);
@@ -429,7 +456,6 @@ class EmitEvents {
     this.socket?.emit('receiving-hitting-error-from-client', actionData);
   }
 
-
   oneTwoThreePutAway({ match, receiver, net, room }: IOneTwoThreePutAwayInput) {
     const actionData = { match, receiver, net, room };
     this.socket?.emit('one-two-three-put-away-from-client', actionData);
@@ -439,7 +465,6 @@ class EmitEvents {
     const actionData = { match, receiver, net, room };
     this.socket?.emit('rally-conversion-from-client', actionData);
   }
-
 }
 
 export default EmitEvents;
