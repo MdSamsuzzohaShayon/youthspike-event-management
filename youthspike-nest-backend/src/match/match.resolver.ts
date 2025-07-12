@@ -5,14 +5,14 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { MatchService } from './match.service';
-import { NetService } from 'src/net/net.service';
+import { NetService, ServerReceiverOnNetService } from 'src/net/net.service';
 import { RoundService } from 'src/round/round.service';
 import { TeamService } from 'src/team/team.service';
 import { UserRole } from 'src/user/user.schema';
 import { Match } from './match.schema';
 import { AccessCodeInput, CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
-import { ETieBreaker } from 'src/net/net.schema';
+import { ETieBreaker, ServerReceiverOnNet } from 'src/net/net.schema';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -20,31 +20,30 @@ import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { GroupService } from 'src/group/group.service';
-import { EventMatches, GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
+import { GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
 import { LdoService } from 'src/ldo/ldo.service';
-import { SponsorService } from 'src/sponsor/sponsor.service';
 import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
-import { ServerReceiverOnNet } from 'src/gateway/gateway.types';
 import { RedisService } from 'src/redis/redis.service';
 
-@Resolver((of) => Match)
+@Resolver((_of) => Match)
 export class MatchResolver {
   constructor(
-    private matchService: MatchService,
-    private teamService: TeamService,
-    private eventService: EventService,
-    private roundService: RoundService,
-    private netService: NetService,
-    private roomService: RoomService,
-    private playerService: PlayerService,
-    private playerRankingService: PlayerRankingService,
-    private groupService: GroupService,
-    private ldoService: LdoService,
-    private configService: ConfigService,
-    private userService: UserService,
-    private redisService: RedisService,
+    private readonly matchService: MatchService,
+    private readonly teamService: TeamService,
+    private readonly eventService: EventService,
+    private readonly roundService: RoundService,
+    private readonly netService: NetService,
+    private readonly serverReceiverOnNetService: ServerReceiverOnNetService,
+    private readonly roomService: RoomService,
+    private readonly playerService: PlayerService,
+    private readonly playerRankingService: PlayerRankingService,
+    private readonly groupService: GroupService,
+    private readonly ldoService: LdoService,
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {}
   // ===== Healper Functions =====
   async deleteSingle(matchExist: Match) {
@@ -476,23 +475,56 @@ export class MatchResolver {
     }
   }
 
-  @ResolveField(() => [ServerReceiverOnNet])
-  async netsServerReceiver(@Parent() match: Match): Promise<(ServerReceiverOnNet)[]> {
-    try {
-      const netList = await this.netService.find({ match: match._id.toString() });
-  
-      const netPromises = netList.map(net => {
-        const SR_CACHE_KEY = `sr:${net._id}:${match.room}`;
-        return this.redisService.get(SR_CACHE_KEY);
-      });
-  
-      const serverReceiverOnNets = await Promise.all(netPromises);
-      const formattedData = serverReceiverOnNets ? serverReceiverOnNets.filter((srn)=> srn !== null) : [];
-      return formattedData as ServerReceiverOnNet[];
-    } catch {
-      return [];
-    }
+@ResolveField(() => [ServerReceiverOnNet])
+async netsServerReceiver(@Parent() match: Match): Promise<ServerReceiverOnNet[]> {
+  try {
+    const netList = await this.netService.find({ match: match._id.toString() });
+    if (!netList.length) return [];
+
+    const serverReceiverResults: ServerReceiverOnNet[] = [];
+    const missedNetIds: string[] = [];
+
+    // Parallel Redis `get()` calls
+    const redisResults = await Promise.all(
+      netList.map(async net => {
+        const key = `sr:${net._id}:${match.room}`;
+        const result = await this.redisService.get<ServerReceiverOnNet>(key);
+        if (result) {
+          serverReceiverResults.push({
+            ...result, 
+            serverId: result.server as string || "",
+            matchId: result.match as string || "",
+            netId: result.net as string || "",
+            receiverId: result.receiver as string || "",
+            receivingPartnerId: result.receivingPartner as string || "",
+            servingPartnerId: result.servingPartner as string || "",
+            roundId: result.round as string || "",
+          });
+        } else {
+          missedNetIds.push(net._id.toString());
+        }
+      })
+    );
+
+    // Fetch missed ones from DB
+    const missedReceivers = await Promise.all(
+      missedNetIds.map(netId =>
+        this.serverReceiverOnNetService.findOne({ net: netId })
+      )
+    );
+
+    // Return only found results
+    return [
+      ...serverReceiverResults,
+      ...missedReceivers.filter(r => r !== null)
+    ];
+  } catch (error) {
+    console.error('netsServerReceiver error:', error);
+    return [];
   }
+}
+
+  
 
 
   @ResolveField()

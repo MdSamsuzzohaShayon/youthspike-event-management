@@ -44,17 +44,23 @@ interface INetUpdate {
   teamBScore?: number | null;
 }
 
-interface INetScoreUpdate {
+interface ICommonNetRound{
   _id: string;
   teamAScore: number;
   teamBScore: number;
+}
+
+interface INetScoreUpdate extends ICommonNetRound{
+}
+
+interface IRoundScoreUpdate extends ICommonNetRound{
   completed: boolean;
 }
 
 interface IUpdateScoreResponse {
   nets: INetScoreUpdate[];
   room: string;
-  round: INetScoreUpdate;
+  round: IRoundScoreUpdate;
   matchCompleted: boolean;
   teamAProcess: EActionProcess; // Oponent Team
   teamBProcess: EActionProcess; // My Team

@@ -1,38 +1,37 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Field, Int, Mutation, ObjectType, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
 import { NetService } from 'src/net/net.service';
 import { RoundService } from 'src/round/round.service';
-import { Team } from 'src/team/team.schema';
-import { User, UserRole } from 'src/user/user.schema';
+import { UserRole } from 'src/user/user.schema';
 import { Net } from './net.schema';
-import { CreateNetInput, UpdateMultipleNetInput, UpdateNetInput } from './input.args';
-import { PlayerService } from 'src/player/player.service';
+import { UpdateMultipleNetInput, UpdateNetInput } from './net.input';
 import { TeamService } from 'src/team/team.service';
 import { HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
-
-@ObjectType()
-class GetNetsResponse extends AppResponse<Net[]> {
-  @Field((type) => [Net], { nullable: false })
-  data?: Net[];
-}
-
-@ObjectType()
-class GetNetResponse extends AppResponse<Net> {
-  @Field((type) => Net, { nullable: false })
-  data?: Net;
-}
+import { GetNetResponse, GetNetsResponse } from './net.response';
+import { RedisService } from 'src/redis/redis.service';
+import { MatchService } from 'src/match/match.service';
+import { PlayerService } from 'src/player/player.service';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 
 @Resolver((of) => Net)
 export class NetResolver {
-  constructor(private roundService: RoundService, private netService: NetService, private teamService: TeamService) {}
+  constructor(
+    private roundService: RoundService,
+    private netService: NetService,
+    private teamService: TeamService,
+    private matchService: MatchService,
+    private playerService: PlayerService,
+    private playerStatsService: PlayerStatsService,
+    private redisService: RedisService,
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((returns) => GetNetResponse)
   async updateNet(@Args('input') input: UpdateNetInput, @Args('netId') netId: string): Promise<GetNetResponse> {
     try {
@@ -62,6 +61,55 @@ export class NetResolver {
       return AppResponse.handleError(err);
     }
   }
+
+  /*
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
+  @Mutation((returns) => GetNetResponse)
+  async updateNetWithStats(
+    @Args('input') input: UpdateNetInput,
+    @Args('netId') netId: string,
+  ): Promise<GetNetResponse> {
+    try {
+      const netExist = await this.netService.findOne({ _id: netId });
+      if (!netExist) return AppResponse.notFound('Net');
+      const match = await this.matchService.findById(netExist.match.toString());
+      const SR_CACHE_KEY = `sr:${netId}:${match.room.toString()}`; 
+
+
+      const netCache: Net | null = await this.redisService.get(SR_CACHE_KEY);
+      if(!netCache){
+        return AppResponse.handleError({code: 410, success: false, message: "No net found in the cache!"})
+      }
+      const updatePromises = [];
+
+      updatePromises.push(this.netService.updateOne({_id: netId}, {$set: {teamAScore: netCache.teamAScore}}));
+
+      const [teamAPlayerA, teamAPlayerB, teamBPlayerA, teamBPlayerB] = await Promise.all([
+        this.redisService.get(`player:${netCache.teamAPlayerA}`),
+        this.redisService.get(`player:${netCache.teamAPlayerB}`),
+        this.redisService.get(`player:${netCache.teamBPlayerA}`),
+        this.redisService.get(`player:${netCache.teamBPlayerB}`),
+      ]);
+
+      // Create or update
+      // updatePromises.push()
+      if(teamAPlayerA){
+        const playerStats = await this.playerStatsService.findOne({player: teamAPlayerA});
+      }
+
+
+      return {
+        data: netExist,
+        code: HttpStatus.ACCEPTED,
+        message: 'Net has been updated successfully!',
+        success: true,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+    */
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)

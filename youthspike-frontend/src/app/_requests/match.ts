@@ -1,4 +1,3 @@
-import { GET_EVENTS_RAW } from '@/graphql/event';
 import { GET_MATCH_DETAIL_RAW } from '@/graphql/matches';
 import { BACKEND_URL } from '@/utils/keys';
 

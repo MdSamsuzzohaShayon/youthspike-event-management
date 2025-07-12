@@ -84,11 +84,11 @@ export class UpdatePointsHandler {
       };
 
       await Promise.all([
-        this.gatewayRedisService.publishToRoom(
-          updatePointsInput.room,
-          'update-points-response',
-          pointsResponse,
-        ),
+        // this.gatewayRedisService.publishToRoom(
+        //   updatePointsInput.room,
+        //   'update-points-response',
+        //   pointsResponse,
+        // ),
         this.gatewayRedisService.publishToRoom(
           updatePointsInput.room,
           'update-points-response-all',

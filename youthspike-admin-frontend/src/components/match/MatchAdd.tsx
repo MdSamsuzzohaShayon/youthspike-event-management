@@ -226,36 +226,28 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         {addMatch.date && <DateInput handleDateChange={handleDateChange} name="date" label="Start time" required={!update} value={addMatch.date} />}
 
         <InputField
-          key={`if-${Math.floor(Math.random() * 1000)}`}
+          key="field-numberOfNets"
           type="number"
           required={!update}
           label="Number of nets"
           name="numberOfNets"
-          defaultValue={addMatch.numberOfNets}
+          value={addMatch.numberOfNets ?? ''}
           handleInputChange={handleNumInputChange}
         />
         <InputField
-          key={`if-${Math.floor(Math.random() * 1000)}`}
+          key="field-numberOfRounds"
           type="number"
           required={!update}
           label="Number of rounds"
           name="numberOfRounds"
-          defaultValue={addMatch.numberOfRounds}
+          value={addMatch.numberOfRounds??''}
           handleInputChange={handleNumInputChange}
         />
-        <InputField
-          key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="number"
-          required={!update}
-          label="Net Variance"
-          name="netVariance"
-          defaultValue={addMatch.netVariance}
-          handleInputChange={handleNumInputChange}
-        />
+        <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={addMatch.netVariance ?? ''} handleInputChange={handleNumInputChange} />
       </div>
 
       <div className="part-3 grid grid-cols-1 gap-6 mt-6">
-        {!update && <SelectInput key="g-t-d" handleSelect={handleGroupChange} name="group" label="Group" defaultValue={addMatch.division} optionList={groupOptions} />}
+        {!update && <SelectInput key="select-group" handleSelect={handleGroupChange} name="group" label="Group" defaultValue={addMatch.division} optionList={groupOptions} />}
       </div>
 
       <div className="part-3.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -266,8 +258,8 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         <h3 className="w-full capitalize">Default settings</h3>
       </div>
       <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <SelectInput key="si-1" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
-        <SelectInput key="si-2" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
+        <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
+        <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
       </div>
 
       <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -276,7 +268,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
 
       <div className="part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <SelectInput
-          key="si-3"
+          key="select-autoAssignLogic"
           defaultValue={addMatch.autoAssignLogic}
           name="autoAssignLogic"
           optionList={assignStrategies}
@@ -285,7 +277,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         />
 
         <SelectInput
-          key="si-4"
+          key="select-rosterLock"
           name="rosterLock"
           value={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? ERosterLock.FIRST_ROSTER_SUBMIT : ERosterLock.PICK_A_DATE}
           optionList={lockTimes}
@@ -293,28 +285,22 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           handleSelect={handleInputChange}
         />
         {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-          <DateInput name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
+          <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
         )}
       </div>
 
       <div className="part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField
-          key={`if-${Math.floor(Math.random() * 1000)}`}
-          type="number"
-          required={!update}
-          label="Sub Clock"
-          name="timeout"
-          defaultValue={addMatch.timeout}
-          handleInputChange={handleNumInputChange}
-        />
-        <InputField key={`if-${Math.floor(Math.random() * 1000)}`} type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
+        <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={addMatch.timeout ?? ''} handleInputChange={handleNumInputChange} />
+        <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" value={addMatch.fwango || ''} />
       </div>
+
       <div className="part-7 grid grid-cols-1 gap-6 mt-6">
-        <TextareaInput handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
+        <TextareaInput key="field-description" handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
       </div>
+
       <div className="part-8 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField key={`if-${Math.floor(Math.random() * 1000)}`} type="text" handleInputChange={handleInputChange} label="Location" name="location" defaultValue={addMatch.location} />
-        <InputField key={`if-${Math.floor(Math.random() * 1000)}`} type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />
+        <InputField key="field-location" type="text" handleInputChange={handleInputChange} label="Location" name="location" value={addMatch.location || ''} />
+        <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" value={addMatch.accessCode || ''} />
       </div>
 
       <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>

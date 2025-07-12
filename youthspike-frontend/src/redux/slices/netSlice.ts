@@ -1,8 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { INetBase, INetUpdate, INetPlayers, IServerReceiverOnNet } from '@/types';
-import { INetRelatives, INetScoreUpdate } from '@/types/net';
-import { ETeam } from '@/types/team';
+import { INetUpdate, IServerReceiverOnNetMixed } from '@/types';
+import { INetRelatives } from '@/types/net';
 
 
 
@@ -15,8 +14,8 @@ interface INetState {
 
 
   // Score keeper for specific match
-  serverReceiversOnNet: IServerReceiverOnNet[];
-  currentServerReceiver: IServerReceiverOnNet | null;
+  serverReceiversOnNet: IServerReceiverOnNetMixed[];
+  currentServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
 
@@ -73,10 +72,10 @@ const netSlice = createSlice({
 
 
     // Score keeper
-    setServerReceiversOnNet: (state, action: PayloadAction<IServerReceiverOnNet[]>) => {
+    setServerReceiversOnNet: (state, action: PayloadAction<IServerReceiverOnNetMixed[]>) => {
       state.serverReceiversOnNet = action.payload;
     },
-    setCurrentServerReceiver: (state, action: PayloadAction<IServerReceiverOnNet | null>) => {
+    setCurrentServerReceiver: (state, action: PayloadAction<IServerReceiverOnNetMixed | null>) => {
       state.currentServerReceiver = action.payload;
     },
     

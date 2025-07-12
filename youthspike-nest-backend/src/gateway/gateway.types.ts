@@ -1,7 +1,5 @@
 import { UserRole } from 'src/user/user.schema';
 import { EActionProcess } from 'src/round/round.schema';
-import { ERosterLock } from 'src/event/event.schema';
-import { EPlayerStatus } from 'src/player/player.schema';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { ETieBreaker } from 'src/net/net.schema';
 
@@ -62,6 +60,7 @@ export interface UpdatePointsInput {
   }>;
 }
 
+
 @ObjectType()
 export class NetTieBreaker {
   @Field({ nullable: false })
@@ -114,9 +113,6 @@ class CommonActionInput {
   match: string;
 
   @Field({ nullable: false })
-  receiver: string;
-
-  @Field({ nullable: false })
   net: string;
 
   @Field({ nullable: false })
@@ -144,8 +140,19 @@ export class RallyConversionInput extends CommonActionInput {}
 @InputType()
 export class DefensiveConversionInput extends CommonActionInput {}
 
+@InputType()
+export class UpdateCachePointsInput extends CommonActionInput {}
+
+
+export interface INetScoreUpdate {
+  _id: string;
+  teamAScore?: number;
+  teamBScore?: number;
+  // completed: boolean;
+}
+
 export interface RoundUpdatedResponse {
-  nets: any[];
+  nets: INetScoreUpdate[];
   room: string;
   round: {
     _id: string;
@@ -159,47 +166,13 @@ export interface RoundUpdatedResponse {
 }
 
 export interface MatchRoundNet {
-  nets: any[];
+  nets: INetScoreUpdate[];
   _id: string;
   match: string;
   matchCompleted: boolean;
 }
 
-@ObjectType()
-export class ServerReceiverOnNet {
-  @Field({ nullable: false })
-  mutate: number;
 
-  @Field({ nullable: false })
-  server: string;
-
-  @Field({ nullable: false })
-  servingPartner: string;
-
-  @Field({ nullable: false })
-  receiver: string;
-
-  @Field({ nullable: false })
-  receivingPartner: string;
-
-  @Field({ nullable: false })
-  room: string;
-
-  @Field({ nullable: false })
-  match: string;
-
-  @Field({ nullable: false })
-  net: string;
-
-  @Field({ nullable: false })
-  round: string;
-
-  @Field({ nullable: false, defaultValue: 0 })
-  teamAScore: number;
-
-  @Field({ nullable: false, defaultValue: 0 })
-  teamBScore: number;
-}
 
 export interface GeneralClient {
   _id: string | null;

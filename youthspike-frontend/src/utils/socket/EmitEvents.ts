@@ -28,6 +28,7 @@ import {
   ISetServerReceiverData,
   IServiceFaultInput,
   IAceNoTouchInput,
+  IUpdateCachePointsInput,
 } from '@/types/socket';
 import { ETeam, ITeam } from '@/types/team';
 import { Socket } from 'socket.io-client';
@@ -464,6 +465,11 @@ class EmitEvents {
   rallyConversion({ match, receiver, net, room }: IRallyConversionInput) {
     const actionData = { match, receiver, net, room };
     this.socket?.emit('rally-conversion-from-client', actionData);
+  }
+
+  updateCachePoints({ match, net, room }: IUpdateCachePointsInput) {
+    const actionData = { match, net, room };
+    this.socket?.emit('update-cache-points-from-client', actionData);
   }
 }
 

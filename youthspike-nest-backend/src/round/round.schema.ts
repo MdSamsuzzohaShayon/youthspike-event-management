@@ -3,7 +3,7 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
-import { Net } from 'src/net/net.schema';
+import { Net, ServerReceiverOnNet } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 
@@ -49,6 +49,10 @@ export class Round extends AppDocument {
   @Field((type) => [Net], { nullable: true })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets?: Net[] | string[];
+
+  @Field((_type) => [ServerReceiverOnNet], { nullable: true, defaultValue: [] })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }], default: [] })
+  serverReceiverOnNet?: ServerReceiverOnNet[] | string[];
 
   // Only one relations
   @Field((type) => [Player], { nullable: true })

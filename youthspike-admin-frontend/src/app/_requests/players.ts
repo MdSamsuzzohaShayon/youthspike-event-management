@@ -1,4 +1,5 @@
 import { GET_A_PLAYER_RAW, GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW, GET_EVENT_WITH_TEAM_PLAYERS_RAW, GET_PLAYER_AND_TEAMS_RAW, GET_PLAYERS_MIN_RAW } from '@/graphql/players';
+import handleServerResponse from '@/utils/handlerServerResponse';
 import { isValidObjectId } from '@/utils/helper';
 import { BACKEND_URL } from '@/utils/keys';
 
@@ -16,7 +17,8 @@ async function getAPlayer(playerId: string | null) {
   });
 
   const { data } = await res.json();
-  return data?.getPlayer?.data || null;
+  // return data?.getPlayer?.data || null;
+  return handleServerResponse(data, 'getPlayer');
 }
 
 async function getEventWithPlayers(eventId: string) {
@@ -33,7 +35,8 @@ async function getEventWithPlayers(eventId: string) {
   });
 
   const { data } = await res.json();
-  return data?.getEvent?.data || null;
+  // return data?.getEvent?.data || null;
+  return handleServerResponse(data, 'getEvent');
 }
 
 async function getEventPlayersGroupsTeams(eventId: string, token?: string | null) {
@@ -53,10 +56,9 @@ async function getEventPlayersGroupsTeams(eventId: string, token?: string | null
     }),
     cache: 'no-store',
   });
-  // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
   const { data } = await res.json();
-  return data?.getEventWithPlayers?.data || null;
+  return handleServerResponse(data, 'getEventWithPlayers');
 }
 
 async function getPlayerAndTeams(playerId: string, eventId: string) {
@@ -78,7 +80,8 @@ async function getPlayerAndTeams(playerId: string, eventId: string) {
   // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
   const { data } = await res.json();
-  return data?.getPlayerAndTeams?.data || null;
+  // return data?.getPlayerAndTeams?.data || null;
+  return handleServerResponse(data, 'getPlayerAndTeams');
 }
 
 async function getPlayersMin() {
@@ -95,7 +98,8 @@ async function getPlayersMin() {
   // const success = await handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
   const { data } = await res.json();
-  return data?.getPlayers?.data || null;
+  // return data?.getPlayers?.data || null;
+  return handleServerResponse(data, 'getPlayers');
 }
 
 export { getEventWithPlayers, getEventPlayersGroupsTeams, getPlayerAndTeams, getAPlayer, getPlayersMin };

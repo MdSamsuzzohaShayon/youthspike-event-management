@@ -16,7 +16,7 @@ import {
   IUpdateRound,
 } from '@/types';
 import { ETieBreaker } from '@/types/net';
-import { EActionProcess, IRoomRoundProcess, ITeiBreakerAction } from '@/types/room';
+import { IRoomRoundProcess } from '@/types/room';
 import React from 'react';
 import { Socket } from 'socket.io-client';
 

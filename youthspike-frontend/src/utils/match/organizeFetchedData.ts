@@ -158,11 +158,22 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
     dispatch(setCurrentRoundNets(filteredNets));
 
-    if (netsServerReceiver) dispatch(setServerReceiversOnNet(netsServerReceiver));
+    const formattedNetsServerReceiver = netsServerReceiver?.map((sr)=> ({
+      ...sr,
+      match: sr.matchId || (typeof sr.match === "string" ? sr.match : sr.match?._id),
+      net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
+      receiver: sr.receiverId || (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
+      receivingPartner: sr.receivingPartnerId || (typeof sr.receivingPartner === "string" ? sr.receivingPartner : sr.receivingPartner?._id),
+      round: sr.roundId || (typeof sr.round === "string" ? sr.round : sr.round?._id),
+      server: sr.serverId || (typeof sr.server === "string" ? sr.server : sr.server?._id),
+      servingPartner: sr.servingPartnerId || (typeof sr.servingPartner === "string" ? sr.servingPartner : sr.servingPartner?._id),
+    }));
+
+    if (formattedNetsServerReceiver) dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
 
     const selectedNet = filteredNets.find((n) => n.num === CURRENT_NET_NUM);
     if (selectedNet) {
-      const currServerReceiver = netsServerReceiver?.find((sr) => sr.net === selectedNet._id);
+      const currServerReceiver = formattedNetsServerReceiver?.find((sr) => sr.net === selectedNet._id);
       if (currServerReceiver) dispatch(setCurrentServerReceiver(currServerReceiver));
     }
   }

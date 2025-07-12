@@ -2,6 +2,7 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
+import { ServerReceiverOnNet } from 'src/net/net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
@@ -85,6 +86,12 @@ export class Player extends AppDocument {
   @Field((_type) => [PlayerStats], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerStats' }] })
   playerstats?: PlayerStats[] | string[];
+
+
+  @Field((_type) => [ServerReceiverOnNet], { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' })
+  serverReceiverOnNet?: ServerReceiverOnNet[] | string[];
+
 }
 
 export const PlayerSchema = SchemaFactory.createForClass(Player);

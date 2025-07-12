@@ -25,23 +25,23 @@ export class AceNoThirdTouchHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.receiver, net.receivingPartner];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, ids);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match as string, ids as []);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server], {
+      this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         serveAce: 1,
         break: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receiver], {
+      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
         broken: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receivingPartner], {
+      this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
       });
 
@@ -49,7 +49,7 @@ export class AceNoThirdTouchHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.server) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateServerReceiver(net);

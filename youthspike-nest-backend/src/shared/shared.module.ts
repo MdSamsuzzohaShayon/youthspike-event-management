@@ -6,7 +6,7 @@ import { MongooseModule, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Event, EventSchemaFactory } from 'src/event/event.schema';
 import { Match, MatchSchemaFactory } from 'src/match/match.schema';
-import { Net, NetSchemaFactory } from 'src/net/net.schema';
+import { Net, NetSchemaFactory, ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory } from 'src/net/net.schema';
 import { Round, RoundSchemaFactory } from 'src/round/round.schema';
 import { Team, TeamSchemaFactory } from 'src/team/team.schema';
 import { User, UserRole, UserSchemaFactory } from 'src/user/user.schema';
@@ -20,7 +20,7 @@ import { LDO, LDOSchemaFactory } from 'src/ldo/ldo.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { RoundService } from 'src/round/round.service';
-import { NetService } from 'src/net/net.service';
+import { NetService, ServerReceiverOnNetService } from 'src/net/net.service';
 import { CloudinaryService } from './services/cloudinary.service';
 import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
 import { SponsorService } from 'src/sponsor/sponsor.service';
@@ -84,6 +84,10 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
         useFactory: NetSchemaFactory,
       },
       {
+        name: ServerReceiverOnNet.name,
+        useFactory: ServerReceiverOnNetSchemaFactory,
+      },
+      {
         name: Player.name,
         useFactory: PlayerSchemaFactory,
       },
@@ -134,6 +138,7 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
     MatchService,
     RoundService,
     NetService,
+    ServerReceiverOnNetService,
     PlayerService,
     LdoService,
     SponsorService,
@@ -154,6 +159,7 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
     MatchService,
     RoundService,
     NetService,
+    ServerReceiverOnNetService,
     PlayerService,
     LdoService,
     SponsorService,

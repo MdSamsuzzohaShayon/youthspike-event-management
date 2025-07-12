@@ -24,10 +24,10 @@ export class ServiceFaultHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, ids);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server], {
+      this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
       });
 
@@ -35,7 +35,7 @@ export class ServiceFaultHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.receiver) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateServerReceiver(net);

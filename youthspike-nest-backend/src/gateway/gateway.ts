@@ -28,6 +28,7 @@ import {
   OneTwoThreePutAwayInput,
   RallyConversionInput,
   DefensiveConversionInput,
+  UpdateCachePointsInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -49,6 +50,7 @@ import { OneTwoThreePutAwayHandler } from './gateway.handlers/one-two-three-put-
 import { RallyConversionHandler } from './gateway.handlers/rally-conversion';
 import { DefensiveConversionHandler } from './gateway.handlers/defensive-conversion';
 import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
+import { UpdateCachePointsHandler } from './gateway.handlers/update-cache-points';
 
 @WebSocketGateway({
   cors: true,
@@ -81,6 +83,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private oneTwoThreePutAway: OneTwoThreePutAwayHandler;
   private rallyConversion: RallyConversionHandler;
   private defensiveConversion: DefensiveConversionHandler;
+  private updateCachePoints: UpdateCachePointsHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -106,6 +109,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.rallyConversion = new RallyConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.defensiveConversion = new DefensiveConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
 
     /**
      * Handlers for Score keeper
@@ -232,6 +236,12 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('rally-conversion-from-client')
   async onRallyConversion(@ConnectedSocket() client: Socket, @MessageBody() rallyConversionInput: RallyConversionInput) {
     return this.rallyConversion.handle(client, rallyConversionInput, this.roomsLocal);
+  }
+
+
+  @SubscribeMessage('update-cache-points-from-client')
+  async onUpdateCachePoints(@ConnectedSocket() client: Socket, @MessageBody() updateCachePointsInput: UpdateCachePointsInput) {
+    return this.updateCachePoints.handle(client, updateCachePointsInput, this.roomsLocal);
   }
 
 

@@ -1,6 +1,6 @@
-import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
+import { ConnectedSocket } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { ServerReceiverOnNet, RoomLocal } from '../gateway.types';
+import { RoomLocal } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 

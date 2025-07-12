@@ -69,6 +69,24 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return null;
   }
 
+  // async mget<T>(...keys: string[]): Promise<(T | null)[]> {
+  //   const client = this.getPubClient();
+  //   const results = await client.mget(...keys);
+  
+  //   return results.map(data => {
+  //     if (data) {
+  //       try {
+  //         return JSON.parse(data) as T;
+  //       } catch (error) {
+  //         console.error('Redis mget parse error:', error);
+  //         return null;
+  //       }
+  //     }
+  //     return null;
+  //   });
+  // }
+  
+
   async onModuleInit() {
     this.logger.log(`Redis Cluster initialized with nodes: ${this.nodes.map(n => `${n.host}:${n.port}`).join(', ')}`);
     

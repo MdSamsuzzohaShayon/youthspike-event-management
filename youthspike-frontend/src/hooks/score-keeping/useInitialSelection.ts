@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { IServerReceiverOnNet } from '@/types';
+import { IServerReceiverOnNetMixed } from '@/types';
 
 export default function useInitialSelection(
   currNetNum: number | null,
   netByNum: Map<number, any>,
-  serverReceiverByNetId: Map<string, IServerReceiverOnNet>,
+  serverReceiverByNetId: Map<string, IServerReceiverOnNetMixed>,
   setSelectedServer: (s: string | null) => void,
   setSelectedReceiver: (r: string | null) => void,
 ) {
@@ -14,8 +14,8 @@ export default function useInitialSelection(
     if (!net) return;
     const pre = serverReceiverByNetId.get(net._id);
     if (pre) {
-      setSelectedServer(pre.server);
-      setSelectedReceiver(pre.receiver);
+      setSelectedServer(typeof pre.server === 'string' ? pre.server : pre.server?._id ?? null);
+      setSelectedReceiver(typeof pre.receiver === 'string' ? pre.receiver : pre.receiver?._id ?? null);
     }
   }, [currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver]);
 }

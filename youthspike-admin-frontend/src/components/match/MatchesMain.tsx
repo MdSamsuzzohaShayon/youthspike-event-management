@@ -151,7 +151,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
     return paginatedTeams;
   }, [filteredMatchList, currentPage]);
 
-  // if (loading || isLoading) return <Loader />;
+  if (isLoading) return <Loader />;
 
 
   return (

@@ -54,11 +54,14 @@ export interface ISetServerReceiverChange {
   userInfo: IUser | null;
 }
 
-interface ICommonAction {
+interface ICacheAction {
   match: string;
-  receiver: string;
   net: string;
   room: string;
+}
+
+interface ICommonAction extends ICacheAction {
+  receiver: string;
 }
 
 export interface IServiceFaultInput extends ICommonAction {}
@@ -69,6 +72,8 @@ export interface IRallyConversionInput extends ICommonAction {}
 export interface IAceNoTouchInput extends ICommonAction {}
 export interface IAceNoThirdTouchInput extends ICommonAction {}
 export interface IReceivingHittingErrorInput extends ICommonAction {}
+
+export interface IUpdateCachePointsInput extends ICacheAction {}
 
 export interface ICheckInToLineupProps extends IStatusChange {
   myTeamE: ETeam;
@@ -180,18 +185,27 @@ export interface IOvertimeData {
 /**
  * Score keeper
  */
-export interface IServerReceiverOnNet {
+export interface IServerReceiverOnNetMixed {
   mutate: number;
-  server: string;
-  servingPartner: string;
-  receiver: string;
-  receivingPartner: string;
+  server: string | IPlayer;
+  servingPartner: string | IPlayer;
+  receiver: string | IPlayer;
+  receivingPartner: string | IPlayer;
   room: string;
-  match: string;
-  net: string;
-  round: string;
+  match: string | IMatch;
+  net: string | INetRelatives;
+  round: string | IRoundRelatives;
   teamAScore: number;
   teamBScore: number;
+
+  // Optional related fields
+  serverId?: string;
+  netId?: string;
+  receiverId?: string;
+  receivingPartnerId?: string;
+  servingPartnerId?: string;
+  matchId?: string;
+  roundId?: string;
 }
 
 /**
@@ -200,9 +214,9 @@ export interface IServerReceiverOnNet {
 
 // Score keeper
 export interface IServerReceiverResponse {
-  data: IServerReceiverOnNet;
+  data: IServerReceiverOnNetMixed;
   dispatch: React.Dispatch<React.ReducerAction<any>>;
-  serverReceiversOnNet: IServerReceiverOnNet[];
+  serverReceiversOnNet: IServerReceiverOnNetMixed[];
 }
 
 // Run match

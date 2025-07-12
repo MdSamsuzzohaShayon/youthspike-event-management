@@ -81,11 +81,29 @@ export const divisionsToOptionList = (divisions: string) => {
     const dl = divisions.split(',');
     for (let i = 0; i < dl.length; i += 1) {
       if (dl[i].trim() !== '') {
-        divs.push({ text: dl[i], value: dl[i].toLowerCase() });
+        divs.push({ id: i+1, text: dl[i], value: dl[i].toLowerCase() });
       }
     }
   }
   return divs;
+};
+
+
+
+export const toOrdinal = (n: number): string => {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
 };
 
 export const fsToggle = (screenWidth: number) => {

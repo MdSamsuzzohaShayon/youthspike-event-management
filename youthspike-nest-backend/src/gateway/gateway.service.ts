@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
 import { RoomService } from 'src/room/room.service';
 import { RoundService } from 'src/round/round.service';
-import { NetService } from 'src/net/net.service';
+import { NetService, ServerReceiverOnNetService } from 'src/net/net.service';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { EventService } from 'src/event/event.service';
 import { TeamService } from 'src/team/team.service';
@@ -10,6 +10,7 @@ import { MatchService } from 'src/match/match.service';
 import { PlayerService } from 'src/player/player.service';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
+import { ServerReceiverOnNet } from 'src/net/net.schema';
 
 @Injectable()
 export class GatewayService {
@@ -18,6 +19,7 @@ export class GatewayService {
     private readonly roomService: RoomService,
     private readonly roundService: RoundService,
     private readonly netService: NetService,
+    private readonly serverReceiverOnNetService: ServerReceiverOnNetService,
     private readonly playerRankingService: PlayerRankingService,
     private readonly eventService: EventService,
     private readonly teamService: TeamService,
@@ -32,6 +34,7 @@ export class GatewayService {
       roomService: this.roomService,
       roundService: this.roundService,
       netService: this.netService,
+      serverReceiverOnNetService: this.serverReceiverOnNetService,
       playerRankingService: this.playerRankingService,
       eventService: this.eventService,
       teamService: this.teamService,

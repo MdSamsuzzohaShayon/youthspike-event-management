@@ -62,6 +62,10 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
       teamSelected = true;
     }
 
+    if (teamSelected) {
+      return null;
+    }
+
     return (
       <div className="w-full md:w-1/2">
         <h4 className="text-lg font-bold mb-4 text-center">{label}</h4>
@@ -116,19 +120,9 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
       <h3 className="text-2xl md:text-3xl font-bold text-center text-yellow-500 mb-10 uppercase tracking-wide">Select a {serverPlaceholder ? 'Server' : receiverPlaceholder ? 'Receiver' : ''}</h3>
 
       {playersOfSelectedNet && (
-        <div className="flex flex-col md:flex-row justify-between gap-8">
-          {selectedReceiver || selectedReceiver ? (
-            <>
-            {/* Check player from which team has been selected */}
-              {renderTeam(teamA?.name || '', teamAPlayers, 'teamA')}
-              {renderTeam(teamB?.name || '', teamBPlayers, 'teamB')}
-            </>
-          ) : (
-            <>
-              {renderTeam(teamA?.name || '', teamAPlayers, 'teamA')}
-              {renderTeam(teamB?.name || '', teamBPlayers, 'teamB')}
-            </>
-          )}
+        <div className="flex flex-col md:flex-row justify-center gap-8">
+          {renderTeam(teamA?.name || 'Team A', teamAPlayers, 'teamA')}
+          {renderTeam(teamB?.name || 'Team B', teamBPlayers, 'teamB')}
         </div>
       )}
     </div>

@@ -1,10 +1,8 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { RoomLocal, ServerReceiverOnNet, DefensiveConversionInput } from '../gateway.types';
+import { RoomLocal, DefensiveConversionInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { initPlayerStat } from 'src/util/helper';
-import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 
 export class DefensiveConversionHandler {
@@ -26,20 +24,20 @@ export class DefensiveConversionHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, ids);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match  as string, ids  as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server], {
+      this.scoreKeeperHelper.increment(stats[net.server  as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         defensiveOpportunity: 0.5,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.servingPartner], {
+      this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
         defensiveOpportunity: 0.5
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receiver], {
+      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
         hittingOpportunity: 1,
@@ -49,7 +47,7 @@ export class DefensiveConversionHandler {
         defensiveConversion: 0.5,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receivingPartner], {
+      this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
         settingCompletion: 1,
         defensiveOpportunity: 0.5,
@@ -60,7 +58,7 @@ export class DefensiveConversionHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.server) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateServer(net);

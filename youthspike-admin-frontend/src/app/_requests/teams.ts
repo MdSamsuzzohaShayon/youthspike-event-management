@@ -1,4 +1,5 @@
 import { GET_A_TEAM_RAW, GET_EVENT_WITH_TEAMS_RAW, GET_TEAM_DETAIL_RAW, GET_TEAMS_MIN_RAW } from "@/graphql/teams";
+import handleServerResponse from "@/utils/handlerServerResponse";
 import { isValidObjectId } from "@/utils/helper";
 import { BACKEND_URL } from "@/utils/keys";
 
@@ -16,7 +17,8 @@ async function getTeamData(teamId: string) {
   });
 
   const { data } = await res.json();
-  return data?.getTeamDetails?.data || null;
+  // return data?.getTeamDetails?.data || null;
+  return handleServerResponse(data, 'getTeamDetails');
 }
 
 async function getTeamsMin(eventId?: string) {
@@ -36,7 +38,8 @@ async function getTeamsMin(eventId?: string) {
   });
 
   const { data } = await res.json();
-  return data?.getTeams?.data || null;
+  // return data?.getTeams?.data || null;
+  return handleServerResponse(data, 'getTeams');
 }
 
 async function getATeam(teamId: string) {
@@ -53,7 +56,8 @@ async function getATeam(teamId: string) {
   });
 
   const { data } = await res.json();
-  return data?.getTeam?.data || null;
+  // return data?.getTeam?.data || null;
+  return handleServerResponse(data, 'getTeam');
 }
 
 
@@ -75,7 +79,8 @@ async function getEventWithTeams(eventId: string) {
   });
 
   const { data } = await res.json();
-  return data?.getEventWithTeams?.data || null;
+  // return data?.getEventWithTeams?.data || null;
+  return handleServerResponse(data, 'getEventWithTeams');
 }
 
 

@@ -1,5 +1,6 @@
 import { GET_AN_EVENT_RAW, GET_EVENTS_MIN_RAW } from "@/graphql/event";
 import { IEvent } from "@/types";
+import handleServerResponse from "@/utils/handlerServerResponse";
 import { isValidObjectId } from "@/utils/helper";
 import { BACKEND_URL } from "@/utils/keys";
 
@@ -16,7 +17,8 @@ async function getMinEvents() {
 
     const { data } = await res.json();
     
-    return data?.getEvents?.data || null;
+    // return data?.getEvents?.data || null;
+    return handleServerResponse(data, 'getEvents');
 }
 
 async function getAnEvent(eventId: string): Promise<IEvent | null> {
@@ -36,7 +38,8 @@ async function getAnEvent(eventId: string): Promise<IEvent | null> {
 
     const { data } = await res.json();
     
-    return data?.getEvent?.data || null;
+    // return data?.getEvent?.data || null;
+    return handleServerResponse(data, 'getEvent');
 }
 
 

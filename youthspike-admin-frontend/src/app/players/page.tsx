@@ -1,6 +1,5 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import TeamTable from '@/components/teams/TeamTable';
 import { getPlayersMin } from '../_requests/players';
 import PlayerTable from '@/components/player/PlayerTable';
 

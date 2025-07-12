@@ -3,7 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { ERosterLock, ETieBreakingStrategy, Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
-import { Net } from 'src/net/net.schema';
+import { Net, ServerReceiverOnNet } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Room } from 'src/room/room.schema';
@@ -94,6 +94,10 @@ export class Match extends AppDocument {
   @Field((_type) => [Net], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets: Net[] | string[];
+
+  @Field((_type) => [ServerReceiverOnNet], { nullable: true, defaultValue: [] })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }], default: [] })
+  serverReceiverOnNet?: ServerReceiverOnNet[] | string[];
 
   @Field((_type) => [Round], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Round' }] })

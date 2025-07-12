@@ -21,6 +21,7 @@ type Round {
   num: Int!
   match: Match!
   nets: [Net!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
   players: [Player!]
   subs: [Player!]
   teamAScore: Int
@@ -89,6 +90,7 @@ type Net {
   round: Round!
   teamA: Team
   teamB: Team
+  serverReceiverOnNet: ServerReceiverOnNet
   teamAPlayerA: String
   teamAPlayerB: String
   teamBPlayerA: String
@@ -105,6 +107,28 @@ enum ETieBreaker {
   FINAL_ROUND_NET
   FINAL_ROUND_NET_LOCKED
   TIE_BREAKER_NET
+}
+
+type ServerReceiverOnNet {
+  _id: String
+  mutate: Float!
+  server: Player!
+  serverId: String
+  servingPartner: Player!
+  servingPartnerId: String
+  receiver: Player!
+  receiverId: String
+  receivingPartner: Player!
+  receivingPartnerId: String
+  room: String!
+  match: Match!
+  matchId: String
+  net: Net!
+  netId: String
+  round: Round!
+  roundId: String
+  teamAScore: Float!
+  teamBScore: Float!
 }
 
 type PlayerStats {
@@ -158,6 +182,7 @@ type Match {
   extendedOvertime: Boolean
   event: Event!
   nets: [Net!]!
+  serverReceiverOnNet: [ServerReceiverOnNet!]
   rounds: [Round!]!
   teamA: Team
   teamB: Team
@@ -246,6 +271,7 @@ type Player {
   captainuser: User
   cocaptainuser: User
   playerstats: [PlayerStats!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
 }
 
 enum EPlayerStatus {
@@ -339,6 +365,7 @@ type CustomPlayer {
   captainuser: User
   cocaptainuser: User
   playerstats: [PlayerStats!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
 }
 
 type CustomPlayerRanking {
@@ -437,6 +464,7 @@ type PlayerWithTeam {
   captainuser: User
   cocaptainuser: User
   playerstats: [PlayerStats!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
 }
 
 type GroupWithTeam {
@@ -476,6 +504,7 @@ type CustomRound {
   num: Int!
   match: String
   nets: [String!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
   players: [Player!]
   subs: [Player!]
   teamAScore: Int
@@ -493,6 +522,7 @@ type CustomNet {
   round: String
   teamA: String
   teamB: String
+  serverReceiverOnNet: ServerReceiverOnNet
   teamAPlayerA: String
   teamAPlayerB: String
   teamBPlayerA: String
@@ -525,6 +555,7 @@ type CustomMatch {
   extendedOvertime: Boolean
   event: Event!
   nets: [String!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
   rounds: [String!]
   teamA: String
   teamB: String
@@ -553,6 +584,7 @@ type CaptainPlayer {
   captainuser: User
   cocaptainuser: User
   playerstats: [PlayerStats!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
 }
 
 type CoCaptainPlayer {
@@ -572,6 +604,7 @@ type CoCaptainPlayer {
   captainuser: User
   cocaptainuser: User
   playerstats: [PlayerStats!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
 }
 
 type TeamDetails {
@@ -726,20 +759,6 @@ type GetEventDetailsResponse {
   success: Boolean!
   message: String
   data: EventDetails
-}
-
-type ServerReceiverOnNet {
-  mutate: Float!
-  server: String!
-  servingPartner: String!
-  receiver: String!
-  receivingPartner: String!
-  room: String!
-  match: String!
-  net: String!
-  round: String!
-  teamAScore: Float!
-  teamBScore: Float!
 }
 
 type CreateOrUpdateRoundResponse {

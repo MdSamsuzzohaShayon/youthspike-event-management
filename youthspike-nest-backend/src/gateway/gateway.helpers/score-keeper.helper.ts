@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { GatewayRedisService } from '../gateway.redis';
 import { GatewayService } from '../gateway.service';
-import { ServerReceiverOnNet } from '../gateway.types';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { initPlayerStat } from 'src/util/helper';
+import { ServerReceiverOnNet } from 'src/net/net.schema';
 
 @Injectable()
 export class ScoreKeeperHelper {

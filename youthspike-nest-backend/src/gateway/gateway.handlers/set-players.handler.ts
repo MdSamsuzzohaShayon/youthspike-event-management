@@ -3,11 +3,11 @@ import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import {
   RoomLocal,
-  ServerReceiverOnNet,
   SetPlayersInput,
 } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
+import { ServerReceiverOnNet } from 'src/net/net.schema';
 
 export class SetPlayersHandler {
   constructor(
@@ -17,24 +17,24 @@ export class SetPlayersHandler {
 
   async handle(
     @ConnectedSocket() client: Socket,
-    @MessageBody() serverReceiverInput: SetPlayersInput,
+    @MessageBody() body: SetPlayersInput,
     roomsLocal: Map<string, RoomLocal>,
   ) {
-    const inputStr = JSON.stringify(serverReceiverInput);
+    const inputStr = JSON.stringify(body);
     try {
-      const prevRoom = roomsLocal.get(serverReceiverInput.room);
+      const prevRoom = roomsLocal.get(body.room);
       if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
 
       // For setting and getting
-      const SR_CACHE_KEY = `sr:${serverReceiverInput.net}:${serverReceiverInput.room}`; // each net will have a unique key
+      const SR_CACHE_KEY = `sr:${body.net}:${body.room}`; // each net will have a unique key
 
       const { playerService, matchService, netService } = this.gatewayService.getServices();
 
       const [serverExist, receiverExist, matchExist, netExist] = await Promise.all([
-        playerService.findById(serverReceiverInput.server),
-        playerService.findById(serverReceiverInput.receiver),
-        matchService.findById(serverReceiverInput.match),
-        netService.findById(serverReceiverInput.net),
+        playerService.findById(body.server),
+        playerService.findById(body.receiver),
+        matchService.findById(body.match),
+        netService.findById(body.net),
       ]);
 
       if (!serverExist || !receiverExist) {
@@ -45,7 +45,7 @@ export class SetPlayersHandler {
         throw new Error(`Match not found! Input: ${inputStr}`);
       }
 
-      if (serverReceiverInput.accessCode !== matchExist.accessCode) {
+      if (body.accessCode !== matchExist.accessCode) {
         throw new Error(`Access denied! Try logging in again and re-entering access code. Input: ${inputStr}`);
       }
 
@@ -63,41 +63,42 @@ export class SetPlayersHandler {
       const teamA = new Set([netExist.teamAPlayerA, netExist.teamAPlayerB]);
       const teamB = new Set([netExist.teamBPlayerA, netExist.teamBPlayerB]);
 
-      const serverInTeamA = teamA.has(serverReceiverInput.server);
-      const serverInTeamB = teamB.has(serverReceiverInput.server);
+      const serverInTeamA = teamA.has(body.server);
+      const serverInTeamB = teamB.has(body.server);
 
       if (!serverInTeamA && !serverInTeamB) {
         throw new Error(`Server is not part of the net. Input: ${inputStr}`);
       }
 
       const isValidReceiver =
-        (serverInTeamA && teamB.has(serverReceiverInput.receiver)) ||
-        (serverInTeamB && teamA.has(serverReceiverInput.receiver));
+        (serverInTeamA && teamB.has(body.receiver)) ||
+        (serverInTeamB && teamA.has(body.receiver));
 
       if (!isValidReceiver) {
         throw new Error(`Receiver is not on the opposite team. Input: ${inputStr}`);
       }
 
       const [server, servingPartner] = serverInTeamA
-        ? [serverReceiverInput.server, [...teamA].find((p) => p !== serverReceiverInput.server)!]
-        : [serverReceiverInput.server, [...teamB].find((p) => p !== serverReceiverInput.server)!];
+        ? [body.server, [...teamA].find((p) => p !== body.server)!]
+        : [body.server, [...teamB].find((p) => p !== body.server)!];
 
       const [receiver, receivingPartner] = serverInTeamA
-        ? [serverReceiverInput.receiver, [...teamB].find((p) => p !== serverReceiverInput.receiver)!]
-        : [serverReceiverInput.receiver, [...teamA].find((p) => p !== serverReceiverInput.receiver)!];
+        ? [body.receiver, [...teamB].find((p) => p !== body.receiver)!]
+        : [body.receiver, [...teamA].find((p) => p !== body.receiver)!];
 
     //   const prevAction = await this.gatewayRedisService.getAction(SR_CACHE_KEY);
 
       const actionData: ServerReceiverOnNet = {
         mutate: 0,
         server,
+        serverId: server,
         servingPartner,
         receiver,
         receivingPartner,
         room: prevRoom._id,
-        match: serverReceiverInput.match,
-        net: serverReceiverInput.net,
-        round: serverReceiverInput.round,
+        match: body.match,
+        net: body.net,
+        round: body.round,
         teamAScore: 0,
         teamBScore: 0,
       };
@@ -106,7 +107,7 @@ export class SetPlayersHandler {
       await this.gatewayRedisService.setAction(SR_CACHE_KEY, actionData);
 
       await this.gatewayRedisService.publishToRoom(
-        serverReceiverInput.room,
+        body.room,
         'set-players-from-server',
         actionData,
         // client.id,

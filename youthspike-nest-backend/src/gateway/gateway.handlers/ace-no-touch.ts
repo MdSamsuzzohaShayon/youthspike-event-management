@@ -1,12 +1,8 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { RoomLocal, ServerReceiverOnNet, AceNoTouchInput } from '../gateway.types';
+import { RoomLocal, AceNoTouchInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { initPlayerStat } from 'src/util/helper';
-import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { ClientHelper } from '../gateway.helpers/client.helper';
-import { ValidationHelper } from '../gateway.helpers/validation.helper';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 
 export class AceNoTouchHandler {
@@ -28,10 +24,10 @@ export class AceNoTouchHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.receiver];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, ids);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server], {
+      this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         serveAce: 1,
@@ -39,7 +35,7 @@ export class AceNoTouchHandler {
         break: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receiver], {
+      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         noTouchAcedCount: 1,
         broken: 1,
@@ -49,7 +45,7 @@ export class AceNoTouchHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.server) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateServer(net);

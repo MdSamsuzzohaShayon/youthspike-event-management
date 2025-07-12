@@ -25,20 +25,20 @@ export class RallyConversionHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, ids);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server], {
+      this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         defensiveOpportunity: 1
       });
 
-      this.scoreKeeperHelper.increment(stats[net.servingPartner], {
+      this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
         defensiveOpportunity: 1,
       });
       
-      this.scoreKeeperHelper.increment(stats[net.receiver], {
+      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
         hittingOpportunity: 1,
@@ -47,7 +47,7 @@ export class RallyConversionHandler {
         defensiveConversion: 0.5,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receivingPartner], {
+      this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
         settingCompletion: 1,
         defensiveOpportunity: 0.5,
@@ -58,7 +58,7 @@ export class RallyConversionHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.receiver) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateServerReceiver(net);

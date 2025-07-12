@@ -3,8 +3,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrNetNum } from '@/redux/slices/netSlice';
-import { IMatchExpRel, INetPlayers, IReceiverTeam, IServerTeam, IUser } from '@/types';
+import { setCurrentServerReceiver, setCurrNetNum } from '@/redux/slices/netSlice';
+import { IMatchExpRel, INetPlayers, IReceiverTeam, IServerReceiverOnNetMixed, IServerTeam, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
 import PlayerSelection from './PlayerSelection';
@@ -16,6 +16,8 @@ import usePlayerMaps from '@/hooks/score-keeping/usePlayerMaps';
 import useMakeTeam from '@/hooks/score-keeping/useMakeTeam';
 import useInitialSelection from '@/hooks/score-keeping/useInitialSelection';
 import useServerReceiverSocket from '@/hooks/score-keeping/useServerReceiverSocket';
+import { toOrdinal } from '@/utils/helper';
+import { setActErr } from '@/redux/slices/elementSlice';
 
 /* ───────────────────────────────────────────── */
 
@@ -50,7 +52,17 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
   const { teamAById, teamBById } = usePlayerMaps(teamAPlayers, teamBPlayers);
   const makeTeam = useMakeTeam(netByNum, teamAById, teamBById);
 
-  const serverReceiverByNetId = useMemo(() => new Map(serverReceiversOnNet?.map((sr) => [sr.net, sr]) ?? []), [serverReceiversOnNet]);
+  
+  const serverReceiverByNetId = useMemo(
+    () =>
+      new Map<string, IServerReceiverOnNetMixed>(
+        (serverReceiversOnNet ?? []).map((sr) => [
+          typeof sr.net === 'string' ? sr.net : sr.net?._id,
+          sr,
+        ])
+      ),
+    [serverReceiversOnNet]
+  );
 
   /* Populate initial selection once data is there */
   useInitialSelection(currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver);
@@ -85,10 +97,44 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
 
   const receiverTeam = useMemo(() => makeTeam(selectedReceiver, currNetNum, false) as IReceiverTeam | null, [selectedReceiver, currNetNum, makeTeam]);
 
-  const net = netByNum.get(currNetNum);
-
   /* ───── Handlers ───── */
-  const handleNetChange = useCallback((e: React.SyntheticEvent) => dispatch(setCurrNetNum(Number((e.target as HTMLSelectElement).value))), [dispatch]);
+  const handleNetChange = (e: React.SyntheticEvent) => {
+    const netNum = Number((e.target as HTMLSelectElement).value);
+    dispatch(setCurrNetNum(netNum));
+    
+    const net = netByNum.get(netNum);
+    
+    const newServerReceiver = serverReceiversOnNet.find((sr) => sr.net === net?._id);
+    if (newServerReceiver) {
+      if (!newServerReceiver.server) {
+        setSelectedServer(null);
+      } else {
+        setSelectedServer(newServerReceiver.server as string);
+      }
+      if (!newServerReceiver.receiver) {
+        setSelectedReceiver(null);
+      } else {
+        setSelectedReceiver(newServerReceiver.receiver as string);
+      }
+      dispatch(setCurrentServerReceiver(newServerReceiver));
+    }
+
+
+    // const actionData: IServerReceiverOnNetMixed = {
+    //   mutate: 0,
+    //   server,
+    //   servingPartner,
+    //   receiver,
+    //   receivingPartner,
+    //   room: currRoom?._id,
+    //   match: currMatch._id,
+    //   net: net?._id || "",
+    //   round: net?.round || "",
+    //   teamAScore: 0,
+    //   teamBScore: 0,
+    // };
+
+  };
 
   const handleSetPlayers = useCallback(() => {
     new EmitEvents(socket, dispatch).setServerReceiver({
@@ -103,6 +149,23 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
       userInfo,
     });
   }, [socket, dispatch, currRoom, currRound, currMatch, currentRoundNets, currNetNum, selectedServer, selectedReceiver, userInfo]);
+
+  const handleUpdateScore = useCallback(() => {
+    const net = netByNum.get(currNetNum);
+    if (!socket || !currMatch._id || !net?._id || !currRoom?._id) {
+      dispatch(setActErr({ code: 406, message: 'Match, net, receiver, or room does not exist!' }));
+      return;
+    }
+    // Set round
+    // Specific net
+    const actionData = {
+      match: currMatch._id,
+      net: net?._id,
+      room: currRoom?._id,
+    };
+    const emit = new EmitEvents(socket, dispatch);
+    emit.updateCachePoints(actionData);
+  }, [socket, currMatch, selectedReceiver, currNetNum, currRoom]);
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -129,21 +192,21 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
             <div className="w-full md:w-2/6">
-              <div className="slider">31st Play</div>
+              <div className="slider">{`${toOrdinal(currServerReceiver?.mutate ?? 0)} play`}</div>
               <ServerReceiverDisplay selectedServer={selectedServer} selectedReceiver={selectedReceiver} serverTeam={serverTeam} receiverTeam={receiverTeam} />
             </div>
             {/* Left side end  */}
 
             {/* Middle side start  */}
-            <div className="w-full md:w-1/6 flex  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
-              <h2 className="uppercase">Freeze</h2>
+            <div className="w-full md:w-1/6 flex justify-center  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
+              <h2 className="uppercase">{teamA?.name}</h2>
               <div className="bg-yellow-logo h-24 w-24 rounded-xl flex items-center justify-center">
                 <h2 className="text-black">{currServerReceiver?.teamAScore || 0}</h2>
               </div>
               <div className="bg-white text-black h-24 w-24 rounded-xl flex items-center justify-center">
                 <h2>{currServerReceiver?.teamBScore || 0}</h2>
               </div>
-              <h2 className="uppercase">Bucks</h2>
+              <h2 className="uppercase">{teamB?.name}</h2>
             </div>
             {/* Middle side end  */}
 
@@ -167,13 +230,16 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
           />
 
           {actionPreview && (
-            <div className="text-center my-6">
+            <div className="mt-6 flex justify-center items-center gap-x-2">
               <button
                 onClick={() => setActionPreview(false)}
                 type="button"
                 className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
               >
                 Server/Receiver
+              </button>
+              <button onClick={handleUpdateScore} type="button" className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+                Update score
               </button>
             </div>
           )}
@@ -202,8 +268,8 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
                 setReceiverPlaceholder(false);
               }}
               handleClosePlayers={() => {
-                setSelectedServer(null);
-                setSelectedReceiver(null);
+                // setSelectedServer(null);
+                // setSelectedReceiver(null);
                 setServerPlaceholder(false);
                 setReceiverPlaceholder(false);
               }}
