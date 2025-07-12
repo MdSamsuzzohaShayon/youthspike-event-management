@@ -54,8 +54,10 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
     const TBS = net?.teamBScore?.toString() || '';
     const TAS = net?.teamAScore?.toString() || '';
 
+
+
     setDefaultVal(teamE === ETeam.teamB ? TBS : TAS);
-  }, [net]);
+  }, [net, teamE]);
 
   return (
     <div className="TeamScoreInput w-full text-center">

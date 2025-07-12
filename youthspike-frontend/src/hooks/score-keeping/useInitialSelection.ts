@@ -5,8 +5,8 @@ export default function useInitialSelection(
   currNetNum: number | null,
   netByNum: Map<number, any>,
   serverReceiverByNetId: Map<string, IServerReceiverOnNetMixed>,
-  setSelectedServer: (s: string | null) => void,
-  setSelectedReceiver: (r: string | null) => void,
+  setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>,
+  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>
 ) {
   useEffect(() => {
     if (!currNetNum) return;

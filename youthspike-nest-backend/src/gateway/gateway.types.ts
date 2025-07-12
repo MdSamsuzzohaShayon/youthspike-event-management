@@ -141,7 +141,10 @@ export class RallyConversionInput extends CommonActionInput {}
 export class DefensiveConversionInput extends CommonActionInput {}
 
 @InputType()
-export class UpdateCachePointsInput extends CommonActionInput {}
+export class UpdateCachePointsInput extends CommonActionInput {
+  @Field({ nullable: false })
+  accessCode: string;
+}
 
 
 export interface INetScoreUpdate {

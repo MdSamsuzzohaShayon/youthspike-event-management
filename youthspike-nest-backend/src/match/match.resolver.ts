@@ -20,7 +20,12 @@ import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { GroupService } from 'src/group/group.service';
-import { GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
+import {
+  GetAccessCodeResponse,
+  GetEventWithMatchesResponse,
+  GetMatchesResponse,
+  GetMatchResponse,
+} from './match.response';
 import { LdoService } from 'src/ldo/ldo.service';
 import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
@@ -311,26 +316,17 @@ export class MatchResolver {
     }
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((_returns) => GetAccessCodeResponse)
-  async accessCodeValidation(@Args('input') input: AccessCodeInput, @Context() context: any,) {
+  async accessCodeValidation(@Args('input') input: AccessCodeInput) {
     try {
-       // Get user id
-       const secret = this.configService.get<string>('JWT_SECRET');
-       const userPayload = tokenToUser(context, secret);
- 
-       // Get user
-       const loggedUser = await this.userService.findById(userPayload._id);
-       if (!loggedUser) return AppResponse.unauthorized();
       // Get user detail
       // Match with
-      const matchExist = await this.matchService.findOne({_id: input.matchId, accessCode: input.accessCode});
+      const matchExist = await this.matchService.findOne({ _id: input.matchId, accessCode: input.accessCode });
       if (!matchExist) return AppResponse.notFound('Match');
 
       // Response with access code and role
       return {
-        data: {accessCode: input.accessCode, match: input.matchId},
+        data: { accessCode: input.accessCode, match: input.matchId },
         code: HttpStatus.OK,
         message: 'Match Deleted successfully!',
         success: true,
@@ -475,57 +471,58 @@ export class MatchResolver {
     }
   }
 
-@ResolveField(() => [ServerReceiverOnNet])
-async netsServerReceiver(@Parent() match: Match): Promise<ServerReceiverOnNet[]> {
-  try {
-    const netList = await this.netService.find({ match: match._id.toString() });
-    if (!netList.length) return [];
+  @ResolveField(() => [ServerReceiverOnNet])
+  async netsServerReceiver(@Parent() match: Match): Promise<ServerReceiverOnNet[]> {
+    try {
+      const netList = await this.netService.find({ match: match._id.toString() });
+      if (!netList.length) return [];
 
-    const serverReceiverResults: ServerReceiverOnNet[] = [];
-    const missedNetIds: string[] = [];
+      const serverReceiverResults: ServerReceiverOnNet[] = [];
+      const missedNetIds: string[] = [];
 
-    // Parallel Redis `get()` calls
-    const redisResults = await Promise.all(
-      netList.map(async net => {
-        const key = `sr:${net._id}:${match.room}`;
-        const result = await this.redisService.get<ServerReceiverOnNet>(key);
-        if (result) {
-          serverReceiverResults.push({
-            ...result, 
-            serverId: result.server as string || "",
-            matchId: result.match as string || "",
-            netId: result.net as string || "",
-            receiverId: result.receiver as string || "",
-            receivingPartnerId: result.receivingPartner as string || "",
-            servingPartnerId: result.servingPartner as string || "",
-            roundId: result.round as string || "",
-          });
-        } else {
-          missedNetIds.push(net._id.toString());
-        }
-      })
-    );
+      // Parallel Redis `get()` calls
+      const redisResults = await Promise.all(
+        netList.map(async (net) => {
+          const key = `sr:${net._id}:${match.room}`;
+          const result = await this.redisService.get<ServerReceiverOnNet>(key);
+          if (result) {
+            serverReceiverResults.push({
+              ...result,
+              serverId: (result.server as string) || '',
+              matchId: (result.match as string) || '',
+              netId: (result.net as string) || '',
+              receiverId: (result.receiver as string) || '',
+              receivingPartnerId: (result.receivingPartner as string) || '',
+              servingPartnerId: (result.servingPartner as string) || '',
+              roundId: (result.round as string) || '',
+            });
+          } else {
+            missedNetIds.push(net._id.toString());
+          }
+        }),
+      );
 
-    // Fetch missed ones from DB
-    const missedReceivers = await Promise.all(
-      missedNetIds.map(netId =>
-        this.serverReceiverOnNetService.findOne({ net: netId })
-      )
-    );
+      // Fetch missed ones from DB
+      const missedReceivers = await Promise.all(
+        missedNetIds.map((netId) => this.serverReceiverOnNetService.findOne({ net: netId })),
+      );
 
-    // Return only found results
-    return [
-      ...serverReceiverResults,
-      ...missedReceivers.filter(r => r !== null)
-    ];
-  } catch (error) {
-    console.error('netsServerReceiver error:', error);
-    return [];
+      const validServerReceivers = missedReceivers.filter((r) => r && r !== null);
+
+     const serverReceivers =  await Promise.all(validServerReceivers.map(async (sr) => {
+        const netExist = await this.netService.findOne({ _id: sr.net });
+        sr.teamAScore = netExist.teamAScore;
+        sr.teamBScore = netExist.teamBScore;
+        return sr;
+      }));
+
+      // Return only found results
+      return [...serverReceiverResults, ...serverReceivers];
+    } catch (error) {
+      console.error('netsServerReceiver error:', error);
+      return [];
+    }
   }
-}
-
-  
-
 
   @ResolveField()
   async event(@Parent() match: Match) {

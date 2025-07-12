@@ -4,15 +4,16 @@ import React from 'react';
 import InputField from '@/components/elements/InputField';
 import { useMutation } from '@apollo/client';
 import { ACCESS_CODE_VALIDATION } from '@/graphql/matches';
-import { getCookie, getUserFromCookie, setCookie } from '@/utils/cookie';
-import { IUser } from '@/types';
+import { getCookie, getUserFromCookie, setAccessCode, setCookie } from '@/utils/cookie';
+import { IAccessCode, IUser } from '@/types';
+import { ACCESS_CODE } from '@/utils/constant';
 
 interface IAccessCodeFormProps {
   matchId: string;
-  userInfo: IUser | null;
+  accessCodes: IAccessCode[];
 }
 
-function AccessCodeForm({ matchId, userInfo }: IAccessCodeFormProps) {
+function AccessCodeForm({ matchId, accessCodes }: IAccessCodeFormProps) {
   const [mutateAccessCode] = useMutation(ACCESS_CODE_VALIDATION);
 
   const handleInputChange = (E: React.SyntheticEvent) => {};
@@ -29,13 +30,15 @@ function AccessCodeForm({ matchId, userInfo }: IAccessCodeFormProps) {
 
     try {
       const response = await mutateAccessCode({ variables: { input: data } });
-      // console.log('GraphQL Response:', response.data.accessCodeValidation.data);
-      if (userInfo && response?.data?.accessCodeValidation?.data) {
-        const newAccessCode = userInfo.accessCode
-          ? [userInfo.accessCode, { matchId: matchId, code: response?.data?.accessCodeValidation?.data?.accessCode }]
-          : [{ matchId: matchId, code: response?.data?.accessCodeValidation?.data?.accessCode }];
-        const newInfo = { ...userInfo, accessCode: newAccessCode };
-        setCookie('user', JSON.stringify(newInfo), 7);
+
+      if (response?.data?.accessCodeValidation?.data) {
+
+        const accessCode: IAccessCode = {
+          match: matchId,
+          code: response?.data?.accessCodeValidation?.data?.accessCode 
+        }
+
+        setAccessCode(accessCode);
         window.location.reload();
       }
     } catch (error) {
@@ -43,15 +46,6 @@ function AccessCodeForm({ matchId, userInfo }: IAccessCodeFormProps) {
     }
   };
 
-  // return (
-  //   <form onSubmit={handleAccessCodeValidation}>
-  //     <InputField name="accessCode" type="text" required />
-  //     <InputField name="matchId" type="text" defaultValue={matchId} required className="hidden" />
-  //     <button className="btn-info rounded-lg" type="submit">
-  //       Submit
-  //     </button>
-  //   </form>
-  // );
 
   return (
     <form className="space-y-6" onSubmit={handleAccessCodeValidation}>

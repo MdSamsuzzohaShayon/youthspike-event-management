@@ -1,5 +1,6 @@
-import { IUserContext } from '@/types';
+import { IAccessCode, IUserContext } from '@/types';
 import { FRONTEND_URL, NODE_ENV } from './keys';
+import { ACCESS_CODE } from './constant';
 
 // Function to get a specific cookie by name
 function getCookie(cookieName: string) {
@@ -62,4 +63,24 @@ function getUserFromCookie(): IUserContext {
   };
 }
 
-export { getCookie, setCookie, removeCookie, getUserFromCookie };
+function setAccessCode({ match, code }: IAccessCode) {
+  const accessCodes = getCookie(ACCESS_CODE);
+  const newAccessCode: IAccessCode = { match, code };
+  let accessCodeData: IAccessCode[] = [];
+  if (accessCodes) {
+    accessCodeData = JSON.parse(accessCodes);
+    const matchIndex = accessCodeData.findIndex((ac) => ac?.match === match);
+    if (matchIndex != -1) {
+      accessCodeData[matchIndex] = newAccessCode;
+    } else {
+      accessCodeData.push(newAccessCode);
+    }
+  }
+  {
+    accessCodeData = [newAccessCode];
+  }
+
+  setCookie(ACCESS_CODE, JSON.stringify(accessCodeData), 7);
+}
+
+export { getCookie, setCookie, removeCookie, getUserFromCookie, setAccessCode };

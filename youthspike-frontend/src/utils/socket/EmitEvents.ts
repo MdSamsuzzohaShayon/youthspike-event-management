@@ -70,13 +70,15 @@ class EmitEvents {
     if (!this.socket || !currRound) return;
     const joinData: IJoinData = { match: matchId, round: currRound._id, userRole: UserRole.public };
 
-    if (!teamA || !teamB || !user.token || !user.info) {
-      this.socket.emit('join-room-from-client', joinData);
-      return this.dispatch(setActErr({ success: false, message: 'Team A, Team B, or User details is not found, try refreshing!' }));
+    this.socket.emit('join-room-from-client', joinData);
+    if (!teamA || !teamB) {
+      return this.dispatch(setActErr({ success: false, message: 'Team A, or Team B details is not found, try refreshing!' }));
     }
 
+    /*
     if (!this.isAuthorized(user.info)) return this.dispatch(setActErr({ success: false, message: 'This user is not authorized to do this operation!' }));
-    if (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain) {
+    */
+    if (user?.info && (user.info.role === UserRole.captain || user.info.role === UserRole.co_captain)) {
       // Check if captain or co-captain in in team A or team B
       if (
         !(
@@ -86,14 +88,14 @@ class EmitEvents {
           (teamB.cocaptain && teamB.cocaptain._id === user.info.cocaptainplayer)
         )
       ) {
-        return this.dispatch(setActErr({ success: false, message: 'This user is not captain or co-captain!' }));
+        return this.dispatch(setActErr({ success: false, message: 'This captain or co-captain not in both team!' }));
       }
     }
 
     joinData.team = await this.getTeamId(user.info, teamA, teamB);
     if (user.info) {
       joinData.userRole = user.info.role;
-      joinData.userId = user.info._id;
+      joinData.userId = user?.info?._id;
     }
 
     this.socket.emit('join-room-from-client', joinData);
@@ -248,20 +250,29 @@ class EmitEvents {
     return this.isValidTeam;
   }
 
-  private async getTeamId(userInfo: IUser, teamA: ITeam, teamB: ITeam): Promise<string | null> {
+  private async getTeamId(userInfo: IUser | null, teamA: ITeam, teamB: ITeam): Promise<string | null> {
+    // Default team, team B
+    if (!userInfo) return null;
+
+    // Check captain or co captain or team A
     if ((teamA.captain && userInfo.captainplayer === teamA.captain._id) || (teamA.cocaptain && userInfo.cocaptainplayer === teamA.cocaptain._id)) {
       this.teamIdStr = teamA._id;
       return teamA._id;
     }
+
+    // Check captain or co captain or team B
     if ((teamB.captain && userInfo.captainplayer === teamB.captain._id) || (teamB.cocaptain && userInfo.cocaptainplayer === teamB.cocaptain._id)) {
       this.teamIdStr = teamB._id;
       return teamB._id;
     }
+
+    // Check team Id from local storage
     if (userInfo.role === UserRole.admin || userInfo.role === UserRole.director) {
       const teamId = await LocalStorageService.getLocalTeam();
       this.teamIdStr = teamId;
       return teamId === ETeam.teamA ? teamA._id : teamB._id;
     }
+
     return null;
   }
 
@@ -344,7 +355,7 @@ class EmitEvents {
   /**
    * Score keeper events to emit
    */
-  setServerReceiver({ dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, server, receiver, userInfo }: ISetServerReceiverChange) {
+  setServerReceiver({ dispatch, currRoom, currRound, currMatch, currRoundNets, currNetNum, server, receiver, accessCode }: ISetServerReceiverChange) {
     if (!currNetNum) {
       return dispatch(
         setActErr({
@@ -386,27 +397,6 @@ class EmitEvents {
       );
     }
 
-    if (!userInfo || !userInfo?.accessCode) {
-      return dispatch(
-        setActErr({
-          code: 404,
-          success: false,
-          message: 'Access denied. You must have a valid access code for this match.',
-        }),
-      );
-    }
-
-    /*
-    // Socket event -> set-server-receiver-from-client
-    // Server ID, Receiver ID, Round ID, Net ID
-
-    // Do not show action preview button if all players are not set
-    // Create players stats for all 4 players in the net
-    // Check user has access code for specific match
-    */
-
-    // match, room,  server, receiver, round, net
-    const accessCode = userInfo.accessCode.find((ac) => ac.matchId === currMatch._id);
     if (!accessCode) {
       return dispatch(
         setActErr({
@@ -467,8 +457,8 @@ class EmitEvents {
     this.socket?.emit('rally-conversion-from-client', actionData);
   }
 
-  updateCachePoints({ match, net, room }: IUpdateCachePointsInput) {
-    const actionData = { match, net, room };
+  updateCachePoints({ match, net, room, accessCode }: IUpdateCachePointsInput) {
+    const actionData = { match, net, room, accessCode };
     this.socket?.emit('update-cache-points-from-client', actionData);
   }
 }

@@ -17,11 +17,6 @@ export interface ILogin{
   password: string;
 }
 
-export interface IAccessCode{
-  code: string;
-  matchId: string;
-}
-
 /**
  * User
  */
@@ -34,7 +29,6 @@ export interface IUser extends IDocument {
   login: ILogin;
   captainplayer: string | null;
   cocaptainplayer: string | null;
-  accessCode?: IAccessCode[] | null;
 }
 
 /**
@@ -60,4 +54,9 @@ export interface IDirectorItem{
 export interface IUserContext {
   token: string | null;
   info: IUser | null;
+}
+
+export interface IAccessCode {
+  match: string;
+  code: string;
 }

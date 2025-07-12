@@ -2,7 +2,6 @@ import { IError } from '@/types';
 // import { OperationVariables, QueryResult } from "@apollo/client";
 import { ApolloError } from '@apollo/client';
 // lib/handle-response.ts
-import { redirect } from 'next/navigation';
 import { removeCookie } from './clientCookie';
 
 interface IResponse {

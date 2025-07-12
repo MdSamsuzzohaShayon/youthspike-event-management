@@ -1,4 +1,3 @@
-import { INetRelatives } from '@/types';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import React from 'react';
 import { Socket } from 'socket.io-client';

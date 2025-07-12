@@ -6,7 +6,7 @@ import type { INetRelatives, INetScoreUpdate, IUpdateScoreResponse } from './net
 import type { EActionProcess, IRoom, IRoomNets, ITeiBreakerAction } from './room';
 import type { IRoundRelatives } from './round';
 import { ETeam, ITeam } from './team';
-import type { IUser, IUserContext, UserRole } from './user';
+import type { IAccessCode, IUser, IUserContext, UserRole } from './user';
 import { IDefaultMatch, IMatchExpRel, IMatchRelatives } from './match';
 import { IPlayer } from './player';
 
@@ -51,7 +51,7 @@ export interface ISetServerReceiverChange {
   currNetNum: number;
   server: string | null;
   receiver: string | null;
-  userInfo: IUser | null;
+  accessCode: IAccessCode | null;
 }
 
 interface ICacheAction {
@@ -73,7 +73,9 @@ export interface IAceNoTouchInput extends ICommonAction {}
 export interface IAceNoThirdTouchInput extends ICommonAction {}
 export interface IReceivingHittingErrorInput extends ICommonAction {}
 
-export interface IUpdateCachePointsInput extends ICacheAction {}
+export interface IUpdateCachePointsInput extends ICacheAction {
+  accessCode: string;
+}
 
 export interface ICheckInToLineupProps extends IStatusChange {
   myTeamE: ETeam;

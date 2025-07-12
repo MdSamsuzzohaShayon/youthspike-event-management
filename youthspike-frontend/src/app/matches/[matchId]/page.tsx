@@ -106,8 +106,6 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
     }
   }, []);
 
-  
-
   const fetchData = useCallback(
     async (userDetail: IUserContext) => {
       const result = await getMatch({ variables: { matchId: params.matchId } });
@@ -144,11 +142,9 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
 
   useEffect(() => {
     if (!socket || roundList.length === 0) {
-      console.warn("No socket or round list available", );
+      console.warn('No socket or round list available');
       return;
     }
-    
-
 
     const userDetail = getUserFromCookie();
     const emitEvents = new EmitEvents(socket, dispatch);
@@ -251,18 +247,20 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                   </motion.div>
                 )}
 
-                <div className="line-up-strategy w-full">
-                  <LineupStrategy
-                    myTeamE={myTeamE}
-                    currRound={currentRound}
-                    myPlayers={myPlayers}
-                    opPlayers={opPlayers}
-                    currRoundNets={currRoundNets}
-                    allNets={allNets}
-                    roundList={roundList}
-                    currMatch={currMatch}
-                  />
-                </div>
+                {user?.info && (
+                  <div className="line-up-strategy w-full">
+                    <LineupStrategy
+                      myTeamE={myTeamE}
+                      currRound={currentRound}
+                      myPlayers={myPlayers}
+                      opPlayers={opPlayers}
+                      currRoundNets={currRoundNets}
+                      allNets={allNets}
+                      roundList={roundList}
+                      currMatch={currMatch}
+                    />
+                  </div>
+                )}
                 {user?.info && currRoom && [UserRole.director, UserRole.admin, UserRole.captain, UserRole.co_captain].includes(user.info.role) && captainAccess && (
                   <motion.div className="my-round-runner w-full" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
                     <RoundRunner currentRoom={currRoom} currentRound={currentRound} myTeamE={myTeamE} roundList={roundList} teamA={teamA} currRoundNets={currRoundNets} />

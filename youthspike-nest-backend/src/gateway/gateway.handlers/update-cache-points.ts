@@ -24,10 +24,19 @@ export class UpdateCachePointsHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
-
-      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService } =
+      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService } =
         this.gatewayService.getServices();
+
+
+      const [net, match] = await Promise.all([
+        this.scoreKeeperHelper.loadNetAction(body.net, body.room),
+        matchService.findById(body.match)
+      ]);
+
+      if(!match?.accessCode || !body?.accessCode || match?.accessCode !== body?.accessCode){
+        throw new Error(`You do not have permission, to update the score in this match!`);
+      }
+
 
       // Update net score - no need to wait for this before proceeding
       const netUpdatePromise = netService.updateOne(

@@ -1,11 +1,12 @@
 import React from 'react';
 import { cookies } from 'next/headers';
-import { IUser } from '@/types';
+import { IAccessCode, IUser } from '@/types';
 import AccessCodeForm from '@/components/match/ScoreKeeping/AccessCodeForm';
 import ServerReceiver from '@/components/match/ScoreKeeping/ServerReceiver';
 import Link from 'next/link';
 import { getMatch } from '@/app/_requests/match';
 import { notFound } from 'next/navigation';
+import { ACCESS_CODE } from '@/utils/constant';
 
 interface IScoreKeepingPageProps {
   params: {
@@ -25,9 +26,13 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
    * Get both players of the team
    */
   const cookieStore = await cookies();
+  const accessCodeCookie = cookieStore.get(ACCESS_CODE);
+  const accessCodeList = accessCodeCookie ? JSON.parse(accessCodeCookie.value) : [];
   const user = cookieStore.get('user');
   const token = cookieStore.get('token')?.value;
   const userInfo: IUser | null = user ? JSON.parse(user.value) : null;
+
+  const accessCode: null | IAccessCode = !accessCodeList ? null : accessCodeList.find((ac: IAccessCode) => ac.match === matchId) || null;
 
   const matchData = await getMatch(matchId);
   if (!matchData) {
@@ -35,18 +40,6 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
   }
 
   // Get round list, match, room, nets
-
-  const checkAccessCode = (): boolean => {
-    if (!userInfo || !userInfo.accessCode || userInfo.accessCode.length === 0) return false;
-    if (!matchId) return false;
-
-    const findCode = userInfo.accessCode.find((ac) => ac.matchId === matchId);
-    // console.log({ accessCode: userInfo?.accessCode, findCode, matchId });
-
-    return !!findCode;
-  };
-
-  const hasAccessCode = checkAccessCode();
 
   const renderHeadings = () => {
     return (
@@ -62,14 +55,14 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
     );
   };
 
-  if (!hasAccessCode) {
+  if (!accessCode) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-xl bg-gray-950/80 rounded-2xl shadow-2xl p-8 backdrop-blur-md border border-gray-800">
           {renderHeadings()}
 
           <div className="access-code">
-            <AccessCodeForm matchId={matchId} userInfo={userInfo} />
+            <AccessCodeForm matchId={matchId} accessCodes={accessCodeList} />
           </div>
         </div>
       </div>
@@ -80,11 +73,10 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
     <div className="w-full min-h-screen">
       <div className="container mx-auto px-4 py-10">
         {renderHeadings()}
-        <div className="server-receiver-wrapper">{matchData && <ServerReceiver matchId={matchId} matchData={matchData} token={token || ''} userInfo={userInfo} />}</div>
+       <div className="server-receiver-wrapper">{matchData && <ServerReceiver matchId={matchId} matchData={matchData} accessCode={accessCode} token={token || null} userInfo={userInfo} />}</div>
       </div>
     </div>
   );
 }
 
 export default ScoreKeepingPage;
-

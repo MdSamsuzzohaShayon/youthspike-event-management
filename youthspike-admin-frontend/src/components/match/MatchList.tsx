@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
 import MatchCard from './MatchCard';
 import SelectInput from '../elements/forms/SelectInput';
-import TextInput from '../elements/forms/TextInput';
 import { useUser } from '@/lib/UserProvider';
 import { eventPeriods } from '@/utils/staticData';
 import { validateMatchDatetime } from '@/utils/datetime';
@@ -276,7 +275,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       <div className="match-list w-full flex justify-between items-center flex-wrap">
         {filteredMatchList.map((match: IMatchExpRel, i) => (
           <motion.div initial={cInitial} animate={cAnimate} exit={cExit} className="match-card w-full md:w-5/12 " key={match._id}>
-            <MatchCard eventId={eventId} match={match} isChecked={checkedMatches.get(match._id) ?? false} sl={i + 1} refetchFunc={refetchFunc} handleSelectMatch={handleSelectMatch} />
+            <MatchCard eventId={eventId} match={match} isChecked={checkedMatches.get(match._id) ?? false} sl={i + 1} refetchFunc={refetchFunc} handleSelectMatch={handleSelectMatch} setActErr={setActErr} />
           </motion.div>
         ))}
       </div>

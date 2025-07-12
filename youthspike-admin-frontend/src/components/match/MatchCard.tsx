@@ -7,16 +7,17 @@ import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import { readDate, readDateTemp } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
-import { useMutation } from '@apollo/client';
+import { ApolloError, useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
 import PointsByRound from './PointsByRound';
-import { INetRelatives, IRoundRelatives } from '@/types';
+import { IError, INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import { motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
+import { handleError } from '@/utils/handleError';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -24,10 +25,11 @@ interface MatchCardProps {
   eventId: string;
   isChecked: boolean;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>,
   refetchFunc?: () => Promise<void>;
 }
 
-function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }: MatchCardProps) {
+function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
 
@@ -49,8 +51,18 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, refetchFunc }
 
   const handleDeleteMatch = async (e: React.SyntheticEvent, matchId: string) => {
     e.preventDefault();
-    await deleteMatch({ variables: { matchId } });
-    window.location.reload();
+    try {
+      const deletedMatch = await deleteMatch({ variables: { matchId } });
+      console.log({deletedMatch});
+      
+      
+    } catch (err: any) {
+      console.log(err);
+      handleError({error: err, setActErr})
+      
+    }finally{
+      window.location.reload();
+    }
   };
 
   const teamCard = (team: ITeam, teamE: ETeam) => {

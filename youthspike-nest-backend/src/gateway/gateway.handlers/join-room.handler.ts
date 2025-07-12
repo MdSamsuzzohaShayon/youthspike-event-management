@@ -36,7 +36,8 @@ export class JoinRoomHandler {
       }
 
       const roomId = roomExist._id.toString();
-      if (joinData.userId) await client.join(roomId);
+      // if (joinData.userId) await client.join(roomId);
+      await client.join(roomId);
 
       let roomData = roomsLocal.get(roomId) || this.roomHelper.createInitialRoomData(roomExist, roundsOfTheMatch);
 
@@ -75,6 +76,8 @@ export class JoinRoomHandler {
       */
 
       await this.gatewayRedisService.publishToRoom(roomId, 'join-room-response-all', roomData, client.id);
+      
+      
       // Get all updates of the room
       await this.gatewayRedisService.subscribeToRoom(roomId);
       await this.gatewayRedisService.subscribeToSocket(client.id);

@@ -180,21 +180,19 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   // console.log('Current round: ', selectedRound);
 
   // Setting room
-  if (token && userInfo) {
-    dispatch(
-      setCurrentRoom({
-        _id: room._id,
-        match: _id,
-        rounds: formattedRounds.map((r) => ({ _id: r._id, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess })), // [{_id, teamAProcess, teamBProcess}]
-        teamA: teamAF?._id || null,
-        teamAClient: null,
-        // teamAProcess: formattedRounds[0].teamAProcess,
-        teamB: teamBF?._id || null,
-        teamBClient: null,
-        // teamBProcess: formattedRounds[0].teamBProcess,
-      }),
-    );
-  }
+  dispatch(
+    setCurrentRoom({
+      _id: room._id,
+      match: _id,
+      rounds: formattedRounds.map((r) => ({ _id: r._id, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess })), // [{_id, teamAProcess, teamBProcess}]
+      teamA: teamAF?._id || null,
+      teamAClient: null,
+      // teamAProcess: selectedRound.teamAProcess,
+      teamB: teamBF?._id || null,
+      teamBClient: null,
+      // teamBProcess: selectedRound.teamBProcess,
+    }),
+  );
 
   // Setting Match
   const matchObj = {

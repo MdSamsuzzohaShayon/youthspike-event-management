@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentServerReceiver, setCurrNetNum } from '@/redux/slices/netSlice';
-import { IMatchExpRel, INetPlayers, IReceiverTeam, IServerReceiverOnNetMixed, IServerTeam, IUser } from '@/types';
+import { ETieBreaker, IAccessCode, IMatchExpRel, INetPlayers, IReceiverTeam, IServerReceiverOnNetMixed, IServerTeam, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
 import PlayerSelection from './PlayerSelection';
@@ -21,14 +21,15 @@ import { setActErr } from '@/redux/slices/elementSlice';
 
 /* ───────────────────────────────────────────── */
 
-interface Props {
+interface IServerReceiverProps {
   matchId: string;
   matchData: IMatchExpRel;
+  accessCode: IAccessCode | null;
   token: string | null;
   userInfo: IUser | null;
 }
 
-export default function ServerReceiver({ matchId, matchData, token, userInfo }: Props) {
+export default function ServerReceiver({ matchId, matchData, accessCode, token, userInfo }: IServerReceiverProps) {
   const dispatch = useAppDispatch();
   const socket = useSocket();
 
@@ -39,6 +40,8 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
   const currMatch = useAppSelector((s) => s.matches.match);
   const currRoom = useAppSelector((s) => s.rooms.current);
   const { teamA, teamB } = useAppSelector((s) => s.teams);
+
+  
 
   /* UI state */
   const [actionPreview, setActionPreview] = useState(false);
@@ -63,6 +66,16 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
       ),
     [serverReceiversOnNet]
   );
+
+  const finalRoundIncomplete: boolean = useMemo(()=>{
+    if(currRound?.num === roundList.length && currentRoundNets.length > 0) {
+      // Check 2 FINAL_ROUND_NET_LOCKED
+      const lockedNets = currentRoundNets.filter((n)=> n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+      return lockedNets.length < 2;
+      // Nets are banned in the final rtound
+    };
+    return false;
+  }, [currRound, roundList, currentRoundNets]);
 
   /* Populate initial selection once data is there */
   useInitialSelection(currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver);
@@ -116,8 +129,8 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
       } else {
         setSelectedReceiver(newServerReceiver.receiver as string);
       }
-      dispatch(setCurrentServerReceiver(newServerReceiver));
     }
+    dispatch(setCurrentServerReceiver(newServerReceiver || null));
 
 
     // const actionData: IServerReceiverOnNetMixed = {
@@ -146,9 +159,9 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
       currNetNum,
       server: selectedServer,
       receiver: selectedReceiver,
-      userInfo,
+      accessCode,
     });
-  }, [socket, dispatch, currRoom, currRound, currMatch, currentRoundNets, currNetNum, selectedServer, selectedReceiver, userInfo]);
+  }, [socket, dispatch, currRoom, currRound, currMatch, currentRoundNets, currNetNum, selectedServer, selectedReceiver, accessCode]);
 
   const handleUpdateScore = useCallback(() => {
     const net = netByNum.get(currNetNum);
@@ -156,16 +169,20 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
       dispatch(setActErr({ code: 406, message: 'Match, net, receiver, or room does not exist!' }));
       return;
     }
-    // Set round
-    // Specific net
+
+    if(!accessCode?.code){
+      dispatch(setActErr({ code: 406, message: 'You do not have permission to do this operation!' }));
+      return;
+    }
     const actionData = {
       match: currMatch._id,
       net: net?._id,
       room: currRoom?._id,
+      accessCode: accessCode.code
     };
     const emit = new EmitEvents(socket, dispatch);
     emit.updateCachePoints(actionData);
-  }, [socket, currMatch, selectedReceiver, currNetNum, currRoom]);
+  }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -173,6 +190,9 @@ export default function ServerReceiver({ matchId, matchData, token, userInfo }: 
   }, []); // ← run exactly once
 
   /* ───── UI ───── */
+  if(finalRoundIncomplete){
+    return <div>Nets are not banned yet in the final round!</div>
+  }
   return (
     <div>
       <SelectInput
