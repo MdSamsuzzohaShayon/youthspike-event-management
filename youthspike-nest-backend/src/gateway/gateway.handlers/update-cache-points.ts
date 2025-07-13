@@ -152,11 +152,19 @@ export class UpdateCachePointsHandler {
       await Promise.all([netUpdatePromise, ...playerUpdatePromises]);
 
       const netsOfRound = await netService.find({ round: round._id });
+      // Check if all net has point then make round completed
+      let roundCompleted: boolean = true;
+      for (const n of netsOfRound) {
+        if(!n.teamAScore || !n.teamBScore){
+          roundCompleted = false;
+        }
+      }
+      await roundService.updateOne({_id: round._id}, {$set: {completed: roundCompleted}});
+
       const nets: INetScoreUpdate[] = netsOfRound.map((n) => ({
         _id: n._id,
         teamAScore: n.teamAScore,
         teamBScore: n.teamBScore,
-        completed: false,
       }));
 
       const pointsResponse: RoundUpdatedResponse = {
@@ -166,7 +174,7 @@ export class UpdateCachePointsHandler {
           _id: round._id,
           teamAScore: round.teamAScore,
           teamBScore: round.teamBScore,
-          completed: round.completed,
+          completed: roundCompleted,
         },
         matchCompleted: false,
         teamAProcess: round.teamAProcess,

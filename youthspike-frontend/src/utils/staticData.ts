@@ -1,4 +1,4 @@
-import { IMenuItem } from '@/types';
+import { EServerReceiverAction, IMenuItem } from '@/types';
 import { UserRole } from '@/types/user';
 
 const userMenuList: IMenuItem[] = [
@@ -53,8 +53,22 @@ const userMenuList: IMenuItem[] = [
   },
 ];
 
+
+const scoreKeeperAction = new Map<EServerReceiverAction, string>();
+scoreKeeperAction.set(EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH, "Serve not returned in 3 hits. Server scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.SERVER_ACE_NO_TOUCH, "Ace serve! No touch by receiver. Server scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION, "Rally won by server after defensive exchange. Server scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR, "Server failed to return. Receiver scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.SERVER_DO_NOT_KNOW, "Server Does not know!");
+
+scoreKeeperAction.set(EServerReceiverAction.RECEIVER_SERVICE_FAULT, "Server missed both serves. Receiver scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY, "Serve received, set, and put away. Receiver scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.RECEIVER_RALLEY_CONVERSION, "Receiver scored with defensive touch and put away. Receiver scores; positions rotate.");
+scoreKeeperAction.set(EServerReceiverAction.RECEIVER_DO_NOT_KNOW, "Receiver Does not know!");
+
 export {
   // eslint-disable-next-line import/prefer-default-export
   userMenuList,
   // userMenuList
+  scoreKeeperAction
 };

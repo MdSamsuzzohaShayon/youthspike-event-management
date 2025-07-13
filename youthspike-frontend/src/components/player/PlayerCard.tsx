@@ -45,7 +45,7 @@ function PlayerCard({ player, showRank }: PlayerCardProps) {
         </div>
         <div className="player-details flex flex-col pl-4 text-white">
           <h3 className="text-lg font-bold capitalize">{`${player.firstName} ${player.lastName}`}</h3>
-          {player.teams && player.teams?.length > 0 && <p className="text-yellow-400 uppercase text-sm">{player.teams[0].name}</p>}
+          {player.teams && player.teams?.length > 0 && typeof player.teams[0] === 'object' && <p className="text-yellow-400 uppercase text-sm">{player.teams[0].name}</p>}
           {player?.captainofteams?.length > 0 && <p className="text-yellow-400 uppercase text-sm">Captain</p>}
         </div>
       </div>

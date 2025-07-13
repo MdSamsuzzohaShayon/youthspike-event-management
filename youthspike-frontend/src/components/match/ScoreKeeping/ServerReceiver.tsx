@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentServerReceiver, setCurrNetNum } from '@/redux/slices/netSlice';
-import { ETieBreaker, IAccessCode, IMatchExpRel, INetPlayers, IReceiverTeam, IServerReceiverOnNetMixed, IServerTeam, IUser } from '@/types';
+import { EActionProcess, EServerReceiverAction, ETieBreaker, ETieBreakingStrategy, IAccessCode, IMatchExpRel, INetPlayers, IReceiverTeam, IServerReceiverOnNetMixed, IServerTeam, IUser } from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
 import PlayerSelection from './PlayerSelection';
@@ -18,6 +18,8 @@ import useInitialSelection from '@/hooks/score-keeping/useInitialSelection';
 import useServerReceiverSocket from '@/hooks/score-keeping/useServerReceiverSocket';
 import { toOrdinal } from '@/utils/helper';
 import { setActErr } from '@/redux/slices/elementSlice';
+import { scoreKeeperAction } from '@/utils/staticData';
+import actionConfirmation from '@/utils/match/actionConfirmation';
 
 /* ───────────────────────────────────────────── */
 
@@ -41,39 +43,31 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   const currRoom = useAppSelector((s) => s.rooms.current);
   const { teamA, teamB } = useAppSelector((s) => s.teams);
 
-  
-
   /* UI state */
   const [actionPreview, setActionPreview] = useState(false);
   const [serverPlaceholder, setServerPlaceholder] = useState(false);
   const [receiverPlaceholder, setReceiverPlaceholder] = useState(false);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
   const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
+  const [serverReceiverAction, setServerReceiverAction] = useState<EServerReceiverAction | null>(null);
 
   /* Derived maps / helpers */
   const netByNum = useNetMaps(currentRoundNets);
   const { teamAById, teamBById } = usePlayerMaps(teamAPlayers, teamBPlayers);
   const makeTeam = useMakeTeam(netByNum, teamAById, teamBById);
 
-  
   const serverReceiverByNetId = useMemo(
-    () =>
-      new Map<string, IServerReceiverOnNetMixed>(
-        (serverReceiversOnNet ?? []).map((sr) => [
-          typeof sr.net === 'string' ? sr.net : sr.net?._id,
-          sr,
-        ])
-      ),
-    [serverReceiversOnNet]
+    () => new Map<string, IServerReceiverOnNetMixed>((serverReceiversOnNet ?? []).map((sr) => [typeof sr.net === 'string' ? sr.net : sr.net?._id, sr])),
+    [serverReceiversOnNet],
   );
 
-  const finalRoundIncomplete: boolean = useMemo(()=>{
-    if(currRound?.num === roundList.length && currentRoundNets.length > 0) {
+  const finalRoundIncomplete: boolean = useMemo(() => {
+    if (currRound?.num === roundList.length && currentRoundNets.length > 0) {
       // Check 2 FINAL_ROUND_NET_LOCKED
-      const lockedNets = currentRoundNets.filter((n)=> n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+      const lockedNets = currentRoundNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
       return lockedNets.length < 2;
       // Nets are banned in the final rtound
-    };
+    }
     return false;
   }, [currRound, roundList, currentRoundNets]);
 
@@ -114,9 +108,9 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   const handleNetChange = (e: React.SyntheticEvent) => {
     const netNum = Number((e.target as HTMLSelectElement).value);
     dispatch(setCurrNetNum(netNum));
-    
+
     const net = netByNum.get(netNum);
-    
+
     const newServerReceiver = serverReceiversOnNet.find((sr) => sr.net === net?._id);
     if (newServerReceiver) {
       if (!newServerReceiver.server) {
@@ -129,24 +123,10 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
       } else {
         setSelectedReceiver(newServerReceiver.receiver as string);
       }
+    }else{
+      setActionPreview(false);
     }
     dispatch(setCurrentServerReceiver(newServerReceiver || null));
-
-
-    // const actionData: IServerReceiverOnNetMixed = {
-    //   mutate: 0,
-    //   server,
-    //   servingPartner,
-    //   receiver,
-    //   receivingPartner,
-    //   room: currRoom?._id,
-    //   match: currMatch._id,
-    //   net: net?._id || "",
-    //   round: net?.round || "",
-    //   teamAScore: 0,
-    //   teamBScore: 0,
-    // };
-
   };
 
   const handleSetPlayers = useCallback(() => {
@@ -163,6 +143,14 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     });
   }, [socket, dispatch, currRoom, currRound, currMatch, currentRoundNets, currNetNum, selectedServer, selectedReceiver, accessCode]);
 
+  const handleConfirmAction = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+
+    const net = netByNum.get(currNetNum);
+    actionConfirmation(currMatch._id, socket, dispatch, serverReceiverAction, selectedReceiver, net?._id || null, currRoom?._id || null);
+    setServerReceiverAction(null);
+  };
+
   const handleUpdateScore = useCallback(() => {
     const net = netByNum.get(currNetNum);
     if (!socket || !currMatch._id || !net?._id || !currRoom?._id) {
@@ -170,7 +158,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
       return;
     }
 
-    if(!accessCode?.code){
+    if (!accessCode?.code) {
       dispatch(setActErr({ code: 406, message: 'You do not have permission to do this operation!' }));
       return;
     }
@@ -178,7 +166,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
       match: currMatch._id,
       net: net?._id,
       room: currRoom?._id,
-      accessCode: accessCode.code
+      accessCode: accessCode.code,
     };
     const emit = new EmitEvents(socket, dispatch);
     emit.updateCachePoints(actionData);
@@ -190,9 +178,29 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, []); // ← run exactly once
 
   /* ───── UI ───── */
-  if(finalRoundIncomplete){
-    return <div>Nets are not banned yet in the final round!</div>
+
+  if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound?.teamBProcess !== EActionProcess.LINEUP) {
+    return (
+      <div className="w-full flex justify-center mt-10">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+          <h2 className="text-lg font-semibold mb-2">Lineup Incomplete</h2>
+          <p>Both teams must complete their player lineup before selecting a server or receiver.</p>
+        </div>
+      </div>
+    );
   }
+
+  if (finalRoundIncomplete && currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND) {
+    return (
+      <div className="w-full flex justify-center mt-10">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+          <h2 className="text-lg font-semibold mb-2">Final Round Nets Not Banned</h2>
+          <p>Please ban the nets for the final round before proceeding with server/receiver selection.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <SelectInput
@@ -233,21 +241,18 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
             {/* Right side start  */}
             <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
               <button className="btn-light uppercase">Change Server/Receiver point 1</button>
-              <button className="btn-info uppercase">+1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1</button>
+              {serverReceiverAction && (
+                <button className="btn-success uppercase" onClick={handleConfirmAction}>
+                  {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
+                  {scoreKeeperAction.get(serverReceiverAction)}
+                </button>
+              )}
             </div>
             {/* Right side end  */}
           </div>
 
           {/* Handle action for each button pressed  */}
-          <ActionHandler
-            dispatch={dispatch}
-            server={selectedServer}
-            receiver={selectedReceiver}
-            socket={socket}
-            currNet={netByNum.get(currNetNum)?._id ?? null}
-            matchId={matchId}
-            room={currRoom?._id || ''}
-          />
+          <ActionHandler setServerReceiverAction={setServerReceiverAction} />
 
           {actionPreview && (
             <div className="mt-6 flex justify-center items-center gap-x-2">

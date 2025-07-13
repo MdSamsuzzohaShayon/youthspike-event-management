@@ -24,14 +24,15 @@ function LineupBox({ otp }: IBoxProps) {
         <div className="w-full md:w-4/6 flex flex-col justify-start items-start">
           <PointText txt={pointText} />
           {isLineup ? (
-            <h2 className="font-black text-start">
-              Go Play. Placing team always picks serve or receive. Enter scores when done.
-            </h2>
+            <>
+              <h2 className="font-black text-start">Go Play. Placing team always picks serve or receive. Enter scores when done.</h2>
+              {/* <button className="btn-light" type="button">
+                Score keeper
+              </button> */}
+            </>
           ) : (
             <>
-              <h2 className="font-black text-start">
-                Waiting for the other squad to MATCH their lineup.
-              </h2>
+              <h2 className="font-black text-start">Waiting for the other squad to MATCH their lineup.</h2>
               <button className="btn-light-outline" type="button">
                 YOU PLACED YOUR LINEUP
               </button>
@@ -41,13 +42,7 @@ function LineupBox({ otp }: IBoxProps) {
 
         {/* Right Column Image */}
         <div className="hidden md:block w-2/6">
-          <Image
-            width={300}
-            height={300}
-            src="/imgs/spikeball-players.png"
-            alt="spikeball-players"
-            className="w-full h-full object-cover object-top"
-          />
+          <Image width={300} height={300} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
         </div>
       </div>
     </div>
