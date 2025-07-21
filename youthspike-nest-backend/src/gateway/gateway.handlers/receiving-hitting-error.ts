@@ -25,7 +25,7 @@ export class ReceivingHittingErrorHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.receiver, net.receivingPartner];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match as string, ids as string[]);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
       this.scoreKeeperHelper.increment(stats[net.server as string], {

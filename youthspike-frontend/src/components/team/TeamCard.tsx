@@ -1,9 +1,7 @@
 /* eslint-disable react/require-default-props */
 import { IMatchExpRel, IPlayer, IRoundRelatives, ITeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import cld from '@/config/cloudinary.config';
 import { useParams } from 'next/navigation';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import { ETeam } from '@/types/team';
@@ -13,6 +11,7 @@ import Image from 'next/image';
 import { imgW } from '@/utils/constant';
 import { useLdoId } from '@/lib/LdoProvider';
 import TextImg from '../elements/TextImg';
+import { CldImage } from 'next-cloudinary';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -37,7 +36,9 @@ const calculateScores = (match: IMatch, team: ITeamCaptain) => {
   match.rounds.forEach((round: IRoundRelatives) => {
     if (!match.nets) return;
 
-    const netList = match.nets.filter((n) => n.round?._id === round._id);
+    const netList = match.nets.filter(
+      (n) => typeof n.round === 'object' && (n.round as { _id: string })._id === round._id
+    );
     const { score: myScore } = calcRoundScore(netList, round, team._id === match.teamA._id ? ETeam.teamA : ETeam.teamB);
     const { score: opScore } = calcRoundScore(netList, round, team._id === match.teamA._id ? ETeam.teamB : ETeam.teamA);
 
@@ -82,7 +83,7 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
           <div className="brand flex gap-1 items-center">
             {team.logo ? (
               <div className="advanced-img w-12">
-                <AdvancedImage cldImg={cld.image(team.logo)} alt={team.name} className="w-full" />
+                <CldImage alt={team.name} width="200" height="200" className="w-full" src={team.logo} />
               </div>
             ) : (
               <TextImg className="w-12 h-12" fullText={team.name} />
@@ -100,7 +101,7 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
         <div className="w-6/12 brand flex gap-2">
           {team.captain?.profile && (
             <div className="advanced-img w-12 h-12 rounded-full border-2 border-yellow-logo">
-              <AdvancedImage cldImg={cld.image(team.captain.profile)} alt={team.captain.firstName} className="w-full" />
+              <CldImage alt={team.captain.firstName} width="200" height="200" className="w-full" src={team.captain.profile} />
             </div>
           )}
           {team.captain?.firstName && (

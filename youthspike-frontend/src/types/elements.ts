@@ -42,18 +42,7 @@ export enum EEnv {
   production = 'production',
 }
 
-// export interface ITextCommon {
-//   lw?: string;
-//   rw?: string;
-//   vertical?: boolean;
-//   extraCls?: string;
-//   lblTxt?: string;
-//   name: string;
-//   required: boolean;
-//   defaultValue?: string | null | undefined;
-//   readOnly?: boolean;
-//   handleInputChange: (e: React.SyntheticEvent) => void;
-// }
+
 
 export interface IOption {
   id: number;

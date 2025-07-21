@@ -16,9 +16,9 @@ async function getTeamData(teamId: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  // return data?.getTeamDetails?.data || null;
-  return handleServerResponse(data, 'getTeamDetails');
+
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getTeamDetails', errors);
 }
 
 async function getTeamsMin(eventId?: string) {
@@ -37,9 +37,9 @@ async function getTeamsMin(eventId?: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  // return data?.getTeams?.data || null;
-  return handleServerResponse(data, 'getTeams');
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getTeams', errors);
+  
 }
 
 async function getATeam(teamId: string) {
@@ -55,9 +55,8 @@ async function getATeam(teamId: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  // return data?.getTeam?.data || null;
-  return handleServerResponse(data, 'getTeam');
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getTeam', errors);
 }
 
 
@@ -78,9 +77,8 @@ async function getEventWithTeams(eventId: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  // return data?.getEventWithTeams?.data || null;
-  return handleServerResponse(data, 'getEventWithTeams');
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getEventWithTeams', errors);
 }
 
 

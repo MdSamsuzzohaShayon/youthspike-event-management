@@ -1,10 +1,9 @@
-import cld from '@/config/cloudinary.config';
 import { IEvent } from '@/types/event';
-import { AdvancedImage } from '@cloudinary/react';
 import Link from 'next/link';
 import React from 'react';
 import { useLdoId } from '@/lib/LdoProvider';
 import { readDate } from '@/utils/datetime';
+import { CldImage } from 'next-cloudinary';
 
 interface IEventCardProps {
   event: IEvent;
@@ -16,7 +15,7 @@ function EventCard({ event }: IEventCardProps) {
   return (
     <div className="box p-6 bg-gray-800 hover:shadow-2xl transition-shadow duration-300">
       <div className="img-wrapper flex justify-center items-center mb-4">
-        <AdvancedImage className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg" alt={event.name} cldImg={cld.image(event.logo)} />
+        {event.logo && <CldImage alt={event.name} width="200" height="200" className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg"  src={event.logo} />}
       </div>
       <div className="text-box text-center">
         <h3 className="text-2xl font-semibold text-yellow-400 mb-2">{event.name}</h3>

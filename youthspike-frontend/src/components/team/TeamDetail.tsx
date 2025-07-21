@@ -1,10 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { IEvent, ITeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import { setRankingMap } from '@/redux/slices/playerRankingSlice';
@@ -14,6 +11,7 @@ import { EEventItem } from '@/types/event';
 import TextImg from '../elements/TextImg';
 import MatchList from '../match/MatchList';
 import PlayerStandings from '../player/PlayerStandings';
+import { CldImage } from 'next-cloudinary';
 
 interface ITeamDetailProps {
   event: IEvent;
@@ -80,10 +78,7 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
 
           {/* Team Logo */}
           {team.logo ? (
-            <AdvancedImage
-              cldImg={cld.image(team.logo)}
-              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
-            />
+            <CldImage alt={team.name} width="200" height="200" className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10" src={team.logo} />
           ) : (
             <TextImg
               className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"

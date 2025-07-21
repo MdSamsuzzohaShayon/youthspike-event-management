@@ -1,4 +1,5 @@
 import { GET_TEAM_DETAIL_RAW } from '@/graphql/team';
+import handleServerResponse from '@/utils/handleServerError';
 import { isValidObjectId } from '@/utils/helper';
 import { BACKEND_URL } from '@/utils/keys';
 
@@ -15,8 +16,8 @@ async function getTeamData(teamId: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  return data?.getTeamDetails?.data || null;
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getTeamDetails', errors);
 }
 
 export default getTeamData;

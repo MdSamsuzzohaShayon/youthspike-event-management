@@ -1,8 +1,6 @@
 import React, { useRef, useCallback, useMemo } from 'react';
-import { AdvancedImage } from '@cloudinary/react';
 import Image from 'next/image';
 import Link from 'next/link';
-import cld from '@/config/cloudinary.config';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { IMatchRelatives, IRoom, IRoundRelatives, ITeam } from '@/types';
 import { readDate } from '@/utils/datetime';
@@ -13,6 +11,7 @@ import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import TeamInMatch from '../team/TeamInMatch';
 import CollapseContent from './CollapseContent';
 import { EActionProcess } from '@/types/room';
+import { CldImage } from 'next-cloudinary';
 
 interface IMatchSettingProps {
   match: IMatchRelatives;
@@ -118,7 +117,7 @@ function MatchSetting({ match, myTeam, opTeam, currRoom, currRound }: IMatchSett
   );
 
   const eventLogo = useMemo(
-    () => (ldo?.logo ? <AdvancedImage cldImg={cld.image(ldo.logo)} className="w-16" alt={ldo.name} /> : <Image width={64} height={64} src="/free-logo.png" className="w-16" alt="free-logo" />),
+    () => (ldo?.logo ? <CldImage alt={ldo.name} width="200" height="200" className="w-16" src={ldo.logo} /> : <Image width={64} height={64} src="/free-logo.png" className="w-16" alt="free-logo" />),
     [ldo],
   );
 

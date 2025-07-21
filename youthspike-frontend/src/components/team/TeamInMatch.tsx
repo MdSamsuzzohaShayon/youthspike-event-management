@@ -1,6 +1,5 @@
-import cld from '@/config/cloudinary.config';
 import { ITeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
 import React from 'react';
 
@@ -14,7 +13,7 @@ function TeamInMatch({ team, home }: ITeamInMatchProps) {
     <div className="flex justify-start items-center">
       <div className="logo m-2">
         {team.captain?.profile ? (
-          <AdvancedImage cldImg={cld.image(team.captain?.profile)} className="w-12" alt={team.captain?.firstName} />
+          <CldImage alt={team.captain?.profile} width="200" height="200" className="w-12" src={team.captain?.profile} />
         ) : (
           <Image width={20} height={20} src="/free-logo.svg" className="w-16" alt="free-logo" />
         )}

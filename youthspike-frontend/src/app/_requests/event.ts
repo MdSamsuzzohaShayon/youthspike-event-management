@@ -1,4 +1,5 @@
 import { GET_EVENTS_RAW } from '@/graphql/event';
+import handleServerResponse from '@/utils/handleServerError';
 import { BACKEND_URL } from '@/utils/keys';
 
 async function getEvents() {
@@ -12,10 +13,9 @@ async function getEvents() {
     }),
     cache: 'no-store',
   });
-  // const success = handleResponse({ response: playerRes?.data?.getEvent, setActErr });
 
-  const { data } = await res.json();
-  return data?.getEvents?.data || null;
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getEvents', errors);
 }
 
-export {getEvents};
+export { getEvents };

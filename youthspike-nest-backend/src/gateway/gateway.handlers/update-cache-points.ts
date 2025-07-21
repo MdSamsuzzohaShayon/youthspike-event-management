@@ -27,16 +27,14 @@ export class UpdateCachePointsHandler {
       const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService } =
         this.gatewayService.getServices();
 
-
       const [net, match] = await Promise.all([
         this.scoreKeeperHelper.loadNetAction(body.net, body.room),
-        matchService.findById(body.match)
+        matchService.findById(body.match),
       ]);
 
-      if(!match?.accessCode || !body?.accessCode || match?.accessCode !== body?.accessCode){
+      if (!match?.accessCode || !body?.accessCode || match?.accessCode !== body?.accessCode) {
         throw new Error(`You do not have permission, to update the score in this match!`);
       }
-
 
       // Update net score - no need to wait for this before proceeding
       const netUpdatePromise = netService.updateOne(
@@ -132,19 +130,30 @@ export class UpdateCachePointsHandler {
       }
 
       const playerIds = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
-      // const stats = await this.scoreKeeperHelper.getPlayerStats(net.match, playerIds);
+
       const [stats, round] = await Promise.all([
-        this.scoreKeeperHelper.getPlayerStats(net.match as string, playerIds as string[]),
+        this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, playerIds as string[]),
         roundService.findById(net.round as string),
       ]);
 
       // Process player stats updates in parallel
       const playerUpdatePromises = Object.entries(stats).map(async ([playerId, statsData]) => {
-        const updateResult = await playerStatsService.updateOne({ player: playerId }, statsData);
+        
+        
+        // Must match player and net, then update
+        const updateResult = await playerStatsService.updateOne(
+          { $and: [{ player: playerId }, { net: statsData.net }] },
+          statsData,
+        );
 
         if (updateResult.modifiedCount === 0) {
           const newPlayerStats = await playerStatsService.create(statsData);
-          await playerService.updateOne({ _id: playerId }, { $set: { playerstats: newPlayerStats._id } });
+          // Update match, net, and player
+          await Promise.all([
+            playerService.updateOne({ _id: playerId }, { $addToSet: { playerstats: newPlayerStats._id } }),
+            matchService.updateOne({ _id: body.match }, { $addToSet: { playerstats: newPlayerStats._id } }),
+            netService.updateOne({ _id: body.net }, { $addToSet: { playerstats: newPlayerStats._id } }),
+          ]);
         }
       });
 
@@ -155,11 +164,11 @@ export class UpdateCachePointsHandler {
       // Check if all net has point then make round completed
       let roundCompleted: boolean = true;
       for (const n of netsOfRound) {
-        if(!n.teamAScore || !n.teamBScore){
+        if (!n.teamAScore || !n.teamBScore) {
           roundCompleted = false;
         }
       }
-      await roundService.updateOne({_id: round._id}, {$set: {completed: roundCompleted}});
+      await roundService.updateOne({ _id: round._id }, { $set: { completed: roundCompleted } });
 
       const nets: INetScoreUpdate[] = netsOfRound.map((n) => ({
         _id: n._id,

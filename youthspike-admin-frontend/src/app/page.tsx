@@ -7,7 +7,6 @@ import { IUserContext, TParams } from '@/types';
 import { UserRole } from '@/types/user';
 import { LDO_ID, UNAUTHORIZED } from '@/utils/constant';
 import EventsMain from '@/components/event/EventsMain';
-import { logoutAction } from './actions/auth';
 
 
 
@@ -44,7 +43,6 @@ async function EventsPage({ searchParams }: IEventsPageProps) {
     eventDirector = await getEventDirector(directorId, userContext.token);
   } catch (err: any) {
     if (err.message === UNAUTHORIZED) {
-      // return logoutAction();
       redirect('/api/logout');
     }
     throw err;

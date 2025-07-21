@@ -1,12 +1,11 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable react/no-unused-prop-types */
-import cld from '@/config/cloudinary.config';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
 import { IPlayerRecord } from '@/types/player';
 import { imgW } from '@/utils/constant';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -38,7 +37,7 @@ function PlayerCard({ player, showRank }: PlayerCardProps) {
       <div className="flex items-center w-full md:w-7/12">
         <div className="advanced-img w-20 h-20 md:w-24 md:h-24 border border-yellow-400 rounded-lg overflow-hidden">
           {player.profile ? (
-            <AdvancedImage className="w-full h-full object-cover" cldImg={cld.image(player.profile)} />
+            <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-cover" src={player.profile} />
           ) : (
             <Image width={200} height={200} src="/icons/sports-man.svg" alt="Player Avatar" className="svg-white w-full h-full object-contain" />
           )}

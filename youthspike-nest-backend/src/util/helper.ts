@@ -78,7 +78,7 @@ export function formatDate(isoString: string): string {
 }
 
 
-export function initPlayerStat(match: string, player: string){
+export function initPlayerStat(net: string, match: string, player: string){
   return {
     serveOpportunity: 0,
     serveAce: 0,
@@ -96,6 +96,7 @@ export function initPlayerStat(match: string, player: string){
     broken: 0,
     matchPlayed: 0,
     // Relationship
+    net,
     match,
     player,
   }

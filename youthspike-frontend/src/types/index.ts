@@ -12,3 +12,4 @@ export * from './socket';
 export * from './playerRanking';
 export * from './animation';
 export * from './group';
+export * from './playerStats';

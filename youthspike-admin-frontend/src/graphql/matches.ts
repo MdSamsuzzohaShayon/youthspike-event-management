@@ -1,26 +1,6 @@
 import { gql } from "@apollo/client";
 
-const eventResponse = `
-    _id
-    nets
-    rounds
-    active
-    autoAssign
-    autoAssignLogic
-    divisions
-    endDate
-    homeTeam
-    tieBreaking
-    description
-    location
-    name
-    netVariance
-    playerLimit
-    rosterLock
-    timeout
-    startDate
-    fwango
-`;
+
 
 const roundResponse = `
 rounds {
@@ -108,47 +88,6 @@ const matchResponseWithRound = `
     ${matchResponse}
 `;
 
-const teamResponse = `
-    _id
-    active
-    name
-    logo
-    division
-    players {
-      _id
-      firstName
-      lastName
-      captainofteams {
-        _id
-        name
-      }
-      captainuser {
-        _id
-        firstName
-        lastName
-      }
-    }
-    captain {
-      _id
-      firstName
-      lastName
-      captainofteams {
-        _id
-        name
-      }
-      captainuser {
-        _id
-        firstName
-        lastName
-        email
-      }
-    }
-    cocaptain {
-      _id
-      firstName
-      lastName
-    }
-`;
 
 /**
  * QUERIES

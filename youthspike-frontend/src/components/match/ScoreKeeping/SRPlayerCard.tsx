@@ -1,8 +1,7 @@
 import TextImg from '@/components/elements/TextImg';
-import cld from '@/config/cloudinary.config';
 import { useAppSelector } from '@/redux/hooks';
 import { IPlayer, IReceiverTeam, IServerTeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
@@ -55,7 +54,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({ selected, serverReceiverTe
       >
         {selected && serverReceiverTeam ? (
           player?.profile ? (
-            <AdvancedImage cldImg={cld.image(player.profile)} className="object-cover w-full h-full" />
+            <CldImage alt={player.firstName} width="200" height="200" className="object-cover w-full h-full" src={player.profile} />
           ) : (
             <TextImg className="w-full h-full" fText={player?.firstName} lText={player?.lastName} />
           )

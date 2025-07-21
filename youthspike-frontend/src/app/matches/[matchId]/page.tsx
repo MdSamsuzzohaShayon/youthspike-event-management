@@ -5,7 +5,6 @@
 import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useLazyQuery } from '@apollo/client';
-import { AdvancedImage } from '@cloudinary/react';
 import Image from 'next/image';
 
 // Hooks & Utilities
@@ -19,7 +18,6 @@ import { APP_NAME } from '@/utils/keys';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import localStorageService from '@/utils/LocalStorageService';
-import cld from '@/config/cloudinary.config';
 
 // Components
 import TeamPlayers from '@/components/player/TeamPlayers';
@@ -44,6 +42,7 @@ import SocketEventListener from '@/utils/socket/SocketEventListener';
 import { ETeam } from '@/types/team';
 import { EPlayerStatus } from '@/types/player';
 import { UserRole } from '@/types/user';
+import { CldImage } from 'next-cloudinary';
 
 export function MatchPage({ params }: { params: { matchId: string } }) {
   // Refs
@@ -304,8 +303,8 @@ export function MatchPage({ params }: { params: { matchId: string } }) {
                 spon.company === APP_NAME ? (
                   <Image key={spon._id} src={`/${spon.logo}`} width={40} height={40} alt="default-logo" className="w-20" />
                 ) : (
-                  <AdvancedImage key={spon._id} className="w-20" cldImg={cld.image(spon.logo)} />
-                ),
+                  <CldImage alt={spon.company} width="100" height="100" className="w-20" src={spon.logo} />
+                )
               )}
             </div>
           </div>

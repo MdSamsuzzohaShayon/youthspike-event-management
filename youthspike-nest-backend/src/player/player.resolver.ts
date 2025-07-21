@@ -575,7 +575,7 @@ export class PlayerResolver {
   async events(@Parent() player: Player): Promise<Event[]> {
     try {
       if (!player.events) return [];
-      const findEvents = await this.eventService.query({ _id: { $in: player.events } });
+      const findEvents = await this.eventService.find({ _id: { $in: player.events } });
       return findEvents;
     } catch (error) {
       return [];
@@ -586,7 +586,7 @@ export class PlayerResolver {
   async teams(@Parent() player: Player): Promise<Team[]> {
     try {
       if (!player.teams) return null;
-      const findTeams = await this.teamService.query({ _id: { $in: player.teams } });
+      const findTeams = await this.teamService.find({ _id: { $in: player.teams } });
       return findTeams;
     } catch (error) {
       console.log(error);
@@ -598,7 +598,7 @@ export class PlayerResolver {
   async captainofteams(@Parent() player: Player): Promise<Team[]> {
     try {
       if (!player.captainofteams) return null;
-      const findTeams = await this.teamService.query({ _id: { $in: player.captainofteams } });
+      const findTeams = await this.teamService.find({ _id: { $in: player.captainofteams } });
       return findTeams;
     } catch (error) {
       return null;
@@ -609,7 +609,7 @@ export class PlayerResolver {
   async cocaptainofteams(@Parent() player: Player): Promise<Team[]> {
     try {
       if (!player.cocaptainofteams) return null;
-      const findTeams = await this.teamService.query({ _id: { $in: player.cocaptainofteams } });
+      const findTeams = await this.teamService.find({ _id: { $in: player.cocaptainofteams } });
       return findTeams;
     } catch (error) {
       return null;

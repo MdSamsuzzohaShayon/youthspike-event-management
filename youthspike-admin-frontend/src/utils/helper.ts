@@ -92,8 +92,8 @@ export function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives
   let score = 0;
 
   findNets.forEach((net) => {
-    const teamAScore = net.teamAScore || 0;
-    const teamBScore = net.teamBScore || 0;
+    const teamAScore = net?.teamAScore || 0;
+    const teamBScore = net?.teamBScore || 0;
 
     // Dark is oponent team
     if (teamE === ETeam.teamA && teamAScore > teamBScore) {

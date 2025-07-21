@@ -1,6 +1,5 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import TeamTable from '@/components/teams/TeamTable';
 import { getMatchesMin } from '../_requests/matches';
 import MatchTable from '@/components/match/MatchTable';
 

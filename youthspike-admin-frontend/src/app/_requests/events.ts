@@ -15,10 +15,8 @@ async function getMinEvents() {
         cache: 'no-store',
     });
 
-    const { data } = await res.json();
-    
-    // return data?.getEvents?.data || null;
-    return handleServerResponse(data, 'getEvents');
+    const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getEvents', errors);
 }
 
 async function getAnEvent(eventId: string): Promise<IEvent | null> {
@@ -35,11 +33,9 @@ async function getAnEvent(eventId: string): Promise<IEvent | null> {
         }),
         cache: 'no-store',
     });
-
-    const { data } = await res.json();
     
-    // return data?.getEvent?.data || null;
-    return handleServerResponse(data, 'getEvent');
+    const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getEvent', errors);
 }
 
 

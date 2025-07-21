@@ -1,4 +1,3 @@
-import cld from '@/config/cloudinary.config';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setDisabledPlayerIds, setOutOfRange, setShowTeamPlayers, setclosePSCAvailable } from '@/redux/slices/matchesSlice';
@@ -7,7 +6,7 @@ import { INetRelatives, IPlayer, IPlayerRankingItemExpRel, IRoundRelatives } fro
 import { ETeamPlayer, INetUpdate } from '@/types/net';
 import { EPlayerStatus } from '@/types/player';
 import { ETeam } from '@/types/team';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
 import React from 'react';
 
@@ -138,7 +137,7 @@ function AvailablePlayers({ myPlayers, currentRound, disabledPlayerIds, availabl
               <p className="w-6 h-6 text-black rounded-full bg-yellow-logo flex justify-center items-center">{playerRank(player)}</p>
               <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
                 {player.profile ? (
-                  <AdvancedImage cldImg={cld.image(player.profile.toString())} className="w-full overflow-hidden" />
+                  <CldImage alt={player.firstName} width="200" height="200" className="w-full overflow-hidden"  src={player.profile} />
                 ) : (
                   <Image width={24} height={24} src="/icons/sports-man.svg" alt="sports-man" className="svg-black w-full" />
                 )}

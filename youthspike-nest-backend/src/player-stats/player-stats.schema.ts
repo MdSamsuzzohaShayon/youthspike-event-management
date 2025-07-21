@@ -1,78 +1,79 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import { Match } from 'src/match/match.schema';
+import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 
 @ObjectType()
 @Schema({ timestamps: true })
 export class PlayerStats extends AppDocument {
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   serveOpportunity: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   serveAce: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   serveCompletionCount: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   servingAceNoTouch: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   receiverOpportunity: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   receivedCount: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   noTouchAcedCount: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   settingOpportunity: number;
 
-  @Field(() => Int)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   settingCompletion: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   hittingOpportunity: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   hittingCompletion: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   cleanHits: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   defensiveOpportunity: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   defensiveConversion: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   break: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   broken: number;
 
-  @Field(() => Int)
+  @Field(() => Float)
   @Prop({ default: 0 })
   matchPlayed: number;
 
@@ -81,6 +82,10 @@ export class PlayerStats extends AppDocument {
   @Field(() => Match, { nullable: true })
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Match', required: true })
   match: string | Match;
+
+  @Field(() => Net, { nullable: true })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Net', required: true })
+  net: string | Net;
 
   @Field(() => Player, { nullable: true })
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Player', required: true })

@@ -1,8 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import React, { useEffect, useState } from 'react';
-import { AdvancedImage } from '@cloudinary/react';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import cld from '@/config/cloudinary.config';
 import { ITeam } from '@/types';
 import { setActErr } from '@/redux/slices/elementSlice';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -15,6 +13,7 @@ import { EActionProcess } from '@/types/room';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import LocalStorageService from '@/utils/LocalStorageService';
 import TextImg from '../elements/TextImg';
+import { CldImage } from 'next-cloudinary';
 
 interface ITeamScoreBoard {
   team: ITeam | null;
@@ -123,7 +122,7 @@ function CompletedBox() {
       <div className="w-full flex justify-center items-center flex-col gap-y-2">
         {team?.logo ? (
           <div className="advanced-img w-20">
-            <AdvancedImage cldImg={cld.image(team.logo)} className="w-full" />
+            <CldImage alt={team.name} width="200" height="200" className="w-full" src={team.logo} />
           </div>
         ) : (
           <TextImg fullText={team?.name} className="w-20 h-20 rounded-lg" />

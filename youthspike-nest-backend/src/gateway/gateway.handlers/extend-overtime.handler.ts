@@ -81,7 +81,10 @@ export class ExtendOvertimeHandler {
         roundService.updateOne({ _id: newRound._id }, { $set: { nets: [newNet._id] } }),
         matchService.updateOne(
           { _id: prevRoom.match },
-          { $set: { extendedOvertime: true }, $addToSet: { rounds: newRound._id } },
+          { $set: { extendedOvertime: true }, $addToSet: { 
+            rounds: newRound._id,
+            nets: newNet._id
+           } },
         ),
       ]);
 

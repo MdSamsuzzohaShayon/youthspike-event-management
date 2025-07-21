@@ -5,10 +5,8 @@ import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { AdvancedImage } from '@cloudinary/react';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch } from '@/redux/hooks';
-import cld from '@/config/cloudinary.config';
 import { IEvent, IMatchExpRel, IPlayer, ITeam } from '@/types';
 import { EEventItem } from '@/types/event';
 import { setRankingMap, setTeamsPlayerRanking } from '@/redux/slices/playerRankingSlice';
@@ -20,6 +18,7 @@ import MatchList from '../match/MatchList';
 import TeamList from '../team/TeamList';
 import SelectInput from '../elements/SelectInput';
 import PlayerStandings from '../player/PlayerStandings';
+import { CldImage } from 'next-cloudinary';
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -109,7 +108,8 @@ function EventDetail({ event }: { event: IEventRelatives }) {
         <div className="w-20" key="default-logo">
           <Image width={imgW.xs} height={imgW.xs} src="/free-logo.png" alt={`${APP_NAME}-logo`} />
         </div>
-        {event.sponsors?.map((sponsor, index) => <AdvancedImage key={sponsor._id || `sponsor-${index}`} cldImg={cld.image(sponsor.logo.toString())} className="w-20" />)}
+        {event.sponsors?.map((sponsor, index) => <CldImage key={sponsor._id || `sponsor-${index}`} alt={sponsor.company} width="200" height="200" className="w-20" src={sponsor.logo.toString()} />
+         )}
       </>
     ),
     [event.sponsors],

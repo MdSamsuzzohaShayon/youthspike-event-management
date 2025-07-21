@@ -308,6 +308,8 @@ const GET_TEAMS_MIN_RAW = `
 query GetTeams {
   getTeams {
     code
+    success
+    message
     data {
       _id
       name

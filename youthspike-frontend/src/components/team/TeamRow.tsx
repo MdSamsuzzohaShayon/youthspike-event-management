@@ -3,10 +3,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
 import { rowVariant } from '@/utils/animation';
-import cld from '@/config/cloudinary.config';
 import TextImg from '../elements/TextImg';
+import { CldImage } from 'next-cloudinary';
 
 interface ITeamRowProps {
   team: ITeam;
@@ -29,7 +28,7 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
         <Link href={`/teams/${team._id}`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
           <span>
             {team?.logo ? (
-              <AdvancedImage cldImg={cld.image(team.logo)} className="w-14 h-14 object-fit object-cover" />
+              <CldImage alt={team.name} width="200" height="200" className="w-14 h-14 object-fit object-cover" src={team.logo} />
             ) : (
               <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
             )}

@@ -1,4 +1,5 @@
 import { GET_SYSTEM_DETAILS_RAW } from "@/graphql/director";
+import handleServerResponse from "@/utils/handlerServerResponse";
 import { BACKEND_URL } from "@/utils/keys";
 
 async function getSystemDetails() {
@@ -15,9 +16,9 @@ async function getSystemDetails() {
     cache: 'no-store', // Adjust caching as needed
   });
 
-  const { data } = await res.json();
 
-  return data?.getSystemDetails?.data || null;
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getSystemDetails', errors);
 }
 
 

@@ -57,18 +57,6 @@ async function EventSingle({ params: { eventId } }: IEventPageProps) {
   prevEvent.sponsors = sponsors;
 
   // Handle admin-specific logic for LDO_ID in the query parameters
-  /*
-  useEffect(() => {
-    if (user && user.token && user.info?.role === UserRole.admin) {
-      const ldoIdExist = searchQuery.get(LDO_ID);
-      if (!ldoIdExist || ldoIdExist === '') {
-        if (data?.getEvent?.data?.ldo?._id) {
-          router.push(`${pathname}/?${LDO_ID}=${data.getEvent.data.ldo._id}`);
-        }
-      }
-    }
-  }, [data, user, searchQuery, router, pathname]);
-  */
 
   // Render the event details
   return (

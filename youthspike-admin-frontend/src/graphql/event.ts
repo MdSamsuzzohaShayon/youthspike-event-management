@@ -72,6 +72,7 @@ const GET_EVENTS = gql`
     getEvents(directorId: $directorId) {
       code
       success
+      message
       data {
         ${eventResponse}
       }

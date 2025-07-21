@@ -32,6 +32,7 @@ interface IMatchesMainProps{
 
 const ITEMS_PER_PAGE = 30;
 function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
+  
 
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);

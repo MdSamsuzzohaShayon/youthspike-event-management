@@ -395,6 +395,8 @@ export class MatchResolver {
         this.groupService.find({ event: eventId }),
       ]);
 
+      // Net is not adding in the team
+
       const matchIds = matches.map((m) => m._id.toString());
       const [rounds, nets] = await Promise.all([
         this.roundService.find({ match: { $in: matchIds } }),

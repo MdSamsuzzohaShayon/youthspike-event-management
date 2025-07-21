@@ -3,6 +3,7 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Player } from 'src/player/player.schema';
 import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
@@ -51,6 +52,10 @@ export class Net extends AppDocument {
   @Field((type) => ServerReceiverOnNet, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' })
   serverReceiverOnNet?: ServerReceiverOnNet | string;
+
+  @Field((_type) => [PlayerStats], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerStats' }] })
+  playerstats?: PlayerStats[] | string[];
 
   /**
    * A team will have many players, In each net captain will choose 2 player to play on their net

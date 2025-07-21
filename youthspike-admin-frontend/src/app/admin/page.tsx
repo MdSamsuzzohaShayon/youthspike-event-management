@@ -18,9 +18,9 @@ export default async function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-6xl mx-auto text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-yellow-400 mb-8">
+    <div className="container mx-auto px-4 min-h-screen">
+      <div className="text-center mt-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-yellow-logo mb-8">
           ASL - Admin Dashboard
         </h1>
 

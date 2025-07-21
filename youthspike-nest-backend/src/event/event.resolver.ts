@@ -301,7 +301,7 @@ export class EventResolver {
 
       // ===== Update Coach Password =====
       if (eventData.coachPassword) {
-        const teamsOfEvent = await this.teamService.query({ event: eventId });
+        const teamsOfEvent = await this.teamService.find({ event: eventId });
         const cap = [],
           coCap = [];
         for (const t of teamsOfEvent) {
@@ -382,7 +382,7 @@ export class EventResolver {
 
       // teams
       const teamIds = findEvent.teams;
-      const findTeams = await this.teamService.query({ _id: { $in: teamIds } });
+      const findTeams = await this.teamService.find({ _id: { $in: teamIds } });
       const teamObjList = [];
       for (const team of findTeams) {
         const teamObj = { ...team, name: team.name, active: true, event: clonedEvent._id };
@@ -394,7 +394,7 @@ export class EventResolver {
 
       // sponsors
       const sponsorIds = findEvent.sponsors;
-      const sponsorsExist = await this.sponsorService.query({ _id: { $in: sponsorIds } });
+      const sponsorsExist = await this.sponsorService.find({ _id: { $in: sponsorIds } });
       const sponsorObjList = [];
       for (const sponsor of sponsorsExist) {
         const sponsorObj = { ...sponsor, company: sponsor.company, logo: sponsor.logo, event: clonedEvent._id };
@@ -539,7 +539,7 @@ export class EventResolver {
         promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
 
         // captains
-        const teams = await this.teamService.query({ _id: { $in: teamIds } });
+        const teams = await this.teamService.find({ _id: { $in: teamIds } });
         if (teams && teams.length > 0) {
           const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
           promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
@@ -554,7 +554,7 @@ export class EventResolver {
         promisesToDelete.push(this.matchService.delete({ _id: { $in: matchIds } }));
 
         // Rounds, nets
-        const matches = await this.matchService.query({ _id: { $in: matchIds } });
+        const matches = await this.matchService.find({ _id: { $in: matchIds } });
         if (matches && matches.length > 0) {
           for (const match of matches) {
             const roundIds = match.rounds.map((r) => r.toString());
@@ -598,7 +598,7 @@ export class EventResolver {
 
 
       // If not cached, fetch the teams from the database
-      const teamList = await this.teamService.query({ _id: { $in: event.teams } });
+      const teamList = await this.teamService.find({ _id: { $in: event.teams } });
 
       return teamList;
     } catch (err) {
@@ -622,7 +622,7 @@ export class EventResolver {
   }
   @ResolveField()
   async sponsors(@Parent() event: Event) {
-    return this.sponsorService.query({ _id: { $in: event.sponsors } });
+    return this.sponsorService.find({ _id: { $in: event.sponsors } });
   }
 
   @ResolveField(() => [Player]) // Specify the return type for "players"

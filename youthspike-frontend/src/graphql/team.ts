@@ -300,7 +300,7 @@ query GetTeamDetails($teamId: String!) {
         teamBPlayerA
         teamBPlayerB
       }
-      oponentTeams {
+      teams {
         _id
         name
         logo

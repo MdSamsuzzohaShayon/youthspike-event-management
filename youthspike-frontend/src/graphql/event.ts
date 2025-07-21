@@ -144,6 +144,8 @@ const GET_EVENTS_RAW = `
   query GetEvents {
     getEvents {
       code
+      success
+      message
       data {
         _id
         name

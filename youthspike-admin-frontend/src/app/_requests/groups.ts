@@ -1,6 +1,7 @@
-import { GET_EVENT_WITH_GROUP_RAW, GET_GROUPS_RAW } from "@/graphql/group";
-import { isValidObjectId } from "@/utils/helper";
-import { BACKEND_URL } from "@/utils/keys";
+import { GET_EVENT_WITH_GROUP_RAW, GET_GROUPS_RAW } from '@/graphql/group';
+import handleServerResponse from '@/utils/handlerServerResponse';
+import { isValidObjectId } from '@/utils/helper';
+import { BACKEND_URL } from '@/utils/keys';
 
 async function getEventWithGroups(eventId: string) {
   if (!isValidObjectId(eventId)) {
@@ -19,8 +20,8 @@ async function getEventWithGroups(eventId: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  return data?.getEvent?.data || null;
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getEvent', errors);
 }
 
 async function getAllGroups(eventId: string) {
@@ -29,7 +30,7 @@ async function getAllGroups(eventId: string) {
   }
 
   const res = await fetch(`${BACKEND_URL}/graphql`, {
-    next: { tags: ['groups'] },  // Attach a tag to this fetch request
+    next: { tags: ['groups'] }, // Attach a tag to this fetch request
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -41,9 +42,8 @@ async function getAllGroups(eventId: string) {
     cache: 'no-store',
   });
 
-  const { data } = await res.json();
-  return data?.getEvent?.data || null;
+  const { data, errors } = await res.json();
+  return handleServerResponse(data, 'getEvent', errors);
 }
 
-
-export {getEventWithGroups, getAllGroups};
+export { getEventWithGroups, getAllGroups };

@@ -11,10 +11,10 @@ async function TeamSinglePage({ params: { teamId } }: TeamSinglePageProps) {
   const teamData = await getTeamData(teamId);
 
   if (!teamData) {
-    return notFound();
+    notFound();
   }
 
-  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, oponentTeams } = teamData;
+  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = teamData;
 
   playerRanking.rankings = rankings;
   team.captain = captain;
@@ -23,7 +23,7 @@ async function TeamSinglePage({ params: { teamId } }: TeamSinglePageProps) {
   // Build lookup maps in a single pass (O(n) instead of multiple O(n) iterations)
   const roundMap = new Map(rounds.map((r: IRoundRelatives) => [r._id, r]));
   const netMap = new Map(nets.map((n: INetRelatives) => [n._id, n]));
-  const oponentTeamMap = new Map(oponentTeams.map((t: ITeam) => [t._id, t]));
+  const oponentTeamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
 
   // Process matches efficiently
   const matchList = matches.map((m: IMatchExpRel) => {

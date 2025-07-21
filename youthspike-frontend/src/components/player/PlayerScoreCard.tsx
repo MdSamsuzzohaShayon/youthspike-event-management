@@ -7,9 +7,8 @@ import { ETeamPlayer } from '@/types/net';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { screen } from '@/utils/constant';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
 import Image from 'next/image';
+import { CldImage } from 'next-cloudinary';
 
 interface IPlayerScoreCard {
   player: IPlayer | null;
@@ -84,7 +83,7 @@ function PlayerScoreCard({
 
   const renderPlayerImage = (): React.ReactNode => {
     if (player && player.profile) {
-      return <AdvancedImage className="w-full h-full object-top object-cover" cldImg={cld.image(player.profile)} onClick={handleDropDown} />;
+      return <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-top object-cover" src={player.profile} onClick={handleDropDown} />
     }
     if (!player && shouldShowAddPlayer) {
       return (

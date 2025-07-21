@@ -4,10 +4,8 @@ import { IMatchExpRel, INetRelatives, IRoundExpRel } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
 import Link from 'next/link';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { readDate } from '@/utils/datetime';
-import { AdvancedImage } from '@cloudinary/react';
-import cld from '@/config/cloudinary.config';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
@@ -17,6 +15,7 @@ import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { EActionProcess } from '@/types/room';
 import PointsByRoundPublic from './PointsByRoundPublic';
+import { CldImage } from 'next-cloudinary';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -58,7 +57,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         <>
           <div className="advanced-img w-14">
             {team?.logo ? (
-              <AdvancedImage cldImg={cld.image(team?.logo)} className="w-full h-full" />
+              <CldImage alt={team.name} width="200" height="200" className="w-full h-full" src={team.logo} />
             ) : (
               <Image src="/free-logo.png" width={imgW.logo} height={imgW.logo} className="w-full h-full" alt="free-logo" />
             )}

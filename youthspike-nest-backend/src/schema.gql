@@ -16,6 +16,30 @@ type AppResponse {
   message: String
 }
 
+type PlayerStats {
+  _id: String
+  serveOpportunity: Float!
+  serveAce: Float!
+  serveCompletionCount: Float!
+  servingAceNoTouch: Float!
+  receiverOpportunity: Float!
+  receivedCount: Float!
+  noTouchAcedCount: Float!
+  settingOpportunity: Float!
+  settingCompletion: Float
+  hittingOpportunity: Float!
+  hittingCompletion: Float!
+  cleanHits: Float!
+  defensiveOpportunity: Float!
+  defensiveConversion: Float!
+  break: Float!
+  broken: Float!
+  matchPlayed: Float!
+  match: Match
+  net: Net
+  player: Player
+}
+
 type Round {
   _id: String
   num: Int!
@@ -91,6 +115,7 @@ type Net {
   teamA: Team
   teamB: Team
   serverReceiverOnNet: ServerReceiverOnNet
+  playerstats: [PlayerStats!]
   teamAPlayerA: String
   teamAPlayerB: String
   teamBPlayerA: String
@@ -129,29 +154,6 @@ type ServerReceiverOnNet {
   roundId: String
   teamAScore: Float!
   teamBScore: Float!
-}
-
-type PlayerStats {
-  _id: String
-  serveOpportunity: Int!
-  serveAce: Int!
-  serveCompletionCount: Int!
-  servingAceNoTouch: Int!
-  receiverOpportunity: Int!
-  receivedCount: Int!
-  noTouchAcedCount: Int!
-  settingOpportunity: Int!
-  settingCompletion: Int!
-  hittingOpportunity: Int!
-  hittingCompletion: Int!
-  cleanHits: Int!
-  defensiveOpportunity: Int!
-  defensiveConversion: Int!
-  break: Int!
-  broken: Int!
-  matchPlayed: Int!
-  match: Match
-  player: Player
 }
 
 type Room {
@@ -523,6 +525,7 @@ type CustomNet {
   teamA: String
   teamB: String
   serverReceiverOnNet: ServerReceiverOnNet
+  playerstats: [PlayerStats!]
   teamAPlayerA: String
   teamAPlayerB: String
   teamBPlayerA: String
@@ -685,7 +688,7 @@ type CustomTeam {
   matches: [String!]
   event: Event!
   players: [String!]
-  nets: [Net!]!
+  nets: [String!]
   playerRankings: [PlayerRanking!]
   group: String
   playerRanking: PlayerRanking
@@ -853,6 +856,45 @@ type PlayersStatsResponse {
   data: [PlayerStats!]
 }
 
+type CustomPlayerStats {
+  _id: String
+  serveOpportunity: Float!
+  serveAce: Float!
+  serveCompletionCount: Float!
+  servingAceNoTouch: Float!
+  receiverOpportunity: Float!
+  receivedCount: Float!
+  noTouchAcedCount: Float!
+  settingOpportunity: Float!
+  settingCompletion: Float
+  hittingOpportunity: Float!
+  hittingCompletion: Float!
+  cleanHits: Float!
+  defensiveOpportunity: Float!
+  defensiveConversion: Float!
+  break: Float!
+  broken: Float!
+  matchPlayed: Float!
+  match: String
+  net: Net
+  player: String
+}
+
+type PlayerStatsDetails {
+  player: CustomPlayer!
+  team: CustomTeam
+  playerstats: [CustomPlayerStats!]!
+  matches: [CustomMatch!]
+  nets: [CustomNet!]
+}
+
+type PlayerWithStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: PlayerStatsDetails
+}
+
 type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
@@ -881,6 +923,7 @@ type Query {
   getGroup(groupId: String!): GetGroupResponse!
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
   getPlayersStats: PlayersStatsResponse!
+  getPlayerWithStats(playerId: String!): PlayerWithStatsResponse!
 }
 
 input FilterQueryInput {

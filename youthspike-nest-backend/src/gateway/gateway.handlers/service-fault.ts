@@ -19,12 +19,12 @@ export class ServiceFaultHandler {
   ) {
     try {
       /* 1️⃣ load “net” action + team splits */
-      const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
+      const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room); // Redis key: <sr:net:room>
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(net.match as string, ids as string[]);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
       this.scoreKeeperHelper.increment(stats[net.server as string], {

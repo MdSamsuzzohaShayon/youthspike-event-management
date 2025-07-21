@@ -1,11 +1,10 @@
 'use client';
 
 import TextImg from '@/components/elements/TextImg';
-import cld from '@/config/cloudinary.config';
 import { useAppDispatch } from '@/redux/hooks';
 import { setActErr } from '@/redux/slices/elementSlice';
 import { INetPlayers, IPlayer, ITeam } from '@/types';
-import { AdvancedImage } from '@cloudinary/react';
+import { CldImage } from 'next-cloudinary';
 import React from 'react';
 
 interface PlayerSelectionProps {
@@ -89,7 +88,7 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
               >
                 <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                   {player.profile ? (
-                    <AdvancedImage className="w-full h-full object-cover object-center" cldImg={cld.image(player.profile)} />
+                    <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-cover object-center" src={player.profile} />
                   ) : (
                     <TextImg className="w-full h-full" fullText={`${player.firstName} ${player.lastName}`} />
                   )}

@@ -26,21 +26,6 @@ const eventResponse = `
   }
 `;
 
-const eventResponseLight = `
-  _id
-  sponsors {
-    _id
-  }
-  matches {
-    _id
-  }
-  players {
-    _id
-  }
-  teams {
-    _id
-  }
-`;
 
 const ldoResponse = `
   _id
@@ -84,6 +69,9 @@ const GET_LDOS = gql`${GET_LDOS_RAW}`;
 const GET_SYSTEM_DETAILS_RAW = `
 query GetSystemDetails {
   getSystemDetails {
+    code
+    success
+    message
     data {
       events
       ldos
@@ -119,12 +107,12 @@ const GET_LDO = gql`${GET_LDO_RAW}`;
 const ADD_DIRECTOR_RAW = `
 mutation CreateDirector($input: CreateDirector!, $logo: Upload) {
   createDirector(input: $input, logo: $logo) {
-     code
-      success
-      message
-      data {
-        ${ldoResponse}
-      }
+    code
+    success
+    message
+    data {
+      ${ldoResponse}
+    }
   }
 }
 `;
@@ -137,7 +125,7 @@ mutation UpdateDirector($input: UpdateDirector!, $dId: String, $logo: Upload) {
   updateDirector(input: $input, logo: $logo, dId: $dId) {
     code
     success
-      message
+    message
     data {
       ${ldoResponse}
     }
@@ -154,7 +142,7 @@ mutation DeleteEventDirector($dId: String!) {
   deleteEventDirector(dId: $dId) {
     code
     success
-      message
+    message
     data {
       ${ldoResponse}
     }

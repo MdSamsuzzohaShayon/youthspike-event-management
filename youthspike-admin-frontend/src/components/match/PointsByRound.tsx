@@ -10,7 +10,10 @@ interface IPointsByRoundProps {
   dark?: boolean;
 }
 
-function PointsByRound({ roundList, dark, allNets, teamE}: IPointsByRoundProps) {  
+function PointsByRound({ roundList, dark, allNets, teamE}: IPointsByRoundProps) { 
+  
+  
+  
 
   const calcScore = (round: IRoundRelatives): React.ReactNode => {
 
@@ -29,7 +32,6 @@ function PointsByRound({ roundList, dark, allNets, teamE}: IPointsByRoundProps) 
       {roundList.map((round, i) => (
         <div className={`r-box w-12 flex flex-col justify-center items-center`} key={i}>
           {calcScore(round)}
-          {/* {teamE === ETeam.teamA ? (round.teamAScore ? round.teamAScore : 0): (round.teamBScore ? round.teamBScore : 0)} */}
         </div>
       ))}
     </div>
