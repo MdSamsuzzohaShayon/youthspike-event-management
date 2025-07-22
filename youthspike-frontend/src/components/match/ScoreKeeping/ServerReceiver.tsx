@@ -1,10 +1,22 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentServerReceiver, setCurrNetNum } from '@/redux/slices/netSlice';
-import { EActionProcess, EServerReceiverAction, ETieBreaker, ETieBreakingStrategy, IAccessCode, IMatchExpRel, INetPlayers, IReceiverTeam, IServerReceiverOnNetMixed, IServerTeam, IUser } from '@/types';
+import {
+  EActionProcess,
+  EServerReceiverAction,
+  ETieBreaker,
+  ETieBreakingStrategy,
+  IAccessCode,
+  IMatchExpRel,
+  INetPlayers,
+  IReceiverTeam,
+  IServerReceiverOnNetMixed,
+  IServerTeam,
+  IUser,
+} from '@/types';
 import organizeFetchedData from '@/utils/match/organizeFetchedData';
 import ServerReceiverDisplay from './ServerReceiverDisplay';
 import PlayerSelection from './PlayerSelection';
@@ -44,12 +56,13 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   const { teamA, teamB } = useAppSelector((s) => s.teams);
 
   /* UI state */
-  const [actionPreview, setActionPreview] = useState(false);
-  const [serverPlaceholder, setServerPlaceholder] = useState(false);
-  const [receiverPlaceholder, setReceiverPlaceholder] = useState(false);
+  const [actionPreview, setActionPreview] = useState<boolean>(false);
+  const [serverPlaceholder, setServerPlaceholder] = useState<boolean>(false);
+  const [receiverPlaceholder, setReceiverPlaceholder] = useState<boolean>(false);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
   const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
   const [serverReceiverAction, setServerReceiverAction] = useState<EServerReceiverAction | null>(null);
+  const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
 
   /* Derived maps / helpers */
   const netByNum = useNetMaps(currentRoundNets);
@@ -84,6 +97,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     currRound,
     matchId,
     serverReceiversOnNet,
+    setActionPreview,
   });
 
   /* ───── Derived memo ───── */
@@ -123,7 +137,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
       } else {
         setSelectedReceiver(newServerReceiver.receiver as string);
       }
-    }else{
+    } else {
       setActionPreview(false);
     }
     dispatch(setCurrentServerReceiver(newServerReceiver || null));
@@ -150,6 +164,22 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     actionConfirmation(currMatch._id, socket, dispatch, serverReceiverAction, selectedReceiver, net?._id || null, currRoom?._id || null);
     setServerReceiverAction(null);
   };
+
+  const openResetConfirm = () => {
+    confirmBoxEl.current?.showModal();
+  };
+  const closeResetConfirm = () => {
+    confirmBoxEl.current?.close();
+  };
+
+  const HandleConfirmReset = useCallback(() => {
+    const emit = new EmitEvents(socket, dispatch);
+    const net = netByNum.get(currNetNum);
+    emit.resetScores({match: currMatch._id, net: net?._id || null, room: currRoom?._id || null, accessCode: accessCode?.code.toString() || null});
+
+    closeResetConfirm();
+  }, [socket, dispatch, currRoom, currMatch, currNetNum, accessCode]);
+
 
   const handleUpdateScore = useCallback(() => {
     const net = netByNum.get(currNetNum);
@@ -313,9 +343,16 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
 
                 {selectedServer && selectedReceiver && (
                   <div className="my-6 flex gap-x-2 justify-center">
-                    <button onClick={handleSetPlayers} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
-                      Set Players
-                    </button>
+                    {!currServerReceiver ? (
+                      <button onClick={handleSetPlayers} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+                        Confirm Order
+                      </button>
+                    ) : (
+                      <button onClick={openResetConfirm} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+                        Reset
+                      </button>
+                    )}
+
                     {currServerReceiver && (
                       <button
                         onClick={() => setActionPreview(true)}
@@ -331,6 +368,22 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
           )}
         </div>
       )}
+
+      <dialog ref={confirmBoxEl} className="bg-gray-900 w-11/12 max-w-md rounded-2xl text-white shadow-xl border border-yellow-logo animate-fade-in">
+        <div className="p-6 space-y-4">
+          <h2 className="text-xl font-semibold text-yellow-400">Reset Scorekeeper Setting</h2>
+          <p className="text-sm text-gray-300">⚠️ Warning: This will reset everything including player statistics, team scores, and selected server player. Are you sure you want to proceed?</p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200" onClick={HandleConfirmReset}>
+              Confirm
+            </button>
+            <button className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200" onClick={closeResetConfirm}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

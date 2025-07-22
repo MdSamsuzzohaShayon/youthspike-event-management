@@ -29,6 +29,7 @@ import {
   RallyConversionInput,
   DefensiveConversionInput,
   UpdateCachePointsInput,
+  ResetScoreInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -51,6 +52,7 @@ import { RallyConversionHandler } from './gateway.handlers/rally-conversion';
 import { DefensiveConversionHandler } from './gateway.handlers/defensive-conversion';
 import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
 import { UpdateCachePointsHandler } from './gateway.handlers/update-cache-points';
+import { ResetScoreHandler } from './gateway.handlers/reset-score';
 
 @WebSocketGateway({
   cors: true,
@@ -84,6 +86,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private rallyConversion: RallyConversionHandler;
   private defensiveConversion: DefensiveConversionHandler;
   private updateCachePoints: UpdateCachePointsHandler;
+  private resetScore: ResetScoreHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -110,6 +113,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.rallyConversion = new RallyConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.defensiveConversion = new DefensiveConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.resetScore = new ResetScoreHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
 
     /**
      * Handlers for Score keeper
@@ -242,6 +246,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('update-cache-points-from-client')
   async onUpdateCachePoints(@ConnectedSocket() client: Socket, @MessageBody() updateCachePointsInput: UpdateCachePointsInput) {
     return this.updateCachePoints.handle(client, updateCachePointsInput, this.roomsLocal);
+  }
+
+  @SubscribeMessage('reset-score-from-client')
+  async onResetScore(@ConnectedSocket() client: Socket, @MessageBody() resetScoreInput: ResetScoreInput) {
+    return this.resetScore.handle(client, resetScoreInput, this.roomsLocal);
   }
 
 

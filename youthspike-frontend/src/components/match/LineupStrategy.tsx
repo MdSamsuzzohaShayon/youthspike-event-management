@@ -59,7 +59,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
     dispatch(setclosePSCAvailable(true));
   };
 
-  const availableAssign: boolean = (useCallback(() => {
+  const availableAssign: boolean = useCallback(() => {
     if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
       return false;
     }
@@ -78,19 +78,22 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
       }
     } else if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound.teamAScore) {
       if (!currMatch.extendedOvertime) return false;
-    } 
+    }
     return true;
-  }, [currMatch, currRound, myTeamE]))();
+  }, [currMatch, currRound, myTeamE])();
 
   if (!availableAssign) return null;
 
   return (
     <div className="w-full flex justify-center items-center relative text-white">
-      <div className="h-6 w-6 border-0 rounded-full bg-yellow-logo text-black flex justify-center items-center">
-        <button type="button" onClick={() => setOpenPasControl((prevState) => !prevState)}>
-          A
-        </button>
-      </div>
+      {(currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamAProcess === EActionProcess.LINEUP) &&
+        (currRound?.teamBProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.LINEUP) && (
+          <div className="h-6 w-6 border-0 rounded-full bg-yellow-logo text-black flex justify-center items-center">
+            <button type="button" onClick={() => setOpenPasControl((prevState) => !prevState)}>
+              A
+            </button>
+          </div>
+        )}
       {openPasControl && (
         <ul className="player-select-strategy bg-gray-800 w-fit absolute bottom-6 inset-x-0 z-20" style={{ left: '50%', transform: 'translate(-50%)' }}>
           {playerAssignStrategies.map((pas) => (

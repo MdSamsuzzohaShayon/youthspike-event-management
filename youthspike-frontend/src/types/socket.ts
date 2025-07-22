@@ -77,6 +77,13 @@ export interface IUpdateCachePointsInput extends ICacheAction {
   accessCode: string;
 }
 
+export interface IResetScoreInput {
+  match: string;
+  net: string | null;
+  room: string | null;
+  accessCode: string | null;
+}
+
 export interface ICheckInToLineupProps extends IStatusChange {
   myTeamE: ETeam;
   currRoundNets: INetRelatives[];
@@ -210,17 +217,17 @@ export interface IServerReceiverOnNetMixed {
   roundId?: string;
 }
 
-export enum EServerReceiverAction{
-  SERVER_ACE_NO_TOUCH = "SERVER_ACE_NO_TOUCH",
-  SERVER_ACE_NO_THIRD_TOUCH = "SERVER_ACE_NO_THIRD_TOUCH",
-  SERVER_RECEIVING_HITTING_ERROR = "SERVER_RECEIVING_HITTING_ERROR",
-  SERVER_DEFENSIVE_CONVERSION = "SERVER_DEFENSIVE_CONVERSION",
-  SERVER_DO_NOT_KNOW = "SERVER_DO_NOT_KNOW",
+export enum EServerReceiverAction {
+  SERVER_ACE_NO_TOUCH = 'SERVER_ACE_NO_TOUCH',
+  SERVER_ACE_NO_THIRD_TOUCH = 'SERVER_ACE_NO_THIRD_TOUCH',
+  SERVER_RECEIVING_HITTING_ERROR = 'SERVER_RECEIVING_HITTING_ERROR',
+  SERVER_DEFENSIVE_CONVERSION = 'SERVER_DEFENSIVE_CONVERSION',
+  SERVER_DO_NOT_KNOW = 'SERVER_DO_NOT_KNOW',
 
-  RECEIVER_SERVICE_FAULT = "RECEIVER_SERVICE_FAULT",
-  RECEIVER_ONE_TWO_THREE_PUT_AWAY = "RECEIVER_ONE_TWO_THREE_PUT_AWAY",
-  RECEIVER_RALLEY_CONVERSION = "RECEIVER_RALLEY_CONVERSION",
-  RECEIVER_DO_NOT_KNOW = "RECEIVER_DO_NOT_KNOW",
+  RECEIVER_SERVICE_FAULT = 'RECEIVER_SERVICE_FAULT',
+  RECEIVER_ONE_TWO_THREE_PUT_AWAY = 'RECEIVER_ONE_TWO_THREE_PUT_AWAY',
+  RECEIVER_RALLEY_CONVERSION = 'RECEIVER_RALLEY_CONVERSION',
+  RECEIVER_DO_NOT_KNOW = 'RECEIVER_DO_NOT_KNOW',
 }
 
 /**
@@ -228,10 +235,19 @@ export enum EServerReceiverAction{
  */
 
 // Score keeper
-export interface IServerReceiverResponse {
-  data: IServerReceiverOnNetMixed;
+interface IServerReceiverCommonResponse{
   dispatch: React.Dispatch<React.ReducerAction<any>>;
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
+}
+export interface IResetServerReceiverResponse extends IServerReceiverCommonResponse {
+  data: {net: string};
+}
+
+export interface IServerReceiverResponse extends IServerReceiverCommonResponse{
+  data: IServerReceiverOnNetMixed;
+}
+export interface ISRConfirmResponse extends IServerReceiverResponse {
+  setActionPreview: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // Run match

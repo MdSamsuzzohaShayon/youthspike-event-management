@@ -39,7 +39,11 @@ export class PlayerStatsService {
   }
 
   async deleteOne(filter: FilterQuery<PlayerStats>) {
-    return this.playerStats.findOne(filter);
+    return this.playerStats.deleteOne(filter);
+  }
+
+  async deleteMany(filter: FilterQuery<PlayerStats>) {
+    return this.playerStats.deleteMany(filter);
   }
 
 }

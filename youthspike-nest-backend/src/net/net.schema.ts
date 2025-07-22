@@ -112,11 +112,6 @@ export class ServerReceiverOnNet extends AppDocument {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   server: string | Player;
 
-  // @Field(() => String, { nullable: true, description: 'ID of the server player' })
-  // get serverId(): string | null {
-  //   if (!this.server) return null;
-  //   return typeof this.server === 'string' ? this.server : this.server._id.toString();
-  // }
   @Field((_type) => String, { nullable: true })
   serverId?: string;
 

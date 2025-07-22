@@ -21,11 +21,11 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
       <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400 mt-6">Selected Server/Receiver</h3>
       <div className="w-full flex justify-center items-center gap-x-2 md:gap-x-6">
         {/* Left Side */}
-        <SRPlayerCard player={serverTeam?.servingPartner || null} role="Serving Partner" selected={selectedServer} serverReceiverTeam={serverTeam} dark />
+        <SRPlayerCard player={serverTeam?.servingPartner || null} role="Swing" selected={selectedServer} serverReceiverTeam={serverTeam} dark />
 
         {/* Middle Side */}
         <div className="w-1/3 flex justify-center items-center">
-          <div className="w-full flex flex-col items-center gap-6 bg-white text-black rounded-xl p-6 shadow-lg">
+          <div className="w-full flex flex-col items-center gap-6 p-6">
             <Image alt="Logo" src="/imgs/spikeball-logo.webp" width={40} height={40} className="mb-2" />
 
             <SRPlayerCard player={serverTeam?.server || null} role="Server" selected={selectedServer} serverReceiverTeam={serverTeam} handlePlayerSelection={handleAddServer ? handleAddServer : () => {}} />
@@ -45,7 +45,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
         </div>
 
         {/* Right Side */}
-        <SRPlayerCard player={receiverTeam?.receivingPartner || null} role="Receiving Partner" selected={selectedReceiver} serverReceiverTeam={receiverTeam} dark />
+        <SRPlayerCard player={receiverTeam?.receivingPartner || null} role="Setter" selected={selectedReceiver} serverReceiverTeam={receiverTeam} dark />
       </div>
     </div>
   );

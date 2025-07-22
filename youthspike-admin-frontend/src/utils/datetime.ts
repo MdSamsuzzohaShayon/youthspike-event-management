@@ -9,8 +9,11 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
   const targetDate = new Date(isoString);
   const currDate = new Date();
 
-  targetDate.setHours(0, 0, 0, 0);
-  currDate.setHours(0, 0, 0, 0);
+  // targetDate.setHours(0, 0, 0, 0);
+  // currDate.setHours(0, 0, 0, 0);
+
+  targetDate.setUTCHours(0, 0, 0, 0);
+  currDate.setUTCHours(0, 0, 0, 0);
 
   if (targetDate < currDate) {
     return EEventPeriod.PAST;

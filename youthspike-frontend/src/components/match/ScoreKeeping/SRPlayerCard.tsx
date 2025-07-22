@@ -32,13 +32,13 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({ selected, serverReceiverTe
   return (
     <div
       className={`relative flex flex-col items-center w-28 lg:w-36 p-4 rounded-3xl shadow-lg transition-shadow
-                  ${dark ? 'bg-gray-900/80 border border-gray-700' : 'bg-white/60 border border-gray-200'}
+                  bg-gray-900/80 border border-gray-700'}
                   hover:shadow-2xl backdrop-blur`}
     >
       {/* role badge */}
       <span
         className={`absolute -top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase
-                    ${dark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-600'}`}
+                    bg-yellow-logo text-black`}
       >
         {role}
       </span>
@@ -61,7 +61,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({ selected, serverReceiverTe
         ) : dark ? (
           <div />
         ) : (
-          <Image alt="Add player" src="/icons/plus.svg" width={32} height={32} className='svg-white' />
+          <Image alt="Add player" src="/icons/plus.svg" width={32} height={32} className="svg-white" />
         )}
       </button>
 

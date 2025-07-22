@@ -6,9 +6,11 @@ import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import {
   ICheckInResponse,
   ILineUpResponse,
+  IResetServerReceiverResponse,
   IRoom,
   IRoundRelatives,
   IServerReceiverResponse,
+  ISRConfirmResponse,
   IUpdateExtendOvertimeResponse,
   IUpdateNet,
   IUpdateNetResponse,
@@ -322,16 +324,17 @@ class SocketEventListener {
       dispatch(setCurrentServerReceiver(data));
     }
   }
-  handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+  handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet, setActionPreview }: ISRConfirmResponse) {
     this.dispatch = dispatch;
 
     // Score Keeper
     if (data) {
       dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
       dispatch(setCurrentServerReceiver(data));
+
+      setActionPreview(true);
     }
 
-    // Set current round and round list
     // Change state
     // Change player stats state -> later
 
@@ -339,11 +342,9 @@ class SocketEventListener {
     // This would typically involve fetching or updating the list
     // For now, we'll add the current one to the list if it doesn't exist
     // You may need to adjust this logic based on your specific requirements
-
-    // Set current round and round list
-    // Change state
-    // Change player stats state -> later
   }
+
+  
 
   handleServiceFaultResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
     this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
@@ -373,12 +374,24 @@ class SocketEventListener {
     this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
   }
 
+
+  handleResetServerReceiver({ data, dispatch, serverReceiversOnNet }: IResetServerReceiverResponse){
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    // const newSrList = [...serverReceiversOnNet.filter((sr) => sr.net !== data.net)];
+    // dispatch(setServerReceiversOnNet(newSrList));
+    // dispatch(setCurrentServerReceiver(null));
+
+
+    window.location.reload();
+  }
+
   handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {
     console.log({ error });
     this.dispatch = dispatch;
     dispatch(setActErr({ success: false, message: `${error}. Try refreshing the page!` }));
   }
 }
-
 
 export default SocketEventListener;

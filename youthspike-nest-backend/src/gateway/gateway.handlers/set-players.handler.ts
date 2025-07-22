@@ -86,10 +86,8 @@ export class SetPlayersHandler {
         ? [body.receiver, [...teamB].find((p) => p !== body.receiver)!]
         : [body.receiver, [...teamA].find((p) => p !== body.receiver)!];
 
-    //   const prevAction = await this.gatewayRedisService.getAction(SR_CACHE_KEY);
-
       const actionData: ServerReceiverOnNet = {
-        mutate: 0,
+        mutate: 1,
         server,
         serverId: server,
         servingPartner,

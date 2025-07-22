@@ -7,12 +7,15 @@ import TextImg from '../elements/TextImg';
 import Link from 'next/link';
 import { LDO_ID } from '@/utils/constant';
 import { readDate } from '@/utils/datetime';
+import useLdoUrl from '@/hooks/useLdoUrl';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface IMatchTableProps {
   matches: IMatchExpRel[];
 }
 
 export default function MatchTable({ matches }: IMatchTableProps) {
+  const { ldoIdUrl } = useLdoId();
   return (
     <div className="w-full">
       {/* ────────────────────────── Desktop (table) ────────────────────────── */}
@@ -35,20 +38,12 @@ export default function MatchTable({ matches }: IMatchTableProps) {
             {matches.map((m) => (
               <tr key={m._id} className="hover:bg-gray-800 transition">
                 {/* Date */}
-                <td className="py-4 px-4 whitespace-nowrap font-medium">
-                  {readDate(m.date)}
-                </td>
+                <td className="py-4 px-4 whitespace-nowrap font-medium">{readDate(m.date)}</td>
 
                 {/* Team A */}
                 <td className="py-4 px-4 flex items-center gap-3">
                   {m.teamA.logo ? (
-                    <CldImage
-                      src={m.teamA.logo}
-                      alt={`${m.teamA.name} logo`}
-                      width={40}
-                      height={40}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
+                    <CldImage src={m.teamA.logo} alt={`${m.teamA.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <TextImg className="w-8 h-8 rounded-full" fullText={m.teamA.name} />
                   )}
@@ -58,13 +53,7 @@ export default function MatchTable({ matches }: IMatchTableProps) {
                 {/* Team B */}
                 <td className="py-4 px-4 flex items-center gap-3">
                   {m.teamB.logo ? (
-                    <CldImage
-                      src={m.teamB.logo}
-                      alt={`${m.teamB.name} logo`}
-                      width={40}
-                      height={40}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
+                    <CldImage src={m.teamB.logo} alt={`${m.teamB.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <TextImg className="w-8 h-8 rounded-full" fullText={m.teamB.name} />
                   )}
@@ -80,8 +69,8 @@ export default function MatchTable({ matches }: IMatchTableProps) {
                 {/* Action */}
                 <td className="py-4 px-4 text-center">
                   <Link
-                  // @ts-ignore
-                    href={`/${m.event._id}/matches/${m._id}/?${LDO_ID}=${m.event?.ldo?._id || ''}`}
+                    // @ts-ignore
+                    href={`/${m.event._id}/matches/${m._id}/${ldoIdUrl}`}
                     className="inline-block bg-yellow-400 text-black font-semibold px-4 py-2 rounded-md hover:bg-yellow-500 transition"
                   >
                     Details
@@ -98,22 +87,14 @@ export default function MatchTable({ matches }: IMatchTableProps) {
         {matches.map((m) => (
           <div key={m._id} className="bg-gray-900 text-white rounded-xl shadow-md p-4 space-y-3">
             {/* Date */}
-            <div className="text-sm font-semibold text-yellow-400">
-              {readDate(m.date)}
-            </div>
+            <div className="text-sm font-semibold text-yellow-400">{readDate(m.date)}</div>
 
             {/* Teams */}
             <div className="flex items-center justify-between gap-4">
               {/* Team A */}
               <div className="flex items-center gap-2">
                 {m.teamA.logo ? (
-                  <CldImage
-                    src={m.teamA.logo}
-                    alt={`${m.teamA.name} logo`}
-                    width={40}
-                    height={40}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <CldImage src={m.teamA.logo} alt={`${m.teamA.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <TextImg className="w-8 h-8 rounded-full" fullText={m.teamA.name} />
                 )}
@@ -126,13 +107,7 @@ export default function MatchTable({ matches }: IMatchTableProps) {
               {/* Team B */}
               <div className="flex items-center gap-2">
                 {m.teamB.logo ? (
-                  <CldImage
-                    src={m.teamB.logo}
-                    alt={`${m.teamB.name} logo`}
-                    width={40}
-                    height={40}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <CldImage src={m.teamB.logo} alt={`${m.teamB.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <TextImg className="w-8 h-8 rounded-full" fullText={m.teamB.name} />
                 )}
@@ -161,14 +136,12 @@ export default function MatchTable({ matches }: IMatchTableProps) {
             </dl>
 
             {/* Description */}
-            {m.description && (
-              <p className="text-xs leading-snug text-gray-300">{m.description}</p>
-            )}
+            {m.description && <p className="text-xs leading-snug text-gray-300">{m.description}</p>}
 
             {/* Action */}
             <div className="text-right">
               <Link
-              // @ts-ignore
+                // @ts-ignore
                 href={`/${m.event._id}/matches/${m._id}/?${LDO_ID}=${m.event?.ldo?._id || ''}`}
                 className="inline-block bg-yellow-400 text-black font-semibold px-3 py-1.5 rounded-md hover:bg-yellow-500 transition"
               >

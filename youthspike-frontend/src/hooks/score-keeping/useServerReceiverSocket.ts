@@ -14,9 +14,10 @@ interface IServerReceiverSocketProps {
   currRound: IRoundRelatives | null;
   matchId: string;
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
+  setActionPreview: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function useServerReceiverSocket({ socket, dispatch, roundList, teamA, teamB, currRound, matchId, serverReceiversOnNet }: IServerReceiverSocketProps) {
+export default function useServerReceiverSocket({ socket, dispatch, roundList, teamA, teamB, currRound, matchId, serverReceiversOnNet, setActionPreview }: IServerReceiverSocketProps) {
   useEffect(() => {
     if (!socket || !roundList.length) return;
 
@@ -32,7 +33,8 @@ export default function useServerReceiverSocket({ socket, dispatch, roundList, t
     const listener = new SocketEventListener(socket, dispatch);
     const handlers = {
       'error-from-server': (err: string) => listener.handleError(err, dispatch),
-      'set-players-from-server': (data: IServerReceiverOnNetMixed) => listener.handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet }),
+      'reset-score-from-server': (data: {net: string}) => listener.handleResetServerReceiver({ data, dispatch, serverReceiversOnNet }),
+      'set-players-from-server': (data: IServerReceiverOnNetMixed) => listener.handleServerReceiverResponse({ data, dispatch, serverReceiversOnNet, setActionPreview }),
       'service-fault-from-server': (data: IServerReceiverOnNetMixed) => listener.handleServiceFaultResponse({ data, dispatch, serverReceiversOnNet }),
       'ace-no-touch-from-server': (data: IServerReceiverOnNetMixed) => listener.handleAceNoTouchResponse({ data, dispatch, serverReceiversOnNet }),
       'ace-no-third-touch-from-server': (data: IServerReceiverOnNetMixed) => listener.handleAceNoThirdTouchResponse({ data, dispatch, serverReceiversOnNet }),

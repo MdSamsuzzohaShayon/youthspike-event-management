@@ -27,6 +27,10 @@ export class ScoreKeeperHelper {
     await this.redis.setAction(this.netKey(netId, room), data);
   }
 
+  async deleteNetAction(netId: string, room: string) {
+    await this.redis.deleteAction(this.netKey(netId, room));
+  }
+
   /* ─────────────────────────── helpers for “players” ───────────────────────── */
 
   private playerKey(id: string, netId: string) {
@@ -52,6 +56,10 @@ export class ScoreKeeperHelper {
    */
   async savePlayerStats(statsMap: Record<string, PlayerStats>) {
     await Promise.all(Object.entries(statsMap).map(([id, data]) => this.redis.setAction(this.playerKey(id, data.net.toString()), data))); // Redis key: <player:id:net>
+  }
+
+  async deletePlayerStats(netId: string, ids: string[]) {
+    await Promise.all(ids.map((id) => this.redis.deleteAction(this.playerKey(id, netId)))); // Redis key: <player:id:net>
   }
 
   /**

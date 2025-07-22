@@ -101,6 +101,16 @@ export class GatewayRedisService {
     }
   }
 
+  async deleteAction(key: string) {
+    try {
+      await this.redisService.delete(key);
+      this.logger.log(`Delete action data for key ${key}`);
+    } catch (error) {
+      this.logger.error(`Failed to set action data for key ${key}: ${error.message}`);
+      throw error;
+    }
+  }
+
   async subscribeToRoom(roomId: string) {
     try {
       const subClient = this.redisService.getSubClient();

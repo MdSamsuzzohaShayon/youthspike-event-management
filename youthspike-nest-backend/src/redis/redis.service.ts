@@ -22,9 +22,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     redisOptions: {
       password: process.env.REDIS_PASSWORD,
       // tls: NODE_ENV === EEnv.PRODUCTION ? {} : undefined,
-      tls:  undefined,
+      tls: undefined,
       retryStrategy: (times: number) => Math.min(times * 50, 2000),
-    }
+    },
   };
 
   constructor() {
@@ -72,7 +72,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   // async mget<T>(...keys: string[]): Promise<(T | null)[]> {
   //   const client = this.getPubClient();
   //   const results = await client.mget(...keys);
-  
+
   //   return results.map(data => {
   //     if (data) {
   //       try {
@@ -85,11 +85,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   //     return null;
   //   });
   // }
-  
+
+  async delete(key: string): Promise<void> {
+    const client = this.getPubClient();
+    await client.del(key);
+  }
 
   async onModuleInit() {
-    this.logger.log(`Redis Cluster initialized with nodes: ${this.nodes.map(n => `${n.host}:${n.port}`).join(', ')}`);
-    
+    this.logger.log(`Redis Cluster initialized with nodes: ${this.nodes.map((n) => `${n.host}:${n.port}`).join(', ')}`);
+
     // Test connection
     try {
       await RedisService.pubClient.ping();
@@ -101,10 +105,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
-      await Promise.all([
-        RedisService.pubClient.quit(),
-        RedisService.subClient.quit(),
-      ]);
+      await Promise.all([RedisService.pubClient.quit(), RedisService.subClient.quit()]);
       this.logger.log('Redis connections closed gracefully');
     } catch (err) {
       this.logger.error('Error closing Redis connections', err.stack);

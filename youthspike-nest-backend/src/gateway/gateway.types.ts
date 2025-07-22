@@ -147,6 +147,11 @@ export class UpdateCachePointsInput extends CommonActionInput {
 }
 
 
+@InputType()
+export class ResetScoreInput extends UpdateCachePointsInput {
+}
+
+
 export interface INetScoreUpdate {
   _id: string;
   teamAScore?: number;

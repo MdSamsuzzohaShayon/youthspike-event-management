@@ -16,10 +16,6 @@ import {
   IOneTwoThreePutAwayInput,
   IRallyConversionInput,
   IDefensiveConversionInput,
-} from '@/types';
-import { IUser, IUserContext, UserRole } from '@/types/user';
-import { EActionProcess, IRoom, IRoomNetType, ISubmitLineupAction, ITeiBreakerAction } from '@/types/room';
-import {
   INotTwoPointNetProps,
   ISubmitLineupProps,
   ISubmitUpdatePointsProps,
@@ -29,10 +25,20 @@ import {
   IServiceFaultInput,
   IAceNoTouchInput,
   IUpdateCachePointsInput,
-} from '@/types/socket';
-import { ETeam, ITeam } from '@/types/team';
+  IResetScoreInput,
+  EActionProcess,
+  IRoom,
+  IRoomNetType,
+  ISubmitLineupAction,
+  ITeiBreakerAction,
+  IUser,
+  IUserContext,
+  UserRole,
+  ETeam,
+  ITeam,
+  ETieBreaker,
+} from '@/types';
 import { Socket } from 'socket.io-client';
-import { ETieBreaker } from '@/types/net';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import LocalStorageService from '../LocalStorageService';
 
@@ -460,6 +466,43 @@ class EmitEvents {
   updateCachePoints({ match, net, room, accessCode }: IUpdateCachePointsInput) {
     const actionData = { match, net, room, accessCode };
     this.socket?.emit('update-cache-points-from-client', actionData);
+  }
+
+  resetScores({ match, net, room, accessCode }: IResetScoreInput) {
+
+    if (!net) {
+      return this.dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'Please select a net before proceeding.',
+        }),
+      );
+    }
+
+    if (!room) {
+      return this.dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'There is no room to send message.',
+        }),
+      );
+    }
+
+    if (!accessCode) {
+      return this.dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: 'You do not have permission to do this operation. You must put a valid access code!',
+        }),
+      );
+    }
+
+
+    const actionData = { match, net, room, accessCode };
+    this.socket?.emit('reset-score-from-client', actionData);
   }
 }
 

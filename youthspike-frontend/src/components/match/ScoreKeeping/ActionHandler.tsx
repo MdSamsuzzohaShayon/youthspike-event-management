@@ -8,26 +8,26 @@ interface IActionHandlerProps {
 function ActionHandler({ setServerReceiverAction }: IActionHandlerProps) {
   const handleAceNoTouch = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log("The serving player Served the ball so well that the receiver couldn't even touch the ball");
+    // console.log("The serving player Served the ball so well that the receiver couldn't even touch the ball");
     setServerReceiverAction(EServerReceiverAction.SERVER_ACE_NO_TOUCH);
   };
 
   const handleAceNoThirdTouch = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log("The Serving player put on a serve that was touched by the receiver and set by the setter but the serve was good enough that the receiver couldn't use their third hit");
+    // console.log("The Serving player put on a serve that was touched by the receiver and set by the setter but the serve was good enough that the receiver couldn't use their third hit");
     setServerReceiverAction(EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH);
   };
 
   const handleReceivingHittingError = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log('The receiver during their hit did not get the ball back on the net');
+    // console.log('The receiver during their hit did not get the ball back on the net');
     setServerReceiverAction(EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR);
   };
 
   // Server
   const handleDefensiveConversion = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log('The serving team got the receiving teams hit and put the ball away');
+    // console.log('The serving team got the receiving teams hit and put the ball away');
     setServerReceiverAction(EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION);
   };
 
@@ -43,37 +43,13 @@ function ActionHandler({ setServerReceiverAction }: IActionHandlerProps) {
 
   const handleOneTwoThreePutAway = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log('The serve was received, the ball was set, and the ball was put away. This is generally the most likely outcome');
-    /*
-    if (receiver && currNet && room) {
-      const actionData = {
-        match: matchId,
-        receiver,
-        net: currNet,
-        room,
-      };
-      const emit = new EmitEvents(socket, dispatch);
-      emit.oneTwoThreePutAway(actionData);
-    }
-      */
+    // console.log('The serve was received, the ball was set, and the ball was put away. This is generally the most likely outcome');
     setServerReceiverAction(EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY);
   };
 
   const handleRallyConversion = (e: React.SyntheticEvent) => {
     e.preventDefault();
     console.log('The serving team got the receiving teams hit and put the ball away');
-    /*
-    if (receiver && currNet && room) {
-      const actionData = {
-        match: matchId,
-        receiver,
-        net: currNet,
-        room,
-      };
-      const emit = new EmitEvents(socket, dispatch);
-      emit.rallyConversion(actionData);
-    }
-      */
     setServerReceiverAction(EServerReceiverAction.RECEIVER_RALLEY_CONVERSION);
   };
 

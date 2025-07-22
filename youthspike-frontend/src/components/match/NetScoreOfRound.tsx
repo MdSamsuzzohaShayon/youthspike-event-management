@@ -20,7 +20,7 @@ import SubbedPlayers from '../player/SubbedPlayers';
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const dispatch = useAppDispatch();
-  const [boardHeight, setBoardHeight] = useState(0);
+  const [boardHeight, setBoardHeight] = useState(600);
 
   // Redux selectors
   const screenWidth = useAppSelector((state) => state.elements.screenWidth);
@@ -97,19 +97,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   }, [dispatch]);
 
 
-  useLayoutEffect(() => {
-    const measureHeight = () => {
-      const leftFullEl = document.getElementById('left-round-detail');
-      const rightFullEl = document.getElementById('right-net-card');
-      if (rightFullEl && leftFullEl) {
-        const fullHeight = Math.max(rightFullEl.clientHeight, leftFullEl.clientHeight);
-        setBoardHeight(fullHeight);
-      }
-    };
-
-    const timer = setTimeout(measureHeight, 300);
-    return () => clearTimeout(timer);
-  }, [showTeamPlayers]);
 
   // Memoized components
   const roundButtons = useMemo(() => (
@@ -168,7 +155,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     return (
       <div 
         id="left-round-detail" 
-        style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }} 
+        style={{ minHeight: `${(screenWidth > screen.xs ? 600 : 450)   + EXTRA_HEIGHT}px` }} 
         className={`round-detail relative border ${border.light} ${
           screenWidth > screen.xs ? 'w-3/12' : 'w-3/6'
         }`}
