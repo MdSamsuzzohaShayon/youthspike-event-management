@@ -1,11 +1,14 @@
-import { EServerReceiverAction } from '@/types';
+import { EServerReceiverAction, ETeam, ITeam } from '@/types';
 import React from 'react';
 
 interface IActionHandlerProps {
   setServerReceiverAction: React.Dispatch<React.SetStateAction<EServerReceiverAction | null>>;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
+  serverTeamE: null | ETeam;
 }
 
-function ActionHandler({ setServerReceiverAction }: IActionHandlerProps) {
+function ActionHandler({ setServerReceiverAction, teamA, teamB, serverTeamE }: IActionHandlerProps) {
   const handleAceNoTouch = (e: React.SyntheticEvent) => {
     e.preventDefault();
     // console.log("The serving player Served the ball so well that the receiver couldn't even touch the ball");
@@ -49,7 +52,7 @@ function ActionHandler({ setServerReceiverAction }: IActionHandlerProps) {
 
   const handleRallyConversion = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log('The serving team got the receiving teams hit and put the ball away');
+    // console.log('The serving team got the receiving teams hit and put the ball away');
     setServerReceiverAction(EServerReceiverAction.RECEIVER_RALLEY_CONVERSION);
   };
 
@@ -61,7 +64,7 @@ function ActionHandler({ setServerReceiverAction }: IActionHandlerProps) {
   return (
     <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-between items-start">
       <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <h3 className="uppercase text-center">Serving Team</h3>
+        <h3 className="uppercase text-center">Serving Team / {serverTeamE === ETeam.teamA ? teamA?.name : teamB?.name}</h3>
         <button className="btn-light uppercase" onClick={handleAceNoTouch}>
           ACE no-touch
         </button>
@@ -79,7 +82,7 @@ function ActionHandler({ setServerReceiverAction }: IActionHandlerProps) {
         </button>
       </div>
       <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <h3 className="uppercase text-center">Receiving Team</h3>
+        <h3 className="uppercase text-center">Receiving Team /  {serverTeamE === ETeam.teamA ? teamB?.name : teamA?.name}</h3>
         <button className="btn-light uppercase" onClick={handleServiceFault}>
           Service Fault
         </button>

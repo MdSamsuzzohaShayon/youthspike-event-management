@@ -11,9 +11,6 @@ const actionConfirmation = (
   net: string | null,
   room: string | null,
 ) => {
-  if (!serverReceiverAction) {
-    console.warn('No action has been selected!');
-  }
   const emit = new EmitEvents(socket, dispatch);
   switch (serverReceiverAction) {
     case EServerReceiverAction.SERVER_ACE_NO_TOUCH:
@@ -42,7 +39,7 @@ const actionConfirmation = (
 
     case EServerReceiverAction.SERVER_DO_NOT_KNOW:
       if (receiver && net && room) {
-        console.log('Server do not know!');
+        emit.serverDoNotKnow({ match, receiver, net, room });
       }
       break;
 
@@ -64,13 +61,15 @@ const actionConfirmation = (
       }
       break;
 
-    case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:
+    case EServerReceiverAction.RECEIVER_DO_NOT_KNOW:
       if (receiver && net && room) {
-        emit.rallyConversion({ match, receiver, net, room });
+        emit.receiverDoNotKnow({ match, receiver, net, room });
       }
       break;
 
     default:
+      console.log(`Action is unknown ${serverReceiverAction}`);
+      
       break;
   }
 };

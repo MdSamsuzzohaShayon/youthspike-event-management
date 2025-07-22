@@ -374,6 +374,14 @@ class SocketEventListener {
     this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
   }
 
+  handleServerDoNotKnowResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
+  }
+
+  handleReceiverDoNotKnowResponse({ data, dispatch, serverReceiversOnNet }: IServerReceiverResponse) {
+    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet });
+  }
+
 
   handleResetServerReceiver({ data, dispatch, serverReceiversOnNet }: IResetServerReceiverResponse){
     this.dispatch = dispatch;

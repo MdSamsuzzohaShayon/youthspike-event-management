@@ -3,8 +3,9 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { IReceiverTeam, IServerTeam } from '@/types';
+import { ETeam, IReceiverTeam, IServerTeam } from '@/types';
 import SRPlayerCard from './SRPlayerCard';
+import { toOrdinal } from '@/utils/helper';
 
 interface ServerReceiverDisplayProps {
   selectedServer: string | null;
@@ -13,6 +14,7 @@ interface ServerReceiverDisplayProps {
   receiverTeam: IReceiverTeam | null;
   handleAddServer?: (e: React.SyntheticEvent) => void;
   handleAddReceiver?: (e: React.SyntheticEvent) => void;
+  
 }
 
 const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedServer, selectedReceiver, serverTeam, receiverTeam, handleAddServer, handleAddReceiver }) => {
@@ -28,7 +30,13 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
           <div className="w-full flex flex-col items-center gap-6 p-6">
             <Image alt="Logo" src="/imgs/spikeball-logo.webp" width={40} height={40} className="mb-2" />
 
-            <SRPlayerCard player={serverTeam?.server || null} role="Server" selected={selectedServer} serverReceiverTeam={serverTeam} handlePlayerSelection={handleAddServer ? handleAddServer : () => {}} />
+            <SRPlayerCard
+              player={serverTeam?.server || null}
+              role="Server"
+              selected={selectedServer}
+              serverReceiverTeam={serverTeam}
+              handlePlayerSelection={handleAddServer ? handleAddServer : () => {}}
+            />
 
             <div className="flex justify-center items-center py-2">
               <Image alt="Net" src="/imgs/spikeball-net.png" width={80} height={80} />

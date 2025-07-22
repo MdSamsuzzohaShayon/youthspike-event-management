@@ -6,7 +6,8 @@ export default function useInitialSelection(
   netByNum: Map<number, any>,
   serverReceiverByNetId: Map<string, IServerReceiverOnNetMixed>,
   setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>,
-  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>
+  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>,
+  setActionPreview: React.Dispatch<React.SetStateAction<boolean>>,
 ) {
   useEffect(() => {
     if (!currNetNum) return;
@@ -16,6 +17,7 @@ export default function useInitialSelection(
     if (pre) {
       setSelectedServer(typeof pre.server === 'string' ? pre.server : pre.server?._id ?? null);
       setSelectedReceiver(typeof pre.receiver === 'string' ? pre.receiver : pre.receiver?._id ?? null);
+      setActionPreview(true);
     }
   }, [currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver]);
 }

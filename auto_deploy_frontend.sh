@@ -91,6 +91,11 @@ cd "$CLONE_DIR/youthspike-frontend"
 export NODE_ENV="production"
 npm install
 nano src/utils/keys.ts
+info "Copy environment variables..."
+nano .env
+cat .env
+success "Done copying environment variable."
+
 npm run build
 pm2 start ecosystem.config.js
 success "User frontend deployed."

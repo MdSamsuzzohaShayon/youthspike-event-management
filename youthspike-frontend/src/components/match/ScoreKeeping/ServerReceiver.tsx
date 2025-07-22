@@ -86,7 +86,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, [currRound, roundList, currentRoundNets]);
 
   /* Populate initial selection once data is there */
-  useInitialSelection(currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver);
+  useInitialSelection(currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver, setActionPreview);
 
   /* Socket listeners / room join */
   useServerReceiverSocket({
@@ -202,6 +202,17 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     emit.updateCachePoints(actionData);
   }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
 
+  const serverTeamE: ETeam | null = useMemo(() => {
+    const teamAPlayerIds = new Set(teamAPlayers.map((p) => p._id));
+    const teamBPlayerIds = new Set(teamAPlayers.map((p) => p._id));
+    if (selectedServer && teamAPlayerIds.has(selectedServer)) {
+      return ETeam.teamA;
+    } else if (selectedServer && teamBPlayerIds.has(selectedServer)) {
+      return ETeam.teamB;
+    }
+    return null;
+  }, [teamAPlayers, selectedServer]);
+
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
@@ -220,12 +231,14 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
         EServerReceiverAction.SERVER_ACE_NO_TOUCH,
         EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
         EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
+        EServerReceiverAction.SERVER_DO_NOT_KNOW,
       ]);
 
       const receiverBasedActions = new Set([
         EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
         EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
         EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
+        EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
       ]);
 
       const targetId = serverBasedActions.has(serverReceiverAction) ? selectedServer : receiverBasedActions.has(serverReceiverAction) ? selectedReceiver : null;
@@ -282,13 +295,13 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
             <div className="w-full md:w-2/6">
-              <div className="slider">{`${toOrdinal(currServerReceiver?.mutate ?? 0)} play`}</div>
               <ServerReceiverDisplay selectedServer={selectedServer} selectedReceiver={selectedReceiver} serverTeam={serverTeam} receiverTeam={receiverTeam} />
             </div>
             {/* Left side end  */}
 
             {/* Middle side start  */}
-            <div className="w-full md:w-1/6 flex justify-center  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
+            <div className="w-full text-center mt-6 md:mt-2">{`${toOrdinal(currServerReceiver?.mutate || 0)} play`}</div>
+            <div className="w-full md:w-1/6 flex justify-center  md:flex-col flex-row gap-y-2 gap-x-2 items-center">
               {/* Team A Start   */}
               <h2 className="uppercase">{teamA?.name}</h2>
               <div className={`bg-yellow-logo text-black h-24 w-24 rounded-xl flex items-center justify-center relative`}>
@@ -307,7 +320,8 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
 
             {/* Right side start  */}
             <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
-              <button className="btn-light uppercase">Change Server/Receiver point 1</button>
+              {/* This should be an edit button  */}
+              {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
               {serverReceiverAction && (
                 <button className="btn-success uppercase" onClick={handleConfirmAction}>
                   {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
@@ -319,7 +333,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
           </div>
 
           {/* Handle action for each button pressed  */}
-          <ActionHandler setServerReceiverAction={setServerReceiverAction} />
+          <ActionHandler setServerReceiverAction={setServerReceiverAction} teamA={teamA || null} teamB={teamB || null} serverTeamE={serverTeamE} />
 
           {actionPreview && (
             <div className="mt-6 flex justify-center items-center gap-x-2">

@@ -30,6 +30,8 @@ import {
   DefensiveConversionInput,
   UpdateCachePointsInput,
   ResetScoreInput,
+  ServerDoNotKnowInput,
+  ReceiverDoNotKnowInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -53,6 +55,8 @@ import { DefensiveConversionHandler } from './gateway.handlers/defensive-convers
 import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
 import { UpdateCachePointsHandler } from './gateway.handlers/update-cache-points';
 import { ResetScoreHandler } from './gateway.handlers/reset-score';
+import { ServerDoNotKnowHandler } from './gateway.handlers/server-do-not-know';
+import { ReceiverDoNotKnowHandler } from './gateway.handlers/receiver-do-not-know';
 
 @WebSocketGateway({
   cors: true,
@@ -87,6 +91,8 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private defensiveConversion: DefensiveConversionHandler;
   private updateCachePoints: UpdateCachePointsHandler;
   private resetScore: ResetScoreHandler;
+  private serverDoNotKnow: ServerDoNotKnowHandler;
+  private receiverDoNotKnow: ReceiverDoNotKnowHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -114,6 +120,9 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.defensiveConversion = new DefensiveConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.serverDoNotKnow = new ServerDoNotKnowHandler(scoreKeeperHelper);
+    this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
+
 
     /**
      * Handlers for Score keeper
@@ -253,6 +262,17 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.resetScore.handle(client, resetScoreInput, this.roomsLocal);
   }
 
+
+  @SubscribeMessage('server-do-not-know-from-client')
+  async onServerDoNotKnow(@ConnectedSocket() client: Socket, @MessageBody() serverDoNotKnowInput: ServerDoNotKnowInput) {
+    return this.serverDoNotKnow.handle(client, serverDoNotKnowInput, this.roomsLocal);
+  }
+
+
+  @SubscribeMessage('receiver-do-not-know-from-client')
+  async onReceiverDoNotKnow(@ConnectedSocket() client: Socket, @MessageBody() receiverDoNotKnowInput: ReceiverDoNotKnowInput) {
+    return this.receiverDoNotKnow.handle(client, receiverDoNotKnowInput, this.roomsLocal);
+  }
 
 
 }

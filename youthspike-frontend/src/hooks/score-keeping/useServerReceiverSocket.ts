@@ -42,6 +42,8 @@ export default function useServerReceiverSocket({ socket, dispatch, roundList, t
       'rally-conversion-from-server': (data: IServerReceiverOnNetMixed) => listener.handleRalleyConversionResponse({ data, dispatch, serverReceiversOnNet }),
       'defensive-conversion-from-server': (data: IServerReceiverOnNetMixed) => listener.handleDefensiveConversionResponse({ data, dispatch, serverReceiversOnNet }),
       'receiving-hitting-error-from-server': (data: IServerReceiverOnNetMixed) => listener.handleHittingErrorResponse({ data, dispatch, serverReceiversOnNet }),
+      'server-do-not-know-from-server': (data: IServerReceiverOnNetMixed) => listener.handleServerDoNotKnowResponse({ data, dispatch, serverReceiversOnNet }),
+      'receiver-do-not-know-from-server': (data: IServerReceiverOnNetMixed) => listener.handleReceiverDoNotKnowResponse({ data, dispatch, serverReceiversOnNet }),
       // 
     } as const;
 

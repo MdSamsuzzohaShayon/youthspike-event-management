@@ -122,6 +122,12 @@ class CommonActionInput {
 export class ServiceFaultInput extends CommonActionInput {}
 
 @InputType()
+export class ReceiverDoNotKnowInput extends CommonActionInput {}
+
+@InputType()
+export class ServerDoNotKnowInput extends CommonActionInput {}
+
+@InputType()
 export class AceNoTouchInput extends CommonActionInput {}
 
 @InputType()
@@ -148,8 +154,7 @@ export class UpdateCachePointsInput extends CommonActionInput {
 
 
 @InputType()
-export class ResetScoreInput extends UpdateCachePointsInput {
-}
+export class ResetScoreInput extends UpdateCachePointsInput {}
 
 
 export interface INetScoreUpdate {

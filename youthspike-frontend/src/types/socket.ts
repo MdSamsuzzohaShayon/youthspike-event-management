@@ -71,6 +71,9 @@ export interface IRallyConversionInput extends ICommonAction {}
 
 export interface IAceNoTouchInput extends ICommonAction {}
 export interface IAceNoThirdTouchInput extends ICommonAction {}
+export interface IServerDoNotKnowInput extends ICommonAction {}
+export interface IReceiverDoNotKnowInput extends ICommonAction {}
+
 export interface IReceivingHittingErrorInput extends ICommonAction {}
 
 export interface IUpdateCachePointsInput extends ICacheAction {

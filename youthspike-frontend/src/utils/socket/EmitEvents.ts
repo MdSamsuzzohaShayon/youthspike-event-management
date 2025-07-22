@@ -37,6 +37,8 @@ import {
   ETeam,
   ITeam,
   ETieBreaker,
+  IServerDoNotKnowInput,
+  IReceiverDoNotKnowInput,
 } from '@/types';
 import { Socket } from 'socket.io-client';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
@@ -448,6 +450,16 @@ class EmitEvents {
     this.socket?.emit('ace-no-third-touch-from-client', actionData);
   }
 
+  serverDoNotKnow({ match, receiver, net, room }: IServerDoNotKnowInput) {
+    const actionData = { match, receiver, net, room };
+    this.socket?.emit('server-do-not-know-from-client', actionData);
+  }
+
+  receiverDoNotKnow({ match, receiver, net, room }: IReceiverDoNotKnowInput) {
+    const actionData = { match, receiver, net, room };
+    this.socket?.emit('receiver-do-not-know-from-client', actionData);
+  }
+
   receivingHittingError({ match, receiver, net, room }: IReceivingHittingErrorInput) {
     const actionData = { match, receiver, net, room };
     this.socket?.emit('receiving-hitting-error-from-client', actionData);
@@ -469,7 +481,6 @@ class EmitEvents {
   }
 
   resetScores({ match, net, room, accessCode }: IResetScoreInput) {
-
     if (!net) {
       return this.dispatch(
         setActErr({
@@ -499,7 +510,6 @@ class EmitEvents {
         }),
       );
     }
-
 
     const actionData = { match, net, room, accessCode };
     this.socket?.emit('reset-score-from-client', actionData);
