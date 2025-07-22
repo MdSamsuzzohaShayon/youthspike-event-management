@@ -3,9 +3,10 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  cookies().delete('user');
-  cookies().delete('token');
+  const cookieStore = await cookies();
+  cookieStore.delete('user');
+  cookieStore.delete('token');
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3000';
   return NextResponse.redirect(`${baseUrl}/login`); // ✅ Absolute URL
 }

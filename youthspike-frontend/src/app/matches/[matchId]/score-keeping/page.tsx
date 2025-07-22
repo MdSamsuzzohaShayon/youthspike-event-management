@@ -77,6 +77,8 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
       </div>
     </div>
   );
+
+
 }
 
 export default ScoreKeepingPage;

@@ -1,10 +1,11 @@
 import { IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, ITeam, TParams } from '@/types';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import PlayersMain from '@/components/player/PlayersMain';
 import { getEventPlayersGroupsTeams } from '@/app/_requests/players';
 import { getUserFromCookie } from '@/utils/serverCookie';
 import { cookies } from 'next/headers';
 import { UserRole } from '@/types/user';
+import { UNAUTHORIZED } from '@/utils/constant';
 
 interface IPlayersPageProps {
   params: TParams;
@@ -16,7 +17,17 @@ async function PlayersPage({ params }: IPlayersPageProps) {
 
   // authorization: token ? `Bearer ${token}` : "",
   const userExist = await getUserFromCookie(cookieStore);
-  const playersData = await getEventPlayersGroupsTeams(eventId, userExist?.token || null);
+  let playersData = null;
+  
+  try {
+    
+    playersData = await getEventPlayersGroupsTeams(eventId, userExist?.token || null);
+  } catch (err: any) {
+    if (err.message === UNAUTHORIZED) {
+      redirect('/api/logout');
+    }
+    throw err;
+  }
 
   if (!playersData) notFound();
 

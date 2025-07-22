@@ -7,6 +7,7 @@ import { setCurrentServerReceiver, setCurrNetNum } from '@/redux/slices/netSlice
 import {
   EActionProcess,
   EServerReceiverAction,
+  ETeam,
   ETieBreaker,
   ETieBreakingStrategy,
   IAccessCode,
@@ -175,11 +176,10 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   const HandleConfirmReset = useCallback(() => {
     const emit = new EmitEvents(socket, dispatch);
     const net = netByNum.get(currNetNum);
-    emit.resetScores({match: currMatch._id, net: net?._id || null, room: currRoom?._id || null, accessCode: accessCode?.code.toString() || null});
+    emit.resetScores({ match: currMatch._id, net: net?._id || null, room: currRoom?._id || null, accessCode: accessCode?.code.toString() || null });
 
     closeResetConfirm();
   }, [socket, dispatch, currRoom, currMatch, currNetNum, accessCode]);
-
 
   const handleUpdateScore = useCallback(() => {
     const net = netByNum.get(currNetNum);
@@ -206,6 +206,38 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   React.useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
   }, []); // ← run exactly once
+
+  const point = useCallback(
+    (teamE: ETeam) => {
+      if (!selectedServer || !selectedReceiver || !serverReceiverAction) return null;
+
+      const isTeamA = teamE === ETeam.teamA;
+      const teamPlayerIds = isTeamA ? teamAPlayers.map((p) => p._id) : teamBPlayers.map((p) => p._id);
+
+      // Define which actions are judged by server and which by receiver
+      const serverBasedActions = new Set([
+        EServerReceiverAction.RECEIVER_SERVICE_FAULT,
+        EServerReceiverAction.SERVER_ACE_NO_TOUCH,
+        EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
+        EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
+      ]);
+
+      const receiverBasedActions = new Set([
+        EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
+        EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
+        EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
+      ]);
+
+      const targetId = serverBasedActions.has(serverReceiverAction) ? selectedServer : receiverBasedActions.has(serverReceiverAction) ? selectedReceiver : null;
+
+      if (targetId && teamPlayerIds.includes(targetId)) {
+        return <p>+1</p>;
+      }
+
+      return null;
+    },
+    [serverReceiverAction, selectedServer, selectedReceiver, teamAPlayers, teamBPlayers],
+  );
 
   /* ───── UI ───── */
 
@@ -257,12 +289,17 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
 
             {/* Middle side start  */}
             <div className="w-full md:w-1/6 flex justify-center  md:flex-col flex-row gap-y-2 gap-x-2 items-center mt-6 md:mt-2">
+              {/* Team A Start   */}
               <h2 className="uppercase">{teamA?.name}</h2>
-              <div className="bg-yellow-logo h-24 w-24 rounded-xl flex items-center justify-center">
-                <h2 className="text-black">{currServerReceiver?.teamAScore || 0}</h2>
+              <div className={`bg-yellow-logo text-black h-24 w-24 rounded-xl flex items-center justify-center relative`}>
+                <h2>{currServerReceiver?.teamAScore || 0}</h2>
+                <div className="absolute bottom-1 right-2">{point(ETeam.teamA)}</div>
               </div>
+
+              {/* Team B Start  */}
               <div className="bg-white text-black h-24 w-24 rounded-xl flex items-center justify-center">
                 <h2>{currServerReceiver?.teamBScore || 0}</h2>
+                {point(ETeam.teamB)}
               </div>
               <h2 className="uppercase">{teamB?.name}</h2>
             </div>

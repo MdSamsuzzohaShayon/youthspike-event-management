@@ -1,10 +1,20 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getPlayersMin } from '../_requests/players';
 import PlayerTable from '@/components/player/PlayerTable';
+import { UNAUTHORIZED } from '@/utils/constant';
 
 async function PlayersPage() {
-  const players = await getPlayersMin();
+  let players = null;
+  try {
+    
+    players = await getPlayersMin();
+  } catch (err: any) {
+    if (err.message === UNAUTHORIZED) {
+      redirect('/api/logout');
+    }
+    throw err;
+  }
 
   if (!players) notFound();
   return (

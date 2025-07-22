@@ -2,7 +2,6 @@ import { getEventDirector } from '@/app/_requests/ldo';
 import { notFound, redirect } from 'next/navigation';
 import LDOSingleMain from '@/components/ldo/LDOSingleMain';
 import { TParams } from '@/types';
-import { UNAUTHORIZED } from '@/utils/constant';
 
 interface ILDOSinglePageProps {
   params: Promise<TParams>;
