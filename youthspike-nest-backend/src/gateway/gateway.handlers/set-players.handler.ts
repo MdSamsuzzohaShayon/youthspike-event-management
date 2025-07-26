@@ -7,7 +7,7 @@ import {
 } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
-import { ServerReceiverOnNet } from 'src/net/net.schema';
+import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 export class SetPlayersHandler {
   constructor(

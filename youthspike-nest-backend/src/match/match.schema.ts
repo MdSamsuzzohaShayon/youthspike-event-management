@@ -3,11 +3,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { ERosterLock, ETieBreakingStrategy, Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
-import { Net, ServerReceiverOnNet } from 'src/net/net.schema';
+import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Room } from 'src/room/room.schema';
 import { Round } from 'src/round/round.schema';
+import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ETeam, IReceiverTeam, IServerTeam } from '@/types';
+import { ESRRole, ETeam, IReceiverTeam, IServerTeam } from '@/types';
 import SRPlayerCard from './SRPlayerCard';
 import { toOrdinal } from '@/utils/helper';
 
@@ -23,7 +23,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
       <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400 mt-6">Selected Server/Receiver</h3>
       <div className="w-full flex justify-center items-center gap-x-2 md:gap-x-6">
         {/* Left Side */}
-        <SRPlayerCard player={serverTeam?.servingPartner || null} role="Swing" selected={selectedServer} serverReceiverTeam={serverTeam} dark />
+        <SRPlayerCard player={serverTeam?.servingPartner || null} role={ESRRole.SWING} selected={selectedServer} serverReceiverTeam={serverTeam} dark />
 
         {/* Middle Side */}
         <div className="w-1/3 flex justify-center items-center">
@@ -32,7 +32,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
 
             <SRPlayerCard
               player={serverTeam?.server || null}
-              role="Server"
+              role={ESRRole.SERVER}
               selected={selectedServer}
               serverReceiverTeam={serverTeam}
               handlePlayerSelection={handleAddServer ? handleAddServer : () => {}}
@@ -44,7 +44,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
 
             <SRPlayerCard
               player={receiverTeam?.receiver || null}
-              role="Receiver"
+              role={ESRRole.RECEIVER}
               selected={selectedReceiver}
               serverReceiverTeam={receiverTeam}
               handlePlayerSelection={handleAddReceiver ? handleAddReceiver : () => {}}
@@ -53,7 +53,7 @@ const ServerReceiverDisplay: React.FC<ServerReceiverDisplayProps> = ({ selectedS
         </div>
 
         {/* Right Side */}
-        <SRPlayerCard player={receiverTeam?.receivingPartner || null} role="Setter" selected={selectedReceiver} serverReceiverTeam={receiverTeam} dark />
+        <SRPlayerCard player={receiverTeam?.receivingPartner || null}  role={ESRRole.SETTER} selected={selectedReceiver} serverReceiverTeam={receiverTeam} dark />
       </div>
     </div>
   );

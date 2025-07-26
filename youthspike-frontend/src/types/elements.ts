@@ -175,3 +175,10 @@ export interface IReceiverTeam{
 export enum EActionTexts {
   INITIALIZE = '',
 }
+
+export enum ESRRole {
+  SERVER = "SERVER",
+  SWING = "SWING",
+  RECEIVER = "RECEIVER",
+  SETTER = "SETTER",
+}

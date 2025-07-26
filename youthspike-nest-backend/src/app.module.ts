@@ -26,6 +26,7 @@ import { GroupModule } from './group/group.module';
 import { RedisModule } from './redis/redis.module';
 import { EEnv, NODE_ENV } from './util/keys';
 import { PlayerStatsModule } from './player-stats/player-stats.module';
+import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-receiver-on-net.module';
 
 @Module({
   imports: [
@@ -86,6 +87,8 @@ import { PlayerStatsModule } from './player-stats/player-stats.module';
     RedisModule,
 
     PlayerStatsModule,
+
+    ServerReceiverOnNetModule,
 
   ],
   controllers: [AppController],

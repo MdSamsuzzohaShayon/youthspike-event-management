@@ -2,13 +2,14 @@ import { EServerReceiverAction, ETeam, ITeam } from '@/types';
 import React from 'react';
 
 interface IActionHandlerProps {
+  serverReceiverAction: EServerReceiverAction | null;
   setServerReceiverAction: React.Dispatch<React.SetStateAction<EServerReceiverAction | null>>;
   teamA: ITeam | null;
   teamB: ITeam | null;
   serverTeamE: null | ETeam;
 }
 
-function ActionHandler({ setServerReceiverAction, teamA, teamB, serverTeamE }: IActionHandlerProps) {
+function ActionHandler({ serverReceiverAction, setServerReceiverAction, teamA, teamB, serverTeamE }: IActionHandlerProps) {
   const handleAceNoTouch = (e: React.SyntheticEvent) => {
     e.preventDefault();
     // console.log("The serving player Served the ball so well that the receiver couldn't even touch the ball");
@@ -65,34 +66,34 @@ function ActionHandler({ setServerReceiverAction, teamA, teamB, serverTeamE }: I
     <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-between items-start">
       <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
         <h3 className="uppercase text-center">Serving Team / {serverTeamE === ETeam.teamA ? teamA?.name : teamB?.name}</h3>
-        <button className="btn-light uppercase" onClick={handleAceNoTouch}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_ACE_NO_TOUCH ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleAceNoTouch}>
           ACE no-touch
         </button>
-        <button className="btn-light uppercase" onClick={handleAceNoThirdTouch}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleAceNoThirdTouch}>
           Ace no 3rd touch
         </button>
-        <button className="btn-light uppercase" onClick={handleReceivingHittingError}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleReceivingHittingError}>
           Receiving Hitting Error
         </button>
-        <button className="btn-light uppercase" onClick={handleDefensiveConversion}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleDefensiveConversion}>
           Defensive Conversion
         </button>
-        <button className="btn-light uppercase" onClick={handleServerDoNotKnow}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_DO_NOT_KNOW ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleServerDoNotKnow}>
           Don't know
         </button>
       </div>
       <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <h3 className="uppercase text-center">Receiving Team /  {serverTeamE === ETeam.teamA ? teamB?.name : teamA?.name}</h3>
-        <button className="btn-light uppercase" onClick={handleServiceFault}>
+        <h3 className="uppercase text-center">Receiving Team / {serverTeamE === ETeam.teamA ? teamB?.name : teamA?.name}</h3>
+        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_SERVICE_FAULT ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleServiceFault}>
           Service Fault
         </button>
-        <button className="btn-light uppercase" onClick={handleOneTwoThreePutAway}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleOneTwoThreePutAway}>
           1-2-3 put away
         </button>
-        <button className="btn-light uppercase" onClick={handleRallyConversion}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_RALLEY_CONVERSION ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleRallyConversion}>
           rally Conversion
         </button>
-        <button className="btn-light uppercase" onClick={handleReceiverDoNotKnow}>
+        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_DO_NOT_KNOW ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleReceiverDoNotKnow}>
           Don't know
         </button>
       </div>

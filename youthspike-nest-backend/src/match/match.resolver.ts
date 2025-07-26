@@ -5,14 +5,14 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { MatchService } from './match.service';
-import { NetService, ServerReceiverOnNetService } from 'src/net/net.service';
+import { NetService } from 'src/net/net.service';
 import { RoundService } from 'src/round/round.service';
 import { TeamService } from 'src/team/team.service';
 import { UserRole } from 'src/user/user.schema';
 import { Match } from './match.schema';
 import { AccessCodeInput, CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
 import { RoomService } from 'src/room/room.service';
-import { ETieBreaker, ServerReceiverOnNet } from 'src/net/net.schema';
+import { ETieBreaker } from 'src/net/net.schema';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
@@ -31,6 +31,8 @@ import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { RedisService } from 'src/redis/redis.service';
+import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
 
 @Resolver((_of) => Match)
 export class MatchResolver {

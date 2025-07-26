@@ -40,6 +40,28 @@ type PlayerStats {
   player: Player
 }
 
+type ServerReceiverOnNet {
+  _id: String
+  mutate: Float!
+  server: Player!
+  serverId: String
+  servingPartner: Player!
+  servingPartnerId: String
+  receiver: Player!
+  receiverId: String
+  receivingPartner: Player!
+  receivingPartnerId: String
+  room: String!
+  match: Match!
+  matchId: String
+  net: Net!
+  netId: String
+  round: Round!
+  roundId: String
+  teamAScore: Float!
+  teamBScore: Float!
+}
+
 type Round {
   _id: String
   num: Int!
@@ -132,28 +154,6 @@ enum ETieBreaker {
   FINAL_ROUND_NET
   FINAL_ROUND_NET_LOCKED
   TIE_BREAKER_NET
-}
-
-type ServerReceiverOnNet {
-  _id: String
-  mutate: Float!
-  server: Player!
-  serverId: String
-  servingPartner: Player!
-  servingPartnerId: String
-  receiver: Player!
-  receiverId: String
-  receivingPartner: Player!
-  receivingPartnerId: String
-  room: String!
-  match: Match!
-  matchId: String
-  net: Net!
-  netId: String
-  round: Round!
-  roundId: String
-  teamAScore: Float!
-  teamBScore: Float!
 }
 
 type Room {

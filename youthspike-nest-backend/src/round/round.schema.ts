@@ -3,8 +3,9 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
-import { Net, ServerReceiverOnNet } from 'src/net/net.schema';
+import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
+import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 
 export enum EActionProcess {

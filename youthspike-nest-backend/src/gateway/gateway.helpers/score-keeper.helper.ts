@@ -3,7 +3,7 @@ import { GatewayRedisService } from '../gateway.redis';
 import { GatewayService } from '../gateway.service';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { initPlayerStat } from 'src/util/helper';
-import { ServerReceiverOnNet } from 'src/net/net.schema';
+import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 @Injectable()
 export class ScoreKeeperHelper {

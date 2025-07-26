@@ -6,7 +6,7 @@ import { MongooseModule, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Event, EventSchemaFactory } from 'src/event/event.schema';
 import { Match, MatchSchemaFactory } from 'src/match/match.schema';
-import { Net, NetSchemaFactory, ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory } from 'src/net/net.schema';
+import { Net, NetSchemaFactory } from 'src/net/net.schema';
 import { Round, RoundSchemaFactory } from 'src/round/round.schema';
 import { Team, TeamSchemaFactory } from 'src/team/team.schema';
 import { User, UserRole, UserSchemaFactory } from 'src/user/user.schema';
@@ -20,7 +20,7 @@ import { LDO, LDOSchemaFactory } from 'src/ldo/ldo.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { RoundService } from 'src/round/round.service';
-import { NetService, ServerReceiverOnNetService } from 'src/net/net.service';
+import { NetService } from 'src/net/net.service';
 import { CloudinaryService } from './services/cloudinary.service';
 import { Player, PlayerSchemaFactory } from 'src/player/player.schema';
 import { SponsorService } from 'src/sponsor/sponsor.service';
@@ -40,6 +40,8 @@ import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
 import { PlayerStats, PlayerStatsSchemaFactory } from 'src/player-stats/player-stats.schema';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
+import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
+import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 @Module({
   imports: [
@@ -138,7 +140,6 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
     MatchService,
     RoundService,
     NetService,
-    ServerReceiverOnNetService,
     PlayerService,
     LdoService,
     SponsorService,
@@ -149,6 +150,7 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
     GroupService,
     RedisService,
     PlayerStatsService,
+    ServerReceiverOnNetService,
   ],
   exports: [
     CloudinaryService,
