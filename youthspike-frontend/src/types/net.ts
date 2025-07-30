@@ -32,6 +32,8 @@ interface INetRelatives extends INetBase {
   teamAPlayerB?: string | null;
   teamBPlayerA?: string | null;
   teamBPlayerB?: string | null;
+  serverReceiverOnNet?: string;
+  serverReceiverSinglePlay?: string[];
 }
 
 interface INetUpdate {

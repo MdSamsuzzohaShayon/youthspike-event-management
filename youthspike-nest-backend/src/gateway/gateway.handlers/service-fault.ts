@@ -18,6 +18,7 @@ export class ServiceFaultHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
+      // Award point to receiving team
       /* 1️⃣ load “net” action + team splits */
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room); // Redis key: <sr:net:room>
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
@@ -40,10 +41,16 @@ export class ServiceFaultHandler {
 
       this.scoreKeeperHelper.rotateServerReceiver(net);
       net.mutate += 1;
+      net.play += 1;
 
       /* 6️⃣ persist & broadcast */
-      await this.scoreKeeperHelper.saveNetAction(body.net, body.room, net);
-      await this.scoreKeeperHelper.publishRoom(body.room, 'service-fault-from-server', net);
+      const singlePlayNet = {...net};
+      delete singlePlayNet.mutate;
+      await Promise.all([
+        this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
+        this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
+        this.scoreKeeperHelper.publishRoom(body.room, 'service-fault-from-server', net)
+      ]);
 
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { IAccessCode, IUser } from '@/types';
 import AccessCodeForm from '@/components/match/ScoreKeeping/AccessCodeForm';
@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { getMatch } from '@/app/_requests/match';
 import { notFound } from 'next/navigation';
 import { ACCESS_CODE } from '@/utils/constant';
+import Loader from '@/components/elements/Loader';
 
 interface IScoreKeepingPageProps {
   params: {
@@ -73,17 +74,16 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
     <div className="w-full min-h-screen">
       <div className="container mx-auto px-4 py-10">
         {renderHeadings()}
-        <div className="server-receiver-wrapper"> {/* or whatever height you need */} 
-        {matchData && <ServerReceiver matchId={matchId} matchData={matchData} accessCode={accessCode} token={token || null} userInfo={userInfo} />}
-
+        <div className="server-receiver-wrapper">
+          {' '}
+          {/* or whatever height you need */}
+          <Suspense fallback={<Loader />}>{matchData && <ServerReceiver matchId={matchId} matchData={matchData} accessCode={accessCode} token={token || null} userInfo={userInfo} />}</Suspense>
         </div>
-       {/* <div className="server-receiver-wrapper">
+        {/* <div className="server-receiver-wrapper">
         </div> */}
       </div>
     </div>
   );
-
-
 }
 
 export default ScoreKeepingPage;

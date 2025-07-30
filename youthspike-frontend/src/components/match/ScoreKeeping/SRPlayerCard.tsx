@@ -82,7 +82,13 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({ selected, serverReceiverTe
           >
             {player?.firstName} {player?.lastName}
           </h4>
-          <p className={`text-xs font-medium truncate ${teamTextColor}`}>{teamOfPlayer?.name}</p>
+          <p
+  className={`text-xs sm:text-sm md:text-base font-medium break-words max-w-[100px] sm:max-w-[150px] md:max-w-[200px] w-full ${teamTextColor}`}
+  title={teamOfPlayer?.name ?? ''}
+>
+  {teamOfPlayer?.name}
+</p>
+
         </div>
       )}
     </div>

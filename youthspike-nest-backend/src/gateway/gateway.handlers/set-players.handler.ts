@@ -88,6 +88,7 @@ export class SetPlayersHandler {
 
       const actionData: ServerReceiverOnNet = {
         mutate: 1,
+        play: 1,
         server,
         serverId: server,
         servingPartner,

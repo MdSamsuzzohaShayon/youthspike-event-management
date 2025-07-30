@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import SelectInput from '@/components/elements/SelectInput';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrentServerReceiver, setCurrNetNum } from '@/redux/slices/netSlice';
+import { setCurrNetNum } from '@/redux/slices/netSlice';
 import {
   EActionProcess,
   EServerReceiverAction,
@@ -33,6 +33,7 @@ import { setActErr } from '@/redux/slices/elementSlice';
 import { scoreKeeperAction } from '@/utils/staticData';
 import actionConfirmation from '@/utils/match/actionConfirmation';
 import ScoreBoard from './ScoreBoard';
+import { setCurrentServerReceiver } from '@/redux/slices/serverReceiverOnNetSlice';
 
 /* ───────────────────────────────────────────── */
 
@@ -50,7 +51,9 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
 
   /* Redux slices */
   const { roundList, current: currRound } = useAppSelector((s) => s.rounds);
-  const { currNetNum, currentRoundNets, serverReceiversOnNet, currentServerReceiver: currServerReceiver } = useAppSelector((s) => s.nets);
+  const { currNetNum, currentRoundNets } = useAppSelector((s) => s.nets);
+  // serverReceiversOnNet, currentServerReceiver: currServerReceiver
+  const { serverReceiversOnNet, currentServerReceiver: currServerReceiver } = useAppSelector((s) => s.serverReceiverOnNets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((s) => s.players);
   const currMatch = useAppSelector((s) => s.matches.match);
   const currRoom = useAppSelector((s) => s.rooms.current);

@@ -2,8 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { GatewayRedisService } from '../gateway.redis';
 import { GatewayService } from '../gateway.service';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { initPlayerStat } from 'src/util/helper';
-import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { initPlayerStat, netKey, singlePlayKey } from 'src/util/helper';
+import {
+  ServerReceiverOnNet,
+  ServerReceiverSinglePlay,
+} from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 @Injectable()
 export class ScoreKeeperHelper {
@@ -11,24 +14,41 @@ export class ScoreKeeperHelper {
 
   /* ───────────────────────────── helpers for “net” ─────────────────────────── */
 
-  private netKey(netId: string, room: string) {
-    return `sr:${netId}:${room}`;
-  }
+
 
   async loadNetAction(netId: string, room: string): Promise<ServerReceiverOnNet> {
-    const action = await this.redis.getAction(this.netKey(netId, room));
+    let action = await this.redis.getAction(netKey(netId, room));
     if (!action) {
-      throw new Error(`Net cache missing for net:${netId} room:${room}`);
+      const { serverReceiverOnNetService } = await this.gateway.getServices();
+      const serverReceiverOnNet = await serverReceiverOnNetService.findOne({ net: netId });
+      if (!serverReceiverOnNet) {
+        throw new Error(`Net is missing for net:${netId} room:${room}`);
+      }
     }
     return action as ServerReceiverOnNet;
   }
 
+  async loadAllSinglePlayAction(netId: string, room: string, limit: number): Promise<ServerReceiverSinglePlay[]> {
+    const singlePlays: ServerReceiverSinglePlay[] = [];
+    for (let i = 0; i < limit; i++) {
+      const action = await this.redis.getAction(singlePlayKey(netId, room, i + 1));
+      if (action) {
+        singlePlays.push(action as ServerReceiverSinglePlay);
+      }
+    }
+    return singlePlays as ServerReceiverSinglePlay[];
+  }
+
   async saveNetAction(netId: string, room: string, data: ServerReceiverOnNet) {
-    await this.redis.setAction(this.netKey(netId, room), data);
+    await this.redis.setAction(netKey(netId, room), data);
+  }
+
+  async saveNetSinglePlayAction(netId: string, room: string, data: ServerReceiverSinglePlay) {
+    await this.redis.setAction(singlePlayKey(netId, room, data.play), data);
   }
 
   async deleteNetAction(netId: string, room: string) {
-    await this.redis.deleteAction(this.netKey(netId, room));
+    await this.redis.deleteAction(netKey(netId, room));
   }
 
   /* ─────────────────────────── helpers for “players” ───────────────────────── */
@@ -55,7 +75,9 @@ export class ScoreKeeperHelper {
    * Persist a map of `{[playerId]: PlayerStats}` back to Redis in parallel.
    */
   async savePlayerStats(statsMap: Record<string, PlayerStats>) {
-    await Promise.all(Object.entries(statsMap).map(([id, data]) => this.redis.setAction(this.playerKey(id, data.net.toString()), data))); // Redis key: <player:id:net>
+    await Promise.all(
+      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(this.playerKey(id, data.net.toString()), data)),
+    ); // Redis key: <player:id:net>
   }
 
   async deletePlayerStats(netId: string, ids: string[]) {

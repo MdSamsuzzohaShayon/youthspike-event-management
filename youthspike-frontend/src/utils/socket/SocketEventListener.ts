@@ -1,8 +1,9 @@
 import { setActErr } from '@/redux/slices/elementSlice';
 import { setMatchInfo } from '@/redux/slices/matchesSlice';
-import { setCurrentRoundNets, setCurrNetNum, setNets, setServerReceiversOnNet, setCurrentServerReceiver } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
 import { setCurrentRoom } from '@/redux/slices/roomSlice';
 import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
+import { setCurrentServerReceiver, setServerReceiversOnNet } from '@/redux/slices/serverReceiverOnNetSlice';
 import {
   ICheckInResponse,
   ILineUpResponse,

@@ -101,3 +101,11 @@ export function initPlayerStat(net: string, match: string, player: string){
     player,
   }
 }
+
+export function singlePlayKey(netId: string, room: string, play: number) {
+  return `sr:${netId}:${room}:${play}`;
+}
+
+export function netKey(netId: string, room: string) {
+  return `sr:${netId}:${room}`;
+}

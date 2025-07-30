@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Round } from 'src/round/round.schema';
-import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { ServerReceiverOnNet, ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 
@@ -52,6 +52,10 @@ export class Net extends AppDocument {
   @Field((type) => ServerReceiverOnNet, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' })
   serverReceiverOnNet?: ServerReceiverOnNet | string;
+
+  @Field((_type) => [ServerReceiverSinglePlay], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverSinglePlay' }] })
+  serverReceiverSinglePlay?: ServerReceiverSinglePlay[] | string[];
 
   @Field((_type) => [PlayerStats], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerStats' }] })

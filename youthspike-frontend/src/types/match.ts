@@ -5,7 +5,7 @@ import { INetRelatives } from './net';
 import { IPlayerRanking, IPlayerRankingExpRel } from './playerRanking';
 import { IRoom } from './room';
 import { IRoundExpRel } from './round';
-import { IServerReceiverOnNetMixed } from './socket';
+import { IServerReceiverOnNetMixed, IServerReceiverSinglePlay } from './serverReceiverOnNet';
 import { ITeam } from './team';
 
 // eslint-disable-next-line no-shadow
@@ -70,5 +70,6 @@ export interface IMatchExpRel extends IMatchBase {
   teamARanking?: IPlayerRankingExpRel;
   teamBRanking?: IPlayerRankingExpRel;
 
-  netsServerReceiver?: IServerReceiverOnNetMixed[];
+  serverReceiverOnNet?: IServerReceiverOnNetMixed[];
+  serverReceiverSinglePlay?: IServerReceiverSinglePlay[];
 }

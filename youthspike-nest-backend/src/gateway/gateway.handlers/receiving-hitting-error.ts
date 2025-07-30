@@ -54,10 +54,16 @@ export class ReceivingHittingErrorHandler {
 
       this.scoreKeeperHelper.rotateServerReceiver(net);
       net.mutate += 1;
+      net.play += 1;
 
       /* 6️⃣ persist & broadcast */
-      await this.scoreKeeperHelper.saveNetAction(body.net, body.room, net);
-      await this.scoreKeeperHelper.publishRoom(body.room, 'receiving-hitting-error-from-server', net);
+      const singlePlayNet = {...net};
+      delete singlePlayNet.mutate;
+      await Promise.all([
+        this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
+        this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
+        this.scoreKeeperHelper.publishRoom(body.room, 'receiving-hitting-error-from-server', net)
+      ]);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');
     }

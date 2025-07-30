@@ -41,7 +41,7 @@ import { RedisService } from 'src/redis/redis.service';
 import { PlayerStats, PlayerStatsSchemaFactory } from 'src/player-stats/player-stats.schema';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
-import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSinglePlay, ServerReceiverSinglePlaySchemaFactory } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 @Module({
   imports: [
@@ -88,6 +88,10 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory } from 'src/serve
       {
         name: ServerReceiverOnNet.name,
         useFactory: ServerReceiverOnNetSchemaFactory,
+      },
+      {
+        name: ServerReceiverSinglePlay.name,
+        useFactory: ServerReceiverSinglePlaySchemaFactory,
       },
       {
         name: Player.name,

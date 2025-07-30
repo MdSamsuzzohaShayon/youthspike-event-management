@@ -12,8 +12,6 @@ import { Server, Socket } from 'socket.io';
 import { GatewayService } from './gateway.service';
 import { GatewayRedisService } from './gateway.redis';
 import {
-  ROOM_PREFIX,
-  CLIENT_TTL,
   RoomLocal,
   GeneralClient,
   JoinRoomInput,
@@ -57,6 +55,7 @@ import { UpdateCachePointsHandler } from './gateway.handlers/update-cache-points
 import { ResetScoreHandler } from './gateway.handlers/reset-score';
 import { ServerDoNotKnowHandler } from './gateway.handlers/server-do-not-know';
 import { ReceiverDoNotKnowHandler } from './gateway.handlers/receiver-do-not-know';
+import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
 
 @WebSocketGateway({
   cors: true,
@@ -78,7 +77,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private checkInHandler: CheckInHandler;
   private submitLineupHandler: SubmitLineupHandler;
   private updatePointsHandler: UpdatePointsHandler;
-  private serverReceiverHandler: ServerReceiverHandler;
   private tieBreakerHandler: TieBreakerHandler;
   private extendOvertimeHandler: ExtendOvertimeHandler;
   private setPlayersHandler: SetPlayersHandler;
@@ -101,34 +99,43 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly clientHelper: ClientHelper,
     private readonly validationHelper: ValidationHelper,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
+    private readonly pointsUpdateHelper: PointsUpdateHelper,
   ) {
     // Initialize handlers for a prticular match
     this.joinRoomHandler = new JoinRoomHandler(gatewayService, gatewayRedisService, roomHelper, clientHelper);
     this.checkInHandler = new CheckInHandler(gatewayService, gatewayRedisService, validationHelper);
     this.submitLineupHandler = new SubmitLineupHandler(gatewayService, gatewayRedisService, roomHelper);
-    this.updatePointsHandler = new UpdatePointsHandler(gatewayService, gatewayRedisService);
+    this.updatePointsHandler = new UpdatePointsHandler(gatewayRedisService, pointsUpdateHelper);
     this.tieBreakerHandler = new TieBreakerHandler(gatewayService, gatewayRedisService);
     this.extendOvertimeHandler = new ExtendOvertimeHandler(gatewayService, gatewayRedisService);
 
     // Score keeper handlers
-    this.serviceFault = new ServiceFaultHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    // Server
     this.aceNoTouch = new AceNoTouchHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.aceNoThirdTouch =  new AceNoThirdTouchHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.receivingHittingError =  new ReceivingHittingErrorHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.aceNoThirdTouch = new AceNoThirdTouchHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.receivingHittingError = new ReceivingHittingErrorHandler(
+      gatewayService,
+      gatewayRedisService,
+      scoreKeeperHelper,
+    );
+    this.defensiveConversion = new DefensiveConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.serverDoNotKnow = new ServerDoNotKnowHandler(scoreKeeperHelper);
+
+    // Receiver
+    this.serviceFault = new ServiceFaultHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.rallyConversion = new RallyConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.defensiveConversion = new DefensiveConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
+    
+    // Update database
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.serverDoNotKnow = new ServerDoNotKnowHandler(scoreKeeperHelper);
-    this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
-
 
     /**
      * Handlers for Score keeper
      */
     // Unused
-    this.serverReceiverHandler = new ServerReceiverHandler(gatewayService, gatewayRedisService);
+    // this.serverReceiverHandler = new ServerReceiverHandler(gatewayService, gatewayRedisService);
 
     this.setPlayersHandler = new SetPlayersHandler(gatewayService, gatewayRedisService);
   }
@@ -226,34 +233,50 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('defensive-conversion-from-client')
-  async onDefensiveConversion(@ConnectedSocket() client: Socket, @MessageBody() defensiveConversionInput: DefensiveConversionInput) {
+  async onDefensiveConversion(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() defensiveConversionInput: DefensiveConversionInput,
+  ) {
     return this.defensiveConversion.handle(client, defensiveConversionInput, this.roomsLocal);
   }
 
-
   @SubscribeMessage('ace-no-third-touch-from-client')
-  async onAceNoThirdTouch(@ConnectedSocket() client: Socket, @MessageBody() aceNoThirdTouchInput: AceNoThirdTouchInput) {
+  async onAceNoThirdTouch(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() aceNoThirdTouchInput: AceNoThirdTouchInput,
+  ) {
     return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput, this.roomsLocal);
   }
 
   @SubscribeMessage('receiving-hitting-error-from-client')
-  async onReceivingHittingError(@ConnectedSocket() client: Socket, @MessageBody() receivingHittingErrorInput: ReceivingHittingErrorInput) {
+  async onReceivingHittingError(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() receivingHittingErrorInput: ReceivingHittingErrorInput,
+  ) {
     return this.receivingHittingError.handle(client, receivingHittingErrorInput, this.roomsLocal);
   }
 
   @SubscribeMessage('one-two-three-put-away-from-client')
-  async onOneTwoThreePutAway(@ConnectedSocket() client: Socket, @MessageBody() oneTwoThreePutAwayInput: OneTwoThreePutAwayInput) {
+  async onOneTwoThreePutAway(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() oneTwoThreePutAwayInput: OneTwoThreePutAwayInput,
+  ) {
     return this.oneTwoThreePutAway.handle(client, oneTwoThreePutAwayInput, this.roomsLocal);
   }
 
   @SubscribeMessage('rally-conversion-from-client')
-  async onRallyConversion(@ConnectedSocket() client: Socket, @MessageBody() rallyConversionInput: RallyConversionInput) {
+  async onRallyConversion(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() rallyConversionInput: RallyConversionInput,
+  ) {
     return this.rallyConversion.handle(client, rallyConversionInput, this.roomsLocal);
   }
 
-
   @SubscribeMessage('update-cache-points-from-client')
-  async onUpdateCachePoints(@ConnectedSocket() client: Socket, @MessageBody() updateCachePointsInput: UpdateCachePointsInput) {
+  async onUpdateCachePoints(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() updateCachePointsInput: UpdateCachePointsInput,
+  ) {
     return this.updateCachePoints.handle(client, updateCachePointsInput, this.roomsLocal);
   }
 
@@ -262,17 +285,19 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.resetScore.handle(client, resetScoreInput, this.roomsLocal);
   }
 
-
   @SubscribeMessage('server-do-not-know-from-client')
-  async onServerDoNotKnow(@ConnectedSocket() client: Socket, @MessageBody() serverDoNotKnowInput: ServerDoNotKnowInput) {
+  async onServerDoNotKnow(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() serverDoNotKnowInput: ServerDoNotKnowInput,
+  ) {
     return this.serverDoNotKnow.handle(client, serverDoNotKnowInput, this.roomsLocal);
   }
 
-
   @SubscribeMessage('receiver-do-not-know-from-client')
-  async onReceiverDoNotKnow(@ConnectedSocket() client: Socket, @MessageBody() receiverDoNotKnowInput: ReceiverDoNotKnowInput) {
+  async onReceiverDoNotKnow(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() receiverDoNotKnowInput: ReceiverDoNotKnowInput,
+  ) {
     return this.receiverDoNotKnow.handle(client, receiverDoNotKnowInput, this.roomsLocal);
   }
-
-
 }

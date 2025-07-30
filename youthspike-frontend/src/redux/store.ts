@@ -9,6 +9,7 @@ import netSlice from './slices/netSlice';
 import elementSlice from './slices/elementSlice';
 import roomSlice from './slices/roomSlice';
 import playerRankingSlice from './slices/playerRankingSlice';
+import serverReceiverOnNetSlice from './slices/serverReceiverOnNetSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     events: eventSlice,
     rounds: roundSlice,
     nets: netSlice,
+    serverReceiverOnNets: serverReceiverOnNetSlice,
     rooms: roomSlice,
     playerRanking: playerRankingSlice,
     elements: elementSlice

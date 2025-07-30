@@ -42,7 +42,9 @@ type PlayerStats {
 
 type ServerReceiverOnNet {
   _id: String
-  mutate: Float!
+  play: Float!
+  match: Match!
+  matchId: String
   server: Player!
   serverId: String
   servingPartner: Player!
@@ -51,13 +53,31 @@ type ServerReceiverOnNet {
   receiverId: String
   receivingPartner: Player!
   receivingPartnerId: String
-  room: String!
-  match: Match!
-  matchId: String
   net: Net!
   netId: String
+  mutate: Float!
+  room: String!
   round: Round!
   roundId: String
+  teamAScore: Float!
+  teamBScore: Float!
+}
+
+type ServerReceiverSinglePlay {
+  _id: String
+  play: Float!
+  match: Match!
+  matchId: String
+  server: Player!
+  serverId: String
+  servingPartner: Player!
+  servingPartnerId: String
+  receiver: Player!
+  receiverId: String
+  receivingPartner: Player!
+  receivingPartnerId: String
+  net: Net!
+  netId: String
   teamAScore: Float!
   teamBScore: Float!
 }
@@ -137,6 +157,7 @@ type Net {
   teamA: Team
   teamB: Team
   serverReceiverOnNet: ServerReceiverOnNet
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
   playerstats: [PlayerStats!]
   teamAPlayerA: String
   teamAPlayerB: String
@@ -185,6 +206,7 @@ type Match {
   event: Event!
   nets: [Net!]!
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
   rounds: [Round!]!
   teamA: Team
   teamB: Team
@@ -193,7 +215,6 @@ type Match {
   teamBRanking: PlayerRanking
   group: Group
   playerstats: [PlayerStats!]
-  netsServerReceiver: [ServerReceiverOnNet!]!
 }
 
 type Group {
@@ -274,6 +295,7 @@ type Player {
   cocaptainuser: User
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
 }
 
 enum EPlayerStatus {
@@ -368,6 +390,7 @@ type CustomPlayer {
   cocaptainuser: User
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
 }
 
 type CustomPlayerRanking {
@@ -467,6 +490,7 @@ type PlayerWithTeam {
   cocaptainuser: User
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
 }
 
 type GroupWithTeam {
@@ -525,6 +549,7 @@ type CustomNet {
   teamA: String
   teamB: String
   serverReceiverOnNet: ServerReceiverOnNet
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
   playerstats: [PlayerStats!]
   teamAPlayerA: String
   teamAPlayerB: String
@@ -559,6 +584,7 @@ type CustomMatch {
   event: Event!
   nets: [String!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
   rounds: [String!]
   teamA: String
   teamB: String
@@ -567,7 +593,6 @@ type CustomMatch {
   teamBRanking: PlayerRanking
   group: String
   playerstats: [PlayerStats!]
-  netsServerReceiver: [ServerReceiverOnNet!]!
 }
 
 type CaptainPlayer {
@@ -588,6 +613,7 @@ type CaptainPlayer {
   cocaptainuser: User
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
 }
 
 type CoCaptainPlayer {
@@ -608,6 +634,7 @@ type CoCaptainPlayer {
   cocaptainuser: User
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
 }
 
 type TeamDetails {

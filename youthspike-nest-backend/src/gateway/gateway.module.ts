@@ -9,6 +9,7 @@ import { ClientHelper } from './gateway.helpers/client.helper';
 import { ValidationHelper } from './gateway.helpers/validation.helper';
 import { RedisHelper } from './gateway.helpers/redis.helper';
 import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
+import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
 
 @Module({
   imports: [SharedModule, ConfigModule.forRoot()],
@@ -21,6 +22,7 @@ import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
     ValidationHelper,
     RedisHelper,
     ScoreKeeperHelper,
+    PointsUpdateHelper,
   ],
 })
 export class GatewayModule {}

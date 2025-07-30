@@ -25,6 +25,7 @@ export class ReceiverDoNotKnowHandler {
 
       this.scoreKeeperHelper.rotateServerReceiver(net);
       net.mutate += 1;
+      net.play += 1;
 
       /* 6️⃣ persist & broadcast */
       await this.scoreKeeperHelper.saveNetAction(body.net, body.room, net);

@@ -3,7 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { ServerReceiverOnNet, ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
@@ -88,9 +88,15 @@ export class Player extends AppDocument {
   playerstats?: PlayerStats[] | string[];
 
 
+  // Current
   @Field((_type) => [ServerReceiverOnNet], { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' })
   serverReceiverOnNet?: ServerReceiverOnNet[] | string[];
+
+  // Each iteam
+  @Field((_type) => [ServerReceiverSinglePlay], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverSinglePlay' }] })
+  serverReceiverSinglePlay?: ServerReceiverSinglePlay[] | string[];
 
 }
 

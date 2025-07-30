@@ -11,11 +11,6 @@ interface INetState {
   currNetNum: number;
   updateNets: INetUpdate[];
   notTieBreakerNetId: string | null;
-
-
-  // Score keeper for specific match
-  serverReceiversOnNet: IServerReceiverOnNetMixed[];
-  currentServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
 
@@ -27,9 +22,6 @@ const initialState: INetState = {
   updateNets: [],
   notTieBreakerNetId: null,
 
-  // Score Keeper for specific match
-  serverReceiversOnNet: [],
-  currentServerReceiver: null
 };
 const netSlice = createSlice({
   name: 'net',
@@ -70,17 +62,8 @@ const netSlice = createSlice({
       state.notTieBreakerNetId = action.payload;
     },
 
-
-    // Score keeper
-    setServerReceiversOnNet: (state, action: PayloadAction<IServerReceiverOnNetMixed[]>) => {
-      state.serverReceiversOnNet = action.payload;
-    },
-    setCurrentServerReceiver: (state, action: PayloadAction<IServerReceiverOnNetMixed | null>) => {
-      state.currentServerReceiver = action.payload;
-    },
-    
   },
 });
 
-export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer, setNotTieBreakerNetId, setServerReceiversOnNet, setCurrentServerReceiver} = netSlice.actions;
+export const { setNets, setCurrentRoundNets, setCurrNetNum, updateNetPlayer, setNotTieBreakerNetId } = netSlice.actions;
 export default netSlice.reducer;

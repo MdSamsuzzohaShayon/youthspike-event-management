@@ -32,6 +32,8 @@ export class UpdateCachePointsHandler {
         matchService.findById(body.match),
       ]);
 
+      const allSinglePlays = await this.scoreKeeperHelper.loadAllSinglePlayAction(body.net, body.room, net.mutate);
+
       if (!match?.accessCode || !body?.accessCode || match?.accessCode !== body?.accessCode) {
         throw new Error(`You do not have permission, to update the score in this match!`);
       }
@@ -46,6 +48,12 @@ export class UpdateCachePointsHandler {
       const serverReceiverOnNetExist = await serverReceiverOnNetService.findOne({ net: body.net });
       if (serverReceiverOnNetExist) {
         await serverReceiverOnNetService.updateOne({ _id: serverReceiverOnNetExist._id }, net);
+        await Promise.all([
+          serverReceiverOnNetService.updateOne({ _id: serverReceiverOnNetExist._id }, net),
+          serverReceiverOnNetService.updateOneSinglePlay({ _id: serverReceiverOnNetExist._id }, net),
+        ]);
+
+        // Update current
         if (net.server !== serverReceiverOnNetExist.server.toString()) {
           // Pull from previous record
           serverReceiverOnNetPromises.push(
@@ -113,8 +121,12 @@ export class UpdateCachePointsHandler {
             ),
           );
         }
+
+        // Update single play
       } else {
         const createdSR = await serverReceiverOnNetService.create(net);
+
+        // Update with server receiver on net
         serverReceiverOnNetPromises.push(
           playerService.updateOne({ _id: net.server }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
         );
@@ -129,6 +141,142 @@ export class UpdateCachePointsHandler {
         );
       }
 
+      const singlePlayPromises = Object.entries(allSinglePlays).map(async ([id, singlePlayData]) => {
+        const serverReceiverSinglePlayExist = await serverReceiverOnNetService.findOneSinglePlay({
+          $and: [
+            {
+              play: singlePlayData.play,
+            },
+            { net: body.net },
+          ],
+        });
+
+        const spPromises = [];
+        let singlePlayId = null;
+        delete singlePlayData._id;
+        if (serverReceiverSinglePlayExist) {
+          delete singlePlayData.net;
+          // Update
+          const updatedSinglePlay = await serverReceiverOnNetService.updateOneSinglePlay(
+            { _id: serverReceiverSinglePlayExist._id },
+            singlePlayData,
+          );
+          singlePlayId = serverReceiverSinglePlayExist._id.toString();
+          // Check server receiver change or not
+          if (singlePlayData.server !== serverReceiverSinglePlayExist.server.toString()) {
+            // Pull from previous record
+            spPromises.push(
+              playerService.updateOne(
+                { serverReceiverSinglePlay: singlePlayData.server },
+                { $pull: { serverReceiverSinglePlay: singlePlayData.server } },
+              ),
+            );
+            // Add to new player
+            spPromises.push(
+              playerService.updateOne(
+                { _id: serverReceiverSinglePlayExist.server },
+                { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
+              ),
+            );
+          }
+
+          if (singlePlayData.servingPartner !== serverReceiverSinglePlayExist.servingPartner.toString()) {
+            // Pull from previous record
+            spPromises.push(
+              playerService.updateOne(
+                { serverReceiverSinglePlay: singlePlayData.servingPartner },
+                { $pull: { serverReceiverSinglePlay: singlePlayData.receivingPartner } },
+              ),
+            );
+            // Add to new player
+            spPromises.push(
+              playerService.updateOne(
+                { _id: serverReceiverSinglePlayExist.servingPartner },
+                { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
+              ),
+            );
+          }
+
+          if (singlePlayData.receiver !== serverReceiverSinglePlayExist.receiver.toString()) {
+            // Pull from previous record
+            serverReceiverOnNetPromises.push(
+              playerService.updateOne(
+                { serverReceiverSinglePlay: singlePlayData.receiver },
+                { $pull: { serverReceiverSinglePlay: singlePlayData.receiver } },
+              ),
+            );
+            // Add to new player
+            serverReceiverOnNetPromises.push(
+              playerService.updateOne(
+                { _id: serverReceiverSinglePlayExist.receiver },
+                { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
+              ),
+            );
+          }
+
+          if (singlePlayData.receivingPartner !== serverReceiverSinglePlayExist.receivingPartner.toString()) {
+            // Pull from previous record
+            serverReceiverOnNetPromises.push(
+              playerService.updateOne(
+                { serverReceiverSinglePlay: singlePlayData.receivingPartner },
+                { $pull: { serverReceiverSinglePlay: singlePlayData.receivingPartner } },
+              ),
+            );
+            // Add to new player
+            serverReceiverOnNetPromises.push(
+              playerService.updateOne(
+                { _id: serverReceiverSinglePlayExist.receivingPartner },
+                { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
+              ),
+            );
+          }
+        } else {
+          const createdSRSinglePlay = await serverReceiverOnNetService.createSinglePlay(singlePlayData);
+          singlePlayId = createdSRSinglePlay._id;
+          // Update for single play
+          spPromises.push(
+            playerService.updateOne(
+              { _id: singlePlayData.server },
+              { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
+            ),
+          );
+          spPromises.push(
+            playerService.updateOne(
+              { _id: singlePlayData.receiver },
+              { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
+            ),
+          );
+          spPromises.push(
+            playerService.updateOne(
+              { _id: singlePlayData.servingPartner },
+              { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
+            ),
+          );
+          spPromises.push(
+            playerService.updateOne(
+              { _id: singlePlayData.receivingPartner },
+              { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
+            ),
+          );
+        }
+
+        // Update match, net
+        // singlePlayId
+        spPromises.push(
+          matchService.updateOne(
+            { _id: singlePlayData.match },
+            { $addToSet: { serverReceiverSinglePlay: singlePlayId } },
+          ),
+        );
+        spPromises.push(
+          netService.updateOne({ _id: singlePlayData.net }, { $addToSet: { serverReceiverSinglePlay: singlePlayId } }),
+        );
+
+        await Promise.all(spPromises);
+      });
+
+      await Promise.all([...serverReceiverOnNetPromises, ...singlePlayPromises]);
+
       const playerIds = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
 
       const [stats, round] = await Promise.all([
@@ -138,8 +286,6 @@ export class UpdateCachePointsHandler {
 
       // Process player stats updates in parallel
       const playerUpdatePromises = Object.entries(stats).map(async ([playerId, statsData]) => {
-        
-        
         // Must match player and net, then update
         const updateResult = await playerStatsService.updateOne(
           { $and: [{ player: playerId }, { net: statsData.net }] },
