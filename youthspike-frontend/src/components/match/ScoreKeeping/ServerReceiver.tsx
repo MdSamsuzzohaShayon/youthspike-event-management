@@ -238,7 +238,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     return (
       <div className="w-full flex justify-center mt-10">
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
-          <h2 className="text-lg font-semibold mb-2">Final Round Nets Not Banned</h2>
+          <h2 className="text-lg font-semibold mb-2">Final Round Nets Not Banned Yet</h2>
           <p>Please ban the nets for the final round before proceeding with server/receiver selection.</p>
         </div>
       </div>
@@ -263,44 +263,46 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
         <div className="server-receiver-with-actions w-full ">
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
-            <div className="w-full md:w-2/6">
+            <div className={`w-full ${serverReceiverAction ? 'md:w-2/6' : 'md:w-3/6'}`}>
               <ServerReceiverDisplay selectedServer={selectedServer} selectedReceiver={selectedReceiver} serverTeam={serverTeam} receiverTeam={receiverTeam} />
             </div>
             {/* Left side end  */}
 
             {/* Middle side start  */}
-            <div className="w-full md:w-2/6  hidden md:block">
-              <ScoreBoard
-                currServerReceiver={currServerReceiver}
-                selectedReceiver={selectedReceiver}
-                selectedServer={selectedServer}
-                serverReceiverAction={serverReceiverAction}
-                teamA={teamA || null}
-                teamAPlayers={teamAPlayers}
-                teamB={teamB || null}
-                teamBPlayers={teamBPlayers}
-                key="sb-1"
-              />
+            <div className="md:w-2/6 hidden md:flex justify-center items-center ">
+              <div className="w-5/6">
+                <ScoreBoard
+                  currServerReceiver={currServerReceiver}
+                  selectedReceiver={selectedReceiver}
+                  selectedServer={selectedServer}
+                  serverReceiverAction={serverReceiverAction}
+                  teamA={teamA || null}
+                  teamAPlayers={teamAPlayers}
+                  teamB={teamB || null}
+                  teamBPlayers={teamBPlayers}
+                  key="sb-1"
+                />
+              </div>
             </div>
             {/* Middle side end  */}
 
             {/* Right side start  */}
-            <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
-              {/* This should be an edit button  */}
-              {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
-              {serverReceiverAction && (
+            {serverReceiverAction && (
+              <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
+                {/* This should be an edit button  */}
+                {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
                 <button className="btn-success uppercase" onClick={handleConfirmAction}>
                   {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
                   {scoreKeeperAction.get(serverReceiverAction)}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
             {/* Right side end  */}
           </div>
 
           {/* Handle action for each button pressed  */}
           <div className="scrollable-action-handler w-full relative">
-            <div className="w-full md:w-2/6 sticky top-0 md:hidden bg-black">
+            <div className="w-full md:w-2/6 sticky top-0 md:hidden bg-black py-2">
               <ScoreBoard
                 currServerReceiver={currServerReceiver}
                 selectedReceiver={selectedReceiver}

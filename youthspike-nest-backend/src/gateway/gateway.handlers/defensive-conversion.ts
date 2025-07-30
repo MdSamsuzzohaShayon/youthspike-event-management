@@ -61,7 +61,7 @@ export class DefensiveConversionHandler {
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      this.scoreKeeperHelper.rotateServer(net);
+      this.scoreKeeperHelper.rotateReceiver(net);
       net.mutate += 1;
       net.play += 1;
 

@@ -13,8 +13,8 @@ import InputField from '../elements/forms/InputField';
 import { useState } from 'react';
 import { setCookie } from '@/utils/clientCookie';
 
-const { initial: hInitial, animate: hAnimate, exit: hExit, transition: hTransition } = headingAnimate;
-const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
+const { initial: hInitial, animate: hAnimate, exit: hExit, } = headingAnimate;
+const { initial: cInitial, animate: cAnimate, exit: cExit, } = cardAnimate;
 
 
 

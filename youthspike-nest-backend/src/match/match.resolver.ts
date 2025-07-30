@@ -564,7 +564,8 @@ export class MatchResolver {
 
       const updatedReceivers = (await Promise.all(updatePromises)).filter(Boolean);
 
-      return [...processedCached, ...updatedReceivers];
+      const allServerReceivers = [...processedCached, ...updatedReceivers];
+      return allServerReceivers.map((sr)=>({...sr, teamAScore: sr?.teamAScore || 0, teamBScore: sr?.teamBScore || 0}));
     } catch (error) {
       console.error('serverReceiverOnNet error:', error);
       return [];
