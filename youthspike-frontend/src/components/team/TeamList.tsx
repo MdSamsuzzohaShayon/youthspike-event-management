@@ -1,8 +1,5 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable react/require-default-props */
 import { IMatchExpRel, IPlayer, ITeam } from '@/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
 import { tableVariant } from '@/utils/animation';
@@ -23,14 +20,7 @@ interface ITeamListProps {
   matchList?: IMatch[];
   selectedGroup?: string | null;
 }
-/*
-FC Barcelona
-8 - 6 (2 matches)
 
-PSG
-6 - 8 (2 matches)
-
-*/
 
 const ITEMS_PER_PAGE: number = 20;
 
@@ -171,7 +161,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
   return (
     <div className="teamList w-full flex flex-col">
       <div className="overflow-x-auto">
-        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
+        <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" >
           <thead>
             <tr className="bg-yellow-500 text-black font-semibold">
               <th className="py-3 px-2">Team</th>
@@ -186,7 +176,7 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
               <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
             ))}
           </tbody>
-        </motion.table>
+        </table>
       </div>
       <div className="w-full mt-6">
         <Pagination currentPage={currentPage} itemList={teamList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />

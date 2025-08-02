@@ -1,16 +1,16 @@
-// lib/client.js
+import { BACKEND_URL } from "@/utils/keys";
 import { HttpLink } from "@apollo/client";
 import {
-  NextSSRInMemoryCache,
-  NextSSRApolloClient,
-} from "@apollo/experimental-nextjs-app-support/ssr";
-import { registerApolloClient } from "@apollo/experimental-nextjs-app-support/rsc";
+  registerApolloClient,
+  ApolloClient,
+  InMemoryCache,
+} from "@apollo/client-integration-nextjs";
 
-export const { getClient } = registerApolloClient(() => {
-  return new NextSSRApolloClient({
-    cache: new NextSSRInMemoryCache(),
+export const { getClient, query, PreloadQuery } = registerApolloClient(() => {
+  return new ApolloClient({
+    cache: new InMemoryCache(),
     link: new HttpLink({
-      uri: "https://main--time-pav6zq.apollographos.net/graphql",
+      uri: BACKEND_URL,
     }),
   });
 });

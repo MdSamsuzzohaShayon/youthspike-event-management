@@ -1,6 +1,5 @@
-import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
+import React, {  useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import { AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentRoundNets, setCurrNetNum } from '@/redux/slices/netSlice';
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';

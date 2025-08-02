@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import { Inter } from 'next/font/google';
-import ApolloWrapper from '@/lib/ApolloWrapper';
 import ReduxProvider from '@/lib/ReduxProviders';
 import './globals.css';
 import Footer from '@/components/layout/Footer';
@@ -10,6 +9,7 @@ import Loader from '@/components/elements/Loader';
 import LdoProvider from '@/lib/LdoProvider';
 import MenuSwitcher from '@/components/layout/MenuSwitcher';
 import Message from '@/components/elements/Message';
+import { ApolloWrapper } from '@/lib/ApolloWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 

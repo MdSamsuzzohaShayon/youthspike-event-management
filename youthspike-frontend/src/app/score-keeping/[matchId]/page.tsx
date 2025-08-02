@@ -1,8 +1,8 @@
 import React, { Suspense } from 'react';
 import { cookies } from 'next/headers';
 import { IAccessCode, IUser } from '@/types';
-import AccessCodeForm from '@/components/match/ScoreKeeping/AccessCodeForm';
-import ServerReceiver from '@/components/match/ScoreKeeping/ServerReceiver';
+import AccessCodeForm from '@/components/ScoreKeeping/AccessCodeForm';
+import ServerReceiver from '@/components/ScoreKeeping/ServerReceiver';
 import Link from 'next/link';
 import { getMatch } from '@/app/_requests/match';
 import { notFound } from 'next/navigation';
@@ -15,17 +15,7 @@ interface IScoreKeepingPageProps {
   };
 }
 async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps) {
-  /**
-   * Get value of localstorage (match list), check which round they are in
-   * Check both team checked in or not, check both team submitted their lineup or not
-   * In ther setting of particular match, create 2 buttons. 1) Start New 2) Edit. Those buttons will take us to this page.
-   * Check in the cookie if the user is logged in or not
-   * Check is access code already exist or not
-   * If not show the form to enter the access code
-   * Get round number and net number from local storage
-   * Get team A and team B
-   * Get both players of the team
-   */
+
   const cookieStore = await cookies();
   const accessCodeCookie = cookieStore.get(ACCESS_CODE);
   const accessCodeList = accessCodeCookie ? JSON.parse(accessCodeCookie.value) : [];
@@ -75,12 +65,9 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
       <div className="container mx-auto px-4 py-10">
         {renderHeadings()}
         <div className="server-receiver-wrapper">
-          {' '}
           {/* or whatever height you need */}
           <Suspense fallback={<Loader />}>{matchData && <ServerReceiver matchId={matchId} matchData={matchData} accessCode={accessCode} token={token || null} userInfo={userInfo} />}</Suspense>
         </div>
-        {/* <div className="server-receiver-wrapper">
-        </div> */}
       </div>
     </div>
   );

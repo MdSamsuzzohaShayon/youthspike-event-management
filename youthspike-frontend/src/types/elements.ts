@@ -155,11 +155,7 @@ export interface ILoginProps {
   setPassword: (state: string) => void;
 }
 
-export interface IEventPageProps {
-  params: {
-    eventId: string;
-  };
-}
+export type TParams = Promise<Record<string, string>>;
 
 export interface IServerTeam{
   server: IPlayer | null;

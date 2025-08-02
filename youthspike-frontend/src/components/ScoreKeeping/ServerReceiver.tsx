@@ -330,6 +330,9 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
               <button onClick={handleUpdateScore} type="button" className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
                 Update score
               </button>
+              <button onClick={openResetConfirm} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+                Reset
+              </button>
             </div>
           )}
         </div>

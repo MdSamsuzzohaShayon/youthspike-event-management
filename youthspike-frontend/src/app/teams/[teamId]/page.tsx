@@ -1,7 +1,7 @@
 import TeamDetail from '@/components/team/TeamDetail';
 import getTeamData from '@/app/_requests/team';
 import { notFound } from 'next/navigation';
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayer, IPlayerRanking, IPlayerRankingItem, IRoundRelatives, ITeam } from '@/types';
 
 interface TeamSinglePageProps {
   params: { teamId: string };
@@ -20,6 +20,8 @@ async function TeamSinglePage({ params: { teamId } }: TeamSinglePageProps) {
   team.captain = captain;
   team.cocaptain = cocaptain;
 
+  const rankingIds = new Set<string>(playerRanking.rankings.map((r: IPlayerRankingItem) => r.player));
+
   // Build lookup maps in a single pass (O(n) instead of multiple O(n) iterations)
   const roundMap = new Map(rounds.map((r: IRoundRelatives) => [r._id, r]));
   const netMap = new Map(nets.map((n: INetRelatives) => [n._id, n]));
@@ -30,24 +32,24 @@ async function TeamSinglePage({ params: { teamId } }: TeamSinglePageProps) {
     const matchObj = { ...m };
 
     // @ts-ignore
-    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
-    // @ts-ignore
-    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
+    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId) as IRoundRelatives).filter(Boolean);
+
+    matchObj.nets = m.nets.map((netId) => netMap.get(netId) as INetRelatives).filter(Boolean);
 
     if (oponentTeamMap.has(m.teamA)) {
-      // @ts-ignore
-      matchObj.teamA = oponentTeamMap.get(m.teamA);
+
+      matchObj.teamA = oponentTeamMap.get(m.teamA) as ITeam;
       matchObj.teamB = team;
     } else if (oponentTeamMap.has(m.teamB)) {
-      // @ts-ignore
-      matchObj.teamB = oponentTeamMap.get(m.teamB);
+
+      matchObj.teamB = oponentTeamMap.get(m.teamB) as ITeam;
       matchObj.teamA = team;
     }
 
     return matchObj;
   });
 
-  const playerList = players.map((p: IPlayer) => {
+  const playerList = players.filter((p: IPlayer) => rankingIds.has(p._id)).map((p: IPlayer) => {
     const playerObj = { ...p, teams: [team] };
     // Captain
     if (playerObj.captainofteams && playerObj.captainofteams?.length > 0) {

@@ -1,6 +1,3 @@
-/* eslint-disable jsx-a11y/control-has-associated-label */
-/* eslint-disable jsx-a11y/label-has-associated-control */
-
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -66,8 +63,7 @@ function EventMain({ events }: IEventMainProps) {
         matchFound =
           (currEvent.startDate && validateMatchDatetime(currEvent.startDate) === filterParams.date) ||
           (currEvent.endDate && validateMatchDatetime(currEvent.endDate) === filterParams.date) ||
-          // @ts-ignore 
-          currEvent.matches.some((match) => match.date && validateMatchDatetime(match.date) === filterParams.date);
+          currEvent.matches.some((match) => typeof match === 'object' && match.date && validateMatchDatetime(match.date) === filterParams.date);
       }
 
       // Check search filter

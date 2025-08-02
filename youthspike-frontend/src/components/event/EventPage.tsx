@@ -24,18 +24,9 @@ async function EventPage() {
         <h1 className="text-4xl font-bold text-center mt-8 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">Events</h1>
 
         <EventMain events={eventsData} />
-
-        {/* Pagination Section */}
-        {/* <div className="pagination-wrapper w-full mt-8 flex justify-center">
-          <button type="button" className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors duration-300">
-            Load More
-          </button>
-        </div> */}
       </div>
     </div>
   );
 }
-
-/* <EventMain events={eventsData} /> */
 
 export default EventPage;

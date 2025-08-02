@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 
 // Redux
@@ -70,17 +69,11 @@ function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
   };
 
   return (
-    <motion.div
-      layout
+    <div
       className="net-detail w-full h-full relative flex justify-center items-center flex-col"
       style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      initial={direction === EDirection.RIGHT ? 'enterFromRight' : 'enterFromLeft'}
-      animate="center"
-      exit={direction === EDirection.RIGHT ? 'exitToLeft' : 'exitToRight'}
-      variants={netCardVariant}
-      transition={{ duration: 0.1, ease: 'easeInOut' }}
     >
       {/* Net top section start */}
       <NetTeamSelect net={net} onTop teamE={opTeamE} />
@@ -95,7 +88,7 @@ function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
       {/* Net bottom section start */}
       <NetTeamSelect net={net} onTop={false} teamE={myTeamE} />
       {/* Net bottom section end */}
-    </motion.div>
+    </div>
   );
 }
 

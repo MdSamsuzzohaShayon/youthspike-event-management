@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-import { motion } from 'framer-motion';
 import { IMatchExpRel, INetRelatives, IRoundExpRel } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/scoreCalc';
@@ -62,7 +60,6 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
               <Image src="/free-logo.png" width={imgW.logo} height={imgW.logo} className="w-full h-full" alt="free-logo" />
             )}
           </div>
-          {/* <h3 className="text-2xl md:text-3xl font-semibold text-white capitalize text-center w-full">Barcelona FC</h3> */}
           <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && won ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
           <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border ${match.completed && won ? 'bg-green-600' : ''}`}>{teamScore}</h1>
         </>
@@ -119,41 +116,29 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   }, [allNets, roundList]);
 
   return (
-    <motion.div
+    <div
       className="w-full bg-gray-800 flex flex-col justify-between items-center relative rounded-lg shadow-lg overflow-hidden"
       style={{ minHeight: '6rem' }}
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeInOut' }}
     >
       {/* ===== LEVEL 1 START ===== */}
-      <motion.div
+      <div
         className="level-1 w-full flex justify-center px-4 md:px-8 py-3 border-b-2 border-yellow-500 text-white font-bold text-lg tracking-wide"
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {match.completed ? 'FINAL SCORE' : messageCreate()}
-      </motion.div>
+      </div>
       {/* ===== LEVEL 1 END ===== */}
 
       {/* ===== LEVEL 2 START ===== */}
-      <motion.div
+      <div
         className="level-2 w-full flex justify-between items-center px-4 md:px-8 py-4 text-white"
-        initial={{ x: -50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
       >
         {teamCard(match?.teamA, ETeam.teamA)}
-      </motion.div>
+      </div>
       {/* ===== LEVEL 2 END ===== */}
 
       {/* ===== LEVEL 3 START ===== */}
-      <motion.div
+      <div
         className="level-3 w-full flex justify-center items-center px-4 md:px-8 py-4 gap-x-4 text-white"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
       >
         {user.info?.role === UserRole.admin ||
           (user.info?.role === UserRole.director && (
@@ -179,26 +164,20 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           </div>
         </div>
         <Image height={imgW.logo} width={imgW.logo} src="/icons/share.svg" alt="share-icon" className="w-6 svg-white cursor-pointer hover:opacity-80" />
-      </motion.div>
+      </div>
       {/* ===== LEVEL 3 END ===== */}
 
       {/* ===== LEVEL 4 START ===== */}
-      <motion.div
+      <div
         className="level-4 w-full flex justify-between items-center px-4 md:px-8 py-4 text-white"
-        initial={{ x: 50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
       >
         {teamCard(match?.teamB, ETeam.teamB)}
-      </motion.div>
+      </div>
       {/* ===== LEVEL 4 END ===== */}
 
       {/* ===== LEVEL 5 START ===== */}
-      <motion.div
+      <div
         className="level-5 w-full flex justify-between items-start px-4 md:px-8 py-4 text-white"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.8 }}
       >
         <div className="w-1/2">
           <p className="flex items-center gap-x-2">
@@ -216,17 +195,17 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             <span>{match.description}</span>
           </p>
         </div>
-      </motion.div>
+      </div>
       {/* ===== LEVEL 5 END ===== */}
 
       {/* ===== LEVEL 7 START ===== */}
-      <motion.div className="level-7 w-full flex justify-center px-4 md:px-8 py-4" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, delay: 1 }}>
-        <Link href={`/matches/${match._id}/${ldoIdUrl}`} className="btn-info px-4 py-2 bg-red-600 text-white font-bold rounded-md hover:bg-red-500 transition duration-300">
+      <div className="level-7 w-full flex justify-center px-4 md:px-8 py-4" >
+        <Link href={`/matches/${match._id}/${ldoIdUrl}`} className="px-6 py-2 bg-yellow-logo text-black font-semibold rounded-md shadow-md hover:bg-yellow-600 transition-colors duration-300">
           Enter
         </Link>
-      </motion.div>
+      </div>
       {/* ===== LEVEL 7 END ===== */}
-    </motion.div>
+    </div>
   );
 }
 

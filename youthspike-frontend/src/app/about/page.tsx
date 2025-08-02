@@ -1,9 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import React, { useEffect } from 'react';
-import { containerVariants, hoverVariants, itemVariants } from '@/utils/animation';
 import LocalStorageService from '@/utils/LocalStorageService';
 
 function AboutPage() {
@@ -14,65 +12,77 @@ function AboutPage() {
       window.location.reload();
     }
   }, []);
+
   return (
-    <motion.div className="bg-black text-white min-h-screen" initial="hidden" animate="visible" variants={containerVariants}>
+    <div className="bg-black text-white min-h-screen animate-fadeIn">
       {/* Header Section */}
-      <motion.header className="text-center py-8" variants={itemVariants}>
+      <header className="text-center py-8 animate-slideUp">
         <h1 className="text-4xl font-bold">About Us</h1>
-        <p className="text-lg mt-2">Learn more about our platform and how we empower teams to excel.</p>
-      </motion.header>
+        <p className="text-lg mt-2">
+          Learn more about our platform and how we empower teams to excel.
+        </p>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-6">
         {/* Navigation Menu */}
-        <motion.nav className="bg-yellow-logo rounded-md shadow-md my-6" variants={itemVariants}>
+        <nav className="bg-yellow-logo rounded-md shadow-md my-6 animate-slideUp">
           <ul className="flex justify-around py-4">
-            <motion.li variants={hoverVariants} whileHover="hover">
-              <a href={ADMIN_FRONTEND_URL} className="text-black font-semibold hover:text-white">
+            <li>
+              <a
+                href={ADMIN_FRONTEND_URL}
+                className="text-black font-semibold hover:text-white transition-colors duration-300"
+              >
                 Admin Settings
               </a>
-            </motion.li>
-            <motion.li variants={hoverVariants} whileHover="hover">
-              <a href="/" className="text-black font-semibold hover:text-white">
+            </li>
+            <li>
+              <a
+                href="/"
+                className="text-black font-semibold hover:text-white transition-colors duration-300"
+              >
                 Public View
               </a>
-            </motion.li>
-            <motion.li variants={hoverVariants} whileHover="hover">
-              <a href="/events" className="text-black font-semibold hover:text-white">
+            </li>
+            <li>
+              <a
+                href="/events"
+                className="text-black font-semibold hover:text-white transition-colors duration-300"
+              >
                 Events
               </a>
-            </motion.li>
+            </li>
           </ul>
-        </motion.nav>
+        </nav>
 
         {/* Features Section */}
-        <motion.section className="bg-gray-800 border-l-4 border-yellow-logo rounded-md p-6 my-6 shadow-md" variants={itemVariants}>
+        <section className="bg-gray-800 border-l-4 border-yellow-logo rounded-md p-6 my-6 shadow-md animate-slideUp">
           <h2 className="text-xl font-semibold text-yellow-logo">Key Features</h2>
-          <motion.ul className="list-disc list-inside mt-4 space-y-2 text-white" variants={containerVariants}>
-            <motion.li variants={itemVariants} whileHover="hover">
+          <ul className="list-disc list-inside mt-4 space-y-2 text-white">
+            <li className="hover:text-yellow-logo transition-colors duration-300 cursor-pointer">
               Live event management with detailed records
-            </motion.li>
-            <motion.li variants={itemVariants} whileHover="hover">
+            </li>
+            <li className="hover:text-yellow-logo transition-colors duration-300 cursor-pointer">
               Seamless roster locking and match creation
-            </motion.li>
-            <motion.li variants={itemVariants} whileHover="hover">
+            </li>
+            <li className="hover:text-yellow-logo transition-colors duration-300 cursor-pointer">
               Team ranking based on performance
-            </motion.li>
-            <motion.li variants={itemVariants} whileHover="hover">
+            </li>
+            <li className="hover:text-yellow-logo transition-colors duration-300 cursor-pointer">
               Admin and public view consistency
-            </motion.li>
-          </motion.ul>
-        </motion.section>
+            </li>
+          </ul>
+        </section>
 
         {/* Standings and Groups Section */}
-        <motion.section className="bg-gray-800 border-l-4 border-yellow-logo rounded-md p-6 my-6 shadow-md" variants={itemVariants}>
+        <section className="bg-gray-800 border-l-4 border-yellow-logo rounded-md p-6 my-6 shadow-md animate-slideUp">
           <h2 className="text-xl font-semibold text-yellow-logo">Standings & Group Management</h2>
-          <motion.p variants={itemVariants} className="mt-4 text-white">
+          <p className="mt-4 text-white">
             Manage team standings, group filtering, and bulk actions for streamlined operations.
-          </motion.p>
-        </motion.section>
+          </p>
+        </section>
       </main>
-    </motion.div>
+    </div>
   );
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -154,20 +153,19 @@ function EventDetail({ event }: { event: IEventRelatives }) {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 mt-8">
-        <motion.div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:h-screen overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        <div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:h-screen overflow-hidden" >
           <ul className="flex flex-col gap-2">
             {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map((item) => (
-              <motion.li
+              <li
                 key={item}
                 className={`cursor-pointer p-2 rounded-md uppercase text-center ${selectedItem === item ? 'bg-yellow-500 text-black font-semibold' : 'bg-gray-700 text-white'}`}
                 onClick={() => setSelectedItem(item)}
-                whileHover={{ scale: 1.05 }}
               >
                 {item === EEventItem.TEAM ? `Standings / Teams` : item}
-              </motion.li>
+              </li>
             ))}
           </ul>
-        </motion.div>
+        </div>
 
         <div className="content w-full lg:w-3/4 rounded-md">{renderContent}</div>
       </div>

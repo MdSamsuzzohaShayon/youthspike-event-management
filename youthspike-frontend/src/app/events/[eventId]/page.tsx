@@ -1,11 +1,16 @@
 import EventDetail from '@/components/event/EventDetail';
-import { IEventPageProps, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam, TParams } from '@/types';
 import { notFound } from 'next/navigation';
 import getEventWithMatches from '../_fetch/event';
 
+interface IEventSingleProps{
+  params: Promise<TParams>;
+}
+
 // Create pagination
 // Manipulate team and players properly to show all valid data
-async function EventSingle({ params: { eventId } }: IEventPageProps) {
+async function EventSingle({ params }: IEventSingleProps) {
+  const {eventId} = await params;
   const matchesData = await getEventWithMatches(eventId);
 
   if (!matchesData) {

@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { rowVariant } from '@/utils/animation';
 import Image from 'next/image';
 import { IPlayerRecord, ITeam } from '@/types';
@@ -15,13 +14,9 @@ interface IPlayerRowProps {
 
 function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
   return (
-    <motion.tr
+    <tr
       key={player._id} // Assuming `player.id` exists
       className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all"
-      custom={index} // Pass index for dynamic delay
-      variants={rowVariant}
-      initial="hidden"
-      animate="visible"
     >
       <td className="py-3 flex justify-start items-center">
         <span className="ml-2">{teamRank ? player.rank : index + 1}</span>
@@ -52,7 +47,7 @@ function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
       <td className="py-3 px-4">{player.running}</td> */}
       <td className="py-3 px-4">{player.averagePointsDiff.toFixed(2)}</td>
       <td className="py-3 px-4">{`${player.wins}-${player.losses}`}</td>
-    </motion.tr>
+    </tr>
   );
 }
 

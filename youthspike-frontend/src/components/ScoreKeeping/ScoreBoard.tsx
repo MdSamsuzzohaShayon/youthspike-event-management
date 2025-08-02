@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { EServerReceiverAction, ETeam, IPlayer, IServerReceiverOnNetMixed, ITeam } from '@/types';
 import { toOrdinal } from '@/utils/helper';
+import { CldImage } from 'next-cloudinary';
+import Image from 'next/image';
+import TextImg from '@/components/elements/TextImg';
 
 interface IScoreBoardProps {
   currServerReceiver: IServerReceiverOnNetMixed | null;
@@ -41,7 +44,7 @@ function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlaye
     ]).has(serverReceiverAction);
 
     if ((serverTeamGetsPoint && isServerInTeam) || (receiverTeamGetsPoint && isReceiverInTeam)) {
-      return <p className="absolute bottom-1.5 right-2 text-green-500 text-xs font-bold animate-bounce">+1</p>;
+      return <p className="absolute bottom-1 right-2 text-green-500 text-3xl font-bold animate-bounce">+1</p>;
     }
 
     return null;
@@ -50,27 +53,40 @@ function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlaye
   // relative flex flex-col items-center w-28 lg:w-36 p-4 rounded-3xl transition-all border shadow-lg hover:shadow-2xl backdrop-blur-sm bg-gray-900/90 border-gray-700
 
   return (
-    <div className="flex flex-col md:flex-col items-center justify-center space-y-6 md:space-y-8">
-      <div className="bg-yellow-400 text-black px-6 py-2 rounded-full text-sm font-bold shadow-md uppercase tracking-wide animate-pulse">{`${toOrdinal(currServerReceiver?.mutate || 0)} play`}</div>
-      <div className="w-full grid grid-cols-2 gap-4">
+    <div className="max-w-5xl mx-auto space-y-6 md:space-y-10">
+      {/* Pulsing Status */}
+      <div className="bg-yellow-400 text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2">
+        {`${toOrdinal(currServerReceiver?.mutate || 0)} play`}
+      </div>
 
-        {/* Team A */}
-        <div className="flex flex-col items-center justify-center space-y-3 p-2 lg:p-4 rounded-3xl transition-all border shadow-lg hover:shadow-2xl backdrop-blur-sm bg-gray-900/90 border-gray-700">
-          <h2 className="uppercase text-sm font-medium text-yellow-300 tracking-wide text-center">{teamA?.name}</h2>
-          <div className="relative bg-white text-black h-20 lg:h-28 w-20 lg:w-28 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-400">
-            <h2 className="text-4xl font-bold">{currServerReceiver?.teamAScore || 0}</h2>
-            {getPointIndicator(ETeam.teamA)}
-          </div>
-        </div>
+      {/* Responsive Team Layout */}
+      <div className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-6">
+        {[
+          { team: teamA, score: currServerReceiver?.teamAScore || 0, side: ETeam.teamA },
+          { team: teamB, score: currServerReceiver?.teamBScore || 0, side: ETeam.teamB },
+        ].map(({ team, score, side }) => (
+          <div
+            key={team?.name}
+            className="flex items-center md:flex-col justify-between md:justify-center px-3 py-2 md:p-6 rounded-xl md:rounded-3xl border border-gray-700 bg-gray-900/90 shadow-sm md:shadow-lg transition-all duration-300"
+          >
+            {/* Logo */}
+            {team?.logo ? (
+              <CldImage width={48} height={48} alt={team.name} src={team.logo} className="h-12 w-12 md:h-24 md:w-24 rounded-full ring-2 ring-yellow-400" />
+            ) : (
+              <TextImg className="h-12 w-12 md:h-24 md:w-24 rounded-full ring-2 ring-yellow-400" fullText={team?.name} />
+            )}
 
-        {/* Team B */}
-        <div className="flex flex-col items-center justify-center space-y-3 p-2 lg:p-4 rounded-3xl transition-all border shadow-lg hover:shadow-2xl backdrop-blur-sm bg-gray-900/90 border-gray-700">
-          <h2 className="uppercase text-sm font-medium text-yellow-300 tracking-wide text-center">{teamB?.name}</h2>
-          <div className="relative bg-white text-black h-20 lg:h-28 w-20 lg:w-28 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-400">
-            <h2 className="text-4xl font-bold">{currServerReceiver?.teamBScore || 0}</h2>
-            {getPointIndicator(ETeam.teamB)}
+            {/* Text & Score Group */}
+            <div className="flex-1 flex flex-col items-end md:items-center justify-center ml-3 md:ml-0 md:mt-4 space-y-1">
+              <h2 className="min-h-[1.75rem] md:min-h-[2rem] text-sm md:text-lg font-semibold uppercase text-yellow-300 tracking-wide text-right md:text-center">{team?.name}</h2>
+
+              <div className="relative bg-white text-black h-12 w-12 md:h-24 md:w-24 rounded-full flex items-center justify-center shadow-md border-2 md:border-4 border-yellow-400 text-lg md:text-4xl font-bold">
+                {score}
+                {getPointIndicator(side)}
+              </div>
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

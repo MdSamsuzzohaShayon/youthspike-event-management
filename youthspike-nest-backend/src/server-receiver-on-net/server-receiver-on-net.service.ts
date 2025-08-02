@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ServerReceiverOnNet, ServerReceiverSinglePlay } from './server-receiver-on-net.schema';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { Document, FilterQuery, Model, UpdateQuery } from 'mongoose';
+
+// Fix: Extend Document to gain .toObject() and ._id access
+type ServerReceiverSinglePlayDocument = ServerReceiverSinglePlay & Document;
 
 @Injectable()
 export class ServerReceiverOnNetService {
@@ -59,7 +62,7 @@ export class ServerReceiverOnNetService {
     return updatedNets;
   }
 
-  async findSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>): Promise<ServerReceiverSinglePlay[]> {
+  async findSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>): Promise<ServerReceiverSinglePlayDocument[]> {
     return this.serverReceiverOnNetSinglePlayModel.find(filter);
   }
 

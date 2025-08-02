@@ -124,10 +124,10 @@ function MatchSetting({ match, myTeam, opTeam, currRoom, currRound }: IMatchSett
   const scoreKeepingLinks = useMemo(
     () => (
       <div className="score-keeping-wrapper bg-black-logo w-full flex justify-center items-center rounded-lg mt-2 p-2 gap-x-2">
-        <Link className="btn-light" href={`/matches/${match._id}/score-keeping/${ldoIdUrl}`}>
+        <Link className="btn-light" href={`/score-keeping/${match._id}/${ldoIdUrl}`}>
           Start New
         </Link>
-        <Link className="btn-light" href={`/matches/${match._id}/score-keeping/${ldoIdUrl}`}>
+        <Link className="btn-light" href={`/score-keeping/${match._id}/${ldoIdUrl}`}>
           Edit
         </Link>
       </div>
