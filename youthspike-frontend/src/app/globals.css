@@ -6,37 +6,38 @@
 /* Dark color #232323 */
 
 /* Typography start  */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-}
 h1 {
-  @apply text-3xl font-bold;
+  @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold;
 }
+
 h2 {
-  @apply text-2xl font-bold;
+  @apply text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold;
 }
+
 h3 {
-  @apply text-xl font-semibold;
+  @apply text-base sm:text-lg md:text-xl font-semibold;
 }
+
 h4 {
-  @apply text-lg font-medium;
+  @apply text-sm sm:text-base md:text-lg font-medium;
 }
+
 h5 {
-  @apply text-base font-light;
+  @apply text-xs sm:text-sm md:text-base font-light;
 }
+
 h6 {
-  @apply text-sm font-light;
+  @apply text-xs sm:text-xs md:text-sm font-light;
 }
+
 p {
-  @apply text-sm;
+  @apply text-xs sm:text-sm;
 }
+
 label {
-  @apply text-lg font-normal;
+  @apply text-sm sm:text-base font-normal;
 }
+
 
 /* Remove arrow (spinner) from number input */
 /* Chrome, Safari, Edge, Opera */
@@ -51,16 +52,32 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-dialog {}
+dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
-dialog::backdrop {
-  background-image: linear-gradient(45deg,
-      #232323,
-      #232323,
-      #232323,
-      #232323);
-  opacity: 0.75;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
 }
+
+/* Backdrop behind the dialog */
+dialog::backdrop {
+  background-image: linear-gradient(
+    45deg,
+    #232323,
+    #232323,
+    #232323,
+    #232323
+  );
+  opacity: 0.75;
+  backdrop-filter: blur(2px); /* Optional: adds blur */
+}
+
 
 /* Typography End  */
 

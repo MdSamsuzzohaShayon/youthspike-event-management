@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useAppSelector } from '@/redux/hooks';
 import { IRoundRelatives } from '@/types';
 import { screen } from '@/utils/constant';
@@ -15,7 +15,7 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
   const { myTeamE, opTeamE } = useAppSelector((state) => state.matches);
   const allNets = useAppSelector((state) => state.nets.nets);
 
-  const renderScore = (round: IRoundRelatives) => {
+  const renderScore = useCallback((round: IRoundRelatives) => {
     const teamE = dark ? opTeamE : myTeamE;
     const { score, plusMinusScore } = calcRoundScore(
       allNets.filter((n) => n.round === round._id),
@@ -23,15 +23,6 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
       teamE,
     );
 
-    // const basePointBorderColor = (() => {
-    //   if (plusMinusScore === 0) {
-    //     return dark ? border.dark : border.light;
-    //   }
-    //   if (plusMinusScore > 0) {
-    //     return border.green;
-    //   }
-    //   return border.red;
-    // })();
 
     const plusMinusColorClass = plusMinusScore >= 0 ? 'text-green-600' : 'text-red-600';
 
@@ -41,7 +32,7 @@ function PointsByRound({ dark, roundList, screenWidth }: IPointsByRoundProps) {
         <p className={`base-point h-10 w-full border border-yellow ${dark ? 'rounded-t-lg' : 'rounded-b-lg'} text-center flex justify-center items-center`}>{score}</p>
       </>
     );
-  };
+  }, [myTeamE, opTeamE, allNets, dark]);
 
   const renderRoundBox = (round: IRoundRelatives) => {
     const roundBoxClass = screenWidth > screen.xs ? 'text-xs w-6' : 'text-sm w-8';

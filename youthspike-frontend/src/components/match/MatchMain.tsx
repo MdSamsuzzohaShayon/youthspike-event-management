@@ -142,7 +142,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
       );
 
     const userDetail = getUserFromCookie();
-    if (!userDetail?.token) return;
+    // if (!userDetail?.token) return;
 
     await organizeFetchedData({
       matchData: match,
@@ -154,9 +154,11 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   }, [match, dispatch]);
 
   useEffect(() => {
+    if(match){
+      organizeData();
+    }
     if (match?.event?._id) {
       LocalStorageService.setEvent(match.event._id);
-      organizeData();
     }
   }, [match, organizeData]);
 

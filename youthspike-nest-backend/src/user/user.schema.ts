@@ -72,24 +72,6 @@ export class User extends UserBase {
 export type UserDocument = User & Document;
 export const UserSchema = SchemaFactory.createForClass(User);
 export const UserSchemaFactory = async () => {
-  /*
-  UserSchema.pre('save', async function () {
-    if (this?.password && (this.isNew || this.isModified('password'))) {
-      this.password = await hash(this.password, 10);
-    }
-  });
-
-  UserSchema.method('toJSON', function () {
-    const obj = this.toObject();
-
-    if (obj.role != UserRole.admin) delete obj.admin;
-    if (obj.role != UserRole.coach) delete obj.coach;
-    if (obj.role != UserRole.manager) delete obj.manager;
-
-    if (obj?.login?.password) delete obj.login.password;
-    return obj;
-  });
-  */
 
   return UserSchema;
 };

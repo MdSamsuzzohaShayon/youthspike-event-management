@@ -1,6 +1,12 @@
 /* eslint-disable no-restricted-syntax */
-import { IMatchExpRel, INetRelatives, IPlayer, IPlayerRecord, IRoundRelatives } from '@/types';
-import { ETeam } from '@/types/team';
+import {
+  IMatchExpRel,
+  INetRelatives,
+  IPlayer,
+  IPlayerRecord,
+  IRoundRelatives,
+} from "@/types";
+import { ETeam } from "@/types/team";
 
 interface IReturnScore {
   score: number;
@@ -10,10 +16,16 @@ interface IReturnScore {
 /**
  * Calculate the score and plus-minus for a specific team in a round.
  */
-function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE: ETeam): IReturnScore {
+function calcRoundScore(
+  findNets: INetRelatives[],
+  round: IRoundRelatives,
+  teamE: ETeam
+): IReturnScore {
   let score = 0;
   let plusMinusScore = 0;
 
+
+  // Calculate score
   for (const net of findNets) {
     const teamAScore = net.teamAScore || 0;
     const teamBScore = net.teamBScore || 0;
@@ -25,10 +37,16 @@ function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE
     }
   }
 
-  const teamPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
-  const opponentPoints = teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0;
+  // console.log({teamAScore: round.teamAScore, teamBScore: round.teamBScore});
+  
+
+  const teamPoints =
+    teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
+  const opponentPoints =
+    teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0;
 
   plusMinusScore = teamPoints - opponentPoints;
+  
 
   return { score, plusMinusScore };
 }
@@ -39,7 +57,7 @@ function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE
 function calcMatchScore(
   roundList: IRoundRelatives[],
   allNets: INetRelatives[],
-  teamE: ETeam,
+  teamE: ETeam
 ): {
   teamScore: number;
   oponentScore: number;
@@ -70,7 +88,7 @@ function calcMatchScore(
     // Calculate team and opponent scores in one loop
     const teamResult = calcRoundScore(netsOfRound, round, teamE);
     const oponentResult = calcRoundScore(netsOfRound, round, oponentE);
-    
+
     teamScore += teamResult.score;
     teamPlusMinus += teamResult.plusMinusScore;
     oponentScore += oponentResult.score;
@@ -88,14 +106,21 @@ function calcMatchScore(
 /**
  * Calculate the combined score of two players.
  */
-function calcPairScore(playerA: number | null | undefined, playerB: number | null | undefined): number {
+function calcPairScore(
+  playerA: number | null | undefined,
+  playerB: number | null | undefined
+): number {
   return (playerA || 0) + (playerB || 0);
 }
 
 /**
  * Utility to calculate player stats.
  */
-const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[], rankingMap?: Map<string, number>): IPlayerRecord[] => {
+const calculatePlayerRecords = (
+  playerList: IPlayer[],
+  matchList: IMatchExpRel[],
+  rankingMap?: Map<string, number>
+): IPlayerRecord[] => {
   // Precompute match lookups to reduce redundant iterations
   const matchLookup = new Map<string, IMatchExpRel[]>();
   matchList.forEach((match) => {
@@ -108,7 +133,6 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
     matchLookup.get(teamAId)!.push(match);
     matchLookup.get(teamBId)!.push(match);
   });
-  
 
   return playerList.map((player) => {
     let myScore = 0;
@@ -119,9 +143,12 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
     let running = 0;
 
     const rank = rankingMap?.get(player._id) ?? null;
-    const playerTeamIds = player.teams?.map((team) => team._id) ?? [];
-    const relevantMatches = playerTeamIds.flatMap((teamId) => matchLookup.get(teamId) ?? []);
-
+    const playerTeamIds = player.teams?.map((team) => 
+      typeof team === 'string' ? team : team._id
+    ) ?? [];
+    const relevantMatches = playerTeamIds.flatMap(
+      (teamId) => matchLookup.get(teamId) ?? []
+    );
 
     relevantMatches.forEach((match) => {
       const isTeamA = playerTeamIds.includes(match.teamA._id);
@@ -134,9 +161,13 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
         return;
       }
 
-      
       match.nets.forEach((net) => {
-        const isPlayerInNet = [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].includes(player._id);
+        const isPlayerInNet = [
+          net.teamAPlayerA,
+          net.teamAPlayerB,
+          net.teamBPlayerA,
+          net.teamBPlayerB,
+        ].includes(player._id);
 
         if (!isPlayerInNet) return;
 
@@ -155,7 +186,8 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
       });
     });
 
-    const averagePointsDiff = numOfGames > 0 ? (myScore - opScore) / numOfGames : 0;
+    const averagePointsDiff =
+      numOfGames > 0 ? (myScore - opScore) / numOfGames : 0;
 
     return {
       ...player,
@@ -169,4 +201,9 @@ const calculatePlayerRecords = (playerList: IPlayer[], matchList: IMatchExpRel[]
   });
 };
 
-export { calcRoundScore, calcPairScore, calcMatchScore, calculatePlayerRecords };
+export {
+  calcRoundScore,
+  calcPairScore,
+  calcMatchScore,
+  calculatePlayerRecords,
+};

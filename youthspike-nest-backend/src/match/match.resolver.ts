@@ -547,28 +547,36 @@ export class MatchResolver {
       });
 
       // Update cache for missed data
-
-      const updatePromises = missedReceivers.map(async (sr) => {
+      const updatePromises = missedReceivers.map(async (sr: any) => {
         const netId = sr.net.toString();
         const net = netMap.get(netId);
         if (!net) return null;
 
-        sr.teamAScore = net?.teamAScore | 0;
-        sr.teamBScore = net?.teamBScore | 0;
+        // const netSinglePlays = await this.serverReceiverOnNetService.findSinglePlay({net: netId});
+
+        // const srObj = {...sr};
+        const srObj = typeof sr?.toObject === 'function' ? sr?.toObject() : sr;
+
+        srObj.teamAScore = net?.teamAScore | 0;
+        srObj.teamBScore = net?.teamBScore | 0;
+        srObj.mutate = net?.teamAScore + net?.teamBScore;
+        if(srObj.play > (net?.teamAScore + net?.teamBScore)){
+          srObj.play = net?.teamAScore + net?.teamBScore;
+        }
 
         const key = netKey(netId, room);
-        await this.redisService.set(key, sr);
-        return sr;
+        await Promise.all([
+          this.redisService.set(key, srObj),
+          this.serverReceiverOnNetService.updateOne({net: netId}, srObj)
+        ]);
+        return srObj;
       });
 
       const updatedReceivers = (await Promise.all(updatePromises)).filter(Boolean);
 
-      const allServerReceivers = [...processedCached, ...updatedReceivers];
-      return allServerReceivers.map((sr) => ({
-        ...sr,
-        teamAScore: sr?.teamAScore || 0,
-        teamBScore: sr?.teamBScore || 0,
-      }));
+      const cachedSR = processedCached.map((sr)=>({...sr, teamAScore: netMap.get(sr.net).teamAScore, teamBScore: netMap.get(sr.net).teamBScore}));
+      const allServerReceivers = [...cachedSR, ...updatedReceivers];
+      return allServerReceivers;
     } catch (error) {
       console.error('serverReceiverOnNet error:', error);
       return [];
@@ -631,14 +639,14 @@ export class MatchResolver {
         missedPlays.map(async (mp, i) => {
           const key = singlePlayKey(mp.net?.toString?.() || '', match.room?.toString?.() || '', mp.play);
           // Convert to plain object
-          const dataToCache = typeof mp.toObject === 'function' ? mp.toObject() : mp;
+          const dataToCache = typeof mp?.toObject === 'function' ? mp?.toObject() : mp;
           await this.redisService.set(key, dataToCache);
           return dataToCache;
         }),
       );
 
       const newMissedPlays = missedPlays.map((mp) => {
-        const dataToCache = typeof mp.toObject === 'function' ? mp.toObject() : mp;
+        const dataToCache = typeof mp?.toObject === 'function' ? mp?.toObject() : mp;
         return dataToCache;
       });
 

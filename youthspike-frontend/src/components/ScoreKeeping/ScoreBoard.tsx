@@ -22,7 +22,7 @@ function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlaye
   const teamBPlayerIds = useMemo(() => new Set(teamBPlayers.map((p) => p._id)), [teamBPlayers]);
 
   // Precompute logic once
-  const getPointIndicator = (team: ETeam): JSX.Element | null => {
+  const getPointIndicator = (team: ETeam): React.ReactNode | null => {
     if (!selectedServer || !selectedReceiver || !serverReceiverAction) return null;
 
     const isServerInTeam = team === ETeam.teamA ? teamAPlayerIds.has(selectedServer) : teamBPlayerIds.has(selectedServer);
@@ -71,16 +71,16 @@ function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlaye
           >
             {/* Logo */}
             {team?.logo ? (
-              <CldImage width={48} height={48} alt={team.name} src={team.logo} className="h-12 w-12 md:h-24 md:w-24 rounded-full ring-2 ring-yellow-400" />
+              <CldImage width={48} height={48} alt={team.name} src={team.logo} className="h-12 w-12 lg:24 rounded-full ring-2 ring-yellow-400" />
             ) : (
-              <TextImg className="h-12 w-12 md:h-24 md:w-24 rounded-full ring-2 ring-yellow-400" fullText={team?.name} />
+              <TextImg className="h-12 w-12 lg:24 rounded-full ring-2 ring-yellow-400" fullText={team?.name} />
             )}
 
             {/* Text & Score Group */}
-            <div className="flex-1 flex flex-col items-end md:items-center justify-center ml-3 md:ml-0 md:mt-4 space-y-1">
-              <h2 className="min-h-[1.75rem] md:min-h-[2rem] text-sm md:text-lg font-semibold uppercase text-yellow-300 tracking-wide text-right md:text-center">{team?.name}</h2>
+            <div className="flex-1 flex flex-col items-end md:items-center justify-between ml-3 md:ml-0 md:mt-4 space-y-1">
+              <h4 className="uppercase text-yellow-300 tracking-wide text-right md:text-center">{team?.name}</h4>
 
-              <div className="relative bg-white text-black h-12 w-12 md:h-24 md:w-24 rounded-full flex items-center justify-center shadow-md border-2 md:border-4 border-yellow-400 text-lg md:text-4xl font-bold">
+              <div className="relative bg-white text-black h-12 w-12 lg:24 rounded-full flex items-center justify-center shadow-md border-2 md:border-4 border-yellow-400 text-lg md:text-4xl font-bold">
                 {score}
                 {getPointIndicator(side)}
               </div>

@@ -1,29 +1,32 @@
-import React, { Suspense } from 'react';
-import { cookies } from 'next/headers';
-import { IAccessCode, IUser } from '@/types';
-import AccessCodeForm from '@/components/ScoreKeeping/AccessCodeForm';
-import ServerReceiver from '@/components/ScoreKeeping/ServerReceiver';
-import Link from 'next/link';
-import { getMatch } from '@/app/_requests/match';
-import { notFound } from 'next/navigation';
-import { ACCESS_CODE } from '@/utils/constant';
-import Loader from '@/components/elements/Loader';
+import React, { Suspense } from "react";
+import { cookies } from "next/headers";
+import { IAccessCode, IUser, TParams } from "@/types";
+import AccessCodeForm from "@/components/ScoreKeeping/AccessCodeForm";
+import ServerReceiver from "@/components/ScoreKeeping/ServerReceiver";
+import Link from "next/link";
+import { getMatch } from "@/app/_requests/match";
+import { notFound } from "next/navigation";
+import { ACCESS_CODE } from "@/utils/constant";
+import Loader from "@/components/elements/Loader";
 
 interface IScoreKeepingPageProps {
-  params: {
-    matchId: string;
-  };
+  params: TParams;
 }
-async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps) {
+async function ScoreKeepingPage({ params }: IScoreKeepingPageProps) {
+  const { matchId } = await params;
 
   const cookieStore = await cookies();
   const accessCodeCookie = cookieStore.get(ACCESS_CODE);
-  const accessCodeList = accessCodeCookie ? JSON.parse(accessCodeCookie.value) : [];
-  const user = cookieStore.get('user');
-  const token = cookieStore.get('token')?.value;
+  const accessCodeList = accessCodeCookie
+    ? JSON.parse(accessCodeCookie.value)
+    : [];
+  const user = cookieStore.get("user");
+  const token = cookieStore.get("token")?.value;
   const userInfo: IUser | null = user ? JSON.parse(user.value) : null;
 
-  const accessCode: null | IAccessCode = !accessCodeList ? null : accessCodeList.find((ac: IAccessCode) => ac.match === matchId) || null;
+  const accessCode: null | IAccessCode = !accessCodeList
+    ? null
+    : accessCodeList.find((ac: IAccessCode) => ac.match === matchId) || null;
 
   const matchData = await getMatch(matchId);
   if (!matchData) {
@@ -35,10 +38,15 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
   const renderHeadings = () => {
     return (
       <>
-        <h1 className="text-4xl font-extrabold text-yellow-400 text-center uppercase tracking-wide mb-6">Scorekeeper Settings</h1>
+        <h1 className="text-4xl font-extrabold text-yellow-400 text-center uppercase tracking-wide mb-6">
+          Scorekeeper Settings
+        </h1>
 
         <div className="text-center mb-6">
-          <Link href={`/matches/${matchId}`} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+          <Link
+            href={`/matches/${matchId}`}
+            className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+          >
             ← Go back to match
           </Link>
         </div>
@@ -66,7 +74,17 @@ async function ScoreKeepingPage({ params: { matchId } }: IScoreKeepingPageProps)
         {renderHeadings()}
         <div className="server-receiver-wrapper">
           {/* or whatever height you need */}
-          <Suspense fallback={<Loader />}>{matchData && <ServerReceiver matchId={matchId} matchData={matchData} accessCode={accessCode} token={token || null} userInfo={userInfo} />}</Suspense>
+          <Suspense fallback={<Loader />}>
+            {matchData && (
+              <ServerReceiver
+                matchId={matchId}
+                matchData={matchData}
+                accessCode={accessCode}
+                token={token || null}
+                userInfo={userInfo}
+              />
+            )}
+          </Suspense>
         </div>
       </div>
     </div>

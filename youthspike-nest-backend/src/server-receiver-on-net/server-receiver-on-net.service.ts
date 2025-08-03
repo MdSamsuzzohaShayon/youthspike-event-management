@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ServerReceiverOnNet, ServerReceiverSinglePlay } from './server-receiver-on-net.schema';
 import { Document, FilterQuery, Model, UpdateQuery } from 'mongoose';
 
-// Fix: Extend Document to gain .toObject() and ._id access
 type ServerReceiverSinglePlayDocument = ServerReceiverSinglePlay & Document;
 
 @Injectable()
