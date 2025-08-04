@@ -57,7 +57,7 @@ export enum EServerReceiverAction {
 
 // Score keeper
 interface IServerReceiverCommonResponse {
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
 }
 export interface IResetServerReceiverResponse extends IServerReceiverCommonResponse {

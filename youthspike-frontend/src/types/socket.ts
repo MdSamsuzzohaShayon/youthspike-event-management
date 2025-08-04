@@ -12,7 +12,7 @@ import { IPlayer } from './player';
 
 export interface IListenSocketProps {
   socket: Socket | null;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export interface IJoinTheRoomProps {
@@ -37,13 +37,13 @@ export interface IStatusChange {
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   myTeamE: ETeam;
 }
 
 // socket, dispatch, currRoom, currRound, currMatch, currNet, server, receiver
 export interface ISetServerReceiverChange {
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   currMatch: IMatchRelatives;
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
@@ -134,12 +134,12 @@ export interface ISetServerReceiverData {
 
 interface INetPoints {
   _id: string;
-  teamAScore: number;
-  teamBScore: number;
+  teamAScore: number | null;
+  teamBScore: number | null;
 }
 
 export interface IUpdatePointData {
-  nets: INetPoints[];
+  net: INetPoints;
   room: string;
   round: string;
   teamE: ETeam;
@@ -149,21 +149,21 @@ export interface IUpdatePointData {
 // Unused
 export interface INextRoundProps {
   roundList: IRoundRelatives[];
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   newRoundIndex: number;
   myTeamE: ETeam;
 }
 
 export interface ICompleteMatchProps {
   socket: Socket | null;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   match: IMatchRelatives;
 }
 
 export interface ISubmitUpdatePointsProps {
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
-  currRoundNets: INetRelatives[];
+  currNet: INetRelatives | null;
   myTeamE: ETeam;
 }
 
@@ -173,7 +173,7 @@ export interface ISubmitExtendOvertimeProps {
 }
 
 export interface IUpdateMultiplePointsProps extends ISubmitUpdatePointsProps {
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   allNets: INetRelatives[];
 }
 
@@ -181,7 +181,7 @@ export interface ICanGoProps extends ICommonProps {
   next: boolean;
   currRoundNets: INetRelatives[];
   targetRoundIndex: number;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
 }
 
 export interface IListenPublicSocketProps {
@@ -197,14 +197,14 @@ export interface IOvertimeData {
 // Run match
 export interface ICheckInResponse {
   data: IRoom;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   roundList: IRoundRelatives[];
   currentRound: IRoundRelatives | null;
 }
 
 export interface ILineUpResponse {
   data: IRoomNets;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   currRoundNets: INetRelatives[];
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];
@@ -213,7 +213,7 @@ export interface ILineUpResponse {
 
 export interface IUpdatePointsResponse {
   data: IUpdateScoreResponse;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   currRoundNets: INetRelatives[];
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];
@@ -223,13 +223,13 @@ export interface IUpdatePointsResponse {
 
 export interface IUpdateExtendOvertimeResponse {
   data: IOvertimeData;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   match: IMatchRelatives;
 }
 
 export interface IUpdateNetResponse {
   data: ITeiBreakerAction;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   currRoundNets: INetRelatives[];
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];

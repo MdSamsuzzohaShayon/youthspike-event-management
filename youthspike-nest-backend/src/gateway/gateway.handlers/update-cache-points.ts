@@ -10,10 +10,12 @@ import {
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class UpdateCachePointsHandler {
   constructor(
     private readonly gatewayService: GatewayService,
+    private readonly pointsHelper: PointsUpdateHelper,
     private readonly gatewayRedisService: GatewayRedisService,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
@@ -308,13 +310,20 @@ export class UpdateCachePointsHandler {
 
       const netsOfRound = await netService.find({ round: round._id });
       // Check if all net has point then make round completed
+      let teamAScore = 0, teamBScore = 0;
       let roundCompleted: boolean = true;
       for (const n of netsOfRound) {
-        if (!n.teamAScore || !n.teamBScore) {
+        // Zero values are allowed
+        if ((!n.teamAScore && n.teamAScore !== 0) || (!n.teamBScore && n.teamBScore !== 0)) {
           roundCompleted = false;
         }
+        if(n.teamAScore){
+          teamAScore += n.teamAScore;
+        }
+        if(n.teamBScore){
+          teamBScore += n.teamBScore;
+        }
       }
-      await roundService.updateOne({ _id: round._id }, { $set: { completed: roundCompleted } });
 
       const nets: INetScoreUpdate[] = netsOfRound.map((n) => ({
         _id: n._id,
@@ -322,13 +331,16 @@ export class UpdateCachePointsHandler {
         teamBScore: n.teamBScore,
       }));
 
+      // Update round with new scores
+      await roundService.updateOne({ _id: round._id }, { $set: { teamAScore, teamBScore, completed: roundCompleted } });
+
       const pointsResponse: RoundUpdatedResponse = {
         nets,
         room: body.room,
         round: {
           _id: round._id,
-          teamAScore: round.teamAScore,
-          teamBScore: round.teamBScore,
+          teamAScore: teamAScore,
+          teamBScore: teamBScore,
           completed: roundCompleted,
         },
         matchCompleted: false,

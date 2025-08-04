@@ -2,7 +2,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
-import { rowVariant } from '@/utils/animation';
 import TextImg from '../elements/TextImg';
 import { CldImage } from 'next-cloudinary';
 

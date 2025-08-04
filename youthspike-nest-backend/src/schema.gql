@@ -819,6 +819,12 @@ type GetNetResponse {
   data: Net!
 }
 
+type NetScore {
+  _id: String!
+  teamAScore: Float
+  teamBScore: Float
+}
+
 type GetDirectorLDOResponse {
   code: Int!
   success: Boolean!

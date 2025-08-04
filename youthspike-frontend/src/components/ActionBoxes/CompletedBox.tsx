@@ -127,7 +127,7 @@ function CompletedBox() {
         ) : (
           <TextImg fullText={team?.name} className="w-20 h-20 rounded-lg" />
         )}
-        <h2 className="break-words leading-4 uppercase font-bold text-sm">{team?.name}</h2>
+        <h2 className="break-words uppercase font-bold text-sm">{team?.name}</h2>
         <div className={`h-20 w-20 ${bgColor} ${textColor} rounded-lg flex justify-center items-center`}>
           <h2 className="text-4xl">{teamPoints}</h2>
         </div>
@@ -147,8 +147,8 @@ function CompletedBox() {
           <>
             {winningTeam && (
               <>
-                <h2 className="break-words leading-4 uppercase font-bold text-sm">{winningTeam === teamA?._id ? teamA.name : teamB?.name}</h2>
-                <h2 className="break-words leading-4 uppercase font-bold text-sm">Wins the match</h2>
+                <h2 className="break-words uppercase font-bold text-sm">{winningTeam === teamA?._id ? teamA.name : teamB?.name}</h2>
+                <h2 className="break-words uppercase font-bold text-sm">Wins the match</h2>
               </>
             )}
             <a href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${ldoIdUrl}`} className="btn-success">

@@ -28,6 +28,20 @@ export interface CheckInInput {
   userRole: UserRole;
 }
 
+@ObjectType()
+export class NetScore {
+  @Field({ nullable: false })
+  _id: string;
+  
+  @Field({ nullable: true })
+  teamAScore?: number;
+  
+  @Field({ nullable: true })
+  teamBScore?: number;
+}
+
+
+
 export interface SubmitLineupInput {
   userId: string;
   room: string;
@@ -48,17 +62,24 @@ export interface SubmitLineupInput {
   userRole: UserRole;
 }
 
-export interface UpdatePointsInput {
+@ObjectType()
+export class UpdatePointsInput {
+  @Field({ nullable: false })
   userId: string;
+  
+  @Field({ nullable: false })
   room: string;
+  
+  @Field({ nullable: false })
   round: string;
+  
+  @Field({ nullable: false })
   match: string;
-  nets: Array<{
-    _id: string;
-    teamAScore?: number;
-    teamBScore?: number;
-  }>;
+  
+  @Field(() => NetScore, { nullable: false })
+  net: NetScore;
 }
+
 
 
 @ObjectType()

@@ -1,7 +1,7 @@
 import React, {  useState, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrentRoundNets, setCurrNetNum } from '@/redux/slices/netSlice';
+import { setCurrentRoundNets } from '@/redux/slices/netSlice';
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 import { border } from '@/utils/styles';
 import { setActErr } from '@/redux/slices/elementSlice';

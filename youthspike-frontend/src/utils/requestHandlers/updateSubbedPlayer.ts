@@ -6,7 +6,7 @@ import React from 'react';
 interface IRemovePlayerProps {
   playerId: string;
   currRound: IRoundRelatives | null;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   mutateRound: MutationFunction;
   roundList: IRoundRelatives[];
 }

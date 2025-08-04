@@ -128,7 +128,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
     
     // Update database
-    this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, pointsUpdateHelper, gatewayRedisService, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
 
     /**

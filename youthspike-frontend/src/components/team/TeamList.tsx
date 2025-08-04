@@ -2,7 +2,6 @@ import { IMatchExpRel, IPlayer, ITeam } from '@/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
-import { tableVariant } from '@/utils/animation';
 import TeamRow from './TeamRow';
 import Pagination from '../elements/Pagination';
 

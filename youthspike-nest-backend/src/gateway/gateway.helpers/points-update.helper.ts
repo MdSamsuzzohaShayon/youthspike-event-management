@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UpdatePointsInput, RoundUpdatedResponse, MatchRoundNet } from '../gateway.types';
+import { UpdatePointsInput, RoundUpdatedResponse, MatchRoundNet, NetScore } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from './score-keeper.helper';
 
@@ -10,16 +10,6 @@ export class PointsUpdateHelper {
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
-  async updateNetScores(nets: { _id: string; teamAScore?: number; teamBScore?: number }[]) {
-    const { netService } = this.gatewayService.getServices();
-    const updatePromises = nets.map(n => {
-      const pointsObj: any = {};
-      if (n.teamAScore !== undefined) pointsObj.teamAScore = n.teamAScore;
-      if (n.teamBScore !== undefined) pointsObj.teamBScore = n.teamBScore;
-      return netService.updateOne({ _id: n._id }, pointsObj);
-    });
-    return Promise.all(updatePromises);
-  }
 
   async calculateRoundScores(roundId: string) {
     const { netService } = this.gatewayService.getServices();
@@ -41,7 +31,8 @@ export class PointsUpdateHelper {
   }
 
   async buildPointsResponse(
-    input: UpdatePointsInput,
+    nets: NetScore[],
+    roundId: string,
     room: string,
     matchId: string,
     teamAScore: number | null,
@@ -50,7 +41,7 @@ export class PointsUpdateHelper {
     roundListLength: number,
   ): Promise<RoundUpdatedResponse> {
     const { roundService, matchService } = this.gatewayService.getServices();
-    const roundExist = await roundService.findById(input.round);
+    const roundExist = await roundService.findById(roundId);
     
     let matchCompleted = false;
     if (completed && roundExist.num === roundListLength) {
@@ -59,9 +50,9 @@ export class PointsUpdateHelper {
     }
 
     return {
-      nets: input.nets,
+      nets: nets,
       room,
-      round: { _id: input.round, teamAScore, teamBScore, completed },
+      round: { _id: roundId, teamAScore, teamBScore, completed },
       matchCompleted,
       teamAProcess: roundExist.teamAProcess,
       teamBProcess: roundExist.teamBProcess,
@@ -72,7 +63,7 @@ export class PointsUpdateHelper {
     room: string,
     matchId: string,
     pointsResponse: RoundUpdatedResponse,
-    nets: { _id: string }[],
+    nets: NetScore[],
     roundId: string,
   ) {
     const presizedRoundData: MatchRoundNet = {

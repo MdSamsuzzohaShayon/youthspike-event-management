@@ -1,5 +1,4 @@
 import React from 'react';
-import { rowVariant } from '@/utils/animation';
 import Image from 'next/image';
 import { IPlayerRecord, ITeam } from '@/types';
 import Link from 'next/link';

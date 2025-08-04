@@ -17,7 +17,6 @@ interface ITeamScoreInputProps {
   currRound: IRoundRelatives | null;
   wTeam: ETeam | null;
   currRoundNets: INetRelatives[];
-  // eslint-disable-next-line no-unused-vars
   handlePointChange: (e: React.SyntheticEvent, netId: string | null, teamAorB: string) => void;
 }
 function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRound, currRoundNets, handlePointChange }: ITeamScoreInputProps) {

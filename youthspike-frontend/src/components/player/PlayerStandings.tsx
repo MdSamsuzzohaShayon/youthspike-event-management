@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { IMatchExpRel, IPlayer, IPlayerRecord } from '@/types';
-import { tableVariant } from '@/utils/animation';
 import { calculatePlayerRecords } from '@/utils/scoreCalc';
 import { useAppSelector } from '@/redux/hooks';
 import PlayerRow from './PlayerRow';
@@ -72,7 +71,8 @@ function PlayerStandings({ playerList, matchList, teamRank }: IPlayerStandingsPr
   return (
     <div className="playerList w-full flex flex-col">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
+        <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" 
+        >
           <thead>
             <tr className="bg-yellow-500 text-black font-semibold">
               <th className="py-3 px-2 sticky top-0 shadow-md">Player</th>

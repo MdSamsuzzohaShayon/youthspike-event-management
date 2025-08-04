@@ -8,7 +8,6 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { INetRelatives, IRoom } from '@/types';
 import { EDirection } from '@/types/elements';
 import { EXTRA_HEIGHT } from '@/utils/constant';
-import { netCardVariant } from '@/utils/animation';
 
 import NetPointCard from './NetPointCard';
 import NetTeamSelect from '../net/NetTeamSelect';

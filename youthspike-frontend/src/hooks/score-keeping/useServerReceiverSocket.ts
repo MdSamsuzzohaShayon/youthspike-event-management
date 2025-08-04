@@ -7,7 +7,7 @@ import { Socket } from 'socket.io-client';
 
 interface IServerReceiverSocketProps {
   socket: Socket | null;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   roundList: IRoundRelatives[];
   teamA: ITeam | null | undefined;
   teamB: ITeam | null | undefined;

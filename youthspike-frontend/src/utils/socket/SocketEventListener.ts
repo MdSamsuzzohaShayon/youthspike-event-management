@@ -27,11 +27,11 @@ import { Socket } from 'socket.io-client';
 class SocketEventListener {
   socket: Socket | null;
 
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
 
   audioPlayEl: React.RefObject<HTMLElement | null> | null;
 
-  constructor(socket: Socket, dispatch: React.Dispatch<React.ReducerAction<any>>, audioPlayEl?: React.RefObject<HTMLElement | null>) {
+  constructor(socket: Socket, dispatch: React.Dispatch<React.SetStateAction<any>>, audioPlayEl?: React.RefObject<HTMLElement | null>) {
     this.socket = socket;
     this.dispatch = dispatch;
     this.audioPlayEl = audioPlayEl ?? null;
@@ -39,7 +39,7 @@ class SocketEventListener {
     this.restartAudio.bind(this);
   }
 
-  handleJoinRoom(data: IRoom, dispatch: React.Dispatch<React.ReducerAction<any>>) {
+  handleJoinRoom(data: IRoom, dispatch: React.Dispatch<React.SetStateAction<any>>) {
     this.dispatch = dispatch;
 
     dispatch(setCurrentRoom(data));
@@ -396,7 +396,7 @@ class SocketEventListener {
     window.location.reload();
   }
 
-  handleError(error: string, dispatch: React.Dispatch<React.ReducerAction<any>>) {
+  handleError(error: string, dispatch: React.Dispatch<React.SetStateAction<any>>) {
     console.log({ error });
     this.dispatch = dispatch;
     dispatch(setActErr({ success: false, message: `${error}. Try refreshing the page!` }));

@@ -6,7 +6,7 @@ import { ETeam } from '@/types/team';
 import React from 'react';
 
 interface ISubmitLineupProps {
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   currMatch: IMatchRelatives;
   currRoom: IRoom | null;
   myTeamE: ETeam;

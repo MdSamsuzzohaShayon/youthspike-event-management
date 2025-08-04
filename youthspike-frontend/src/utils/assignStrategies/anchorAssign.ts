@@ -16,7 +16,7 @@ interface IanchorAssignProps {
   roundList: IRoundRelatives[];
   currRound: IRoundRelatives | null;
   myTeamE: ETeam;
-  dispatch: React.Dispatch<React.ReducerAction<any>>;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
   currMatch: IMatchRelatives;
   tapr: IPlayerRankingExpRel | null; // Team A Player Ranking
   tbpr: IPlayerRankingExpRel | null; // Team B Player Ranking

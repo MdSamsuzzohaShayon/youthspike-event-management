@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
 const actionConfirmation = (
   match: string,
   socket: Socket | null,
-  dispatch: React.Dispatch<React.ReducerAction<any>>,
+  dispatch: React.Dispatch<React.SetStateAction<any>>,
   serverReceiverAction: EServerReceiverAction | null,
   receiver: string | null,
   net: string | null,

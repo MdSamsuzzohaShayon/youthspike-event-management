@@ -24,6 +24,7 @@ https://www.canva.com/design/DAGM_3-BlrM/pv23qu-frcMQM4GZjLTopw/edit
 ### Fixing ###
  - https://www.loom.com/share/33b0c03c75a849208460d9713bba8580
  - https://www.loom.com/share/e0ba2dd58b424f538481ffc7301e45c3
+ 
 Fix refreshing with Create match, submit lineup (show button for score keeper)
 Set team name in server selection
 If a team is selected as server, the should  not show as receiver

@@ -1,8 +1,4 @@
 import { Suspense } from "react";
-
-// Components
-
-// Types & Constants
 import { IMatchExpRel, TParams } from "@/types";
 import { PreloadQuery } from "@/lib/client";
 import { GET_MATCH_DETAIL } from "@/graphql/matches";

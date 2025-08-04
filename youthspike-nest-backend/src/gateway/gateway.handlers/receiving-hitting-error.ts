@@ -18,7 +18,7 @@ export class ReceivingHittingErrorHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      // Receiving team Scores
+      // Serving team Scores
       /* 1️⃣ load “net” action + team splits */
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
@@ -49,7 +49,7 @@ export class ReceivingHittingErrorHandler {
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
       /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
+      const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateReceiver(net);

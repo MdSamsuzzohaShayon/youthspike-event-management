@@ -1,92 +1,152 @@
-'use client';
-
-import { useAppSelector } from '@/redux/hooks';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLdoId } from '@/lib/LdoProvider';
 import Image from 'next/image';
-import React, { useEffect, useRef, useState } from 'react';
-
-// Error Object Interface
-export interface IError {
-  message: string;
-}
-
-// Redux State Interface
-export interface ElementsState {
-  actErr: IError | null;
-}
-
-const TEN_SECONDS = 10 * 1000;
+import Link from 'next/link';
+import { useParams, usePathname } from 'next/navigation';
+import LocalStorageService from '@/utils/LocalStorageService';
+import { EEventItem } from '@/types/event';
+import { EVENT_ITEM } from '@/utils/constant';
+import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 
 function PublicMenu() {
-  const { actErr } = useAppSelector((state) => state.elements);
-  const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [shouldRender, setShouldRender] = useState<boolean>(false);
-  const isMounted = useRef<boolean>(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // ===== Hooks =====
+  const pathname = usePathname();
+  const params = useParams();
+  const { ldoIdUrl } = useLdoId();
+
+  // ===== Local State =====
+  const [eventId, setEventId] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const [redirectSymbol, setRedirectSymbol] = useState<string>('?');
+
+  // ===== Component Mount =====
+  useEffect(() => {
+    const eventExist = LocalStorageService.getEvent();
+    if (eventExist) {
+      setEventId(eventExist);
+    }
+    if (params?.eventId) {
+      // @ts-ignore
+      setEventId(params.eventId);
+    }
+  }, [params, pathname]);
 
   useEffect(() => {
-    isMounted.current = true;
-
-    if (actErr?.message) {
-      setShouldRender(true);
-      setIsVisible(true);
-
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-      timeoutRef.current = setTimeout(() => {
-        if (isMounted.current) {
-          setIsVisible(false);
-          // Remove from DOM after fade out (500ms matches your animation)
-          setTimeout(() => {
-            if (isMounted.current) setShouldRender(false);
-          }, 500);
-        }
-      }, TEN_SECONDS);
-    } else {
-      setIsVisible(false);
-      setTimeout(() => {
-        if (isMounted.current) setShouldRender(false);
-      }, 500);
+    if (ldoIdUrl && ldoIdUrl !== '') {
+      setRedirectSymbol('&');
     }
+  }, [ldoIdUrl]);
 
+  // Lock the body scroll when the menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
     return () => {
-      isMounted.current = false;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      document.body.style.overflow = 'auto';
     };
-  }, [actErr]);
+  }, [isMenuOpen]);
 
-  if (!actErr || !actErr.message || !shouldRender) return null;
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false);
+  };
 
   return (
-    <div
-      className={`fixed top-5 right-5 md:right-10 z-50 w-full max-w-sm
-        bg-red-100 text-red-900 border-l-4 border-red-500 px-5 py-4 rounded-md shadow-lg
-        flex items-center gap-4
-        transition-opacity duration-500 ease-in-out
-        ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-      `}
-      role="alert"
-      aria-live="assertive"
-    >
-      {/* Icon */}
-      <div className="flex-shrink-0">
-        <Image src="/icons/error.svg" width={24} height={24} alt="Error Icon" className="w-6 h-6" />
-      </div>
-
-      {/* Message Content */}
-      <div className="flex-1">
-        <h2 className="font-bold text-lg">Something went wrong</h2>
-        <p className="text-sm">{actErr.message}</p>
-      </div>
-
-      {/* Close Button */}
-      <button
-        type="button"
-        onClick={() => setIsVisible(false)}
-        className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 rounded-full"
-        aria-label="Close Toast"
-      >
-        ✖️
+    <div className="container mx-auto px-2">
+      {/* Open Menu Button */}
+      <button type="button" onClick={() => setIsMenuOpen(true)} className="menu-button rounded-md">
+        <Image height={100} width={100} src="/icons/menu.svg" alt="Open Menu" className="w-10 mt-4 svg-white" />
       </button>
+
+      {/* Backdrop */}
+        {isMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-60 z-40" onClick={handleCloseMenu} />}
+
+      {/* Menu Content */}
+        {isMenuOpen && (
+          <div
+            ref={menuRef}
+            className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full top-0 left-0 z-50 p-6 flex flex-col shadow-2xl"
+          >
+            {/* Close Button */}
+            <div className="flex justify-end mb-4">
+              <button type="button" onClick={handleCloseMenu} className="close-button focus:outline-none">
+                <Image height={40} width={40} src="/icons/close.svg" alt="Close Menu" className="w-8 svg-white" />
+              </button>
+            </div>
+
+            {/* Menu Links */}
+            <ul className="menu-list space-y-6 flex-grow">
+              <li className="text-lg capitalize">
+                <Link onClick={handleCloseMenu} href="/" className="flex items-center hover:text-yellow-400 transition-all">
+                  <Image height={40} width={40} src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
+                  Home
+                </Link>
+              </li>
+              {eventId && (
+                <>
+                  <li className="text-lg capitalize">
+                    <Link
+                      onClick={handleCloseMenu}
+                      href={`/events/${eventId}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+                      className="flex items-center hover:text-yellow-400 transition-all"
+                    >
+                      <Image height={40} width={40} src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
+                      Teams
+                    </Link>
+                  </li>
+                  <li className="text-lg capitalize">
+                    <Link
+                      onClick={handleCloseMenu}
+                      href={`/events/${eventId}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.PLAYER}`}
+                      className="flex items-center hover:text-yellow-400 transition-all"
+                    >
+                      <Image height={40} width={40} src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
+                      Roster
+                    </Link>
+                  </li>
+                  <li className="text-lg capitalize">
+                    <Link
+                      onClick={handleCloseMenu}
+                      href={`/events/${eventId}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.MATCH}`}
+                      className="flex items-center hover:text-yellow-400 transition-all"
+                    >
+                      <Image height={40} width={40} src="/icons/trophy.svg" alt="Matches" className="w-6 mr-4 svg-white" />
+                      Matches
+                    </Link>
+                  </li>
+                </>
+              )}
+
+              <li className="text-lg capitalize">
+                <Link onClick={handleCloseMenu} href="/terms" className="flex items-center hover:text-yellow-400 transition-all">
+                  <Image height={40} width={40} src="/icons/pencil.svg" alt="About" className="w-6 mr-4 svg-white" />
+                  Terms
+                </Link>
+              </li>
+
+              <li className="text-lg capitalize">
+                <Link onClick={handleCloseMenu} href="/about" className="flex items-center hover:text-yellow-400 transition-all">
+                  <Image height={40} width={40} src="/icons/event.svg" alt="About" className="w-6 mr-4 svg-white" />
+                  About
+                </Link>
+              </li>
+            </ul>
+
+            {/* Login Button */}
+            <div className="mt-8">
+              <button
+                className="w-full bg-yellow-logo text-black font-semibold py-2 rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 transition-all"
+              >
+                <Link onClick={handleCloseMenu} href={ADMIN_FRONTEND_URL}>
+                  Login
+                </Link>
+              </button>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

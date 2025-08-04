@@ -76,6 +76,7 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
         tbs = null;
       }
     });
+   const currNet = updatedCRN.find((n)=> n._id === netId)
 
     const currRoundObj = { ...currRound, teamAScore: tas, teamBScore: tbs, completed: !!(tas && tbs) } as IRoundRelatives;
     dispatch(setCurrentRound(currRoundObj));
@@ -86,9 +87,8 @@ function NetPointCard({ net, handleRightShift, handleLeftShift, screenWidth, cur
     dispatch(setRoundList(updatedRoundList));
 
     // Update to the server
-    // lineupToUpdatePoints({ socket, currRoom, currRound: currRoundObj, currRoundNets: updatedCRN, myTeamE });
     const emitEvents = new EmitEvents(socket, dispatch);
-    emitEvents.updatePoints({ currRoom, currRound, currRoundNets: updatedCRN, myTeamE });
+    emitEvents.updatePoints({ currRoom, currRound, currNet: currNet || null, myTeamE });
   };
 
   const handleKeyUp = (e: React.SyntheticEvent) => {
