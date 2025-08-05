@@ -14,14 +14,12 @@ export class ScoreKeeperHelper {
 
   /* ───────────────────────────── helpers for “net” ─────────────────────────── */
 
-
-
   async loadNetAction(netId: string, room: string): Promise<ServerReceiverOnNet> {
     let action = await this.redis.getAction(netKey(netId, room));
     if (!action) {
       const { serverReceiverOnNetService } = await this.gateway.getServices();
-      const serverReceiverOnNet = await serverReceiverOnNetService.findOne({ net: netId });
-      if (!serverReceiverOnNet) {
+      action = await serverReceiverOnNetService.findOne({ net: netId });
+      if (!action) {
         throw new Error(`Net is missing for net:${netId} room:${room}`);
       }
     }
@@ -37,6 +35,18 @@ export class ScoreKeeperHelper {
       }
     }
     return singlePlays as ServerReceiverSinglePlay[];
+  }
+
+  async loadSinglePlayAction(netId: string, room: string, play: number): Promise<ServerReceiverSinglePlay> {
+    let action = await this.redis.getAction(singlePlayKey(netId, room, play));
+    if (!action) {
+      const { serverReceiverOnNetService } = await this.gateway.getServices();
+      action = await serverReceiverOnNetService.findOneSinglePlay({ net: netId, play });
+      if (!action) {
+        throw new Error(`Single Play is missing for net:${netId} room:${room} play:${play}`);
+      }
+    }
+    return action as ServerReceiverSinglePlay;
   }
 
   async saveNetAction(netId: string, room: string, data: ServerReceiverOnNet) {
@@ -108,10 +118,32 @@ export class ScoreKeeperHelper {
   rotateReceiver(net: ServerReceiverOnNet) {
     [net.receiver, net.receivingPartner] = [net.receivingPartner, net.receiver];
   }
-  rotateServerReceiver(net: ServerReceiverOnNet) {
-    [net.server, net.receiver] = [net.receiver, net.server];
-    [net.servingPartner, net.receivingPartner] = [net.receivingPartner, net.servingPartner];
+  rotateServerReceiver(net: ServerReceiverOnNet, receivingTeamScore: number) {
+    if (net.play < 2) {
+      // Less than 2 plays: just swap server/receiver and their partners
+      [net.server, net.receiver] = [net.receiver, net.server];
+      [net.servingPartner, net.receivingPartner] = [net.receivingPartner, net.servingPartner];
+    } else {
+      let tempReceiver = null, tempReceivingPartner = null;
+      tempReceiver = net.server;
+      tempReceivingPartner = net.servingPartner
+      // Receiving team scores
+      if (receivingTeamScore % 2 === 0) {
+        // Even score: setter (receivingPartner) serves
+        net.server = net.receivingPartner;
+        net.servingPartner = net.receiver;
+      } else {
+        // Odd score: receiver serves
+        net.server = net.receiver;
+        net.servingPartner = net.receivingPartner;
+      }
+  
+      // Update receiver and partner (opposite team)
+      net.receiver = tempReceiver;
+      net.receivingPartner = tempReceivingPartner;
+    }
   }
+  
   /* ──────────────────────────────── misc I/O ──────────────────────────────── */
 
   async publishRoom(room: string, event: string, payload: unknown) {

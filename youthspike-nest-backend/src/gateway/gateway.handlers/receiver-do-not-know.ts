@@ -23,7 +23,8 @@ export class ReceiverDoNotKnowHandler {
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      this.scoreKeeperHelper.rotateServerReceiver(net);
+      const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
+      this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
       net.mutate += 1;
       net.play += 1;
 
