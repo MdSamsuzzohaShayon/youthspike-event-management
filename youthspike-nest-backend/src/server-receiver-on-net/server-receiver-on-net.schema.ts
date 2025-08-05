@@ -85,23 +85,23 @@ export class ServerReceiverOnNet extends ServerReceiverCommon {
   roundId?: string;
 
   // Only for GraphQL / Not for MongoDB
-  @Field({ nullable: false, defaultValue: 0 })
-  teamAScore: number;
+  @Field({ nullable: true })
+  teamAScore: number | null;
 
-  @Field({ nullable: false, defaultValue: 0 })
-  teamBScore: number;
+  @Field({ nullable: true })
+  teamBScore: number | null;
 }
 
 @ObjectType()
 @Schema({ timestamps: true })
 export class ServerReceiverSinglePlay extends ServerReceiverCommon {
-  @Field({ nullable: false, defaultValue: 0 })
-  @Prop({ required: true, default: 0 })
-  teamAScore: number;
+  @Field({ nullable: true})
+  @Prop({ required: false })
+  teamAScore: number | null;
 
-  @Field({ nullable: false, defaultValue: 0 })
-  @Prop({ required: true, default: 0 })
-  teamBScore: number;
+  @Field({ nullable: false})
+  @Prop({ required: false })
+  teamBScore: number | null;
 }
 
 export const ServerReceiverOnNetSchema = SchemaFactory.createForClass(ServerReceiverOnNet);

@@ -34,7 +34,6 @@ async function ScoreKeepingPage({ params }: IScoreKeepingPageProps) {
   }
 
   // Get round list, match, room, nets
-
   const renderHeadings = () => {
     return (
       <>

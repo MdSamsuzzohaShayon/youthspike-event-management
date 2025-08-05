@@ -59,8 +59,8 @@ type ServerReceiverOnNet {
   room: String!
   round: Round!
   roundId: String
-  teamAScore: Float!
-  teamBScore: Float!
+  teamAScore: Float
+  teamBScore: Float
 }
 
 type ServerReceiverSinglePlay {
@@ -78,7 +78,7 @@ type ServerReceiverSinglePlay {
   receivingPartnerId: String
   net: Net!
   netId: String
-  teamAScore: Float!
+  teamAScore: Float
   teamBScore: Float!
 }
 

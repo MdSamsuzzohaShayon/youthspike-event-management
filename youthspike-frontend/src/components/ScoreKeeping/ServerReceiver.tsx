@@ -119,8 +119,10 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, [currNetNum, netByNum]);
 
   const serverTeam = useMemo(() => makeTeam(selectedServer, currNetNum, true) as IServerTeam | null, [selectedServer, currNetNum, makeTeam]);
-
   const receiverTeam = useMemo(() => makeTeam(selectedReceiver, currNetNum, false) as IReceiverTeam | null, [selectedReceiver, currNetNum, makeTeam]);
+  const net = useMemo(()=> {
+    return netByNum.get(currNetNum) || null;
+  }, [netByNum, currNetNum]);
 
   /* ───── Handlers ───── */
   const handleNetChange = (e: React.SyntheticEvent) => {
@@ -206,15 +208,18 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
 
   const serverTeamE: ETeam | null = useMemo(() => {
+    if(!selectedServer) return null;
     const teamAPlayerIds = new Set(teamAPlayers.map((p) => p._id));
-    const teamBPlayerIds = new Set(teamAPlayers.map((p) => p._id));
-    if (selectedServer && teamAPlayerIds.has(selectedServer)) {
+    const teamBPlayerIds = new Set(teamBPlayers.map((p) => p._id));
+    if (teamAPlayerIds.has(selectedServer)) {
       return ETeam.teamA;
-    } else if (selectedServer && teamBPlayerIds.has(selectedServer)) {
+    } else if (teamBPlayerIds.has(selectedServer)) {
       return ETeam.teamB;
     }
     return null;
-  }, [teamAPlayers, selectedServer]);
+  }, [teamAPlayers, selectedServer, selectedReceiver]);
+
+  
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -222,7 +227,6 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, []); // ← run exactly once
 
   /* ───── UI ───── */
-
   if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound?.teamBProcess !== EActionProcess.LINEUP) {
     return (
       <div className="w-full flex justify-center mt-10">
@@ -264,7 +268,8 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
             <div className={`w-full ${serverReceiverAction ? 'md:w-2/6' : 'md:w-3/6'}`}>
-              <ServerReceiverDisplay selectedServer={selectedServer} selectedReceiver={selectedReceiver} serverTeam={serverTeam} receiverTeam={receiverTeam} />
+              <ServerReceiverDisplay net={net} serverTeamE={serverTeamE} selectedServer={selectedServer} selectedReceiver={selectedReceiver} 
+              serverTeam={serverTeam} receiverTeam={receiverTeam} />
             </div>
             {/* Left side end  */}
 
@@ -370,8 +375,10 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
             <div className="w-full flex flex-col items-center">
               <div className="w-full md:w-3/6">
                 <ServerReceiverDisplay
+                  net={net}
                   selectedServer={selectedServer}
                   selectedReceiver={selectedReceiver}
+                  serverTeamE={serverTeamE}
                   serverTeam={serverTeam}
                   receiverTeam={receiverTeam}
                   handleAddServer={() => setServerPlaceholder(true)}

@@ -14,9 +14,12 @@ export default function useInitialSelection(
     const net = netByNum.get(currNetNum);
     if (!net) return;
     const pre = serverReceiverByNetId.get(net._id);
+    
     if (pre) {
-      setSelectedServer(typeof pre.server === 'string' ? pre.server : pre.server?._id ?? null);
-      setSelectedReceiver(typeof pre.receiver === 'string' ? pre.receiver : pre.receiver?._id ?? null);
+      const serverId = typeof pre.server === 'string' ? pre.server : pre.server?._id ?? null;
+      setSelectedServer(serverId);
+      const receiverId = typeof pre.receiver === 'string' ? pre.receiver : pre.receiver?._id ?? null
+      setSelectedReceiver(receiverId);
       setActionPreview(true);
     }
   }, [currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver]);

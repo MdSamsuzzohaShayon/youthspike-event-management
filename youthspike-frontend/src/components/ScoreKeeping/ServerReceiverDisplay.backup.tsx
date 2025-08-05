@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import Image from "next/image";
 import {
@@ -27,7 +28,6 @@ const ServerReceiverDisplay: React.FC<{
   receiverTeam: IReceiverTeam | null;
   serverTeamE: ETeam | null;
   handleAddReceiver?: (e: React.SyntheticEvent) => void;
-  handleAddServer?: (e: React.SyntheticEvent) => void;
   net: INetRelatives | null;
 }> = ({
   selectedServer,
@@ -36,14 +36,15 @@ const ServerReceiverDisplay: React.FC<{
   serverTeam,
   receiverTeam,
   handleAddReceiver,
-  handleAddServer,
   net,
 }) => {
-  // Determine server position
+  // Determine if receiver is Team A
+  const isReceiverTeamA = serverTeamE !== ETeam.teamA;
+
+  // Determine server position (which position the server is in)
   const serverPosition = useMemo(() => {
-    if (!selectedServer || !serverTeamE || !net || !serverTeam?.server) {
+    if (!selectedServer || !serverTeamE || !net || !serverTeam?.server)
       return null;
-    }
 
     const serverId = serverTeam.server._id;
 
@@ -52,18 +53,17 @@ const ServerReceiverDisplay: React.FC<{
         return { team: ETeam.teamA, position: EPosition.POSITION_A };
       if (net.teamAPlayerB === serverId)
         return { team: ETeam.teamA, position: EPosition.POSITION_B };
-    } else if (serverTeamE === ETeam.teamB) {
+    } else {
       if (net.teamBPlayerA === serverId)
         return { team: ETeam.teamB, position: EPosition.POSITION_A };
       if (net.teamBPlayerB === serverId)
         return { team: ETeam.teamB, position: EPosition.POSITION_B };
-    } else {
-      console.log("Server is not defined properly");
     }
+
     return null;
   }, [selectedServer, serverTeamE, net, serverTeam]);
 
-  // Map all players to their positions
+  // Get all players mapped to their positions
   const positionPlayers = useMemo(() => {
     const players: Record<ETeam, Record<EPosition, IPlayer | null>> = {
       [ETeam.teamA]: {
@@ -81,49 +81,27 @@ const ServerReceiverDisplay: React.FC<{
     const { team: serverTeamEnum, position: serverPos } = serverPosition;
     const receiverTeamEnum =
       serverTeamEnum === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+    const receiverPos =
+      serverPos === EPosition.POSITION_A
+        ? EPosition.POSITION_B
+        : EPosition.POSITION_A;
+    const receiverPartnerPos =
+      serverPos === EPosition.POSITION_A
+        ? EPosition.POSITION_A
+        : EPosition.POSITION_B;
 
-    // Server team players
-    if (serverTeamEnum === ETeam.teamA) {
-      players[ETeam.teamA][EPosition.POSITION_A] =
-        net.teamAPlayerA === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamAPlayerA === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
+    // Assign server and partner
+    players[serverTeamEnum][serverPos] = serverTeam.server;
+    players[serverTeamEnum][
+      serverPos === EPosition.POSITION_A
+        ? EPosition.POSITION_B
+        : EPosition.POSITION_A
+    ] = serverTeam.servingPartner;
 
-      players[ETeam.teamA][EPosition.POSITION_B] =
-        net.teamAPlayerB === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamAPlayerB === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-    } else {
-      players[ETeam.teamB][EPosition.POSITION_A] =
-        net.teamBPlayerA === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamBPlayerA === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-
-      players[ETeam.teamB][EPosition.POSITION_B] =
-        net.teamBPlayerB === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamBPlayerB === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-    }
-
-    // Receiver team players - position depends on server position
-    const isServerPositionA = serverPos === EPosition.POSITION_A;
-    const receiverPos = isServerPositionA
-      ? EPosition.POSITION_B
-      : EPosition.POSITION_A;
-    const partnerPos = isServerPositionA
-      ? EPosition.POSITION_A
-      : EPosition.POSITION_B;
-
+    // Assign receiver and partner
     players[receiverTeamEnum][receiverPos] = receiverTeam.receiver;
-    players[receiverTeamEnum][partnerPos] = receiverTeam.receivingPartner;
+    players[receiverTeamEnum][receiverPartnerPos] =
+      receiverTeam.receivingPartner;
 
     return players;
   }, [net, serverTeam, receiverTeam, serverPosition]);
@@ -137,44 +115,31 @@ const ServerReceiverDisplay: React.FC<{
     if (!player || !serverTeam || !receiverTeam) return null;
 
     if (team === serverTeamE) {
-      if (player._id === serverTeam.server?._id) return ESRRole.SERVER;
-      if (player._id === serverTeam.servingPartner?._id) return ESRRole.SWING;
+      return player._id === serverTeam.server?._id
+        ? ESRRole.SERVER
+        : ESRRole.SWING;
     } else {
-      if (player._id === receiverTeam.receiver?._id) return ESRRole.RECEIVER;
-      if (player._id === receiverTeam.receivingPartner?._id)
-        return ESRRole.SETTER;
+      return player._id === receiverTeam.receiver?._id
+        ? ESRRole.RECEIVER
+        : ESRRole.SETTER;
     }
-    return null;
   };
 
   // Render position component
   const renderPosition = (team: ETeam, position: EPosition) => {
-    // teamA Position B
     const player = positionPlayers[team][position];
     const role = getRoleAtPosition(team, position);
-
-    const handlePlayerSelection = (e: React.SyntheticEvent) => {
-      // If players are not selected, the role of the player will be null initially
-      if (!role) {
-        if (team === ETeam.teamA) {
-          if (handleAddServer) handleAddServer(e);
-        } else {
-          if (handleAddReceiver) handleAddReceiver(e);
-        }
-      }
-    };
-    const seleted =
-      (team === serverTeamE ? selectedServer : selectedReceiver) ===
-      player?._id;
+    const isSelected =
+      player?._id === selectedReceiver || player?._id === selectedServer;
 
     return (
       <SRPlayerCard
         key={`${team}-${position}`}
         player={player}
         role={role}
-        selected={player?._id || null}
-        serverReceiverTeam={team === serverTeamE ? serverTeam : receiverTeam}
-        handlePlayerSelection={handlePlayerSelection}
+        selected={isSelected ? player?._id || "" : null}
+        serverReceiverTeam={isReceiverTeamA ? receiverTeam : serverTeam}
+        handlePlayerSelection={handleAddReceiver || (() => {})}
       />
     );
   };
@@ -214,6 +179,7 @@ const ServerReceiverDisplay: React.FC<{
             {positions.teamBPositionA}
           </div>
         </div>
+
         {positions.teamBPositionB}
       </div>
     </div>
@@ -221,3 +187,6 @@ const ServerReceiverDisplay: React.FC<{
 };
 
 export default ServerReceiverDisplay;
+
+
+
