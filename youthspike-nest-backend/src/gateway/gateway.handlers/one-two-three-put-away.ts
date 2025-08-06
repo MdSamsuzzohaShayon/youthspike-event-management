@@ -57,11 +57,14 @@ export class OneTwoThreePutAwayHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
+      // Before updating point check is the number odd or even
+      const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
+
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
+      
       this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
       net.mutate += 1;
       net.play += 1;

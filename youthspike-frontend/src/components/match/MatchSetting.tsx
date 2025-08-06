@@ -165,7 +165,7 @@ function MatchSetting({ match, myTeam, opTeam, currRoom, currRound }: IMatchSett
 
   return (
     <>
-      <dialog ref={dialogSettingEl} className="w-5/6 bg-white text-black-logo h-5/6">
+      <dialog ref={dialogSettingEl} className="modal-dialog">
         {dialogHeader}
 
         <div className="content p-4 w-full">

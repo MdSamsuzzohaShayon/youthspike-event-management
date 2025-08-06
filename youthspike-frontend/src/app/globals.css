@@ -52,31 +52,6 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-
-  border: none;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-  z-index: 1000;
-}
-
-/* Backdrop behind the dialog */
-dialog::backdrop {
-  background-image: linear-gradient(
-    45deg,
-    #232323,
-    #232323,
-    #232323,
-    #232323
-  );
-  opacity: 0.75;
-  backdrop-filter: blur(2px); /* Optional: adds blur */
-}
 
 
 /* Typography End  */
@@ -243,6 +218,47 @@ dialog::backdrop {
 
 .border-yellow{
   border-color: #fce013;
+}
+
+
+/* Modal dialog  */
+.modal-dialog {
+  /* position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  z-index: 1000; */
+  
+  
+  /* Positioning & sizing */
+  @apply fixed top-1/2 left-1/2 w-11/12 md:w-6/12 -translate-x-1/2 -translate-y-1/2 z-50;
+  /* Coloring  */
+  @apply bg-gray-900 text-white;
+
+  /* @apply bg-gray-900 w-11/12 max-w-md rounded-2xl text-white shadow-xl border border-yellow-logo animate-fade-in; */
+}
+
+/* .dialog-custom {
+  @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+  @apply w-11/12 max-w-md rounded-2xl border border-yellow-logo;
+  @apply bg-black text-white shadow-xl z-[1000] animate-fade-in;
+} */
+
+/* Backdrop behind the dialog */
+.modal-dialog::backdrop {
+  background-image: linear-gradient(
+    45deg,
+    #232323,
+    #232323,
+    #232323,
+    #232323
+  );
+  opacity: 0.75;
+  backdrop-filter: blur(2px); /* Optional: adds blur */
 }
 
 

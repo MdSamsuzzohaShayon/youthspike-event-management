@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import SelectInput from '@/components/elements/SelectInput';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setCurrNetNum } from '@/redux/slices/netSlice';
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import SelectInput from "@/components/elements/SelectInput";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { setCurrNetNum } from "@/redux/slices/netSlice";
 import {
   EActionProcess,
   EServerReceiverAction,
+  ESRRole,
   ETeam,
   ETieBreaker,
   ETieBreakingStrategy,
@@ -17,23 +18,24 @@ import {
   IServerReceiverOnNetMixed,
   IServerTeam,
   IUser,
-} from '@/types';
-import organizeFetchedData from '@/utils/match/organizeFetchedData';
-import ServerReceiverDisplay from './ServerReceiverDisplay';
-import PlayerSelection from './PlayerSelection';
-import ActionHandler from './ActionHandler';
-import EmitEvents from '@/utils/socket/EmitEvents';
-import { useSocket } from '@/lib/SocketProvider';
-import useNetMaps from '@/hooks/score-keeping/useNetMaps';
-import usePlayerMaps from '@/hooks/score-keeping/usePlayerMaps';
-import useMakeTeam from '@/hooks/score-keeping/useMakeTeam';
-import useInitialSelection from '@/hooks/score-keeping/useInitialSelection';
-import useServerReceiverSocket from '@/hooks/score-keeping/useServerReceiverSocket';
-import { setActErr } from '@/redux/slices/elementSlice';
-import { scoreKeeperAction } from '@/utils/staticData';
-import actionConfirmation from '@/utils/match/actionConfirmation';
-import ScoreBoard from './ScoreBoard';
-import { setCurrentServerReceiver } from '@/redux/slices/serverReceiverOnNetSlice';
+} from "@/types";
+import organizeFetchedData from "@/utils/match/organizeFetchedData";
+import ServerReceiverDisplay from "./ServerReceiverDisplay";
+import PlayerSelection from "./PlayerSelection";
+import ActionHandler from "./ActionHandler";
+import EmitEvents from "@/utils/socket/EmitEvents";
+import { useSocket } from "@/lib/SocketProvider";
+import useNetMaps from "@/hooks/score-keeping/useNetMaps";
+import usePlayerMaps from "@/hooks/score-keeping/usePlayerMaps";
+import useMakeTeam from "@/hooks/score-keeping/useMakeTeam";
+import useInitialSelection from "@/hooks/score-keeping/useInitialSelection";
+import useServerReceiverSocket from "@/hooks/score-keeping/useServerReceiverSocket";
+import { setActErr } from "@/redux/slices/elementSlice";
+import { scoreKeeperAction } from "@/utils/staticData";
+import actionConfirmation from "@/utils/match/actionConfirmation";
+import ScoreBoard from "./ScoreBoard";
+import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
+import ServerReceiverPlayInput from "./ServerReceiverPlayInput";
 
 /* ───────────────────────────────────────────── */
 
@@ -45,15 +47,24 @@ interface IServerReceiverProps {
   userInfo: IUser | null;
 }
 
-export default function ServerReceiver({ matchId, matchData, accessCode, token, userInfo }: IServerReceiverProps) {
+export default function ServerReceiver({
+  matchId,
+  matchData,
+  accessCode,
+  token,
+  userInfo,
+}: IServerReceiverProps) {
   const dispatch = useAppDispatch();
   const socket = useSocket();
 
   /* Redux slices */
   const { roundList, current: currRound } = useAppSelector((s) => s.rounds);
   const { currNetNum, currentRoundNets } = useAppSelector((s) => s.nets);
-  // serverReceiversOnNet, currentServerReceiver: currServerReceiver
-  const { serverReceiversOnNet, currentServerReceiver: currServerReceiver } = useAppSelector((s) => s.serverReceiverOnNets);
+  const {
+    serverReceiversOnNet,
+    currentServerReceiver: currServerReceiver,
+    serverReceiverPlays,
+  } = useAppSelector((s) => s.serverReceiverOnNets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((s) => s.players);
   const currMatch = useAppSelector((s) => s.matches.match);
   const currRoom = useAppSelector((s) => s.rooms.current);
@@ -62,11 +73,16 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   /* UI state */
   const [actionPreview, setActionPreview] = useState<boolean>(false);
   const [serverPlaceholder, setServerPlaceholder] = useState<boolean>(false);
-  const [receiverPlaceholder, setReceiverPlaceholder] = useState<boolean>(false);
+  const [receiverPlaceholder, setReceiverPlaceholder] =
+    useState<boolean>(false);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
   const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
-  const [serverReceiverAction, setServerReceiverAction] = useState<EServerReceiverAction | null>(null);
+  const [serverReceiverAction, setServerReceiverAction] =
+    useState<EServerReceiverAction | null>(null);
+  const [toBeSelectedPlay, setToBeSelectedPlay]   = useState<number | null>(null); // Selected playId before confirmation
+
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
+  const changePlayEl = useRef<HTMLDialogElement | null>(null);
 
   /* Derived maps / helpers */
   const netByNum = useNetMaps(currentRoundNets);
@@ -74,14 +90,22 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   const makeTeam = useMakeTeam(netByNum, teamAById, teamBById);
 
   const serverReceiverByNetId = useMemo(
-    () => new Map<string, IServerReceiverOnNetMixed>((serverReceiversOnNet ?? []).map((sr) => [typeof sr.net === 'string' ? sr.net : sr.net?._id, sr])),
-    [serverReceiversOnNet],
+    () =>
+      new Map<string, IServerReceiverOnNetMixed>(
+        (serverReceiversOnNet ?? []).map((sr) => [
+          typeof sr.net === "string" ? sr.net : sr.net?._id,
+          sr,
+        ])
+      ),
+    [serverReceiversOnNet]
   );
 
   const finalRoundIncomplete: boolean = useMemo(() => {
     if (currRound?.num === roundList.length && currentRoundNets.length > 0) {
       // Check 2 FINAL_ROUND_NET_LOCKED
-      const lockedNets = currentRoundNets.filter((n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED);
+      const lockedNets = currentRoundNets.filter(
+        (n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED
+      );
       return lockedNets.length < 2;
       // Nets are banned in the final rtound
     }
@@ -89,7 +113,14 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, [currRound, roundList, currentRoundNets]);
 
   /* Populate initial selection once data is there */
-  useInitialSelection(currNetNum, netByNum, serverReceiverByNetId, setSelectedServer, setSelectedReceiver, setActionPreview);
+  useInitialSelection(
+    currNetNum,
+    netByNum,
+    serverReceiverByNetId,
+    setSelectedServer,
+    setSelectedReceiver,
+    setActionPreview
+  );
 
   /* Socket listeners / room join */
   useServerReceiverSocket({
@@ -118,9 +149,15 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     };
   }, [currNetNum, netByNum]);
 
-  const serverTeam = useMemo(() => makeTeam(selectedServer, currNetNum, true) as IServerTeam | null, [selectedServer, currNetNum, makeTeam]);
-  const receiverTeam = useMemo(() => makeTeam(selectedReceiver, currNetNum, false) as IReceiverTeam | null, [selectedReceiver, currNetNum, makeTeam]);
-  const net = useMemo(()=> {
+  const serverTeam = useMemo(
+    () => makeTeam(selectedServer, currNetNum, true) as IServerTeam | null,
+    [selectedServer, currNetNum, makeTeam]
+  );
+  const receiverTeam = useMemo(
+    () => makeTeam(selectedReceiver, currNetNum, false) as IReceiverTeam | null,
+    [selectedReceiver, currNetNum, makeTeam]
+  );
+  const net = useMemo(() => {
     return netByNum.get(currNetNum) || null;
   }, [netByNum, currNetNum]);
 
@@ -131,7 +168,9 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
 
     const net = netByNum.get(netNum);
 
-    const newServerReceiver = serverReceiversOnNet.find((sr) => sr.net === net?._id);
+    const newServerReceiver = serverReceiversOnNet.find(
+      (sr) => sr.net === net?._id
+    );
     if (newServerReceiver) {
       if (!newServerReceiver.server) {
         setSelectedServer(null);
@@ -161,13 +200,32 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
       receiver: selectedReceiver,
       accessCode,
     });
-  }, [socket, dispatch, currRoom, currRound, currMatch, currentRoundNets, currNetNum, selectedServer, selectedReceiver, accessCode]);
+  }, [
+    socket,
+    dispatch,
+    currRoom,
+    currRound,
+    currMatch,
+    currentRoundNets,
+    currNetNum,
+    selectedServer,
+    selectedReceiver,
+    accessCode,
+  ]);
 
   const handleConfirmAction = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
     const net = netByNum.get(currNetNum);
-    actionConfirmation(currMatch._id, socket, dispatch, serverReceiverAction, selectedReceiver, net?._id || null, currRoom?._id || null);
+    actionConfirmation(
+      currMatch._id,
+      socket,
+      dispatch,
+      serverReceiverAction,
+      selectedReceiver,
+      net?._id || null,
+      currRoom?._id || null
+    );
     setServerReceiverAction(null);
   };
 
@@ -178,10 +236,19 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     confirmBoxEl.current?.close();
   };
 
-  const HandleConfirmReset = useCallback(() => {
+  const handlePlayChange = useCallback(() => {
+    // Select a play and
+  }, []);
+
+  const handleConfirmReset = useCallback(() => {
     const emit = new EmitEvents(socket, dispatch);
     const net = netByNum.get(currNetNum);
-    emit.resetScores({ match: currMatch._id, net: net?._id || null, room: currRoom?._id || null, accessCode: accessCode?.code.toString() || null });
+    emit.resetScores({
+      match: currMatch._id,
+      net: net?._id || null,
+      room: currRoom?._id || null,
+      accessCode: accessCode?.code.toString() || null,
+    });
 
     closeResetConfirm();
   }, [socket, dispatch, currRoom, currMatch, currNetNum, accessCode]);
@@ -189,12 +256,22 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   const handleUpdateScore = useCallback(() => {
     const net = netByNum.get(currNetNum);
     if (!socket || !currMatch._id || !net?._id || !currRoom?._id) {
-      dispatch(setActErr({ code: 406, message: 'Match, net, receiver, or room does not exist!' }));
+      dispatch(
+        setActErr({
+          code: 406,
+          message: "Match, net, receiver, or room does not exist!",
+        })
+      );
       return;
     }
 
     if (!accessCode?.code) {
-      dispatch(setActErr({ code: 406, message: 'You do not have permission to do this operation!' }));
+      dispatch(
+        setActErr({
+          code: 406,
+          message: "You do not have permission to do this operation!",
+        })
+      );
       return;
     }
     const actionData = {
@@ -208,7 +285,7 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
 
   const serverTeamE: ETeam | null = useMemo(() => {
-    if(!selectedServer) return null;
+    if (!selectedServer) return null;
     const teamAPlayerIds = new Set(teamAPlayers.map((p) => p._id));
     const teamBPlayerIds = new Set(teamBPlayers.map((p) => p._id));
     if (teamAPlayerIds.has(selectedServer)) {
@@ -219,7 +296,10 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
     return null;
   }, [teamAPlayers, selectedServer, selectedReceiver]);
 
-  
+  const currNet = useMemo(()=> {
+    const net = netByNum.get(currNetNum);
+    return net;
+  }, [netByNum, currNetNum]);
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -227,23 +307,37 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
   }, []); // ← run exactly once
 
   /* ───── UI ───── */
-  if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound?.teamBProcess !== EActionProcess.LINEUP) {
+  if (
+    currRound?.teamAProcess !== EActionProcess.LINEUP ||
+    currRound?.teamBProcess !== EActionProcess.LINEUP
+  ) {
     return (
       <div className="w-full flex justify-center mt-10">
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
           <h2 className="text-lg font-semibold mb-2">Lineup Incomplete</h2>
-          <p>Both teams must complete their player lineup before selecting a server or receiver.</p>
+          <p>
+            Both teams must complete their player lineup before selecting a
+            server or receiver.
+          </p>
         </div>
       </div>
     );
   }
 
-  if (finalRoundIncomplete && currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND) {
+  if (
+    finalRoundIncomplete &&
+    currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND
+  ) {
     return (
       <div className="w-full flex justify-center mt-10">
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
-          <h2 className="text-lg font-semibold mb-2">Final Round Nets Not Banned Yet</h2>
-          <p>Please ban the nets for the final round before proceeding with server/receiver selection.</p>
+          <h2 className="text-lg font-semibold mb-2">
+            Final Round Nets Not Banned Yet
+          </h2>
+          <p>
+            Please ban the nets for the final round before proceeding with
+            server/receiver selection.
+          </p>
         </div>
       </div>
     );
@@ -260,16 +354,26 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
           value: String(n.num),
           text: `Net ${n.num}`,
         }))}
-        value={currNetNum || ''}
+        value={currNetNum || ""}
       />
 
       {actionPreview ? (
         <div className="server-receiver-with-actions w-full ">
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
-            <div className={`w-full ${serverReceiverAction ? 'md:w-2/6' : 'md:w-3/6'}`}>
-              <ServerReceiverDisplay net={net} serverTeamE={serverTeamE} selectedServer={selectedServer} selectedReceiver={selectedReceiver} 
-              serverTeam={serverTeam} receiverTeam={receiverTeam} />
+            <div
+              className={`w-full ${
+                serverReceiverAction ? "md:w-2/6" : "md:w-3/6"
+              }`}
+            >
+              <ServerReceiverDisplay
+                net={net}
+                serverTeamE={serverTeamE}
+                selectedServer={selectedServer}
+                selectedReceiver={selectedReceiver}
+                serverTeam={serverTeam}
+                receiverTeam={receiverTeam}
+              />
             </div>
             {/* Left side end  */}
 
@@ -281,6 +385,9 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
                   selectedReceiver={selectedReceiver}
                   selectedServer={selectedServer}
                   serverReceiverAction={serverReceiverAction}
+                  handleOpenPlays={(e) => {
+                    changePlayEl?.current?.showModal();
+                  }}
                   teamA={teamA || null}
                   teamAPlayers={teamAPlayers}
                   teamB={teamB || null}
@@ -296,7 +403,10 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
               <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
                 {/* This should be an edit button  */}
                 {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
-                <button className="btn-success uppercase" onClick={handleConfirmAction}>
+                <button
+                  className="btn-success uppercase"
+                  onClick={handleConfirmAction}
+                >
                   {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
                   {scoreKeeperAction.get(serverReceiverAction)}
                 </button>
@@ -313,6 +423,9 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
                 selectedReceiver={selectedReceiver}
                 selectedServer={selectedServer}
                 serverReceiverAction={serverReceiverAction}
+                handleOpenPlays={(e) => {
+                  changePlayEl?.current?.showModal();
+                }}
                 teamA={teamA || null}
                 teamAPlayers={teamAPlayers}
                 teamB={teamB || null}
@@ -320,7 +433,13 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
                 key="sb-2"
               />
             </div>
-            <ActionHandler serverReceiverAction={serverReceiverAction} setServerReceiverAction={setServerReceiverAction} teamA={teamA || null} teamB={teamB || null} serverTeamE={serverTeamE} />
+            <ActionHandler
+              serverReceiverAction={serverReceiverAction}
+              setServerReceiverAction={setServerReceiverAction}
+              teamA={teamA || null}
+              teamB={teamB || null}
+              serverTeamE={serverTeamE}
+            />
           </div>
 
           {actionPreview && (
@@ -332,10 +451,17 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
               >
                 Server/Receiver
               </button>
-              <button onClick={handleUpdateScore} type="button" className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+              <button
+                onClick={handleUpdateScore}
+                type="button"
+                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+              >
                 Update score
               </button>
-              <button onClick={openResetConfirm} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+              <button
+                onClick={openResetConfirm}
+                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+              >
                 Reset
               </button>
             </div>
@@ -388,11 +514,17 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
                 {selectedServer && selectedReceiver && (
                   <div className="my-6 flex gap-x-2 justify-center">
                     {!currServerReceiver ? (
-                      <button onClick={handleSetPlayers} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+                      <button
+                        onClick={handleSetPlayers}
+                        className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                      >
                         Confirm Order
                       </button>
                     ) : (
-                      <button onClick={openResetConfirm} className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition">
+                      <button
+                        onClick={openResetConfirm}
+                        className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                      >
                         Reset
                       </button>
                     )}
@@ -413,16 +545,62 @@ export default function ServerReceiver({ matchId, matchData, accessCode, token, 
         </div>
       )}
 
-      <dialog ref={confirmBoxEl} className="bg-gray-900 w-11/12 max-w-md rounded-2xl text-white shadow-xl border border-yellow-logo animate-fade-in">
-        <div className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-yellow-400">Reset Scorekeeper Setting</h2>
-          <p className="text-sm text-gray-300">⚠️ Warning: This will reset everything including player statistics, team scores, and selected server player. Are you sure you want to proceed?</p>
+      <dialog ref={changePlayEl} className="modal-dialog">
+        <div className="p-6 space-y-4 max-h-[90vh] overflow-hidden flex flex-col">
+          <h2 className="text-xl font-semibold text-yellow-400">
+            Select specific play
+          </h2>
 
+          {/* Scrollable content body */}
+          <div className="flex-1 overflow-y-auto pr-1">
+            <ul className="space-y-2">
+              {serverReceiverPlays.filter(sr => sr.netId === currNet?._id).map((sr, i) => (
+                <ServerReceiverPlayInput sr={sr} teamAById={teamAById} teamBById={teamBById} key={i}
+                 toBeSelectedPlay={toBeSelectedPlay} setToBeSelectedPlay={setToBeSelectedPlay} />
+              ))}
+            </ul>
+          </div>
+
+          {/* Action buttons */}
           <div className="flex justify-end gap-3 pt-4">
-            <button className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200" onClick={HandleConfirmReset}>
+            <button
+              className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200"
+              onClick={handlePlayChange}
+            >
               Confirm
             </button>
-            <button className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200" onClick={closeResetConfirm}>
+            <button
+              className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
+              onClick={()=> {changePlayEl.current?.close()}}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog ref={confirmBoxEl} className="modal-dialog">
+        <div className="p-6 space-y-4">
+          <h2 className="text-xl font-semibold text-yellow-400">
+            Reset Scorekeeper Setting
+          </h2>
+          <p className="text-sm text-gray-300">
+            ⚠️ Warning: This will reset everything including player statistics,
+            team scores, and selected server player. Are you sure you want to
+            proceed?
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200"
+              onClick={handleConfirmReset}
+            >
+              Confirm
+            </button>
+            <button
+              className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
+              onClick={closeResetConfirm}
+            >
               Cancel
             </button>
           </div>

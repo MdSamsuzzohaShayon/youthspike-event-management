@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { EServerReceiverAction, ETeam, IPlayer, IServerReceiverOnNetMixed, ITeam } from '@/types';
 import { toOrdinal } from '@/utils/helper';
 import { CldImage } from 'next-cloudinary';
-import Image from 'next/image';
 import TextImg from '@/components/elements/TextImg';
 
 interface IScoreBoardProps {
@@ -14,9 +13,10 @@ interface IScoreBoardProps {
   selectedServer: string | null;
   selectedReceiver: string | null;
   serverReceiverAction: EServerReceiverAction | null;
+  handleOpenPlays: (e: React.SyntheticEvent) => void;
 }
 
-function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlayers, selectedServer, selectedReceiver, serverReceiverAction }: IScoreBoardProps) {
+function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlayers, selectedServer, selectedReceiver, serverReceiverAction, handleOpenPlays }: IScoreBoardProps) {
   // Memoize player ID sets
   const teamAPlayerIds = useMemo(() => new Set(teamAPlayers.map((p) => p._id)), [teamAPlayers]);
   const teamBPlayerIds = useMemo(() => new Set(teamBPlayers.map((p) => p._id)), [teamBPlayers]);
@@ -55,7 +55,7 @@ function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlaye
   return (
     <div className="max-w-5xl mx-auto space-y-6 md:space-y-10">
       {/* Pulsing Status */}
-      <div className="bg-yellow-400 text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2">
+      <div onClick={handleOpenPlays} className="bg-yellow-400 text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2">
         {`${toOrdinal(currServerReceiver?.mutate || 0)} play`}
       </div>
 

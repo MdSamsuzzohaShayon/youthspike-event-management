@@ -2,7 +2,7 @@ import useClickOutside from '@/hooks/useClickOutside';
 import { ITeam } from '@/types';
 import { ETeam } from '@/types/team';
 import LocalStorageService from '@/utils/LocalStorageService';
-import React, { useEffect, useRef } from 'react';
+import React, { RefObject, useEffect, useRef } from 'react';
 
 interface ISelectTeamProps {
   teamA: ITeam;
@@ -36,7 +36,7 @@ function SelectTeam({ teamA, teamB, setSelectTeam }: ISelectTeamProps) {
   }, []);
 
   return (
-    <dialog ref={dialogTeamEl} className="w-5/6 bg-white text-black-logo">
+    <dialog ref={dialogTeamEl} className="modal-dialog">
       <ul className="team-select-strategy">
         <li className="p-2 border-b border-yellow-400 capitalize" role="presentation" onClick={(e) => handleTeamSelect(e, ETeam.teamA)}>
           {teamA.name}
