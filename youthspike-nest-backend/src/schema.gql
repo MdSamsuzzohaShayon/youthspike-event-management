@@ -53,6 +53,7 @@ type ServerReceiverOnNet {
   receiverId: String
   receivingPartner: Player!
   receivingPartnerId: String
+  serverPositionPair: EServerPositionPair!
   net: Net!
   netId: String
   mutate: Float!
@@ -61,6 +62,13 @@ type ServerReceiverOnNet {
   roundId: String
   teamAScore: Float
   teamBScore: Float
+}
+
+enum EServerPositionPair {
+  PAIR_A_TOP
+  PAIR_A_LEFT
+  PAIR_B_BOTTOM
+  PAIR_B_RIGHT
 }
 
 type ServerReceiverSinglePlay {
@@ -76,6 +84,7 @@ type ServerReceiverSinglePlay {
   receiverId: String
   receivingPartner: Player!
   receivingPartnerId: String
+  serverPositionPair: EServerPositionPair!
   net: Net!
   netId: String
   teamAScore: Float

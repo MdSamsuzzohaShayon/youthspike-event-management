@@ -9,6 +9,7 @@ import { ETeam, ITeam } from './team';
 import type { IAccessCode, IUser, IUserContext, UserRole } from './user';
 import { IMatchExpRel, IMatchRelatives } from './match';
 import { IPlayer } from './player';
+import { EServerPositionPair } from './serverReceiverOnNet';
 
 export interface IListenSocketProps {
   socket: Socket | null;
@@ -130,6 +131,7 @@ export interface ISetServerReceiverData {
   round: string;
   net: string;
   accessCode: string;
+  serverPositionPair: EServerPositionPair;
 }
 
 interface INetPoints {

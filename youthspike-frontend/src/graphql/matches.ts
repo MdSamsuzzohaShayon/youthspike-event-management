@@ -81,6 +81,7 @@ query GetMatch($matchId: String!) {
         servingPartnerId
         teamAScore
         teamBScore
+        serverPositionPair
       }
       serverReceiverOnNet {
         _id
@@ -96,6 +97,7 @@ query GetMatch($matchId: String!) {
         servingPartnerId
         matchId
         roundId
+        serverPositionPair
       }
       room {
         _id

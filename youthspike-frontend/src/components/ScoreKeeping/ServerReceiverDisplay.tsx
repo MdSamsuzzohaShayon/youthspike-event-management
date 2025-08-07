@@ -1,194 +1,237 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import {
+  EPair,
+  EPosition,
+  EServerPositionPair,
+  ESide,
   ESRRole,
   ETeam,
   INetRelatives,
   IPlayer,
   IReceiverTeam,
+  IServerReceiverOnNetMixed,
   IServerTeam,
 } from "@/types";
 import SRPlayerCard from "./SRPlayerCard";
 
-enum EPosition {
-  POSITION_A = "POSITION_A",
-  POSITION_B = "POSITION_B",
-}
-
-interface PlayerPosition {
-  team: ETeam;
-  position: EPosition;
+interface IPlayerRole {
+  player: IPlayer | null;
+  role: ESRRole;
 }
 
 const ServerReceiverDisplay: React.FC<{
-  selectedServer: string | null;
-  selectedReceiver: string | null;
+  currServerReceiver: IServerReceiverOnNetMixed | null;
   serverTeam: IServerTeam | null;
   receiverTeam: IReceiverTeam | null;
-  serverTeamE: ETeam | null;
   handleAddReceiver?: (e: React.SyntheticEvent) => void;
   handleAddServer?: (e: React.SyntheticEvent) => void;
-  net: INetRelatives | null;
 }> = ({
-  selectedServer,
-  selectedReceiver,
-  serverTeamE,
+  currServerReceiver,
   serverTeam,
   receiverTeam,
   handleAddReceiver,
   handleAddServer,
-  net,
 }) => {
-  // Determine server position
-  const serverPosition = useMemo(() => {
-    if (!selectedServer || !serverTeamE || !net || !serverTeam?.server) {
-      return null;
-    }
-
-    const serverId = serverTeam.server._id;
-
-    if (serverTeamE === ETeam.teamA) {
-      if (net.teamAPlayerA === serverId)
-        return { team: ETeam.teamA, position: EPosition.POSITION_A };
-      if (net.teamAPlayerB === serverId)
-        return { team: ETeam.teamA, position: EPosition.POSITION_B };
-    } else if (serverTeamE === ETeam.teamB) {
-      if (net.teamBPlayerA === serverId)
-        return { team: ETeam.teamB, position: EPosition.POSITION_A };
-      if (net.teamBPlayerB === serverId)
-        return { team: ETeam.teamB, position: EPosition.POSITION_B };
-    } else {
-      console.log("Server is not defined properly");
-    }
-    return null;
-  }, [selectedServer, serverTeamE, net, serverTeam]);
-
-  // Map all players to their positions
-  const positionPlayers = useMemo(() => {
-    const players: Record<ETeam, Record<EPosition, IPlayer | null>> = {
-      [ETeam.teamA]: {
-        [EPosition.POSITION_A]: null,
-        [EPosition.POSITION_B]: null,
-      },
-      [ETeam.teamB]: {
-        [EPosition.POSITION_A]: null,
-        [EPosition.POSITION_B]: null,
-      },
-    };
-
-    if (!net || !serverTeam || !receiverTeam || !serverPosition) return players;
-
-    const { team: serverTeamEnum, position: serverPos } = serverPosition;
-    const receiverTeamEnum =
-      serverTeamEnum === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
-
-    // Server team players
-    if (serverTeamEnum === ETeam.teamA) {
-      players[ETeam.teamA][EPosition.POSITION_A] =
-        net.teamAPlayerA === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamAPlayerA === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-
-      players[ETeam.teamA][EPosition.POSITION_B] =
-        net.teamAPlayerB === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamAPlayerB === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-    } else {
-      players[ETeam.teamB][EPosition.POSITION_A] =
-        net.teamBPlayerA === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamBPlayerA === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-
-      players[ETeam.teamB][EPosition.POSITION_B] =
-        net.teamBPlayerB === serverTeam.server?._id
-          ? serverTeam.server
-          : net.teamBPlayerB === serverTeam.servingPartner?._id
-          ? serverTeam.servingPartner
-          : null;
-    }
-
-    // Receiver team players - position depends on server position
-    const isServerPositionA = serverPos === EPosition.POSITION_A;
-    const receiverPos = isServerPositionA
-      ? EPosition.POSITION_B
-      : EPosition.POSITION_A;
-    const partnerPos = isServerPositionA
-      ? EPosition.POSITION_A
-      : EPosition.POSITION_B;
-
-    players[receiverTeamEnum][receiverPos] = receiverTeam.receiver;
-    players[receiverTeamEnum][partnerPos] = receiverTeam.receivingPartner;
-
-    return players;
-  }, [net, serverTeam, receiverTeam, serverPosition]);
-
-  // Get role for player at position
-  const getRoleAtPosition = (
-    team: ETeam,
-    position: EPosition
-  ): ESRRole | null => {
-    const player = positionPlayers[team][position];
-    if (!player || !serverTeam || !receiverTeam) return null;
-
-    if (team === serverTeamE) {
-      if (player._id === serverTeam.server?._id) return ESRRole.SERVER;
-      if (player._id === serverTeam.servingPartner?._id) return ESRRole.SWING;
-    } else {
-      if (player._id === receiverTeam.receiver?._id) return ESRRole.RECEIVER;
-      if (player._id === receiverTeam.receivingPartner?._id)
-        return ESRRole.SETTER;
-    }
-    return null;
-  };
-
-  // Render position component
-  const renderPosition = (team: ETeam, position: EPosition) => {
-    // teamA Position B
-    const player = positionPlayers[team][position];
-    const role = getRoleAtPosition(team, position);
-
-    const handlePlayerSelection = (e: React.SyntheticEvent) => {
-      // If players are not selected, the role of the player will be null initially
-      if (!role) {
-        if (team === ETeam.teamA) {
-          if (handleAddServer) handleAddServer(e);
-        } else {
-          if (handleAddReceiver) handleAddReceiver(e);
-        }
+  const positions = useMemo(() => {
+    const posMap = new Map<EServerPositionPair, IPlayerRole>();
+    // Initially set server to pari A top 
+    if(!currServerReceiver){
+      if(serverTeam?.server){
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
       }
-    };
-    const seleted =
-      (team === serverTeamE ? selectedServer : selectedReceiver) ===
-      player?._id;
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
 
+      // Return the initial position
+      return posMap;
+    }
+
+
+    if (
+      currServerReceiver?.serverPositionPair === EServerPositionPair.PAIR_A_TOP
+    ) {
+      // SWING will be PAIR A, LEFT
+      // receiver will be in pair B bottom,
+      // receiving partner will be in pair B right
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    } else if (
+      currServerReceiver?.serverPositionPair === EServerPositionPair.PAIR_A_LEFT
+    ) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    } else if (
+      currServerReceiver?.serverPositionPair ===
+      EServerPositionPair.PAIR_B_BOTTOM
+    ) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    } else if (
+      currServerReceiver?.serverPositionPair ===
+      EServerPositionPair.PAIR_B_RIGHT
+    ) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    }
+
+    return posMap;
+  }, [currServerReceiver, serverTeam, receiverTeam]);
+
+
+  
+  
+  
+
+
+
+  const renderPlayerCard = useCallback((positionPairE: EServerPositionPair) => {
+    const playerPosition = positions.get(positionPairE);
+    let role = null;
+    if(positionPairE === EServerPositionPair.PAIR_A_TOP ){
+      role = ESRRole.SERVER;
+    }else if(positionPairE === EServerPositionPair.PAIR_B_BOTTOM){
+      role = ESRRole.RECEIVER;
+    }
+
+    const handlePlayerSelection=(e: React.SyntheticEvent)=>{
+      if(role ===  ESRRole.SERVER){
+        if(handleAddServer)handleAddServer(e);
+      }else if(role ===  ESRRole.RECEIVER){
+        if(handleAddReceiver)handleAddReceiver(e);
+      }
+    }
+    if(!playerPosition){
+
+      return (
+        <SRPlayerCard
+          key={positionPairE}
+          player={null}
+          role={role}
+          selected={null}
+          handlePlayerSelection={handlePlayerSelection}
+          positionPairE={positionPairE}
+        />
+      )
+    }
     return (
       <SRPlayerCard
-        key={`${team}-${position}`}
-        player={player}
-        role={role}
-        selected={player?._id || null}
-        serverReceiverTeam={team === serverTeamE ? serverTeam : receiverTeam}
+        key={positionPairE}
+        player={playerPosition.player}
+        role={playerPosition.role}
+        selected={playerPosition.player?._id || null}
         handlePlayerSelection={handlePlayerSelection}
+        positionPairE={positionPairE}
       />
     );
-  };
-
-  // Memoize position components
-  const positions = useMemo(
-    () => ({
-      teamAPositionA: renderPosition(ETeam.teamA, EPosition.POSITION_A),
-      teamAPositionB: renderPosition(ETeam.teamA, EPosition.POSITION_B),
-      teamBPositionA: renderPosition(ETeam.teamB, EPosition.POSITION_A),
-      teamBPositionB: renderPosition(ETeam.teamB, EPosition.POSITION_B),
-    }),
-    [positionPlayers, selectedServer, selectedReceiver]
-  );
+  }, [positions, handleAddServer, handleAddReceiver]);
 
   return (
     <div className="display-server-receiver w-full flex justify-center items-center flex-col">
@@ -196,11 +239,11 @@ const ServerReceiverDisplay: React.FC<{
         Selected Server/Receiver
       </h3>
       <div className="w-full flex justify-center items-center gap-x-2 md:gap-x-6">
-        {positions.teamAPositionA}
+        {renderPlayerCard(EServerPositionPair.PAIR_A_LEFT)}
 
         <div className="w-1/3 flex justify-center items-center">
           <div className="w-full flex flex-col items-center gap-6 p-6">
-            {positions.teamAPositionB}
+          {renderPlayerCard(EServerPositionPair.PAIR_A_TOP)}
 
             <div className="flex justify-center items-center py-2">
               <Image
@@ -211,10 +254,10 @@ const ServerReceiverDisplay: React.FC<{
               />
             </div>
 
-            {positions.teamBPositionA}
+            {renderPlayerCard(EServerPositionPair.PAIR_B_BOTTOM)}
           </div>
         </div>
-        {positions.teamBPositionB}
+        {renderPlayerCard(EServerPositionPair.PAIR_B_RIGHT)}
       </div>
     </div>
   );

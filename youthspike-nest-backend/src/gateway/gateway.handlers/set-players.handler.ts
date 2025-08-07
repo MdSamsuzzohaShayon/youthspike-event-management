@@ -98,6 +98,7 @@ export class SetPlayersHandler {
         match: body.match,
         net: body.net,
         round: body.round,
+        serverPositionPair: body.serverPositionPair,
         teamAScore: 0,
         teamBScore: 0,
       };

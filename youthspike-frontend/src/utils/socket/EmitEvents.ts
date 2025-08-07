@@ -39,6 +39,7 @@ import {
   ETieBreaker,
   IServerDoNotKnowInput,
   IReceiverDoNotKnowInput,
+  EServerPositionPair,
 } from "@/types";
 import { Socket } from "socket.io-client";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
@@ -605,6 +606,7 @@ class EmitEvents {
       );
     }
 
+    // Set server position
     const actionData: ISetServerReceiverData = {
       match: currMatch._id,
       room: currRoom._id,
@@ -613,6 +615,7 @@ class EmitEvents {
       round: currRound._id,
       net: currNet._id,
       accessCode: accessCode.code,
+      serverPositionPair: EServerPositionPair.PAIR_A_TOP
     };
 
     // Update state

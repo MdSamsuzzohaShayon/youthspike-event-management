@@ -157,15 +157,6 @@ export interface ILoginProps {
 
 export type TParams = Promise<Record<string, string>>;
 
-export interface IServerTeam{
-  server: IPlayer | null;
-  servingPartner: IPlayer | null;
-}
-
-export interface IReceiverTeam{
-  receiver: IPlayer | null;
-  receivingPartner: IPlayer | null;
-}
 
 
 export enum EActionTexts {

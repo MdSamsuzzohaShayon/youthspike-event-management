@@ -17,8 +17,8 @@ interface PlayerSelectionProps {
   playersOfSelectedNet: null | INetPlayers;
   serverPlaceholder: boolean;
   receiverPlaceholder: boolean;
-  handleServerSelection: (e: React.SyntheticEvent, playerId: string | undefined) => void;
-  handleReceiverSelection: (e: React.SyntheticEvent, playerId: string | undefined) => void;
+  handleServerSelection: (e: React.SyntheticEvent, playerId: string | null) => void;
+  handleReceiverSelection: (e: React.SyntheticEvent, playerId: string | null) => void;
   handleClosePlayers: (e: React.SyntheticEvent) => void;
 }
 

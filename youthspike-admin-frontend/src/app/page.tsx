@@ -28,7 +28,6 @@ async function EventsPage({ searchParams }: IEventsPageProps) {
 
   let directorId = null;
 
-  // http://localhost:3000/?ldoId=skwhj4i2u2j3g23j
   if (userContext.info?.role === UserRole.admin) {
     directorId = params[LDO_ID] as string;
 

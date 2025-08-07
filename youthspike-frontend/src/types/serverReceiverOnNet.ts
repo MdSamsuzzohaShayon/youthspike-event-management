@@ -3,6 +3,15 @@ import { IPlayer } from './player';
 import { IRoundRelatives } from './round';
 import { IMatch } from './socket';
 
+
+export enum EServerPositionPair {
+  PAIR_A_TOP = 'PAIR_A_TOP',
+  PAIR_A_LEFT = 'PAIR_A_LEFT',
+
+  PAIR_B_BOTTOM = 'PAIR_B_BOTTOM',
+  PAIR_B_RIGHT = 'PAIR_B_RIGHT',
+}
+
 /**
  * Score keeper
  */
@@ -18,6 +27,9 @@ export interface IServerReceiverCommon {
   round: string | IRoundRelatives;
   teamAScore: number;
   teamBScore: number;
+
+  // According to server position, all other position will be selected
+  serverPositionPair: EServerPositionPair;
 
   // Optional related fields
   serverId?: string;
@@ -38,6 +50,18 @@ export interface IServerReceiverOnNetMixed extends IServerReceiverCommon {
 
 export interface IServerReceiverSinglePlay extends IServerReceiverCommon {}
 
+
+export interface IServerTeam{
+  server: IPlayer | null;
+  servingPartner: IPlayer | null;
+}
+
+export interface IReceiverTeam{
+  receiver: IPlayer | null;
+  receivingPartner: IPlayer | null;
+}
+
+
 export enum EServerReceiverAction {
   SERVER_ACE_NO_TOUCH = 'SERVER_ACE_NO_TOUCH',
   SERVER_ACE_NO_THIRD_TOUCH = 'SERVER_ACE_NO_THIRD_TOUCH',
@@ -50,6 +74,24 @@ export enum EServerReceiverAction {
   RECEIVER_RALLEY_CONVERSION = 'RECEIVER_RALLEY_CONVERSION',
   RECEIVER_DO_NOT_KNOW = 'RECEIVER_DO_NOT_KNOW',
 }
+
+export enum EPosition {
+  POSITION_A = "POSITION_A",
+  POSITION_B = "POSITION_B",
+}
+
+export enum EPair {
+  PAIR_A = "PAIR_A",
+  PAIR_B = "PAIR_B",
+}
+
+export enum ESide {
+  LEFT = "LEFT",
+  TOP = "TOP",
+  BOTTOM = "BOTTOM",
+  RIGHT = "RIGHT",
+}
+
 
 /**
  * Responses

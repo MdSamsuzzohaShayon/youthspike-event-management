@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Match } from 'src/match/match.schema';
@@ -6,6 +6,19 @@ import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
+
+
+export enum EServerPositionPair {
+  'PAIR_A_TOP' = 'PAIR_A_TOP',
+  'PAIR_A_LEFT' = 'PAIR_A_LEFT',
+
+  'PAIR_B_BOTTOM' = 'PAIR_B_BOTTOM',
+  'PAIR_B_RIGHT' = 'PAIR_B_RIGHT',
+}
+
+registerEnumType(EServerPositionPair, {
+  name: 'EServerPositionPair',
+});
 
 // Recorded
 @ObjectType()
@@ -52,6 +65,11 @@ export class ServerReceiverCommon extends AppDocument {
 
   @Field((_type) => String, { nullable: true })
   receivingPartnerId?: string;
+
+
+  @Field((_type) => EServerPositionPair, { nullable: false })
+  @Prop({ required: true })
+  serverPositionPair: EServerPositionPair
 
 
   

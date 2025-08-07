@@ -4,6 +4,7 @@ import { GatewayService } from '../gateway.service';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { initPlayerStat, netKey, singlePlayKey } from 'src/util/helper';
 import {
+  EServerPositionPair,
   ServerReceiverOnNet,
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -127,13 +128,33 @@ export class ScoreKeeperHelper {
       let tempReceiver = null, tempReceivingPartner = null;
       tempReceiver = net.server;
       tempReceivingPartner = net.servingPartner
-      // Receiving team scores
+      // If receiver team score is even
       if (receivingTeamScore % 2 === 0) {
         // Even score: setter (receivingPartner) serves
+        // Serving position change here
+        if(net.serverPositionPair === EServerPositionPair.PAIR_A_TOP){
+          net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
+        }else if(net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT){
+          net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
+        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT){
+          net.serverPositionPair = EServerPositionPair.PAIR_A_TOP
+        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM){
+          net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
+        }
         net.server = net.receivingPartner;
         net.servingPartner = net.receiver;
       } else {
         // Odd score: receiver serves
+        // Serving position change here
+        if(net.serverPositionPair === EServerPositionPair.PAIR_A_TOP){
+          net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
+        }else if(net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT){
+          net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
+        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT){
+          net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
+        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM){
+          net.serverPositionPair = EServerPositionPair.PAIR_A_TOP;
+        }
         net.server = net.receiver;
         net.servingPartner = net.receivingPartner;
       }

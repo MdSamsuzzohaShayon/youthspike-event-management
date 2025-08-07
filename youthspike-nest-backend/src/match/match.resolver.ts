@@ -32,6 +32,7 @@ import { netKey, singlePlayKey, tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { RedisService } from 'src/redis/redis.service';
 import {
+  EServerPositionPair,
   ServerReceiverOnNet,
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -537,6 +538,7 @@ export class MatchResolver {
         receivingPartnerId: String(result.receivingPartner ?? ''),
         servingPartnerId: String(result.servingPartner ?? ''),
         roundId: String(result.round ?? ''),
+        serverPositionPair: result?.serverPositionPair || EServerPositionPair.PAIR_A_TOP
       }));
 
       // Get missed data from DB
@@ -623,6 +625,7 @@ export class MatchResolver {
         receiverId: String(play.receiver ?? ''),
         receivingPartnerId: String(play.receivingPartner ?? ''),
         servingPartnerId: String(play.servingPartner ?? ''),
+        serverPositionPair: play?.serverPositionPair || EServerPositionPair.PAIR_A_TOP
       }));
 
       // Get play numbers we already have

@@ -7,7 +7,6 @@ import { setCurrNetNum } from "@/redux/slices/netSlice";
 import {
   EActionProcess,
   EServerReceiverAction,
-  ESRRole,
   ETeam,
   ETieBreaker,
   ETieBreakingStrategy,
@@ -79,7 +78,7 @@ export default function ServerReceiver({
   const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
   const [serverReceiverAction, setServerReceiverAction] =
     useState<EServerReceiverAction | null>(null);
-  const [toBeSelectedPlay, setToBeSelectedPlay]   = useState<number | null>(null); // Selected playId before confirmation
+  const [toBeSelectedPlay, setToBeSelectedPlay] = useState<number | null>(null); // Selected playId before confirmation
 
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
@@ -157,9 +156,6 @@ export default function ServerReceiver({
     () => makeTeam(selectedReceiver, currNetNum, false) as IReceiverTeam | null,
     [selectedReceiver, currNetNum, makeTeam]
   );
-  const net = useMemo(() => {
-    return netByNum.get(currNetNum) || null;
-  }, [netByNum, currNetNum]);
 
   /* ───── Handlers ───── */
   const handleNetChange = (e: React.SyntheticEvent) => {
@@ -236,6 +232,23 @@ export default function ServerReceiver({
     confirmBoxEl.current?.close();
   };
 
+  const handleServerSelection = (
+    e: React.SyntheticEvent,
+    playerId: string | null
+  ) => {
+    e.preventDefault();
+    setSelectedServer(playerId || null);
+    setServerPlaceholder(false);
+  };
+  const handleReceiverSelection = (
+    e: React.SyntheticEvent,
+    playerId: string | null
+  ) => {
+    e.preventDefault();
+    setSelectedReceiver(playerId || null);
+    setReceiverPlaceholder(false);
+  };
+
   const handlePlayChange = useCallback(() => {
     // Select a play and
   }, []);
@@ -296,10 +309,14 @@ export default function ServerReceiver({
     return null;
   }, [teamAPlayers, selectedServer, selectedReceiver]);
 
-  const currNet = useMemo(()=> {
+  const currNet = useMemo(() => {
     const net = netByNum.get(currNetNum);
     return net;
   }, [netByNum, currNetNum]);
+
+  const currPlays = useMemo(() => {
+    return serverReceiverPlays.filter((sr) => sr.netId === currNet?._id);
+  }, [serverReceiverPlays, currNet]);
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -344,18 +361,20 @@ export default function ServerReceiver({
   }
 
   return (
-    <div>
-      <SelectInput
-        handleSelect={handleNetChange}
-        name="currNetNum"
-        label="Current Net"
-        optionList={currentRoundNets.map((n) => ({
-          id: n.num,
-          value: String(n.num),
-          text: `Net ${n.num}`,
-        }))}
-        value={currNetNum || ""}
-      />
+    <div className="ServerReceiver">
+      <div className="input-wrapper relative">
+        <SelectInput
+          handleSelect={handleNetChange}
+          name="currNetNum"
+          label="Current Net"
+          optionList={currentRoundNets.map((n) => ({
+            id: n.num,
+            value: String(n.num),
+            text: `Net ${n.num}`,
+          }))}
+          value={currNetNum || ""}
+        />
+      </div>
 
       {actionPreview ? (
         <div className="server-receiver-with-actions w-full ">
@@ -367,12 +386,9 @@ export default function ServerReceiver({
               }`}
             >
               <ServerReceiverDisplay
-                net={net}
-                serverTeamE={serverTeamE}
-                selectedServer={selectedServer}
-                selectedReceiver={selectedReceiver}
                 serverTeam={serverTeam}
                 receiverTeam={receiverTeam}
+                currServerReceiver={currServerReceiver}
               />
             </div>
             {/* Left side end  */}
@@ -482,17 +498,9 @@ export default function ServerReceiver({
               playersOfSelectedNet={playersOfSelectedNet}
               serverPlaceholder={serverPlaceholder}
               receiverPlaceholder={receiverPlaceholder}
-              handleServerSelection={(e, id) => {
-                setSelectedServer(id ?? null);
-                setServerPlaceholder(false);
-              }}
-              handleReceiverSelection={(e, id) => {
-                setSelectedReceiver(id ?? null);
-                setReceiverPlaceholder(false);
-              }}
+              handleServerSelection={handleServerSelection}
+              handleReceiverSelection={handleReceiverSelection}
               handleClosePlayers={() => {
-                // setSelectedServer(null);
-                // setSelectedReceiver(null);
                 setServerPlaceholder(false);
                 setReceiverPlaceholder(false);
               }}
@@ -501,14 +509,11 @@ export default function ServerReceiver({
             <div className="w-full flex flex-col items-center">
               <div className="w-full md:w-3/6">
                 <ServerReceiverDisplay
-                  net={net}
-                  selectedServer={selectedServer}
-                  selectedReceiver={selectedReceiver}
-                  serverTeamE={serverTeamE}
                   serverTeam={serverTeam}
                   receiverTeam={receiverTeam}
                   handleAddServer={() => setServerPlaceholder(true)}
                   handleAddReceiver={() => setReceiverPlaceholder(true)}
+                  currServerReceiver={currServerReceiver}
                 />
 
                 {selectedServer && selectedReceiver && (
@@ -552,14 +557,26 @@ export default function ServerReceiver({
           </h2>
 
           {/* Scrollable content body */}
-          <div className="flex-1 overflow-y-auto pr-1">
-            <ul className="space-y-2">
-              {serverReceiverPlays.filter(sr => sr.netId === currNet?._id).map((sr, i) => (
-                <ServerReceiverPlayInput sr={sr} teamAById={teamAById} teamBById={teamBById} key={i}
-                 toBeSelectedPlay={toBeSelectedPlay} setToBeSelectedPlay={setToBeSelectedPlay} />
-              ))}
-            </ul>
-          </div>
+          {currPlays.length > 0 ? (
+            <div className="flex-1 overflow-y-auto pr-1">
+              <ul className="space-y-2">
+                {currPlays.map((sr, i) => (
+                  <ServerReceiverPlayInput
+                    sr={sr}
+                    teamAById={teamAById}
+                    teamBById={teamBById}
+                    key={i}
+                    toBeSelectedPlay={toBeSelectedPlay}
+                    setToBeSelectedPlay={setToBeSelectedPlay}
+                  />
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-300">
+              ⚠️ Warning: There are no history of playing anything on this net. 
+            </p>
+          )}
 
           {/* Action buttons */}
           <div className="flex justify-end gap-3 pt-4">
@@ -571,7 +588,9 @@ export default function ServerReceiver({
             </button>
             <button
               className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
-              onClick={()=> {changePlayEl.current?.close()}}
+              onClick={() => {
+                changePlayEl.current?.close();
+              }}
             >
               Cancel
             </button>

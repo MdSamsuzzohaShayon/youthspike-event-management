@@ -1,30 +1,36 @@
 import TextImg from "@/components/elements/TextImg";
 import { useAppSelector } from "@/redux/hooks";
-import { ESRRole, IPlayer, IReceiverTeam, IServerTeam } from "@/types";
+import {
+  EPosition,
+  EServerPositionPair,
+  ESRRole,
+  ETeam,
+  IPlayer,
+} from "@/types";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 import React, { useMemo } from "react";
 
 interface ISPPlayerCardProps {
   selected: string | null;
-  serverReceiverTeam: IServerTeam | IReceiverTeam | null;
   player: IPlayer | null;
   role: ESRRole | null;
   dark?: boolean;
   handlePlayerSelection?: (e: React.SyntheticEvent) => void;
+  positionPairE: EServerPositionPair; // This is not server position pair
 }
 
 const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
   selected,
-  serverReceiverTeam,
   player,
   role,
   dark,
   handlePlayerSelection,
+  positionPairE,
 }) => {
   const { teamA, teamB } = useAppSelector((state) => state.teams);
 
-
+  // Memoization
   const teamOfPlayer = useMemo(() => {
     if (!player) return null;
     if (
@@ -44,14 +50,17 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
     return null;
   }, [player, teamA, teamB]);
 
-
   const isServingTeam = useMemo(() => {
     return role === ESRRole.SERVER || role === ESRRole.SWING;
   }, [role]);
 
-
-  
-  
+  const selectable = useMemo(() => {
+    if (player) return false;
+    return (
+      positionPairE === EServerPositionPair.PAIR_A_TOP ||
+      positionPairE === EServerPositionPair.PAIR_B_BOTTOM
+    );
+  }, [positionPairE]);
 
   const bgColor = isServingTeam ? "bg-yellow-400/90" : "bg-gray-900/90";
   const borderColor = isServingTeam ? "border-yellow-400" : "border-gray-700";
@@ -60,6 +69,29 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
   const nameTextColor = isServingTeam ? "text-black" : "text-yellow-logo";
   const teamTextColor = isServingTeam ? "text-gray-800" : "text-gray-400";
 
+  const selectInitialRole = useMemo(() => {
+    // Show all placeholder initially if there is no role selected
+    let initialRole = null;
+    if (positionPairE === EServerPositionPair.PAIR_A_LEFT) {
+      initialRole = ESRRole.SWING;
+    } else if (positionPairE === EServerPositionPair.PAIR_A_TOP) {
+      initialRole = ESRRole.SERVER;
+    } else if (positionPairE === EServerPositionPair.PAIR_B_BOTTOM) {
+      initialRole = ESRRole.RECEIVER;
+    } else if (positionPairE === EServerPositionPair.PAIR_B_RIGHT) {
+      initialRole = ESRRole.SETTER;
+    }
+
+    return (
+      <span
+        className={`absolute -top-2 right-2 px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase
+              rounded-full ${roleBgColor} shadow-sm ${roleTextColor}`}
+      >
+        {initialRole}
+      </span>
+    );
+  }, [positionPairE]);
+
   return (
     <div
       className={`relative flex flex-col items-center w-28 lg:w-36 p-4 rounded-3xl transition-all
@@ -67,19 +99,21 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
                   ${bgColor} ${borderColor}`}
     >
       {/* Role badge */}
-      {role && (
+      {role ? (
         <span
           className={`absolute -top-2 right-2 px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase
                     rounded-full ${roleBgColor} shadow-sm ${roleTextColor}`}
         >
           {role}
         </span>
+      ) : (
+        selectInitialRole
       )}
 
       {/* Avatar button */}
       <button
         type="button"
-        onClick={handlePlayerSelection}
+        onClick={selectable ? handlePlayerSelection : () => {}}
         aria-label="Select player"
         className={`group w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 overflow-hidden
                     flex items-center justify-center transition-transform hover:scale-105 
@@ -92,7 +126,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
                         : "border-yellow-400 bg-gray-800"
                     }`}
       >
-        {selected && serverReceiverTeam ? (
+        {selected ? (
           player?.profile ? (
             <CldImage
               alt={`${player.firstName} ${player.lastName}`}
@@ -110,7 +144,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
           )
         ) : dark ? (
           <div className="w-full h-full animate-pulse" />
-        ) : (
+        ) : selectable ? (
           <Image
             alt="Add player"
             src="/icons/plus.svg"
@@ -118,11 +152,19 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
             height={32}
             className="svg-white"
           />
+        ) : (
+          <Image
+            alt="Empty Image"
+            src="/empty-img.jpg"
+            width={100}
+            height={100}
+            className="w-full h-full"
+          />
         )}
       </button>
 
       {/* Player info */}
-      {selected && serverReceiverTeam && (
+      {selected && (
         <div className="mt-3 text-center">
           <h4
             className={`text-sm font-semibold leading-tight text-center break-words max-w-full 

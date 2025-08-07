@@ -2,6 +2,7 @@ import { UserRole } from 'src/user/user.schema';
 import { EActionProcess } from 'src/round/round.schema';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { ETieBreaker } from 'src/net/net.schema';
+import { EServerPositionPair } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 export enum ETeam {
   teamA = 'teamA',
@@ -117,15 +118,34 @@ export class ExtendOvertimeInput {
   room: string;
 }
 
-export interface SetPlayersInput {
+@InputType()
+export class SetPlayersInput {
+  @Field({ nullable: false })
   userId: string;
+
+  @Field({ nullable: false })
   room: string;
+
+  @Field({ nullable: false })
   round: string;
+
+  @Field({ nullable: false })
   match: string;
+
+  @Field({ nullable: false })
   net: string;
+
+  @Field({ nullable: false })
   server: string;
+
+  @Field({ nullable: false })
   receiver: string;
+
+  @Field({ nullable: false })
   accessCode: string;
+
+  @Field(() => EServerPositionPair, { nullable: false })
+  serverPositionPair: EServerPositionPair;
 }
 
 @InputType()
