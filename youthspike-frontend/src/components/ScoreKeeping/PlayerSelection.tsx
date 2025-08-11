@@ -1,5 +1,3 @@
-'use client';
-
 import TextImg from '@/components/elements/TextImg';
 import { useAppDispatch } from '@/redux/hooks';
 import { setActErr } from '@/redux/slices/elementSlice';

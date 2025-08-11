@@ -57,8 +57,8 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
   const selectable = useMemo(() => {
     if (player) return false;
     return (
-      positionPairE === EServerPositionPair.PAIR_A_TOP ||
-      positionPairE === EServerPositionPair.PAIR_B_BOTTOM
+      positionPairE === EServerPositionPair.PAIR_A_LEFT ||
+      positionPairE === EServerPositionPair.PAIR_B_RIGHT
     );
   }, [positionPairE]);
 
@@ -72,13 +72,13 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
   const selectInitialRole = useMemo(() => {
     // Show all placeholder initially if there is no role selected
     let initialRole = null;
-    if (positionPairE === EServerPositionPair.PAIR_A_LEFT) {
+    if (positionPairE === EServerPositionPair.PAIR_A_TOP) {
       initialRole = ESRRole.SWING;
-    } else if (positionPairE === EServerPositionPair.PAIR_A_TOP) {
+    } else if (positionPairE === EServerPositionPair.PAIR_A_LEFT) {
       initialRole = ESRRole.SERVER;
-    } else if (positionPairE === EServerPositionPair.PAIR_B_BOTTOM) {
-      initialRole = ESRRole.RECEIVER;
     } else if (positionPairE === EServerPositionPair.PAIR_B_RIGHT) {
+      initialRole = ESRRole.RECEIVER;
+    } else if (positionPairE === EServerPositionPair.PAIR_B_BOTTOM) {
       initialRole = ESRRole.SETTER;
     }
 

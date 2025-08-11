@@ -38,25 +38,25 @@ const ServerReceiverDisplay: React.FC<{
     // Initially set server to pari A top 
     if(!currServerReceiver){
       if(serverTeam?.server){
-        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
           player: serverTeam.server,
           role: ESRRole.SERVER,
         });
       }
       if (serverTeam?.servingPartner) {
-        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
           player: serverTeam?.servingPartner,
           role: ESRRole.SWING,
         });
       }
       if (receiverTeam?.receiver) {
-        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
           player: receiverTeam?.receiver,
           role: ESRRole.RECEIVER,
         });
       }
       if (receiverTeam?.receivingPartner) {
-        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
           player: receiverTeam?.receivingPartner,
           role: ESRRole.SETTER,
         });
@@ -192,12 +192,13 @@ const ServerReceiverDisplay: React.FC<{
 
 
 
+  // pa-left
   const renderPlayerCard = useCallback((positionPairE: EServerPositionPair) => {
     const playerPosition = positions.get(positionPairE);
     let role = null;
-    if(positionPairE === EServerPositionPair.PAIR_A_TOP ){
+    if(positionPairE === EServerPositionPair.PAIR_A_LEFT ){
       role = ESRRole.SERVER;
-    }else if(positionPairE === EServerPositionPair.PAIR_B_BOTTOM){
+    }else if(positionPairE === EServerPositionPair.PAIR_B_RIGHT){
       role = ESRRole.RECEIVER;
     }
 

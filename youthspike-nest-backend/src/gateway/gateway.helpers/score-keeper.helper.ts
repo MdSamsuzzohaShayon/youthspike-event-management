@@ -128,8 +128,19 @@ export class ScoreKeeperHelper {
     [net.server, net.servingPartner] = [net.servingPartner, net.server];
   }
   rotateReceiver(net: ServerReceiverOnNet) {
+    if(net.serverPositionPair === EServerPositionPair.PAIR_A_TOP){
+      net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
+    }else if(net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT){
+      net.serverPositionPair = EServerPositionPair.PAIR_A_TOP;
+    }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT){
+      net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
+    }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM){
+      net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
+    }
+
     [net.receiver, net.receivingPartner] = [net.receivingPartner, net.receiver];
   }
+
   rotateServerReceiver(net: ServerReceiverOnNet, receivingTeamScore: number) {
     if (net.play < 2) {
       // Less than 2 plays: just swap server/receiver and their partners

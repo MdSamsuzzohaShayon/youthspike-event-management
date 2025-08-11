@@ -616,7 +616,7 @@ class EmitEvents {
       round: currRound._id,
       net: currNet._id,
       accessCode: accessCode.code,
-      serverPositionPair: EServerPositionPair.PAIR_A_TOP
+      serverPositionPair: EServerPositionPair.PAIR_A_LEFT
     };
 
     // Update state
