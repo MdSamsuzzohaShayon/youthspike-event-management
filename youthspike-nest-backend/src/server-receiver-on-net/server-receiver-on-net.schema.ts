@@ -16,8 +16,25 @@ export enum EServerPositionPair {
   'PAIR_B_RIGHT' = 'PAIR_B_RIGHT',
 }
 
+export enum EServerReceiverAction {
+  SERVER_ACE_NO_TOUCH = 'SERVER_ACE_NO_TOUCH',
+  SERVER_ACE_NO_THIRD_TOUCH = 'SERVER_ACE_NO_THIRD_TOUCH',
+  SERVER_RECEIVING_HITTING_ERROR = 'SERVER_RECEIVING_HITTING_ERROR',
+  SERVER_DEFENSIVE_CONVERSION = 'SERVER_DEFENSIVE_CONVERSION',
+  SERVER_DO_NOT_KNOW = 'SERVER_DO_NOT_KNOW',
+
+  RECEIVER_SERVICE_FAULT = 'RECEIVER_SERVICE_FAULT',
+  RECEIVER_ONE_TWO_THREE_PUT_AWAY = 'RECEIVER_ONE_TWO_THREE_PUT_AWAY',
+  RECEIVER_RALLEY_CONVERSION = 'RECEIVER_RALLEY_CONVERSION',
+  RECEIVER_DO_NOT_KNOW = 'RECEIVER_DO_NOT_KNOW',
+}
+
 registerEnumType(EServerPositionPair, {
   name: 'EServerPositionPair',
+});
+
+registerEnumType(EServerReceiverAction, {
+  name: 'EServerReceiverAction',
 });
 
 // Recorded
@@ -79,6 +96,14 @@ export class ServerReceiverCommon extends AppDocument {
 
   @Field((_type) => String, { nullable: true })
   netId?: string;
+
+  @Field({ nullable: true})
+  @Prop({ required: false })
+  teamAScore: number | null;
+
+  @Field({ nullable: false})
+  @Prop({ required: false })
+  teamBScore: number | null;
 }
 
 // Current
@@ -101,25 +126,15 @@ export class ServerReceiverOnNet extends ServerReceiverCommon {
 
   @Field((_type) => String, { nullable: true })
   roundId?: string;
-
-  // Only for GraphQL / Not for MongoDB
-  @Field({ nullable: true })
-  teamAScore: number | null;
-
-  @Field({ nullable: true })
-  teamBScore: number | null;
 }
 
 @ObjectType()
 @Schema({ timestamps: true })
 export class ServerReceiverSinglePlay extends ServerReceiverCommon {
-  @Field({ nullable: true})
-  @Prop({ required: false })
-  teamAScore: number | null;
 
-  @Field({ nullable: false})
-  @Prop({ required: false })
-  teamBScore: number | null;
+  @Field((_type) => EServerReceiverAction, { nullable: false })
+  @Prop({ required: true, default: EServerReceiverAction.SERVER_DO_NOT_KNOW })
+  action: EServerReceiverAction; // Which button has been pressen
 }
 
 export const ServerReceiverOnNetSchema = SchemaFactory.createForClass(ServerReceiverOnNet);

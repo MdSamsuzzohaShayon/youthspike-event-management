@@ -4,6 +4,7 @@ import { RoomLocal, DefensiveConversionInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
+import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 export class DefensiveConversionHandler {
   constructor(
@@ -62,16 +63,19 @@ export class DefensiveConversionHandler {
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateReceiver(net);
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
 
       /* 6️⃣ persist & broadcast */
-      const singlePlayNet = {...net};
+      const singlePlayNet = {...currNetObj, action: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION};
       delete singlePlayNet.mutate;
+
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
-        this.scoreKeeperHelper.publishRoom(body.room, 'defensive-conversion-from-server', net)
+        this.scoreKeeperHelper.publishRoom(body.room, 'defensive-conversion-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj})
       ]);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');

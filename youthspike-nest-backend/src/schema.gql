@@ -56,12 +56,12 @@ type ServerReceiverOnNet {
   serverPositionPair: EServerPositionPair!
   net: Net!
   netId: String
+  teamAScore: Float
+  teamBScore: Float!
   mutate: Float!
   room: String!
   round: Round!
   roundId: String
-  teamAScore: Float
-  teamBScore: Float
 }
 
 enum EServerPositionPair {
@@ -89,6 +89,19 @@ type ServerReceiverSinglePlay {
   netId: String
   teamAScore: Float
   teamBScore: Float!
+  action: EServerReceiverAction!
+}
+
+enum EServerReceiverAction {
+  SERVER_ACE_NO_TOUCH
+  SERVER_ACE_NO_THIRD_TOUCH
+  SERVER_RECEIVING_HITTING_ERROR
+  SERVER_DEFENSIVE_CONVERSION
+  SERVER_DO_NOT_KNOW
+  RECEIVER_SERVICE_FAULT
+  RECEIVER_ONE_TWO_THREE_PUT_AWAY
+  RECEIVER_RALLEY_CONVERSION
+  RECEIVER_DO_NOT_KNOW
 }
 
 type Round {

@@ -81,11 +81,18 @@ export interface IUpdateCachePointsInput extends ICacheAction {
   accessCode: string;
 }
 
-export interface IResetScoreInput {
+interface IRevertResetCommon{
   match: string;
   net: string | null;
-  room: string | null;
   accessCode: string | null;
+}
+
+export interface IResetScoreInput extends IRevertResetCommon{
+  room: string | null;
+}
+
+export interface IRevertPlayInput extends IResetScoreInput {
+  play: number | null;
 }
 
 export interface ICheckInToLineupProps extends IStatusChange {

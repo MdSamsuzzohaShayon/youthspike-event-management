@@ -73,7 +73,10 @@ export class ServerReceiverOnNetService {
     return this.serverReceiverOnNetSinglePlayModel.findById(id);
   }
 
-  async deleteSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>) {
+  async deleteManySinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>) {
     return this.serverReceiverOnNetSinglePlayModel.deleteMany(filter);
+  }
+  async deleteOneSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>) {
+    return this.serverReceiverOnNetSinglePlayModel.deleteOne(filter);
   }
 }

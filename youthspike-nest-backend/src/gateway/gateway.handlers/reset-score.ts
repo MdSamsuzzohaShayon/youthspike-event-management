@@ -1,12 +1,10 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import {
-  ResetScoreInput,
-  RoomLocal,
-} from '../gateway.types';
+import { ResetScoreInput, RoomLocal } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
+import { singlePlayKey } from 'src/util/helper';
 
 export class ResetScoreHandler {
   constructor(
@@ -21,14 +19,8 @@ export class ResetScoreHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const {
-        netService,
-        playerStatsService,
-        playerService,
-        roundService,
-        serverReceiverOnNetService,
-        matchService,
-      } = this.gatewayService.getServices();
+      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService } =
+        this.gatewayService.getServices();
 
       const [net, match] = await Promise.all([
         this.scoreKeeperHelper.loadNetAction(body.net, body.room),
@@ -38,6 +30,46 @@ export class ResetScoreHandler {
       if (!match?.accessCode || match.accessCode !== body.accessCode) {
         throw new Error('Permission denied: Invalid access code.');
       }
+
+      const playKeys = new Set<string>();
+      for (let i = 0; i < net.mutate; i++) {
+        const key = singlePlayKey(body.net, body.room, i + 1);
+        playKeys.add(key);
+      }
+
+      const cachedPlays = await Promise.all([...playKeys].map((key) => this.scoreKeeperHelper.getSinglePlays(key)));
+      const deletePlayPromises = [];
+      const playIds = new Set();
+      const playerIdsOfAllPlay = new Set();
+      for (const play of cachedPlays.flat()) {
+        if (play?._id) {
+          playIds.add(play._id);
+          // Has relationships
+          // net, match, server, receiver, servingPartner, receivingPartner
+          if (play.server) playerIdsOfAllPlay.add(play.server);
+          if (play.servingPartner) playerIdsOfAllPlay.add(play.servingPartner);
+          if (play.receiver) playerIdsOfAllPlay.add(play.receiver);
+          if (play.receivingPartner) playerIdsOfAllPlay.add(play.receivingPartner);
+        }
+
+        // Delete all play cached
+        deletePlayPromises.push(this.scoreKeeperHelper.getSinglePlays(singlePlayKey(body.net, body.room, play.play)));
+      }
+
+      deletePlayPromises.push(
+        matchService.updateOne({ _id: body.match }, { $pullAll: { serverReceiverSinglePlay: [...playIds] } }),
+      );
+      deletePlayPromises.push(
+        netService.updateOne({ _id: body.net }, { $pullAll: { serverReceiverSinglePlay: [...playIds] } }),
+      );
+      deletePlayPromises.push(
+        playerService.updateMany(
+          { _id: { $in: [...playerIdsOfAllPlay] } },
+          { $pullAll: { serverReceiverSinglePlay: [...playIds] } },
+        ),
+      );
+
+      await Promise.all(deletePlayPromises);
 
       const playerIds: string[] = [
         net.server as string,
@@ -61,7 +93,7 @@ export class ResetScoreHandler {
       // Check and remove linked serverReceiverOnNet
       const serverReceiverOnNet = await serverReceiverOnNetService.findOne({ net: body.net });
       if (serverReceiverOnNet) {
-        const srId = serverReceiverOnNet._id;
+        const srId = serverReceiverOnNet?._id;
 
         // Batch remove from all documents
         await Promise.all([

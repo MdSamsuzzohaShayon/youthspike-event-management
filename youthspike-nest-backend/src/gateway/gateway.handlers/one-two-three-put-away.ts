@@ -4,6 +4,7 @@ import { RoomLocal, OneTwoThreePutAwayInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
+import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 export class OneTwoThreePutAwayHandler {
   constructor(
@@ -66,16 +67,21 @@ export class OneTwoThreePutAwayHandler {
 
       
       this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
 
       /* 6️⃣ persist & broadcast */
-      const singlePlayNet = {...net};
+      const singlePlayNet = {...currNetObj, action: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY};
       delete singlePlayNet.mutate;
+
+
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
-        this.scoreKeeperHelper.publishRoom(body.room, 'one-two-three-put-away-from-server', net)
+        this.scoreKeeperHelper.publishRoom(body.room, 'one-two-three-put-away-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj})
       ]);
       
     } catch (err: any) {

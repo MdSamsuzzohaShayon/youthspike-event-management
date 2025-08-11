@@ -82,6 +82,7 @@ query GetMatch($matchId: String!) {
         teamAScore
         teamBScore
         serverPositionPair
+        action
       }
       serverReceiverOnNet {
         _id

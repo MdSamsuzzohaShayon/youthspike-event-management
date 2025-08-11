@@ -5,6 +5,7 @@ import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { initPlayerStat, netKey, singlePlayKey } from 'src/util/helper';
 import {
   EServerPositionPair,
+  EServerReceiverAction,
   ServerReceiverOnNet,
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -50,12 +51,22 @@ export class ScoreKeeperHelper {
     return action as ServerReceiverSinglePlay;
   }
 
+  // Cound be null
+  async getSinglePlays(key: string,): Promise<ServerReceiverSinglePlay[]> {
+    let action = await this.redis.getAction(key);
+    return action || [];
+  }
+
   async saveNetAction(netId: string, room: string, data: ServerReceiverOnNet) {
     await this.redis.setAction(netKey(netId, room), data);
   }
 
   async saveNetSinglePlayAction(netId: string, room: string, data: ServerReceiverSinglePlay) {
     await this.redis.setAction(singlePlayKey(netId, room, data.play), data);
+  }
+
+  async deleteSinglePlayAction(netId: string, room: string, play: number) {
+    await this.redis.deleteAction(singlePlayKey(netId, room, play));
   }
 
   async deleteNetAction(netId: string, room: string) {
@@ -190,4 +201,32 @@ export class ScoreKeeperHelper {
       teamB: new Set([net.teamBPlayerA, net.teamBPlayerB]),
     };
   }
+
+
+  normalizeSinglePlay(play: ServerReceiverSinglePlay): ServerReceiverSinglePlay {
+    return {
+      _id: play._id,
+      teamAScore: play.teamAScore || 0,
+      teamBScore: play.teamBScore || 0,
+      play: play.play || 1,
+      
+      action: play.action || EServerReceiverAction.SERVER_DO_NOT_KNOW,
+      serverPositionPair: play.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
+      
+      match: play.match || play.matchId || '',
+      net: play.net || play.netId || '',
+      server: play.server || play.serverId || '',
+      receiver: play.receiver || play.receiverId || '',
+      receivingPartner: play.receivingPartner || play.receivingPartnerId || '',
+      servingPartner: play.servingPartner || play.servingPartnerId || '',
+
+      matchId: String(play.match) || play.matchId || '',
+      netId: String(play.net) || play.netId || '',
+      serverId: String(play.server) || play.serverId || '',
+      receiverId: String(play.receiver) || play.receiverId || '',
+      receivingPartnerId: String(play.receivingPartner) || play.receivingPartnerId || '',
+      servingPartnerId: String(play.servingPartner) || play.servingPartnerId || '',
+    };
+  }
+
 }

@@ -148,6 +148,9 @@ export class SetPlayersInput {
   serverPositionPair: EServerPositionPair;
 }
 
+
+
+
 @InputType()
 class CommonActionInput {
   @Field({ nullable: false })
@@ -191,6 +194,13 @@ export class DefensiveConversionInput extends CommonActionInput {}
 export class UpdateCachePointsInput extends CommonActionInput {
   @Field({ nullable: false })
   accessCode: string;
+}
+
+@InputType()
+export class RevertPlayInput extends UpdateCachePointsInput {
+
+  @Field({ nullable: false })
+  play: number;
 }
 
 

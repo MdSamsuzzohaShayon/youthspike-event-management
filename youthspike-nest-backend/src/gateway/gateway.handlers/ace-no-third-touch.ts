@@ -4,6 +4,7 @@ import { RoomLocal, AceNoThirdTouchInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
+import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 export class AceNoThirdTouchHandler {
   constructor(
@@ -53,16 +54,19 @@ export class AceNoThirdTouchHandler {
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateReceiver(net);
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
 
       /* 6️⃣ persist & broadcast */
-      const singlePlayNet = {...net};
+      const singlePlayNet = {...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH};
       delete singlePlayNet.mutate;
+
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
-        this.scoreKeeperHelper.publishRoom(body.room, 'ace-no-third-touch-from-server', net)
+        this.scoreKeeperHelper.publishRoom(body.room, 'ace-no-third-touch-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj})
       ]);
 
 

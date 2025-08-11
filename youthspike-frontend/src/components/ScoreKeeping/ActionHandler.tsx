@@ -1,104 +1,149 @@
-import { EServerReceiverAction, ETeam, ITeam } from '@/types';
-import React from 'react';
+import { EServerReceiverAction, ETeam, ITeam } from "@/types";
+import { CldImage } from "next-cloudinary";
+import React, { useCallback } from "react";
+import TextImg from "../elements/TextImg";
 
 interface IActionHandlerProps {
   serverReceiverAction: EServerReceiverAction | null;
-  setServerReceiverAction: React.Dispatch<React.SetStateAction<EServerReceiverAction | null>>;
+  setServerReceiverAction: React.Dispatch<
+    React.SetStateAction<EServerReceiverAction | null>
+  >;
   teamA: ITeam | null;
   teamB: ITeam | null;
   serverTeamE: null | ETeam;
 }
 
-function ActionHandler({ serverReceiverAction, setServerReceiverAction, teamA, teamB, serverTeamE }: IActionHandlerProps) {
-  const handleAceNoTouch = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // console.log("The serving player Served the ball so well that the receiver couldn't even touch the ball");
-    setServerReceiverAction(EServerReceiverAction.SERVER_ACE_NO_TOUCH);
-  };
+const ActionHandler: React.FC<IActionHandlerProps> = ({
+  serverReceiverAction,
+  setServerReceiverAction,
+  teamA,
+  teamB,
+  serverTeamE,
+}) => {
+  // Generic click handler
+  const handleAction =
+    (action: EServerReceiverAction) => (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      setServerReceiverAction(action);
+    };
 
-  const handleAceNoThirdTouch = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // console.log("The Serving player put on a serve that was touched by the receiver and set by the setter but the serve was good enough that the receiver couldn't use their third hit");
-    setServerReceiverAction(EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH);
-  };
+  // Config for both teams
+  const serverActions = [
+    { label: "ACE no-touch", value: EServerReceiverAction.SERVER_ACE_NO_TOUCH },
+    {
+      label: "Ace no 3rd touch",
+      value: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
+    },
+    {
+      label: "Receiving Hitting Error",
+      value: EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
+    },
+    {
+      label: "Defensive Conversion",
+      value: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
+    },
+    { label: "Don't know", value: EServerReceiverAction.SERVER_DO_NOT_KNOW },
+  ];
 
-  const handleReceivingHittingError = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // console.log('The receiver during their hit did not get the ball back on the net');
-    setServerReceiverAction(EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR);
-  };
+  const receiverActions = [
+    {
+      label: "Service Fault",
+      value: EServerReceiverAction.RECEIVER_SERVICE_FAULT,
+    },
+    {
+      label: "1-2-3 put away",
+      value: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
+    },
+    {
+      label: "Rally Conversion",
+      value: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
+    },
+    { label: "Don't know", value: EServerReceiverAction.RECEIVER_DO_NOT_KNOW },
+  ];
 
-  // Server
-  const handleDefensiveConversion = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // console.log('The serving team got the receiving teams hit and put the ball away');
-    setServerReceiverAction(EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION);
-  };
+  // Helper to render team logo
+  const renderTeamLogo = useCallback((team: ITeam | null) => {
+    if (!team) {
+      return (
+        <div className="w-14 h-14 rounded-full bg-yellow-600/10 flex items-center justify-center">
+          <span className="text-xs text-yellow-300">No Team</span>
+        </div>
+      );
+    }
+    return team.logo ? (
+      <CldImage
+        className="w-14 h-14 rounded-full object-cover shadow-sm"
+        height={56}
+        width={56}
+        src={team.logo}
+        alt={team.name}
+      />
+    ) : (
+      <div className="w-14 h-14 rounded-full overflow-hidden">
+        <TextImg fullText={team.name} className="w-14 h-14 rounded-full" />
+      </div>
+    );
+  }, []);
 
-  const handleServerDoNotKnow = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setServerReceiverAction(EServerReceiverAction.SERVER_DO_NOT_KNOW);
-  };
-
-  const handleServiceFault = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setServerReceiverAction(EServerReceiverAction.RECEIVER_SERVICE_FAULT);
-  };
-
-  const handleOneTwoThreePutAway = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // console.log('The serve was received, the ball was set, and the ball was put away. This is generally the most likely outcome');
-    setServerReceiverAction(EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY);
-  };
-
-  const handleRallyConversion = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // console.log('The serving team got the receiving teams hit and put the ball away');
-    setServerReceiverAction(EServerReceiverAction.RECEIVER_RALLEY_CONVERSION);
-  };
-
-  const handleReceiverDoNotKnow = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setServerReceiverAction(EServerReceiverAction.RECEIVER_DO_NOT_KNOW);
-  };
+  // Decide which team is serving / receiving
+  const servingTeam = serverTeamE === ETeam.teamA ? teamA : teamB;
+  const receivingTeam = serverTeamE === ETeam.teamA ? teamB : teamA;
 
   return (
     <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-between items-start">
+      {/* Serving Team */}
       <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <h3 className="uppercase text-center">Serving Team / {serverTeamE === ETeam.teamA ? teamA?.name : teamB?.name}</h3>
-        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_ACE_NO_TOUCH ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleAceNoTouch}>
-          ACE no-touch
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleAceNoThirdTouch}>
-          Ace no 3rd touch
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleReceivingHittingError}>
-          Receiving Hitting Error
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleDefensiveConversion}>
-          Defensive Conversion
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.SERVER_DO_NOT_KNOW ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleServerDoNotKnow}>
-          Don't know
-        </button>
+        <div className="flex items-center gap-3 w-full">
+          <div>{renderTeamLogo(servingTeam)}</div>
+          <div className="flex-1">
+            <h4 className="text-xs text-yellow-300 uppercase tracking-wider">
+              Serving Team
+            </h4>
+            <p className="font-semibold text-white truncate">
+              {servingTeam?.name ?? "—"}
+            </p>
+          </div>
+        </div>
+        {serverActions.map(({ label, value }) => (
+          <button
+            key={value}
+            className={`${
+              serverReceiverAction === value ? "btn-info" : "btn-light"
+            } uppercase`}
+            onClick={handleAction(value)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
+
+      {/* Receiving Team */}
       <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <h3 className="uppercase text-center">Receiving Team / {serverTeamE === ETeam.teamA ? teamB?.name : teamA?.name}</h3>
-        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_SERVICE_FAULT ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleServiceFault}>
-          Service Fault
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleOneTwoThreePutAway}>
-          1-2-3 put away
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_RALLEY_CONVERSION ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleRallyConversion}>
-          rally Conversion
-        </button>
-        <button className={`${serverReceiverAction === EServerReceiverAction.RECEIVER_DO_NOT_KNOW ? 'btn-info' : 'btn-light'} uppercase`} onClick={handleReceiverDoNotKnow}>
-          Don't know
-        </button>
+        <div className="flex items-center gap-3 w-full">
+          <div>{renderTeamLogo(receivingTeam)}</div>
+          <div className="flex-1">
+            <h4 className="text-xs text-yellow-300 uppercase tracking-wider">
+              Receiving Team
+            </h4>
+            <p className="font-semibold text-white truncate">
+              {receivingTeam?.name ?? "—"}
+            </p>
+          </div>
+        </div>
+        {receiverActions.map(({ label, value }) => (
+          <button
+            key={value}
+            className={`${
+              serverReceiverAction === value ? "btn-info" : "btn-light"
+            } uppercase`}
+            onClick={handleAction(value)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
     </div>
   );
-}
+};
 
 export default ActionHandler;

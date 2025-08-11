@@ -30,6 +30,7 @@ import {
   ResetScoreInput,
   ServerDoNotKnowInput,
   ReceiverDoNotKnowInput,
+  RevertPlayInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -39,7 +40,6 @@ import { JoinRoomHandler } from './gateway.handlers/join-room.handler';
 import { CheckInHandler } from './gateway.handlers/check-in.handler';
 import { SubmitLineupHandler } from './gateway.handlers/submit-lineup.handler';
 import { UpdatePointsHandler } from './gateway.handlers/update-points.handler';
-import { ServerReceiverHandler } from './gateway.handlers/server-receiver.handler';
 import { TieBreakerHandler } from './gateway.handlers/tie-breraker.handler';
 import { ExtendOvertimeHandler } from './gateway.handlers/extend-overtime.handler';
 import { SetPlayersHandler } from './gateway.handlers/set-players.handler';
@@ -56,6 +56,7 @@ import { ResetScoreHandler } from './gateway.handlers/reset-score';
 import { ServerDoNotKnowHandler } from './gateway.handlers/server-do-not-know';
 import { ReceiverDoNotKnowHandler } from './gateway.handlers/receiver-do-not-know';
 import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
+import { RevertPlayHandler } from './gateway.handlers/revert-play';
 
 @WebSocketGateway({
   cors: true,
@@ -87,10 +88,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private oneTwoThreePutAway: OneTwoThreePutAwayHandler;
   private rallyConversion: RallyConversionHandler;
   private defensiveConversion: DefensiveConversionHandler;
-  private updateCachePoints: UpdateCachePointsHandler;
-  private resetScore: ResetScoreHandler;
   private serverDoNotKnow: ServerDoNotKnowHandler;
   private receiverDoNotKnow: ReceiverDoNotKnowHandler;
+  private updateCachePoints: UpdateCachePointsHandler;
+  private resetScore: ResetScoreHandler;
+  private revertPlay: RevertPlayHandler;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -130,6 +132,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Update database
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, pointsUpdateHelper, gatewayRedisService, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.revertPlay = new RevertPlayHandler(gatewayService, scoreKeeperHelper);
 
     /**
      * Handlers for Score keeper
@@ -272,19 +275,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.rallyConversion.handle(client, rallyConversionInput, this.roomsLocal);
   }
 
-  @SubscribeMessage('update-cache-points-from-client')
-  async onUpdateCachePoints(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() updateCachePointsInput: UpdateCachePointsInput,
-  ) {
-    return this.updateCachePoints.handle(client, updateCachePointsInput, this.roomsLocal);
-  }
-
-  @SubscribeMessage('reset-score-from-client')
-  async onResetScore(@ConnectedSocket() client: Socket, @MessageBody() resetScoreInput: ResetScoreInput) {
-    return this.resetScore.handle(client, resetScoreInput, this.roomsLocal);
-  }
-
+  
   @SubscribeMessage('server-do-not-know-from-client')
   async onServerDoNotKnow(
     @ConnectedSocket() client: Socket,
@@ -299,5 +290,27 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() receiverDoNotKnowInput: ReceiverDoNotKnowInput,
   ) {
     return this.receiverDoNotKnow.handle(client, receiverDoNotKnowInput, this.roomsLocal);
+  }
+
+
+
+  // MongoDB Database operations
+  @SubscribeMessage('update-cache-points-from-client')
+  async onUpdateCachePoints(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() updateCachePointsInput: UpdateCachePointsInput,
+  ) {
+    return this.updateCachePoints.handle(client, updateCachePointsInput, this.roomsLocal);
+  }
+
+  @SubscribeMessage('reset-score-from-client')
+  async onResetScore(@ConnectedSocket() client: Socket, @MessageBody() resetScoreInput: ResetScoreInput) {
+    return this.resetScore.handle(client, resetScoreInput, this.roomsLocal);
+  }
+
+
+  @SubscribeMessage('revert-play-from-client')
+  async onRevertPlay(@ConnectedSocket() client: Socket, @MessageBody() revertPlayInput: RevertPlayInput) {
+    return this.revertPlay.handle(client, revertPlayInput, this.roomsLocal);
   }
 }

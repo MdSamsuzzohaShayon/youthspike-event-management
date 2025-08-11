@@ -131,6 +131,7 @@ export default function ServerReceiver({
     currRound,
     matchId,
     serverReceiversOnNet,
+    serverReceiverPlays,
     setActionPreview,
   });
 
@@ -249,9 +250,21 @@ export default function ServerReceiver({
     setReceiverPlaceholder(false);
   };
 
-  const handlePlayChange = useCallback(() => {
+  const handlePlayChange = () => {
+    // select net
+    const net = netByNum.get(currNetNum);
     // Select a play and
-  }, []);
+    // toBeSelectedPlay
+    const emit = new EmitEvents(socket, dispatch);
+    emit.revertPlay({
+      match: currMatch._id,
+      net: net?._id || null,
+      room: currRoom?._id || null,
+      accessCode: accessCode?.code.toString() || null,
+      play: toBeSelectedPlay,
+    });
+    changePlayEl.current?.close();
+  };
 
   const handleConfirmReset = useCallback(() => {
     const emit = new EmitEvents(socket, dispatch);
@@ -307,7 +320,7 @@ export default function ServerReceiver({
       return ETeam.teamB;
     }
     return null;
-  }, [teamAPlayers, selectedServer, selectedReceiver]);
+  }, [teamAPlayers, teamBPlayers, selectedServer, selectedReceiver]);
 
   const currNet = useMemo(() => {
     const net = netByNum.get(currNetNum);
@@ -315,8 +328,10 @@ export default function ServerReceiver({
   }, [netByNum, currNetNum]);
 
   const currPlays = useMemo(() => {
-    return serverReceiverPlays.filter((sr) => sr.netId === currNet?._id);
+    const selectedPlays = serverReceiverPlays.filter((sr) => sr.net === currNet?._id);
+    return selectedPlays;
   }, [serverReceiverPlays, currNet]);
+  
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -568,21 +583,27 @@ export default function ServerReceiver({
                     key={i}
                     toBeSelectedPlay={toBeSelectedPlay}
                     setToBeSelectedPlay={setToBeSelectedPlay}
+                    teamAPlayers={teamAPlayers}
+                    teamBPlayers={teamBPlayers}
                   />
                 ))}
               </ul>
             </div>
           ) : (
             <p className="text-sm text-gray-300">
-              ⚠️ Warning: There are no history of playing anything on this net. 
+              ⚠️ Warning: There are no history of playing anything on this net.
             </p>
           )}
 
           {/* Action buttons */}
           <div className="flex justify-end gap-3 pt-4">
             <button
-              className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200"
-              onClick={handlePlayChange}
+              className={`${
+                toBeSelectedPlay
+                  ? "bg-yellow-logo hover:bg-yellow-400 text-black"
+                  : "bg-gray-700 hover:bg-gray-800 text-white"
+              }   px-4 py-2 rounded-md font-medium transition duration-200"`}
+              onClick={toBeSelectedPlay ? handlePlayChange : () => {}}
             >
               Confirm
             </button>

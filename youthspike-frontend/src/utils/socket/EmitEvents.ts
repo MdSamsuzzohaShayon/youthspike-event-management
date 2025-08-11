@@ -40,6 +40,7 @@ import {
   IServerDoNotKnowInput,
   IReceiverDoNotKnowInput,
   EServerPositionPair,
+  IRevertPlayInput,
 } from "@/types";
 import { Socket } from "socket.io-client";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
@@ -717,6 +718,42 @@ class EmitEvents {
 
     const actionData = { match, net, room, accessCode };
     this.socket?.emit("reset-score-from-client", actionData);
+  }
+
+  revertPlay({ match, net, play, room, accessCode }: IRevertPlayInput) {
+    if (!net) {
+      return this.dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: "Please select a net before proceeding.",
+        })
+      );
+    }
+
+    if (!play) {
+      return this.dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message: "There is no room to send message.",
+        })
+      );
+    }
+
+    if (!accessCode) {
+      return this.dispatch(
+        setActErr({
+          code: 404,
+          success: false,
+          message:
+            "You do not have permission to do this operation. You must put a valid access code!",
+        })
+      );
+    }
+
+    const actionData: IRevertPlayInput = { match, net, play, room, accessCode };
+    this.socket?.emit("revert-play-from-client", actionData);
   }
 }
 

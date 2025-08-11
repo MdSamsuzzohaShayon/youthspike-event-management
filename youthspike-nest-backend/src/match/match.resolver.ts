@@ -33,6 +33,7 @@ import { UserService } from 'src/user/user.service';
 import { RedisService } from 'src/redis/redis.service';
 import {
   EServerPositionPair,
+  EServerReceiverAction,
   ServerReceiverOnNet,
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -66,13 +67,34 @@ export class MatchResolver {
     };
   }
 
-  private async getCachedData<T>(
+  private async getServerReceiverCachedData<T>(
     keys: string[],
     netIds: string[],
-  ): Promise<{ cached: ServerReceiverOnNet[] | ServerReceiverSinglePlay[]; missedIds: string[] }> {
+  ): Promise<{ cached: ServerReceiverOnNet[]; missedIds: string[] }> {
     const redisResults = await Promise.all(keys.map((key) => this.redisService.get<ServerReceiverOnNet>(key)));
 
-    const cached: ServerReceiverOnNet[] | ServerReceiverSinglePlay[] = [];
+    const cached: ServerReceiverOnNet[] = [];
+    const cachedNetIdSet: Set<string> = new Set();
+
+    redisResults.forEach((result) => {
+      if (result) {
+        cached.push(result);
+        cachedNetIdSet.add(result?.net?.toString() || '');
+      }
+    });
+
+    const missedIds = netIds.filter((netId) => !cachedNetIdSet.has(netId.toString()));
+
+    return { cached, missedIds };
+  }
+
+  private async getPlayCachedData<T>(
+    keys: string[],
+    netIds: string[],
+  ): Promise<{ cached: ServerReceiverSinglePlay[]; missedIds: string[] }> {
+    const redisResults = await Promise.all(keys.map((key) => this.redisService.get<ServerReceiverSinglePlay>(key)));
+
+    const cached: ServerReceiverSinglePlay[] = [];
     const cachedNetIdSet: Set<string> = new Set();
 
     redisResults.forEach((result) => {
@@ -511,74 +533,138 @@ export class MatchResolver {
   }
 
   // Updated resolver fields
+  // ===== Common Helper Functions =====
+  private async getServerReceiverData(match: Match): Promise<{
+    netList: Net[];
+    netIds: string[];
+    netMap: Map<string, Net>;
+    room: string;
+  }> {
+    const { netList, netIds } = await this.getNetData(match);
+    const netMap = new Map(netList.map((n) => [n._id.toString(), n]));
+    const room = match.room?.toString?.() || '';
+    return { netList, netIds, netMap, room };
+  }
+
+  private async getCachedServerReceivers(
+    keys: string[],
+    netIds: string[],
+  ): Promise<{
+    cached: ServerReceiverOnNet[];
+    missedIds: string[];
+  }> {
+    const redisResults = await Promise.all(keys.map((key) => this.redisService.get<ServerReceiverOnNet>(key)));
+
+    const cached: ServerReceiverOnNet[] = [];
+    const cachedNetIdSet: Set<string> = new Set();
+
+    redisResults.forEach((result) => {
+      if (result) {
+        cached.push(result);
+        cachedNetIdSet.add(result?.net?.toString() || '');
+      }
+    });
+
+    const missedIds = netIds.filter((netId) => !cachedNetIdSet.has(netId.toString()));
+    return { cached, missedIds };
+  }
+
+  private async processServerReceiver(
+    receiver: any,
+    netMap: Map<string, Net>,
+    room: string,
+  ): Promise<ServerReceiverOnNet> {
+    const netId = receiver.net.toString();
+    const net = netMap.get(netId);
+    if (!net) return null;
+
+    const receiverObj = typeof receiver?.toObject === 'function' ? receiver?.toObject() : receiver;
+
+    receiverObj.mutate = (receiverObj.teamAScore || 0) + (receiverObj.teamBScore || 0);
+
+    if (receiverObj.play > receiverObj.mutate) {
+      receiverObj.play = receiverObj.mutate;
+    }
+
+    const key = netKey(netId, room);
+    await Promise.all([
+      this.redisService.set(key, receiverObj),
+      this.serverReceiverOnNetService.updateOne({ net: netId }, receiverObj),
+    ]);
+
+    return receiverObj;
+  }
+
+  private normalizeServerReceiver(receiver: ServerReceiverOnNet): ServerReceiverOnNet {
+    return {
+      ...receiver,
+      serverId: String(receiver.server ?? ''),
+      matchId: String(receiver.match ?? ''),
+      netId: String(receiver.net ?? ''),
+      receiverId: String(receiver.receiver ?? ''),
+      receivingPartnerId: String(receiver.receivingPartner ?? ''),
+      servingPartnerId: String(receiver.servingPartner ?? ''),
+      roundId: String(receiver.round ?? ''),
+      serverPositionPair: receiver?.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
+      teamAScore: receiver?.teamAScore || 0,
+      teamBScore: receiver?.teamBScore || 0,
+    };
+  }
+
+  private normalizeSinglePlay(play: ServerReceiverSinglePlay): ServerReceiverSinglePlay {
+    return {
+      _id: play._id,
+      teamAScore: play?.teamAScore || 0,
+      teamBScore: play?.teamBScore || 0,
+      play: play.play || 1,
+      
+      action: play.action || EServerReceiverAction.SERVER_DO_NOT_KNOW,
+      serverPositionPair: play.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
+      
+      match: play.match || play.matchId || '',
+      net: play.net || play.netId || '',
+      server: play.server || play.serverId || '',
+      receiver: play.receiver || play.receiverId || '',
+      receivingPartner: play.receivingPartner || play.receivingPartnerId || '',
+      servingPartner: play.servingPartner || play.servingPartnerId || '',
+
+      matchId: String(play.match) || play.matchId || '',
+      netId: String(play.net) || play.netId || '',
+      serverId: String(play.server) || play.serverId || '',
+      receiverId: String(play.receiver) || play.receiverId || '',
+      receivingPartnerId: String(play.receivingPartner) || play.receivingPartnerId || '',
+      servingPartnerId: String(play.servingPartner) || play.servingPartnerId || '',
+    };
+  }
+
   @ResolveField(() => [ServerReceiverOnNet])
   async serverReceiverOnNet(@Parent() match: Match): Promise<ServerReceiverOnNet[]> {
     try {
-      const { netList, netIds } = await this.getNetData(match);
+      const { netIds, netMap, room } = await this.getServerReceiverData(match);
       if (!netIds.length) return [];
 
-      const netMap = new Map(netList.map((n) => [n._id.toString(), n]));
-
-      const room = match.room?.toString?.() || '';
       const redisKeys = netIds.map((netId) => netKey(netId, room));
-
-      // Get cached data
-      const { cached: cachedReceivers, missedIds: missedNetIds } = await this.getCachedData<ServerReceiverOnNet>(
+      const { cached: cachedReceivers, missedIds: missedNetIds } = await this.getCachedServerReceivers(
         redisKeys,
         netIds,
       );
 
       // Process cached data
-      const processedCached = cachedReceivers.map((result) => ({
-        ...result,
-        serverId: String(result.server ?? ''),
-        matchId: String(result.match ?? ''),
-        netId: String(result.net ?? ''),
-        receiverId: String(result.receiver ?? ''),
-        receivingPartnerId: String(result.receivingPartner ?? ''),
-        servingPartnerId: String(result.servingPartner ?? ''),
-        roundId: String(result.round ?? ''),
-        serverPositionPair: result?.serverPositionPair || EServerPositionPair.PAIR_A_TOP
-      }));
+      const processedCached = cachedReceivers.map(this.normalizeServerReceiver);
 
-      // Get missed data from DB
+      // Get missed data from DB if needed
       if (missedNetIds.length === 0) return processedCached;
 
       const missedReceivers = await this.serverReceiverOnNetService.find({
         net: { $in: missedNetIds },
       });
 
-      // Update cache for missed data
-      const updatePromises = missedReceivers.map(async (sr: any) => {
-        const netId = sr.net.toString();
-        const net = netMap.get(netId);
-        if (!net) return null;
+      // Process and cache missed receivers
+      const updatedReceivers = await Promise.all(
+        missedReceivers.map((sr) => this.processServerReceiver(sr, netMap, room)),
+      );
 
-        // const netSinglePlays = await this.serverReceiverOnNetService.findSinglePlay({net: netId});
-
-        // const srObj = {...sr};
-        const srObj = typeof sr?.toObject === 'function' ? sr?.toObject() : sr;
-
-        srObj.teamAScore = net?.teamAScore | 0;
-        srObj.teamBScore = net?.teamBScore | 0;
-        srObj.mutate = net?.teamAScore + net?.teamBScore;
-        if(srObj.play > (net?.teamAScore + net?.teamBScore)){
-          srObj.play = net?.teamAScore + net?.teamBScore;
-        }
-
-        const key = netKey(netId, room);
-        await Promise.all([
-          this.redisService.set(key, srObj),
-          this.serverReceiverOnNetService.updateOne({net: netId}, srObj)
-        ]);
-        return srObj;
-      });
-
-      const updatedReceivers = (await Promise.all(updatePromises)).filter(Boolean);
-
-      // const cachedSR = processedCached.map((sr)=>({...sr, teamAScore: netMap.get(sr.net).teamAScore, teamBScore: netMap.get(sr.net).teamBScore}));
-      const allServerReceivers = [...processedCached, ...updatedReceivers];
-      return allServerReceivers;
+      return [...processedCached, ...updatedReceivers.filter(Boolean)];
     } catch (error) {
       console.error('serverReceiverOnNet error:', error);
       return [];
@@ -588,45 +674,34 @@ export class MatchResolver {
   @ResolveField(() => [ServerReceiverSinglePlay])
   async serverReceiverSinglePlay(@Parent() match: Match): Promise<ServerReceiverSinglePlay[]> {
     try {
-      const { netIds } = await this.getNetData(match);
+      const { netIds, room } = await this.getServerReceiverData(match);
       if (!netIds.length) return [];
 
-      const room = match.room?.toString?.() || '';
-
-      // First get all server receivers for these nets
-      const serverReceivers = await this.serverReceiverOnNetService.find({
-        net: { $in: netIds },
-      });
-
+      // First get all server receivers to know what plays we need
+      const serverReceivers = await this.serverReceiverOnNet(match);
       if (!serverReceivers.length) return [];
 
       // Prepare all play keys to check in Redis
       const playKeys: string[] = [];
-      const playMap: Map<string, { netId: string; mutate: number }> = new Map();
+      const playMap: Map<string, { netId: string; play: number }> = new Map();
 
       serverReceivers.forEach((sr) => {
-        const netId = sr.net.toString();
+        const netId = sr.netId;
         for (let i = 0; i < sr.mutate; i++) {
           const key = singlePlayKey(netId, room, i + 1);
           playKeys.push(key);
-          playMap.set(key, { netId, mutate: sr?.mutate || 0 });
+          playMap.set(key, { netId, play: sr.mutate || 0 });
         }
       });
 
-      // Batch get from Redis
-      const { cached: cachedPlays } = await this.getCachedData<ServerReceiverSinglePlay>(playKeys, netIds);
+      // Get cached plays
+      const redisResults = await Promise.all(
+        playKeys.map((key) => this.redisService.get<ServerReceiverSinglePlay>(key)),
+      );
+      const cachedPlays = redisResults.filter(Boolean);
 
       // Process cached plays
-      const processedCached = cachedPlays.map((play) => ({
-        ...play,
-        serverId: String(play.server ?? ''),
-        matchId: String(play.match ?? ''),
-        netId: String(play.net ?? ''),
-        receiverId: String(play.receiver ?? ''),
-        receivingPartnerId: String(play.receivingPartner ?? ''),
-        servingPartnerId: String(play.servingPartner ?? ''),
-        serverPositionPair: play?.serverPositionPair || EServerPositionPair.PAIR_A_TOP
-      }));
+      const processedPlayCached = cachedPlays.map(this.normalizeSinglePlay);
 
       // Get play numbers we already have
       const existingPlayNumbers = new Set(cachedPlays.map((play) => play.play));
@@ -637,24 +712,17 @@ export class MatchResolver {
         play: { $nin: [...existingPlayNumbers] },
       });
 
-      // Caching the result
-      await Promise.all(
-        missedPlays.map(async (mp, i) => {
-          const key = singlePlayKey(mp.net?.toString?.() || '', match.room?.toString?.() || '', mp.play);
-          // Convert to plain object
+      // Cache missed plays
+      const newMissedPlays = await Promise.all(
+        missedPlays.map(async (mp) => {
+          const key = singlePlayKey(mp.net?.toString?.() || '', room, mp.play);
           const dataToCache = typeof mp?.toObject === 'function' ? mp?.toObject() : mp;
           await this.redisService.set(key, dataToCache);
-          return dataToCache;
+          return this.normalizeSinglePlay(dataToCache as any);
         }),
       );
 
-      const newMissedPlays = missedPlays.map((mp) => {
-        const dataToCache = typeof mp?.toObject === 'function' ? mp?.toObject() : mp;
-        return dataToCache;
-      });
-
-      const finalPlays = [...processedCached, ...newMissedPlays];
-      return finalPlays.map((fp) => ({ ...fp, teamAScore: fp.teamAScore || 0, teamBScore: fp.teamBScore || 0 }));
+      return [...processedPlayCached, ...newMissedPlays];
     } catch (error) {
       console.error('serverReceiverSinglePlay error:', error);
       return [];

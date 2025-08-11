@@ -1,7 +1,7 @@
 import { INetRelatives } from './net';
 import { IPlayer } from './player';
 import { IRoundRelatives } from './round';
-import { IMatch } from './socket';
+import { IMatch, IRevertPlayInput } from './socket';
 
 
 export enum EServerPositionPair {
@@ -38,7 +38,6 @@ export interface IServerReceiverCommon {
   receivingPartnerId?: string;
   servingPartnerId?: string;
   matchId?: string;
-  roundId?: string;
 }
 
 export interface IServerReceiverOnNetMixed extends IServerReceiverCommon {
@@ -47,20 +46,6 @@ export interface IServerReceiverOnNetMixed extends IServerReceiverCommon {
   round: string | IRoundRelatives;
   roundId?: string;
 }
-
-export interface IServerReceiverSinglePlay extends IServerReceiverCommon {}
-
-
-export interface IServerTeam{
-  server: IPlayer | null;
-  servingPartner: IPlayer | null;
-}
-
-export interface IReceiverTeam{
-  receiver: IPlayer | null;
-  receivingPartner: IPlayer | null;
-}
-
 
 export enum EServerReceiverAction {
   SERVER_ACE_NO_TOUCH = 'SERVER_ACE_NO_TOUCH',
@@ -74,6 +59,29 @@ export enum EServerReceiverAction {
   RECEIVER_RALLEY_CONVERSION = 'RECEIVER_RALLEY_CONVERSION',
   RECEIVER_DO_NOT_KNOW = 'RECEIVER_DO_NOT_KNOW',
 }
+
+export interface IServerReceiverSinglePlay extends IServerReceiverCommon {
+  action: EServerReceiverAction;
+}
+
+
+export interface IActionResponse{
+  serverReceiverOnNet: IServerReceiverOnNetMixed,
+  singlePlay: IServerReceiverSinglePlay;
+}
+
+export interface IServerTeam{
+  server: IPlayer | null;
+  servingPartner: IPlayer | null;
+}
+
+export interface IReceiverTeam{
+  receiver: IPlayer | null;
+  receivingPartner: IPlayer | null;
+}
+
+
+
 
 export enum EPosition {
   POSITION_A = "POSITION_A",
@@ -100,15 +108,35 @@ export enum ESide {
 // Score keeper
 interface IServerReceiverCommonResponse {
   dispatch: React.Dispatch<React.SetStateAction<any>>;
-  serverReceiversOnNet: IServerReceiverOnNetMixed[];
+  serverReceiversOnNet: IServerReceiverOnNetMixed[]; // From redux store
 }
 export interface IResetServerReceiverResponse extends IServerReceiverCommonResponse {
   data: { net: string };
 }
 
-export interface IServerReceiverResponse extends IServerReceiverCommonResponse {
+
+export interface IRevertPlayReceiverResponse extends IServerReceiverCommonResponse {
   data: IServerReceiverOnNetMixed;
+  serverReceiverPlays: IServerReceiverSinglePlay[];
 }
-export interface ISRConfirmResponse extends IServerReceiverResponse {
+
+export interface IServerReceiverResponse extends IServerReceiverCommonResponse {
+  data: IActionResponse;
+  serverReceiverPlays: IServerReceiverSinglePlay[];
+}
+
+export interface IServerReceiverActionResponse extends IServerReceiverCommonResponse{
+  data: IActionResponse;
+  serverReceiverPlays: IServerReceiverSinglePlay[];
+} 
+
+export interface ISRConfirmResponse extends IServerReceiverCommonResponse {
+  data: IServerReceiverOnNetMixed;
   setActionPreview: React.Dispatch<React.SetStateAction<boolean>>;
+  /*
+data,
+    dispatch,
+    serverReceiversOnNet,
+    setActionPreview,
+  */
 }
