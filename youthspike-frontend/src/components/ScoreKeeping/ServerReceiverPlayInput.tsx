@@ -59,7 +59,7 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
         return "Server don't know";
 
       case EServerReceiverAction.RECEIVER_SERVICE_FAULT:
-        return "Service Fault";
+        return "Double Fault";
       case EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY:
         return "1-2-3 Put Away";
       case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:

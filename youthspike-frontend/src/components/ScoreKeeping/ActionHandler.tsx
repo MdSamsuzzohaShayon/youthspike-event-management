@@ -47,7 +47,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
 
   const receiverActions = [
     {
-      label: "Service Fault",
+      label: "Double Fault",
       value: EServerReceiverAction.RECEIVER_SERVICE_FAULT,
     },
     {

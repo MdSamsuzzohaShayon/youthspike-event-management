@@ -24,8 +24,6 @@ export class ServiceFaultHandler {
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room); // Redis key: <sr:net:room>
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
 
-      // It can not be less than 2 play
-      // (Receiving team scores), if the score is even setter will serve first, if the score is odd then receiver will be the server
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server];
@@ -39,17 +37,18 @@ export class ServiceFaultHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
       
-      // Before updating point check is the number odd or even
-      const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
-
+      
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
-
-      this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
+      
       const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
+
+      // After updating point check is the number odd or even
+      const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
+      this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
 
       /* 6️⃣ persist & broadcast */
       const singlePlayNet = {...currNetObj, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT};

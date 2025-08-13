@@ -52,7 +52,7 @@ export class ScoreKeeperHelper {
   }
 
   // Cound be null
-  async getSinglePlays(key: string,): Promise<ServerReceiverSinglePlay[]> {
+  async getSinglePlays(key: string): Promise<ServerReceiverSinglePlay[]> {
     let action = await this.redis.getAction(key);
     return action || [];
   }
@@ -74,8 +74,6 @@ export class ScoreKeeperHelper {
   }
 
   /* ─────────────────────────── helpers for “players” ───────────────────────── */
-
-
 
   /**
    * Ensure a list of player stats are loaded (and lazily created if missing).
@@ -121,17 +119,14 @@ export class ScoreKeeperHelper {
     else net.teamBScore += 1;
   }
 
-  rotateServer(net: ServerReceiverOnNet) {
-    [net.server, net.servingPartner] = [net.servingPartner, net.server];
-  }
   rotateReceiver(net: ServerReceiverOnNet) {
-    if(net.serverPositionPair === EServerPositionPair.PAIR_A_TOP){
+    if (net.serverPositionPair === EServerPositionPair.PAIR_A_TOP) {
       net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
-    }else if(net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT){
+    } else if (net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT) {
       net.serverPositionPair = EServerPositionPair.PAIR_A_TOP;
-    }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT){
+    } else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT) {
       net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
-    }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM){
+    } else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM) {
       net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
     }
 
@@ -139,51 +134,93 @@ export class ScoreKeeperHelper {
   }
 
   rotateServerReceiver(net: ServerReceiverOnNet, receivingTeamScore: number) {
-    if (net.play < 2) {
-      // Less than 2 plays: just swap server/receiver and their partners
-      [net.server, net.receiver] = [net.receiver, net.server];
-      [net.servingPartner, net.receivingPartner] = [net.receivingPartner, net.servingPartner];
-    } else {
-      let tempReceiver = null, tempReceivingPartner = null;
-      tempReceiver = net.server;
-      tempReceivingPartner = net.servingPartner
-      // If receiver team score is even
-      if (receivingTeamScore % 2 === 0) {
-        // Even score: setter (receivingPartner) serves
-        // Serving position change here
-        if(net.serverPositionPair === EServerPositionPair.PAIR_A_TOP){
-          net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
-        }else if(net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT){
-          net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
-        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT){
-          net.serverPositionPair = EServerPositionPair.PAIR_A_TOP
-        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM){
-          net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
-        }
+    const prevServer = net.server;
+    const prevServingPartner = net.servingPartner;
+
+    // If receiver team score is even
+    // If their score is odd, the player on the left will be selected as server.
+    // If their score is even, the player on the right will be selected as server.
+
+    if (receivingTeamScore % 2 === 0) {
+      // Even score: setter (receivingPartner) serves
+      // Serving position change here
+      if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM) {
+        // Not working properlu
+        net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
         net.server = net.receivingPartner;
         net.servingPartner = net.receiver;
-      } else {
-        // Odd score: receiver serves
-        // Serving position change here
-        if(net.serverPositionPair === EServerPositionPair.PAIR_A_TOP){
-          net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
-        }else if(net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT){
-          net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
-        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT){
-          net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
-        }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM){
-          net.serverPositionPair = EServerPositionPair.PAIR_A_TOP;
-        }
+        net.receiver = prevServingPartner;
+        net.receivingPartner = prevServer;
+      }else if (net.serverPositionPair === EServerPositionPair.PAIR_A_TOP) {
+        net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
+        net.server = net.receivingPartner;
+        net.servingPartner = net.receiver;
+        net.receiver = prevServingPartner;
+        net.receivingPartner = prevServer;
+      }else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT) {
+        net.serverPositionPair = EServerPositionPair.PAIR_A_LEFT;
         net.server = net.receiver;
         net.servingPartner = net.receivingPartner;
+        net.receiver = prevServer;
+        net.receivingPartner = prevServingPartner;
+      }else if (net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT) {
+        net.serverPositionPair = EServerPositionPair.PAIR_B_RIGHT;
+        net.server = net.receiver;
+        net.servingPartner = net.receivingPartner;
+        net.receiver = prevServer;
+        net.receivingPartner = prevServingPartner;
       }
-  
-      // Update receiver and partner (opposite team)
-      net.receiver = tempReceiver;
-      net.receivingPartner = tempReceivingPartner;
+      // net.server = net.receivingPartner;
+      // net.servingPartner = net.receiver;
+    } else {
+      // Find a player from receiving team who is on the left
+      if (net.serverPositionPair === EServerPositionPair.PAIR_A_TOP) {
+        // Receiver will be the server now
+        net.server = net.receiver;
+        // New server position
+        net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
+        net.servingPartner = net.receivingPartner;
+
+        // according to previous server position set current receiver and receiving partner
+        // Set receiver who was previously at the pait A top, since our new server position is pair b bottom
+        net.receiver = prevServer;
+        net.receivingPartner = prevServingPartner;
+      } else if (net.serverPositionPair === EServerPositionPair.PAIR_A_LEFT) {
+        // Receiver will be the server now
+        net.server = net.receivingPartner;
+        // New server position
+        net.serverPositionPair = EServerPositionPair.PAIR_B_BOTTOM;
+        net.servingPartner = net.receiver;
+
+        // according to previous server position set current receiver and receiving partner
+        // Set receiver who was previously at the pait A top, since our new server position is pair b bottom
+        net.receiver = prevServingPartner;
+        net.receivingPartner = prevServer;
+      } else if (net.serverPositionPair === EServerPositionPair.PAIR_B_BOTTOM) {
+        net.server = net.receiver;
+        net.serverPositionPair = EServerPositionPair.PAIR_A_TOP;
+        net.servingPartner = net.receivingPartner;
+        net.receiver = prevServer;
+        net.receivingPartner = prevServingPartner;
+      } else if (net.serverPositionPair === EServerPositionPair.PAIR_B_RIGHT) {
+        net.server = net.receivingPartner;
+        net.serverPositionPair = EServerPositionPair.PAIR_A_TOP;
+        net.servingPartner = net.receiver;
+        net.receiver = prevServingPartner;
+        net.receivingPartner = prevServer;
+      }
+      // Find server position, according to server position, we can find that who is on the left hand side of the net in receiving team
+      // If player on the left hand side is found then make him server
+      // Set position of new server
+      // according to previous server position set current receiver and receiving partner
+
+      // net.server = net.receiver;
+      // net.servingPartner = net.receivingPartner;
     }
+
+    // According previous server position set receiver and receiving partner
   }
-  
+
   /* ──────────────────────────────── misc I/O ──────────────────────────────── */
 
   async publishRoom(room: string, event: string, payload: unknown) {
@@ -210,17 +247,16 @@ export class ScoreKeeperHelper {
     };
   }
 
-
   normalizeSinglePlay(play: ServerReceiverSinglePlay): ServerReceiverSinglePlay {
     return {
       _id: play._id,
       teamAScore: play.teamAScore || 0,
       teamBScore: play.teamBScore || 0,
       play: play.play || 1,
-      
+
       action: play.action || EServerReceiverAction.SERVER_DO_NOT_KNOW,
       serverPositionPair: play.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
-      
+
       match: play.match || play.matchId || '',
       net: play.net || play.netId || '',
       server: play.server || play.serverId || '',
@@ -236,5 +272,4 @@ export class ScoreKeeperHelper {
       servingPartnerId: String(play.servingPartner) || play.servingPartnerId || '',
     };
   }
-
 }

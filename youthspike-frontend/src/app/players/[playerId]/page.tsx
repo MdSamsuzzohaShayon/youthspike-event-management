@@ -3,7 +3,7 @@ import { QueryRef } from "@apollo/client";
 import PlayerStatsMain from "@/components/player-stats/PlayerStatsMain";
 import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";
-import { IGetPlayerStats, IMatch, INetRelatives, IPlayer, IPlayerTotalStats, ITeam } from "@/types";
+import { IGetPlayerStats } from "@/types";
 import { GET_PLAYER_WITH_STATS } from "@/graphql/player-stats";
 
 interface IPlayerStatsPageProps {

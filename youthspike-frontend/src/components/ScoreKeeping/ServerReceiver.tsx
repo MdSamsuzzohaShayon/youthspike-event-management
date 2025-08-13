@@ -328,10 +328,11 @@ export default function ServerReceiver({
   }, [netByNum, currNetNum]);
 
   const currPlays = useMemo(() => {
-    const selectedPlays = serverReceiverPlays.filter((sr) => sr.net === currNet?._id);
+    const selectedPlays = serverReceiverPlays.filter(
+      (sr) => sr.net === currNet?._id
+    );
     return selectedPlays;
   }, [serverReceiverPlays, currNet]);
-  
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -590,8 +591,15 @@ export default function ServerReceiver({
               </ul>
             </div>
           ) : (
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-red-300">
               ⚠️ Warning: There are no history of playing anything on this net.
+            </p>
+          )}
+
+          {toBeSelectedPlay && (
+            <p className="text-sm text-red-300">
+              ⚠️ Warning: Confirming a specific play will permanently delete all
+              plays that come after it.
             </p>
           )}
 
@@ -611,6 +619,7 @@ export default function ServerReceiver({
               className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
               onClick={() => {
                 changePlayEl.current?.close();
+                setToBeSelectedPlay(null)
               }}
             >
               Cancel

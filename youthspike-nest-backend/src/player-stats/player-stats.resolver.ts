@@ -84,6 +84,7 @@ export class PlayerStatsResolver {
 
             // Find updated player stats from redis
             playerstats = await Promise.all(nets.map((net) => this.redisService.get(playerKey(playerId, net._id)))); // Redis key: <player:id:net>
+            playerstats = playerstats.filter((ps)=> ps);
 
             if(!playerstats || playerstats.length === 0){
               // Check if there is already a record in mongodb or not, if there is a record do not create a new record from scratch

@@ -670,7 +670,7 @@ class EmitEvents {
   }
 
   oneTwoThreePutAway({ match, receiver, net, room }: IOneTwoThreePutAwayInput) {
-    const actionData = { match, receiver, net, room };
+    const actionData = { match, net, room };
     this.socket?.emit("one-two-three-put-away-from-client", actionData);
   }
 
