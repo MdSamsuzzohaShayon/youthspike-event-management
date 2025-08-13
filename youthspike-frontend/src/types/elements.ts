@@ -78,17 +78,13 @@ export interface ITextInputProps {
   defaultValue?: string | null | undefined;
 }
 
-export interface IDateinputProps {
-  lw?: string;
-  rw?: string;
-  vertical?: boolean;
-  extraCls?: string;
-  lblTxt?: string;
+export interface IDateInputProps {
   name: string;
-  required: boolean;
-  defaultValue: Date;
   handleInputChange: (e: React.SyntheticEvent) => void;
-  datetime?: boolean;
+  label?: string; 
+  className?: string;
+  required?: boolean;
+  defaultValue?: Date;
 }
 
 export interface IFileFileProps {

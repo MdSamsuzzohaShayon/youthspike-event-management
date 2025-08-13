@@ -9,35 +9,35 @@ import { AppDocument } from 'src/shared/schema/document.schema';
 @ObjectType()
 @Schema({ timestamps: true })
 export class PlayerStats extends AppDocument {
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   serveOpportunity: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   serveAce: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   serveCompletionCount: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   servingAceNoTouch: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   receiverOpportunity: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   receivedCount: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   noTouchAcedCount: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   settingOpportunity: number;
 
@@ -45,35 +45,35 @@ export class PlayerStats extends AppDocument {
   @Prop({ default: 0 })
   settingCompletion: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   hittingOpportunity: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   hittingCompletion: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   cleanHits: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   defensiveOpportunity: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   defensiveConversion: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   break: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   broken: number;
 
-  @Field(() => Float)
+  @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   matchPlayed: number;
 

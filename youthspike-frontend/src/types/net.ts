@@ -24,7 +24,7 @@ interface INetBase {
 }
 
 interface INetRelatives extends INetBase {
-  // match: string | Match;
+  match: string;
   round: string;
   teamA?: string | null;
   teamB?: string | null;

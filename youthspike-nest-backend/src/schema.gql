@@ -18,23 +18,23 @@ type AppResponse {
 
 type PlayerStats {
   _id: String
-  serveOpportunity: Float!
-  serveAce: Float!
-  serveCompletionCount: Float!
-  servingAceNoTouch: Float!
-  receiverOpportunity: Float!
-  receivedCount: Float!
-  noTouchAcedCount: Float!
-  settingOpportunity: Float!
+  serveOpportunity: Float
+  serveAce: Float
+  serveCompletionCount: Float
+  servingAceNoTouch: Float
+  receiverOpportunity: Float
+  receivedCount: Float
+  noTouchAcedCount: Float
+  settingOpportunity: Float
   settingCompletion: Float
-  hittingOpportunity: Float!
-  hittingCompletion: Float!
-  cleanHits: Float!
-  defensiveOpportunity: Float!
-  defensiveConversion: Float!
-  break: Float!
-  broken: Float!
-  matchPlayed: Float!
+  hittingOpportunity: Float
+  hittingCompletion: Float
+  cleanHits: Float
+  defensiveOpportunity: Float
+  defensiveConversion: Float
+  break: Float
+  broken: Float
+  matchPlayed: Float
   match: Match
   net: Net
   player: Player
@@ -913,23 +913,23 @@ type PlayersStatsResponse {
 
 type CustomPlayerStats {
   _id: String
-  serveOpportunity: Float!
-  serveAce: Float!
-  serveCompletionCount: Float!
-  servingAceNoTouch: Float!
-  receiverOpportunity: Float!
-  receivedCount: Float!
-  noTouchAcedCount: Float!
-  settingOpportunity: Float!
+  serveOpportunity: Float
+  serveAce: Float
+  serveCompletionCount: Float
+  servingAceNoTouch: Float
+  receiverOpportunity: Float
+  receivedCount: Float
+  noTouchAcedCount: Float
+  settingOpportunity: Float
   settingCompletion: Float
-  hittingOpportunity: Float!
-  hittingCompletion: Float!
-  cleanHits: Float!
-  defensiveOpportunity: Float!
-  defensiveConversion: Float!
-  break: Float!
-  broken: Float!
-  matchPlayed: Float!
+  hittingOpportunity: Float
+  hittingCompletion: Float
+  cleanHits: Float
+  defensiveOpportunity: Float
+  defensiveConversion: Float
+  break: Float
+  broken: Float
+  matchPlayed: Float
   match: String
   net: Net
   player: String

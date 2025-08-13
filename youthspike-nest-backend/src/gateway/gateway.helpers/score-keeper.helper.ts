@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GatewayRedisService } from '../gateway.redis';
 import { GatewayService } from '../gateway.service';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { initPlayerStat, netKey, singlePlayKey } from 'src/util/helper';
+import { initPlayerStat, netKey, playerKey, singlePlayKey } from 'src/util/helper';
 import {
   EServerPositionPair,
   EServerReceiverAction,
@@ -75,17 +75,14 @@ export class ScoreKeeperHelper {
 
   /* ─────────────────────────── helpers for “players” ───────────────────────── */
 
-  private playerKey(id: string, netId: string) {
-    // A player can play in multiple nets in a match
-    return `player:${id}:${netId}`;
-  }
+
 
   /**
    * Ensure a list of player stats are loaded (and lazily created if missing).
    * Returns a `{[playerId]: PlayerStats}` map ready for mutation.
    */
   async getPlayerStats(netId: string, matchId: string, ids: string[]) {
-    const cached = await Promise.all(ids.map((id) => this.redis.getAction(this.playerKey(id, netId)))); // Redis key: <player:id:net>
+    const cached = await Promise.all(ids.map((id) => this.redis.getAction(playerKey(id, netId)))); // Redis key: <player:id:net>
 
     return ids.reduce<Record<string, PlayerStats>>((acc, id, idx) => {
       acc[id] = cached[idx] ?? initPlayerStat(netId, matchId, id);
@@ -98,12 +95,12 @@ export class ScoreKeeperHelper {
    */
   async savePlayerStats(statsMap: Record<string, PlayerStats>) {
     await Promise.all(
-      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(this.playerKey(id, data.net.toString()), data)),
+      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(playerKey(id, data.net.toString()), data)),
     ); // Redis key: <player:id:net>
   }
 
   async deletePlayerStats(netId: string, ids: string[]) {
-    await Promise.all(ids.map((id) => this.redis.deleteAction(this.playerKey(id, netId)))); // Redis key: <player:id:net>
+    await Promise.all(ids.map((id) => this.redis.deleteAction(playerKey(id, netId)))); // Redis key: <player:id:net>
   }
 
   /**

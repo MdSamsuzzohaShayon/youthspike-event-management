@@ -1,6 +1,8 @@
-import { IMatchRelatives } from './match';
-import { INetRelatives } from './net';
-import { IPlayer } from './player';
+import { IMatchRelatives } from "./match";
+import { INetRelatives } from "./net";
+import { IPlayer } from "./player";
+import { IMatch } from "./socket";
+import { ITeam } from "./team";
 
 interface IPlayerCommonStats {
   serveOpportunity: number;
@@ -29,4 +31,12 @@ export interface IPlayerStats extends IPlayerCommonStats {
   match: string | IMatchRelatives;
   net: string | INetRelatives;
   player: string | IPlayer;
+}
+
+export interface IGetPlayerStats {
+  player: IPlayer;
+  team: ITeam;
+  playerstats: IPlayerStats[];
+  matches: IMatch[];
+  nets: INetRelatives[];
 }

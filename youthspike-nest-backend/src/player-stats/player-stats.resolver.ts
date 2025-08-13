@@ -9,16 +9,19 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
 import { NetService } from 'src/net/net.service';
+import { playerKey } from 'src/util/helper';
+import { RedisService } from 'src/redis/redis.service';
 
 @Resolver((_of) => PlayerStats)
 export class PlayerStatsResolver {
   constructor(
-    private configService: ConfigService,
     private playerService: PlayerService,
     private teamService: TeamService,
     private matchService: MatchService,
     private netService: NetService,
     private playerStatsService: PlayerStatsService,
+    private readonly redisService: RedisService,
+    private configService: ConfigService,
   ) {}
 
   @Query((_returns) => PlayerStatsResponse)
@@ -59,7 +62,7 @@ export class PlayerStatsResolver {
       let team = null,
         matches = null,
         nets = null,
-        playerstats = null;
+        playerstats = [];
       // Get team of the players
       if (player.teams.length > 0) {
         team = await this.teamService.findOne({ _id: { $in: player.teams } });
@@ -69,9 +72,6 @@ export class PlayerStatsResolver {
 
           // Get list of all player stats
           if (matches.length > 0) {
-            // Check if there is already a record in mongodb or not, if there is a record do not create a new record from scratch
-            playerstats = await this.playerStatsService.find({ player: playerId });
-
             // Get all nets of the player
             nets = await this.netService.find({
               $or: [
@@ -81,6 +81,16 @@ export class PlayerStatsResolver {
                 { teamBPlayerB: playerId },
               ],
             });
+
+            // Find updated player stats from redis
+            playerstats = await Promise.all(nets.map((net) => this.redisService.get(playerKey(playerId, net._id)))); // Redis key: <player:id:net>
+
+            if(!playerstats || playerstats.length === 0){
+              // Check if there is already a record in mongodb or not, if there is a record do not create a new record from scratch
+              playerstats = await this.playerStatsService.find({ player: playerId });
+              await Promise.all(playerstats.map((ps) => this.redisService.set(playerKey(playerId, ps.net), ps)));
+            }
+
           }
         }
       }
@@ -93,7 +103,7 @@ export class PlayerStatsResolver {
           team,
           playerstats,
           matches,
-          nets
+          nets,
         },
       };
     } catch (error) {
