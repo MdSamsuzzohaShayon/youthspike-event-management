@@ -50,13 +50,11 @@ function ScoreBoard({ currServerReceiver, teamA, teamB, teamAPlayers, teamBPlaye
     return null;
   };
 
-  // relative flex flex-col items-center w-28 lg:w-36 p-4 rounded-3xl transition-all border shadow-lg hover:shadow-2xl backdrop-blur-sm bg-gray-900/90 border-gray-700
-
   return (
     <div className="max-w-5xl mx-auto space-y-6 md:space-y-10">
       {/* Pulsing Status */}
-      <div onClick={handleOpenPlays} className="bg-yellow-400 text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2">
-        {`${toOrdinal(currServerReceiver?.mutate || 0)} play`}
+      <div onClick={handleOpenPlays} className="bg-yellow-logo text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2">
+      {`${toOrdinal(currServerReceiver?.mutate || 1)} play`}
       </div>
 
       {/* Responsive Team Layout */}

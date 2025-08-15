@@ -22,8 +22,8 @@ import { EventService } from './event.service';
 import { TeamService } from 'src/team/team.service';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { ConfigService } from '@nestjs/config';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
-import type { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import * as Upload from 'graphql-upload/Upload.js';
 import * as bcrypt from 'bcrypt';
 import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, UpdateEventInput } from './event.args';
 import { tokenToUser } from 'src/util/helper';
@@ -65,12 +65,12 @@ export class EventResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => CreateOrUpdateEventResponse)
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
   async createEvent(
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') input: CreateEventInput,
     @Context() context: any,
-    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Promise<FileUpload>,
+    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -158,16 +158,15 @@ export class EventResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => CreateOrUpdateEventResponse)
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
   async updateEvent(
-    // @Args({ name: 'sponsorsInput', type: () => [GraphQLUpload] }) sponsorsInput: Upload[],
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('updateInput') updateInput: UpdateEventInput,
     @Args('eventId') eventId: string,
     @Context() context: any,
     @Args('sponsorsStringInput', { nullable: true, type: () => [EventSponsorStringInput] })
     sponsorsStringInput?: EventSponsorStringInput[],
-    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<FileUpload>,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -342,7 +341,7 @@ export class EventResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => CreateOrUpdateEventResponse)
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
   async cloneEvent(
     @Args({ name: 'eventId', type: () => String }) eventId: string,
     @Context() context: any,
@@ -417,7 +416,7 @@ export class EventResolver {
     }
   }
 
-  @Query((_returns) => GetEventsResponse)
+  @Query((__returns) => GetEventsResponse)
   async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
@@ -467,7 +466,7 @@ export class EventResolver {
     }
   }
 
-  @Query((_returns) => GetEventDetailsResponse)
+  @Query((__returns) => GetEventDetailsResponse)
   async getEventDetails(@Args('eventId', { nullable: false }) eventId: string) {
     try {
       // Assuming matchService is injected in your class
@@ -498,7 +497,7 @@ export class EventResolver {
     }
   }
 
-  @Query((returns) => GetEventResponse)
+  @Query((_returns) => GetEventResponse)
   async getEvent(@Args('eventId') eventId: string) {
 
     try {
@@ -520,7 +519,7 @@ export class EventResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetEventResponse)
+  @Mutation((_returns) => GetEventResponse)
   async deleteEvent(@Context() context: any, @Args({ name: 'eventId', type: () => String }) eventId: string) {
     /**
      * Delete all events assosiated with it

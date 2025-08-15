@@ -1075,7 +1075,7 @@ input CreateEventInput {
   description: String!
   location: String!
   accessCode: String
-  ldo: String!
+  ldo: String
   id: String
   defaultSponsor: Boolean = true
 }
@@ -1108,7 +1108,7 @@ input UpdateEventInput {
 
 input EventSponsorStringInput {
   company: String!
-  logo: String!
+  logo: String
 }
 
 input CreateTeamInput {

@@ -177,7 +177,6 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
       net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
       receiver: sr.receiverId || (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
       receivingPartner: sr.receivingPartnerId || (typeof sr.receivingPartner === "string" ? sr.receivingPartner : sr.receivingPartner?._id),
-      round: sr.roundId || (typeof sr.round === "string" ? sr.round : sr.round?._id),
       server: sr.serverId || (typeof sr.server === "string" ? sr.server : sr.server?._id),
       servingPartner: sr.servingPartnerId || (typeof sr.servingPartner === "string" ? sr.servingPartner : sr.servingPartner?._id),
     }));
@@ -188,7 +187,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
 
     const selectedNet = filteredNets.find((n) => n.num === CURRENT_NET_NUM);
     if (selectedNet) {
-      const currServerReceiver = formattedNetsServerReceiver?.find((sr) => sr.net === selectedNet._id);
+      const currServerReceiver = formattedNetsServerReceiver?.find((sr) => sr.netId === selectedNet._id);
       if (currServerReceiver) dispatch(setCurrentServerReceiver(currServerReceiver));
     }
   }

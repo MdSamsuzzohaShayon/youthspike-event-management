@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { AppResponse } from 'src/shared/response';
@@ -27,9 +27,7 @@ import {
   GetMatchResponse,
 } from './match.response';
 import { LdoService } from 'src/ldo/ldo.service';
-import { ConfigService } from '@nestjs/config';
-import { netKey, singlePlayKey, tokenToUser } from 'src/util/helper';
-import { UserService } from 'src/user/user.service';
+import { netKey, singlePlayKey } from 'src/util/helper';
 import { RedisService } from 'src/redis/redis.service';
 import {
   EServerPositionPair,
@@ -38,7 +36,6 @@ import {
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
-import { ScoreKeeperHelper } from 'src/gateway/gateway.helpers/score-keeper.helper';
 
 @Resolver((_of) => Match)
 export class MatchResolver {

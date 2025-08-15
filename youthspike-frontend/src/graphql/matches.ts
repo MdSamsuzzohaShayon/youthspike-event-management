@@ -91,13 +91,15 @@ query GetMatch($matchId: String!) {
         room
         teamAScore
         teamBScore
-        serverId
+        
         netId
+        serverId
+        servingPartnerId
         receiverId
         receivingPartnerId
-        servingPartnerId
         matchId
         roundId
+
         serverPositionPair
       }
       room {

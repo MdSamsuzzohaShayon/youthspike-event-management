@@ -19,7 +19,8 @@ import { UserService } from 'src/user/user.service';
 import { CreateDirector, UpdateDirector } from 'src/user/user.input';
 import { UserRole } from 'src/user/user.schema';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import * as Upload from 'graphql-upload/Upload.js';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as bcrypt from 'bcrypt';
 import { rmInvalidProps, tokenToUser } from 'src/util/helper';
 import { HttpStatus, UseGuards } from '@nestjs/common';
@@ -96,7 +97,7 @@ export class LdoResolver {
   @Mutation((returns) => GetDirectorLDOResponse)
   async createDirector(
     @Args('input') input: CreateDirector,
-    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<GraphQLUpload.FileUpload>,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<Upload>,
   ) {
     try {
       // Upload image to cloudinary
@@ -146,7 +147,7 @@ export class LdoResolver {
     @Args('input') input: UpdateDirector,
     @Context() context: any,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-    logo?: Promise<GraphQLUpload.FileUpload>,
+    logo?: Promise<Upload>,
     @Args({ name: 'dId', type: () => String, nullable: true }) dId?: string,
   ) {
     try {

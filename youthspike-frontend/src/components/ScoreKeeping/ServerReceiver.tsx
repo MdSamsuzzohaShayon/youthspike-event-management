@@ -403,11 +403,7 @@ export default function ServerReceiver({
         <div className="server-receiver-with-actions w-full ">
           <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
             {/* Left side start  */}
-            <div
-              className={`w-full ${
-                serverReceiverAction ? "md:w-2/6" : "md:w-3/6"
-              }`}
-            >
+            <div className={`w-full w-3/6`}>
               <ServerReceiverDisplay
                 serverTeam={serverTeam}
                 receiverTeam={receiverTeam}
@@ -416,8 +412,8 @@ export default function ServerReceiver({
             </div>
             {/* Left side end  */}
 
-            {/* Middle side start  */}
-            <div className="md:w-2/6 hidden md:flex justify-center items-center ">
+            {/* Right side start  */}
+            <div className="3/6 hidden md:flex justify-center items-center flex-col">
               <div className="w-5/6">
                 <ScoreBoard
                   currServerReceiver={currServerReceiver}
@@ -434,29 +430,26 @@ export default function ServerReceiver({
                   key="sb-1"
                 />
               </div>
+              {serverReceiverAction && (
+                <div className="5/6 mt-6">
+                  {/* This should be an edit button  */}
+                  {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
+                  <button
+                    className="btn-success uppercase"
+                    onClick={handleConfirmAction}
+                  >
+                    {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
+                    {scoreKeeperAction.get(serverReceiverAction)}
+                  </button>
+                </div>
+              )}
             </div>
-            {/* Middle side end  */}
-
-            {/* Right side start  */}
-            {serverReceiverAction && (
-              <div className="w-full md:w-2/6 mt-6 flex flex-col gap-y-2">
-                {/* This should be an edit button  */}
-                {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
-                <button
-                  className="btn-success uppercase"
-                  onClick={handleConfirmAction}
-                >
-                  {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
-                  {scoreKeeperAction.get(serverReceiverAction)}
-                </button>
-              </div>
-            )}
             {/* Right side end  */}
           </div>
 
           {/* Handle action for each button pressed  */}
           <div className="scrollable-action-handler w-full relative">
-            <div className="w-full md:w-2/6 sticky top-0 md:hidden bg-black py-2">
+            <div className="w-full sticky top-0 md:hidden bg-black py-2">
               <ScoreBoard
                 currServerReceiver={currServerReceiver}
                 selectedReceiver={selectedReceiver}
@@ -471,6 +464,19 @@ export default function ServerReceiver({
                 teamBPlayers={teamBPlayers}
                 key="sb-2"
               />
+              {serverReceiverAction && (
+                <div className="5/6 mt-4">
+                  {/* This should be an edit button  */}
+                  {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
+                  <button
+                    className="btn-success uppercase"
+                    onClick={handleConfirmAction}
+                  >
+                    {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
+                    {scoreKeeperAction.get(serverReceiverAction)}
+                  </button>
+                </div>
+              )}
             </div>
             <ActionHandler
               serverReceiverAction={serverReceiverAction}
@@ -626,7 +632,7 @@ export default function ServerReceiver({
               className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
               onClick={() => {
                 changePlayEl.current?.close();
-                setToBeSelectedPlay(null)
+                setToBeSelectedPlay(null);
               }}
             >
               Cancel

@@ -29,17 +29,22 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
 
   // Config for both teams
   const serverActions = [
-    { label: "ACE no-touch", value: EServerReceiverAction.SERVER_ACE_NO_TOUCH },
     {
-      label: "Ace no 3rd touch",
-      value: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
+      label: "SERVICE ACE",
+      value: EServerReceiverAction.SERVER_ACE_NO_TOUCH,
+      // subLebel: "NO 2ND TOUCH",
     },
     {
-      label: "Receiving Hitting Error",
+      label: "SETTING ERROR",
+      value: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
+      // subLebel: "NO 3RD TOUCH"
+    },
+    {
+      label: "SPIKING ERROR",
       value: EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
     },
     {
-      label: "Defensive Conversion",
+      label: "RALLY POINT",
       value: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
     },
     { label: "Don't know", value: EServerReceiverAction.SERVER_DO_NOT_KNOW },
@@ -47,15 +52,15 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
 
   const receiverActions = [
     {
-      label: "Double Fault",
+      label: "SERVICE DBL FAULT ",
       value: EServerReceiverAction.RECEIVER_SERVICE_FAULT,
     },
     {
-      label: "1-2-3 put away",
+      label: "RECEIVING POINT",
       value: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
     },
     {
-      label: "Rally Conversion",
+      label: "RALLY POINT",
       value: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
     },
     { label: "Don't know", value: EServerReceiverAction.RECEIVER_DO_NOT_KNOW },

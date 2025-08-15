@@ -84,7 +84,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
 
     return (
       <span
-        className={`absolute -top-2 right-2 px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase
+        className={`absolute -top-2 right-2 px-2 py-0.5 text-xl font-bold tracking-wide uppercase
               rounded-full ${roleBgColor} shadow-sm ${roleTextColor}`}
       >
         {initialRole}
@@ -101,7 +101,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
       {/* Role badge */}
       {role ? (
         <span
-          className={`absolute -top-2 right-2 px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase
+          className={`absolute -top-2 right-2 px-2 py-0.5 text-xl font-bold tracking-wide uppercase
                     rounded-full ${roleBgColor} shadow-sm ${roleTextColor}`}
         >
           {role}

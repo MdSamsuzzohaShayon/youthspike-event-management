@@ -13,7 +13,8 @@ import { PlayerService } from 'src/player/player.service';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import * as Upload from 'graphql-upload/Upload.js';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { NetService } from 'src/net/net.service';
 import { MatchService } from 'src/match/match.service';
@@ -76,11 +77,11 @@ export class TeamResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((resolves) => CreateOrUpdateTeamResponse)
+  @Mutation((_returns) => CreateOrUpdateTeamResponse)
   async createTeam(
     @Args('input') input: CreateTeamInput,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-    logo?: Promise<GraphQLUpload.FileUpload>,
+    logo?: Upload,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const players = input.players ? input.players : [];
@@ -176,13 +177,13 @@ export class TeamResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((resolves) => CreateOrUpdateTeamResponse)
+  @Mutation((_returns) => CreateOrUpdateTeamResponse)
   async updateTeam(
     @Args('input') input: UpdateTeamInput,
     @Args('teamId') teamId: string,
     @Args('eventId') eventId: string,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-  logo?: Promise<GraphQLUpload.FileUpload>,
+  logo?: Upload,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const [teamExist, eventExist] = await Promise.all([
@@ -358,7 +359,7 @@ export class TeamResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((resolves) => CreateOrUpdateTeamResponse)
+  @Mutation((_returns) => CreateOrUpdateTeamResponse)
   async deleteTeam(@Args('teamId') teamId: string): Promise<CreateOrUpdateTeamResponse> {
     try {
       const teamExist = await this.teamService.findById(teamId);
@@ -376,7 +377,7 @@ export class TeamResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((resolves) => CreateOrUpdateTeamResponse)
+  @Mutation((_returns) => CreateOrUpdateTeamResponse)
   async deleteTeams(@Args('teamIds', { type: () => [String] }) teamIds: string[]): Promise<CreateOrUpdateTeamResponse> {
     try {
       const deletePromises = [];

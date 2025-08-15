@@ -1,15 +1,15 @@
 // events.dto.ts
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
-import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
-import type { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import * as Upload from 'graphql-upload/Upload.js';
 
 @InputType()
 export class EventSponsorInput {
   @Field()
   company: string;
 
-  // @Field(() => GraphQLUpload)
-  // logo: Promise<FileUpload>;
+  @Field(() => GraphQLUpload)
+  logo: Upload;
 }
 
 @InputType()
