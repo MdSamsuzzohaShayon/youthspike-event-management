@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import {  FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
-import { Types } from 'mongoose';
-
-type CreateQuery = Omit<Team, keyof Document>;
 
 @Injectable()
 export class TeamService {

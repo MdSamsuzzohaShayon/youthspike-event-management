@@ -1,15 +1,23 @@
 /* eslint-disable import/no-cycle */
-import { Socket } from 'socket.io-client';
-import React from 'react';
-// import { INetRelatives, IRoom, IRoundRelatives, ITeam, IUserContext } from '.';
-import type { INetRelatives, INetScoreUpdate, IUpdateScoreResponse } from './net';
-import type { EActionProcess, IRoom, IRoomNets, ITeiBreakerAction } from './room';
-import type { IRoundRelatives } from './round';
-import { ETeam, ITeam } from './team';
-import type { IAccessCode, IUser, IUserContext, UserRole } from './user';
-import { IMatchExpRel, IMatchRelatives } from './match';
-import { IPlayer } from './player';
-import { EServerPositionPair } from './serverReceiverOnNet';
+import { Socket } from "socket.io-client";
+import React from "react";
+import type {
+  INetRelatives,
+  INetScoreUpdate,
+  IUpdateScoreResponse,
+} from "./net";
+import type {
+  EActionProcess,
+  IRoom,
+  IRoomNets,
+  ITeiBreakerAction,
+} from "./room";
+import type { IRoundRelatives } from "./round";
+import { ETeam, ITeam } from "./team";
+import type { IAccessCode, IUserContext, UserRole } from "./user";
+import { IMatchExpRel, IMatchRelatives } from "./match";
+import { IPlayer } from "./player";
+import { EServerPositionPair } from "./serverReceiverOnNet";
 
 export interface IListenSocketProps {
   socket: Socket | null;
@@ -55,14 +63,12 @@ export interface ISetServerReceiverChange {
   accessCode: IAccessCode | null;
 }
 
-interface ICacheAction {
+
+
+interface ICommonAction {
   match: string;
   net: string;
   room: string;
-}
-
-interface ICommonAction extends ICacheAction {
-  receiver: string;
 }
 
 export interface IServiceFaultInput extends ICommonAction {}
@@ -74,20 +80,19 @@ export interface IAceNoTouchInput extends ICommonAction {}
 export interface IAceNoThirdTouchInput extends ICommonAction {}
 export interface IServerDoNotKnowInput extends ICommonAction {}
 export interface IReceiverDoNotKnowInput extends ICommonAction {}
-
 export interface IReceivingHittingErrorInput extends ICommonAction {}
 
-export interface IUpdateCachePointsInput extends ICacheAction {
+export interface IUpdateCachePointsInput extends ICommonAction {
   accessCode: string;
 }
 
-interface IRevertResetCommon{
+interface IRevertResetCommon {
   match: string;
   net: string | null;
   accessCode: string | null;
 }
 
-export interface IResetScoreInput extends IRevertResetCommon{
+export interface IResetScoreInput extends IRevertResetCommon {
   room: string | null;
 }
 
@@ -130,7 +135,7 @@ export interface ICheckInData {
   teamE?: ETeam;
 }
 
-export interface ISetServerReceiverData {
+export interface ISetServerReceiverDataInput {
   match: string;
   room: string;
   server: string;
@@ -282,5 +287,3 @@ export interface IUpdateNet {
   actionData: INetUpdateData;
   matchList: IMatch[];
 }
-
-// IServerReceiverResponse, ICheckInResponse, ILineUpResponse, IUpdatePointsResponse, IUpdateExtendOvertimeResponse, IUpdateNetResponse, IRoundMatchCommon, IRoundUpdateData, INetUpdateData, ITeamCaptain, IMatch, IUpdateRound, IUpdateNet

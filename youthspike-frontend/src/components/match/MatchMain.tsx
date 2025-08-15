@@ -5,14 +5,14 @@
 
 import { useReadQuery } from "@apollo/client";
 import type { QueryRef } from "@apollo/client";
-import { EPlayerStatus, ETeam, IMatchExpRel, IOvertimeData, IRoom, IRoomNets, ITeiBreakerAction, IUpdateScoreResponse, UserRole } from "@/types"; // Your match type
+import { EMessage, EPlayerStatus, ETeam, IMatchExpRel, IOvertimeData, IRoom, IRoomNets, ITeiBreakerAction, IUpdateScoreResponse, UserRole } from "@/types"; // Your match type
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getUserFromCookie } from "@/utils/cookie";
 import organizeFetchedData from "@/utils/match/organizeFetchedData";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Loader from "../elements/Loader";
-import { setActErr, setScreenSize } from "@/redux/slices/elementSlice";
+import { setMessage, setScreenSize } from "@/redux/slices/elementSlice";
 import useResizeObserver from "@/hooks/useResizeObserver";
 import { useUser } from "@/lib/UserProvider";
 import { useSocket } from "@/lib/SocketProvider";
@@ -144,9 +144,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   // Organize data only when necessary
   const organizeData = useCallback(async () => {
     if (!match?.event?._id)
-      return dispatch(
-        setActErr({ success: false, message: "Can not find any event" })
-      );
+      dispatch(setMessage({ type: EMessage.ERROR, message: 'Can not find any event' }));
 
     const userDetail = getUserFromCookie();
 

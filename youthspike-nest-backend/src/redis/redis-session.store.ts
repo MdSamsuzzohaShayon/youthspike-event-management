@@ -1,6 +1,6 @@
 // src/redis/redis-session.store.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { createClient } from 'redis';
+import { createClient, RedisClientOptions } from 'redis';
 import {RedisStore} from 'connect-redis';
 
 @Injectable()
@@ -15,14 +15,19 @@ export class RedisSessionStore {
 
   private async initializeStore() {
     // Initialize Redis client
-    this.redisClient = createClient({
+    const redisConfig: RedisClientOptions = {
       url: process.env.REDIS_URL || 'redis://localhost:6379',
       password: process.env.REDIS_PASSWORD,
-      socket: {
-        tls: process.env.NODE_ENV === 'production',
+    };
+
+    if (process.env.NODE_ENV === 'production') {
+      redisConfig.socket = {
+        tls: true,
         rejectUnauthorized: false
-      }
-    });
+      };
+    }
+
+    this.redisClient = createClient(redisConfig);
 
     this.redisClient.on('error', (err) => {
       this.logger.error('Redis client error', err);

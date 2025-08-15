@@ -1,7 +1,7 @@
 import TextImg from '@/components/elements/TextImg';
 import { useAppDispatch } from '@/redux/hooks';
-import { setActErr } from '@/redux/slices/elementSlice';
-import { INetPlayers, IPlayer, ITeam } from '@/types';
+import { setMessage } from '@/redux/slices/elementSlice';
+import { EMessage, INetPlayers, IPlayer, ITeam } from '@/types';
 import { CldImage } from 'next-cloudinary';
 import React from 'react';
 
@@ -72,7 +72,7 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
 
             const handleClick = (e: React.SyntheticEvent) =>
               teamSelected
-                ? dispatch(setActErr({ message: 'This team is already selected!', success: false, code: 406 }))
+                ? dispatch(setMessage({ message: 'This team is already selected!', type: EMessage.ERROR }))
                 : serverPlaceholder
                   ? handleServerSelection(e, player._id)
                   : handleReceiverSelection(e, player._id);

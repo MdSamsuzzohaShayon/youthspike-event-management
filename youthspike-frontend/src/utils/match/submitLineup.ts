@@ -1,6 +1,6 @@
-import { setActErr } from '@/redux/slices/elementSlice';
+import { setMessage } from '@/redux/slices/elementSlice';
 import { setclosePSCAvailable, setVerifyLineup } from '@/redux/slices/matchesSlice';
-import { IMatchRelatives, INetRelatives, IPlayer, IRoom, IRoundRelatives } from '@/types';
+import { EMessage, IMatchRelatives, INetRelatives, IPlayer, IRoom, IRoundRelatives } from '@/types';
 import { EPlayerStatus } from '@/types/player';
 import { ETeam } from '@/types/team';
 import React from 'react';
@@ -76,7 +76,7 @@ const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets
       if (dupPlayerCount > 0) {
         errMsg = dupPlayerCount > 1 ? errMsg : errMsg.split(',')[0];
         errMsg += `${dupPlayerCount > 1 ? 'were' : ' was'} subbed previously, they must be selected in this round`;
-        dispatch(setActErr({ success: false, message: errMsg }));
+        dispatch(setMessage({ type: EMessage.ERROR, message: errMsg }));
         return;
       }
     }
@@ -84,7 +84,7 @@ const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets
 
   if (closePSCAvailable) dispatch(setclosePSCAvailable(false));
   if (filled) {
-    dispatch(setActErr(null));
+    dispatch(setMessage(null));
     dispatch(setVerifyLineup(true));
   }
 };

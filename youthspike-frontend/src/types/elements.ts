@@ -137,10 +137,15 @@ export interface IMenuArrangeProps {
   handleLogout: (e: React.SyntheticEvent) => void;
 }
 
-export interface IError {
+export enum EMessage{
+  ERROR = "ERROR",
+  WARN = "WARN",
+  INFO = "INFO",
+  SUCCESS = "SUCCESS",
+}
+export interface IMessage {
   message?: string;
-  success?: boolean;
-  code?: number;
+  type?: EMessage;
 }
 
 export interface ILoginProps {

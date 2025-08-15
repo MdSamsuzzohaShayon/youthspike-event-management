@@ -1,14 +1,14 @@
 /* eslint-disable no-param-reassign */
-import { IColMenu, IError } from '@/types';
-import { EAssignStrategies, EMenuTitle } from '@/types/elements';
+import { IColMenu } from '@/types';
+import { EAssignStrategies, EMenuTitle, IMessage } from '@/types/elements';
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-export interface ElementState {
+export interface IElementState {
   screenWidth: number;
   playerAssignStrategy: EAssignStrategies[];
   isLoading: boolean;
-  actErr: IError | null;
+  message: IMessage | null;
   colMenus: IColMenu[];
   selectedColItem: EMenuTitle | null;
 }
@@ -22,11 +22,11 @@ const initialColMenu = [
   { id: 5, title: EMenuTitle.FIND_MATCHES },
 ];
 
-const initialState: ElementState = {
+const initialState: IElementState = {
   screenWidth: 0,
   playerAssignStrategy: initialStrategyList,
   isLoading: false,
-  actErr: null,
+  message: null,
   colMenus: initialColMenu,
   selectedColItem: null,
 };
@@ -41,8 +41,8 @@ export const elementSlice = createSlice({
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    setActErr: (state, action: PayloadAction<IError | null>) => {
-      state.actErr = action.payload;
+    setMessage: (state, action: PayloadAction<IMessage | null>) => {
+      state.message = action.payload;
     },
     setSelectedColItem: (state, action: PayloadAction<EMenuTitle | null>) => {
       state.selectedColItem = action.payload;
@@ -51,6 +51,6 @@ export const elementSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setScreenSize, setIsLoading, setActErr, setSelectedColItem } = elementSlice.actions;
+export const { setScreenSize, setIsLoading, setMessage, setSelectedColItem } = elementSlice.actions;
 
 export default elementSlice.reducer;

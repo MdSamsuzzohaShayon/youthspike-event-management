@@ -1,15 +1,15 @@
 // events.dto.ts
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import type { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
 
 @InputType()
 export class EventSponsorInput {
   @Field()
   company: string;
 
-  @Field(() => GraphQLUpload)
-  logo: Upload;
+  // @Field(() => GraphQLUpload)
+  // logo: Promise<FileUpload>;
 }
 
 @InputType()
@@ -17,7 +17,7 @@ export class EventSponsorStringInput {
   @Field()
   company: string;
 
-  @Field()
+  @Field(() => String,{nullable: true})
   logo: string;
 }
 
@@ -38,7 +38,6 @@ export class CreateEventInput {
   // Default properties
   @Field()
   divisions: string;
-
 
   @Field(() => Int)
   nets: number;
@@ -85,10 +84,10 @@ export class CreateEventInput {
   @Field({ nullable: true })
   accessCode: string;
 
-  @Field()
+  @Field(() => String,{nullable: true})
   ldo?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String,{nullable: true})
   id?: string;
 
   @Field({ nullable: true, defaultValue: true })

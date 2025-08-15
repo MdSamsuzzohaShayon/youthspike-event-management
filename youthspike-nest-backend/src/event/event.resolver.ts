@@ -22,8 +22,8 @@ import { EventService } from './event.service';
 import { TeamService } from 'src/team/team.service';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { ConfigService } from '@nestjs/config';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import type { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
 import * as bcrypt from 'bcrypt';
 import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, UpdateEventInput } from './event.args';
 import { tokenToUser } from 'src/util/helper';
@@ -70,7 +70,7 @@ export class EventResolver {
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') input: CreateEventInput,
     @Context() context: any,
-    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
+    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -111,9 +111,9 @@ export class EventResolver {
 
       // Upload sponsors file to cloudinary
       const uploadPromises = [];
-      for (let i = 0; i < sponsorsInput.length; i++) {
-        uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
-      }
+      // for (let i = 0; i < sponsorsInput.length; i++) {
+      //   uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+      // }
       const sponsorsFileList = await Promise.all(uploadPromises);
 
       let sponsorsIds = [];
@@ -167,7 +167,7 @@ export class EventResolver {
     @Context() context: any,
     @Args('sponsorsStringInput', { nullable: true, type: () => [EventSponsorStringInput] })
     sponsorsStringInput?: EventSponsorStringInput[],
-    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
@@ -219,9 +219,9 @@ export class EventResolver {
         const newSponsorIds = [];
 
         const uploadPromises = [];
-        for (let i = 0; i < sponsorsInput.length; i++) {
-          uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
-        }
+        // for (let i = 0; i < sponsorsInput.length; i++) {
+        //   uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+        // }
         const sponsorItemList = await Promise.all(uploadPromises);
         if (sponsorItemList.length > 0) {
           const organizeSponsors = sponsorItemList.map((s) => ({ company: s.company, logo: s.logo, event: eventId }));

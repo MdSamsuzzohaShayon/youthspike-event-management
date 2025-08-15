@@ -1,11 +1,11 @@
 // https://chat.openai.com/c/ff62b374-21b1-4012-9d70-800e4dfd199b
 
 import { Injectable } from '@nestjs/common';
-import * as Upload from 'graphql-upload/Upload.js';
-import fs, { createWriteStream } from 'fs';
+import { createWriteStream } from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 import { unlink } from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
+import type { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
 
 type SponsorType = {
   company: string;
@@ -17,13 +17,13 @@ export class CloudinaryService {
   constructor(private configService: ConfigService) {
     // Load Cloudinary config from environment variables
     cloudinary.config({
-      cloud_name: this.configService.get('CLOUDINARY_API_CLOUD', { infer: true }),
-      api_key: this.configService.get('CLOUDINARY_API_KEY', { infer: true }),
-      api_secret: this.configService.get('CLOUDINARY_API_SECRET', { infer: true }),
+      cloud_name: this.configService.get('CLOUDINARY_API_CLOUD'),
+      api_key: this.configService.get('CLOUDINARY_API_KEY'),
+      api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
     });
   }
 
-  async uploadFiles(files: Upload, w = 300, h = 300): Promise<string> {
+  async uploadFiles(files: Promise<FileUpload>, w = 300, h = 300): Promise<string> {
     const { createReadStream, filename, mimetype, encoding } = await files;
     try {
       const localPath = `./uploads/${filename}`;
@@ -39,9 +39,7 @@ export class CloudinaryService {
 
       // Upload the file to Cloudinary
       const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
-        folder: this.configService.get('CLOUDINARY_API_FOLDER', {
-          infer: true,
-        }),
+        folder: this.configService.get('CLOUDINARY_API_FOLDER'),
         transformation: {
           width: w,
           height: h,
@@ -56,7 +54,7 @@ export class CloudinaryService {
     }
   }
 
-  async uploadSponsors(files: Upload, company: string, w = 300, h = 300): Promise<SponsorType | null> {
+  async uploadSponsors(files: Promise<FileUpload>, company: string, w = 300, h = 300): Promise<SponsorType | null> {
     const { createReadStream, filename, mimetype, encoding } = await files;
     try {
       const localPath = `./uploads/${filename}`;
@@ -72,9 +70,7 @@ export class CloudinaryService {
 
       // Upload the file to Cloudinary
       const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
-        folder: this.configService.get('CLOUDINARY_API_FOLDER', {
-          infer: true,
-        }),
+        folder: this.configService.get('CLOUDINARY_API_FOLDER'),
         transformation: {
           width: w,
           height: h,

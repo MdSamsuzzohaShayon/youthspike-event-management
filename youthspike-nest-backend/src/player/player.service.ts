@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { EPlayerStatus, Player } from './player.schema';
-import { FilterQuery, Model, ObjectId, Query, UpdateQuery } from 'mongoose';
-import { UserDocument } from 'src/user/user.schema';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { CreatePlayerInput } from './player.input';
 import { rmInvalidProps } from 'src/util/helper';
-import * as Upload from 'graphql-upload/Upload.js';
 import * as Papa from 'papaparse';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
 
 type OptionalProps<T> = {
   [K in keyof T]?: T[K];
@@ -77,7 +76,7 @@ export class PlayerService {
     return this.playerModel.updateMany(filter, player);
   }
 
-  async arrangeFromCSV(uploadedFile: Upload, event: string, division: string) {
+  async arrangeFromCSV(uploadedFile: Promise<FileUpload>, event: string, division: string) {
     const { createReadStream, filename, mimetype, encoding } = await uploadedFile;
     return new Promise((resolve, reject) => {
       const teams = [];

@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { RedisService } from './redis/redis.service';
-import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import { EEnv, NODE_ENV } from './util/keys';
 import { Logger } from '@nestjs/common';
 import { ServerOptions } from 'socket.io';

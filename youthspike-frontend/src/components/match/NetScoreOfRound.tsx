@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setCurrentRoundNets } from '@/redux/slices/netSlice';
 import { EXTRA_HEIGHT, screen } from '@/utils/constant';
 import { border } from '@/utils/styles';
-import { setActErr } from '@/redux/slices/elementSlice';
 import { ETeam } from '@/types/team';
 import { EActionProcess } from '@/types/room';
 import LocalStorageService from '@/utils/LocalStorageService';
@@ -16,6 +15,8 @@ import PointsByRound from './PointsByRound';
 import NetCard from './NetCard';
 import AvailablePlayers from '../player/AvailablePlayers';
 import SubbedPlayers from '../player/SubbedPlayers';
+import { setMessage } from '@/redux/slices/elementSlice';
+import { EMessage } from '@/types';
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const dispatch = useAppDispatch();
@@ -75,13 +76,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       if (roundList[targetRoundIndex].num > currentRound.num) {
         const prevRound = roundList[targetRoundIndex - 1];
         if (!prevRound?.completed) {
-          dispatch(setActErr({ 
-            success: false, 
-            message: 'Complete the previous round by putting players on all nets and points.' 
-          }));
+          dispatch(setMessage({ type: EMessage.ERROR, message: 'Complete the previous round by putting players on all nets and points.' }));
+          
           return;
         }
-        dispatch(setActErr(null));
+        dispatch(setMessage(null));
       }
       changeTheRound(targetRoundIndex);
       dispatch(setDisabledPlayerIds([]));

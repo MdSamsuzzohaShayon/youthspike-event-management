@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setCurrNetNum } from "@/redux/slices/netSlice";
 import {
   EActionProcess,
+  EMessage,
   EServerReceiverAction,
   ETeam,
   ETieBreaker,
@@ -29,12 +30,12 @@ import usePlayerMaps from "@/hooks/score-keeping/usePlayerMaps";
 import useMakeTeam from "@/hooks/score-keeping/useMakeTeam";
 import useInitialSelection from "@/hooks/score-keeping/useInitialSelection";
 import useServerReceiverSocket from "@/hooks/score-keeping/useServerReceiverSocket";
-import { setActErr } from "@/redux/slices/elementSlice";
 import { scoreKeeperAction } from "@/utils/staticData";
 import actionConfirmation from "@/utils/match/actionConfirmation";
 import ScoreBoard from "./ScoreBoard";
 import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
 import ServerReceiverPlayInput from "./ServerReceiverPlayInput";
+import { setMessage } from "@/redux/slices/elementSlice";
 
 /* ───────────────────────────────────────────── */
 
@@ -66,7 +67,7 @@ export default function ServerReceiver({
   } = useAppSelector((s) => s.serverReceiverOnNets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((s) => s.players);
   const currMatch = useAppSelector((s) => s.matches.match);
-  const currRoom = useAppSelector((s) => s.rooms.current);
+  const currRoom = useAppSelector((s) => s.rooms?.current);
   const { teamA, teamB } = useAppSelector((s) => s.teams);
 
   /* UI state */
@@ -283,8 +284,8 @@ export default function ServerReceiver({
     const net = netByNum.get(currNetNum);
     if (!socket || !currMatch._id || !net?._id || !currRoom?._id) {
       dispatch(
-        setActErr({
-          code: 406,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Match, net, receiver, or room does not exist!",
         })
       );
@@ -293,8 +294,8 @@ export default function ServerReceiver({
 
     if (!accessCode?.code) {
       dispatch(
-        setActErr({
-          code: 406,
+        setMessage({
+          type: EMessage.ERROR,
           message: "You do not have permission to do this operation!",
         })
       );
@@ -308,6 +309,12 @@ export default function ServerReceiver({
     };
     const emit = new EmitEvents(socket, dispatch);
     emit.updateCachePoints(actionData);
+    dispatch(
+      setMessage({
+        type: EMessage.SUCCESS,
+        message: "You have updated the score successfully!",
+      })
+    );
   }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
 
   const serverTeamE: ETeam | null = useMemo(() => {

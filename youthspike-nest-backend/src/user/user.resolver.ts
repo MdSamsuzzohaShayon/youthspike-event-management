@@ -8,13 +8,12 @@ import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import GraphQLUpload, { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
 import { UpdateUser } from './user.input';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
-import * as Upload from 'graphql-upload/Upload.js';
 import { rmInvalidProps } from 'src/util/helper';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { EventService } from 'src/event/event.service';
@@ -237,7 +236,7 @@ export class UserResolver {
   async updateUser(
     @Args({ name: 'userId', type: () => String, nullable: false }) userId: string,
     @Args('updateInput') updateInput: UpdateUser,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Promise<FileUpload>,
   ) {
     try {
       const userExist = await this.userService.findById(userId);

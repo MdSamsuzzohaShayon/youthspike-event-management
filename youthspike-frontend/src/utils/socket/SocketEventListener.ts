@@ -1,4 +1,4 @@
-import { setActErr } from "@/redux/slices/elementSlice";
+import { setMessage } from "@/redux/slices/elementSlice";
 import { setMatchInfo } from "@/redux/slices/matchesSlice";
 import {
   setCurrentRoundNets,
@@ -13,6 +13,7 @@ import {
   setServerReceiversOnNet,
 } from "@/redux/slices/serverReceiverOnNetSlice";
 import {
+  EMessage,
   ICheckInResponse,
   ILineUpResponse,
   IResetServerReceiverResponse,
@@ -610,8 +611,8 @@ class SocketEventListener {
     console.log({ error });
     this.dispatch = dispatch;
     dispatch(
-      setActErr({
-        success: false,
+      setMessage({
+        type: EMessage.ERROR,
         message: `${error}. Try refreshing the page!`,
       })
     );

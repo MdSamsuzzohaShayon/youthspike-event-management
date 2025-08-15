@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
 import React from 'react';
-import { IError } from './elements';
+import { IMessage } from './elements';
 import { IDefaultMatch, IMatchRelatives } from './match';
 import { ILDO } from './ldo';
 import { IGroup } from './group';
@@ -58,7 +58,7 @@ export interface IEventAdd extends IDefaultEventMatch {
 
 export interface IEventAddProps {
   update: boolean;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  setMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevEvent?: IEvent;
 }

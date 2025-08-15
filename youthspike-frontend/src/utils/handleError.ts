@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import React from 'react';
-import { IError } from '@/types';
 import { removeCookie } from './cookie';
+import { EMessage, IMessage } from '@/types';
 
 interface IResponse {
   message: string;
@@ -12,14 +12,14 @@ interface IResponse {
 
 interface IHandleResponseProps {
   response: IResponse;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  setMessage: React.Dispatch<React.SetStateAction<IMessage | null>>;
 }
 
-export function handleResponse({ response, setActErr }: IHandleResponseProps): boolean {
+export function handleResponse({ response, setMessage }: IHandleResponseProps): boolean {
   const { success } = response;
   if (success) return success;
 
-  if (response.message) setActErr({ code: response.code, message: response.message, success });
+  if (response.message) setMessage({ type: EMessage.ERROR, message: response.message });
   if (response.code === 401) {
     removeCookie('user');
     removeCookie('token');

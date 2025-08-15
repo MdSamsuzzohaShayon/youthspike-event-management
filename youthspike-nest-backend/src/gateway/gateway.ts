@@ -114,7 +114,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Score keeper handlers
     // Server
     this.aceNoTouch = new AceNoTouchHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.aceNoThirdTouch = new AceNoThirdTouchHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.aceNoThirdTouch = new AceNoThirdTouchHandler(scoreKeeperHelper);
     this.receivingHittingError = new ReceivingHittingErrorHandler(
       gatewayService,
       gatewayRedisService,
@@ -248,7 +248,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() aceNoThirdTouchInput: AceNoThirdTouchInput,
   ) {
-    return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput, this.roomsLocal);
+    return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput);
   }
 
   @SubscribeMessage('receiving-hitting-error-from-client')

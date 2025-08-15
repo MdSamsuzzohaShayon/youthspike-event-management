@@ -9,7 +9,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { EventModule } from './event/event.module';
-import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { SharedModule } from './shared/shared.module';
 import { TeamModule } from './team/team.module';
 import { MatchModule } from './match/match.module';
@@ -27,6 +26,7 @@ import { RedisModule } from './redis/redis.module';
 import { EEnv, NODE_ENV } from './util/keys';
 import { PlayerStatsModule } from './player-stats/player-stats.module';
 import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-receiver-on-net.module';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 
 @Module({
   imports: [
@@ -37,11 +37,11 @@ import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-recei
       debug: NODE_ENV === EEnv.DEVELOPMENT,
       playground: false,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      plugins: [ApolloServerPluginLandingPageLocalDefault()],
       persistedQueries: false, // 🔴 Disables persisted queries
       // persistedQueries: {
       //   cache: 'bounded',  // ✅ Enforce bounded cache to prevent memory exhaustion
       // },
+      resolvers: { Upload: GraphQLUpload },
     }),
 
     MongooseModule.forRootAsync({

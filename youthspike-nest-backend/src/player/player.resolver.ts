@@ -13,8 +13,8 @@ import { EventService } from 'src/event/event.service';
 import { Team } from 'src/team/team.schema';
 import { TeamService } from 'src/team/team.service';
 import { UserService } from 'src/user/user.service';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import type { FileUpload } from 'graphql-upload/GraphQLUpload.mjs';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { QueryOptions, UpdateQuery } from 'mongoose';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
@@ -103,7 +103,7 @@ export class PlayerResolver {
   @Mutation((_returns) => PlayerResponse) // Specify the return type
   async createPlayer(
     @Args('input') input: CreatePlayerInput,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Promise<FileUpload>,
   ) {
     /**
      * TODO:
@@ -185,7 +185,7 @@ export class PlayerResolver {
   async updatePlayer(
     @Args('input') input: UpdatePlayerInput,
     @Args('playerId') playerId: string,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Promise<FileUpload>,
   ): Promise<PlayerResponse> {
     try {
       const updatePromises: Promise<any>[] = [];
@@ -319,7 +319,7 @@ export class PlayerResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(
-    @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Upload,
+    @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Promise<FileUpload>,
     @Args('eventId') eventId: string,
     @Args('division') division: string,
   ) {
@@ -332,7 +332,8 @@ export class PlayerResolver {
      */
     try {
       const allowedFileTypes = ['csv', 'xlsx']; // Add the allowed file types
-      const fileExtension = uploadedFile.filename.split('.').pop().toLowerCase();
+      const uploaded = await uploadedFile;
+      const fileExtension = uploaded.filename.split('.').pop().toLowerCase();
       if (!allowedFileTypes.includes(fileExtension)) {
         return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }

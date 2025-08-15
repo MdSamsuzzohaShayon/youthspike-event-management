@@ -1,10 +1,8 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import React, { useEffect, useState } from 'react';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
-import { ITeam } from '@/types';
-import { setActErr } from '@/redux/slices/elementSlice';
+import { EMessage, ITeam } from '@/types';
 import { useLdoId } from '@/lib/LdoProvider';
-// import { changeTheRound } from '@/utils/match/emitSocketEvents';
 import { setDisabledPlayerIds, setPrevPartner } from '@/redux/slices/matchesSlice';
 import Image from 'next/image';
 import { setCurrentRoundNets } from '@/redux/slices/netSlice';
@@ -14,6 +12,7 @@ import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
 import LocalStorageService from '@/utils/LocalStorageService';
 import TextImg from '../elements/TextImg';
 import { CldImage } from 'next-cloudinary';
+import { setMessage } from '@/redux/slices/elementSlice';
 
 interface ITeamScoreBoard {
   team: ITeam | null;
@@ -62,10 +61,10 @@ function CompletedBox() {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
         const prevRound = roundList[targetRoundIndex - 1];
         if (!prevRound || !prevRound.completed) {
-          dispatch(setActErr({ success: false, message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
+          dispatch(setMessage({ type: EMessage.ERROR, message: 'Make sure you have completed this round by putting players on all of the nets and points.' }));
           return;
         }
-        dispatch(setActErr(null));
+        dispatch(setMessage(null));
       }
 
       changeTheRound(targetRoundIndex);

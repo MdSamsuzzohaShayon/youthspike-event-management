@@ -1,5 +1,5 @@
 import React from "react";
-import { setActErr } from "@/redux/slices/elementSlice";
+import { setMessage } from "@/redux/slices/elementSlice";
 import { setVerifyLineup } from "@/redux/slices/matchesSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import {
@@ -21,7 +21,7 @@ import {
   ISubmitUpdatePointsProps,
   ISubmitExtendOvertimeProps,
   ISetServerReceiverChange,
-  ISetServerReceiverData,
+  ISetServerReceiverDataInput,
   IServiceFaultInput,
   IAceNoTouchInput,
   IUpdateCachePointsInput,
@@ -41,6 +41,7 @@ import {
   IReceiverDoNotKnowInput,
   EServerPositionPair,
   IRevertPlayInput,
+  EMessage,
 } from "@/types";
 import { Socket } from "socket.io-client";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
@@ -93,15 +94,15 @@ class EmitEvents {
     this.socket.emit("join-room-from-client", joinData);
     if (!teamA || !teamB) {
       return this.dispatch(
-        setActErr({
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Team A, or Team B details is not found, try refreshing!",
         })
       );
     }
 
     /*
-    if (!this.isAuthorized(user.info)) return this.dispatch(setActErr({ success: false, message: 'This user is not authorized to do this operation!' }));
+    if (!this.isAuthorized(user.info)) return this.dispatch(setMessage({ type: EMessage.ERROR, message: 'This user is not authorized to do this operation!' }));
     */
     if (
       user?.info &&
@@ -119,8 +120,8 @@ class EmitEvents {
         )
       ) {
         return this.dispatch(
-          setActErr({
-            success: false,
+          setMessage({
+            type: EMessage.ERROR,
             message: "This captain or co-captain not in both team!",
           })
         );
@@ -214,7 +215,7 @@ class EmitEvents {
     });
     if (!filledAllNets) {
       this.dispatch(
-        setActErr({ success: false, message: "Every net must have players!" })
+        setMessage({ type: EMessage.ERROR, message: "Every net must have players!" })
       );
       return;
     }
@@ -246,7 +247,7 @@ class EmitEvents {
   }: ISubmitUpdatePointsProps) {
     if (!currRoom || !currRound || !currNet) {
       this.dispatch(
-        setActErr({ success: false, message: "No room, net or round found!" })
+        setMessage({ type: EMessage.ERROR, message: "No room, net or round found!" })
       );
       return;
     }
@@ -282,7 +283,7 @@ class EmitEvents {
   extendOvertime({ currRoom, currRound }: ISubmitExtendOvertimeProps) {
     if (!currRoom || !currRound) {
       this.dispatch(
-        setActErr({ success: false, message: "No room or round found!" })
+        setMessage({ type: EMessage.ERROR, message: "No room or round found!" })
       );
       return;
     }
@@ -556,9 +557,8 @@ class EmitEvents {
   }: ISetServerReceiverChange) {
     if (!currNetNum) {
       return dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Please select a net before proceeding.",
         })
       );
@@ -567,9 +567,8 @@ class EmitEvents {
     const currNet = currRoundNets.find((n) => n.num === currNetNum);
     if (!currNet) {
       return dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Selected net not found. Try refreshing the page.",
         })
       );
@@ -577,9 +576,8 @@ class EmitEvents {
 
     if (!server || !receiver) {
       return dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Both server and receiver must be selected to continue.",
         })
       );
@@ -587,9 +585,8 @@ class EmitEvents {
 
     if (!currRoom || !currRound) {
       return dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message:
             "No active round or room found. Please refresh and try again.",
         })
@@ -598,9 +595,8 @@ class EmitEvents {
 
     if (!accessCode) {
       return dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message:
             "Access denied. You must have a valid access code for this match.",
         })
@@ -608,7 +604,7 @@ class EmitEvents {
     }
 
     // Set server position
-    const actionData: ISetServerReceiverData = {
+    const actionData: ISetServerReceiverDataInput = {
       match: currMatch._id,
       room: currRoom._id,
       server,
@@ -624,72 +620,72 @@ class EmitEvents {
     this.socket?.emit("set-players-from-client", actionData);
   }
 
-  serviceFault({ match, receiver, net, room }: IServiceFaultInput) {
-    const actionData = { match, receiver, net, room };
+  serviceFault({ match, net, room }: IServiceFaultInput) {
+    const actionData = { match, net, room };
     this.socket?.emit("service-fault-from-client", actionData);
   }
 
   defensiveConversion({
     match,
-    receiver,
+    
     net,
     room,
   }: IDefensiveConversionInput) {
-    const actionData = { match, receiver, net, room };
+    const actionData = { match, net, room };
     this.socket?.emit("defensive-conversion-from-client", actionData);
   }
 
-  aceNoTouch({ match, receiver, net, room }: IAceNoTouchInput) {
-    const actionData = { match, receiver, net, room };
+  aceNoTouch({ match, net, room }: IAceNoTouchInput) {
+    const actionData = { match, net, room };
     this.socket?.emit("ace-no-touch-from-client", actionData);
   }
 
-  aceNoThirdTouch({ match, receiver, net, room }: IAceNoThirdTouchInput) {
-    const actionData = { match, receiver, net, room };
+  aceNoThirdTouch({ match, net, room }: IAceNoThirdTouchInput) {
+    const actionData = { match, net, room };
     this.socket?.emit("ace-no-third-touch-from-client", actionData);
   }
 
-  serverDoNotKnow({ match, receiver, net, room }: IServerDoNotKnowInput) {
-    const actionData = { match, receiver, net, room };
+  serverDoNotKnow({ match, net, room }: IServerDoNotKnowInput) {
+    const actionData = { match, net, room };
     this.socket?.emit("server-do-not-know-from-client", actionData);
   }
 
-  receiverDoNotKnow({ match, receiver, net, room }: IReceiverDoNotKnowInput) {
-    const actionData = { match, receiver, net, room };
+  receiverDoNotKnow({ match, net, room }: IReceiverDoNotKnowInput) {
+    const actionData = { match, net, room };
     this.socket?.emit("receiver-do-not-know-from-client", actionData);
   }
 
   receivingHittingError({
     match,
-    receiver,
+    
     net,
     room,
   }: IReceivingHittingErrorInput) {
-    const actionData = { match, receiver, net, room };
+    const actionData = { match, net, room };
     this.socket?.emit("receiving-hitting-error-from-client", actionData);
   }
 
-  oneTwoThreePutAway({ match, receiver, net, room }: IOneTwoThreePutAwayInput) {
+  oneTwoThreePutAway({ match, net, room }: IOneTwoThreePutAwayInput) {
     const actionData = { match, net, room };
     this.socket?.emit("one-two-three-put-away-from-client", actionData);
   }
 
-  rallyConversion({ match, receiver, net, room }: IRallyConversionInput) {
-    const actionData = { match, receiver, net, room };
+  rallyConversion({ match, net, room }: IRallyConversionInput) {
+    const actionData = { match, net, room };
     this.socket?.emit("rally-conversion-from-client", actionData);
   }
 
   updateCachePoints({ match, net, room, accessCode }: IUpdateCachePointsInput) {
     const actionData = { match, net, room, accessCode };
+    // 
     this.socket?.emit("update-cache-points-from-client", actionData);
   }
 
   resetScores({ match, net, room, accessCode }: IResetScoreInput) {
     if (!net) {
       return this.dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Please select a net before proceeding.",
         })
       );
@@ -697,9 +693,8 @@ class EmitEvents {
 
     if (!room) {
       return this.dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "There is no room to send message.",
         })
       );
@@ -707,9 +702,8 @@ class EmitEvents {
 
     if (!accessCode) {
       return this.dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message:
             "You do not have permission to do this operation. You must put a valid access code!",
         })
@@ -723,9 +717,8 @@ class EmitEvents {
   revertPlay({ match, net, play, room, accessCode }: IRevertPlayInput) {
     if (!net) {
       return this.dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "Please select a net before proceeding.",
         })
       );
@@ -733,9 +726,8 @@ class EmitEvents {
 
     if (!play) {
       return this.dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message: "There is no room to send message.",
         })
       );
@@ -743,9 +735,8 @@ class EmitEvents {
 
     if (!accessCode) {
       return this.dispatch(
-        setActErr({
-          code: 404,
-          success: false,
+        setMessage({
+          type: EMessage.ERROR,
           message:
             "You do not have permission to do this operation. You must put a valid access code!",
         })

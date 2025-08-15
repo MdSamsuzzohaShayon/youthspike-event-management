@@ -1,22 +1,17 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { RoomLocal, AceNoThirdTouchInput } from '../gateway.types';
-import { GatewayService } from '../gateway.service';
-import { GatewayRedisService } from '../gateway.redis';
+import { AceNoThirdTouchInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 
 export class AceNoThirdTouchHandler {
   constructor(
-    private readonly gatewayService: GatewayService,
-    private readonly gatewayRedisService: GatewayRedisService,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: AceNoThirdTouchInput,
-    roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
       // Serving team Scores
