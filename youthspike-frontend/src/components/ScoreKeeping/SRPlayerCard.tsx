@@ -9,6 +9,7 @@ import {
 } from "@/types";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useMemo } from "react";
 
 interface ISPPlayerCardProps {
@@ -179,6 +180,19 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
           >
             {teamOfPlayer?.name}
           </p>
+          <Link
+            href={`/players/${player?._id}`}
+            className="w-full mt-3 flex items-center justify-center w-6 h-6 rounded-full bg-yellow-logo hover:bg-yellow-500 transition-colors"
+            title="View Stats"
+          >
+            <Image
+              src="/icons/stats.svg"
+              width={20}
+              height={20}
+              alt="Stats-logo"
+              className="w-5 h-5 svg-black"
+            />
+          </Link>
         </div>
       )}
     </div>

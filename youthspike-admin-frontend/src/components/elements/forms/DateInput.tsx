@@ -9,7 +9,7 @@ const DateInput = (props: IDateinputProps) => {
         
         const now = new Date();
         const inputValue= new Date(`${inputEl.value}T${now.toISOString().split("T")[1]}`);
-        if(props.handleDateChange)props.handleDateChange({ name: props.name, value: inputValue.toISOString() });
+        if(props.handleDateChange)props.handleDateChange(props.name, inputValue.toISOString());
     };
 
     const inputProps: Record<string, any> = {

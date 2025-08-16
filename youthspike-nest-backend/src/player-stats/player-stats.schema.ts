@@ -1,6 +1,7 @@
 import { Field, Float, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { Event } from 'src/event/event.schema';
 import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
@@ -96,6 +97,47 @@ export const PlayerStatsSchema = SchemaFactory.createForClass(PlayerStats);
 export const PlayerStatsSchemaFactory = async () => {
   return PlayerStatsSchema;
 };
+
+
+
+@ObjectType()
+@Schema({ timestamps: true })
+export class ProStats extends AppDocument {
+  @Field(() => Float, { nullable: true, defaultValue: 0 })
+  @Prop({ default: 0 })
+  servingPercentage: number; // serving %
+
+  @Field(() => Float, { nullable: true, defaultValue: 0 })
+  @Prop({ default: 0 })
+  acePercentage: number; // Ace %
+
+  @Field(() => Float, { nullable: true, defaultValue: 0 })
+  @Prop({ default: 0 })
+  receivingPercentage: number; // Receiving %
+
+  @Field(() => Float, { nullable: true, defaultValue: 0 })
+  @Prop({ default: 0 })
+  hittingPercentage: number; // Hiting %
+
+  @Field(() => Float, { nullable: true, defaultValue: 0 })
+  @Prop({ default: 0 })
+  settingPercentage: number; // Setting %
+
+  @Field(() => Float, { nullable: true, defaultValue: 0 })
+  @Prop({ default: 0 })
+  defensiveConversionPercentage: number; // DC%
+
+  // Relationship
+  @Field(() => Event, { nullable: true })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true })
+  event: string | Event;
+}
+
+export const ProStatsSchema = SchemaFactory.createForClass(ProStats);
+export const ProStatsSchemaFactory = async () => {
+  return ProStatsSchema;
+};
+
 
 
 

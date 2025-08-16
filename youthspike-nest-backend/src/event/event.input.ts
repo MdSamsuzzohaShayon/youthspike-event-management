@@ -1,7 +1,8 @@
 // events.dto.ts
-import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
+import { Field, Float, InputType, Int, PartialType } from '@nestjs/graphql';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
+import { Event } from './event.schema';
 
 @InputType()
 export class EventSponsorInput {
@@ -20,6 +21,32 @@ export class EventSponsorStringInput {
   @Field(() => String,{nullable: true})
   logo: string;
 }
+
+
+@InputType()
+export class ProStatsInput{
+  @Field(() => Float, { nullable: true })
+  servingPercentage: number; // serving %
+
+  @Field(() => Float, { nullable: true })
+  acePercentage: number; // Ace %
+
+  @Field(() => Float, { nullable: true })
+  receivingPercentage: number; // Receiving %
+
+  @Field(() => Float, { nullable: true })
+  hittingPercentage: number; // Hiting %
+
+  @Field(() => Float, { nullable: true })
+  settingPercentage: number; // Setting %
+
+  @Field(() => Float, { nullable: true })
+  defensiveConversionPercentage: number; // DC%
+}
+
+
+@InputType()
+export class UpdateProStatsInput extends PartialType(ProStatsInput) {}
 
 @InputType()
 export class CreateEventInput {
@@ -92,6 +119,16 @@ export class CreateEventInput {
 
   @Field({ nullable: true, defaultValue: true })
   defaultSponsor: boolean;
+
+
+  // @Field({ nullable: true })
+  // multiplayer?: ProStatsInput;
+
+  // @Field({ nullable: true })
+  // weight?: ProStatsInput;
+
+  // @Field({ nullable: true })
+  // stats?: ProStatsInput;
 }
 
 @InputType()

@@ -1,0 +1,289 @@
+import React from 'react';
+import { IDateChangeHandlerProps, IEventAdd, IProStatsAdd } from '@/types';
+import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
+import { ERosterLock } from '@/types/event';
+import InputField from '../elements/forms/InputField';
+import ImageInput from '../elements/forms/ImageInput';
+import DateInput from '../elements/forms/DateInput';
+import SelectInput from '../elements/forms/SelectInput';
+import ToggleInput from '../elements/forms/ToggleInput';
+import DateTimeInput from '../elements/forms/DateTimeInput';
+import TextareaInput from '../elements/forms/TextareaInput';
+import ShowDivisions from './ShowDivisions';
+import ProStatsInput from './ProStatsInput';
+
+interface EventFormSectionsProps {
+  update: boolean;
+  eventState: IEventAdd;
+  updateEvent: Partial<IEventAdd>;
+  onInputChange: (e: React.SyntheticEvent) => void;
+  onToggleChange: (e: React.SyntheticEvent) => void;
+  onNumberChange: (e: React.SyntheticEvent) => void;
+  onDateChange: (name: string, value: string) => void;
+  onProStatsChange: (prefix: 'multiplayer' | 'weight' | 'stats', field: string, value: number) => void;
+  onSelectChange?: (e: React.SyntheticEvent) => void;
+  multiplayer: IProStatsAdd;
+  weight: IProStatsAdd;
+  stats: IProStatsAdd;
+  onLogoChange?: (uploadedFile: Blob | MediaSource) => void;
+  prevEvent?: IEventAdd;
+  setEventState?: React.Dispatch<React.SetStateAction<IEventAdd>>;
+  setUpdateEvent?: React.Dispatch<React.SetStateAction<Partial<IEventAdd>>>;
+  eventId?: string;
+}
+
+const EventFormSections: React.FC<EventFormSectionsProps> = ({
+  update,
+  eventState,
+  updateEvent,
+  onInputChange,
+  onToggleChange,
+  onNumberChange,
+  onDateChange,
+  onProStatsChange,
+  onSelectChange,
+  multiplayer,
+  weight,
+  stats,
+  onLogoChange,
+  prevEvent,
+  setEventState,
+  setUpdateEvent,
+  eventId,
+}) => {
+  
+  return (
+    <>
+      <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputField 
+          name="name" 
+          type="text" 
+          label="Name" 
+          handleInputChange={onInputChange} 
+          defaultValue={eventState.name} 
+          required={!update} 
+        />
+        
+        <ImageInput 
+          handleFileChange={onLogoChange} 
+          name="logo" 
+          defaultValue={eventState.logo || null} 
+        />
+
+        <DateInput 
+          label="Start Date" 
+          name="startDate" 
+          handleDateChange={onDateChange} 
+          defaultValue={eventState.startDate} 
+          required={!update} 
+        />
+        
+        <DateInput 
+          label="End Date" 
+          name="endDate" 
+          handleDateChange={onDateChange} 
+          defaultValue={eventState.endDate} 
+          required={!update} 
+        />
+
+        <InputField 
+          required={!update} 
+          name="nets" 
+          type="number" 
+          handleInputChange={onNumberChange} 
+          label="Number of nets" 
+          defaultValue={eventState.nets} 
+        />
+        
+        <InputField 
+          required={!update} 
+          name="rounds" 
+          type="number" 
+          handleInputChange={onNumberChange} 
+          label="Number of rounds" 
+          defaultValue={eventState.rounds} 
+        />
+        
+        <InputField 
+          required={!update} 
+          name="netVariance" 
+          type="number" 
+          handleInputChange={onNumberChange} 
+          label="Net Variance" 
+          defaultValue={eventState.netVariance} 
+        />
+        
+        <InputField 
+          name="fwango" 
+          type="text" 
+          label="Fwango Link" 
+          handleInputChange={onInputChange} 
+          defaultValue={eventState.fwango || ''} 
+        />
+      </div>
+
+      <div className="w-full mt-6">
+        {!update ? (
+          <InputField 
+            type="text" 
+            required 
+            value={eventState.divisions} 
+            handleInputChange={onInputChange} 
+            label="Divisions" 
+            name="divisions" 
+          />
+        ) : (
+          <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
+        )}
+        
+        {setEventState && setUpdateEvent && (
+          <ShowDivisions
+            update={update}
+            dStr={eventState.divisions}
+            prevDivisions={prevEvent?.divisions || ''}
+            setEventState={setEventState}
+            setUpdateEvent={setUpdateEvent}
+            eventId={eventId || null}
+            updateEvent={updateEvent}
+          />
+        )}
+      </div>
+
+      <div className="part-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <SelectInput 
+          name="homeTeam" 
+          label="How is home team decided?" 
+          handleSelect={onSelectChange} 
+          optionList={homeTeamStrategy} 
+          defaultValue={eventState.homeTeam} 
+        />
+        
+        <SelectInput 
+          name="tieBreaking" 
+          optionList={tieBreakingRules} 
+          defaultValue={eventState.tieBreaking} 
+          handleSelect={onSelectChange} 
+          label="Tie breaking strategy" 
+        />
+        
+        <ToggleInput 
+          handleInputChange={onToggleChange} 
+          name="autoAssign" 
+          label="Auto assign when clock runs out" 
+          defaultValue={eventState.autoAssign} 
+        />
+
+        <SelectInput
+          name="autoAssignLogic"
+          optionList={assignStrategies}
+          handleSelect={onSelectChange}
+          label="Which auto assign logic when clock runs out?"
+          defaultValue={eventState.autoAssignLogic}
+        />
+
+        <SelectInput 
+          name="rosterLock" 
+          optionList={lockTimes} 
+          handleSelect={onSelectChange} 
+          defaultValue={eventState.rosterLock} 
+          label="When does the roster lock setting?" 
+        />
+
+        {eventState.rosterLock && eventState.rosterLock !== '' && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+          <DateTimeInput 
+            name="rosterLockDate" 
+            label="Set a time for locking roster ranking!" 
+            required={!update} 
+            handleDateChange={onDateChange} 
+          />
+        )}
+      </div>
+
+      <div className="part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <InputField 
+          name="timeout" 
+          type="number" 
+          handleInputChange={onNumberChange} 
+          label="Sub Clock (in minutes)" 
+          defaultValue={eventState.timeout} 
+        />
+        
+        <InputField 
+          name="coachPassword" 
+          type="password" 
+          label="Coach Password" 
+          required={!update} 
+          handleInputChange={onInputChange} 
+          defaultValue={eventState.coachPassword} 
+        />
+      </div>
+      
+      <div className="part-4 grid grid-cols-1 gap-6 mt-6">
+        <TextareaInput 
+          name="description" 
+          label="Description" 
+          required={!update} 
+          handleInputChange={onInputChange} 
+          defaultValue={eventState.description} 
+        />
+      </div>
+      
+      <div className="part-4.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <InputField 
+          type="text" 
+          name="location" 
+          label="Location" 
+          required={!update} 
+          handleInputChange={onInputChange} 
+          value={eventState.location} 
+        />
+        
+        <InputField
+          type="text"
+          tooltip="For scorekeeper, access code are needed to change the score!"
+          name="accessCode"
+          label="Access Code"
+          handleInputChange={onInputChange}
+          value={eventState.accessCode}
+        />
+      </div>
+
+      <div className="w-full pro-stats mt-4">
+        <ProStatsInput 
+          label="Multiplayer Stats" 
+          namePrefix="multiplayer" 
+          defaultValue={multiplayer} 
+          handleInputChange={(e) => {
+            const name = e.target.name.split('.')[1];
+            const value = parseFloat(e.target.value);
+            onProStatsChange('multiplayer', name, value);
+          }} 
+        />
+
+        <ProStatsInput 
+          label="Weight Stats" 
+          namePrefix="weight" 
+          defaultValue={weight} 
+          handleInputChange={(e) => {
+            const name = e.target.name.split('.')[1];
+            const value = parseFloat(e.target.value);
+            onProStatsChange('weight', name, value);
+          }} 
+        />
+
+        <ProStatsInput 
+          label="Stat Stats" 
+          namePrefix="stats" 
+          defaultValue={stats} 
+          handleInputChange={(e) => {
+            const name = e.target.name.split('.')[1];
+            const value = parseFloat(e.target.value);
+            onProStatsChange('stats', name, value);
+          }} 
+        />
+      </div>
+    </>
+  );
+};
+
+export default EventFormSections;

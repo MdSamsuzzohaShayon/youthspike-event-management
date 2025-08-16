@@ -1,62 +1,59 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
-import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { cookies } from 'next/headers';
-import { getEventDirector } from './_requests/ldo';
-import { IUserContext, TParams } from '@/types';
+import { redirect } from 'next/navigation';
+import { IGetEventDirectorQuery, IUserContext, TParams } from '@/types';
 import { UserRole } from '@/types/user';
-import { LDO_ID, UNAUTHORIZED } from '@/utils/constant';
+import { LDO_ID } from '@/utils/constant';
 import EventsMain from '@/components/event/EventsMain';
+import Loader from '@/components/elements/Loader';
+import { QueryRef } from '@apollo/client';
+import { GET_LDO } from '@/graphql/director';
+import { PreloadQuery } from '@/lib/client';
 
-
-
-interface IEventsPageProps{
-  searchParams: Promise<TParams> 
+interface IEventsPageProps {
+  searchParams: TParams;
 }
 
-async function EventsPage({ searchParams }: IEventsPageProps) {
-  const params = await searchParams;
-  
+export async function EventsPage({ searchParams }: IEventsPageProps) {
   const cookieStore = await cookies();
+  const resolvedParams = await searchParams;
   const user = cookieStore.get('user')?.value;
   const token = cookieStore.get('token')?.value;
 
   const userContext: IUserContext = {
     info: user ? JSON.parse(user) : null,
-    token: token ? token : null,
+    token: token ?? null,
   };
 
-  let directorId = null;
+  let directorId: string | null = null;
 
   if (userContext.info?.role === UserRole.admin) {
-    directorId = params[LDO_ID] as string;
+    directorId = resolvedParams[LDO_ID] as string;
 
     if (!directorId) {
       redirect('/admin');
     }
   }
 
-  let eventDirector = null;
-
-  try {
-    eventDirector = await getEventDirector(directorId, userContext.token);
-  } catch (err: any) {
-    if (err.message === UNAUTHORIZED) {
-      redirect('/api/logout');
-    }
-    throw err;
-  }
-
-  if (!eventDirector) {
-    notFound();
-  }
-
-  directorId = eventDirector.director?._id;
-  const events = eventDirector.events;
-
+  // Instead of fetching here, defer to Apollo (PreloadQuery)
   return (
     <div className="events-page container px-6 mx-auto min-h-screen">
-      <EventsMain events={events} ldo={eventDirector} />
+      <PreloadQuery
+        query={GET_LDO}
+        variables={{
+          dId: directorId,
+        }}
+      >
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <EventsMain
+              queryRef={
+                queryRef as QueryRef<{ getEventDirector: IGetEventDirectorQuery }>
+              }
+            />
+          </Suspense>
+        )}
+      </PreloadQuery>
     </div>
   );
 }

@@ -218,20 +218,20 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             </div>
             <div className="space-y-4">
               <StatBox
-                label="Serve %"
+                label="Serve COMPLETION %"
                 value={playerTotalStats.serveCompletionCount}
                 total={playerTotalStats.serveOpportunity}
               />
               <StatBox
-                label="Ace %"
+                label="ACE % (NO 2ND TOUCH)"
                 value={playerTotalStats.serveAce}
                 total={playerTotalStats.serveOpportunity}
               />
-              <StatBox
+              {/* <StatBox
                 label="Ace No Touch %"
                 value={playerTotalStats.servingAceNoTouch}
                 total={playerTotalStats.serveOpportunity}
-              />
+              /> */}
             </div>
           </div>
 
@@ -250,9 +250,14 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
                 total={playerTotalStats.receiverOpportunity}
               />
               <StatBox
-                label="Hitting %"
+                label="Set Assist %"
                 value={playerTotalStats.hittingCompletion}
                 total={playerTotalStats.hittingOpportunity}
+              />
+               <StatBox
+                label="Break +/-"
+                value={playerTotalStats.break}
+                total={playerTotalStats.break}
               />
             </div>
           </div>
@@ -272,22 +277,41 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
                 total={playerTotalStats.hittingOpportunity}
               />
               <StatBox
-                label="Clean Hit %"
-                value={playerTotalStats.cleanHits}
-                total={playerTotalStats.hittingOpportunity}
-              />
-              <StatBox
                 label="Defensive %"
                 value={playerTotalStats.defensiveConversion}
                 total={playerTotalStats.defensiveOpportunity}
               />
-              <StatBox
-                label="Break +/-"
-                value={playerTotalStats.break}
-                total={playerTotalStats.break}
-              />
+             
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Winning percentage  */}
+      <div className="mb-12">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold">Winning Percentage</h2>
+        </div>
+
+        {/* <!-- Stats Grid --> */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* <!-- Serving Stats --> */}
+          <div className="bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-800">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="bg-yellow-400 w-2 h-6 rounded-full"></div>
+              <h3 className="font-bold uppercase text-yellow-logo">Stats</h3>
+            </div>
+            <div className="space-y-4">
+              <StatBox
+                label="win %  (overall filter)  point"
+                value={playerTotalStats.serveCompletionCount}
+                total={playerTotalStats.serveOpportunity}
+              />
+
+            </div>
+          </div>
+
+
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { Group } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Match } from 'src/match/match.schema';
+import { ProStats } from 'src/player-stats/player-stats.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
@@ -94,6 +95,19 @@ export class Event extends AppDocument {
   @Field(() => [Sponsor], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' }] })
   sponsors: Sponsor[] | string[];
+
+  @Field(() => ProStats, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
+  multiplayer?: string | ProStats;
+
+  @Field(() => ProStats, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
+  weight?: string | ProStats;
+
+  @Field(() => ProStats, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
+  stats?: string | ProStats;
+
 
   /**
    * Default properties for match

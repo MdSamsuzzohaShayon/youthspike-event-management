@@ -1,6 +1,7 @@
 import { ApolloDriverConfig, ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -36,11 +37,11 @@ import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-recei
       debug: NODE_ENV === EEnv.DEVELOPMENT,
       playground: false,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
       persistedQueries: false, // 🔴 Disables persisted queries
       // persistedQueries: {
       //   cache: 'bounded',  // ✅ Enforce bounded cache to prevent memory exhaustion
       // },
-      // resolvers: { Upload: GraphQLUpload },
     }),
 
     MongooseModule.forRootAsync({

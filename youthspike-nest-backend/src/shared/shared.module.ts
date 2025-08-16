@@ -38,7 +38,7 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
 import { Group, GroupSchemaFactory } from 'src/group/group.schema';
 import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
-import { PlayerStats, PlayerStatsSchemaFactory } from 'src/player-stats/player-stats.schema';
+import { PlayerStats, PlayerStatsSchemaFactory, ProStats, ProStatsSchemaFactory } from 'src/player-stats/player-stats.schema';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
 import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSinglePlay, ServerReceiverSinglePlaySchemaFactory } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -127,6 +127,10 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSi
       {
         name: PlayerStats.name,
         useFactory: PlayerStatsSchemaFactory,
+      },
+      {
+        name: ProStats.name,
+        useFactory: ProStatsSchemaFactory,
       },
     ]),
 

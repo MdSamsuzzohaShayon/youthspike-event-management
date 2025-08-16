@@ -1,11 +1,10 @@
-import { UserRole } from '@/types/user';
-import { TParams } from '@/types';
-import { getAnEvent } from '@/app/_requests/events';
-import { notFound } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { getUserFromCookie } from '@/utils/serverCookie';
+import { IGetEventDirectorQuery, IGetPlayerEventSettingsQuery, TParams } from '@/types';
 import SettingsMain from '@/components/event/SettingsMain';
-import { getAPlayer } from '@/app/_requests/players';
+import { PreloadQuery } from '@/lib/client';
+import { GET_PLAYER_EVENT_SETTINGS } from '@/graphql/event';
+import { Suspense } from 'react';
+import Loader from '@/components/elements/Loader';
+import { QueryRef } from '@apollo/client';
 
 interface ISettingsPageProps {
   params: TParams;
@@ -13,33 +12,21 @@ interface ISettingsPageProps {
 
 async function SettingsPage({ params }: ISettingsPageProps) {
   const pathParams = await params;
-  const cookieStore = await cookies();
-
-  // Queries
-  const eventExist = await getAnEvent(pathParams.eventId);
-  if (!eventExist) {
-    notFound();
-  }
-
-  const userExist = await getUserFromCookie(cookieStore);
-  if (!userExist) {
-    notFound();
-  }
-
-  const playerId =
-    userExist.info?.role === UserRole.captain || userExist.info?.role === UserRole.co_captain
-      ? userExist.info?.role === UserRole.captain
-        ? userExist.info.captainplayer
-        : userExist.info.cocaptainplayer
-      : null;
-
-  const playerExist = await getAPlayer(playerId || null);
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">
-      <h1 className="text-3xl font-bold text-center mb-8">{userExist.info?.role === UserRole.captain || userExist.info?.role === UserRole.co_captain ? 'Update Captain' : 'Update Event'}</h1>
-
-      <SettingsMain eventId={pathParams.eventId} prevEvent={eventExist} prevPlayer={playerExist} />
+      <PreloadQuery
+        query={GET_PLAYER_EVENT_SETTINGS}
+        variables={{
+          eventId: pathParams.eventId,
+        }}
+      >
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <SettingsMain queryRef={queryRef as QueryRef<{ getPlayerEventSetting: IGetPlayerEventSettingsQuery }>} eventId={pathParams.eventId} />
+          </Suspense>
+        )}
+      </PreloadQuery>
     </div>
   );
 }

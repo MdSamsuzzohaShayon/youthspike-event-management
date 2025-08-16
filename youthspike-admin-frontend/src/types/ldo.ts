@@ -1,12 +1,12 @@
-import { IDirector, IEvent, IEventExpRel } from ".";
-import { IDirectorItem } from "./user";
+import { IDirector, IEvent, IEventExpRel } from '.';
+import { IDirectorItem } from './user';
 
 export interface ILDO {
   name: string;
   logo: string;
   phone?: string;
   director?: IDirector;
-  events?: IEvent[]
+  events?: IEvent[];
 }
 
 export interface ILDOItem {
@@ -25,9 +25,21 @@ export interface ILdoUpdate {
   confirmPassword?: string;
 }
 
-export interface ILDOExpRel{
+export interface ILDOExpRel {
   name: string;
   logo: string;
   director?: IDirector;
-  events?: IEventExpRel[],
+  events?: IEventExpRel[];
+}
+
+export interface ICommonQuery {
+  code: number;
+  success: boolean;
+  message: string;
+}
+export interface IGetEventDirectorQuery extends ICommonQuery {
+  data: {
+    events: IEvent[];
+    director: IDirector;
+  };
 }

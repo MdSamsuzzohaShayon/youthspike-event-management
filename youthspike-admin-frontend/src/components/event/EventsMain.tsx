@@ -6,10 +6,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/lib/UserProvider';
 import { CLONE_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS } from '@/graphql/event';
-import { useMutation } from '@apollo/client';
+import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
-import { IEvent, ILDO } from '@/types';
+import { IDirector, IEvent, IGetEventDirectorQuery, ILDO } from '@/types';
 import { useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
@@ -30,12 +30,15 @@ const itemList: IItem[] = [
   { id: 4, text: 'Orlando' },
 ];
 
+
+
+
 interface IEventsMainProps{
-  events: IEvent[];
-  ldo: ILDO;
+  queryRef: QueryRef<{ getEventDirector: IGetEventDirectorQuery }>;
 }
 
-function EventsMain({events, ldo}: IEventsMainProps) {
+
+function EventsMain({queryRef}: IEventsMainProps) {
   // Hooks
   const user = useUser();
   const router = useRouter();
@@ -46,6 +49,12 @@ function EventsMain({events, ldo}: IEventsMainProps) {
   const [filteredItems, setFilteredItems] = useState<IItem[]>([]);
   const filterListEl = useRef<HTMLDialogElement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+   // Read query data from Apollo (Suspense friendly)
+   const { data } = useReadQuery(queryRef);
+
+   const ldo = data?.getEventDirector?.data?.director;
+   const events = data?.getEventDirector?.data?.events ?? [];
 
   // GraphQL Queries
   const [cloneEvent] = useMutation(CLONE_EVENT);
@@ -112,6 +121,7 @@ function EventsMain({events, ldo}: IEventsMainProps) {
         setActErr({ code: eventResponse.data.deleteEvent.code, message: eventResponse.data.deleteEvent.message, success: false })
         return ;
       }
+      window.location.reload();
     } catch (error) {
       console.log(error);
     }finally{
@@ -146,7 +156,7 @@ function EventsMain({events, ldo}: IEventsMainProps) {
           <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 rounded-full object-cover object-fill" />
         )}
 
-        <h1>{ldo ? ldo.name : ''}</h1>
+        <h1>{ldo ? ldo.firstName : ''}</h1>
         <h2>Events</h2>
       </div>
       <div className="filter flex justify-between mb-2">

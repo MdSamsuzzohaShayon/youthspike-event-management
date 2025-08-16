@@ -1,9 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { EventMatches } from 'src/match/match.response';
+import { CustomTeam, EventMatches } from 'src/match/match.response';
 import { CustomPlayer } from 'src/player/player.response';
 import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Event } from './event.schema';
+import { LDO } from 'src/ldo/ldo.schema';
+import { ProStats } from 'src/player-stats/player-stats.schema';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -33,8 +35,45 @@ export class EventDetails extends EventMatches {
   sponsors: Sponsor[];
 }
 
+
+@ObjectType()
+export class PlayerEventSetting{
+  // event, teams, ldo, sponsors, multiplayer, weight, stats, player
+  @Field((_type) => Event, { nullable: true })
+  event?: Event;
+
+  @Field((_type) => [CustomTeam], { nullable: true })
+  teams: CustomTeam[];
+
+  @Field((_type) => LDO, { nullable: true })
+  ldo?: LDO;
+
+  @Field((_type) => [Sponsor], { nullable: true })
+  sponsors?: Sponsor[];
+
+  @Field((_type) => ProStats, { nullable: true })
+  multiplayer?: ProStats;
+
+  @Field((_type) => ProStats, { nullable: true })
+  weight?: ProStats;
+
+  @Field((_type) => ProStats, { nullable: true })
+  stats?: ProStats;
+
+  @Field((_type) => CustomPlayer, { nullable: true })
+  player?: CustomPlayer;
+}
+
 @ObjectType()
 export class GetEventDetailsResponse extends AppResponse<EventDetails> {
   @Field((_type) => EventDetails, { nullable: true })
   data?: EventDetails | null;
+}
+
+
+
+@ObjectType()
+export class GetPlayerEventSettingResponse extends AppResponse<PlayerEventSetting> {
+  @Field((_type) => PlayerEventSetting, { nullable: true })
+  data?: PlayerEventSetting | null;
 }

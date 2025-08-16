@@ -82,7 +82,7 @@ export interface IDateChangeHandlerProps {
 
 export interface IDateinputProps extends ITextCommon {
   defaultValue?: string;
-  handleDateChange?: ({ name, value }: IDateChangeHandlerProps) => void;
+  handleDateChange?: (name: string, value: string) => void;
 }
 
 export interface IFileFileProps {

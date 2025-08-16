@@ -40,6 +40,17 @@ type PlayerStats {
   player: Player
 }
 
+type ProStats {
+  _id: String
+  servingPercentage: Float
+  acePercentage: Float
+  receivingPercentage: Float
+  hittingPercentage: Float
+  settingPercentage: Float
+  defensiveConversionPercentage: Float
+  event: Event
+}
+
 type ServerReceiverOnNet {
   _id: String
   play: Float!
@@ -282,6 +293,9 @@ type Event {
   matches: [Match!]!
   groups: [Group!]!
   sponsors: [Sponsor!]!
+  multiplayer: ProStats
+  weight: ProStats
+  stats: ProStats
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -806,11 +820,29 @@ type EventDetails {
   sponsors: [Sponsor!]!
 }
 
+type PlayerEventSetting {
+  event: Event
+  teams: [CustomTeam!]
+  ldo: LDO
+  sponsors: [Sponsor!]
+  multiplayer: ProStats
+  weight: ProStats
+  stats: ProStats
+  player: CustomPlayer
+}
+
 type GetEventDetailsResponse {
   code: Int!
   success: Boolean!
   message: String
   data: EventDetails
+}
+
+type GetPlayerEventSettingResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: PlayerEventSetting
 }
 
 type CreateOrUpdateRoundResponse {
@@ -955,6 +987,7 @@ type Query {
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
   getEventDetails(eventId: String!): GetEventDetailsResponse!
+  getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
@@ -1003,8 +1036,8 @@ input FilterQueryInput {
 type Mutation {
   login(email: String!, password: String!, passcode: String): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUser!, profile: Upload): UserResponse!
-  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, logo: Upload): CreateOrUpdateEventResponse!
-  updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], logo: Upload): CreateOrUpdateEventResponse!
+  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, multiplayerInput: ProStatsInput, weightInput: ProStatsInput, statsInput: ProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
+  updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], multiplayerInput: UpdateProStatsInput, weightInput: UpdateProStatsInput, statsInput: UpdateProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
@@ -1080,6 +1113,15 @@ input CreateEventInput {
   defaultSponsor: Boolean = true
 }
 
+input ProStatsInput {
+  servingPercentage: Float
+  acePercentage: Float
+  receivingPercentage: Float
+  hittingPercentage: Float
+  settingPercentage: Float
+  defensiveConversionPercentage: Float
+}
+
 input UpdateEventInput {
   name: String
   startDate: String
@@ -1109,6 +1151,15 @@ input UpdateEventInput {
 input EventSponsorStringInput {
   company: String!
   logo: String
+}
+
+input UpdateProStatsInput {
+  servingPercentage: Float
+  acePercentage: Float
+  receivingPercentage: Float
+  hittingPercentage: Float
+  settingPercentage: Float
+  defensiveConversionPercentage: Float
 }
 
 input CreateTeamInput {

@@ -4,8 +4,9 @@ import { ICommonMatchEvent, IMatch } from './match';
 import { EAssignStrategies, IError } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
-import { ILDO, ILDOItem } from './ldo';
+import { ICommonQuery, ILDO, ILDOItem } from './ldo';
 import { IGroup } from './group';
+import { IProStats } from './playerStats';
 
 export enum EEventPeriod {
   UPCOMING = 'UPCOMING',
@@ -13,17 +14,15 @@ export enum EEventPeriod {
   PAST = 'PAST',
 }
 
-
-export enum ERosterLock{
-  FIRST_ROSTER_SUBMIT="FIRST_ROSTER_SUBMIT",
-  PICK_A_DATE="PICK_A_DATE"
+export enum ERosterLock {
+  FIRST_ROSTER_SUBMIT = 'FIRST_ROSTER_SUBMIT',
+  PICK_A_DATE = 'PICK_A_DATE',
 }
 
 export enum ETieBreakingStrategy {
   TWO_POINTS_NET = 'TWO_POINTS_NET',
   OVERTIME_ROUND = 'OVERTIME_ROUND',
 }
-
 
 export interface IEventSponsor {
   _id: string;
@@ -55,6 +54,10 @@ export interface IEvent extends IDefaultEventMatch {
   defaultSponsor: boolean;
   sendCredentials: boolean;
   autoAssignLogic: EAssignStrategies;
+
+  multiplayer: IProStats | null;
+  weight: IProStats | null;
+  stats: IProStats | null;
 }
 
 export interface IEventExpRel extends IEvent {
@@ -77,9 +80,26 @@ export interface IEventAdd extends IDefaultEventMatch {
   // sponsors: File[];
   coachPassword: string;
   defaultSponsor: boolean;
+  tieBreaking: ETieBreakingStrategy;
+}
+
+export interface IGetPlayerEventSettingsQuery extends ICommonQuery {
+  data: {
+    event?: IEvent;
+    teams?: ITeam[];
+    ldo?: ILDO;
+    sponsors?: IEventSponsor[];
+    multiplayer?: IProStats;
+    weight?: IProStats;
+    stats?: IProStats;
+    player?: IPlayer;
+  };
 }
 
 export interface IEventAddProps {
   update: boolean;
   prevEvent?: IEvent;
+  prevWight?: IProStats;
+  prevStats?: IProStats;
+  prevMultiplayer?: IProStats;
 }

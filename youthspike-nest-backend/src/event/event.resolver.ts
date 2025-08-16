@@ -25,7 +25,7 @@ import { ConfigService } from '@nestjs/config';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import * as bcrypt from 'bcrypt';
-import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, UpdateEventInput } from './event.args';
+import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, ProStatsInput, UpdateEventInput, UpdateProStatsInput } from './event.input';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { LdoService } from 'src/ldo/ldo.service';
@@ -43,7 +43,9 @@ import {
   GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
+  GetPlayerEventSettingResponse,
 } from './event.response';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 
 @Resolver((of) => Event)
 export class EventResolver {
@@ -54,6 +56,7 @@ export class EventResolver {
     private ldoService: LdoService,
     private cloudinaryService: CloudinaryService,
     private playerService: PlayerService,
+    private playerStatsService: PlayerStatsService,
     private matchService: MatchService,
     private userService: UserService,
     private roundService: RoundService,
@@ -70,6 +73,9 @@ export class EventResolver {
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
     @Args('input') input: CreateEventInput,
     @Context() context: any,
+    @Args('multiplayerInput', {nullable: true}) multiplayerInput?: ProStatsInput,
+    @Args('weightInput', {nullable: true}) weightInput?: ProStatsInput,
+    @Args('statsInput', {nullable: true}) statsInput?: ProStatsInput,
     @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
@@ -111,9 +117,9 @@ export class EventResolver {
 
       // Upload sponsors file to cloudinary
       const uploadPromises = [];
-      // for (let i = 0; i < sponsorsInput.length; i++) {
-      //   uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
-      // }
+      for (let i = 0; i < sponsorsInput.length; i++) {
+        uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+      }
       const sponsorsFileList = await Promise.all(uploadPromises);
 
       let sponsorsIds = [];
@@ -126,8 +132,10 @@ export class EventResolver {
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
+      
+
       // Arrange data and save to database
-      const eventData = {
+      const eventData: Event = {
         ...input,
         ldo: findLdo._id,
         logo: logoUrl,
@@ -140,9 +148,25 @@ export class EventResolver {
       };
 
       const savedEvent = await this.eventService.create(eventData);
+
+      const eventUpdateObj: Partial<Event> = {};
+      if(multiplayerInput){
+        const multiplayer = await this.playerStatsService.proStatCreate({...multiplayerInput, event: savedEvent._id});
+        eventUpdateObj.multiplayer = multiplayer._id;
+      }
+      if(weightInput){
+        const weight = await this.playerStatsService.proStatCreate({...weightInput, event: savedEvent._id});
+        eventUpdateObj.weight = weight._id;
+      }
+      if(statsInput){
+        const stats = await this.playerStatsService.proStatCreate({...statsInput, event: savedEvent._id});
+        eventUpdateObj.stats = stats._id;
+      }
+
       await Promise.all([
         this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
         this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id }),
+        this.eventService.updateOne({_id: savedEvent._id}, eventUpdateObj),
       ]);
 
       return {
@@ -166,6 +190,9 @@ export class EventResolver {
     @Context() context: any,
     @Args('sponsorsStringInput', { nullable: true, type: () => [EventSponsorStringInput] })
     sponsorsStringInput?: EventSponsorStringInput[],
+    @Args('multiplayerInput', {nullable: true}) multiplayerInput?: UpdateProStatsInput,
+    @Args('weightInput', {nullable: true}) weightInput?: UpdateProStatsInput,
+    @Args('statsInput', {nullable: true}) statsInput?: UpdateProStatsInput,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ): Promise<CreateOrUpdateEventResponse> {
     try {
@@ -325,7 +352,19 @@ export class EventResolver {
         }
       }
 
-      await this.eventService.updateOne({ _id: eventId }, eventData);
+      // ===== Update Stats =====
+      const statsUpdatePromises = [];
+      if(multiplayerInput && Object.entries(multiplayerInput).length > 0){
+        statsUpdatePromises.push(this.playerStatsService.proStatUpdateOne({_id: eventExist.multiplayer}, multiplayerInput));
+      }
+      if(weightInput && Object.entries(weightInput).length > 0){
+        statsUpdatePromises.push(this.playerStatsService.proStatUpdateOne({_id: eventExist.weight}, weightInput));
+      }
+      if(statsInput && Object.entries(statsInput).length > 0){
+        statsUpdatePromises.push(this.playerStatsService.proStatUpdateOne({_id: eventExist.stats}, statsInput));
+      }
+
+      await Promise.all([...statsUpdatePromises, this.eventService.updateOne({ _id: eventId }, eventData)]);
       const updatedEvent = await this.eventService.findById(eventId);
 
       return {
@@ -491,6 +530,55 @@ export class EventResolver {
         success: true,
         message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
         data: { event, matches, teams, players, ldo, groups, rounds, nets, sponsors },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  @Query((__returns) => GetPlayerEventSettingResponse)
+  async getPlayerEventSetting(@Context() context: any, @Args('eventId', { nullable: true }) eventId: string) {
+    try {
+      // Return any one of them between player and event
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get user
+      const loggedUser = await this.userService.findById(userPayload._id);
+      if (!loggedUser) return AppResponse.unauthorized();
+
+      const teams = await this.teamService.find({ event: eventId });
+      if(loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain){
+        const playerExist = await this.playerService.findOne({$or: [{_id: loggedUser.captainplayer}, {_id: loggedUser.cocaptainplayer}]});
+        if(!playerExist) return AppResponse.notFound("Player");
+        return {
+          code: HttpStatus.OK,
+          success: true,
+          message: 'event, teams, ldo, sponsors, multiplayer, weight, stats',
+          data: { player: playerExist, teams },
+        };
+      }
+
+      // Assuming matchService is injected in your class
+      const [event, ldo, sponsors] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.ldoService.findOne({ events: { $in: [eventId] } }),
+        this.sponsorService.find({ event: eventId }),
+      ]);
+      
+      const [multiplayer, weight, stats] = await Promise.all([
+        this.playerStatsService.proStatFindOne({_id: event.multiplayer}),
+        this.playerStatsService.proStatFindOne({_id: event.weight}),
+        this.playerStatsService.proStatFindOne({_id: event.stats}),
+      ]);
+
+
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'event, teams, ldo, sponsors, multiplayer, weight, stats',
+        data: { event, teams, ldo, sponsors, multiplayer, weight, stats },
       };
     } catch (err) {
       return AppResponse.handleError(err);
