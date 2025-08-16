@@ -32,18 +32,19 @@ export class ReceivingHittingErrorHandler {
       this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        break: 1
+        break: 0.5
       });
 
       this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
         hittingOpportunity: 1,
-        broken: 1,
+        broken: -0.5,
       });
 
       this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
+        broken: -0.5,
       });
 
       /* 4️⃣ save the four player docs in parallel */

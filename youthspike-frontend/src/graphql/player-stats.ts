@@ -65,25 +65,25 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
       }
       playerstats {
         _id
-        break
-        broken
-        cleanHits
-        defensiveOpportunity
-        hittingCompletion
-        hittingOpportunity
-        match
-        matchPlayed
-        noTouchAcedCount
-        player
-        receivedCount
-        receiverOpportunity
+        serveOpportunity
         serveAce
         serveCompletionCount
-        serveOpportunity
         servingAceNoTouch
+        receiverOpportunity
+        receivedCount
+        noTouchAcedCount
         settingOpportunity
+        cleanSets
+        hittingOpportunity
+        cleanHits
+        defensiveOpportunity
         defensiveConversion
-        settingCompletion
+        break
+        broken
+        matchPlayed
+
+        player
+        match
       }
     }
   }

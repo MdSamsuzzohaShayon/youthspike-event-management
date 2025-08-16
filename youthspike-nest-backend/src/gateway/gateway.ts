@@ -235,7 +235,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.aceNoTouch.handle(client, aceNoTouchInput, this.roomsLocal);
   }
 
-  @SubscribeMessage('defensive-conversion-from-client')
+  @SubscribeMessage('server-defensive-conversion-from-client')
   async onDefensiveConversion(
     @ConnectedSocket() client: Socket,
     @MessageBody() defensiveConversionInput: DefensiveConversionInput,
@@ -267,7 +267,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.oneTwoThreePutAway.handle(client, oneTwoThreePutAwayInput, this.roomsLocal);
   }
 
-  @SubscribeMessage('rally-conversion-from-client')
+  @SubscribeMessage('receiver-defensive-conversion-from-client')
   async onRallyConversion(
     @ConnectedSocket() client: Socket,
     @MessageBody() rallyConversionInput: RallyConversionInput,

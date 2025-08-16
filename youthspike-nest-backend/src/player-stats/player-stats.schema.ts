@@ -44,15 +44,11 @@ export class PlayerStats extends AppDocument {
 
   @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
-  settingCompletion: number;
+  cleanSets: number;
 
   @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })
   hittingOpportunity: number;
-
-  @Field(() => Float, {nullable: true, defaultValue: 0})
-  @Prop({ default: 0 })
-  hittingCompletion: number;
 
   @Field(() => Float, {nullable: true, defaultValue: 0})
   @Prop({ default: 0 })

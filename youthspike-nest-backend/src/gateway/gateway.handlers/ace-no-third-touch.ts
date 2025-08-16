@@ -20,25 +20,27 @@ export class AceNoThirdTouchHandler {
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
 
       /* 2️⃣ load / initialise the four player stat docs */
-      const ids = [net.server, net.receiver, net.receivingPartner];
+      const ids = [net.server, net.receiver, net.servingPartner, net.receivingPartner];
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as []);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
       this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        serveAce: 1,
-        break: 1,
+        break: 0.5,
+      });
+      this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
+        broken: -0.5
       });
 
       this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
-        broken: 1,
+        broken: -0.5,
       });
 
       this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
-        settingOpportunity: 1,
+        broken: -0.5
       });
 
       /* 4️⃣ save the four player docs in parallel */

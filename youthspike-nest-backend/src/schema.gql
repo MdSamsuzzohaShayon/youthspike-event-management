@@ -26,9 +26,8 @@ type PlayerStats {
   receivedCount: Float
   noTouchAcedCount: Float
   settingOpportunity: Float
-  settingCompletion: Float
+  cleanSets: Float
   hittingOpportunity: Float
-  hittingCompletion: Float
   cleanHits: Float
   defensiveOpportunity: Float
   defensiveConversion: Float
@@ -953,9 +952,8 @@ type CustomPlayerStats {
   receivedCount: Float
   noTouchAcedCount: Float
   settingOpportunity: Float
-  settingCompletion: Float
+  cleanSets: Float
   hittingOpportunity: Float
-  hittingCompletion: Float
   cleanHits: Float
   defensiveOpportunity: Float
   defensiveConversion: Float

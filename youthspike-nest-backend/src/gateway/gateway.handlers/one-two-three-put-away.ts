@@ -32,7 +32,7 @@ export class OneTwoThreePutAwayHandler {
       this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        defensiveOpportunity: 0.5,
+        defensiveOpportunity: 1,
       });
 
       this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
@@ -43,16 +43,12 @@ export class OneTwoThreePutAwayHandler {
         receiverOpportunity: 1,
         receivedCount: 1,
         cleanHits: 1,
+        hittingOpportunity: 1,
       });
 
       this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
-        receiverOpportunity: 1,
-        receivedCount: 1,
         settingOpportunity: 1,
-        settingCompletion: 1,
-        hittingOpportunity: 1,
-        hittingCompletion: 1,
-        cleanHits: 1,
+        cleanSets: 1,
       });
 
       /* 4️⃣ save the four player docs in parallel */

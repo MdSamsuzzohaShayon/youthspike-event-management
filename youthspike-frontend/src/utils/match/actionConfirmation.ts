@@ -27,7 +27,7 @@ const actionConfirmation = (
 
     case EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION:
       if (receiver && net && room) {
-        emit.defensiveConversion({ match, net, room });
+        emit.serverDefensiveConversion({ match, net, room });
       }
       break;
 
@@ -57,7 +57,7 @@ const actionConfirmation = (
 
     case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:
       if (receiver && net && room) {
-        emit.rallyConversion({ match, net, room });
+        emit.receiverDefensiveConversion({ match, net, room });
       }
       break;
 

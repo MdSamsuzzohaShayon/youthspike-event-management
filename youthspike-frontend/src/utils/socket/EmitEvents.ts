@@ -625,14 +625,13 @@ class EmitEvents {
     this.socket?.emit("service-fault-from-client", actionData);
   }
 
-  defensiveConversion({
+  serverDefensiveConversion({
     match,
-    
     net,
     room,
   }: IDefensiveConversionInput) {
     const actionData = { match, net, room };
-    this.socket?.emit("defensive-conversion-from-client", actionData);
+    this.socket?.emit("server-defensive-conversion-from-client", actionData);
   }
 
   aceNoTouch({ match, net, room }: IAceNoTouchInput) {
@@ -657,7 +656,6 @@ class EmitEvents {
 
   receivingHittingError({
     match,
-    
     net,
     room,
   }: IReceivingHittingErrorInput) {
@@ -670,9 +668,9 @@ class EmitEvents {
     this.socket?.emit("one-two-three-put-away-from-client", actionData);
   }
 
-  rallyConversion({ match, net, room }: IRallyConversionInput) {
+  receiverDefensiveConversion({ match, net, room }: IRallyConversionInput) {
     const actionData = { match, net, room };
-    this.socket?.emit("rally-conversion-from-client", actionData);
+    this.socket?.emit("receiver-defensive-conversion-from-client", actionData);
   }
 
   updateCachePoints({ match, net, room, accessCode }: IUpdateCachePointsInput) {

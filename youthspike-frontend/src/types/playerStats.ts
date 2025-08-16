@@ -13,9 +13,8 @@ interface IPlayerCommonStats {
   receivedCount: number;
   noTouchAcedCount: number;
   settingOpportunity: number;
-  settingCompletion: number;
+  cleanSets: number;
   hittingOpportunity: number;
-  hittingCompletion: number;
   cleanHits: number;
   defensiveOpportunity: number;
   defensiveConversion: number;

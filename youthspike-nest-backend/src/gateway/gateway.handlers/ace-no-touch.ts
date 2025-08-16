@@ -39,7 +39,7 @@ export class AceNoTouchHandler {
       this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         noTouchAcedCount: 1,
-        broken: 1,
+        broken: -1,
       });
 
       /* 4️⃣ save the four player docs in parallel */
