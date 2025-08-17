@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
-import { PlayerStats } from './player-stats.schema';
+import { PlayerStats, ProStats } from './player-stats.schema';
 import { ConfigService } from '@nestjs/config';
 import { PlayerStatsService } from './player-stats.service';
 import { PlayersStatsResponse, PlayerStatsResponse, PlayerWithStatsResponse } from './player-stats.response';
@@ -11,6 +11,7 @@ import { MatchService } from 'src/match/match.service';
 import { NetService } from 'src/net/net.service';
 import { playerKey } from 'src/util/helper';
 import { RedisService } from 'src/redis/redis.service';
+import { EventService } from 'src/event/event.service';
 
 @Resolver((_of) => PlayerStats)
 export class PlayerStatsResolver {
@@ -21,6 +22,7 @@ export class PlayerStatsResolver {
     private netService: NetService,
     private playerStatsService: PlayerStatsService,
     private readonly redisService: RedisService,
+    private eventService: EventService,
     private configService: ConfigService,
   ) {}
 
@@ -63,6 +65,14 @@ export class PlayerStatsResolver {
         matches = null,
         nets = null,
         playerstats = [];
+
+      const eventExist = await this.eventService.findOne({ _id: { $in: player.events } });
+      
+      const [multiplayer, weight, stats] = await Promise.all([
+        this.playerStatsService.proStatFindOne({_id: eventExist.multiplayer}),
+        this.playerStatsService.proStatFindOne({_id: eventExist.weight}),
+        this.playerStatsService.proStatFindOne({_id: eventExist.stats}),
+      ]);
       // Get team of the players
       if (player.teams.length > 0) {
         team = await this.teamService.findOne({ _id: { $in: player.teams } });
@@ -84,14 +94,13 @@ export class PlayerStatsResolver {
 
             // Find updated player stats from redis
             playerstats = await Promise.all(nets.map((net) => this.redisService.get(playerKey(playerId, net._id)))); // Redis key: <player:id:net>
-            playerstats = playerstats.filter((ps)=> ps);
+            playerstats = playerstats.filter((ps) => ps);
 
-            if(!playerstats || playerstats.length === 0){
+            if (!playerstats || playerstats.length === 0) {
               // Check if there is already a record in mongodb or not, if there is a record do not create a new record from scratch
               playerstats = await this.playerStatsService.find({ player: playerId });
               await Promise.all(playerstats.map((ps) => this.redisService.set(playerKey(playerId, ps.net), ps)));
             }
-
           }
         }
       }
@@ -105,6 +114,9 @@ export class PlayerStatsResolver {
           playerstats,
           matches,
           nets,
+          multiplayer, 
+          weight, 
+          stats
         },
       };
     } catch (error) {

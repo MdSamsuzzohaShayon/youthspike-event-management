@@ -11,6 +11,8 @@ interface IActionHandlerProps {
   teamA: ITeam | null;
   teamB: ITeam | null;
   serverTeamE: null | ETeam;
+  awardTo: ETeam | null;
+  setAwardTo: React.Dispatch<React.SetStateAction<ETeam | null>>;
 }
 
 const ActionHandler: React.FC<IActionHandlerProps> = ({
@@ -19,6 +21,8 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   teamA,
   teamB,
   serverTeamE,
+  awardTo,
+  setAwardTo,
 }) => {
   // Generic click handler
   const handleAction =
@@ -94,59 +98,63 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   const servingTeam = serverTeamE === ETeam.teamA ? teamA : teamB;
   const receivingTeam = serverTeamE === ETeam.teamA ? teamB : teamA;
 
-  return (
-    <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-between items-start">
-      {/* Serving Team */}
-      <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <div className="flex items-center gap-3 w-full">
-          <div>{renderTeamLogo(servingTeam)}</div>
-          <div className="flex-1">
-            <h4 className="text-xs text-yellow-300 uppercase tracking-wider">
-              Serving Team
-            </h4>
-            <p className="font-semibold text-white truncate">
-              {servingTeam?.name ?? "—"}
-            </p>
-          </div>
-        </div>
-        {serverActions.map(({ label, value }) => (
-          <button
-            key={value}
-            className={`${
-              serverReceiverAction === value ? "btn-info" : "btn-light"
-            } uppercase`}
-            onClick={handleAction(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+  if (!awardTo) return null;
 
-      {/* Receiving Team */}
-      <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
-        <div className="flex items-center gap-3 w-full">
-          <div>{renderTeamLogo(receivingTeam)}</div>
-          <div className="flex-1">
-            <h4 className="text-xs text-yellow-300 uppercase tracking-wider">
-              Receiving Team
-            </h4>
-            <p className="font-semibold text-white truncate">
-              {receivingTeam?.name ?? "—"}
-            </p>
+  return (
+    <div className="bottom-side border-t border-yellow-logo mt-6 flex flex-col md:flex-row justify-center items-center">
+      {awardTo === serverTeamE ? (
+        // {/* Serving Team */}
+        <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
+          <div className="flex items-center gap-3 w-full">
+            <div>{renderTeamLogo(servingTeam)}</div>
+            <div className="flex-1">
+              <h4 className="text-xs text-yellow-300 uppercase tracking-wider">
+                Serving Team
+              </h4>
+              <p className="font-semibold text-white truncate">
+                {servingTeam?.name ?? "—"}
+              </p>
+            </div>
           </div>
+          {serverActions.map(({ label, value }) => (
+            <button
+              key={value}
+              className={`${
+                serverReceiverAction === value ? "btn-info" : "btn-light"
+              } uppercase`}
+              onClick={handleAction(value)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        {receiverActions.map(({ label, value }) => (
-          <button
-            key={value}
-            className={`${
-              serverReceiverAction === value ? "btn-info" : "btn-light"
-            } uppercase`}
-            onClick={handleAction(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      ) : (
+        // {/* Receiving Team */}
+        <div className="w-full md:w-2/6 flex flex-col gap-y-2 mt-6">
+          <div className="flex items-center gap-3 w-full">
+            <div>{renderTeamLogo(receivingTeam)}</div>
+            <div className="flex-1">
+              <h4 className="text-xs text-yellow-300 uppercase tracking-wider">
+                Receiving Team
+              </h4>
+              <p className="font-semibold text-white truncate">
+                {receivingTeam?.name ?? "—"}
+              </p>
+            </div>
+          </div>
+          {receiverActions.map(({ label, value }) => (
+            <button
+              key={value}
+              className={`${
+                serverReceiverAction === value ? "btn-info" : "btn-light"
+              } uppercase`}
+              onClick={handleAction(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

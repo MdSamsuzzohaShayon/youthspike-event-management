@@ -8,7 +8,12 @@ import DateInput from "../elements/DateInput";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
-import { IGetPlayerStats, IPlayerStats, IPlayerTotalStats } from "@/types";
+import {
+  IGetPlayerStats,
+  IPlayerStats,
+  IPlayerTotalStats,
+  IProStats,
+} from "@/types";
 import StatAddBox from "./StatAddBox";
 
 interface IPlayerStatsMainProps {
@@ -29,9 +34,22 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   if (error) console.error(error);
   if (!data?.getPlayerWithStats?.data) return <div>No data found</div>;
 
-  const { player, team, playerstats, matches, nets } =
-    data.getPlayerWithStats.data;
+  const {
+    player,
+    team,
+    playerstats,
+    matches,
+    nets,
+    multiplayer,
+    weight,
+    stats,
+  } = data.getPlayerWithStats.data;
   const totalGames = playerstats?.length || 0;
+
+  console.log({    multiplayer,
+    weight,
+    stats,});
+  
 
   const [filter, setFilter] = useState<Partial<IFilter>>({});
 
@@ -102,12 +120,45 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     return totals;
   }, [matches, playerstats, filter]);
 
-  const proScore: number = useMemo(()=>{
+  const proScore: number = useMemo(() => {
+    const fields: (keyof IProStats)[] = [
+      "acePercentage",
+      "defensiveConversionPercentage",
+      "hittingPercentage",
+      "receivingPercentage",
+      "servingPercentage",
+      "settingPercentage",
+    ];
+  
+    const total = fields.reduce((sum, key) => {
+      // Handle case when multiplayer/weight/stats themselves are null
+      const m = (multiplayer?.[key] ?? 0) as number;
+      const w = (weight?.[key] ?? 0) as number;
+      const s = (stats?.[key] ?? 0) as number;
 
-    // Actual contribution
-    
-    return 0;
-  }, []);
+      return sum + m * w * s;
+    }, 0);
+  
+    return total * 10;
+  }, [multiplayer, weight, stats]);
+  
+
+  const { noOfGamesPlayed, noOfGamesWon } = useMemo(() => {
+    const playerId = player._id;
+    let noOfGamesWon = 0;
+    for (const n of nets) {
+      if (n.teamAPlayerA === playerId || n.teamAPlayerB === playerId) {
+        if (n.teamAScore && n.teamBScore && n.teamAScore > n.teamBScore) {
+          noOfGamesWon++;
+        }
+      } else if (n.teamBPlayerA === playerId || n.teamBPlayerB === playerId) {
+        if (n.teamBScore && n.teamAScore && n.teamBScore > n.teamAScore) {
+          noOfGamesWon++;
+        }
+      }
+    }
+    return { noOfGamesPlayed: nets.length, noOfGamesWon };
+  }, [player, nets]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -311,8 +362,8 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             <div className="space-y-4">
               <StatBox
                 label="win %  (overall filter)  point"
-                value={playerTotalStats.serveCompletionCount}
-                total={playerTotalStats.serveOpportunity}
+                value={noOfGamesWon}
+                total={noOfGamesPlayed}
               />
             </div>
           </div>

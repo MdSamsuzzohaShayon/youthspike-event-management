@@ -38,6 +38,7 @@ const SettingsMain = ({ queryRef, eventId }: ISettingsMainProps) => {
     if (sponsors) eventObj.sponsors = sponsors;
   }
   
+  console.log({eventObj});
   
 
   return (

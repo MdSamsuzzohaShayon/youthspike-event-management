@@ -544,7 +544,7 @@ export class EventResolver {
       const userPayload = tokenToUser(context, secret);
 
       // Get user
-      const loggedUser = await this.userService.findById(userPayload._id);
+      const loggedUser = await this.userService.findById(userPayload?._id);
       if (!loggedUser) return AppResponse.unauthorized();
 
       const teams = await this.teamService.find({ event: eventId });

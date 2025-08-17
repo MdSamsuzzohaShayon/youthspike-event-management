@@ -80,6 +80,7 @@ export default function ServerReceiver({
   const [serverReceiverAction, setServerReceiverAction] =
     useState<EServerReceiverAction | null>(null);
   const [toBeSelectedPlay, setToBeSelectedPlay] = useState<number | null>(null); // Selected playId before confirmation
+  const [awardTo, setAwardTo] = useState<ETeam | null>(null);
 
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
@@ -427,6 +428,8 @@ export default function ServerReceiver({
                   teamAPlayers={teamAPlayers}
                   teamB={teamB || null}
                   teamBPlayers={teamBPlayers}
+                  awardTo={awardTo}
+                  setAwardTo={setAwardTo}
                   key="sb-1"
                 />
               </div>
@@ -462,6 +465,8 @@ export default function ServerReceiver({
                 teamAPlayers={teamAPlayers}
                 teamB={teamB || null}
                 teamBPlayers={teamBPlayers}
+                awardTo={awardTo}
+                setAwardTo={setAwardTo}
                 key="sb-2"
               />
               {serverReceiverAction && (
@@ -484,6 +489,8 @@ export default function ServerReceiver({
               teamA={teamA || null}
               teamB={teamB || null}
               serverTeamE={serverTeamE}
+              awardTo={awardTo}
+              setAwardTo={setAwardTo}
             />
           </div>
 

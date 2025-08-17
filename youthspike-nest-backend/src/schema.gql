@@ -971,6 +971,9 @@ type PlayerStatsDetails {
   playerstats: [CustomPlayerStats!]!
   matches: [CustomMatch!]
   nets: [CustomNet!]
+  multiplayer: ProStats
+  weight: ProStats
+  stats: ProStats
 }
 
 type PlayerWithStatsResponse {

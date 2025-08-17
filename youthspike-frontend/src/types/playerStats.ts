@@ -32,10 +32,27 @@ export interface IPlayerStats extends IPlayerCommonStats {
   player: string | IPlayer;
 }
 
+interface IProStatsCommon {
+  servingPercentage: number; // serving %
+  acePercentage: number; // Ace %
+  receivingPercentage: number; // Receiving %
+  hittingPercentage: number; // Hiting %
+  settingPercentage: number; // Setting %
+  defensiveConversionPercentage: number; // DC%
+}
+
+export interface IProStats extends IProStatsCommon {
+  _id: string;
+  event: string;
+}
+
 export interface IGetPlayerStats {
   player: IPlayer;
   team: ITeam;
   playerstats: IPlayerStats[];
   matches: IMatch[];
   nets: INetRelatives[];
+  multiplayer: IProStats;
+  weight: IProStats;
+  stats: IProStats;
 }

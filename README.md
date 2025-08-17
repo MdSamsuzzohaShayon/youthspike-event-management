@@ -399,6 +399,5 @@ ___
 
 
 ### Ask
- - Plaase reply all those comments I have made in the to-do list
- - This is hours for last two days, jan 22 is not over yet, it is night, from the morning I will work more than 7 or 8 hours.
-**Note**: This project is under active development. Refer to the [Todo list](https://docs.google.com/spreadsheets/d/1mEpOy7_pZP7rRUBMhi5c6kd33tDWt6QBoZ-fMm1P4JQ/edit#gid=1386834576) for current priorities.
+ - Whatever issues you found just create a short video on that and send me. Videos helps me more rather than a video call, since we can rewatch the video to understand better. 
+ I have updated player stats and other staff. Most hard work is done with player stats, now we can update easily. Additionally, you can introduce new feature if you want. I am going to bed now, I feel very sleepy, it would be better for me if we do a video call at the morning if neceessary (5-6 hours latter). If it is necessary I can still talk via video call

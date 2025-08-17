@@ -85,6 +85,34 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         player
         match
       }
+
+      multiplayer{
+        _id
+        acePercentage
+        defensiveConversionPercentage
+        hittingPercentage
+        receivingPercentage
+        servingPercentage
+        settingPercentage
+      }
+      weight{
+        _id
+        acePercentage
+        defensiveConversionPercentage
+        hittingPercentage
+        receivingPercentage
+        servingPercentage
+        settingPercentage
+      }
+      stats{
+        _id
+        acePercentage
+        defensiveConversionPercentage
+        hittingPercentage
+        receivingPercentage
+        servingPercentage
+        settingPercentage
+      }
     }
   }
 }`;

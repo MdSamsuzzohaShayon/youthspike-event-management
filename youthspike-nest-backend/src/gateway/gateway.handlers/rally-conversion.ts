@@ -32,15 +32,13 @@ export class RallyConversionHandler {
       this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        defensiveOpportunity: 1,
-        defensiveConversion: 1,
-        break: 0.5
+        defensiveOpportunity: 2,
+        defensiveConversion: 1
       });
 
       this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
-        defensiveOpportunity: 1,
-        defensiveConversion: 1,
-        break: 0.5
+        defensiveOpportunity: 2,
+        defensiveConversion: 1
       });
       
       this.scoreKeeperHelper.increment(stats[net.receiver as string], {
@@ -48,13 +46,13 @@ export class RallyConversionHandler {
         receivedCount: 1,
         hittingOpportunity: 1,
         defensiveOpportunity: 1,
-        broken: -0.5
+        defensiveConversion: 1
       });
 
       this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
         defensiveOpportunity: 1,
-        broken: -0.5
+        defensiveConversion: 1
       });
 
       /* 4️⃣ save the four player docs in parallel */

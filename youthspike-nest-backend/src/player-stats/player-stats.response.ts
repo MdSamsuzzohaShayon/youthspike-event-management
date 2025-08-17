@@ -1,6 +1,6 @@
 import { Field, ObjectType } from "@nestjs/graphql";
 import { AppResponse } from "src/shared/response";
-import { PlayerStats } from "./player-stats.schema";
+import { PlayerStats, ProStats } from "./player-stats.schema";
 import { CustomPlayer } from "src/player/player.response";
 import { CustomTeam } from "src/match/match.response";
 import { CustomMatch, CustomNet } from "src/team/team.response";
@@ -44,6 +44,17 @@ export class PlayerStatsDetails {
 
   @Field((_type) => [CustomNet], { nullable: true })
   nets: CustomNet[];
+
+// multiplayer, weight, stats
+  @Field((_type) => ProStats, { nullable: true })
+  multiplayer: ProStats;
+
+  @Field((_type) => ProStats, { nullable: true })
+  weight: ProStats;
+
+
+  @Field((_type) => ProStats, { nullable: true })
+  stats: ProStats;
 
 }
 

@@ -31,13 +31,13 @@ export class DefensiveConversionHandler {
       this.scoreKeeperHelper.increment(stats[net.server  as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        defensiveOpportunity: 2,
+        defensiveOpportunity: 1,
         defensiveConversion: 1,
         break: 0.5
       });
 
       this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
-        defensiveOpportunity: 2,
+        defensiveOpportunity: 1,
         defensiveConversion: 1,
         break: 0.5
       });

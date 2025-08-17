@@ -1,8 +1,6 @@
+"use client";
 
-
-'use client'
-
-import React, { Suspense, useMemo } from "react";
+import React, { Suspense } from "react";
 import { IAccessCode, IMatchExpRel } from "@/types";
 import AccessCodeForm from "@/components/ScoreKeeping/AccessCodeForm";
 import ServerReceiver from "@/components/ScoreKeeping/ServerReceiver";
@@ -12,18 +10,18 @@ import { QueryRef, useReadQuery } from "@apollo/client";
 import { useUser } from "@/lib/UserProvider";
 
 interface IScoreKeepingMainProps {
-    accessCode: IAccessCode | null;
-    accessCodeList: IAccessCode[];
-    queryRef: QueryRef<{getMatch: {data: IMatchExpRel}}>;
+  queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
+  accessCodeList: IAccessCode[];
+  accessCode: IAccessCode | null;
 }
-async function ScoreKeepingMain({queryRef, accessCode, accessCodeList}: IScoreKeepingMainProps) {
+function ScoreKeepingMain({ queryRef, accessCode, accessCodeList }: IScoreKeepingMainProps) {
+  const { data, error } = useReadQuery(queryRef);
+  
+  const user = useUser();
 
-    const {data, error} = useReadQuery(queryRef);
-    const user = useUser();
+  const { token, info } = user;
 
-    // Memoization
-    const match = useMemo(() => data?.getMatch?.data, [data]);
-
+  const matchData = data.getMatch.data;
 
   // Get round list, match, room, nets
   const renderHeadings = () => {
@@ -35,7 +33,7 @@ async function ScoreKeepingMain({queryRef, accessCode, accessCodeList}: IScoreKe
 
         <div className="text-center mb-6">
           <Link
-            href={`/matches/${match._id}`}
+            href={`/matches/${matchData._id}`}
             className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
           >
             ← Go back to match
@@ -43,7 +41,7 @@ async function ScoreKeepingMain({queryRef, accessCode, accessCodeList}: IScoreKe
         </div>
       </>
     );
-  };
+  }
 
   if (!accessCode) {
     return (
@@ -52,7 +50,10 @@ async function ScoreKeepingMain({queryRef, accessCode, accessCodeList}: IScoreKe
           {renderHeadings()}
 
           <div className="access-code">
-            <AccessCodeForm matchId={match._id} accessCodes={accessCodeList} />
+            <AccessCodeForm
+              matchId={matchData._id}
+              accessCodes={accessCodeList}
+            />
           </div>
         </div>
       </div>
@@ -60,25 +61,23 @@ async function ScoreKeepingMain({queryRef, accessCode, accessCodeList}: IScoreKe
   }
 
   return (
-    <div className="w-full min-h-screen">
-      <div className="container mx-auto px-4 py-10">
-        {renderHeadings()}
-        <div className="server-receiver-wrapper">
-          {/* or whatever height you need */}
-          <Suspense fallback={<Loader />}>
-            {match && (
-              <ServerReceiver
-                matchId={match._id}
-                matchData={match}
-                accessCode={accessCode}
-                token={user?.token || null}
-                userInfo={user.info}
-              />
-            )}
-          </Suspense>
-        </div>
+    <React.Fragment>
+      {renderHeadings()}
+      <div className="server-receiver-wrapper">
+        {/* Whatever height you need */}
+        <Suspense fallback={<Loader />}>
+          {matchData && (
+            <ServerReceiver
+              matchId={matchData._id}
+              matchData={matchData}
+              accessCode={accessCode}
+              token={token || null}
+              userInfo={info}
+            />
+          )}
+        </Suspense>
       </div>
-    </div>
+    </React.Fragment>
   );
 }
 
