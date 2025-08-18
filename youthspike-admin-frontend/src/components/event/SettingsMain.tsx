@@ -21,30 +21,19 @@ const SettingsMain = ({ queryRef, eventId }: ISettingsMainProps) => {
   // Read query data from Apollo (Suspense friendly)
   const { data } = useReadQuery(queryRef);
 
-  const {
-    event,
-    ldo,
-    sponsors,
-    teams,
-    multiplayer,
-    weight,
-    stats,
-    player,
-  } = data?.getPlayerEventSetting?.data ?? {};
+  const { event, ldo, sponsors, teams, multiplayer, weight, stats, player } = data?.getPlayerEventSetting?.data ?? {};
 
   const eventObj: IEvent | null = event ? { ...event } : null;
   if (eventObj) {
     // @ts-ignore
     if (sponsors) eventObj.sponsors = sponsors;
   }
-  
-  console.log({eventObj});
-  
 
   return (
     <div className="event-player-action mb-10">
       <h1 className="text-3xl font-bold text-center mb-8">{user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? 'Update Captain' : 'Update Event'}</h1>
 
+      {!player && !eventObj && <p>No data found</p>}
       {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain
         ? player && teams && <PlayerAdd eventId={eventId} update prevPlayer={player} teamList={teams} />
         : eventObj && <EventAddUpdate update prevEvent={eventObj} prevMultiplayer={multiplayer} prevWight={weight} prevStats={stats} />}

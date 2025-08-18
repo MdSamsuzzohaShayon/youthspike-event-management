@@ -226,6 +226,7 @@ export default function ServerReceiver({
       currRoom?._id || null
     );
     setServerReceiverAction(null);
+    setAwardTo(null);
   };
 
   const openResetConfirm = () => {

@@ -251,6 +251,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput);
   }
 
+  // Spiking error
   @SubscribeMessage('receiving-hitting-error-from-client')
   async onReceivingHittingError(
     @ConnectedSocket() client: Socket,
@@ -259,6 +260,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.receivingHittingError.handle(client, receivingHittingErrorInput, this.roomsLocal);
   }
 
+  // Receiving point
   @SubscribeMessage('one-two-three-put-away-from-client')
   async onOneTwoThreePutAway(
     @ConnectedSocket() client: Socket,
