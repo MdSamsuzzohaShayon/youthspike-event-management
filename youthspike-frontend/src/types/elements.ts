@@ -143,6 +143,12 @@ export enum EMessage{
   INFO = "INFO",
   SUCCESS = "SUCCESS",
 }
+
+export enum EView{
+  ALL_NETS= "ALL_NETS",
+  ROUND= "ROUND",
+  NET= "NET",
+}
 export interface IMessage {
   message?: string;
   type?: EMessage;

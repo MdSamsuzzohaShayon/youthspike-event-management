@@ -27,7 +27,7 @@ cocaptain {
   profile
   email
 }
-        `;
+`;
 
 const teamRanking = `
 _id

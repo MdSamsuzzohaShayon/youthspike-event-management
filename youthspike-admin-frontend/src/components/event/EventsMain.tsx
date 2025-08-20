@@ -51,7 +51,8 @@ function EventsMain({queryRef}: IEventsMainProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
    // Read query data from Apollo (Suspense friendly)
-   const { data } = useReadQuery(queryRef);
+   const { data, error } = useReadQuery(queryRef);
+
 
    const ldo = data?.getEventDirector?.data?.director;
    const events = data?.getEventDirector?.data?.events ?? [];
