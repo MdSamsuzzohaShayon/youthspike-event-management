@@ -710,30 +710,9 @@ type GetTeamstandingsResponse {
   data: Teamstandings
 }
 
-type GetMatchesResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: [Match!]!
-}
-
-type GetMatchResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Match
-}
-
 type AccessCode {
   accessCode: String!
   match: String!
-}
-
-type GetAccessCodeResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: AccessCode
 }
 
 type CustomTeam {
@@ -777,13 +756,6 @@ type EventMatches {
   groups: [CustomGroup!]!
   nets: [CustomNet!]!
   rounds: [CustomRound!]!
-}
-
-type GetEventWithMatchesResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: EventMatches
 }
 
 type CreateOrUpdateEventResponse {
@@ -995,9 +967,6 @@ type Query {
   getTeam(teamId: String!): GetTeamResponse!
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
   getTeamStandings(eventId: String!): GetTeamstandingsResponse!
-  getMatches(filter: FilterQueryInput): GetMatchesResponse!
-  getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
-  getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
   getNets(roundId: String!): GetNetsResponse!
   getNet(netId: String!): Net!
@@ -1015,25 +984,6 @@ type Query {
   getPlayerWithStats(playerId: String!): PlayerWithStatsResponse!
 }
 
-input FilterQueryInput {
-  _id: String
-  event: String
-  teamA: String
-  teamB: String
-  divisions: String
-  numberOfNets: Float
-  numberOfRounds: Float
-  playerLimit: Int
-  netVariance: Int
-  homeTeam: String
-  autoAssign: Boolean
-  autoAssignLogic: String
-  rosterLock: String
-  timeout: Int
-  description: String
-  location: String
-}
-
 type Mutation {
   login(email: String!, password: String!, passcode: String): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUser!, profile: Upload): UserResponse!
@@ -1045,11 +995,6 @@ type Mutation {
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
   deleteTeams(teamIds: [String!]!): CreateOrUpdateTeamResponse!
-  createMatch(input: CreateMatchInput!): GetMatchResponse!
-  updateMatch(input: UpdateMatchInput!, matchId: String!): GetMatchResponse!
-  deleteMatch(matchId: String!): GetMatchResponse!
-  accessCodeValidation(input: AccessCodeInput!): GetAccessCodeResponse!
-  deleteMatches(matchIds: [String!]!): GetMatchResponse!
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
@@ -1183,55 +1128,6 @@ input UpdateTeamInput {
   players: [ID!]
   cocaptain: String
   email: String
-}
-
-input CreateMatchInput {
-  event: String!
-  date: String!
-  teamA: String
-  teamB: String
-  division: String!
-  group: String
-  numberOfNets: Float
-  numberOfRounds: Float
-  netVariance: Int
-  tieBreaking: String
-  homeTeam: String
-  autoAssign: Boolean
-  autoAssignLogic: String
-  rosterLock: String
-  timeout: Int
-  description: String!
-  location: String
-  accessCode: String
-  fwango: String
-}
-
-input UpdateMatchInput {
-  event: String
-  date: String
-  teamA: String
-  teamB: String
-  division: String
-  group: String
-  numberOfNets: Float
-  numberOfRounds: Float
-  netVariance: Int
-  tieBreaking: String
-  homeTeam: String
-  autoAssign: Boolean
-  autoAssignLogic: String
-  rosterLock: String
-  timeout: Int
-  description: String
-  location: String
-  accessCode: String
-  fwango: String
-}
-
-input AccessCodeInput {
-  accessCode: String!
-  matchId: String!
 }
 
 input UpdateRoundInput {

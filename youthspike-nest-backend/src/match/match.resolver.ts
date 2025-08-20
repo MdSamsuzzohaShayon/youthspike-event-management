@@ -1,768 +1,128 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
-import { Roles } from 'src/shared/auth/roles.decorator';
-import { AppResponse } from 'src/shared/response';
-import { EventService } from 'src/event/event.service';
-import { MatchService } from './match.service';
-import { NetService } from 'src/net/net.service';
-import { RoundService } from 'src/round/round.service';
-import { TeamService } from 'src/team/team.service';
-import { UserRole } from 'src/user/user.schema';
-import { Match } from './match.schema';
-import { AccessCodeInput, CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
-import { RoomService } from 'src/room/room.service';
-import { ETieBreaker, Net } from 'src/net/net.schema';
 import { HttpStatus, UseGuards } from '@nestjs/common';
+import { Roles } from 'src/shared/auth/roles.decorator';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
-import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
-import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { PlayerService } from 'src/player/player.service';
-import { GroupService } from 'src/group/group.service';
-import {
-  GetAccessCodeResponse,
-  GetEventWithMatchesResponse,
-  GetMatchesResponse,
-  GetMatchResponse,
-} from './match.response';
-import { LdoService } from 'src/ldo/ldo.service';
-import { netKey, singlePlayKey } from 'src/util/helper';
-import { RedisService } from 'src/redis/redis.service';
-import {
-  EServerPositionPair,
-  EServerReceiverAction,
-  ServerReceiverOnNet,
-  ServerReceiverSinglePlay,
-} from 'src/server-receiver-on-net/server-receiver-on-net.schema';
-import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
+import { UserRole } from 'src/user/user.schema';
+import { Round } from 'src/round/round.schema';
+import { Net } from 'src/net/net.schema';
 
-@Resolver((_of) => Match)
+
+import { MatchMutations } from './match.mutations';
+import { MatchQueries } from './match.queries';
+import { Match } from './match.schema';
+import { MatchResolveFields } from './match.resolve.fields';
+import { GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './match.response';
+import { AccessCodeInput, CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './match.input';
+
+@Resolver(() => Match)
 export class MatchResolver {
   constructor(
-    private readonly matchService: MatchService,
-    private readonly teamService: TeamService,
-    private readonly eventService: EventService,
-    private readonly roundService: RoundService,
-    private readonly netService: NetService,
-    private readonly serverReceiverOnNetService: ServerReceiverOnNetService,
-    private readonly roomService: RoomService,
-    private readonly playerService: PlayerService,
-    private readonly playerRankingService: PlayerRankingService,
-    private readonly groupService: GroupService,
-    private readonly ldoService: LdoService,
-    private readonly redisService: RedisService,
+    private readonly mutations: MatchMutations,
+    private readonly queries: MatchQueries,
+    private readonly fields: MatchResolveFields,
   ) {}
-  // ===== Healper Functions =====
-  private async getNetData(match: Match) {
-    const matchId = match._id.toString();
-    const netList = await this.netService.find({ match: matchId });
-    if (!netList.length) return { netList: [], netIds: [] };
-    return {
-      netList,
-      netIds: netList.map((net) => net._id.toString()),
-    };
-  }
 
-  private async getServerReceiverCachedData<T>(
-    keys: string[],
-    netIds: string[],
-  ): Promise<{ cached: ServerReceiverOnNet[]; missedIds: string[] }> {
-    const redisResults = await Promise.all(keys.map((key) => this.redisService.get<ServerReceiverOnNet>(key)));
-
-    const cached: ServerReceiverOnNet[] = [];
-    const cachedNetIdSet: Set<string> = new Set();
-
-    redisResults.forEach((result) => {
-      if (result) {
-        cached.push(result);
-        cachedNetIdSet.add(result?.net?.toString() || '');
-      }
-    });
-
-    const missedIds = netIds.filter((netId) => !cachedNetIdSet.has(netId.toString()));
-
-    return { cached, missedIds };
-  }
-
-  private async getPlayCachedData<T>(
-    keys: string[],
-    netIds: string[],
-  ): Promise<{ cached: ServerReceiverSinglePlay[]; missedIds: string[] }> {
-    const redisResults = await Promise.all(keys.map((key) => this.redisService.get<ServerReceiverSinglePlay>(key)));
-
-    const cached: ServerReceiverSinglePlay[] = [];
-    const cachedNetIdSet: Set<string> = new Set();
-
-    redisResults.forEach((result) => {
-      if (result) {
-        cached.push(result);
-        cachedNetIdSet.add(result?.net?.toString() || '');
-      }
-    });
-
-    const missedIds = netIds.filter((netId) => !cachedNetIdSet.has(netId.toString()));
-
-    return { cached, missedIds };
-  }
-
-  async deleteSingle(matchExist: Match) {
-    const updatePromises = [];
-    const roundIds = matchExist.rounds.map((m) => m.toString());
-    if (roundIds.length > 0) {
-      updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
-    }
-    const netIds = matchExist.nets.map((n) => n.toString());
-    if (netIds.length > 0) {
-      updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
-    }
-
-    updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
-    updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
-    updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
-    updatePromises.push(this.matchService.delete({ _id: matchExist._id }));
-    await Promise.all(updatePromises);
-  }
-
-  private async getTeamRanking(
-    match: Match,
-    teamId: string,
-    rankingId: string,
-    rankingField: string,
-  ): Promise<PlayerRanking> {
-    try {
-      let playerRanking = await this.playerRankingService.findOne({ _id: rankingId });
-      if (!playerRanking) {
-        const teamExist = await this.teamService.findOne({ _id: teamId });
-        const playerList = await this.playerService.find({ _id: { $in: teamExist.players } });
-        const rankingData = {
-          rankLock: false,
-          team: teamExist._id,
-          rankings: [],
-          match: match._id,
-        };
-        const rankings = [];
-        for (let pi = 0; pi < playerList.length; pi += 1) {
-          rankings.push({ player: playerList[pi]._id, rank: pi + 1 });
-        }
-        rankingData.rankings = rankings;
-        playerRanking = await this.playerRankingService.create(rankingData);
-        await Promise.all([
-          this.teamService.updateOne({ _id: teamExist._id }, { $addToSet: { playerRankings: playerRanking._id } }),
-          this.matchService.updateOne({ _id: match._id }, { $set: { [rankingField]: playerRanking._id } }),
-        ]);
-      }
-      return playerRanking;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
-  }
-
-  // ===== Mutations Functions =====
+  // ==================== Mutations ====================
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetMatchResponse)
+  @Mutation(() => GetMatchResponse)
   async createMatch(@Args('input') input: CreateMatchInput): Promise<GetMatchResponse> {
-    try {
-      const eventExist = await this.eventService.findById(input.event.toString());
-      if (!eventExist) return AppResponse.notFound('Event');
-
-      const netIds = [];
-      const roundIds = [];
-      const playerIds = [];
-
-      const createPromises = [];
-
-      if (!input.division || !eventExist.divisions.toLowerCase().includes(input.division.trim().toLowerCase())) {
-        return AppResponse.notFound('Event');
-      }
-
-      // ===== Set Event default value ====
-      // Prepare defaults based on the event
-      const matchObj: Match = {
-        ...input,
-        completed: false,
-        nets: [],
-        rounds: [],
-        numberOfNets: input.numberOfNets ?? eventExist.nets,
-        numberOfRounds: input.numberOfRounds ?? eventExist.rounds,
-        netVariance: input.netVariance ?? eventExist.netVariance,
-        homeTeam: input.homeTeam ?? eventExist.homeTeam,
-        autoAssign: input.autoAssign ?? eventExist.autoAssign,
-        autoAssignLogic: input.autoAssignLogic ?? eventExist.autoAssignLogic,
-        rosterLock: input.rosterLock ?? eventExist.rosterLock,
-        timeout: input.timeout ?? eventExist.timeout,
-        description: input.description ?? eventExist.description,
-        location: input.location ?? eventExist.location,
-        accessCode: input.accessCode ?? eventExist.accessCode,
-        fwango: input.fwango ?? eventExist.fwango,
-        extendedOvertime: false,
-      };
-
-      // Create a new room
-      const newRoom = await this.roomService.create({ teamA: input.teamA, teamB: input.teamB });
-      matchObj.room = newRoom._id;
-
-      // Create the match
-      const newMatch = await this.matchService.create(matchObj);
-
-      // ===== Create new ranking for team A and team B =====
-      const [teamARanking, teamBRanking] = await Promise.all([
-        this.playerRankingService.findOne({
-          team: input.teamA,
-          $or: [
-            { match: { $exists: false } }, // `match` is undefined
-            { match: null }, // `match` is null
-          ],
-        }),
-        this.playerRankingService.findOne({
-          team: input.teamB,
-          $or: [
-            { match: { $exists: false } }, // `match` is undefined
-            { match: null }, // `match` is null
-          ],
-        }),
-      ]);
-      if (!teamARanking || !teamBRanking) return AppResponse.notFound('Player Ranking');
-
-      const [teamAItems, teamBItems] = await Promise.all([
-        this.playerRankingService.findItems({ playerRanking: teamARanking._id }),
-        this.playerRankingService.findItems({ playerRanking: teamBRanking._id }),
-      ]);
-
-      // Create rounds and nets
-      const teamARankings = [],
-        teamBRankings = [];
-
-      for (let i = 0; i < teamAItems.length; i += 1) {
-        teamARankings.push({ player: teamAItems[i].player, rank: teamAItems[i].rank });
-      }
-
-      for (let i = 0; i < teamBItems.length; i += 1) {
-        teamBRankings.push({ player: teamBItems[i].player, rank: teamBItems[i].rank });
-      }
-
-      const [newTeamARanking, newTeamBRanking] = await Promise.all([
-        this.playerRankingService.create({
-          rankings: teamARankings,
-          rankLock: false,
-          team: input.teamA,
-          match: newMatch._id,
-        }),
-        this.playerRankingService.create({
-          rankings: teamBRankings,
-          rankLock: false,
-          team: input.teamB,
-          match: newMatch._id,
-        }),
-      ]);
-
-      await Promise.all([
-        this.teamService.updateOne({ _id: input.teamA }, { $addToSet: { playerRankings: newTeamARanking._id } }),
-        this.teamService.updateOne({ _id: input.teamB }, { $addToSet: { playerRankings: newTeamBRanking._id } }),
-        // Match update
-        this.matchService.updateOne(
-          { _id: newMatch._id },
-          { teamARanking: newTeamARanking._id, teamBRanking: newTeamBRanking._id },
-        ),
-      ]);
-
-      let firstPlacing = ETeam.teamA;
-      // ===== Create Round and nets inside a round =====
-      for (let i = 0; i < input.numberOfRounds; i += 1) {
-        const netObjs = [];
-        const newRound = {
-          match: newMatch._id,
-          num: i + 1,
-          nets: [], // Will be populated later
-          players: playerIds,
-          teamAProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN, // From the second round captain does not need to check in once again
-          teamBProcess: i === 0 ? EActionProcess.INITIATE : EActionProcess.CHECKIN,
-          subs: [],
-          firstPlacing,
-          completed: false,
-        };
-        const round = await this.roundService.create(newRound);
-        firstPlacing = firstPlacing === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
-        roundIds.push(round._id);
-
-        // ===== Create net =====
-        for (let j = 0; j < input.numberOfNets; j += 1) {
-          const netObj = {
-            match: newMatch._id,
-            round: round._id,
-            num: j + 1,
-            points: 1,
-            // For last round net make points more than 1
-            netType: input.numberOfRounds === i + 1 ? ETieBreaker.FINAL_ROUND_NET : ETieBreaker.PREV_NET,
-            teamAScore: null,
-            teamBScore: null,
-            pairRange: 0,
-          };
-          netObjs.push(netObj);
-        }
-
-        const nets = await this.netService.createMany(netObjs);
-        const netIdsOfRound = nets.map((n) => n._id);
-        netIds.push(...netIdsOfRound);
-
-        // Update the nets field in the created round
-        createPromises.push(this.roundService.updateOne({ _id: round._id }, { nets: netIdsOfRound }));
-      }
-      createPromises.push(
-        this.teamService.updateMany(
-          { _id: { $in: [input.teamA, input.teamB] } },
-          { $addToSet: { matches: newMatch._id } },
-        ),
-      );
-
-      createPromises.push(this.roomService.updateOne({ _id: newRoom._id }, { match: newMatch._id }));
-      createPromises.push(this.eventService.updateOne({ _id: input.event }, { $addToSet: { matches: newMatch._id } }));
-      createPromises.push(this.matchService.updateOne({ _id: newMatch._id }, { nets: netIds, rounds: roundIds }));
-
-      await Promise.all(createPromises);
-      await this.eventService.findOne({ _id: input.event });
-
-      return {
-        data: newMatch,
-        code: HttpStatus.CREATED,
-        success: true,
-        message: 'Match Created successfully!',
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
+    return this.mutations.createMatch(input);
   }
+
+
+  
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetMatchResponse)
-  async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
-    try {
-      const updatedMatch = await this.matchService.updateOne({ _id: matchId }, input);
-      return {
-        data: updatedMatch ?? null,
-        message: 'Match Updated successfully!',
-        code: HttpStatus.ACCEPTED,
-        success: true,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director)
-  @Mutation((_returns) => GetMatchResponse)
+  @Mutation(() => GetMatchResponse)
   async deleteMatch(@Args('matchId') matchId: string) {
-    try {
-      const matchExist = await this.matchService.findById(matchId);
-      if (!matchExist) return AppResponse.notFound('Match');
-
-      await this.deleteSingle(matchExist);
-      return {
-        data: null,
-        code: HttpStatus.NO_CONTENT,
-        message: 'Match Deleted successfully!',
-        success: true,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
-  }
-
-  @Mutation((_returns) => GetAccessCodeResponse)
-  async accessCodeValidation(@Args('input') input: AccessCodeInput) {
-    try {
-      // Get user detail
-      // Match with
-      const matchExist = await this.matchService.findOne({ _id: input.matchId, accessCode: input.accessCode });
-      if (!matchExist) return AppResponse.notFound('Match');
-
-      // Response with access code and role
-      return {
-        data: { accessCode: input.accessCode, match: input.matchId },
-        code: HttpStatus.OK,
-        message: 'Match Deleted successfully!',
-        success: true,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
+    return this.mutations.deleteMatch(matchId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((_returns) => GetMatchResponse)
+  @Mutation(() => GetMatchResponse)
   async deleteMatches(@Args('matchIds', { type: () => [String] }) matchIds: string[]) {
-    try {
-      const deletePromises = [];
-      for (let i = 0; i < matchIds.length; i += 1) {
-        try {
-          const matchExist = await this.matchService.findById(matchIds[i]);
-          if (matchExist) {
-            deletePromises.push(this.deleteSingle(matchExist));
-          }
-        } catch (dltErr) {
-          console.log(dltErr);
-        }
-      }
-
-      await Promise.all(deletePromises);
-
-      return {
-        data: null,
-        code: HttpStatus.NO_CONTENT,
-        message: 'Matches Deleted successfully!',
-        success: true,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
+    return this.mutations.deleteMatches(matchIds);
   }
 
-  @Query((_returns) => GetMatchesResponse)
+  @Mutation(() => GetAccessCodeResponse)
+  async accessCodeValidation(@Args('input') input: AccessCodeInput) {
+    return this.mutations.accessCodeValidation(input);
+  }
+
+  // ==================== Queries ====================
+  @Query(() => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
-    try {
-      // Assuming matchService is injected in your class
-      const matches = await this.matchService.find(filter);
-
-      return {
-        code: HttpStatus.OK,
-        success: true,
-        message: 'List of matches',
-        data: matches,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
+    return this.queries.getMatches(filter);
   }
 
-  @Query((_returns) => GetEventWithMatchesResponse)
+  @Query(() => GetEventWithMatchesResponse)
   async getEventWithMatches(@Args('eventId', { nullable: false }) eventId: string) {
-    try {
-      // Assuming matchService is injected in your class
-      const [event, matches, teams, ldo, groups] = await Promise.all([
-        this.eventService.findById(eventId),
-        this.matchService.find({ event: eventId }),
-        this.teamService.find({ event: eventId }),
-        this.ldoService.findOne({ events: { $in: [eventId] } }),
-        this.groupService.find({ event: eventId }),
-      ]);
-
-      // Net is not adding in the team
-
-      const matchIds = matches.map((m) => m._id.toString());
-      const [rounds, nets] = await Promise.all([
-        this.roundService.find({ match: { $in: matchIds } }),
-        this.netService.find({ match: { $in: matchIds } }),
-      ]);
-
-      return {
-        code: HttpStatus.OK,
-        success: true,
-        message: 'Get details of event, matches, teams, ldo, groups, rounds, nets',
-        data: { event, matches, teams, ldo, groups, rounds, nets },
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
+    return this.queries.getEventWithMatches(eventId);
   }
 
-  @Query((returns) => GetMatchResponse)
+  @Query(() => GetMatchResponse)
   async getMatch(@Args('matchId') matchId: string) {
-    try {
-      const matchExist = await this.matchService.findById(matchId);
-
-      return {
-        code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
-        success: matchExist ? true : false,
-        message: matchExist ? 'Got the match' : 'No match found!',
-        data: matchExist,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
+    return this.queries.getMatch(matchId);
   }
 
-  /**
-   * POPULATE
-   * ===============================================================================================
-   */
-  @ResolveField()
-  async teamA(@Parent() match: Match) {
-    try {
-      if (!match.teamA) return null;
-      const teamExist = await this.teamService.findById(match.teamA.toString());
-      return teamExist;
-    } catch {
-      return null;
-    }
+  // ==================== Resolve Fields ====================
+  @ResolveField(() => Match, { nullable: true, name: 'teamA' })
+  async teamAField(@Parent() match: Match) {
+    return this.fields.teamA(match);
   }
 
-  @ResolveField()
-  async teamB(@Parent() match: Match) {
-    try {
-      if (!match.teamB) return null;
-      return this.teamService.findById(match.teamB.toString());
-    } catch {
-      return null;
-    }
+  @ResolveField(() => Match, { nullable: true, name: 'teamB' })
+  async teamBField(@Parent() match: Match) {
+    return this.fields.teamB(match);
   }
 
-  @ResolveField((returns) => [Round])
+  @ResolveField(() => [Round])
   async rounds(@Parent() match: Match) {
-    try {
-      return this.roundService.find({ match: match._id.toString() });
-    } catch {
-      return [];
-    }
+    return this.fields.rounds(match);
   }
 
-  @ResolveField((returns) => [Round])
+  @ResolveField(() => [Net])
   async nets(@Parent() match: Match) {
-    try {
-      return this.netService.find({ match: match._id.toString() });
-    } catch {
-      return [];
-    }
+    return this.fields.nets(match);
   }
 
-  // Updated resolver fields
-  // ===== Common Helper Functions =====
-  private async getServerReceiverData(match: Match): Promise<{
-    netList: Net[];
-    netIds: string[];
-    netMap: Map<string, Net>;
-    room: string;
-  }> {
-    const { netList, netIds } = await this.getNetData(match);
-    const netMap = new Map(netList.map((n) => [n._id.toString(), n]));
-    const room = match.room?.toString?.() || '';
-    return { netList, netIds, netMap, room };
+  @ResolveField(() => Match, { nullable: true, name: 'event' })
+  async eventField(@Parent() match: Match) {
+    return this.fields.event(match);
   }
 
-  private async getCachedServerReceivers(
-    keys: string[],
-    netIds: string[],
-  ): Promise<{
-    cached: ServerReceiverOnNet[];
-    missedIds: string[];
-  }> {
-    const redisResults = await Promise.all(keys.map((key) => this.redisService.get<ServerReceiverOnNet>(key)));
-
-    const cached: ServerReceiverOnNet[] = [];
-    const cachedNetIdSet: Set<string> = new Set();
-
-    redisResults.forEach((result) => {
-      if (result) {
-        cached.push(result);
-        cachedNetIdSet.add(result?.net?.toString() || '');
-      }
-    });
-
-    const missedIds = netIds.filter((netId) => !cachedNetIdSet.has(netId.toString()));
-    return { cached, missedIds };
+  @ResolveField(() => Match, { nullable: true, name: 'group' })
+  async groupField(@Parent() match: Match) {
+    return this.fields.group(match);
   }
 
-  private async processServerReceiver(
-    receiver: any,
-    netMap: Map<string, Net>,
-    room: string,
-  ): Promise<ServerReceiverOnNet> {
-    const netId = receiver.net.toString();
-    const net = netMap.get(netId);
-    if (!net) return null;
-
-    const receiverObj = typeof receiver?.toObject === 'function' ? receiver?.toObject() : receiver;
-
-    receiverObj.mutate = (receiverObj.teamAScore || 0) + (receiverObj.teamBScore || 0);
-
-    if (receiverObj.play > receiverObj.mutate) {
-      receiverObj.play = receiverObj.mutate;
-    }
-
-    const key = netKey(netId, room);
-    await Promise.all([
-      this.redisService.set(key, receiverObj),
-      this.serverReceiverOnNetService.updateOne({ net: netId }, receiverObj),
-    ]);
-
-    return receiverObj;
+  @ResolveField(() => Match, { nullable: true, name: 'room' })
+  async roomField(@Parent() match: Match) {
+    return this.fields.room(match);
   }
 
-  private normalizeServerReceiver(receiver: ServerReceiverOnNet): ServerReceiverOnNet {
-    return {
-      ...receiver,
-      serverId: String(receiver.server ?? ''),
-      matchId: String(receiver.match ?? ''),
-      netId: String(receiver.net ?? ''),
-      receiverId: String(receiver.receiver ?? ''),
-      receivingPartnerId: String(receiver.receivingPartner ?? ''),
-      servingPartnerId: String(receiver.servingPartner ?? ''),
-      roundId: String(receiver.round ?? ''),
-      serverPositionPair: receiver?.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
-      teamAScore: receiver?.teamAScore || 0,
-      teamBScore: receiver?.teamBScore || 0,
-    };
+  @ResolveField(() => Match, { nullable: true, name: 'teamARanking' })
+  async teamARankingField(@Parent() match: Match) {
+    return this.fields.teamARanking(match);
   }
 
-  private normalizeSinglePlay(play: ServerReceiverSinglePlay): ServerReceiverSinglePlay {
-    return {
-      _id: play._id,
-      teamAScore: play?.teamAScore || 0,
-      teamBScore: play?.teamBScore || 0,
-      play: play.play || 1,
-      
-      action: play.action || EServerReceiverAction.SERVER_DO_NOT_KNOW,
-      serverPositionPair: play.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
-      
-      match: play.match || play.matchId || '',
-      net: play.net || play.netId || '',
-      server: play.server || play.serverId || '',
-      receiver: play.receiver || play.receiverId || '',
-      receivingPartner: play.receivingPartner || play.receivingPartnerId || '',
-      servingPartner: play.servingPartner || play.servingPartnerId || '',
-
-      matchId: String(play.match) || play.matchId || '',
-      netId: String(play.net) || play.netId || '',
-      serverId: String(play.server) || play.serverId || '',
-      receiverId: String(play.receiver) || play.receiverId || '',
-      receivingPartnerId: String(play.receivingPartner) || play.receivingPartnerId || '',
-      servingPartnerId: String(play.servingPartner) || play.servingPartnerId || '',
-    };
+  @ResolveField(() => Match, { nullable: true, name: 'teamBRanking' })
+  async teamBRankingField(@Parent() match: Match) {
+    return this.fields.teamBRanking(match);
   }
 
-  @ResolveField(() => [ServerReceiverOnNet])
-  async serverReceiverOnNet(@Parent() match: Match): Promise<ServerReceiverOnNet[]> {
-    try {
-      const { netIds, netMap, room } = await this.getServerReceiverData(match);
-      if (!netIds.length) return [];
-
-      const redisKeys = netIds.map((netId) => netKey(netId, room));
-      const { cached: cachedReceivers, missedIds: missedNetIds } = await this.getCachedServerReceivers(
-        redisKeys,
-        netIds,
-      );
-
-      // Process cached data
-      const processedCached = cachedReceivers.map(this.normalizeServerReceiver);
-
-      // Get missed data from DB if needed
-      if (missedNetIds.length === 0) return processedCached;
-
-      const missedReceivers = await this.serverReceiverOnNetService.find({
-        net: { $in: missedNetIds },
-      });
-
-      // Process and cache missed receivers
-      const updatedReceivers = await Promise.all(
-        missedReceivers.map((sr) => this.processServerReceiver(sr, netMap, room)),
-      );
-
-      return [...processedCached, ...updatedReceivers.filter(Boolean)];
-    } catch (error) {
-      console.error('serverReceiverOnNet error:', error);
-      return [];
-    }
+  @ResolveField(() => [Object])
+  async serverReceiverOnNet(@Parent() match: Match) {
+    return this.fields.serverReceiverOnNet(match);
   }
 
-  @ResolveField(() => [ServerReceiverSinglePlay])
-  async serverReceiverSinglePlay(@Parent() match: Match): Promise<ServerReceiverSinglePlay[]> {
-    try {
-      const { netIds, room } = await this.getServerReceiverData(match);
-      if (!netIds.length) return [];
-
-      // First get all server receivers to know what plays we need
-      const serverReceivers = await this.serverReceiverOnNet(match);
-      if (!serverReceivers.length) return [];
-
-      // Prepare all play keys to check in Redis
-      const playKeys: string[] = [];
-      const playMap: Map<string, { netId: string; play: number }> = new Map();
-
-      serverReceivers.forEach((sr) => {
-        const netId = sr.netId;
-        for (let i = 0; i < sr.mutate; i++) {
-          const key = singlePlayKey(netId, room, i + 1);
-          playKeys.push(key);
-          playMap.set(key, { netId, play: sr.mutate || 0 });
-        }
-      });
-
-      // Get cached plays
-      const redisResults = await Promise.all(
-        playKeys.map((key) => this.redisService.get<ServerReceiverSinglePlay>(key)),
-      );
-      const cachedPlays = redisResults.filter(Boolean);
-
-      // Process cached plays
-      const processedPlayCached = cachedPlays.map(this.normalizeSinglePlay);
-
-      // Get play numbers we already have
-      const existingPlayNumbers = new Set(cachedPlays.map((play) => play.play));
-
-      // Get missed plays from DB
-      const missedPlays = await this.serverReceiverOnNetService.findSinglePlay({
-        net: { $in: netIds },
-        play: { $nin: [...existingPlayNumbers] },
-      });
-
-      // Cache missed plays
-      const newMissedPlays = await Promise.all(
-        missedPlays.map(async (mp) => {
-          const key = singlePlayKey(mp.net?.toString?.() || '', room, mp.play);
-          const dataToCache = typeof mp?.toObject === 'function' ? mp?.toObject() : mp;
-          await this.redisService.set(key, dataToCache);
-          return this.normalizeSinglePlay(dataToCache as any);
-        }),
-      );
-
-      return [...processedPlayCached, ...newMissedPlays];
-    } catch (error) {
-      console.error('serverReceiverSinglePlay error:', error);
-      return [];
-    }
-  }
-
-  @ResolveField()
-  async event(@Parent() match: Match) {
-    try {
-      return this.eventService.findById(match.event.toString());
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField()
-  async group(@Parent() match: Match) {
-    try {
-      if (!match.group) return null;
-      return this.groupService.findById(match.group?.toString());
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField()
-  async room(@Parent() match: Match) {
-    try {
-      if (!match.room) return null;
-      const findRoom = await this.roomService.findOne({ _id: match.room.toString() });
-      return findRoom;
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField(() => PlayerRanking)
-  async teamARanking(@Parent() match: Match): Promise<PlayerRanking> {
-    return this.getTeamRanking(match, match.teamA.toString(), match.teamARanking.toString(), 'teamARanking');
-  }
-
-  @ResolveField(() => PlayerRanking)
-  async teamBRanking(@Parent() match: Match): Promise<PlayerRanking> {
-    return this.getTeamRanking(match, match.teamB.toString(), match.teamBRanking.toString(), 'teamBRanking');
+  @ResolveField(() => [Object])
+  async serverReceiverSinglePlay(@Parent() match: Match) {
+    return this.fields.serverReceiverSinglePlay(match);
   }
 }

@@ -44,6 +44,7 @@ rankings {
 const teamARanking = `teamARanking {${teamRanking}}`;
 const teamBRanking = `teamBRanking {${teamRanking}}`;
 
+// match, serverReceiverSinglePlay, serverReceiverOnNet, room, event, sponsors, ldo, rounds, subs, nets
 const GET_MATCH_DETAIL_RAW = `
 query GetMatch($matchId: String!) {
   getMatch(matchId: $matchId) {
