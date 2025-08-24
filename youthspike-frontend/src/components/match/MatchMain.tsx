@@ -162,6 +162,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
           allNets,
           roundList,
           currentRound,
+          currMatch
         }),
       "update-points-response-all": (data: IUpdateScoreResponse) =>
         socketEventListener.handleUpdatePoints({

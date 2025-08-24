@@ -113,6 +113,7 @@ class SocketEventListener {
     allNets,
     roundList,
     currentRound,
+    currMatch,
   }: ILineUpResponse) {
     this.restartAudio();
 
@@ -129,7 +130,25 @@ class SocketEventListener {
 
       const findCRNI = updatedCRN.findIndex((n) => n._id === data.nets[i]._id);
       if (findCRNI !== -1)
-        updatedCRN[findCRNI] = { ...updatedCRN[findCRNI], ...teamObj };
+        if (
+          updatedCRN[findCRNI].netType === ETieBreaker.FINAL_ROUND_NET_LOCKED &&
+          currMatch.extendedOvertime
+        ) {
+          /**
+           * Check my team has selected 2 players or not
+           * This is only for overtime round so check that as well
+           * Net type must be FINAL_ROUND_NET_LOCKED
+           */
+          if (!teamObj.teamAPlayerA && !teamObj.teamAPlayerB) {
+            teamObj.teamAPlayerA = updatedCRN[findCRNI].teamAPlayerA || null;
+            teamObj.teamAPlayerB = updatedCRN[findCRNI].teamAPlayerB || null;
+          } else if (!teamObj.teamBPlayerA && !teamObj.teamBPlayerB) {
+            teamObj.teamBPlayerA = updatedCRN[findCRNI].teamBPlayerA || null;
+            teamObj.teamBPlayerB = updatedCRN[findCRNI].teamBPlayerB || null;
+          }
+        }
+
+      updatedCRN[findCRNI] = { ...updatedCRN[findCRNI], ...teamObj };
 
       const findANI = updatedAllNets.findIndex(
         (n) => n._id === data.nets[i]._id
@@ -423,7 +442,7 @@ class SocketEventListener {
     data,
     dispatch,
     serverReceiversOnNet,
-    serverReceiverPlays
+    serverReceiverPlays,
   }: IServerReceiverResponse) {
     this.dispatch = dispatch;
 
@@ -480,7 +499,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleAceNoTouchResponse({
@@ -489,7 +513,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleAceNoThirdTouchResponse({
@@ -498,7 +527,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleOneTwoThreePutAwayResponse({
@@ -507,7 +541,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleRalleyConversionResponse({
@@ -516,7 +555,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleDefensiveConversionResponse({
@@ -525,7 +569,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleHittingErrorResponse({
@@ -534,7 +583,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleServerDoNotKnowResponse({
@@ -543,7 +597,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleReceiverDoNotKnowResponse({
@@ -552,7 +611,12 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
-    this.handleScoreKeeperUpdate({ data, dispatch, serverReceiversOnNet, serverReceiverPlays });
+    this.handleScoreKeeperUpdate({
+      data,
+      dispatch,
+      serverReceiversOnNet,
+      serverReceiverPlays,
+    });
   }
 
   handleResetServerReceiver({
@@ -574,8 +638,6 @@ class SocketEventListener {
     this.dispatch = dispatch;
 
     if (!serverReceiverOnNetData.play) return;
-
-
 
     // Single pass: filter plays and find current play
     const newServerReceiverPlays = [];

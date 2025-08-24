@@ -223,6 +223,7 @@ export interface ILineUpResponse {
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];
   currentRound: IRoundRelatives | null;
+  currMatch: IMatchRelatives;
 }
 
 export interface IUpdatePointsResponse {

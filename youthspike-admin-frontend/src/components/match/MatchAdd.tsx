@@ -121,7 +121,8 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     }
   };
 
-  const handleDateChange = ({ name, value }: { name: string; value: string }) => {
+
+  const handleDateChange = (name: string, value: string) => {
     if (update) {
       setUpdateMatch((prev) => ({ ...prev, [name]: value }));
     } else {
@@ -129,7 +130,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     }
   };
 
-  const handleRosterLockDate = ({ name, value }: IDateChangeHandlerProps) => {
+  const handleRosterLockDate = (name: string, value: string) => {
     if (update) {
       setUpdateMatch((prev) => ({ ...prev, rosterLock: value }));
     } else {
@@ -223,7 +224,13 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   return (
     <form onSubmit={handleAddMatch} className="w-full">
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        {addMatch.date && <DateInput handleDateChange={handleDateChange} name="date" label="Start time" required={!update} value={addMatch.date} />}
+        <DateInput 
+          label="Start Date" 
+          name="date" 
+          handleDateChange={handleDateChange} 
+          value={addMatch.date} 
+          required={!update} 
+        />
 
         <InputField
           key="field-numberOfNets"
@@ -287,6 +294,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
           <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
         )}
+
       </div>
 
       <div className="part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">

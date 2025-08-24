@@ -30,10 +30,6 @@ async function MatchesPage({ params }: IMatchesPageProps) {
   const matchList = matches.map((m: IMatchExpRel) => {
     const matchObj = { ...m };
 
-    /*
-    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
-    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
-    */
     // Handle both string[] and object[] for rounds and nets
     if (Array.isArray(m.rounds) && m.rounds.length > 0 && m.rounds.every((r) => typeof r === 'string')) {
       matchObj.rounds = (m.rounds as string[]).flatMap((roundId) => {
@@ -86,7 +82,6 @@ async function MatchesPage({ params }: IMatchesPageProps) {
     return groupObj;
   });
 
-  // const teamMatchList = matchList.filter((m: IMatchExpRel)=> m._id === "68736608e47b0a85b808bfd1");
 
   return (
     <div className="container mx-auto px-4 min-h-screen">

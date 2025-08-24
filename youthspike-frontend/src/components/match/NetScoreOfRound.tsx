@@ -63,50 +63,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     [currentRoundNets, currNetNum, currRoundId]
   );
 
-  /*
-  // Handlers
-  const changeTheRound = useCallback((targetRoundIndex: number) => {
-    const newRoundObj = { ...roundList[targetRoundIndex] };
-    const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
-    dispatch(setCurrentRoundNets(filteredNets));
-
-    if (myTeamE === ETeam.teamA) {
-      newRoundObj.teamAProcess = newRoundObj.teamAProcess === EActionProcess.INITIATE ? 
-        EActionProcess.CHECKIN : newRoundObj.teamAProcess;
-    } else {
-      newRoundObj.teamBProcess = newRoundObj.teamBProcess === EActionProcess.INITIATE ? 
-        EActionProcess.CHECKIN : newRoundObj.teamBProcess;
-    }
-
-    LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
-    dispatch(setCurrentRound(newRoundObj));
-    
-    const newRoundList = [...roundList];
-    newRoundList[targetRoundIndex] = newRoundObj;
-    dispatch(setRoundList(newRoundList));
-  }, [allNets, dispatch, myTeamE, roundList]);
-
-  const handleRoundChange = useCallback((e: React.SyntheticEvent, roundId: string) => {
-    e.preventDefault();
-    const targetRoundIndex = roundList.findIndex((r) => r._id === roundId);
-    
-    if (targetRoundIndex !== -1 && currentRound) {
-      if (roundList[targetRoundIndex].num > currentRound.num) {
-        const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound?.completed) {
-          dispatch(setMessage({ type: EMessage.ERROR, message: 'Complete the previous round by putting players on all nets and points.' }));
-          
-          return;
-        }
-        dispatch(setMessage(null));
-      }
-      changeTheRound(targetRoundIndex);
-      dispatch(setDisabledPlayerIds([]));
-      dispatch(setPrevPartner(null));
-    }
-  }, [changeTheRound, currentRound, dispatch, roundList]);
-  */
-
   // Precompute lookups for faster access
   const roundIdToIndex = useMemo(() => {
     const map: Record<string, number> = {};
