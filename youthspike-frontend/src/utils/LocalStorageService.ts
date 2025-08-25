@@ -5,6 +5,7 @@ interface IMatchLS {
   matchId: string;
   roundId: string;
   date: string;
+  netId?: string | null;
 }
 
 class LocalStorageService {
@@ -76,15 +77,17 @@ class LocalStorageService {
     return matchList.filter((match) => !this.isMatchExpired(match.date));
   }
 
-  public setMatch(matchId: string, roundId: string): void {
+  public setMatch(matchId: string, roundId: string, netId?: string | null): void {
     const currentMatches = this.getItem<IMatchLS[]>(MATCHES_LS);
     if (!Array.isArray(currentMatches)) return;
     
     const matchIndex = currentMatches.findIndex((m) => m.matchId === matchId);
-    const newMatch = { matchId, roundId, date: new Date().toISOString() };
+    const newMatch: IMatchLS = { matchId, roundId, date: new Date().toISOString() };
+    if(netId){
+      newMatch.netId = netId;
+    }
 
     const updatedMatches = matchIndex !== -1 ? currentMatches.map((m, i) => (i === matchIndex ? newMatch : m)) : [...currentMatches, newMatch];
-
     this.setItem(MATCHES_LS, this.filterExpiredMatches(updatedMatches));
   }
 

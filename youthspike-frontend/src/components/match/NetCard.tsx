@@ -28,17 +28,15 @@ function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
   // Redux State
   const { currNetNum, currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { roundList } = useAppSelector((state) => state.rounds);
-  const { myTeamE, opTeamE, } = useAppSelector((state) => state.matches);
+  const { myTeamE, opTeamE, match: currMatch } = useAppSelector((state) => state.matches);
 
   // Local State
   const [startPosX, setStartPosX] = useState<number>(0);
-  const [direction, setDirection] = useState<EDirection>(EDirection.RIGHT);
 
   /**
    * Handle events
    */
   const handleRightShift = () => {
-    setDirection(EDirection.LEFT); // Update direction
     const netIndex = currRoundNets.findIndex((n) => n.num === currNetNum);
     if (netIndex === null || netIndex === 0) return;
     const prevNet = currRoundNets[netIndex - 1];
@@ -47,7 +45,6 @@ function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
   };
 
   const handleLeftShift = () => {
-    setDirection(EDirection.RIGHT); // Update direction
     const netIndex = currRoundNets.findIndex((n) => n.num === currNetNum);
     if (netIndex === null || netIndex + 1 >= currRoundNets.length) return;
     const nextNet = currRoundNets[netIndex + 1];
@@ -81,7 +78,7 @@ function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
       {/* Vertically centered NetPointCard component */}
       <div className="flex-grow flex justify-center items-center cursor-pointer">
         {/* Pass direction prop */}
-        <NetPointCard net={net} handleRightShift={handleRightShift} handleLeftShift={handleLeftShift} screenWidth={screenWidth} currRoom={currRoom} roundList={roundList} />
+        <NetPointCard net={net} handleRightShift={handleRightShift} handleLeftShift={handleLeftShift} screenWidth={screenWidth} currRoom={currRoom} roundList={roundList} currMatch={currMatch} />
       </div>
 
       {/* Net bottom section start */}

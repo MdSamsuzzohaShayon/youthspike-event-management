@@ -21,7 +21,8 @@ import NetCard from "./NetCard";
 import AvailablePlayers from "../player/AvailablePlayers";
 import SubbedPlayers from "../player/SubbedPlayers";
 import { setMessage } from "@/redux/slices/elementSlice";
-import { EMessage } from "@/types";
+import { EMessage, INetRelatives } from "@/types";
+import { useRoundNavigation } from "@/hooks/useRoundNavigation";
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const dispatch = useAppDispatch();
@@ -73,7 +74,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   }, [roundList]);
 
   const netsByRound = useMemo(() => {
-    const map: Record<string, typeof allNets> = {};
+    const map: Record<string, INetRelatives[]> = {};
     allNets.forEach((net) => {
       if (!map[net.round]) map[net.round] = [];
       map[net.round].push(net);
@@ -81,69 +82,30 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     return map;
   }, [allNets]);
 
-  const changeTheRound = useCallback(
-    (targetRoundIndex: number) => {
-      const roundObj = roundList[targetRoundIndex];
-      if (!roundObj) return;
+  const { handleRoundChange } = useRoundNavigation({
+    roundList,
+    netsByRound,
+    myTeamE,
+    currentRound,
+  });
 
-      // Avoid filtering all nets every time → O(1) lookup
-      const filteredNets = netsByRound[roundObj._id] ?? [];
-      dispatch(setCurrentRoundNets(filteredNets));
-
-      // Update team process if needed
-      const newRoundObj = {
-        ...roundObj,
-        teamAProcess:
-          myTeamE === ETeam.teamA &&
-          roundObj.teamAProcess === EActionProcess.INITIATE
-            ? EActionProcess.CHECKIN
-            : roundObj.teamAProcess,
-        teamBProcess:
-          myTeamE === ETeam.teamB &&
-          roundObj.teamBProcess === EActionProcess.INITIATE
-            ? EActionProcess.CHECKIN
-            : roundObj.teamBProcess,
-      };
-
-      LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
-      dispatch(setCurrentRound(newRoundObj));
-
-      // Update only the changed round (less copying)
-      const newRoundList = [...roundList];
-      newRoundList[targetRoundIndex] = newRoundObj;
-      dispatch(setRoundList(newRoundList));
-    },
-    [dispatch, myTeamE, netsByRound, roundList]
-  );
-
-  const handleRoundChange = useCallback(
+  // Simplified event handler using the hook
+  const handleRoundChangeClick = useCallback(
     (e: React.SyntheticEvent, roundId: string) => {
       e.preventDefault();
-      const targetRoundIndex = roundIdToIndex[roundId];
-      if (targetRoundIndex === undefined || !currentRound) return;
 
-      const targetRound = roundList[targetRoundIndex];
+      handleRoundChange(roundId, (errorMessage) => {
+        dispatch(
+          setMessage({
+            type: EMessage.ERROR,
+            message: errorMessage,
+          })
+        );
+      });
 
-      if (targetRound.num > currentRound.num) {
-        const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound?.completed) {
-          dispatch(
-            setMessage({
-              type: EMessage.ERROR,
-              message:
-                "Complete the previous round by putting players on all nets and points.",
-            })
-          );
-          return;
-        }
-        dispatch(setMessage(null));
-      }
-
-      changeTheRound(targetRoundIndex);
-      dispatch(setDisabledPlayerIds([]));
-      dispatch(setPrevPartner(null));
+      dispatch(setMessage(null));
     },
-    [changeTheRound, currentRound, dispatch, roundIdToIndex, roundList]
+    [dispatch, handleRoundChange]
   );
 
   const handleClosePlayers = useCallback(
@@ -167,7 +129,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
           } rounded-t-lg`}
           type="button"
-          onClick={(e) => handleRoundChange(e, round._id)}
+          onClick={(e) => handleRoundChangeClick(e, round._id)}
         >
           {match.extendedOvertime && i === roundList.length - 1
             ? "OT"
@@ -179,7 +141,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       currentRound,
       screenWidth,
       match.extendedOvertime,
-      handleRoundChange,
+      handleRoundChangeClick,
     ]
   );
 

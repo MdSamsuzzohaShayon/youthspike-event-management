@@ -14,6 +14,7 @@ import {
   IAccessCode,
   IMatchExpRel,
   INetPlayers,
+  INetRelatives,
   IReceiverTeam,
   IServerReceiverOnNetMixed,
   IServerTeam,
@@ -36,9 +37,11 @@ import ScoreBoard from "./ScoreBoard";
 import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
 import ServerReceiverPlayInput from "./ServerReceiverPlayInput";
 import { setMessage } from "@/redux/slices/elementSlice";
+import LocalStorageService from "@/utils/LocalStorageService";
+import { useRoundNavigation } from "@/hooks/useRoundNavigation";
+import RoundInputBox from "../elements/RoundInputBox";
 
 /* ───────────────────────────────────────────── */
-
 interface IServerReceiverProps {
   matchId: string;
   matchData: IMatchExpRel;
@@ -59,14 +62,18 @@ export default function ServerReceiver({
 
   /* Redux slices */
   const { roundList, current: currRound } = useAppSelector((s) => s.rounds);
-  const { currNetNum, currentRoundNets } = useAppSelector((s) => s.nets);
+  const {
+    currNetNum,
+    currentRoundNets,
+    nets: allNets,
+  } = useAppSelector((s) => s.nets);
   const {
     serverReceiversOnNet,
     currentServerReceiver: currServerReceiver,
     serverReceiverPlays,
   } = useAppSelector((s) => s.serverReceiverOnNets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((s) => s.players);
-  const currMatch = useAppSelector((s) => s.matches.match);
+  const { match: currMatch, myTeamE } = useAppSelector((s) => s.matches);
   const currRoom = useAppSelector((s) => s.rooms?.current);
   const { teamA, teamB } = useAppSelector((s) => s.teams);
 
@@ -167,6 +174,8 @@ export default function ServerReceiver({
 
     const net = netByNum.get(netNum);
 
+    LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
+
     const newServerReceiver = serverReceiversOnNet.find(
       (sr) => sr.net === net?._id
     );
@@ -186,6 +195,8 @@ export default function ServerReceiver({
     }
     dispatch(setCurrentServerReceiver(newServerReceiver || null));
   };
+
+
 
   const handleSetPlayers = useCallback(() => {
     new EmitEvents(socket, dispatch).setServerReceiver({
@@ -349,18 +360,22 @@ export default function ServerReceiver({
   }, []); // ← run exactly once
 
   /* ───── UI ───── */
+
   if (
     currRound?.teamAProcess !== EActionProcess.LINEUP ||
     currRound?.teamBProcess !== EActionProcess.LINEUP
   ) {
     return (
-      <div className="w-full flex justify-center mt-10">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
-          <h2 className="text-lg font-semibold mb-2">Lineup Incomplete</h2>
-          <p>
-            Both teams must complete their player lineup before selecting a
-            server or receiver.
-          </p>
+      <div className="w-full">
+        <RoundInputBox allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />
+        <div className="w-full flex justify-center mt-10">
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+            <h2 className="text-lg font-semibold mb-2">Lineup Incomplete</h2>
+            <p>
+              Both teams must complete their player lineup before selecting a
+              server or receiver.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -371,15 +386,18 @@ export default function ServerReceiver({
     currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND
   ) {
     return (
-      <div className="w-full flex justify-center mt-10">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
-          <h2 className="text-lg font-semibold mb-2">
-            Final Round Nets Not Banned Yet
-          </h2>
-          <p>
-            Please ban the nets for the final round before proceeding with
-            server/receiver selection.
-          </p>
+      <div className="w-full">
+        <RoundInputBox allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />
+        <div className="w-full flex justify-center mt-10">
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+            <h2 className="text-lg font-semibold mb-2">
+              Final Round Nets Not Banned Yet
+            </h2>
+            <p>
+              Please ban the nets for the final round before proceeding with
+              server/receiver selection.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -387,6 +405,7 @@ export default function ServerReceiver({
 
   return (
     <div className="ServerReceiver">
+      <RoundInputBox allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />
       <div className="input-wrapper relative">
         <SelectInput
           handleSelect={handleNetChange}

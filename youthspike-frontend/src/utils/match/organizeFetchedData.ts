@@ -1,19 +1,49 @@
-import React from 'react';
-import { setCurrentEventInfo, setEventSponsors, setLdo } from '@/redux/slices/eventSlice';
-import { setAvailablePlayers, setMatchInfo, setMyPlayers, setMyTeam, setOpPlayers, setOpTeam, setTeamE } from '@/redux/slices/matchesSlice';
-import { setCurrentRoundNets, setCurrNetNum, setNets } from '@/redux/slices/netSlice';
-import { setTeamAPlayers, setTeamBPlayers } from '@/redux/slices/playerSlice';
-import { setCurrentRoom } from '@/redux/slices/roomSlice';
-import { setCurrentRound, setRoundList } from '@/redux/slices/roundSlice';
-import { setTeamAPlayerRanking, setTeamBPlayerRanking } from '@/redux/slices/playerRankingSlice';
-import { UserRole } from '@/types/user';
-import { setTeamA, setTeamB } from '@/redux/slices/teamSlice';
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IUser, ITeam } from '@/types';
-import LocalStorageService from '../LocalStorageService';
+import React from "react";
+import {
+  setCurrentEventInfo,
+  setEventSponsors,
+  setLdo,
+} from "@/redux/slices/eventSlice";
+import {
+  setAvailablePlayers,
+  setMatchInfo,
+  setMyPlayers,
+  setMyTeam,
+  setOpPlayers,
+  setOpTeam,
+  setTeamE,
+} from "@/redux/slices/matchesSlice";
+import {
+  setCurrentRoundNets,
+  setCurrNetNum,
+  setNets,
+} from "@/redux/slices/netSlice";
+import { setTeamAPlayers, setTeamBPlayers } from "@/redux/slices/playerSlice";
+import { setCurrentRoom } from "@/redux/slices/roomSlice";
+import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
+import {
+  setTeamAPlayerRanking,
+  setTeamBPlayerRanking,
+} from "@/redux/slices/playerRankingSlice";
+import { UserRole } from "@/types/user";
+import { setTeamA, setTeamB } from "@/redux/slices/teamSlice";
+import {
+  IMatchExpRel,
+  INetRelatives,
+  IPlayer,
+  IRoundRelatives,
+  IUser,
+  ITeam,
+} from "@/types";
+import LocalStorageService from "../LocalStorageService";
 // import { EActionProcess } from '@/types/room';
-import { ETeam } from '@/types/team';
-import { APP_NAME } from '../keys';
-import { setCurrentServerReceiver, setServerReceiverPlays, setServerReceiversOnNet } from '@/redux/slices/serverReceiverOnNetSlice';
+import { ETeam } from "@/types/team";
+import { APP_NAME } from "../keys";
+import {
+  setCurrentServerReceiver,
+  setServerReceiverPlays,
+  setServerReceiversOnNet,
+} from "@/redux/slices/serverReceiverOnNetSlice";
 
 interface IOrganizeFetchedDataProps {
   matchData: IMatchExpRel;
@@ -34,7 +64,15 @@ interface ITeamDispatchProps {
 }
 
 // Helper function to handle dispatching team data
-const dispatchTeamData = ({ dispatch, myLocalTeam, opLocalTeam, myLocalPlayers, opLocalPlayers, myLocalTeamE, opLocalTeamE }: ITeamDispatchProps) => {
+const dispatchTeamData = ({
+  dispatch,
+  myLocalTeam,
+  opLocalTeam,
+  myLocalPlayers,
+  opLocalPlayers,
+  myLocalTeamE,
+  opLocalTeamE,
+}: ITeamDispatchProps) => {
   dispatch(setMyTeam(myLocalTeam));
   dispatch(setOpTeam(opLocalTeam));
   dispatch(setMyPlayers(myLocalPlayers));
@@ -43,7 +81,13 @@ const dispatchTeamData = ({ dispatch, myLocalTeam, opLocalTeam, myLocalPlayers, 
   dispatch(setAvailablePlayers(myLocalPlayers.map((p) => p._id)));
 };
 
-const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispatch }: IOrganizeFetchedDataProps): Promise<void> => {
+const organizeFetchedData = async ({
+  matchData,
+  token,
+  userInfo,
+  matchId,
+  dispatch,
+}: IOrganizeFetchedDataProps): Promise<void> => {
   const {
     _id,
     description,
@@ -64,7 +108,7 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     teamARanking,
     teamBRanking,
     serverReceiverOnNet, // Bound to net
-    serverReceiverSinglePlay
+    serverReceiverSinglePlay,
   } = matchData;
 
   const CURRENT_NET_NUM = 1;
@@ -84,8 +128,8 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     }));
   };
 
-  const teamAPlayers = reformatPlayers(teamAF?.players, teamAF?._id || '');
-  const teamBPlayers = reformatPlayers(teamBF?.players, teamBF?._id || '');
+  const teamAPlayers = reformatPlayers(teamAF?.players, teamAF?._id || "");
+  const teamBPlayers = reformatPlayers(teamBF?.players, teamBF?._id || "");
 
   dispatch(setTeamAPlayers(teamAPlayers));
   dispatch(setTeamBPlayers(teamBPlayers));
@@ -98,9 +142,9 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
       dispatch(setLdo(event.ldo));
     }
     const defaultSponsor = {
-      _id: 'default-sponsor-id',
+      _id: "default-sponsor-id",
       company: APP_NAME,
-      logo: 'free-logo.png',
+      logo: "free-logo.png",
     };
     dispatch(setEventSponsors([defaultSponsor, ...event.sponsors]));
   }
@@ -137,18 +181,22 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     formattedRounds.push(roundObj);
   }
 
+  // Set all nets and rounds
   dispatch(setNets(formattedNets));
-  // console.log('allNets: ', formattedNets);
-  dispatch(setCurrNetNum(CURRENT_NET_NUM));
-  // console.log(`RoundList: `, formattedRounds);
-
   dispatch(setRoundList(formattedRounds));
 
+  let currNetNum = CURRENT_NET_NUM;
   // Setting current round and nets
   let selectedRound = formattedRounds[0];
   if (formattedRounds.length > 0) {
     const matchRound = LocalStorageService.getMatch(matchData._id);
-    const foundRound = formattedRounds.find((fr) => fr._id === (matchRound?.roundId || ''));
+    if (matchRound && matchRound.netId) {
+      const currNet = formattedNets.find((n) => n._id === matchRound.netId);
+      if (currNet?.num) currNetNum = currNet?.num;
+    }
+    const foundRound = formattedRounds.find(
+      (fr) => fr._id === (matchRound?.roundId || "")
+    );
     if (foundRound) {
       selectedRound = foundRound;
     } else {
@@ -157,55 +205,98 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
     }
     dispatch(setCurrentRound(selectedRound));
 
-    const filteredNets = formattedNets.filter((net) => net.round === selectedRound._id);
+    const filteredNets = formattedNets.filter(
+      (net) => net.round === selectedRound._id
+    );
     dispatch(setCurrentRoundNets(filteredNets));
 
-    const formattedNetsServerReceiver = serverReceiverOnNet?.map((sr)=> ({
+    const formattedNetsServerReceiver = serverReceiverOnNet?.map((sr) => ({
       ...sr,
-      match: sr.matchId || (typeof sr.match === "string" ? sr.match : sr.match?._id),
+      match:
+        sr.matchId || (typeof sr.match === "string" ? sr.match : sr.match?._id),
       net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
-      receiver: sr.receiverId || (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
-      receivingPartner: sr.receivingPartnerId || (typeof sr.receivingPartner === "string" ? sr.receivingPartner : sr.receivingPartner?._id),
-      round: sr.roundId || (typeof sr.round === "string" ? sr.round : sr.round?._id),
-      server: sr.serverId || (typeof sr.server === "string" ? sr.server : sr.server?._id),
-      servingPartner: sr.servingPartnerId || (typeof sr.servingPartner === "string" ? sr.servingPartner : sr.servingPartner?._id),
+      receiver:
+        sr.receiverId ||
+        (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
+      receivingPartner:
+        sr.receivingPartnerId ||
+        (typeof sr.receivingPartner === "string"
+          ? sr.receivingPartner
+          : sr.receivingPartner?._id),
+      round:
+        sr.roundId || (typeof sr.round === "string" ? sr.round : sr.round?._id),
+      server:
+        sr.serverId ||
+        (typeof sr.server === "string" ? sr.server : sr.server?._id),
+      servingPartner:
+        sr.servingPartnerId ||
+        (typeof sr.servingPartner === "string"
+          ? sr.servingPartner
+          : sr.servingPartner?._id),
     }));
 
-    const formattedServerReceiverSinglePlays = serverReceiverSinglePlay?.map((sr)=> ({
-      ...sr,
-      match: sr.matchId || (typeof sr.match === "string" ? sr.match : sr.match?._id),
-      net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
-      receiver: sr.receiverId || (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
-      receivingPartner: sr.receivingPartnerId || (typeof sr.receivingPartner === "string" ? sr.receivingPartner : sr.receivingPartner?._id),
-      server: sr.serverId || (typeof sr.server === "string" ? sr.server : sr.server?._id),
-      servingPartner: sr.servingPartnerId || (typeof sr.servingPartner === "string" ? sr.servingPartner : sr.servingPartner?._id),
-    }));
+    const formattedServerReceiverSinglePlays = serverReceiverSinglePlay?.map(
+      (sr) => ({
+        ...sr,
+        match:
+          sr.matchId ||
+          (typeof sr.match === "string" ? sr.match : sr.match?._id),
+        net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
+        receiver:
+          sr.receiverId ||
+          (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
+        receivingPartner:
+          sr.receivingPartnerId ||
+          (typeof sr.receivingPartner === "string"
+            ? sr.receivingPartner
+            : sr.receivingPartner?._id),
+        server:
+          sr.serverId ||
+          (typeof sr.server === "string" ? sr.server : sr.server?._id),
+        servingPartner:
+          sr.servingPartnerId ||
+          (typeof sr.servingPartner === "string"
+            ? sr.servingPartner
+            : sr.servingPartner?._id),
+      })
+    );
 
-    if (formattedNetsServerReceiver) dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
+    if (formattedNetsServerReceiver)
+      dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
 
-    if(formattedServerReceiverSinglePlays) dispatch(setServerReceiverPlays(formattedServerReceiverSinglePlays));
+    if (formattedServerReceiverSinglePlays)
+      dispatch(setServerReceiverPlays(formattedServerReceiverSinglePlays));
 
     const selectedNet = filteredNets.find((n) => n.num === CURRENT_NET_NUM);
     if (selectedNet) {
-      const currServerReceiver = formattedNetsServerReceiver?.find((sr) => sr.netId === selectedNet._id);
-      if (currServerReceiver) dispatch(setCurrentServerReceiver(currServerReceiver));
+      const currServerReceiver = formattedNetsServerReceiver?.find(
+        (sr) => sr.netId === selectedNet._id
+      );
+      if (currServerReceiver)
+        dispatch(setCurrentServerReceiver(currServerReceiver));
     }
   }
-  // console.log('Current round: ', selectedRound);
+
+  // Current net
+  dispatch(setCurrNetNum(currNetNum));
 
   // Setting room
   dispatch(
     setCurrentRoom({
       _id: room._id,
       match: _id,
-      rounds: formattedRounds.map((r) => ({ _id: r._id, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess })), // [{_id, teamAProcess, teamBProcess}]
+      rounds: formattedRounds.map((r) => ({
+        _id: r._id,
+        teamAProcess: r.teamAProcess,
+        teamBProcess: r.teamBProcess,
+      })), // [{_id, teamAProcess, teamBProcess}]
       teamA: teamAF?._id || null,
       teamAClient: null,
       // teamAProcess: selectedRound.teamAProcess,
       teamB: teamBF?._id || null,
       teamBClient: null,
       // teamBProcess: selectedRound.teamBProcess,
-    }),
+    })
   );
 
   // Setting Match
@@ -236,24 +327,59 @@ const organizeFetchedData = async ({ matchData, token, userInfo, matchId, dispat
   // Setting variables for team A and team B
 
   // Main logic
-  const isAdminDirector = userInfo?.role === UserRole.admin || userInfo?.role === UserRole.director;
+  const isAdminDirector =
+    userInfo?.role === UserRole.admin || userInfo?.role === UserRole.director;
   const selectedTeam = await LocalStorageService.getLocalTeam();
-  const isTeamACaptain = userInfo?.captainplayer === teamAF?.captain?._id || userInfo?.cocaptainplayer === teamAF?.cocaptain?._id;
+  const isTeamACaptain =
+    userInfo?.captainplayer === teamAF?.captain?._id ||
+    userInfo?.cocaptainplayer === teamAF?.cocaptain?._id;
 
   if (isAdminDirector && selectedTeam) {
     if (selectedTeam === ETeam.teamA) {
       // @ts-ignore
-      dispatchTeamData({ dispatch, myLocalTeam: teamAF, opLocalTeam: teamBF, myLocalPlayers: teamAPlayers, opLocalPlayers: teamBPlayers, myLocalTeamE: ETeam.teamA, opLocalTeamE: ETeam.teamB });
+      dispatchTeamData({
+        dispatch,
+        myLocalTeam: teamAF,
+        opLocalTeam: teamBF,
+        myLocalPlayers: teamAPlayers,
+        opLocalPlayers: teamBPlayers,
+        myLocalTeamE: ETeam.teamA,
+        opLocalTeamE: ETeam.teamB,
+      });
     } else {
       // @ts-ignore
-      dispatchTeamData({ dispatch, myLocalTeam: teamBF, opLocalTeam: teamAF, myLocalPlayers: teamBPlayers, opLocalPlayers: teamAPlayers, myLocalTeamE: ETeam.teamB, opLocalTeamE: ETeam.teamA });
+      dispatchTeamData({
+        dispatch,
+        myLocalTeam: teamBF,
+        opLocalTeam: teamAF,
+        myLocalPlayers: teamBPlayers,
+        opLocalPlayers: teamAPlayers,
+        myLocalTeamE: ETeam.teamB,
+        opLocalTeamE: ETeam.teamA,
+      });
     }
   } else if (isTeamACaptain) {
     // @ts-ignore
-    dispatchTeamData({ dispatch, myLocalTeam: teamAF, opLocalTeam: teamBF, myLocalPlayers: teamAPlayers, opLocalPlayers: teamBPlayers, myLocalTeamE: ETeam.teamA, opLocalTeamE: ETeam.teamB });
+    dispatchTeamData({
+      dispatch,
+      myLocalTeam: teamAF,
+      opLocalTeam: teamBF,
+      myLocalPlayers: teamAPlayers,
+      opLocalPlayers: teamBPlayers,
+      myLocalTeamE: ETeam.teamA,
+      opLocalTeamE: ETeam.teamB,
+    });
   } else {
     // @ts-ignore
-    dispatchTeamData({ dispatch, myLocalTeam: teamBF, opLocalTeam: teamAF, myLocalPlayers: teamBPlayers, opLocalPlayers: teamAPlayers, myLocalTeamE: ETeam.teamB, opLocalTeamE: ETeam.teamA });
+    dispatchTeamData({
+      dispatch,
+      myLocalTeam: teamBF,
+      opLocalTeam: teamAF,
+      myLocalPlayers: teamBPlayers,
+      opLocalPlayers: teamAPlayers,
+      myLocalTeamE: ETeam.teamB,
+      opLocalTeamE: ETeam.teamA,
+    });
   }
 };
 
