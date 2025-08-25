@@ -1,9 +1,8 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
-  EServerReceiverAction,
   ETeam,
-  IPlayer,
   IServerReceiverOnNetMixed,
+  IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
 import { toOrdinal } from "@/utils/helper";
@@ -14,89 +13,30 @@ interface IScoreBoardProps {
   currServerReceiver: IServerReceiverOnNetMixed | null;
   teamA: ITeam | null;
   teamB: ITeam | null;
-  teamAPlayers: IPlayer[];
-  teamBPlayers: IPlayer[];
-  selectedServer: string | null;
-  selectedReceiver: string | null;
-  serverReceiverAction: EServerReceiverAction | null;
   handleOpenPlays: (e: React.SyntheticEvent) => void;
   awardTo: ETeam | null;
   setAwardTo: React.Dispatch<React.SetStateAction<ETeam | null>>;
+  currPlays: IServerReceiverSinglePlay[];
+  revertPlayEl: React.RefObject<HTMLDialogElement | null>;
 }
 
 function ScoreBoard({
   currServerReceiver,
   teamA,
   teamB,
-  teamAPlayers,
-  teamBPlayers,
-  selectedServer,
-  selectedReceiver,
-  serverReceiverAction,
   handleOpenPlays,
   awardTo,
   setAwardTo,
+  currPlays,
+  revertPlayEl,
 }: IScoreBoardProps) {
-  // Memoize player ID sets
-  const teamAPlayerIds = useMemo(
-    () => new Set(teamAPlayers.map((p) => p._id)),
-    [teamAPlayers]
-  );
-  const teamBPlayerIds = useMemo(
-    () => new Set(teamBPlayers.map((p) => p._id)),
-    [teamBPlayers]
-  );
-
-  // Precompute logic once
-  const getPointIndicator = (team: ETeam): React.ReactNode | null => {
-    if (!selectedServer || !selectedReceiver || !serverReceiverAction)
-      return null;
-
-    const isServerInTeam =
-      team === ETeam.teamA
-        ? teamAPlayerIds.has(selectedServer)
-        : teamBPlayerIds.has(selectedServer);
-    const isReceiverInTeam =
-      team === ETeam.teamA
-        ? teamAPlayerIds.has(selectedReceiver)
-        : teamBPlayerIds.has(selectedReceiver);
-
-    const serverTeamGetsPoint = new Set([
-      EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
-      EServerReceiverAction.SERVER_ACE_NO_TOUCH,
-      EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
-      EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
-      EServerReceiverAction.SERVER_DO_NOT_KNOW,
-    ]).has(serverReceiverAction);
-
-    const receiverTeamGetsPoint = new Set([
-      EServerReceiverAction.RECEIVER_SERVICE_FAULT,
-      EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
-      EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
-      EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
-    ]).has(serverReceiverAction);
-
-    if (
-      (serverTeamGetsPoint && isServerInTeam) ||
-      (receiverTeamGetsPoint && isReceiverInTeam)
-    ) {
-      return (
-        <p className="absolute bottom-1 right-2 text-green-500 text-3xl font-bold animate-bounce">
-          +1
-        </p>
-      );
-    }
-
-    return null;
-  };
-
   const handleTeamSelect = (e: React.SyntheticEvent, teamE: ETeam) => {
     e.preventDefault();
     setAwardTo(teamE);
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 md:space-y-10">
+    <div className="w-full flex flex-col justify-center items-center gap-6">
       {/* Pulsing Status */}
       <div
         onClick={handleOpenPlays}
@@ -145,18 +85,32 @@ function ScoreBoard({
 
             {/* Text & Score Group */}
             <div className="flex-1 flex flex-col items-end md:items-center justify-between ml-3 md:ml-0 md:mt-4 space-y-1">
-              <h4 className={`uppercase ${teamE === awardTo ? "text-black" : "text-yellow-300"} tracking-wide text-right md:text-center`}>
+              <h4
+                className={`uppercase ${
+                  teamE === awardTo ? "text-black" : "text-yellow-300"
+                } tracking-wide text-right md:text-center`}
+              >
                 {team?.name}
               </h4>
 
               <div className="relative bg-white text-black h-12 w-12 lg:24 rounded-full flex items-center justify-center shadow-md border-2 md:border-4 border-yellow-400 text-lg md:text-4xl font-bold">
                 {score}
-                {getPointIndicator(teamE)}
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {currPlays.length > 0 && (
+        <button
+          className="btn-info"
+          onClick={(e) => {
+            revertPlayEl.current?.showModal();
+          }}
+        >
+          Revert Play
+        </button>
+      )}
     </div>
   );
 }

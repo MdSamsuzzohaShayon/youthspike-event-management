@@ -14,7 +14,6 @@ import {
   IAccessCode,
   IMatchExpRel,
   INetPlayers,
-  INetRelatives,
   IReceiverTeam,
   IServerReceiverOnNetMixed,
   IServerTeam,
@@ -31,14 +30,11 @@ import usePlayerMaps from "@/hooks/score-keeping/usePlayerMaps";
 import useMakeTeam from "@/hooks/score-keeping/useMakeTeam";
 import useInitialSelection from "@/hooks/score-keeping/useInitialSelection";
 import useServerReceiverSocket from "@/hooks/score-keeping/useServerReceiverSocket";
-import { scoreKeeperAction } from "@/utils/staticData";
-import actionConfirmation from "@/utils/match/actionConfirmation";
 import ScoreBoard from "./ScoreBoard";
 import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
 import ServerReceiverPlayInput from "./ServerReceiverPlayInput";
 import { setMessage } from "@/redux/slices/elementSlice";
 import LocalStorageService from "@/utils/LocalStorageService";
-import { useRoundNavigation } from "@/hooks/useRoundNavigation";
 import RoundInputBox from "../elements/RoundInputBox";
 
 /* ───────────────────────────────────────────── */
@@ -84,13 +80,12 @@ export default function ServerReceiver({
     useState<boolean>(false);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
   const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
-  const [serverReceiverAction, setServerReceiverAction] =
-    useState<EServerReceiverAction | null>(null);
   const [toBeSelectedPlay, setToBeSelectedPlay] = useState<number | null>(null); // Selected playId before confirmation
   const [awardTo, setAwardTo] = useState<ETeam | null>(null);
 
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
+  const revertPlayEl = useRef<HTMLDialogElement | null>(null);
 
   /* Derived maps / helpers */
   const netByNum = useNetMaps(currentRoundNets);
@@ -196,8 +191,6 @@ export default function ServerReceiver({
     dispatch(setCurrentServerReceiver(newServerReceiver || null));
   };
 
-
-
   const handleSetPlayers = useCallback(() => {
     new EmitEvents(socket, dispatch).setServerReceiver({
       dispatch,
@@ -222,23 +215,6 @@ export default function ServerReceiver({
     selectedReceiver,
     accessCode,
   ]);
-
-  const handleConfirmAction = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-
-    const net = netByNum.get(currNetNum);
-    actionConfirmation(
-      currMatch._id,
-      socket,
-      dispatch,
-      serverReceiverAction,
-      selectedReceiver,
-      net?._id || null,
-      currRoom?._id || null
-    );
-    setServerReceiverAction(null);
-    setAwardTo(null);
-  };
 
   const openResetConfirm = () => {
     confirmBoxEl.current?.showModal();
@@ -330,6 +306,26 @@ export default function ServerReceiver({
     );
   }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
 
+
+
+  const handleRevertPlay = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const highestPlay = currPlays.reduce(
+      (max, current) => (current.play > max.play ? current : max),
+      currPlays[0]
+    );
+    const lastPlay: number = highestPlay.play;
+    const emit = new EmitEvents(socket, dispatch);
+    emit.revertPlay({
+      match: currMatch._id,
+      net: netByNum.get(currNetNum)?._id || null,
+      room: currRoom?._id || null,
+      accessCode: accessCode?.code || null,
+      play: lastPlay,
+    });
+    revertPlayEl.current?.close();
+  };
+
   const serverTeamE: ETeam | null = useMemo(() => {
     if (!selectedServer) return null;
     const teamAPlayerIds = new Set(teamAPlayers.map((p) => p._id));
@@ -354,6 +350,14 @@ export default function ServerReceiver({
     return selectedPlays;
   }, [serverReceiverPlays, currNet]);
 
+
+  const lastPlay = useMemo(()=>{
+    return currPlays.reduce(
+      (max, current) => (current.play > max.play ? current : max),
+      currPlays[0]
+    )
+  }, [currPlays]);
+
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
@@ -367,7 +371,14 @@ export default function ServerReceiver({
   ) {
     return (
       <div className="w-full">
-        <RoundInputBox allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />
+        <RoundInputBox
+          allNets={allNets}
+          currMatch={currMatch}
+          currRound={currRound}
+          dispatch={dispatch}
+          myTeamE={myTeamE}
+          roundList={roundList}
+        />
         <div className="w-full flex justify-center mt-10">
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
             <h2 className="text-lg font-semibold mb-2">Lineup Incomplete</h2>
@@ -387,7 +398,14 @@ export default function ServerReceiver({
   ) {
     return (
       <div className="w-full">
-        <RoundInputBox allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />
+        <RoundInputBox
+          allNets={allNets}
+          currMatch={currMatch}
+          currRound={currRound}
+          dispatch={dispatch}
+          myTeamE={myTeamE}
+          roundList={roundList}
+        />
         <div className="w-full flex justify-center mt-10">
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
             <h2 className="text-lg font-semibold mb-2">
@@ -405,7 +423,14 @@ export default function ServerReceiver({
 
   return (
     <div className="ServerReceiver">
-      <RoundInputBox allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />
+      <RoundInputBox
+        allNets={allNets}
+        currMatch={currMatch}
+        currRound={currRound}
+        dispatch={dispatch}
+        myTeamE={myTeamE}
+        roundList={roundList}
+      />
       <div className="input-wrapper relative">
         <SelectInput
           handleSelect={handleNetChange}
@@ -438,34 +463,18 @@ export default function ServerReceiver({
               <div className="w-5/6">
                 <ScoreBoard
                   currServerReceiver={currServerReceiver}
-                  selectedReceiver={selectedReceiver}
-                  selectedServer={selectedServer}
-                  serverReceiverAction={serverReceiverAction}
                   handleOpenPlays={(e) => {
                     changePlayEl?.current?.showModal();
                   }}
                   teamA={teamA || null}
-                  teamAPlayers={teamAPlayers}
                   teamB={teamB || null}
-                  teamBPlayers={teamBPlayers}
                   awardTo={awardTo}
                   setAwardTo={setAwardTo}
+                  currPlays={currPlays}
+                  revertPlayEl={revertPlayEl}
                   key="sb-1"
                 />
               </div>
-              {serverReceiverAction && (
-                <div className="5/6 mt-6">
-                  {/* This should be an edit button  */}
-                  {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
-                  <button
-                    className="btn-success uppercase"
-                    onClick={handleConfirmAction}
-                  >
-                    {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
-                    {scoreKeeperAction.get(serverReceiverAction)}
-                  </button>
-                </div>
-              )}
             </div>
             {/* Right side end  */}
           </div>
@@ -475,41 +484,29 @@ export default function ServerReceiver({
             <div className="w-full sticky top-0 md:hidden bg-black py-2">
               <ScoreBoard
                 currServerReceiver={currServerReceiver}
-                selectedReceiver={selectedReceiver}
-                selectedServer={selectedServer}
-                serverReceiverAction={serverReceiverAction}
                 handleOpenPlays={(e) => {
                   changePlayEl?.current?.showModal();
                 }}
                 teamA={teamA || null}
-                teamAPlayers={teamAPlayers}
                 teamB={teamB || null}
-                teamBPlayers={teamBPlayers}
                 awardTo={awardTo}
                 setAwardTo={setAwardTo}
+                currPlays={currPlays}
+                revertPlayEl={revertPlayEl}
                 key="sb-2"
               />
-              {serverReceiverAction && (
-                <div className="5/6 mt-4">
-                  {/* This should be an edit button  */}
-                  {/* <button className="btn-light uppercase">Change Server/Receiver point 1</button> */}
-                  <button
-                    className="btn-success uppercase"
-                    onClick={handleConfirmAction}
-                  >
-                    {/* +1 POINTS STEVE (#18) DEFENSIVE TOUCH & PUT AWAY. point 1 */}
-                    {scoreKeeperAction.get(serverReceiverAction)}
-                  </button>
-                </div>
-              )}
             </div>
             <ActionHandler
-              serverReceiverAction={serverReceiverAction}
-              setServerReceiverAction={setServerReceiverAction}
               teamA={teamA || null}
               teamB={teamB || null}
               serverTeamE={serverTeamE}
               awardTo={awardTo}
+              dispatch={dispatch}
+              socket={socket}
+              match={matchId}
+              net={currNet?._id || null}
+              receiver={selectedReceiver}
+              room={currRoom?._id || null}
               setAwardTo={setAwardTo}
             />
           </div>
@@ -689,6 +686,51 @@ export default function ServerReceiver({
             <button
               className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
               onClick={closeResetConfirm}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      {/* handleRevertPlay */}
+      <dialog ref={revertPlayEl} className="modal-dialog">
+        <div className="p-6 space-y-4">
+          <h2 className="text-xl font-semibold text-yellow-400">
+            Revert to previous play
+          </h2>
+
+          <div className="flex-1 overflow-y-auto pr-1">
+            <ul className="space-y-2">
+              <ServerReceiverPlayInput
+                sr={lastPlay}
+                teamAById={teamAById}
+                teamBById={teamBById}
+                key={`last-play-${lastPlay.play}`}
+                teamAPlayers={teamAPlayers}
+                teamBPlayers={teamBPlayers}
+              />
+            </ul>
+          </div>
+
+          <p className="text-sm text-gray-300">
+            ⚠️ Warning: This will revert the previous play (one single play
+            back). From that play you can continue the game. But this record
+            will be deleted.
+          </p>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200"
+              onClick={handleRevertPlay}
+            >
+              Confirm
+            </button>
+            <button
+              className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
+              onClick={(e) => {
+                revertPlayEl.current?.close();
+              }}
             >
               Cancel
             </button>

@@ -156,7 +156,7 @@ function NetPointCard({
 
   return (
     <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-between items-center">
-      <div className="w-8" />
+      <div className="w-4 md:w-8" />
       <div className="flex flex-col justify-around items-center p-1 rounded-lg ">
         <TeamScoreInput
           key={`${1}-${net?._id}`}
@@ -220,7 +220,7 @@ function NetPointCard({
       <Image
         src="/icons/edit.svg"
         alt="Scorekeeper-view"
-        className="w-8"
+        className="w-4 md:w-8"
         height={50}
         width={50}
         role="presentation"

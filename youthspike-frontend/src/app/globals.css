@@ -87,8 +87,9 @@ input[type=number] {
   @apply px-3 py-2 bg-transparent text-white border border-2 border-white rounded-full font-black text-xl;
 }
 
-.btn-info {
-  @apply px-3 py-2 bg-yellow-400 text-black rounded-full hover:bg-yellow-700 font-bold text-xl;
+.btn-info { 
+  background-color: #fce013;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto text-black;
 }
 
 

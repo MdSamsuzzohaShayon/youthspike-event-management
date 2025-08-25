@@ -2,33 +2,105 @@ import { EServerReceiverAction, ETeam, ITeam } from "@/types";
 import { CldImage } from "next-cloudinary";
 import React, { useCallback } from "react";
 import TextImg from "../elements/TextImg";
+import EmitEvents from "@/utils/socket/EmitEvents";
+import { Socket } from "socket.io-client";
+import { AppDispatch } from "@/redux/store";
 
 interface IActionHandlerProps {
-  serverReceiverAction: EServerReceiverAction | null;
-  setServerReceiverAction: React.Dispatch<
-    React.SetStateAction<EServerReceiverAction | null>
-  >;
   teamA: ITeam | null;
   teamB: ITeam | null;
   serverTeamE: null | ETeam;
   awardTo: ETeam | null;
+  receiver: string | null;
+  socket: Socket | null;
+  dispatch: AppDispatch;
   setAwardTo: React.Dispatch<React.SetStateAction<ETeam | null>>;
+  net: string | null;
+  room: string | null;
+  match: string;
 }
 
 const ActionHandler: React.FC<IActionHandlerProps> = ({
-  serverReceiverAction,
-  setServerReceiverAction,
   teamA,
   teamB,
   serverTeamE,
   awardTo,
+  receiver,
+  socket,
+  dispatch,
   setAwardTo,
+  net,
+  room,
+  match,
 }) => {
   // Generic click handler
   const handleAction =
     (action: EServerReceiverAction) => (e: React.SyntheticEvent) => {
       e.preventDefault();
-      setServerReceiverAction(action);
+
+      const emit = new EmitEvents(socket, dispatch);
+      switch (action) {
+        case EServerReceiverAction.SERVER_ACE_NO_TOUCH:
+          if (receiver && net && room) {
+            emit.aceNoTouch({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH:
+          if (receiver && net && room) {
+            emit.aceNoThirdTouch({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION:
+          if (receiver && net && room) {
+            emit.serverDefensiveConversion({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR:
+          if (receiver && net && room) {
+            emit.receivingHittingError({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.SERVER_DO_NOT_KNOW:
+          if (receiver && net && room) {
+            emit.serverDoNotKnow({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.RECEIVER_SERVICE_FAULT:
+          if (receiver && net && room) {
+            emit.serviceFault({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY:
+          if (receiver && net && room) {
+            emit.oneTwoThreePutAway({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:
+          if (receiver && net && room) {
+            emit.receiverDefensiveConversion({ match, net, room });
+          }
+          break;
+
+        case EServerReceiverAction.RECEIVER_DO_NOT_KNOW:
+          if (receiver && net && room) {
+            emit.receiverDoNotKnow({ match, net, room });
+          }
+          break;
+
+        default:
+          console.log(`Action is unknown ${action}`);
+
+          break;
+      }
+
+      setAwardTo(null);
     };
 
   // Config for both teams
@@ -119,9 +191,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
           {serverActions.map(({ label, value }) => (
             <button
               key={value}
-              className={`${
-                serverReceiverAction === value ? "btn-info" : "btn-light"
-              } uppercase`}
+              className="btn-light"
               onClick={handleAction(value)}
             >
               {label}
@@ -145,9 +215,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
           {receiverActions.map(({ label, value }) => (
             <button
               key={value}
-              className={`${
-                serverReceiverAction === value ? "btn-info" : "btn-light"
-              } uppercase`}
+              className={`btn-light uppercase`}
               onClick={handleAction(value)}
             >
               {label}

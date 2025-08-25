@@ -12,10 +12,10 @@ interface IServerReceiverPlayInputProps {
   sr: IServerReceiverSinglePlay;
   teamAById: Map<string, IPlayer>;
   teamBById: Map<string, IPlayer>;
-  toBeSelectedPlay: number | null;
-  setToBeSelectedPlay: React.Dispatch<React.SetStateAction<number | null>>;
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
+  toBeSelectedPlay?: number | null;
+  setToBeSelectedPlay?: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const getPlayerName = (
@@ -105,7 +105,7 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
   return (
     <li
       role="presentation"
-      onClick={() => setToBeSelectedPlay(sr.play)}
+      onClick={() => setToBeSelectedPlay && setToBeSelectedPlay(sr.play)}
       className={`p-4 rounded-xl transition-all space-y-4 cursor-pointer shadow-md ${
         sr.play === toBeSelectedPlay
           ? "bg-black border-2 border-yellow-400 text-white"
