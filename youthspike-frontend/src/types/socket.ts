@@ -60,7 +60,7 @@ export interface ISetServerReceiverChange {
   currNetNum: number;
   server: string | null;
   receiver: string | null;
-  accessCode: IAccessCode | null;
+  accessCode: string | null;
 }
 
 

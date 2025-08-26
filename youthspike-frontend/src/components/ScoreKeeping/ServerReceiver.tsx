@@ -201,7 +201,7 @@ export default function ServerReceiver({
       currNetNum,
       server: selectedServer,
       receiver: selectedReceiver,
-      accessCode,
+      accessCode: token || accessCode?.code || null,
     });
   }, [
     socket,
@@ -263,7 +263,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: net?._id || null,
       room: currRoom?._id || null,
-      accessCode: accessCode?.code.toString() || null,
+      accessCode: accessCode?.code.toString() || token || null,
     });
 
     closeResetConfirm();
@@ -305,8 +305,6 @@ export default function ServerReceiver({
       })
     );
   }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
-
-
 
   const handleRevertPlay = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -350,12 +348,11 @@ export default function ServerReceiver({
     return selectedPlays;
   }, [serverReceiverPlays, currNet]);
 
-
-  const lastPlay = useMemo(()=>{
+  const lastPlay = useMemo(() => {
     return currPlays.reduce(
       (max, current) => (current.play > max.play ? current : max),
       currPlays[0]
-    )
+    );
   }, [currPlays]);
 
   /* ───── Hydrate redux ONCE ───── */
@@ -700,18 +697,20 @@ export default function ServerReceiver({
             Revert to previous play
           </h2>
 
-          <div className="flex-1 overflow-y-auto pr-1">
-            <ul className="space-y-2">
-              <ServerReceiverPlayInput
-                sr={lastPlay}
-                teamAById={teamAById}
-                teamBById={teamBById}
-                key={`last-play-${lastPlay.play}`}
-                teamAPlayers={teamAPlayers}
-                teamBPlayers={teamBPlayers}
-              />
-            </ul>
-          </div>
+          {lastPlay && (
+            <div className="flex-1 overflow-y-auto pr-1">
+              <ul className="space-y-2">
+                <ServerReceiverPlayInput
+                  sr={lastPlay}
+                  teamAById={teamAById}
+                  teamBById={teamBById}
+                  key={`last-play-${lastPlay.play}`}
+                  teamAPlayers={teamAPlayers}
+                  teamBPlayers={teamBPlayers}
+                />
+              </ul>
+            </div>
+          )}
 
           <p className="text-sm text-gray-300">
             ⚠️ Warning: This will revert the previous play (one single play

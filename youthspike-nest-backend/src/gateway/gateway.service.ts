@@ -10,6 +10,7 @@ import { MatchService } from 'src/match/match.service';
 import { PlayerService } from 'src/player/player.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class GatewayService {
@@ -24,7 +25,8 @@ export class GatewayService {
     private readonly teamService: TeamService,
     private readonly matchService: MatchService,
     private readonly playerService: PlayerService,
-    private readonly playerStatsService: PlayerStatsService
+    private readonly playerStatsService: PlayerStatsService,
+    private readonly jwtService: JwtService,
   ) {}
 
   getServices() {
@@ -39,7 +41,8 @@ export class GatewayService {
       teamService: this.teamService,
       matchService: this.matchService,
       playerService: this.playerService,
-      playerStatsService: this.playerStatsService
+      playerStatsService: this.playerStatsService,
+      jwtService: this.jwtService,
     };
   }
 }

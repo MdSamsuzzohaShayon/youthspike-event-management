@@ -9,8 +9,8 @@ import { CLONE_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS } from '@/graphql/event'
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
-import { IDirector, IEvent, IGetEventDirectorQuery, ILDO } from '@/types';
-import { useRouter } from 'next/navigation';
+import { IEvent, IGetEventDirectorQuery } from '@/types';
+import { redirect, useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import { removeDivisionFromStore } from '@/utils/localStorage';
@@ -52,6 +52,10 @@ function EventsMain({queryRef}: IEventsMainProps) {
 
    // Read query data from Apollo (Suspense friendly)
    const { data, error } = useReadQuery(queryRef);
+   if(data?.getEventDirector?.code === 401){
+    redirect('/api/logout');
+   }
+   
 
 
    const ldo = data?.getEventDirector?.data?.director;

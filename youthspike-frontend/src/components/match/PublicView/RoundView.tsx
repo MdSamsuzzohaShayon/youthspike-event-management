@@ -4,6 +4,7 @@ import {
   INetRelatives,
   IPlayer,
   IRoundRelatives,
+  IServerReceiverOnNetMixed,
   ITeam,
 } from "@/types";
 import PlayerView from "./PlayerView";
@@ -14,6 +15,7 @@ import Image from "next/image";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCurrentRoundNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
+import NetInRoundView from "./NetInRoundView";
 
 interface IRoundViewProps {
   roundList: IRoundRelatives[];
@@ -25,6 +27,7 @@ interface IRoundViewProps {
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
   setView: React.Dispatch<React.SetStateAction<EView>>;
+  srMap: Map<string, IServerReceiverOnNetMixed>;
 }
 
 const RoundView = ({
@@ -37,15 +40,24 @@ const RoundView = ({
   teamAPlayers,
   teamBPlayers,
   setView,
+  srMap,
 }: IRoundViewProps) => {
   const dispatch = useAppDispatch();
 
-  const teamAPlayerMap = useMemo(() => {
-    return new Map(teamAPlayers.map((p) => [p._id, p]));
-  }, [teamAPlayers, currRoundNets]);
-  const teamBPlayerMap = useMemo(() => {
-    return new Map(teamBPlayers.map((p) => [p._id, p]));
-  }, [teamBPlayers, currRoundNets]);
+
+
+  const {teamAScore, teamBScore} = useMemo(()=>{
+    let aScore = 0, bScore = 0;
+    currRoundNets.forEach(n => {
+      // if(!n.teamAScore || !n.teamBScore) return;
+      if((n.teamAScore || 0) > (n.teamBScore||0)){
+        aScore += n.points;
+      }else if((n.teamAScore || 0) < (n.teamBScore||0)){
+        bScore += n.points;
+      }
+    });
+    return {teamAScore: aScore, teamBScore: bScore}
+  }, [currRoundNets]);
 
   // Precompute lookups for faster access
   const roundIdToIndex = useMemo(() => {
@@ -203,13 +215,13 @@ const RoundView = ({
             <div className="bg-black px-6 py-3 rounded-lg border border-yellow-400 shadow-inner">
               <div className="flex items-center space-x-4">
                 <span className="text-white font-bold text-2xl md:text-3xl">
-                  {currRound?.teamAScore || 0}
+                  {teamAScore}
                 </span>
                 <span className="text-yellow-400 font-bold text-2xl md:text-3xl">
                   -
                 </span>
                 <span className="text-white font-bold text-2xl md:text-3xl">
-                  {currRound?.teamBScore || 0}
+                  {teamBScore}
                 </span>
               </div>
             </div>
@@ -220,119 +232,7 @@ const RoundView = ({
       {/* Nets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {currRoundNets.map((net: INetRelatives, index: number) => (
-          <div
-            key={index}
-            className="bg-gray-800 p-4 md:p-5 rounded-xl shadow-lg border border-gray-700 hover:border-yellow-400 transition-all duration-300"
-          >
-            {/* Net Header */}
-            <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
-              <h3 className="text-yellow-400 font-bold text-lg">
-                Net {net.num}
-              </h3>
-              <button
-                className="btn btn-info"
-                onClick={() => {
-                  setView(EView.NET);
-                }}
-              >
-                Enter
-              </button>
-              <div className="flex items-center space-x-2">
-                <span className="text-white font-semibold bg-black px-2 py-1 rounded text-sm">
-                  {net?.teamAScore || 0}
-                </span>
-                <span className="text-gray-400">-</span>
-                <span className="text-white font-semibold bg-black px-2 py-1 rounded text-sm">
-                  {net?.teamBScore || 0}
-                </span>
-              </div>
-            </div>
-
-            {/* Team A Players */}
-            <div className="mb-4">
-              <div className="flex items-center mb-2">
-                {teamA && teamA.logo ? (
-                  <CldImage
-                    src={teamA.logo}
-                    alt={teamA.name}
-                    width={30}
-                    height={30}
-                    className="w-6 h-6 mr-2 rounded-full object-cover"
-                  />
-                ) : (
-                  <TextImg
-                    fullText={teamA?.name?.charAt(0) || "A"}
-                    className="w-6 h-6 mr-2 text-xs"
-                  />
-                )}
-                <span className="text-white text-sm font-semibold">
-                  {teamA?.name}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {net?.teamAPlayerA && (
-                  <PlayerView
-                    key={net.teamAPlayerA}
-                    player={teamAPlayerMap.get(net.teamAPlayerA) || null}
-                    role={ESRRole.SERVER}
-                  />
-                )}
-                {net?.teamAPlayerB && (
-                  <PlayerView
-                    key={net.teamAPlayerB}
-                    player={teamAPlayerMap.get(net.teamAPlayerB) || null}
-                    role={ESRRole.SERVER}
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="flex justify-center my-3">
-              <div className="w-10 h-px bg-yellow-400"></div>
-            </div>
-
-            {/* Team B Players */}
-            <div>
-              <div className="flex items-center mb-2">
-                {teamB && teamB.logo ? (
-                  <CldImage
-                    src={teamB.logo}
-                    alt={teamB.name}
-                    width={30}
-                    height={30}
-                    className="w-6 h-6 mr-2 rounded-full object-cover"
-                  />
-                ) : (
-                  <TextImg
-                    fullText={teamB?.name?.charAt(0) || "B"}
-                    className="w-6 h-6 mr-2 text-xs"
-                  />
-                )}
-                <span className="text-white text-sm font-semibold">
-                  {teamB?.name}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {net.teamBPlayerA && (
-                  <PlayerView
-                    key={net.teamBPlayerA}
-                    player={teamBPlayerMap.get(net.teamBPlayerA) || null}
-                    role={ESRRole.SERVER}
-                  />
-                )}
-                {net.teamBPlayerB && (
-                  <PlayerView
-                    key={net.teamBPlayerB}
-                    player={teamBPlayerMap.get(net.teamBPlayerB) || null}
-                    role={ESRRole.SERVER}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
+          <NetInRoundView key={index} srNet={srMap.get(net._id) || null} net={net} setView={setView} teamA={teamA} teamB={teamB} currRoundNets={currRoundNets} teamAPlayers={teamAPlayers} teamBPlayers={teamBPlayers} />
         ))}
       </div>
     </div>

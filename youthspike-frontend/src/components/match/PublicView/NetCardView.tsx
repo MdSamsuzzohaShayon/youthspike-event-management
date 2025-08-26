@@ -1,4 +1,4 @@
-import { INetRelatives, IPlayer, ITeam } from "@/types";
+import { ESRRole, EView, INetRelatives, IPlayer, IServerReceiverOnNetMixed, ITeam } from "@/types";
 import TeamView from "./TeamView";
 import { useMemo } from "react";
 
@@ -8,7 +8,9 @@ interface INetCardViewProps {
   teamB: ITeam | null;
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
+  setView: React.Dispatch<React.SetStateAction<EView>>;
   netNumber?: number;
+  srNet: IServerReceiverOnNetMixed | null;
 }
 const NetCardView = ({
   net,
@@ -16,7 +18,9 @@ const NetCardView = ({
   teamB,
   teamAPlayers,
   teamBPlayers,
+  setView,
   netNumber,
+  srNet
 }: INetCardViewProps) => {
 
   const tap = useMemo(()=>{
@@ -28,6 +32,31 @@ const NetCardView = ({
   }, [teamBPlayers, net]);
 
 
+  const selectedNet = useMemo(() => {
+    return {
+      ...net,
+      teamAScore: srNet?.teamAScore || net.teamAScore,
+      teamBScore: srNet?.teamBScore || net.teamBScore,
+    };
+  }, [net, srNet]);
+
+  const roleMap = useMemo(()=> {
+    const newMap = new Map<string, ESRRole>();
+    if(srNet?.serverId){
+        newMap.set(srNet?.serverId, ESRRole.SERVER);
+    }
+    if(srNet?.receiverId){
+        newMap.set(srNet?.receiverId, ESRRole.RECEIVER);
+    }
+    if(srNet?.servingPartnerId){
+        newMap.set(srNet?.servingPartnerId, ESRRole.SWING);
+    }
+    if(srNet?.receivingPartnerId){
+        newMap.set(srNet?.receivingPartnerId, ESRRole.SETTER);
+    }
+    return newMap;
+  }, [srNet]);
+
   return (
     <div className="bg-gray-800 rounded-2xl p-4 md:p-6 shadow-lg border border-gray-700 hover:border-yellow-400 transition-all duration-300 group">
       {/* Net Header */}
@@ -38,10 +67,18 @@ const NetCardView = ({
           </span>
           Net {netNumber}
         </h3>
+        <button
+          className="btn btn-info"
+          onClick={() => {
+            setView(EView.ROUND);
+          }}
+        >
+          Round
+        </button>
         <div className="flex items-center space-x-3 bg-black px-3 py-1 rounded-full border border-yellow-400">
-          <span className="text-white font-bold text-lg">{net.teamAScore || 0}</span>
+          <span className="text-white font-bold text-lg">{selectedNet?.teamAScore || 0}</span>
           <span className="text-yellow-400 font-bold">-</span>
-          <span className="text-white font-bold text-lg">{net.teamBScore || 0}</span>
+          <span className="text-white font-bold text-lg">{selectedNet?.teamBScore || 0}</span>
         </div>
       </div>
 
@@ -51,8 +88,9 @@ const NetCardView = ({
           <TeamView 
             team={teamA} 
             players={tap} 
-            teamScore={net.teamAScore || 0} 
+            teamScore={selectedNet?.teamAScore || 0} 
             orientation="left"
+            roleMap={roleMap}
           />
         )}
         
@@ -67,8 +105,9 @@ const NetCardView = ({
           <TeamView 
             team={teamB} 
             players={tbp} 
-            teamScore={net.teamBScore || 0} 
+            teamScore={selectedNet?.teamBScore || 0} 
             orientation="right"
+            roleMap={roleMap}
           />
         )}
       </div>

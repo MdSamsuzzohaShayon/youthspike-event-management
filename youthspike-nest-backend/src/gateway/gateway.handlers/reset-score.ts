@@ -5,11 +5,12 @@ import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { singlePlayKey } from 'src/util/helper';
+import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
 export class ResetScoreHandler {
   constructor(
     private readonly gatewayService: GatewayService,
-    private readonly gatewayRedisService: GatewayRedisService,
+    private readonly validationHelper: ValidationHelper,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
@@ -19,7 +20,7 @@ export class ResetScoreHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService } =
+      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService, jwtService } =
         this.gatewayService.getServices();
 
       const [net, match] = await Promise.all([
@@ -27,9 +28,8 @@ export class ResetScoreHandler {
         matchService.findById(body.match),
       ]);
 
-      if (!match?.accessCode || match.accessCode !== body.accessCode) {
-        throw new Error('Permission denied: Invalid access code.');
-      }
+      // ✅ Check if body.accessCode is a valid JWT OR matches stored accessCode
+      this.validationHelper.authCheck(body?.accessCode || null, jwtService, match?.accessCode || null);
 
       const playKeys = new Set<string>();
       for (let i = 0; i < net.mutate; i++) {

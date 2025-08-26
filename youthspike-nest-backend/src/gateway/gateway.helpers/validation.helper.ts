@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GatewayService } from '../gateway.service';
 import { EActionProcess } from 'src/round/round.schema';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class ValidationHelper {
@@ -75,6 +76,22 @@ export class ValidationHelper {
           `A match is already running (${match._id}), until you complete that match you can not start a new match!`,
         );
       }
+    }
+  }
+
+  async authCheck(accessCode: string | null, jwtService: JwtService, matchAccessCode: string | null){
+    let isJwtValid = false;
+    if (accessCode) {
+      try {
+        await jwtService.verifyAsync(accessCode); // uses secret from module options
+        isJwtValid = true;
+      } catch {
+        isJwtValid = false;
+      }
+    }
+
+    if (!isJwtValid && accessCode !== matchAccessCode) {
+      throw new Error(`Access denied! Try logging in again and re-entering access code.`);
     }
   }
 }

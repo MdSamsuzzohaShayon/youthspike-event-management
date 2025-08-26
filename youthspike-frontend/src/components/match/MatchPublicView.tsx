@@ -1,12 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import RoundView from "./PublicView/RoundView";
 import AllNetsView from "./PublicView/AllNetsView";
 import SpecificNetView from "./PublicView/SpecificNetView";
-import { ETeam, EView, INetRelatives, IPlayer, IRoundRelatives, ITeam } from "@/types";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { EView, INetRelatives, IRoundRelatives, IServerReceiverOnNetMixed, ITeam } from "@/types";
+import { useAppSelector } from "@/redux/hooks";
 import Image from "next/image";
-import { setCurrentRoundNets } from "@/redux/slices/netSlice";
-import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 
 interface IMatchPublicViewProps {
   nets: INetRelatives[];
@@ -25,21 +23,25 @@ function MatchPublicView({
   teamA,
   teamB,
 }: IMatchPublicViewProps) {
- 
-
   const [view, setView] = useState<EView>(EView.ROUND); // allNets | round | net
   const containerRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
-  
-  
+
   const { teamAPlayers, teamBPlayers } = useAppSelector(
     (state) => state.players
   );
-  const { currNetNum } = useAppSelector(
-    (state) => state.nets
+  const { currNetNum } = useAppSelector((state) => state.nets);
+  const { serverReceiversOnNet } = useAppSelector(
+    (state) => state.serverReceiverOnNets
   );
 
-
+  const srMap = useMemo(() => {
+    const entries = serverReceiversOnNet.map((s) => {
+      const key = s.netId ?? (typeof s.net === "string" ? s.net : s.net._id);
+      return [key, s] as const;
+    });
+    return new Map<string, IServerReceiverOnNetMixed>(entries);
+  }, [serverReceiversOnNet]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -115,6 +117,7 @@ function MatchPublicView({
           setView={setView}
           allNets={nets}
           roundList={roundList}
+          srMap={srMap}
         />
       )}
       {view === EView.NET && (
@@ -125,6 +128,8 @@ function MatchPublicView({
           teamB={teamB}
           teamAPlayers={teamAPlayers}
           teamBPlayers={teamBPlayers}
+          setView={setView}
+          srMap={srMap}
         />
       )}
     </div>

@@ -11,12 +11,12 @@ import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
+import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
 export class UpdateCachePointsHandler {
   constructor(
     private readonly gatewayService: GatewayService,
-    private readonly pointsHelper: PointsUpdateHelper,
-    private readonly gatewayRedisService: GatewayRedisService,
+    private readonly validationHelper: ValidationHelper,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
@@ -26,7 +26,7 @@ export class UpdateCachePointsHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService } =
+      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService, jwtService } =
         this.gatewayService.getServices();
 
       const [net, match] = await Promise.all([
@@ -36,9 +36,8 @@ export class UpdateCachePointsHandler {
 
       const allSinglePlays = await this.scoreKeeperHelper.loadAllSinglePlayAction(body.net, body.room, net.mutate);
 
-      if (!match?.accessCode || !body?.accessCode || match?.accessCode !== body?.accessCode) {
-        throw new Error(`You do not have permission, to update the score in this match!`);
-      }
+      // ✅ Check if body.accessCode is a valid JWT OR matches stored accessCode
+      this.validationHelper.authCheck(body?.accessCode || null, jwtService, match?.accessCode || null);
 
       // Update net score - no need to wait for this before proceeding
       const netUpdatePromise = netService.updateOne(

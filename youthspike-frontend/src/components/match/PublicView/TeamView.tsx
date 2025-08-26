@@ -7,9 +7,10 @@ interface ITeamViewProps {
   team: ITeam;
   teamScore: number;
   players: IPlayer[];
+  roleMap: Map<string, ESRRole>;
   orientation?: "left" | "right";
 }
-const TeamView = ({ team, players, teamScore, orientation = "left" }: ITeamViewProps) => (
+const TeamView = ({ team, players, teamScore, orientation = "left", roleMap }: ITeamViewProps) => (
   <div className={`bg-gray-900 text-white rounded-xl p-4 md:p-5 flex flex-col h-full shadow-lg border border-gray-700 hover:border-yellow-400 transition-all duration-200 group ${
     orientation === "left" ? "md:border-r md:border-r-yellow-400 md:pr-6" : "md:border-l md:border-l-yellow-400 md:pl-6"
   }`}>
@@ -47,7 +48,7 @@ const TeamView = ({ team, players, teamScore, orientation = "left" }: ITeamViewP
           <PlayerView 
             key={p._id} 
             player={p} 
-            role={ESRRole.SERVER} 
+            role={roleMap.get(p._id) || null} 
             compact={true}
           />
         ))

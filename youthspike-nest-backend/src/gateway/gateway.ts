@@ -130,8 +130,8 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
     
     // Update database
-    this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, pointsUpdateHelper, gatewayRedisService, scoreKeeperHelper);
-    this.resetScore = new ResetScoreHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, validationHelper, scoreKeeperHelper);
+    this.resetScore = new ResetScoreHandler(gatewayService, validationHelper, scoreKeeperHelper);
     this.revertPlay = new RevertPlayHandler(gatewayService, scoreKeeperHelper);
 
     /**
@@ -140,7 +140,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Unused
     // this.serverReceiverHandler = new ServerReceiverHandler(gatewayService, gatewayRedisService);
 
-    this.setPlayersHandler = new SetPlayersHandler(gatewayService, gatewayRedisService);
+    this.setPlayersHandler = new SetPlayersHandler(gatewayService, gatewayRedisService, validationHelper);
   }
 
   afterInit() {
@@ -220,10 +220,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Score keeper events handle
   // ======================================================================================================
-  @SubscribeMessage('set-players-from-client')
-  async onSetPlayers(@ConnectedSocket() client: Socket, @MessageBody() setPlayerInput: SetPlayersInput) {
-    return this.setPlayersHandler.handle(client, setPlayerInput, this.roomsLocal);
-  }
+
 
   @SubscribeMessage('service-fault-from-client')
   async onServiceFault(@ConnectedSocket() client: Socket, @MessageBody() serviceFaultInput: ServiceFaultInput) {
@@ -297,6 +294,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
   // MongoDB Database operations
+  @SubscribeMessage('set-players-from-client')
+  async onSetPlayers(@ConnectedSocket() client: Socket, @MessageBody() setPlayerInput: SetPlayersInput) {
+    return this.setPlayersHandler.handle(client, setPlayerInput, this.roomsLocal);
+  }
+
   @SubscribeMessage('update-cache-points-from-client')
   async onUpdateCachePoints(
     @ConnectedSocket() client: Socket,

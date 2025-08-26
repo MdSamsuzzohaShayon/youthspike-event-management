@@ -593,6 +593,7 @@ class EmitEvents {
       );
     }
 
+    // It could be token or access code
     if (!accessCode) {
       return dispatch(
         setMessage({
@@ -611,7 +612,7 @@ class EmitEvents {
       receiver,
       round: currRound._id,
       net: currNet._id,
-      accessCode: accessCode.code,
+      accessCode: accessCode,
       serverPositionPair: EServerPositionPair.PAIR_A_LEFT
     };
 

@@ -14,14 +14,18 @@ interface IScoreKeepingMainProps {
   accessCodeList: IAccessCode[];
   accessCode: IAccessCode | null;
 }
-function ScoreKeepingMain({ queryRef, accessCode, accessCodeList }: IScoreKeepingMainProps) {
+function ScoreKeepingMain({
+  queryRef,
+  accessCode,
+  accessCodeList,
+}: IScoreKeepingMainProps) {
   const { data, error } = useReadQuery(queryRef);
-  
+
   const user = useUser();
 
   const { token, info } = user;
 
-  const matchData = data.getMatch.data;
+  const matchData = data?.getMatch?.data;
 
   // Get round list, match, room, nets
   const renderHeadings = () => {
@@ -41,9 +45,9 @@ function ScoreKeepingMain({ queryRef, accessCode, accessCodeList }: IScoreKeepin
         </div>
       </>
     );
-  }
+  };
 
-  if (!accessCode) {
+  if (!accessCode && !token) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center py-12 px-4">
         <div className="w-full max-w-xl bg-gray-950/80 rounded-2xl shadow-2xl p-8 backdrop-blur-md border border-gray-800">
@@ -65,17 +69,15 @@ function ScoreKeepingMain({ queryRef, accessCode, accessCodeList }: IScoreKeepin
       {renderHeadings()}
       <div className="server-receiver-wrapper">
         {/* Whatever height you need */}
-        <Suspense fallback={<Loader />}>
-          {matchData && (
-            <ServerReceiver
-              matchId={matchData._id}
-              matchData={matchData}
-              accessCode={accessCode}
-              token={token || null}
-              userInfo={info}
-            />
-          )}
-        </Suspense>
+        {matchData && (
+          <ServerReceiver
+            matchId={matchData._id}
+            matchData={matchData}
+            accessCode={accessCode}
+            token={token || null}
+            userInfo={info}
+          />
+        )}
       </div>
     </React.Fragment>
   );

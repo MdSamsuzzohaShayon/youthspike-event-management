@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UserResolver } from './user.resolver';
 import { SharedModule } from 'src/shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [

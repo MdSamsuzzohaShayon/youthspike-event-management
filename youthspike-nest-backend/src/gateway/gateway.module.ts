@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SharedModule } from 'src/shared/shared.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Gateway } from './gateway';
 import { GatewayService } from './gateway.service';
 import { GatewayRedisService } from './gateway.redis';
@@ -10,9 +10,28 @@ import { ValidationHelper } from './gateway.helpers/validation.helper';
 import { RedisHelper } from './gateway.helpers/redis.helper';
 import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
 import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [SharedModule, ConfigModule.forRoot()],
+  imports: [
+    SharedModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+
+      useFactory: async (config: ConfigService) => {
+        return {
+          secret: config.get('JWT_SECRET'),
+          signOptions: {
+            expiresIn: '1d',
+          },
+        };
+      },
+
+      inject: [ConfigService],
+    }),
+    ConfigModule.forRoot(),
+  ],
+
   providers: [
     Gateway,
     GatewayService,

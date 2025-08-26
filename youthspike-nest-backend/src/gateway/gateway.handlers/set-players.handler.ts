@@ -1,18 +1,18 @@
 // Score keeping -> set-server-receiver-from-client
+import { JwtService } from '@nestjs/jwt';
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import {
-  RoomLocal,
-  SetPlayersInput,
-} from '../gateway.types';
+import { RoomLocal, SetPlayersInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
 export class SetPlayersHandler {
   constructor(
     private readonly gatewayService: GatewayService,
     private readonly gatewayRedisService: GatewayRedisService,
+    private readonly validationHelper: ValidationHelper,
   ) {}
 
   async handle(
@@ -28,7 +28,7 @@ export class SetPlayersHandler {
       // For setting and getting
       const SR_CACHE_KEY = `sr:${body.net}:${body.room}`; // each net will have a unique key
 
-      const { playerService, matchService, netService } = this.gatewayService.getServices();
+      const { playerService, matchService, netService, jwtService } = this.gatewayService.getServices();
 
       const [serverExist, receiverExist, matchExist, netExist] = await Promise.all([
         playerService.findById(body.server),
@@ -45,9 +45,8 @@ export class SetPlayersHandler {
         throw new Error(`Match not found! Input: ${inputStr}`);
       }
 
-      if (body.accessCode !== matchExist.accessCode) {
-        throw new Error(`Access denied! Try logging in again and re-entering access code. Input: ${inputStr}`);
-      }
+      // ✅ Check if body.accessCode is a valid JWT OR matches stored accessCode
+      this.validationHelper.authCheck(body?.accessCode || null, jwtService, matchExist?.accessCode || null);
 
       const requiredPlayers = [
         netExist?.teamAPlayerA,
@@ -71,8 +70,7 @@ export class SetPlayersHandler {
       }
 
       const isValidReceiver =
-        (serverInTeamA && teamB.has(body.receiver)) ||
-        (serverInTeamB && teamA.has(body.receiver));
+        (serverInTeamA && teamB.has(body.receiver)) || (serverInTeamB && teamA.has(body.receiver));
 
       if (!isValidReceiver) {
         throw new Error(`Receiver is not on the opposite team. Input: ${inputStr}`);
