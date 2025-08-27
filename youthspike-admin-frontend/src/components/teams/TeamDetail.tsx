@@ -268,7 +268,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
         <>
           <div className="w-full">
             {paginatedMatchList.length > 0 ? (
-              paginatedMatchList.map((match, i) => <MatchCard key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />)
+              paginatedMatchList.map((match, i) => <MatchCard setActErr={setActErr} key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />)
             ) : (
               <p>No match found of this team!</p>
             )}

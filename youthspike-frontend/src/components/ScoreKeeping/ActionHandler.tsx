@@ -106,40 +106,53 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   // Config for both teams
   const serverActions = [
     {
-      label: "SERVICE ACE",
+      label: "ACE",
       value: EServerReceiverAction.SERVER_ACE_NO_TOUCH,
-      // subLebel: "NO 2ND TOUCH",
+      subLabel: "NO 2ND TOUCH",
     },
     {
-      label: "SETTING ERROR",
+      label: " SETTER ERROR",
       value: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
-      // subLebel: "NO 3RD TOUCH"
+      subLabel: "NO 3RD TOUCH",
     },
     {
-      label: "SPIKING ERROR",
+      label: "SPIKER ERROR",
       value: EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
+      subLabel: null,
     },
     {
-      label: "RALLY POINT",
+      label: "RALLY POINT (RP)",
       value: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
+      subLabel: null,
     },
-    { label: "Don't know", value: EServerReceiverAction.SERVER_DO_NOT_KNOW },
+    {
+      label: "Don't know",
+      value: EServerReceiverAction.SERVER_DO_NOT_KNOW,
+      subLabel: null,
+    },
   ];
 
   const receiverActions = [
     {
-      label: "SERVICE DBL FAULT ",
+      label: "DOUBLE FAULT  (DF)",
       value: EServerReceiverAction.RECEIVER_SERVICE_FAULT,
+      subLabel: null,
     },
     {
-      label: "RECEIVING POINT",
+      label: "SPIKER PUT AWAY  (SPA)",
       value: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
+      subLabel: null,
     },
     {
-      label: "RALLY POINT",
+      label: "RALLY POINT (RP)",
       value: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
+      subLabel: null,
     },
-    { label: "Don't know", value: EServerReceiverAction.RECEIVER_DO_NOT_KNOW },
+    {
+      label: "Don't know",
+      value: EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
+      subLabel: null,
+    },
   ];
 
   // Helper to render team logo
@@ -188,13 +201,14 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
               </p>
             </div>
           </div>
-          {serverActions.map(({ label, value }) => (
+          {serverActions.map(({ label, value, subLabel }) => (
             <button
               key={value}
-              className="btn-light"
+              className="btn-light flex flex-col items-center jusitify-center"
               onClick={handleAction(value)}
             >
-              {label}
+              <span>{label}</span>
+              {subLabel && <span className="text-sm">{subLabel}</span>}
             </button>
           ))}
         </div>

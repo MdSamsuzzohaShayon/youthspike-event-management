@@ -318,7 +318,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: netByNum.get(currNetNum)?._id || null,
       room: currRoom?._id || null,
-      accessCode: accessCode?.code || null,
+      accessCode: token || accessCode?.code || null,
       play: lastPlay,
     });
     revertPlayEl.current?.close();

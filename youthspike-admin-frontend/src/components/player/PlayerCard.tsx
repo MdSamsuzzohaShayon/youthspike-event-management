@@ -230,8 +230,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
       }
     }
     setTeamOptions(dl);
-  }; 
-  
+  };
 
   // eslint-disable-next-line no-unused-vars
   const handleTeamChange = async (e: React.SyntheticEvent, playerId: string) => {
@@ -239,6 +238,12 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     const inputEl = e.target as HTMLSelectElement;
     setNewTeamId(inputEl.value);
   };
+
+  const teamMap: Map<string, ITeam> = useMemo(() => {
+    // `teamList?.map(...)` returns array of [key, value] pairs
+    // Wrap it with `new Map()` to actually create a Map
+    return new Map(teamList?.map((t) => [t._id, t]) ?? []);
+  }, [teamList]);
 
   // O(n^2)
   const playerAssignment = useMemo((): null | string => {
@@ -363,30 +368,48 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
         {/* Add email operation start  */}
         <dialog ref={dialogEl} className="modal-dialog">
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
-          <form onSubmit={handleCaptainEmail}>
-            {/* @ts-ignore */}
-            <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} />
-            <button className="btn-info mt-4" type="submit">
-              Make Captain
-            </button>
-          </form>
+          <div className="p-4">
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
+            <form onSubmit={handleCaptainEmail}>
+              {/* @ts-ignore */}
+              <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} />
+              <button className="btn-info mt-4" type="submit">
+                Make Captain
+              </button>
+            </form>
+          </div>
         </dialog>
         {/* Add email operation end  */}
 
         {/* Move player operation start  */}
         <dialog ref={dialogMoveEl} className="modal-dialog">
-          <button type="button" className="close" aria-label="close" onClick={handleCloseMovePlayer}>
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" />
-          </button>
-          <form className="w-full" onSubmit={(e) => handleMovePlayer(e, player._id)}>
-            <SelectInput key="division-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList || []} />
-            <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} name="team" optionList={teamOptions} />
-            <button className="btn-info mt-4" type="submit">
-              Move
+          <div className="relative p-6 bg-white dark:bg-gray-900 rounded-xl w-full max-w-md">
+            {/* Close Button */}
+            <button type="button" className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition" aria-label="close" onClick={handleCloseMovePlayer}>
+              <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="Close" className="w-6 h-6 svg-white" />
             </button>
-          </form>
+
+            {/* Player Details */}
+            <div className="text-center border-b pb-4 mb-4">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {player.firstName} {player.lastName}
+              </h2>
+              {/* @ts-ignore  */}
+              <p className="text-sm text-gray-500 dark:text-gray-400">{player.teams && (teamMap.get(player.teams[0]) ?? "")}</p>
+            </div>
+
+            {/* Move Form */}
+            <form className="space-y-4" onSubmit={(e) => handleMovePlayer(e, player._id)}>
+              <SelectInput key="division-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList || []} />
+              <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} name="team" optionList={teamOptions} />
+
+              <button className="btn-info w-full" type="submit">
+                Move Player
+              </button>
+            </form>
+          </div>
         </dialog>
+
         {/* Move player operation end  */}
       </div>
     </>
