@@ -10,16 +10,17 @@ import Image from 'next/image';
 
 const EventDetail = ({ currEvent }: { currEvent: IEvent }) => {
   const user = useUser();
+  
 
   const displayLogo: React.ReactNode = useMemo(() => {
     let logoEl = <Image width={128} height={128} alt="default-logo" src="/free-logo.png" className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" />;
     if (user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) {
       if (user?.info?.teamLogo) {
-        logoEl = <CldImage width={100} height={100}  className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" alt="event-logo" width="960" height="600" src={user.info.teamLogo} sizes="100vw" />;
+        logoEl = <CldImage width={100} height={100}  className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" alt="event-logo" src={user.info.teamLogo} sizes="100vw" />;
       }
     } else if (user.info?.role === UserRole.admin || user.info?.role === UserRole.director) {
       if (currEvent?.logo) {
-        logoEl = <CldImage width={100} height={100}  src={currEvent.logo} className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" alt="event-logo" width="960" height="600" sizes="100vw" />;
+        logoEl = <CldImage width={100} height={100}  src={currEvent.logo} className="w-32 h-32 rounded-full object-center object-cover border-4 border-yellow-400" alt="event-logo" sizes="100vw" />;
       }
     }
     return <React.Fragment>{logoEl}</React.Fragment>;

@@ -356,6 +356,7 @@ query GetEventWithTeams($eventId: String) {
     data {
       event {
         _id
+        logo
         active
         autoAssign
         autoAssignLogic

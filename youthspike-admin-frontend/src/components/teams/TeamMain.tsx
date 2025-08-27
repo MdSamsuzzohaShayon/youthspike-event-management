@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react';
 import Loader from '@/components/elements/Loader';
 
 import TeamList from '@/components/teams/TeamList';
@@ -18,7 +18,7 @@ import UserMenuList from '../layout/UserMenuList';
 import { useLdoId } from '@/lib/LdoProvider';
 import SelectGeneralInput from '../elements/forms/SelectGeneralInput';
 
-interface IEventDetail{
+interface IEventDetail {
   event: IEventExpRel;
   teams: ITeam[];
   groups: IGroupExpRel[];
@@ -30,13 +30,11 @@ interface ITeamsOfEventPage {
 }
 
 function TeamMain({ eventDetail }: ITeamsOfEventPage) {
-
-  
   // Hooks
   const pathname = usePathname();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
 
   // Local State
   const importerEl = useRef<HTMLDialogElement | null>(null);
@@ -48,7 +46,6 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
   const [currDivision, setCurrDivision] = useState<string>('');
-
 
   // GraphQL
 
@@ -85,12 +82,7 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
     closeDialog();
   };
 
-
-
   const fetchEvent = async () => {
-
-
-
     const newTeamList: ITeam[] = eventDetail?.teams ? eventDetail.teams : [];
     let newFilteredList = [...newTeamList];
 
@@ -112,96 +104,61 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
     setFilteredGroupList(newFilteredGroupList);
 
     // Making divisions list
-    const divisions = eventDetail.event?.divisions ?  eventDetail.event?.divisions : [];
+    const divisions = eventDetail.event?.divisions ? eventDetail.event?.divisions : [];
     // @ts-ignore
     const divs = divisionsToOptionList(divisions);
     setDivisionList(divs);
-
   };
-
 
   const fefetchFunc = async () => {
     // await fetchEvent();
     window.location.reload();
   };
 
-
-
-
   // Do this for all event pages
   useEffect(() => {
     fetchEvent();
-  }, [pathname, router,  eventDetail, searchParams]);
-
-
+  }, [pathname, router, eventDetail, searchParams]);
 
   if (isLoading) return <Loader />;
 
-
-
-
   return (
     <React.Fragment>
-      <dialog ref={importerEl} className="p-6 bg-gray-800 rounded-lg shadow-lg">
-        <div className="flex justify-end mb-4">
-          <button
-            type="button"
-            className="bg-transparent text-white"
-            onClick={() => importerEl.current?.close()}
-          >
-            ✖
-          </button>
+      <dialog ref={importerEl} className="modal-dialog">
+        <div className="p-4">
+          <div className="flex justify-end">
+            <button type="button" className="bg-transparent text-white" onClick={() => importerEl.current?.close()}>
+              ✖
+            </button>
+          </div>
+          <MultiPlayerAdd eventId={eventDetail.event._id} setIsLoading={setIsLoading} closeDialog={() => importerEl.current?.close()} divisionList={divisionList} />
         </div>
-        <MultiPlayerAdd
-          eventId={ eventDetail.event._id}
-          setIsLoading={setIsLoading}
-          closeDialog={() => importerEl.current?.close()}
-          divisionList={divisionList}
-        />
       </dialog>
-      
+
       {/* Event Menu Start */}
       <div className="event-and-menu">
-        { eventDetail?.event && <CurrentEvent currEvent={ eventDetail.event} />}
+        {eventDetail?.event && <CurrentEvent currEvent={eventDetail.event} />}
         <div className="navigator mt-8">
-          <UserMenuList eventId={ eventDetail.event._id} />
+          <UserMenuList eventId={eventDetail.event._id} />
         </div>
       </div>
       {/* Event Menu End */}
 
-
-
-
-
-
-
       <div className="mb-4">
-        <SelectGeneralInput defaultTxt='Select a division' handleSelect={handleDivisionSelection}
-          name="division"
-          optionList={divisionList}
-          />
+        <SelectGeneralInput defaultTxt="Select a division" handleSelect={handleDivisionSelection} name="division" optionList={divisionList} />
       </div>
 
       <div className="actions flex flex-col sm:flex-row justify-between gap-4 mb-8">
-        <Link href={`/${ eventDetail.event._id}/teams/new/${ldoIdUrl}`} className="btn-info text-center">
+        <Link href={`/${eventDetail.event._id}/teams/new/${ldoIdUrl}`} className="btn-info text-center">
           Add New Team
         </Link>
-        <button
-          onClick={() => importerEl.current?.showModal()}
-          className="btn-info text-center"
-        >
+        <button onClick={() => importerEl.current?.showModal()} className="btn-info text-center">
           Import Teams
         </button>
       </div>
 
       {filteredTeamList.length > 0 ? (
-        <TeamList
-          groupList={filteredGroupList}
-          eventId={ eventDetail.event._id}
-          teamList={filteredTeamList}
-          setIsLoading={setIsLoading}
-          fefetchFunc={fefetchFunc}
-        />
+        <TeamList groupList={filteredGroupList} eventId={eventDetail.event._id} teamList={filteredTeamList} setIsLoading={setIsLoading} fefetchFunc={fefetchFunc} />
       ) : (
         <p className="text-center text-gray-400">No teams available.</p>
       )}

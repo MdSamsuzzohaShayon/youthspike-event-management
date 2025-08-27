@@ -294,7 +294,6 @@ type Event {
   sponsors: [Sponsor!]!
   multiplayer: ProStats
   weight: ProStats
-  stats: ProStats
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -983,6 +982,113 @@ type PlayerWithStatsResponse {
   data: PlayerStatsDetails
 }
 
+input EventSponsorInput {
+  company: String!
+  logo: Upload!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+input EventSponsorStringInput {
+  company: String!
+  logo: String
+}
+
+input ProStatsInput {
+  servingPercentage: Float
+  acePercentage: Float
+  receivingPercentage: Float
+  hittingPercentage: Float
+  settingPercentage: Float
+  defensiveConversionPercentage: Float
+}
+
+input UpdateProStatsInput {
+  servingPercentage: Float
+  acePercentage: Float
+  receivingPercentage: Float
+  hittingPercentage: Float
+  settingPercentage: Float
+  defensiveConversionPercentage: Float
+}
+
+input CreateEventInput {
+  name: String!
+  startDate: String!
+  endDate: String!
+  active: Boolean!
+  divisions: String!
+  nets: Int!
+  rounds: Int!
+  playerLimit: Int!
+  netVariance: Int!
+  homeTeam: String!
+  autoAssign: Boolean
+  autoAssignLogic: String
+  tieBreaking: String
+  rosterLock: String
+  timeout: Int
+  coachPassword: String!
+  fwango: String
+  description: String!
+  location: String!
+  accessCode: String
+  ldo: String
+  id: String
+  defaultSponsor: Boolean = true
+}
+
+input UpdateEventInput {
+  name: String
+  startDate: String
+  endDate: String
+  active: Boolean
+  divisions: String
+  nets: Int
+  rounds: Int
+  playerLimit: Int
+  netVariance: Int
+  homeTeam: String
+  autoAssign: Boolean
+  autoAssignLogic: String
+  tieBreaking: String
+  rosterLock: String
+  timeout: Int
+  coachPassword: String
+  fwango: String
+  description: String
+  location: String
+  accessCode: String
+  ldo: String
+  id: String
+  defaultSponsor: Boolean = true
+}
+
+input CreatePlayerInput {
+  firstName: String!
+  lastName: String!
+  username: String
+  event: String!
+  division: String!
+  email: String
+  phone: String
+  team: String
+}
+
+input UpdatePlayerInput {
+  firstName: String
+  lastName: String
+  username: String
+  event: String
+  division: String
+  email: String
+  phone: String
+  team: String
+  status: String
+  newTeamId: String
+}
+
 type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
@@ -1037,8 +1143,8 @@ input FilterQueryInput {
 type Mutation {
   login(email: String!, password: String!, passcode: String): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUser!, profile: Upload): UserResponse!
-  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, multiplayerInput: ProStatsInput, weightInput: ProStatsInput, statsInput: ProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
-  updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], multiplayerInput: UpdateProStatsInput, weightInput: UpdateProStatsInput, statsInput: UpdateProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
+  createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, multiplayerInput: ProStatsInput, weightInput: ProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
+  updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], multiplayerInput: UpdateProStatsInput, weightInput: UpdateProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
@@ -1078,89 +1184,6 @@ input UpdateUser {
   passcode: String
   name: String
   oldPassword: String
-}
-
-"""The `Upload` scalar type represents a file upload."""
-scalar Upload
-
-input EventSponsorInput {
-  company: String!
-  logo: Upload!
-}
-
-input CreateEventInput {
-  name: String!
-  startDate: String!
-  endDate: String!
-  active: Boolean!
-  divisions: String!
-  nets: Int!
-  rounds: Int!
-  playerLimit: Int!
-  netVariance: Int!
-  homeTeam: String!
-  autoAssign: Boolean
-  autoAssignLogic: String
-  tieBreaking: String
-  rosterLock: String
-  timeout: Int
-  coachPassword: String!
-  fwango: String
-  description: String!
-  location: String!
-  accessCode: String
-  ldo: String
-  id: String
-  defaultSponsor: Boolean = true
-}
-
-input ProStatsInput {
-  servingPercentage: Float
-  acePercentage: Float
-  receivingPercentage: Float
-  hittingPercentage: Float
-  settingPercentage: Float
-  defensiveConversionPercentage: Float
-}
-
-input UpdateEventInput {
-  name: String
-  startDate: String
-  endDate: String
-  active: Boolean
-  divisions: String
-  nets: Int
-  rounds: Int
-  playerLimit: Int
-  netVariance: Int
-  homeTeam: String
-  autoAssign: Boolean
-  autoAssignLogic: String
-  tieBreaking: String
-  rosterLock: String
-  timeout: Int
-  coachPassword: String
-  fwango: String
-  description: String
-  location: String
-  accessCode: String
-  ldo: String
-  id: String
-  defaultSponsor: Boolean = true
-}
-
-input EventSponsorStringInput {
-  company: String!
-  logo: String
-}
-
-input UpdateProStatsInput {
-  servingPercentage: Float
-  acePercentage: Float
-  receivingPercentage: Float
-  hittingPercentage: Float
-  settingPercentage: Float
-  defensiveConversionPercentage: Float
 }
 
 input CreateTeamInput {
@@ -1277,30 +1300,6 @@ input UpdateDirector {
   password: String
   passcode: String
   name: String
-}
-
-input CreatePlayerInput {
-  firstName: String!
-  lastName: String!
-  username: String
-  event: String!
-  division: String!
-  email: String
-  phone: String
-  team: String
-}
-
-input UpdatePlayerInput {
-  firstName: String
-  lastName: String
-  username: String
-  event: String
-  division: String
-  email: String
-  phone: String
-  team: String
-  status: String
-  newTeamId: String
 }
 
 input UpdatePlayersInput {

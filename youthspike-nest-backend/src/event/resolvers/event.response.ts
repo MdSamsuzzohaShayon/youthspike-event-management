@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { CustomTeam, EventMatches } from 'src/match/match.response';
-import { CustomPlayer } from 'src/player/player.response';
+import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Event } from '../event.schema';

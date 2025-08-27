@@ -104,10 +104,6 @@ export class Event extends AppDocument {
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
   weight?: string | ProStats;
 
-  @Field(() => ProStats, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
-  stats?: string | ProStats;
-
 
   /**
    * Default properties for match

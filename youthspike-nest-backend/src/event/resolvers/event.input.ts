@@ -1,8 +1,7 @@
 // events.dto.ts
-import { Field, Float, InputType, Int, PartialType } from '@nestjs/graphql';
+import { Field, Float, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
-import { Event } from '../event.schema';
 
 @InputType()
 export class EventSponsorInput {
@@ -119,17 +118,56 @@ export class CreateEventInput {
 
   @Field({ nullable: true, defaultValue: true })
   defaultSponsor: boolean;
-
-
-  // @Field({ nullable: true })
-  // multiplayer?: ProStatsInput;
-
-  // @Field({ nullable: true })
-  // weight?: ProStatsInput;
-
-  // @Field({ nullable: true })
-  // stats?: ProStatsInput;
 }
 
 @InputType()
 export class UpdateEventInput extends PartialType(CreateEventInput) {}
+
+
+@ObjectType()
+export class CreateEventBody {
+  @Field(() => [EventSponsorInput], { nullable: true })
+  sponsorsInput?: EventSponsorInput[];
+
+  @Field(() => CreateEventInput)
+  input: CreateEventInput;
+
+  context: any;
+
+  
+  @Field(() => ProStatsInput, { nullable: true })
+  multiplayerInput?: ProStatsInput;
+
+  @Field(() => ProStatsInput, { nullable: true })
+  weightInput?: ProStatsInput;
+
+  @Field(() => GraphQLUpload, { nullable: true })
+  logo?: Upload;
+
+}
+
+@ObjectType()
+export class UpdateEventBody{
+  @Field(() => [EventSponsorInput], { nullable: true })
+  sponsorsInput?: EventSponsorInput[];
+
+  @Field(() => UpdateEventInput)
+  updateInput: UpdateEventInput;
+
+  @Field()
+  eventId: string;
+
+  context: any;
+
+  @Field(() => [EventSponsorStringInput], { nullable: true })
+  sponsorsStringInput?: EventSponsorStringInput[];
+
+  @Field(() => UpdateProStatsInput, { nullable: true })
+  multiplayerInput?: UpdateProStatsInput;
+
+  @Field(() => UpdateProStatsInput, { nullable: true })
+  weightInput?: UpdateProStatsInput;
+  
+  @Field(() => GraphQLUpload, { nullable: true })
+  logo?: Upload;
+}

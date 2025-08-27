@@ -1,4 +1,4 @@
-import { CreateEventInput, EventSponsorInput, EventSponsorStringInput, ProStatsInput, UpdateEventInput, UpdateProStatsInput } from "./event.input";
+import { CreateEventBody, UpdateEventBody } from "./event.input";
 import { CreateOrUpdateEventResponse, GetEventDetailsResponse, GetEventResponse, GetEventsResponse, GetPlayerEventSettingResponse } from "./event.response";
 
 export interface EventResolverContext {
@@ -6,28 +6,9 @@ export interface EventResolverContext {
   res: any;
 }
 
-export interface EventMutationArgs {
-  sponsorsInput: EventSponsorInput[];
-  input: CreateEventInput;
-  context: any;
-  multiplayerInput?: ProStatsInput;
-  weightInput?: ProStatsInput;
-  statsInput?: ProStatsInput;
-  logo?: any;
-}
-
-export interface EventUpdateArgs extends Omit<EventMutationArgs, 'multiplayerInput' | 'weightInput' | 'statsInput'> {
-  updateInput: UpdateEventInput;
-  eventId: string;
-  sponsorsStringInput?: EventSponsorStringInput[];
-  multiplayerInput?: UpdateProStatsInput;
-  weightInput?: UpdateProStatsInput;
-  statsInput?: UpdateProStatsInput;
-}
-
 export interface IEventMutations {
-  createEvent(args: EventMutationArgs): Promise<CreateOrUpdateEventResponse>;
-  updateEvent(args: EventUpdateArgs): Promise<CreateOrUpdateEventResponse>;
+  createEvent(body: CreateEventBody): Promise<CreateOrUpdateEventResponse>;
+  updateEvent(body: UpdateEventBody): Promise<CreateOrUpdateEventResponse>;
   cloneEvent(eventId: string, context: any): Promise<CreateOrUpdateEventResponse>;
   deleteEvent(context: any, eventId: string): Promise<GetEventResponse>;
 }

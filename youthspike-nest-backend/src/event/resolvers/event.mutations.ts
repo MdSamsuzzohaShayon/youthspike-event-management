@@ -19,14 +19,12 @@ import { UserRole } from 'src/user/user.schema';
 import { tokenToUser } from 'src/util/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
 import {
-  CreateEventInput,
-  EventSponsorInput,
-  EventSponsorStringInput,
-  ProStatsInput,
-  UpdateEventInput,
-  UpdateProStatsInput,
+  CreateEventBody,
+  UpdateEventBody,
 } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
+
+
 
 @Injectable()
 export class EventMutations implements IEventMutations {
@@ -52,9 +50,8 @@ export class EventMutations implements IEventMutations {
     context,
     multiplayerInput,
     weightInput,
-    statsInput,
     logo,
-  }: any): Promise<CreateOrUpdateEventResponse> {
+  }: CreateEventBody): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
        * TODO:
@@ -133,10 +130,6 @@ export class EventMutations implements IEventMutations {
         const weight = await this.playerStatsService.proStatCreate({ ...weightInput, event: savedEvent._id });
         eventUpdateObj.weight = weight._id;
       }
-      if (statsInput) {
-        const stats = await this.playerStatsService.proStatCreate({ ...statsInput, event: savedEvent._id });
-        eventUpdateObj.stats = stats._id;
-      }
 
       await Promise.all([
         this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
@@ -163,9 +156,8 @@ export class EventMutations implements IEventMutations {
     sponsorsStringInput,
     multiplayerInput,
     weightInput,
-    statsInput,
     logo,
-  }: any): Promise<CreateOrUpdateEventResponse> {
+  }: UpdateEventBody): Promise<CreateOrUpdateEventResponse> {
     try {
       /**
        * TODO:
@@ -332,9 +324,6 @@ export class EventMutations implements IEventMutations {
       }
       if (weightInput && Object.entries(weightInput).length > 0) {
         statsUpdatePromises.push(this.playerStatsService.proStatUpdateOne({ _id: eventExist.weight }, weightInput));
-      }
-      if (statsInput && Object.entries(statsInput).length > 0) {
-        statsUpdatePromises.push(this.playerStatsService.proStatUpdateOne({ _id: eventExist.stats }, statsInput));
       }
 
       await Promise.all([...statsUpdatePromises, this.eventService.updateOne({ _id: eventId }, eventData)]);

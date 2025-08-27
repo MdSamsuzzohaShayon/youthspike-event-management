@@ -16,7 +16,7 @@ import { updateEventWithFiles } from '@/utils/requestHandlers/updateEvent';
 import { addEventWithFiles } from '@/utils/requestHandlers/addEvent';
 import ShowSponsors from './ShowSponsors';
 
-const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight, prevStats }: IEventAddProps) => {
+const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEventAddProps) => {
   const router = useRouter();
   const user = useUser();
   const searchParams = useSearchParams();
@@ -32,8 +32,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight, prevSta
     eventState,
     multiplayer,
     weight,
-    stats,
-
+    
     updateEvent,
     updateMultiplayer,
     updateStats,
@@ -53,7 +52,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight, prevSta
     setEventState,
     initialEvent,
     initialProStats,
-  } = useEventForm(update, prevEvent, prevMultiplayer, prevWight, prevStats);
+  } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
 
 
   
@@ -83,7 +82,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight, prevSta
           directorId,
           multiplayer,
           weight,
-          stats,
+          
           setActErr,
         });
       }
@@ -140,7 +139,6 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight, prevSta
         onProStatsChange={handleProStatsChange}
         multiplayer={multiplayer}
         weight={weight}
-        stats={stats}
         onLogoChange={handleLogoChange}
       />
 

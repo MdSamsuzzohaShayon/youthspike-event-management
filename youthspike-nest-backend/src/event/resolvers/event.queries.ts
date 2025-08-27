@@ -162,10 +162,9 @@ export class EventQueries implements IEventQueries {
         this.sponsorService.find({ event: eventId }),
       ]);
       
-      const [multiplayer, weight, stats] = await Promise.all([
+      const [multiplayer, weight] = await Promise.all([
         this.playerStatsService.proStatFindOne({_id: event.multiplayer}),
         this.playerStatsService.proStatFindOne({_id: event.weight}),
-        this.playerStatsService.proStatFindOne({_id: event.stats}),
       ]);
 
 
@@ -173,15 +172,14 @@ export class EventQueries implements IEventQueries {
       return {
         code: HttpStatus.OK,
         success: true,
-        message: 'event, teams, ldo, sponsors, multiplayer, weight, stats',
+        message: 'event, teams, ldo, sponsors, multiplayer, weight',
         data: { 
           event, 
           teams: teams.map(t => ({ ...t.toObject(), matches: t.matches?.map(m => typeof m === 'object' ? m._id : m) || [] })), 
           ldo, 
           sponsors, 
           multiplayer, 
-          weight, 
-          stats 
+          weight
         },
       };
     } catch (err) {

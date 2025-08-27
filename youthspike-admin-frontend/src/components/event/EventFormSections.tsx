@@ -20,11 +20,10 @@ interface EventFormSectionsProps {
   onToggleChange: (e: React.SyntheticEvent) => void;
   onNumberChange: (e: React.SyntheticEvent) => void;
   onDateChange: (name: string, value: string) => void;
-  onProStatsChange: (prefix: 'multiplayer' | 'weight' | 'stats', field: string, value: number) => void;
+  onProStatsChange: (prefix: 'multiplayer' | 'weight', field: string, value: number) => void;
   onSelectChange?: (e: React.SyntheticEvent) => void;
   multiplayer: IProStatsAdd;
   weight: IProStatsAdd;
-  stats: IProStatsAdd;
   onLogoChange?: (uploadedFile: Blob | MediaSource) => void;
   prevEvent?: IEventAdd;
   setEventState?: React.Dispatch<React.SetStateAction<IEventAdd>>;
@@ -44,7 +43,6 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
   onSelectChange,
   multiplayer,
   weight,
-  stats,
   onLogoChange,
   prevEvent,
   setEventState,
@@ -136,7 +134,7 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
           <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
         )}
         
-        {setEventState && setUpdateEvent && (
+        { (
           <ShowDivisions
             update={update}
             dStr={eventState.divisions}
@@ -268,17 +266,6 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
             const name = e.target.name.split('.')[1];
             const value = parseFloat(e.target.value);
             onProStatsChange('weight', name, value);
-          }} 
-        />
-
-        <ProStatsInput 
-          label="Stat Stats" 
-          namePrefix="stats" 
-          defaultValue={stats} 
-          handleInputChange={(e) => {
-            const name = e.target.name.split('.')[1];
-            const value = parseFloat(e.target.value);
-            onProStatsChange('stats', name, value);
           }} 
         />
       </div>

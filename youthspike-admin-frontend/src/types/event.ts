@@ -100,6 +100,5 @@ export interface IEventAddProps {
   update: boolean;
   prevEvent?: IEvent;
   prevWight?: IProStats;
-  prevStats?: IProStats;
   prevMultiplayer?: IProStats;
 }

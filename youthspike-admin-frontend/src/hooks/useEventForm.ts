@@ -4,12 +4,12 @@ import { getLocalDateTimeISO } from '@/utils/datetime';
 import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
 
 const initialProStats: IProStatsAdd = {
-  servingPercentage: 0,
-  acePercentage: 0,
-  receivingPercentage: 0,
-  defensiveConversionPercentage: 0,
-  hittingPercentage: 0,
-  settingPercentage: 0,
+  servingPercentage: 1,
+  acePercentage: 1,
+  receivingPercentage: 1,
+  defensiveConversionPercentage: 1,
+  hittingPercentage: 1,
+  settingPercentage: 1,
 };
 
 const initialEvent: IEventAdd = {
@@ -43,7 +43,6 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
   );
   const [multiplayer, setMultiplayer] = useState<IProStatsAdd>(prevMultiplayer || initialProStats);
   const [weight, setWeight] = useState<IProStatsAdd>(prevWight || initialProStats);
-  const [stats, setStats] = useState<IProStatsAdd>(prevStats || initialProStats);
   
   // Update
   const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
@@ -91,11 +90,10 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     }
   };
 
-  const handleProStatsChange = (prefix: 'multiplayer' | 'weight' | 'stats', field: string, value: number) => {
+  const handleProStatsChange = (prefix: 'multiplayer' | 'weight', field: string, value: number) => {
     const setters = {
       multiplayer: update ? setUpdateMultiplayer : setMultiplayer,
-      weight: update ? setUpdateWeight : setWeight,
-      stats: update ? setUpdateStats : setStats,
+      weight: update ? setUpdateWeight : setWeight
     };
     
     // setters[prefix](prev => ({ ...prev, [field]: value }));
@@ -124,7 +122,6 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     eventState,
     multiplayer,
     weight,
-    stats,
     
     updateEvent,
     updateMultiplayer,

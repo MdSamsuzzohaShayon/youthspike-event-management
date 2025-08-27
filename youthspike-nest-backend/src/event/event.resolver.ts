@@ -45,7 +45,6 @@ export class EventResolver {
     @Context() context: any,
     @Args('multiplayerInput', { nullable: true }) multiplayerInput?: ProStatsInput,
     @Args('weightInput', { nullable: true }) weightInput?: ProStatsInput,
-    @Args('statsInput', { nullable: true }) statsInput?: ProStatsInput,
     @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
   ) {
     return this.eventMutations.createEvent({
@@ -54,7 +53,6 @@ export class EventResolver {
       context,
       multiplayerInput,
       weightInput,
-      statsInput,
       logo,
     });
   }
@@ -71,7 +69,6 @@ export class EventResolver {
     sponsorsStringInput?: EventSponsorStringInput[],
     @Args('multiplayerInput', { nullable: true }) multiplayerInput?: UpdateProStatsInput,
     @Args('weightInput', { nullable: true }) weightInput?: UpdateProStatsInput,
-    @Args('statsInput', { nullable: true }) statsInput?: UpdateProStatsInput,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
   ) {
     return this.eventMutations.updateEvent({
@@ -82,7 +79,6 @@ export class EventResolver {
       sponsorsStringInput,
       multiplayerInput,
       weightInput,
-      statsInput,
       logo,
     });
   }

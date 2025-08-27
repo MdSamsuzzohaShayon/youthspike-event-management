@@ -10,7 +10,6 @@ interface IAddEventVariables {
   logo: string | null;
   multiplayerInput: IProStatsAdd;
   weightInput: IProStatsAdd;
-  statsInput: IProStatsAdd;
 }
 
 export async function addEventWithFiles({
@@ -20,7 +19,6 @@ export async function addEventWithFiles({
   directorId,
   multiplayer,
   weight,
-  stats,
   setActErr,
 }: {
   eventState: IEventAdd;
@@ -29,7 +27,6 @@ export async function addEventWithFiles({
   directorId: string | null;
   multiplayer: IProStatsAdd;
   weight: IProStatsAdd;
-  stats: IProStatsAdd;
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
 }) {
   const inputData = { ...eventState };
@@ -46,7 +43,6 @@ export async function addEventWithFiles({
     logo: null,
     multiplayerInput: multiplayer,
     weightInput: weight,
-    statsInput: stats,
   };
 
   formData.set('operations', JSON.stringify({
@@ -67,12 +63,14 @@ export async function addEventWithFiles({
   });
 
   if (!response.ok) {
+    await fetch('/api/logout', { method: 'GET' });
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 
   const responseData = await response.json();
+
   const eventRes = responseData?.data?.createEvent;
-  // return handleResponse({ response: eventRes, setActErr });
+  const res = handleResponse({ response: eventRes, setActErr });
   return eventRes?.data?._id || null;
 }
 

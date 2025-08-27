@@ -1,7 +1,7 @@
 import { Field, ObjectType } from "@nestjs/graphql";
 import { AppResponse } from "src/shared/response";
 import { PlayerStats, ProStats } from "./player-stats.schema";
-import { CustomPlayer } from "src/player/player.response";
+import { CustomPlayer } from "src/player/resolvers/player.response";
 import { CustomTeam } from "src/match/match.response";
 import { CustomMatch, CustomNet } from "src/team/team.response";
 

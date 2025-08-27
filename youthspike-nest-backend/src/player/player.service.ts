@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { EPlayerStatus, Player } from './player.schema';
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
-import { CreatePlayerInput } from './player.input';
+import { CreatePlayerInput } from './resolvers/player.input';
 import { rmInvalidProps } from 'src/util/helper';
 import * as Papa from 'papaparse';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';

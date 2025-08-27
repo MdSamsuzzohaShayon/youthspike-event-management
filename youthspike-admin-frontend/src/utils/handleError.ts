@@ -22,7 +22,11 @@ interface IHandleApolloErrorProps {
 }
 
 export async function handleResponse({ response, setActErr }: IHandleResponseProps): Promise<boolean> {
-  if (!response) return false;
+  if (!response) {
+    await fetch('/api/logout', { method: 'GET' });
+    window.location.href = '/login';
+    return false;
+  };
 
   if (response.success) return true;
 

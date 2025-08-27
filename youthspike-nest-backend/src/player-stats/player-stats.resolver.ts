@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
-import { PlayerStats, ProStats } from './player-stats.schema';
+import { PlayerStats } from './player-stats.schema';
 import { ConfigService } from '@nestjs/config';
 import { PlayerStatsService } from './player-stats.service';
 import { PlayersStatsResponse, PlayerStatsResponse, PlayerWithStatsResponse } from './player-stats.response';
@@ -22,8 +22,7 @@ export class PlayerStatsResolver {
     private netService: NetService,
     private playerStatsService: PlayerStatsService,
     private readonly redisService: RedisService,
-    private eventService: EventService,
-    private configService: ConfigService,
+    private eventService: EventService
   ) {}
 
   @Query((_returns) => PlayerStatsResponse)
@@ -68,10 +67,9 @@ export class PlayerStatsResolver {
 
       const eventExist = await this.eventService.findOne({ _id: { $in: player.events } });
       
-      const [multiplayer, weight, stats] = await Promise.all([
+      const [multiplayer, weight] = await Promise.all([
         this.playerStatsService.proStatFindOne({_id: eventExist.multiplayer}),
         this.playerStatsService.proStatFindOne({_id: eventExist.weight}),
-        this.playerStatsService.proStatFindOne({_id: eventExist.stats}),
       ]);
       // Get team of the players
       if (player.teams.length > 0) {
@@ -115,8 +113,7 @@ export class PlayerStatsResolver {
           matches,
           nets,
           multiplayer, 
-          weight, 
-          stats
+          weight
         },
       };
     } catch (error) {
