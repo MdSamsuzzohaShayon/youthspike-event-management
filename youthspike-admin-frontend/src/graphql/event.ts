@@ -195,8 +195,8 @@ query GetPlayerEventSetting($eventId: String) {
  * =========================================================================================================================================
  */
 const ADD_EVENT_RAW = `
-mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventInput!, $multiplayerInput: ProStatsInput, $weightInput: ProStatsInput, $statsInput: ProStatsInput, $logo: Upload) {
-  createEvent(sponsorsInput: $sponsorsInput, input: $input, multiplayerInput: $multiplayerInput, weightInput: $weightInput, statsInput: $statsInput, logo: $logo) {
+mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventInput!, $multiplayerInput: ProStatsInput, $weightInput: ProStatsInput, $logo: Upload) {
+  createEvent(sponsorsInput: $sponsorsInput, input: $input, multiplayerInput: $multiplayerInput, weightInput: $weightInput, logo: $logo) {
     code
     success
     message
@@ -217,7 +217,6 @@ mutation UpdateEvent(
   $sponsorsStringInput: [EventSponsorStringInput!]
   $multiplayerInput: UpdateProStatsInput
   $weightInput: UpdateProStatsInput
-  $statsInput: UpdateProStatsInput
   $logo: Upload
 ) {
   updateEvent(
@@ -227,7 +226,6 @@ mutation UpdateEvent(
     sponsorsStringInput: $sponsorsStringInput
     multiplayerInput: $multiplayerInput
     weightInput: $weightInput
-    statsInput: $statsInput
     logo: $logo
   ) {
     code

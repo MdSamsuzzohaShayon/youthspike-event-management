@@ -86,12 +86,8 @@ export interface IDateinputProps extends ITextCommon {
 }
 
 export interface IFileFileProps {
-  lw?: string;
-  rw?: string;
-  vertical?: boolean;
-  extraCls?: string;
-  lblTxt?: string;
   name: string;
+  label?: string | null;
   defaultValue?: string | undefined | null;
   handleFileChange: (e: React.SyntheticEvent) => void;
 }

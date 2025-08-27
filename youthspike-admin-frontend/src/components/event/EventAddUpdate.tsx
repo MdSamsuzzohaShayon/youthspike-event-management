@@ -50,6 +50,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     handleDefaultSponsorToggle,
     handleLogoChange,
     setEventState,
+    setUpdateEvent,
     initialEvent,
     initialProStats,
   } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
@@ -140,6 +141,9 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
         multiplayer={multiplayer}
         weight={weight}
         onLogoChange={handleLogoChange}
+        eventId={eventId || null}
+        setEventState={setEventState}
+        setUpdateEvent={setUpdateEvent}
       />
 
       <SponsorDialog isOpen={isSponsorDialogOpen} onClose={() => setIsSponsorDialogOpen(false)} onSave={handleSponsorImgList} />

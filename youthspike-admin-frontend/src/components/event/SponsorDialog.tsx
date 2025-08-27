@@ -18,9 +18,10 @@ export default function SponsorDialog({ isOpen, onClose, onSave }: SponsorDialog
     setCurrSponsor(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    setCurrSponsor(prev => ({ ...prev, logo: e.target.files![0] }));
+  const handleFileChange = (e: React.SyntheticEvent) => {
+    const fileEl = e.target as HTMLInputElement;
+    if (!fileEl.files?.length) return;
+    setCurrSponsor(prev => ({ ...prev, logo: fileEl.files![0] }));
   };
 
   const handleOk = (e: React.FormEvent) => {
@@ -35,7 +36,7 @@ export default function SponsorDialog({ isOpen, onClose, onSave }: SponsorDialog
   if (!isOpen) return null;
 
   return (
-    <dialog ref={dialogRef} className="w-5/6" open={isOpen}>
+    <dialog ref={dialogRef} className="modal-dialog" open={isOpen}>
       <div className="relative flex w-full flex-col rounded-2xl bg-gray-800 text-white">
         <button 
           type="button" 
@@ -58,8 +59,7 @@ export default function SponsorDialog({ isOpen, onClose, onSave }: SponsorDialog
           <FileInput 
             handleFileChange={handleFileChange} 
             name="sponsorLogo" 
-            vertical 
-            lblTxt="Sponsor Logo" 
+            label="Sponsor Logo" 
           />
 
           <button type="submit" className="w-full btn-info" onClick={handleOk}>

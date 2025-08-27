@@ -28,7 +28,7 @@ interface EventFormSectionsProps {
   prevEvent?: IEventAdd;
   setEventState?: React.Dispatch<React.SetStateAction<IEventAdd>>;
   setUpdateEvent?: React.Dispatch<React.SetStateAction<Partial<IEventAdd>>>;
-  eventId?: string;
+  eventId?: string | null;
 }
 
 const EventFormSections: React.FC<EventFormSectionsProps> = ({

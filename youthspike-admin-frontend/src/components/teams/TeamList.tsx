@@ -312,7 +312,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
         <Pagination currentPage={currentPage} itemList={teamList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
 
-      <dialog ref={cngGroupEl} className='w-4/6 md:w-3/6 py-4'>
+      <dialog ref={cngGroupEl} className='modal-dialog'>
         <h3>Change Group</h3>
         {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
         <SelectInput

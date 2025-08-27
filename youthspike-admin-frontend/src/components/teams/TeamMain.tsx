@@ -73,9 +73,9 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
   };
 
   // Custom Hook
-  useClickOutside(importerEl, () => {
-    closeDialog();
-  });
+  // useClickOutside(importerEl, () => {
+  //   closeDialog();
+  // });
 
   const handleClose = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -152,7 +152,14 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
         <Link href={`/${eventDetail.event._id}/teams/new/${ldoIdUrl}`} className="btn-info text-center">
           Add New Team
         </Link>
-        <button onClick={() => importerEl.current?.showModal()} className="btn-info text-center">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            importerEl.current?.showModal();
+          }}
+          className="btn-info text-center"
+        >
           Import Teams
         </button>
       </div>

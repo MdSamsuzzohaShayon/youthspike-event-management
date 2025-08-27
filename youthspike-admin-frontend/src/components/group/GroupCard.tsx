@@ -174,7 +174,7 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
         )}
       </AnimatePresence>
 
-      <dialog ref={dialogEl} className='w-5/6 md:w-2/6'>
+      <dialog ref={dialogEl} className='modal-dialog'>
         <div className="flex justify-end">
           <Image src="/icons/close.svg" height={20} width={20} className='w-6 h-6 svg-white' alt='close-icon' onClick={handleCloseDivision} />
         </div>
@@ -186,9 +186,6 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
             defaultValue={group.division.trim()}
             name="division"
             optionList={divisionList}
-            vertical={false}
-            extraCls="w-full"
-            rw="w-full"
           />
           <br />
           <button className='btn-info'>Submit</button>

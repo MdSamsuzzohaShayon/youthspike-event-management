@@ -362,7 +362,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         {/* Operation menu ende  */}
 
         {/* Add email operation start  */}
-        <dialog ref={dialogEl} className="w-4/6 p-4">
+        <dialog ref={dialogEl} className="modal-dialog">
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
           <form onSubmit={handleCaptainEmail}>
             {/* @ts-ignore */}
@@ -375,7 +375,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         {/* Add email operation end  */}
 
         {/* Move player operation start  */}
-        <dialog ref={dialogMoveEl} className="w-5/6">
+        <dialog ref={dialogMoveEl} className="modal-dialog">
           <button type="button" className="close" aria-label="close" onClick={handleCloseMovePlayer}>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="" className="w-6 h-6 svg-white" />
           </button>

@@ -79,7 +79,7 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
 
       <dialog
         ref={dialogEl}
-        className="dialog-wrapper w-11/12 max-w-md bg-gray-800 text-gray-300 rounded-lg p-6 shadow-lg"
+        className="modal-dialog"
       >
         <div className="flex flex-col gap-4">
           <div className="flex justify-end">

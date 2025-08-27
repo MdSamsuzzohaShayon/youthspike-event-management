@@ -143,7 +143,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
 
   return (
     <React.Fragment>
-      <dialog ref={filterListEl}>
+      <dialog ref={filterListEl} className='modal-dialog'>
         <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
         {itemList.map((item) => (
           <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)}>

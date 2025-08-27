@@ -40,6 +40,8 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
   const refreshServer = useCallback(
     async (newDivisions: string) => {
       const inputData = { ...updateEvent, divisions: newDivisions };
+      console.log({eventId});
+      
       await eventUpdate({
         variables: {
           sponsorsInput: [],
@@ -178,12 +180,14 @@ function ShowDivisions({ update, dStr, prevDivisions, eventId, updateEvent, setE
 
   return (
     <ul className="flex gap-1 flex-wrap mt-2">
-      <dialog ref={addDivisionDialogEl} className="w-4/6 bg-gray-800 text-gray-100 h-2/6 p-2">
-        <img src="/icons/close.svg" role="presentation" onClick={handleCloseModal} className="svg-white mt-2" alt="Close" />
-        <InputField type="text" handleInputChange={handleInputChange} name="division-new" label={addNew ? 'Add Division' : 'Update Division'} required={false} />
-        <button className="btn-info mt-4 text-center" onClick={handleAddDivision}>
-          Ok
-        </button>
+      <dialog ref={addDivisionDialogEl} className="modal-dialog">
+        <div className="p-4">
+          <img src="/icons/close.svg" role="presentation" onClick={handleCloseModal} className="svg-white mt-2" alt="Close" />
+          <InputField type="text" handleInputChange={handleInputChange} name="division-new" label={addNew ? 'Add Division' : 'Update Division'} required={false} />
+          <button className="btn-info mt-4 text-center" onClick={handleAddDivision}>
+            Ok
+          </button>
+        </div>
       </dialog>
 
       {listEl}

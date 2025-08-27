@@ -218,7 +218,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
       {/* ─────────── Crop Dialog ─────────── */}
       <dialog
         ref={dialogEl}
-        className="w-11/12 sm:w-[38rem] max-w-[90vw] rounded-lg shadow-xl ring-1 ring-gray-200 dark:ring-gray-700 backdrop:bg-black/50"
+        className="modal-dialog"
       >
         <div className="p-4 flex flex-col items-center gap-4">
           {srcUncropped && (

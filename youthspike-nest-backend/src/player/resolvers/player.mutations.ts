@@ -1,5 +1,4 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Args, ObjectType } from '@nestjs/graphql';
 import { EventService } from 'src/event/event.service';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { TeamService } from 'src/team/team.service';
@@ -9,23 +8,20 @@ import { AppResponse } from 'src/shared/response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { Player } from '../player.schema';
 import { UpdateQuery } from 'mongoose';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import { CreateMultiPlayerBody, UpdatePlayerBody, UpdatePlayerInput, UpdatePlayersInput } from './player.input';
+import { CreateMultiPlayerBody, CreatePlayerBody, UpdatePlayerBody, UpdatePlayersInput } from './player.input';
 import { PlayerResponse, PlayersResponse } from './player.response';
 import { IPlayerMutations } from './player.types';
 
 @Injectable()
 export class PlayerMutations implements IPlayerMutations {
-
   constructor(
     private eventService: EventService,
     private teamService: TeamService,
     private cloudinaryService: CloudinaryService,
     private playerService: PlayerService,
     private userService: UserService,
-    private playerRankingService: PlayerRankingService
+    private playerRankingService: PlayerRankingService,
   ) {}
-
 
   private async handleTeamUpdate(
     playerId: string,
@@ -81,6 +77,95 @@ export class PlayerMutations implements IPlayerMutations {
           this.playerRankingService.updateOne({ _id: ranking._id }, { $addToSet: { rankings: newRankingItem._id } }),
         );
       }
+    }
+  }
+
+  async createPlayer({ input, profile }: CreatePlayerBody): Promise<PlayerResponse> {
+    /**
+     * TODO:
+     *    Step-1: Get all the inputs
+     *    Step-2: Upload a profile picture
+     *    Step-3: Make one to many relationship with event
+     *    Step-4: Update events
+     */
+    try {
+      // Upload image to cloudinary
+      let profileUrl: string | null = null;
+      const ensurePromises = [];
+      if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
+
+      const playerObj = {
+        ...input,
+        profile: profileUrl,
+        events: [input.event],
+        teams: [],
+        name: `${input.firstName}_${input.lastName}`,
+      };
+      const playerExist = await this.playerService.findOne({ name: playerObj.name, events: input.event });
+      if (playerExist) {
+        return AppResponse.handleError({
+          code: 404,
+          success: false,
+          message: 'There is already a player exist with this name in this event!',
+        });
+      }
+      if (playerObj.email === '') delete playerObj.email;
+      if (playerObj.phone === '') delete playerObj.phone;
+      if (input.team) playerObj.teams = [input.team];
+      if (!playerObj.username || playerObj.username === '') {
+        playerObj.username = this.playerService.playerUsername(playerObj.firstName);
+      }
+      if (playerObj.team) delete playerObj.team;
+      delete playerObj.event;
+
+      const newPlayer = await this.playerService.create(playerObj);
+
+      if (input.team) {
+        // ===== Update Player Ranking =====
+        const [playerRankings, teamExist] = await Promise.all([
+          this.playerRankingService.find({ team: input.team, rankLock: false }),
+          this.teamService.findById(input.team),
+        ]);
+        if (playerRankings && playerRankings.length > 0) {
+          for (const pr of playerRankings) {
+            const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
+            const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
+
+            const itemsToInsert = [];
+            const playerIds = [...teamExist.players, newPlayer._id];
+            let rankIncrement = 0;
+            for (let i = 0; i < playerIds.length; i += 1) {
+              const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
+              if (!findRank) {
+                itemsToInsert.push({
+                  player: playerIds[i],
+                  rank: highestRank + rankIncrement + 1,
+                  playerRanking: pr._id,
+                });
+                rankIncrement += 1;
+              }
+            }
+            await this.playerRankingService.insertManyItems(itemsToInsert);
+          }
+        }
+        ensurePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: newPlayer._id } }));
+      }
+      ensurePromises.push(
+        this.eventService.updateOne(
+          { _id: input.event.toString() },
+          { $addToSet: { players: newPlayer._id.toString() } },
+        ),
+      );
+      await Promise.all(ensurePromises);
+
+      return {
+        code: HttpStatus.CREATED,
+        success: true,
+        message: 'Player has been created successfully!',
+        data: newPlayer,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
     }
   }
 
@@ -146,7 +231,7 @@ export class PlayerMutations implements IPlayerMutations {
     }
   }
 
-  async createMultiPlayers({division, eventId, uploadedFile}: CreateMultiPlayerBody) {
+  async createMultiPlayers({ division, eventId, uploadedFile }: CreateMultiPlayerBody) {
     /**
      * TODO:
      *    Step-1: Check file type (Validation)
@@ -162,34 +247,39 @@ export class PlayerMutations implements IPlayerMutations {
         return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }
 
-      const { teams, unassignedPlayers }: any = await this.playerService.arrangeFromCSV(
-        uploadedFile,
-        eventId,
-        division,
-      );
+      let { teams, unassignedPlayers } = await this.playerService.arrangeFromCSV(uploadedFile, eventId, division);
       const playerIds = [];
       const teamIds = [];
       const promiseOperations = [];
       for (let i = 0; i < teams.length; i += 1) {
         try {
           const teamObj = { ...teams[i] };
-          const teamPlayers = [...teams[i].players];
+          let teamPlayers = [...teams[i].players];
+          const playerNames = teamPlayers.map((p) => typeof p === 'object' && p.name);
+          const duplicatePlayers = await this.playerService.find({ name: { $in: playerNames }, events: eventId });
+          if (duplicatePlayers.length > 0) {
+            const duplicateNames = new Set(duplicatePlayers.map((p) => p.name));
+            teamPlayers = teamPlayers.filter((p: Player) => !duplicateNames.has(p.name));
+          }
           const playerList = await this.playerService.createMany(teamPlayers);
           const teamPlayerIds = playerList.map((p) => p._id);
           playerIds.push(...teamPlayerIds);
-          teamObj.players = teamPlayerIds;
-          // teamObj.captain = teamPlayerIds.length > 0 ? teamPlayerIds[0] : null;
-          const [createTeam, eventExist] = await Promise.all([
-            this.teamService.create(teamObj),
-            this.eventService.findById(eventId),
-          ]);
-          teamIds.push(createTeam._id);
+          teamObj.players = teamPlayerIds as string[];
+          const teamExist = await this.teamService.findOne({ event: eventId, name: teamObj.name });
+          // const eventExist = await this.eventService.findById(eventId);
+          let team = null;
+          if (teamExist) {
+            team = await this.teamService.updateOne({ _id: teamExist._id }, {$set: {name: teamObj.name}});
+          } else {
+            team = await this.teamService.create(teamObj);
+          }
+          teamIds.push(team._id);
 
           // ===== Create Ranking =====
           const playerRankings = [];
           for (let i = 0; i < teamPlayerIds.length; i += 1) {
             promiseOperations.push(
-              this.playerService.updateOne({ _id: teamPlayerIds[i] }, { $addToSet: { teams: createTeam._id } }),
+              this.playerService.updateOne({ _id: teamPlayerIds[i] }, { $addToSet: { teams: team._id } }),
             );
             // Create player ranking when creating team
             playerRankings.push({ rank: i + 1, player: teamPlayerIds[i] });
@@ -197,23 +287,27 @@ export class PlayerMutations implements IPlayerMutations {
           const teamPlayerRanking = await this.playerRankingService.create({
             rankings: playerRankings,
             rankLock: false,
-            team: createTeam._id,
+            team: team._id,
           });
           promiseOperations.push(
-            this.teamService.updateOne(
-              { _id: createTeam._id },
-              { $addToSet: { playerRankings: teamPlayerRanking._id } },
-            ),
+            this.teamService.updateOne({ _id: team._id }, { $addToSet: { playerRankings: teamPlayerRanking._id } }),
           );
 
           promiseOperations.push(
-            this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $addToSet: { teams: createTeam._id } }),
+            this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $addToSet: { teams: team._id } }),
           );
         } catch (dErrs: any) {
           console.log(dErrs);
         }
       }
 
+      // Check player already created or not in the same event
+      const playerNames = unassignedPlayers.map((p) => p.name);
+      const duplicatePlayers = await this.playerService.find({ name: { $in: playerNames }, events: eventId });
+      if (duplicatePlayers.length > 0) {
+        const duplicateNames = new Set(duplicatePlayers.map((p) => p.name));
+        unassignedPlayers = unassignedPlayers.filter((p) => !duplicateNames.has(p.name));
+      }
       const allPlayers = await this.playerService.createMany(unassignedPlayers);
       await Promise.all(promiseOperations);
       const unassignedPlayerIds = allPlayers.map((p) => p._id);
@@ -270,7 +364,7 @@ export class PlayerMutations implements IPlayerMutations {
     }
   }
 
-  async updatePlayer({input, playerId, profile}: UpdatePlayerBody): Promise<PlayerResponse> {
+  async updatePlayer({ input, playerId, profile }: UpdatePlayerBody): Promise<PlayerResponse> {
     try {
       const updatePromises: Promise<any>[] = [];
       const playerExist = await this.playerService.findById(playerId);
@@ -354,81 +448,6 @@ export class PlayerMutations implements IPlayerMutations {
         message: 'Player has been updated successfully!',
         success: true,
         data: findPlayer,
-      };
-    } catch (error) {
-      return AppResponse.handleError(error);
-    }
-  }
-
-  async createPlayer({ input, profile }): Promise<PlayerResponse> {
-    /**
-     * TODO:
-     *    Step-1: Get all the inputs
-     *    Step-2: Upload a profile picture
-     *    Step-3: Make one to many relationship with event
-     *    Step-4: Update events
-     */
-    try {
-      // Upload image to cloudinary
-      let profileUrl: string | null = null;
-      const ensurePromises = [];
-      if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
-
-      const playerObj = { ...input, profile: profileUrl, events: [input.event], teams: [] };
-      if (playerObj.email === '') delete playerObj.email;
-      if (playerObj.phone === '') delete playerObj.phone;
-      if (input.team) playerObj.teams = [input.team];
-      if (!playerObj.username || playerObj.username === '') {
-        playerObj.username = this.playerService.playerUsername(playerObj.firstName);
-      }
-      if (playerObj.team) delete playerObj.team;
-      delete playerObj.event;
-
-      const newPlayer = await this.playerService.create(playerObj);
-
-      if (input.team) {
-        // ===== Update Player Ranking =====
-        const [playerRankings, teamExist] = await Promise.all([
-          this.playerRankingService.find({ team: input.team, rankLock: false }),
-          this.teamService.findById(input.team),
-        ]);
-        if (playerRankings && playerRankings.length > 0) {
-          for (const pr of playerRankings) {
-            const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
-            const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
-
-            const itemsToInsert = [];
-            const playerIds = [...teamExist.players, newPlayer._id];
-            let rankIncrement = 0;
-            for (let i = 0; i < playerIds.length; i += 1) {
-              const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
-              if (!findRank) {
-                itemsToInsert.push({
-                  player: playerIds[i],
-                  rank: highestRank + rankIncrement + 1,
-                  playerRanking: pr._id,
-                });
-                rankIncrement += 1;
-              }
-            }
-            await this.playerRankingService.insertManyItems(itemsToInsert);
-          }
-        }
-        ensurePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: newPlayer._id } }));
-      }
-      ensurePromises.push(
-        this.eventService.updateOne(
-          { _id: input.event.toString() },
-          { $addToSet: { players: newPlayer._id.toString() } },
-        ),
-      );
-      await Promise.all(ensurePromises);
-
-      return {
-        code: HttpStatus.CREATED,
-        success: true,
-        message: 'Player has been created successfully!',
-        data: newPlayer,
       };
     } catch (error) {
       return AppResponse.handleError(error);

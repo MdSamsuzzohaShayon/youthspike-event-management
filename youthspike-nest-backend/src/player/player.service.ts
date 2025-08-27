@@ -6,6 +6,7 @@ import { CreatePlayerInput } from './resolvers/player.input';
 import { rmInvalidProps } from 'src/util/helper';
 import * as Papa from 'papaparse';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import { Team } from 'src/team/team.schema';
 
 type OptionalProps<T> = {
   [K in keyof T]?: T[K];
@@ -15,10 +16,11 @@ type OptionalProps<T> = {
 export class PlayerService {
   constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>) {}
 
-
   playerUsername(firstName: string) {
     const now = new Date();
-    const randomNumber = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    const randomNumber = Math.floor(Math.random() * 100)
+      .toString()
+      .padStart(2, '0');
     const username = `${firstName.trim().toLowerCase()}${now.getMilliseconds()}${randomNumber}`;
     return username;
   }
@@ -76,84 +78,77 @@ export class PlayerService {
     return this.playerModel.updateMany(filter, player);
   }
 
-  async arrangeFromCSV(uploadedFile: Promise<FileUpload>, event: string, division: string) {
-    const { createReadStream, filename, mimetype, encoding } = await uploadedFile;
+  async arrangeFromCSV(uploadedFile: Promise<FileUpload>, event: string, division: string): Promise<{unassignedPlayers: Player[], teams: Team[]}> {
+    const { createReadStream } = await uploadedFile;
+
     return new Promise((resolve, reject) => {
-      const teams = [];
-      const unassignedPlayers = [];
+      const teams = new Map<string, Team>(); // Use Map for O(1) team lookups
+      const unassignedPlayers: Player[] = [];
+      const seenPlayers = new Set<string>(); // Track duplicate players
+
       createReadStream()
         .pipe(Papa.parse(Papa.NODE_STREAM_INPUT, { header: true }))
         .on('data', (row: Player) => {
-          // Organize Entries
-          const matchTeam = Object.entries(row).find(([k, v]) => new RegExp(/team/, 'gi').test(k));
-          // if (!matchTeam && matchTeam.toString().trim().toUpperCase() !== 'team notes'.toUpperCase()) {
-          //   const matchSquad = Object.entries(row).find(([k, v]) => new RegExp(/squad/, 'gi').test(k));
-          //   if (matchSquad) {
-          //     matchTeam = matchSquad;
-          //   }
-          // }
-          const matchFN = Object.entries(row).find(([k, v]) => new RegExp(/first?\s+name/, 'gi').test(k));
-          const matchLN = Object.entries(row).find(([k, v]) => new RegExp(/last?\s+name/, 'gi').test(k));
-          const matchEmail = Object.entries(row).find(([k, v]) => new RegExp(/email/, 'gi').test(k));
+          // Extract fields efficiently
+          const teamKey = Object.keys(row).find((k) => /team/gi.test(k));
+          const firstNameKey = Object.keys(row).find((k) => /first?\s+name/gi.test(k));
+          const lastNameKey = Object.keys(row).find((k) => /last?\s+name/gi.test(k));
+          const emailKey = Object.keys(row).find((k) => /email/gi.test(k));
 
-          // Organize player
-          let playerObj = null;
-          if (matchFN) {
-            const [fnk, fnv] = matchFN;
-            const [lnk, lnv] = matchLN ?? [null, null];
-            const [ek, ev] = matchEmail ?? [null, null];
-            playerObj = {
-              firstName: fnv,
-              lastName: lnv,
-              username: this.playerUsername(fnv),
-              rank: null,
-              email: ev,
-              status: EPlayerStatus.ACTIVE,
-              division,
-              events: [event],
-              teams: [],
-            };
-          }
+          if (!firstNameKey || !row[firstNameKey]) return; // Skip rows without first name
 
-          // Organize team
-          if (matchTeam) {
-            const [tk, tv] = matchTeam;
-            if (tv && tv !== '') {
-              const findTeamI = teams.findIndex((t) => t.name.trim().toLowerCase() === tv.trim().toLowerCase());
-              if (findTeamI !== -1) {
-                const newPlayers = [...teams[findTeamI].players];
-                playerObj.rank = newPlayers.length === 0 ? 1 : newPlayers.length + 1;
-                if (playerObj) newPlayers.push(playerObj);
-                teams[findTeamI] = { ...teams[findTeamI], players: newPlayers };
-              } else {
-                playerObj.rank = 1;
-                const teamObj = {
-                  name: tv,
-                  active: true,
-                  players: playerObj ? [playerObj] : [],
-                  division: division,
-                  captain: null,
-                  cocaptain: null,
-                  event: event,
-                };
-                teams.push(teamObj);
-              }
-            } else {
-              if (playerObj) unassignedPlayers.push(playerObj);
+          const playerIdentifier = `${row[firstNameKey]?.toLowerCase()}_${row[lastNameKey]?.toLowerCase()}`;
+
+          // Skip duplicate players
+          if (seenPlayers.has(playerIdentifier)) return;
+          seenPlayers.add(playerIdentifier);
+
+          const playerObj: Player = {
+            firstName: row[firstNameKey],
+            lastName: row[lastNameKey],
+            name: `${row[firstNameKey]}_${row[lastNameKey]}`,
+            username: this.playerUsername(row[firstNameKey]),
+            email: row[emailKey],
+            status: EPlayerStatus.ACTIVE,
+            division,
+            events: [event],
+            teams: [],
+          };
+
+          // Handle team assignment
+          const teamName = teamKey ? row[teamKey]?.trim() : '';
+
+          if (teamName) {
+            if (!teams.has(teamName)) {
+              teams.set(teamName, {
+                name: teamName,
+                active: true,
+                players: [] as Player[],
+                division,
+                captain: null,
+                cocaptain: null,
+                event,
+                logo: '',
+                rankLock: false,
+                sendCredentials: false,
+              });
             }
+
+            const team = teams.get(teamName);
+            team.players.push(playerObj as any);
+          } else {
+            unassignedPlayers.push(playerObj);
           }
         })
-
         .on('end', () => {
-          // return
-          resolve({ teams, unassignedPlayers });
+          resolve({
+            teams: Array.from(teams.values()),
+            unassignedPlayers,
+          });
         })
-        .on('error', (error) => {
-          reject(error);
-        });
+        .on('error', reject);
     });
   }
-
   async delete(filter: FilterQuery<Player>) {
     return this.playerModel.deleteMany(filter);
   }

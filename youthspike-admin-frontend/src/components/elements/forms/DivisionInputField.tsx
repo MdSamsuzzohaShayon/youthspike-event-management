@@ -1,4 +1,3 @@
-import ShowDivisions from '@/components/event/ShowDivisions';
 import { DivisionInputProps } from '@/types';
 import React, { useMemo, useState } from 'react'
 

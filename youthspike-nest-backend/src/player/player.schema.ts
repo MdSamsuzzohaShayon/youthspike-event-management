@@ -3,7 +3,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { ServerReceiverOnNet, ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import {
+  ServerReceiverOnNet,
+  ServerReceiverSinglePlay,
+} from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
@@ -27,6 +30,10 @@ export class Player extends AppDocument {
   @Field((_type) => String)
   @Prop({ required: true })
   lastName: string;
+
+  @Field((_type) => String, { nullable: false })
+  @Prop({ required: true })
+  name: string;
 
   @Field((_type) => String, { nullable: true })
   @Prop({ required: false, unique: true })
@@ -81,12 +88,10 @@ export class Player extends AppDocument {
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   cocaptainuser?: User | string;
 
-
   // Check stats of all matches
   @Field((_type) => [PlayerStats], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerStats' }] })
   playerstats?: PlayerStats[] | string[];
-
 
   // Current
   @Field((_type) => [ServerReceiverOnNet], { nullable: true })
@@ -97,7 +102,6 @@ export class Player extends AppDocument {
   @Field((_type) => [ServerReceiverSinglePlay], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverSinglePlay' }] })
   serverReceiverSinglePlay?: ServerReceiverSinglePlay[] | string[];
-
 }
 
 export const PlayerSchema = SchemaFactory.createForClass(Player);

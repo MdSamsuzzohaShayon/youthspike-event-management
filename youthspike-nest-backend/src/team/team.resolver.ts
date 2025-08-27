@@ -89,6 +89,11 @@ export class TeamResolver {
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
+      const teamExist = await this.teamService.findOne({name: input.name, event: input.event});
+      if(teamExist){
+        return AppResponse.handleError({code: 404, success: false, message: "There is already a team exist with this name in this event!"});
+      }
+
       const teamObj: Team = {
         name: input.name,
         logo: logoUrl,

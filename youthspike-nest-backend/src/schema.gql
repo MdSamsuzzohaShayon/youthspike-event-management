@@ -315,6 +315,7 @@ type Player {
   _id: String
   firstName: String!
   lastName: String!
+  name: String!
   username: String
   email: String
   status: EPlayerStatus!
@@ -410,6 +411,7 @@ type CustomPlayer {
   _id: String
   firstName: String!
   lastName: String!
+  name: String!
   username: String
   email: String
   status: EPlayerStatus!
@@ -510,6 +512,7 @@ type PlayerWithTeam {
   _id: String
   firstName: String!
   lastName: String!
+  name: String!
   username: String
   email: String
   status: EPlayerStatus!
@@ -633,6 +636,7 @@ type CaptainPlayer {
   _id: String
   firstName: String!
   lastName: String!
+  name: String!
   username: String
   email: String
   status: EPlayerStatus!
@@ -654,6 +658,7 @@ type CoCaptainPlayer {
   _id: String
   firstName: String!
   lastName: String!
+  name: String!
   username: String
   email: String
   status: EPlayerStatus!
