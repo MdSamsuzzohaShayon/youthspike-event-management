@@ -3,7 +3,7 @@ import { CustomTeam, EventMatches } from 'src/match/match.response';
 import { CustomPlayer } from 'src/player/player.response';
 import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
-import { Event } from './event.schema';
+import { Event } from '../event.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { ProStats } from 'src/player-stats/player-stats.schema';
 
@@ -69,6 +69,7 @@ export class GetEventDetailsResponse extends AppResponse<EventDetails> {
   @Field((_type) => EventDetails, { nullable: true })
   data?: EventDetails | null;
 }
+
 
 
 

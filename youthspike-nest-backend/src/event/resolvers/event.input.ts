@@ -2,7 +2,7 @@
 import { Field, Float, InputType, Int, PartialType } from '@nestjs/graphql';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
-import { Event } from './event.schema';
+import { Event } from '../event.schema';
 
 @InputType()
 export class EventSponsorInput {

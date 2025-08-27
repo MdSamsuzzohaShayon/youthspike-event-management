@@ -19,6 +19,8 @@ export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any
   return newObj;
 }
 
+
+
 export function tokenToUser(context, secret: string): JwtPayload | null {
   const authToken = context.req.headers.authorization;
   if (!authToken) return null;
