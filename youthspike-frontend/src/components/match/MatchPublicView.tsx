@@ -13,6 +13,8 @@ interface IMatchPublicViewProps {
   currRoundNets: INetRelatives[];
   teamA: ITeam | null;
   teamB: ITeam | null;
+  serverReceiversOnNet: IServerReceiverOnNetMixed[];
+  currServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
 function MatchPublicView({
@@ -22,6 +24,8 @@ function MatchPublicView({
   currRoundNets,
   teamA,
   teamB,
+  serverReceiversOnNet, 
+  currServerReceiver
 }: IMatchPublicViewProps) {
   const [view, setView] = useState<EView>(EView.ROUND); // allNets | round | net
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,17 +35,46 @@ function MatchPublicView({
     (state) => state.players
   );
   const { currNetNum } = useAppSelector((state) => state.nets);
-  const { serverReceiversOnNet } = useAppSelector(
-    (state) => state.serverReceiverOnNets
-  );
 
   const srMap = useMemo(() => {
     const entries = serverReceiversOnNet.map((s) => {
       const key = s.netId ?? (typeof s.net === "string" ? s.net : s.net._id);
+
+      console.log("Re-render");
+      
+  
+      if (
+        currServerReceiver &&
+        (key === currServerReceiver.net || key === currServerReceiver.netId)
+      ) {  
+        return [
+          key,
+          {
+            ...s,
+            mutate: currServerReceiver.mutate,
+            play: currServerReceiver.play,
+            teamAScore: currServerReceiver.teamAScore,
+            teamBScore: currServerReceiver.teamBScore,
+            serverPositionPair: currServerReceiver.serverPositionPair,
+            serverId: currServerReceiver.serverId || String(currServerReceiver.server),
+            receiverId: currServerReceiver.receiverId || String(currServerReceiver.receiver),
+            servingPartnerId: currServerReceiver.servingPartnerId  || String(currServerReceiver.servingPartner),
+            receivingPartnerId: currServerReceiver.receivingPartnerId  || String(currServerReceiver.receivingPartner),
+
+            server: currServerReceiver.server,
+            receiver: currServerReceiver.receiver,
+            servingPartner: currServerReceiver.servingPartner,
+            receivingPartner: currServerReceiver.receivingPartner,
+          },
+        ] as const;
+      }
+  
       return [key, s] as const;
     });
+  
     return new Map<string, IServerReceiverOnNetMixed>(entries);
-  }, [serverReceiversOnNet]);
+  }, [serverReceiversOnNet, currServerReceiver]);
+  
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {

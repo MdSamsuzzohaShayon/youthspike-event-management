@@ -303,9 +303,6 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
   }, [matchTPlayer, onTop, teamAPlayerRanking, teamBPlayerRanking]);
 
   // http://localhost:3001/matches/66fadc13002cfc571836844a
-  console.log({playerA, playerB, onTop, showPlayer, playerARank, playerBRank, myTeamE});
-  
-
   return (
     <div
       // style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}

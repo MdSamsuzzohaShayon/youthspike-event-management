@@ -30,6 +30,7 @@ import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
 import SelectTeam from "./SelectTeam";
 import { APP_NAME } from "@/utils/keys";
+import useMatchSocket from "@/hooks/match/useMatchSocket";
 
 interface IMatchAuthenticatedViewProps {
   currMatch: IMatchRelatives;
@@ -75,6 +76,9 @@ function MatchAuthenticatedView({
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const { current: currRoom } = useAppSelector((state) => state.rooms);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
+
+
+
 
   
   // Local State

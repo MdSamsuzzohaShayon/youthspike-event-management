@@ -18,13 +18,8 @@ import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
 import { tokenToUser } from 'src/util/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
-import {
-  CreateEventBody,
-  UpdateEventBody,
-} from './event.input';
+import { CreateEventBody, UpdateEventBody } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
-
-
 
 @Injectable()
 export class EventMutations implements IEventMutations {
@@ -184,12 +179,7 @@ export class EventMutations implements IEventMutations {
         delete updateInput.ldo;
         directorId = loggedUser._id;
       } else if (loggedUser.role === UserRole.admin) {
-        if (!updateInput.ldo)
-          return AppResponse.handleError({
-            success: false,
-            message: 'You must select a director in order to update a event!',
-          });
-        directorId = updateInput.ldo;
+        directorId = eventExist.ldo;
       }
 
       const findLdo = await this.ldoService.findByDirectorId(directorId);
@@ -425,7 +415,9 @@ export class EventMutations implements IEventMutations {
         return AppResponse.handleError({ code: HttpStatus.NOT_FOUND, success: false, message: 'Event is not found' });
 
       if (eventExist.teams && eventExist.teams.length > 0) {
-        const teamIds = eventExist.teams.map((team) => team.toString());
+        const teamIds = (eventExist.teams as Array<string | null | undefined>)
+          .filter((team): team is string => team != null)
+          .map((team) => team.toString());
         promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
 
         // captains

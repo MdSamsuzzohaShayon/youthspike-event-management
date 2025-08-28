@@ -132,7 +132,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Update database
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, validationHelper, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, validationHelper, scoreKeeperHelper);
-    this.revertPlay = new RevertPlayHandler(gatewayService, scoreKeeperHelper);
+    this.revertPlay = new RevertPlayHandler(gatewayService, scoreKeeperHelper, validationHelper);
 
     /**
      * Handlers for Score keeper

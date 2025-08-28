@@ -60,7 +60,7 @@ export class EventQueries implements IEventQueries {
             if (!directorId) {
               return AppResponse.handleError({
                 success: false,
-                message: 'You must select a director in order to update an event!',
+                message: 'You must select a director in order to get all events!',
               });
             }
             newDirectorId = directorId;

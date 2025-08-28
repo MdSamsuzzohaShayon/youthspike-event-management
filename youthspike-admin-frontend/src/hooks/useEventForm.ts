@@ -36,7 +36,7 @@ const initialEvent: IEventAdd = {
   active: true,
 };
 
-export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, prevMultiplayer?: IProStats, prevWight?: IProStats, prevStats?: IProStats) {
+export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, prevMultiplayer?: IProStats, prevWight?: IProStats) {
   const eventLogo = useRef<Blob | null>(null);
   const [eventState, setEventState] = useState<IEventAdd>(
     prevEvent ? { ...prevEvent, coachPassword: initialEvent.coachPassword } : initialEvent

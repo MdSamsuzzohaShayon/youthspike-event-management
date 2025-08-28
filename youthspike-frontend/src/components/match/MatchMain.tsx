@@ -9,11 +9,6 @@ import {
   EPlayerStatus,
   ETeam,
   IMatchExpRel,
-  IOvertimeData,
-  IRoom,
-  IRoomNets,
-  ITeiBreakerAction,
-  IUpdateScoreResponse,
 } from "@/types"; // Your match type
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -24,12 +19,11 @@ import Loader from "../elements/Loader";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useUser } from "@/lib/UserProvider";
 import { useSocket } from "@/lib/SocketProvider";
-import EmitEvents from "@/utils/socket/EmitEvents";
-import SocketEventListener from "@/utils/socket/SocketEventListener";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import { setTeamScore } from "@/redux/slices/matchesSlice";
 import MatchAuthenticatedView from "./MatchAuthenticatedView";
 import MatchPublicView from "./MatchPublicView";
+import useMatchSocket from "@/hooks/match/useMatchSocket";
 
 interface IMatchMainProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -45,12 +39,14 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   // Selectors
   const { teamA, teamB } = useAppSelector((state) => state.teams);
 
-  const { current: currentRound, roundList } = useAppSelector(
+  const { current: currRound, roundList } = useAppSelector(
     (state) => state.rounds
   );
   const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector(
     (state) => state.nets
   );
+
+  const { serverReceiverPlays, serverReceiversOnNet, currentServerReceiver: currServerReceiver} = useAppSelector((state)=> state.serverReceiverOnNets);
   const {
     myPlayers,
     opPlayers,
@@ -59,7 +55,23 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     match: currMatch,
     teamATotalScore,
     teamBTotalScore,
+
   } = useAppSelector((state) => state.matches);
+
+  useMatchSocket({
+    socket,
+    match: currMatch,
+    teamA: teamA || null,
+    teamB: teamB || null,
+    allNets,
+    currRound,
+    currRoundNets,
+    roundList,
+    serverReceiversOnNet,
+    serverReceiverPlays,
+  });
+
+
 
   const audioPlayEl = useRef<HTMLButtonElement>(null);
 
@@ -115,99 +127,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     }
   }, [match, organizeData]);
 
-  // Handle Socket events
-  useEffect(() => {
-    if (!socket || roundList.length === 0) {
-      console.warn("No socket or round list available");
-      return;
-    }
-
-    const userDetail = getUserFromCookie();
-    const emitEvents = new EmitEvents(socket, dispatch);
-    const socketEventListener = new SocketEventListener(
-      socket,
-      dispatch,
-      audioPlayEl
-    );
-
-    emitEvents.joinRoom({
-      user: userDetail,
-      teamA,
-      teamB,
-      currRound: currentRound,
-      matchId: match._id,
-    });
-
-    const listeners = {
-      "extend-overtime-response-all": (data: IOvertimeData) =>
-        socketEventListener.updateExtendOvertime({
-          data,
-          dispatch,
-          match: currMatch,
-        }),
-      "join-room-response-all": (data: IRoom) =>
-        socketEventListener.handleJoinRoom(data, dispatch),
-      "check-in-response-to-all": (data: IRoom) =>
-        socketEventListener.handleCheckInResponse({
-          data,
-          dispatch,
-          roundList,
-          currentRound,
-        }),
-      "submit-lineup-response-all": (data: IRoomNets) =>
-        socketEventListener.handleLineupResponse({
-          data,
-          dispatch,
-          currRoundNets,
-          allNets,
-          roundList,
-          currentRound,
-          currMatch
-        }),
-      "update-points-response-all": (data: IUpdateScoreResponse) =>
-        socketEventListener.handleUpdatePoints({
-          data,
-          dispatch,
-          currRoundNets,
-          allNets,
-          currentRound,
-          roundList,
-          match: currMatch,
-        }),
-      "tie-breaker-response-all": (data: ITeiBreakerAction) =>
-        socketEventListener.handleUpdateNet({
-          data,
-          dispatch,
-          allNets,
-          currRoundNets,
-          roundList,
-          match: currMatch,
-        }),
-      "error-from-server": (error: string) =>
-        socketEventListener.handleError(error, dispatch),
-    };
-
-    Object.entries(listeners).forEach(([event, handler]) => {
-      socket.on(event, handler);
-    });
-
-    return () => {
-      Object.keys(listeners).forEach((event) => {
-        socket.off(event);
-      });
-    };
-  }, [
-    socket,
-    teamA,
-    teamB,
-    currentRound,
-    roundList,
-    currRoundNets,
-    dispatch,
-    currMatch,
-    allNets,
-  ]);
-
   // Calculate points
   useEffect(() => {
     let teamATS = 0,
@@ -243,7 +162,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
       })
     );
   }, [roundList, allNets, dispatch]);
-  
 
   if (error) {
     console.error("Error loading match:", error);
@@ -275,12 +193,14 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   } else {
     return (
       <MatchPublicView
-        currRound={currentRound}
+        currRound={currRound}
         currRoundNets={currRoundNets}
         nets={allNets}
         roundList={roundList}
         teamA={teamA || null}
         teamB={teamB || null}
+        serverReceiversOnNet={serverReceiversOnNet}
+        currServerReceiver={currServerReceiver}
       />
     );
   }

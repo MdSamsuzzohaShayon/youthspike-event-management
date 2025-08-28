@@ -10,9 +10,10 @@ import {
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ServerReceiverOnNetModule } from 'src/server-receiver-on-net/server-receiver-on-net.module';
+import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
 export class RevertPlayHandler {
-  constructor(private readonly gatewayService: GatewayService, private readonly scoreKeeperHelper: ScoreKeeperHelper) {}
+  constructor(private readonly gatewayService: GatewayService, private readonly scoreKeeperHelper: ScoreKeeperHelper, private readonly validationHelper: ValidationHelper) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
@@ -20,17 +21,14 @@ export class RevertPlayHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const { serverReceiverOnNetService, matchService, netService, playerService } = this.gatewayService.getServices();
+      const { serverReceiverOnNetService, matchService, netService, playerService, jwtService } = this.gatewayService.getServices();
 
       const [net, match] = await Promise.all([
         this.scoreKeeperHelper.loadNetAction(body.net, body.room),
         matchService.findById(body.match),
       ]);
 
-      if (!match?.accessCode || match.accessCode !== body.accessCode || !body.play) {
-        throw new Error('Permission denied: Invalid access code.');
-      }
-
+      this.validationHelper.authCheck(body.accessCode, jwtService, match.accessCode);
       const playKeys = new Set<string>();
 
       // Delete all plays of the net after selected play

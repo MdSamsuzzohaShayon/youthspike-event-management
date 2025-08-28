@@ -132,7 +132,7 @@ export interface IServerReceiverActionResponse extends IServerReceiverCommonResp
 
 export interface ISRConfirmResponse extends IServerReceiverCommonResponse {
   data: IServerReceiverOnNetMixed;
-  setActionPreview: React.Dispatch<React.SetStateAction<boolean>>;
+  setActionPreview?: React.Dispatch<React.SetStateAction<boolean>>;
   /*
 data,
     dispatch,

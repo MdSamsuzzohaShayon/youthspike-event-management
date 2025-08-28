@@ -54,6 +54,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     initialEvent,
     initialProStats,
   } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
+  
 
 
   

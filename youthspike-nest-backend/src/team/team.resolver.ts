@@ -89,9 +89,13 @@ export class TeamResolver {
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
-      const teamExist = await this.teamService.findOne({name: input.name, event: input.event});
-      if(teamExist){
-        return AppResponse.handleError({code: 404, success: false, message: "There is already a team exist with this name in this event!"});
+      const teamExist = await this.teamService.findOne({ name: input.name, event: input.event });
+      if (teamExist) {
+        return AppResponse.handleError({
+          code: 404,
+          success: false,
+          message: 'There is already a team exist with this name in this event!',
+        });
       }
 
       const teamObj: Team = {
@@ -188,7 +192,7 @@ export class TeamResolver {
     @Args('teamId') teamId: string,
     @Args('eventId') eventId: string,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-  logo?: Upload,
+    logo?: Upload,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const [teamExist, eventExist] = await Promise.all([
@@ -344,7 +348,11 @@ export class TeamResolver {
             }
           }
           if (itemsToInsert && itemsToInsert.length > 0) {
-            await this.playerRankingService.insertManyItems(itemsToInsert);
+            const rankings = await this.playerRankingService.insertManyItems(itemsToInsert);
+            await this.playerRankingService.updateOne(
+              { _id: pr._id },
+              { $addToSet: { rankings: { $each: rankings.map((ri) => ri._id.toString()) } } },
+            );
           }
         }
       }

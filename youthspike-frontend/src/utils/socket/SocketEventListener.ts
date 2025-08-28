@@ -481,7 +481,7 @@ class SocketEventListener {
       dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
       dispatch(setCurrentServerReceiver(data));
 
-      setActionPreview(true);
+      if (setActionPreview) setActionPreview(true);
     }
 
     // Change state

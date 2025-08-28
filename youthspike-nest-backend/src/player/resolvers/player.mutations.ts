@@ -267,9 +267,13 @@ export class PlayerMutations implements IPlayerMutations {
           teamObj.players = teamPlayerIds as string[];
           const teamExist = await this.teamService.findOne({ event: eventId, name: teamObj.name });
           // const eventExist = await this.eventService.findById(eventId);
-          let team = null;
+          let team = teamExist;
           if (teamExist) {
-            team = await this.teamService.updateOne({ _id: teamExist._id }, {$set: {name: teamObj.name}});
+            const teamPlayers = [...teamExist.players, teamPlayerIds];
+            await this.teamService.updateOne(
+              { _id: teamExist._id },
+              { $set: { name: teamObj.name, players: teamPlayers } },
+            );
           } else {
             team = await this.teamService.create(teamObj);
           }
@@ -282,15 +286,34 @@ export class PlayerMutations implements IPlayerMutations {
               this.playerService.updateOne({ _id: teamPlayerIds[i] }, { $addToSet: { teams: team._id } }),
             );
             // Create player ranking when creating team
-            playerRankings.push({ rank: i + 1, player: teamPlayerIds[i] });
+            const playerRank = teamExist ? teamExist.players.length + i + 1 : i + 1;
+            playerRankings.push({ rank: playerRank, player: teamPlayerIds[i] });
           }
-          const teamPlayerRanking = await this.playerRankingService.create({
-            rankings: playerRankings,
-            rankLock: false,
-            team: team._id,
-          });
+
+          let teamPlayerRankingId = null;
+          const teamPlayerRankingExist = await this.playerRankingService.findOne({ rankLock: false, team: team._id });
+          if (teamPlayerRankingExist) {
+            teamPlayerRankingId = teamPlayerRankingExist._id;
+            const newRankings = await this.playerRankingService.insertManyItems(
+              playerRankings.map((pr) => ({ ...pr, playerRanking: teamPlayerRankingId })),
+            );
+            await this.playerRankingService.updateOne(
+              { _id: teamPlayerRankingId },
+              { $addToSet: { rankings: { $each: newRankings.map((nr) => nr._id) } } },
+            );
+          } else {
+            // Check if player ranking already exist
+            const teamPlayerRanking = await this.playerRankingService.create({
+              // With create functiion, items are creating also
+              rankings: playerRankings,
+              rankLock: false,
+              team: team._id,
+            });
+            teamPlayerRankingId = teamPlayerRanking._id;
+          }
+
           promiseOperations.push(
-            this.teamService.updateOne({ _id: team._id }, { $addToSet: { playerRankings: teamPlayerRanking._id } }),
+            this.teamService.updateOne({ _id: team._id }, { $addToSet: { playerRankings: teamPlayerRankingId } }),
           );
 
           promiseOperations.push(
