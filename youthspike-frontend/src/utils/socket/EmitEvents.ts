@@ -676,7 +676,6 @@ class EmitEvents {
 
   updateCachePoints({ match, net, room, accessCode }: IUpdateCachePointsInput) {
     const actionData = { match, net, room, accessCode };
-    // 
     this.socket?.emit("update-cache-points-from-client", actionData);
   }
 

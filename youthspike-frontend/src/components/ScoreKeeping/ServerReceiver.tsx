@@ -14,6 +14,7 @@ import {
   IAccessCode,
   IMatchExpRel,
   INetPlayers,
+  IPlayer,
   IReceiverTeam,
   IServerReceiverOnNetMixed,
   IServerTeam,
@@ -251,7 +252,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: net?._id || null,
       room: currRoom?._id || null,
-      accessCode: accessCode?.code.toString() || null,
+      accessCode: token || accessCode?.code.toString() || null,
       play: toBeSelectedPlay,
     });
     changePlayEl.current?.close();
@@ -282,7 +283,7 @@ export default function ServerReceiver({
       return;
     }
 
-    if (!accessCode?.code) {
+    if (!token && !accessCode?.code) {
       dispatch(
         setMessage({
           type: EMessage.ERROR,
@@ -295,7 +296,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: net?._id,
       room: currRoom?._id,
-      accessCode: accessCode.code,
+      accessCode: token || (accessCode && accessCode.code) || null,
     };
     const emit = new EmitEvents(socket, dispatch);
     emit.updateCachePoints(actionData);
@@ -305,7 +306,7 @@ export default function ServerReceiver({
         message: "You have updated the score successfully!",
       })
     );
-  }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, accessCode]);
+  }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, token, accessCode]);
 
   const handleRevertPlay = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -355,6 +356,13 @@ export default function ServerReceiver({
       currPlays[0]
     );
   }, [currPlays]);
+
+
+  const playerMap = useMemo(()=>{
+    return new Map<string, IPlayer>([...teamAPlayers, ...teamBPlayers].map((p)=> [p._id, p]));
+  }, [teamAPlayers, teamBPlayers]);
+
+  
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {
@@ -607,10 +615,9 @@ export default function ServerReceiver({
         handlePlayChange={handlePlayChange}
         setToBeSelectedPlay={setToBeSelectedPlay}
         toBeSelectedPlay={toBeSelectedPlay}
-        teamAById={teamBById}
-        teamBById={teamBById}
         teamAPlayers={teamAPlayers}
         teamBPlayers={teamAPlayers}
+        playerMap={playerMap}
       />
 
       <dialog ref={confirmBoxEl} className="modal-dialog">
@@ -653,8 +660,7 @@ export default function ServerReceiver({
               <ul className="space-y-2">
                 <ServerReceiverPlayInput
                   sr={lastPlay}
-                  teamAById={teamAById}
-                  teamBById={teamBById}
+                  playerMap={playerMap}
                   key={`last-play-${lastPlay.play}`}
                   teamAPlayers={teamAPlayers}
                   teamBPlayers={teamBPlayers}

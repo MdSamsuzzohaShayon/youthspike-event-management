@@ -1,13 +1,12 @@
 import ServerReceiverPlayInput from "@/components/ScoreKeeping/ServerReceiverPlayInput";
 import { IPlayer, IServerReceiverSinglePlay } from "@/types";
-import React from "react";
+import React, { useMemo } from "react";
 
 interface IChangePlayDialogProps {
   changePlayEl: React.RefObject<HTMLDialogElement | null>;
   currPlays: IServerReceiverSinglePlay[];
-  teamAById: Map<string, IPlayer>;
-  teamBById: Map<string, IPlayer>;
   toBeSelectedPlay: null | number;
+  playerMap: Map<string, IPlayer>;
   setToBeSelectedPlay: React.Dispatch<React.SetStateAction<number | null>>;
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
@@ -17,14 +16,15 @@ interface IChangePlayDialogProps {
 function ChangePlayDialog({
   changePlayEl,
   currPlays,
-  teamAById,
-  teamBById,
   toBeSelectedPlay,
   setToBeSelectedPlay,
   teamAPlayers,
   teamBPlayers,
+  playerMap,
   handlePlayChange,
 }: IChangePlayDialogProps) {
+
+  
   return (
     <dialog ref={changePlayEl} className="modal-dialog">
       <div className="p-6 space-y-4 max-h-[90vh] overflow-hidden flex flex-col">
@@ -39,8 +39,7 @@ function ChangePlayDialog({
               {currPlays.map((sr, i) => (
                 <ServerReceiverPlayInput
                   sr={sr}
-                  teamAById={teamAById}
-                  teamBById={teamBById}
+                  playerMap={playerMap}
                   key={i}
                   toBeSelectedPlay={toBeSelectedPlay}
                   setToBeSelectedPlay={setToBeSelectedPlay}

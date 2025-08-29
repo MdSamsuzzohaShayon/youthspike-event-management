@@ -15,6 +15,7 @@ interface IMatchPublicViewProps {
   teamB: ITeam | null;
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
   currServerReceiver: IServerReceiverOnNetMixed | null;
+  matchId: string;
 }
 
 function MatchPublicView({
@@ -25,7 +26,8 @@ function MatchPublicView({
   teamA,
   teamB,
   serverReceiversOnNet, 
-  currServerReceiver
+  currServerReceiver,
+  matchId
 }: IMatchPublicViewProps) {
   const [view, setView] = useState<EView>(EView.ROUND); // allNets | round | net
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,9 +42,7 @@ function MatchPublicView({
     const entries = serverReceiversOnNet.map((s) => {
       const key = s.netId ?? (typeof s.net === "string" ? s.net : s.net._id);
 
-      console.log("Re-render");
-      
-  
+
       if (
         currServerReceiver &&
         (key === currServerReceiver.net || key === currServerReceiver.netId)
@@ -151,6 +151,7 @@ function MatchPublicView({
           allNets={nets}
           roundList={roundList}
           srMap={srMap}
+          matchId={matchId}
         />
       )}
       {view === EView.NET && (
@@ -163,6 +164,7 @@ function MatchPublicView({
           teamBPlayers={teamBPlayers}
           setView={setView}
           srMap={srMap}
+          matchId={matchId}
         />
       )}
     </div>

@@ -10,8 +10,7 @@ import {
 
 interface IServerReceiverPlayInputProps {
   sr: IServerReceiverSinglePlay;
-  teamAById: Map<string, IPlayer>;
-  teamBById: Map<string, IPlayer>;
+  playerMap: Map<string, IPlayer>;
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
   toBeSelectedPlay?: number | null;
@@ -19,12 +18,11 @@ interface IServerReceiverPlayInputProps {
 }
 
 const getPlayerName = (
-  id: string | null,
-  teamAById: Map<string, IPlayer>,
-  teamBById: Map<string, IPlayer>
+  _id: string | null,
+  playerMap: Map<string, IPlayer>,
 ): string => {
-  if (!id) return "Unknown";
-  const player = teamAById.get(id) || teamBById.get(id) || null;
+  if (!_id || !playerMap) return "Unknown";
+  const player = playerMap.get(_id) || null;
   return player ? `${player.firstName} ${player.lastName}` : "Unknown";
 };
 
@@ -37,13 +35,14 @@ const RoleBlock = ({ role, name }: { role: string; name: string }) => (
 
 const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
   sr,
-  teamAById,
-  teamBById,
+  playerMap,
   toBeSelectedPlay,
   setToBeSelectedPlay,
   teamAPlayers,
   teamBPlayers,
 }) => {
+
+  
   const actionPlay = useMemo(() => {
     //  EServerReceiverAction.SERVER_DO_NOT_KNOW;
     switch (sr.action) {
@@ -127,14 +126,13 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
           <div className="space-y-1">
             <RoleBlock
               role={ESRRole.SERVER}
-              name={getPlayerName(sr.serverId || null, teamAById, teamBById)}
+              name={getPlayerName(sr.serverId || String(sr.server), playerMap)}
             />
             <RoleBlock
               role={ESRRole.SWING}
               name={getPlayerName(
-                sr.servingPartnerId || null,
-                teamAById,
-                teamBById
+                sr.servingPartnerId || String(sr.servingPartner),
+                playerMap
               )}
             />
           </div>
@@ -154,14 +152,13 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
           <div className="space-y-1">
             <RoleBlock
               role={ESRRole.RECEIVER}
-              name={getPlayerName(sr.receiverId || null, teamAById, teamBById)}
+              name={getPlayerName(sr.receiverId || String(sr.receiver), playerMap)}
             />
             <RoleBlock
               role={ESRRole.SETTER}
               name={getPlayerName(
-                sr.receivingPartnerId || null,
-                teamAById,
-                teamBById
+                sr.receivingPartnerId || String(sr.receivingPartner),
+                playerMap
               )}
             />
           </div>

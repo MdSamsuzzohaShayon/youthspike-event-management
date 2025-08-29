@@ -10,6 +10,8 @@ import {
 import { CldImage } from "next-cloudinary";
 import React, { useMemo } from "react";
 import PlayerView from "./PlayerView";
+import LocalStorageService from "@/utils/LocalStorageService";
+import { usePathname } from "next/navigation";
 
 interface INetInRoundViewProps {
   net: INetRelatives;
@@ -20,6 +22,7 @@ interface INetInRoundViewProps {
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
   srNet: IServerReceiverOnNetMixed | null;
+  matchId: string;
 }
 function NetInRoundView({
   net,
@@ -30,7 +33,19 @@ function NetInRoundView({
   teamAPlayers,
   teamBPlayers,
   srNet,
+  matchId,
 }: INetInRoundViewProps) {
+
+  const pathname = usePathname();
+  const handleScordboardRedirect=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    console.log(pathname);
+    
+    LocalStorageService.setMatch(matchId, net.round, net._id);
+    window.location.assign(`/score-keeping/${matchId}`);
+  }
+
+
   const teamAPlayerMap = useMemo(() => {
     return new Map(teamAPlayers.map((p) => [p._id, p]));
   }, [teamAPlayers, currRoundNets]);
@@ -46,19 +61,19 @@ function NetInRoundView({
     };
   }, [net, srNet]);
 
-  const roleMap = useMemo(()=> {
+  const roleMap = useMemo(() => {
     const newMap = new Map<string, ESRRole>();
-    if(srNet?.serverId){
-        newMap.set(srNet?.serverId, ESRRole.SERVER);
+    if (srNet?.serverId) {
+      newMap.set(srNet?.serverId, ESRRole.SERVER);
     }
-    if(srNet?.receiverId){
-        newMap.set(srNet?.receiverId, ESRRole.RECEIVER);
+    if (srNet?.receiverId) {
+      newMap.set(srNet?.receiverId, ESRRole.RECEIVER);
     }
-    if(srNet?.servingPartnerId){
-        newMap.set(srNet?.servingPartnerId, ESRRole.SWING);
+    if (srNet?.servingPartnerId) {
+      newMap.set(srNet?.servingPartnerId, ESRRole.SWING);
     }
-    if(srNet?.receivingPartnerId){
-        newMap.set(srNet?.receivingPartnerId, ESRRole.SETTER);
+    if (srNet?.receivingPartnerId) {
+      newMap.set(srNet?.receivingPartnerId, ESRRole.SETTER);
     }
     return newMap;
   }, [srNet]);
@@ -66,25 +81,53 @@ function NetInRoundView({
   return (
     <div className="bg-gray-800 p-4 md:p-5 rounded-xl shadow-lg border border-gray-700 hover:border-yellow-400 transition-all duration-300">
       {/* Net Header */}
-      <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
-        <h3 className="text-yellow-400 font-bold text-lg">Net {net.num}</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 pb-4 border-b border-gray-600 gap-4">
+        <h3 className="text-yellow-400 font-bold text-xl whitespace-nowrap">
+          Net {net.num}
+        </h3>
+
+        {/* Score Display */}
+        <div className="flex items-center justify-center gap-6">
+          {/* Team A Score */}
+          <div className="relative">
+            <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+              <div className="text-black font-bold text-3xl">
+                {selectedNet?.teamAScore || 0}
+              </div>
+            </div>
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-black px-2 py-1 rounded-full border border-yellow-400">
+              <span className="text-yellow-400 text-xs font-bold truncate max-w-[60px]">
+                {teamA?.name?.split(" ")[0] || "A"}
+              </span>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <span className="text-yellow-400 font-bold text-2xl">-</span>
+
+          {/* Team B Score */}
+          <div className="relative">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-yellow-400">
+              <div className="text-black font-bold text-3xl">
+                {selectedNet?.teamBScore || 0}
+              </div>
+            </div>
+            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-black px-2 py-1 rounded-full border border-yellow-400">
+              <span className="text-yellow-400 text-xs font-bold truncate max-w-[60px]">
+                {teamB?.name?.split(" ")[0] || "B"}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <button
-          className="btn btn-info"
+          className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-400 text-black hover:bg-yellow-300 border-0"
           onClick={() => {
             setView(EView.NET);
           }}
         >
-          Enter
+          ENTER NET
         </button>
-        <div className="flex items-center space-x-2">
-          <span className="text-white font-semibold bg-black px-2 py-1 rounded text-sm">
-            {selectedNet?.teamAScore || 0}
-          </span>
-          <span className="text-gray-400">-</span>
-          <span className="text-white font-semibold bg-black px-2 py-1 rounded text-sm">
-            {selectedNet?.teamBScore || 0}
-          </span>
-        </div>
       </div>
 
       {/* Team A Players */}
@@ -171,6 +214,21 @@ function NetInRoundView({
           )}
         </div>
       </div>
+
+      {/* Net footer  */}
+      {net.teamAPlayerA &&
+        net.teamAPlayerB &&
+        net.teamBPlayerA &&
+        net.teamBPlayerB && (
+          <div className="w-full mt-4 flex justify-between items-center">
+            <button
+              className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-400 text-black hover:bg-yellow-300 border-0"
+              onClick={handleScordboardRedirect}
+            >
+              SCOREBOARD
+            </button>
+          </div>
+        )}
     </div>
   );
 }

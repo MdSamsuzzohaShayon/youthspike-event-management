@@ -201,6 +201,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
         teamB={teamB || null}
         serverReceiversOnNet={serverReceiversOnNet}
         currServerReceiver={currServerReceiver}
+        matchId={match._id}
       />
     );
   }

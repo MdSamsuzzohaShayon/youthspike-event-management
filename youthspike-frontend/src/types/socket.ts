@@ -83,7 +83,7 @@ export interface IReceiverDoNotKnowInput extends ICommonAction {}
 export interface IReceivingHittingErrorInput extends ICommonAction {}
 
 export interface IUpdateCachePointsInput extends ICommonAction {
-  accessCode: string;
+  accessCode: string | null;
 }
 
 interface IRevertResetCommon {

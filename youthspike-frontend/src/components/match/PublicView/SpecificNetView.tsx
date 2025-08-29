@@ -11,6 +11,7 @@ interface ISpecificNetViewProps {
   teamBPlayers: IPlayer[];
   srMap: Map<string, IServerReceiverOnNetMixed>;
   setView: React.Dispatch<React.SetStateAction<EView>>;
+  matchId: string;
 }
 
 const SpecificNetView = ({
@@ -22,6 +23,7 @@ const SpecificNetView = ({
   teamBPlayers,
   srMap,
   setView,
+  matchId,
 }: ISpecificNetViewProps) => {
   const net = useMemo(() => {
     return currRoundNets.find((n) => n.num === currNetNum);
