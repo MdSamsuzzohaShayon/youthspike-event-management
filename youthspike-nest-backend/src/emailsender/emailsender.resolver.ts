@@ -13,6 +13,7 @@ import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { formatDate, isISODateString, tokenToUser } from 'src/util/helper';
+import { EEnv, NODE_ENV } from 'src/util/keys';
 
 @Resolver()
 export class EmailsenderResolver {
@@ -58,7 +59,7 @@ export class EmailsenderResolver {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => AppResponse)
+  @Mutation((_returns) => AppResponse)
   async sendCredentials(
     @Context() context: any,
     @Args('eventId') eventId: string,
@@ -77,13 +78,21 @@ export class EmailsenderResolver {
       const subject = `${eventExist.name} Captain's Login Credentials & Rankings`;
       const htmlFileName = 'send-credentials.html';
 
+      console.log("EventId", eventId);
+      
+
       const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
       const directorExist = await this.userService.findById(ldoExist.director.toString());
+
+
+      console.log("Director and ldo exist: ", ldoExist, directorExist);
+      
 
       // Check user role
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
       if (!userPayload || !userPayload._id) return AppResponse.unauthorized();
+      
 
       const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
@@ -125,10 +134,11 @@ export class EmailsenderResolver {
 
       // Send emails to recipients
       for (const recipient of recipients) {
+        console.log("Env variable: ", this.configService.get<string>('NODE_ENV'));
         const playerExist = await this.playerService.findById(recipient);
         if (playerExist) {
           const sendTo = [playerExist.email];
-          if (this.configService.get<string>('NODE_ENV') === 'development') {
+          if (NODE_ENV === EEnv.DEVELOPMENT) {
             sendTo.push('mdsamsuzzoha5222@gmail.com');
           }
           const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
@@ -175,6 +185,8 @@ export class EmailsenderResolver {
         success: true,
       };
     } catch (error) {
+      console.log("Error", error);
+      
       return AppResponse.handleError(error);
     }
   }

@@ -1,5 +1,5 @@
-import { ETeam } from '@/types/team';
-import { MATCHES_LS, MUSIC_TIME_PASSED } from './constant';
+import { ETeam } from "@/types/team";
+import { MATCHES_LS, MUSIC_TIME_PASSED } from "./constant";
 
 interface IMatchLS {
   matchId: string;
@@ -27,9 +27,9 @@ class LocalStorageService {
 
     try {
       const parsed = JSON.parse(item);
-      if (typeof parsed === 'object' && parsed !== null) {
+      if (typeof parsed === "object" && parsed !== null) {
         return parsed as T; // it's an object
-      } else if (typeof parsed === 'string') {
+      } else if (typeof parsed === "string") {
         return parsed; // it's a string
       } else {
         // optionally handle other types like number, boolean, etc.
@@ -56,7 +56,8 @@ class LocalStorageService {
 
     const givenTime = new Date(musicPlayedTime);
     const currentTime = new Date();
-    const timeDifferenceSec = (currentTime.getTime() - givenTime.getTime()) / 1000;
+    const timeDifferenceSec =
+      (currentTime.getTime() - givenTime.getTime()) / 1000;
 
     return timeDifferenceSec >= secondsPassed && currentTime > givenTime;
   }
@@ -69,7 +70,8 @@ class LocalStorageService {
   private isMatchExpired(matchDate: string, daysThreshold = 10): boolean {
     const currentDate = new Date();
     const isoDate = new Date(matchDate);
-    const differenceInDays = (currentDate.getTime() - isoDate.getTime()) / (1000 * 60 * 60 * 24);
+    const differenceInDays =
+      (currentDate.getTime() - isoDate.getTime()) / (1000 * 60 * 60 * 24);
     return differenceInDays >= daysThreshold;
   }
 
@@ -77,18 +79,37 @@ class LocalStorageService {
     return matchList.filter((match) => !this.isMatchExpired(match.date));
   }
 
-  public setMatch(matchId: string, roundId: string, netId?: string | null): void {
-    const currentMatches = this.getItem<IMatchLS[]>(MATCHES_LS);
-    if (!Array.isArray(currentMatches)) return;
-    
-    const matchIndex = currentMatches.findIndex((m) => m.matchId === matchId);
-    const newMatch: IMatchLS = { matchId, roundId, date: new Date().toISOString() };
-    if(netId){
-      newMatch.netId = netId;
-    }
+  public setMatch(
+    matchId: string,
+    roundId: string,
+    netId?: string | null
+  ): void {
+    try {
+      // Always fall back to an empty array if nothing is stored yet
+      const currentMatches = Array.isArray(this.getItem<IMatchLS[]>(MATCHES_LS))
+        ? (this.getItem<IMatchLS[]>(MATCHES_LS) as IMatchLS[])
+        : [];
 
-    const updatedMatches = matchIndex !== -1 ? currentMatches.map((m, i) => (i === matchIndex ? newMatch : m)) : [...currentMatches, newMatch];
-    this.setItem(MATCHES_LS, this.filterExpiredMatches(updatedMatches));
+      const matchIndex = currentMatches.findIndex((m) => m.matchId === matchId);
+
+      const newMatch: IMatchLS = {
+        matchId,
+        roundId,
+        date: new Date().toISOString(),
+      };
+      if (netId) {
+        newMatch.netId = netId;
+      }
+
+      const updatedMatches =
+        matchIndex !== -1
+          ? currentMatches.map((m, i) => (i === matchIndex ? newMatch : m))
+          : [...currentMatches, newMatch];
+
+      this.setItem(MATCHES_LS, this.filterExpiredMatches(updatedMatches));
+    } catch (error) {
+      console.error("Error setting match:", error);
+    }
   }
 
   public getMatch(matchId: string): IMatchLS | null {
@@ -99,21 +120,21 @@ class LocalStorageService {
 
   // Event-related methods
   public setEvent(eventId: string): void {
-    this.setItem('eventId', eventId);
+    this.setItem("eventId", eventId);
   }
 
   public getEvent(): string | null {
-    return this.getItem<string>('eventId');
+    return this.getItem<string>("eventId");
   }
 
   public removeEvent(): void {
-    this.removeItem('eventId');
+    this.removeItem("eventId");
   }
 
   // Team-related methods
   public async setLocalTeam(teamE: ETeam): Promise<boolean> {
     try {
-      this.setItem('selectedTeamForAdmin', teamE);
+      this.setItem("selectedTeamForAdmin", teamE);
       return true;
     } catch (error) {
       throw error;
@@ -123,7 +144,7 @@ class LocalStorageService {
   public async getLocalTeam(): Promise<ETeam | null> {
     try {
       // @ts-ignore
-      return this.getItem<ETeam>('selectedTeamForAdmin');
+      return this.getItem<ETeam>("selectedTeamForAdmin");
     } catch (error) {
       throw error;
     }

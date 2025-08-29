@@ -131,7 +131,8 @@ function NetPointCard({
     e.preventDefault();
     // Set round number and net number in the local storage
     LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
-    router.push(`/score-keeping/${currMatch._id}`);
+    // router.push(`/score-keeping/${currMatch._id}`);
+    window.location.assign(`/score-keeping/${currMatch._id}`); // Keep history back button
   }
 
   useEffect(() => {
