@@ -1,36 +1,44 @@
+import { useSocket } from '@/lib/SocketProvider';
+import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { IRoom } from '@/types';
-import { ETeam } from '@/types/team';
-import submitLineup from '@/utils/match/submitLineup';
+import { EPlayerStatus, IRoom } from '@/types';
+import { ETeam, ITeam } from '@/types/team';
+import EmitEvents from '@/utils/socket/EmitEvents';
 import React, { useEffect, useState } from 'react';
 
 interface IOvertimeBoxProps {
   currRoom: IRoom | null;
+  eventId: string | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
 }
-function OvertimeBox({ currRoom }: IOvertimeBoxProps) {
+function OvertimeBox({ currRoom, eventId, teamA, teamB}: IOvertimeBoxProps) {
   const dispatch = useAppDispatch();
+  const socket = useSocket();
+  const user = useUser();
 
   const [fillNet, setFillNet] = useState<boolean>(false);
 
-  const { currentRoundNets } = useAppSelector((state) => state.nets);
+  const { currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
   const { myTeamE, myPlayers, closePSCAvailable, match: currMatch } = useAppSelector((state) => state.matches);
   const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
 
   const handleOvertimeNetLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets, currRound, myPlayers, roundList, closePSCAvailable });
+    const emitEvents = new EmitEvents(socket, dispatch);
+    const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
+    emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
   };
 
   useEffect(() => {
     let filled = true;
-    for (let i = 0; i < currentRoundNets.length; i += 1) {
+    for (let i = 0; i < currRoundNets.length; i += 1) {
       if (myTeamE === ETeam.teamA) {
-        if (!currentRoundNets[i].teamAPlayerA || !currentRoundNets[i].teamAPlayerB) filled = false;
-      } else if (!currentRoundNets[i].teamBPlayerA || !currentRoundNets[i].teamBPlayerB) filled = false;
+        if (!currRoundNets[i].teamAPlayerA || !currRoundNets[i].teamAPlayerB) filled = false;
+      } else if (!currRoundNets[i].teamBPlayerA || !currRoundNets[i].teamBPlayerB) filled = false;
     }
     setFillNet(filled);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentRoundNets]);
+  }, [currRoundNets]);
 
   return (
     <div className="flex flex-col py-2 w-full justify-between items-center gap-1 box-success">

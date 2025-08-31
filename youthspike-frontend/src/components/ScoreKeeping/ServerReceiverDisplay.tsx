@@ -232,7 +232,7 @@ const ServerReceiverDisplay: React.FC<{
         positionPairE={positionPairE}
       />
     );
-  }, [positions, handleAddServer, handleAddReceiver]);
+  }, [positions, currServerReceiver, handleAddServer, handleAddReceiver]);
 
   return (
     <div className="display-server-receiver w-full flex justify-center items-center flex-col">

@@ -106,7 +106,7 @@ export interface ICheckInToLineupProps extends IStatusChange {
 }
 
 export interface ISubmitLineupProps extends ICheckInToLineupProps {
-  eventId: string;
+  eventId: string | null;
   teamA?: ITeam | null;
   teamB?: ITeam | null;
   myPlayerIds: string[];

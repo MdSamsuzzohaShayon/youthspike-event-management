@@ -8,6 +8,7 @@ import React, { useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { imgW } from '@/utils/constant';
 import NetBox from '../net/NetBox';
+import { EPlayerStatus } from '@/types';
 
 function VerifyLineup() {
   const socket = useSocket();
@@ -30,7 +31,8 @@ function VerifyLineup() {
   const handlePlayerSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const emitEvents = new EmitEvents(socket, dispatch);
-    const myPlayerIds: string[] = myPlayers.map((mp) => mp._id);
+    // Player must be active
+    const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
     emitEvents.submitLineup({ eventId: currEvent?._id || "", currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
   };
 
@@ -48,7 +50,7 @@ function VerifyLineup() {
   // Filter subbed players
   const subbedPlayers = useMemo(() => {
     const players = myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers;
-    return players.filter((player) => !assignedPlayers.has(player._id));
+    return players.filter((player) => !assignedPlayers.has(player._id) && player.status === EPlayerStatus.ACTIVE);
   }, [assignedPlayers, myTeamE, teamAPlayers, teamBPlayers]);
 
   const renderSubbedPlayers = useCallback(

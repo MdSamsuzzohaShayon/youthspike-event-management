@@ -208,7 +208,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     return paginatedTeams;
   }, [teamList, currentPage]);
 
-  // console.log({paginatedTeamList, groupList});
+  
   
 
   return (

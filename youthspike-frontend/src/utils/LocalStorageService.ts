@@ -22,24 +22,25 @@ class LocalStorageService {
 
   // Generic methods
   private getItem<T>(key: string): T | string | null {
-    const item = localStorage.getItem(key);
+    if (typeof window === "undefined") return null; // ⬅️ Guard for SSR
+  
+    const item = window.localStorage.getItem(key);
     if (!item) return null;
-
+  
     try {
       const parsed = JSON.parse(item);
       if (typeof parsed === "object" && parsed !== null) {
-        return parsed as T; // it's an object
+        return parsed as T;
       } else if (typeof parsed === "string") {
-        return parsed; // it's a string
+        return parsed;
       } else {
-        // optionally handle other types like number, boolean, etc.
         return parsed;
       }
-    } catch (error) {
-      // Not JSON, return the raw string
-      return item;
+    } catch {
+      return item; // not JSON
     }
   }
+  
 
   private setItem(key: string, value: string | Record<string, any>): void {
     localStorage.setItem(key, JSON.stringify(value));

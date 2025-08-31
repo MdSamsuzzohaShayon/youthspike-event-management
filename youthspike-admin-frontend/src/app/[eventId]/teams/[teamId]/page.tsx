@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import TeamDetail from '@/components/teams/TeamDetail';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IMatchExpRel, IMatchRelatives, INetRelatives, IPlayer, IPlayerExpRel, IRoundRelatives, ITeam, TParams } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam, TParams } from '@/types';
 import { getTeamData } from '../../../_requests/teams';
 
 interface TeamSingleMainProps {

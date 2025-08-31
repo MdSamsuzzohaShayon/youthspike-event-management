@@ -26,8 +26,15 @@ export class UpdateCachePointsHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const { netService, playerStatsService, playerService, roundService, serverReceiverOnNetService, matchService, jwtService } =
-        this.gatewayService.getServices();
+      const {
+        netService,
+        playerStatsService,
+        playerService,
+        roundService,
+        serverReceiverOnNetService,
+        matchService,
+        jwtService,
+      } = this.gatewayService.getServices();
 
       const [net, match] = await Promise.all([
         this.scoreKeeperHelper.loadNetAction(body.net, body.room),
@@ -309,18 +316,29 @@ export class UpdateCachePointsHandler {
 
       const netsOfRound = await netService.find({ round: round._id });
       // Check if all net has point then make round completed
-      let teamAScore = 0, teamBScore = 0;
+      let teamAScore = 0,
+        teamBScore = 0;
       let roundCompleted: boolean = true;
       for (const n of netsOfRound) {
         // Zero values are allowed
         if ((!n.teamAScore && n.teamAScore !== 0) || (!n.teamBScore && n.teamBScore !== 0)) {
           roundCompleted = false;
         }
-        if(n.teamAScore){
+        if (n.teamAScore) {
           teamAScore += n.teamAScore;
         }
-        if(n.teamBScore){
+        if (n.teamBScore) {
           teamBScore += n.teamBScore;
+        }
+      }
+
+      if (roundCompleted) {
+        // roundList
+        const roundList = await roundService.find({ match: net.match });
+        // Check this is last round or not
+        const lastRound = roundList.reduce((max, current) => (current.num > max.num ? current : max), roundList[0]);
+        if (String(lastRound._id) === String(round._id)) {
+          await matchService.updateOne({ _id: body.match }, { $set: { completed: true } });
         }
       }
 

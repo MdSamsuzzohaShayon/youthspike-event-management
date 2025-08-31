@@ -87,6 +87,7 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
     let newFilteredList = [...newTeamList];
 
     const newGroupList: IGroup[] = eventDetail?.groups ? eventDetail.groups : [];
+    
     let newFilteredGroupList: IGroup[] = [...newGroupList];
 
     // Division and team value

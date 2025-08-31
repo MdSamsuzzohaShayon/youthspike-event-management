@@ -5,6 +5,7 @@ import SpecificNetView from "./PublicView/SpecificNetView";
 import { EView, INetRelatives, IRoundRelatives, IServerReceiverOnNetMixed, ITeam } from "@/types";
 import { useAppSelector } from "@/redux/hooks";
 import Image from "next/image";
+import LocalStorageService from "@/utils/LocalStorageService";
 
 interface IMatchPublicViewProps {
   nets: INetRelatives[];
@@ -29,7 +30,13 @@ function MatchPublicView({
   currServerReceiver,
   matchId
 }: IMatchPublicViewProps) {
-  const [view, setView] = useState<EView>(EView.ROUND); // allNets | round | net
+  const [view, setView] = useState<EView>(()=> {
+    const match = LocalStorageService.getMatch(matchId);
+    if(match && match.netId){
+      return EView.NET;
+    }
+    return EView.ROUND;
+  }); // allNets | round | net
   const containerRef = useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -85,6 +92,9 @@ function MatchPublicView({
       setFullscreen(false);
     }
   };
+
+  console.log({currRound});
+  
 
   return (
     <div
@@ -165,6 +175,7 @@ function MatchPublicView({
           setView={setView}
           srMap={srMap}
           matchId={matchId}
+          currRound={currRound}
         />
       )}
     </div>

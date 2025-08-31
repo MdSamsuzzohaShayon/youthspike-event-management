@@ -46,7 +46,6 @@ const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets
     const preSubbedPlayerIds: Set<string> = new Set<string>();
     const subbedPlayerIds: Set<string> = new Set<string>();
     roundList.forEach((rl: IRoundRelatives) => {
-      // @ts-ignore
       if (rl.subs && rl.subs.length > 0) {
         rl.subs.forEach((rls) => {
           if (rls) preSubbedPlayerIds.add(rls); // This line will produce an error

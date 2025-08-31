@@ -131,16 +131,21 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     ];
   
     const total = fields.reduce((sum, key) => {
-      // Handle case when multiplayer/weight/stats themselves are null
-      const m = (multiplayer?.[key] ?? 0) as number;
-      const w = (weight?.[key] ?? 0) as number;
-      const s = (stats?.[key] ?? 0) as number;
-
-      return sum + m * w * s;
+      // Type-safe null checks with proper typing
+      const m: number = multiplayer && typeof multiplayer === 'object' && key in multiplayer 
+        ? (multiplayer[key] as number) ?? 0 
+        : 0;
+      
+      const w: number = weight && typeof weight === 'object' && key in weight 
+        ? (weight[key] as number) ?? 0 
+        : 0;
+      
+  
+      return sum + m * w ;
     }, 0);
   
     return total * 10;
-  }, [multiplayer, weight, stats]);
+  }, [multiplayer, weight]);
   
 
   const { noOfGamesPlayed, noOfGamesWon } = useMemo(() => {

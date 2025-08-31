@@ -188,6 +188,8 @@ export default function ServerReceiver({
         setSelectedReceiver(newServerReceiver.receiver as string);
       }
     } else {
+      setSelectedServer(null);
+      setSelectedReceiver(null);
       setActionPreview(false);
     }
     dispatch(setCurrentServerReceiver(newServerReceiver || null));
@@ -306,7 +308,15 @@ export default function ServerReceiver({
         message: "You have updated the score successfully!",
       })
     );
-  }, [socket, currMatch, selectedReceiver, currNetNum, currRoom, token, accessCode]);
+  }, [
+    socket,
+    currMatch,
+    selectedReceiver,
+    currNetNum,
+    currRoom,
+    token,
+    accessCode,
+  ]);
 
   const handleRevertPlay = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -357,12 +367,11 @@ export default function ServerReceiver({
     );
   }, [currPlays]);
 
-
-  const playerMap = useMemo(()=>{
-    return new Map<string, IPlayer>([...teamAPlayers, ...teamBPlayers].map((p)=> [p._id, p]));
+  const playerMap = useMemo(() => {
+    return new Map<string, IPlayer>(
+      [...teamAPlayers, ...teamBPlayers].map((p) => [p._id, p])
+    );
   }, [teamAPlayers, teamBPlayers]);
-
-  
 
   /* ───── Hydrate redux ONCE ───── */
   React.useEffect(() => {

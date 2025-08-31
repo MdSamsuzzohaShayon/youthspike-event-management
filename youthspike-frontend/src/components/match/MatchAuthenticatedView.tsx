@@ -225,7 +225,8 @@ function MatchAuthenticatedView({
                         currentRound={currRound}
                         myTeamE={myTeamE}
                         roundList={roundList}
-                        teamA={teamA}
+                        teamA={teamA || null}
+                        teamB={teamB || null}
                         currRoundNets={currRoundNets}
                       />
                     </div>

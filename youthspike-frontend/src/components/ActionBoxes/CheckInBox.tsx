@@ -1,19 +1,27 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import Image from 'next/image';
-import { IRoom } from '@/types';
+import { EPlayerStatus, INetRelatives, IRoom } from '@/types';
 import { EActionProcess } from '@/types/room';
-import { ETeam } from '@/types/team';
-import submitLineup from '@/utils/match/submitLineup';
+import { ETeam, ITeam } from '@/types/team';
 import React, { useMemo } from 'react';
 import PointText from './PointText';
+import EmitEvents from '@/utils/socket/EmitEvents';
+import { useSocket } from '@/lib/SocketProvider';
+import { useUser } from '@/lib/UserProvider';
 
 interface IBoxProps {
+  teamA: ITeam | null;
+  teamB: ITeam | null;
+  currRoundNets: INetRelatives[];
   currRoom: IRoom | null;
   otp: EActionProcess;
+  eventId: string | null;
 }
 
-function CheckInBox({ currRoom, otp }: IBoxProps) {
+function CheckInBox({ currRoundNets, currRoom, otp, eventId, teamA, teamB }: IBoxProps) {
   const dispatch = useAppDispatch();
+  const socket = useSocket();
+  const user = useUser();
 
   const { myTeamE, myPlayers, closePSCAvailable, match: currMatch } = useAppSelector((state) => state.matches);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
@@ -53,7 +61,9 @@ function CheckInBox({ currRoom, otp }: IBoxProps) {
 
   const handleSubmitLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets, currRound, myPlayers, roundList, closePSCAvailable });
+    const emitEvents = new EmitEvents(socket, dispatch);
+    const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
+    emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
   };
 
   const renderSubmitButton = () => (

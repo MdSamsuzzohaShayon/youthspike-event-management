@@ -499,6 +499,8 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
   }: IServerReceiverActionResponse) {
+    console.log("Service fault-----");
+    
     this.handleScoreKeeperUpdate({
       data,
       dispatch,

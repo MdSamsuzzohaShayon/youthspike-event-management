@@ -16,9 +16,11 @@ async function TeamUpdatePage({ params }: ITeamUpdatePageProps) {
   if(!teamExist){
     notFound();
   }
+  
 
   const groupList = teamExist?.event?.groups ?? [];
   const players = teamExist?.players ?? [];
+  const divisions = teamExist?.event?.divisions || "";
 
 
 
@@ -28,7 +30,7 @@ async function TeamUpdatePage({ params }: ITeamUpdatePageProps) {
       <div className="navigator mb-4">
         <UserMenuList eventId={pathParams.eventId} />
       </div>
-      <TeamUpdateMain groups={groupList} team={teamExist} eventId={pathParams.eventId} players={players} />
+      <TeamUpdateMain groups={groupList} team={teamExist} eventId={pathParams.eventId} players={players} divisions={divisions} />
     </div>
   )
 }

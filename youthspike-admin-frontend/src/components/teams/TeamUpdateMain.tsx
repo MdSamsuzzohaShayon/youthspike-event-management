@@ -15,9 +15,10 @@ interface ITeamUpdateMainProps {
   team: IPrevTeam;
   eventId: string;
   players: IPlayer[];
+  divisions: string;
 }
 
-function TeamUpdateMain({ groups, team, eventId, players }: ITeamUpdateMainProps) {
+function TeamUpdateMain({ groups, team, eventId, players, divisions }: ITeamUpdateMainProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleClose = () => {};
@@ -35,6 +36,7 @@ function TeamUpdateMain({ groups, team, eventId, players }: ITeamUpdateMainProps
       {team && (
         <TeamAdd
           groupList={groups}
+          divisions={divisions}
           eventId={eventId}
           players={players}
           handleClose={handleClose}

@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 import ImageInput from '../elements/forms/ImageInput';
+import { divisionsToOptionList } from '@/utils/helper';
 
 interface IPrevTeam extends ITeamAdd {
   _id: string;
@@ -24,6 +25,7 @@ interface ITeamAddProps {
   groupList: IGroup[];
   handleClose: (e: React.SyntheticEvent) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  divisions?: string;
   currDivision?: string;
   update?: boolean;
   prevTeam?: IPrevTeam;
@@ -39,8 +41,7 @@ const initialTeamState = {
   captain: '',
 };
 
-function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision }: ITeamAddProps) {
-  const router = useRouter();
+function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions }: ITeamAddProps) {
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
 
@@ -146,11 +147,6 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   const handleFileChange = (uploadedFile: MediaSource | Blob) => {
     uploadedLogo.current = uploadedFile;
   };
-
-  useEffect(() => {
-    setAvailablePlayers(players || []);
-  }, [players]);
-
   // Renders
   const toBeCaptains = useMemo(() => {
     const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
@@ -158,9 +154,23 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     return <SelectInput name="captain" optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />;
   }, [availablePlayers, playerIdList]);
 
+  const divisionList = useMemo(()=>{
+    if(!divisions) return [];
+    return divisionsToOptionList(divisions);
+  }, [divisions]);
+
+  
+  useEffect(() => {
+    setAvailablePlayers(players || []);
+  }, [players]);
+  
+
   return (
     <form onSubmit={handleTeamAdd} className="flex flex-col gap-2">
       <InputField type="text" name="name" required={!update} defaultValue={teamState.name} className="mt-6" handleInputChange={handleInputChange} />
+      {divisionList.length > 0 && <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" className="mt-6" optionList={divisionList} />}
+      
+
       <SelectInput
         key="g-t-d"
         required={!update}
@@ -178,9 +188,9 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         Create new group!
       </Link>
 
-      {/* <FileInput defaultValue={teamState.logo} handleFileChange={handleFileChange} name='logo' extraCls='md:w-5/12 mt-4' /> */}
+      
       <div className="w-full md:w-2/6">
-        <ImageInput name="logo" handleFileChange={handleFileChange} />
+        <ImageInput name="logo" defaultValue={teamState.logo} handleFileChange={handleFileChange} />
       </div>
 
       {!update && (

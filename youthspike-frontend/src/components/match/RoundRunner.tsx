@@ -20,16 +20,19 @@ interface IRoundRunnerProps {
   currentRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
   currentRoom: IRoom;
-  teamA?: ITeam | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
   myTeamE: ETeam;
   currRoundNets: INetRelatives[];
 }
 
-function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, currRoundNets }: IRoundRunnerProps) {
+function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTeamE, currRoundNets }: IRoundRunnerProps) {
   // ===== Hooks =====
   const user = useUser();
   const socket = useSocket();
   const { match, teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
+  const currEvent = useAppSelector((state) => state.events.current);
+
 
   // ===== Local State =====
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
@@ -56,7 +59,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
     }
 
     if (match.extendedOvertime && currentRound?.teamAProcess !== EActionProcess.LINEUP && currentRound?.teamBProcess !== EActionProcess.LINEUP) {
-      return <OvertimeBox currRoom={currentRoom} />;
+      return <OvertimeBox currRoom={currentRoom} eventId={currEvent?._id || null} teamA={teamA} teamB={teamB} />;
     }
 
     // Main round completed
@@ -69,7 +72,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, myTeamE, cur
         return <InitializeBox currRoom={currentRoom} socket={socket} user={user} currRound={currentRound} roundList={roundList} mtp={mtp} />;
 
       case EActionProcess.CHECKIN:
-        return <CheckInBox currRoom={currentRoom} otp={otp} />;
+        return <CheckInBox currRoom={currentRoom} otp={otp} currRoundNets={currRoundNets} eventId={currEvent?._id || null} teamA={teamA} teamB={teamB} />;
 
       case EActionProcess.LINEUP:
         return <LineupBox otp={otp} />;

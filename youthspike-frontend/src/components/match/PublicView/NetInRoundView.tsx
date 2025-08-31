@@ -12,6 +12,8 @@ import React, { useMemo } from "react";
 import PlayerView from "./PlayerView";
 import LocalStorageService from "@/utils/LocalStorageService";
 import { usePathname } from "next/navigation";
+import { useAppDispatch } from "@/redux/hooks";
+import { setCurrNetNum } from "@/redux/slices/netSlice";
 
 interface INetInRoundViewProps {
   net: INetRelatives;
@@ -35,16 +37,23 @@ function NetInRoundView({
   srNet,
   matchId,
 }: INetInRoundViewProps) {
-
   const pathname = usePathname();
-  const handleScordboardRedirect=(e: React.SyntheticEvent)=>{
+  const dispatch = useAppDispatch();
+
+  const handleScordboardRedirect = (e: React.SyntheticEvent) => {
     e.preventDefault();
     console.log(pathname);
-    
+
     LocalStorageService.setMatch(matchId, net.round, net._id);
     window.location.assign(`/score-keeping/${matchId}`);
-  }
+  };
 
+  const handleNetSelect = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    LocalStorageService.setMatch(matchId, net.round, net._id);
+    dispatch(setCurrNetNum(net.num));
+    setView(EView.NET);
+  };
 
   const teamAPlayerMap = useMemo(() => {
     return new Map(teamAPlayers.map((p) => [p._id, p]));
@@ -122,9 +131,7 @@ function NetInRoundView({
 
         <button
           className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-400 text-black hover:bg-yellow-300 border-0"
-          onClick={() => {
-            setView(EView.NET);
-          }}
+          onClick={handleNetSelect}
         >
           ENTER NET
         </button>

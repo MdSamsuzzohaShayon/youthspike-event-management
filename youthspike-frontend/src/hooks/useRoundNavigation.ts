@@ -68,7 +68,6 @@ export const useRoundNavigation = ({
 
       // Only update if changes were made
       if (newRoundObj !== roundObj) {
-        LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
         dispatch(setCurrentRound(newRoundObj));
 
         // Update only the changed round in the list
@@ -77,8 +76,10 @@ export const useRoundNavigation = ({
         dispatch(setRoundList(newRoundList));
       } else {
         // Still need to set current round even if no process changes
-        dispatch(setCurrentRound(roundObj));
+        dispatch(setCurrentRound(newRoundObj));
       }
+
+      LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
     },
     [dispatch, myTeamE, netsByRound, roundList]
   );

@@ -27,27 +27,9 @@
 
 
 /*
-FC Barcelona
-
-Captain
-jordi27425
-Spikeball 
-
-Co-Captain 
-lionel
-Spikeball
-
-
-
-
-Liverpool FC 
-
-Captain 
-trent39354
-Spikeball 
-
-Co_captain
-virgil13632
+Chelsea FC 
+captain 
+preston95291
 Spikeball
 */
 

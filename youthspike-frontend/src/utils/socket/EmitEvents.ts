@@ -172,7 +172,7 @@ class EmitEvents {
     myPlayerIds,
     myTeamE,
   }: ISubmitLineupProps) {
-    if (!user || !user?.token || !teamA || !teamB || !currRoom || !currRound) {
+    if (!user || !user?.token || !teamA || !teamB || !currRoom || !currRound || !eventId) {
       console.error({
         msg: "Not provided required value",
         user,
@@ -181,6 +181,7 @@ class EmitEvents {
         teamB,
         currRoom,
         currRound,
+        eventId
       });
       return;
     }
@@ -225,13 +226,15 @@ class EmitEvents {
       currRound,
       selectedPlayers
     );
+
+    // Why we are setting prev Subbed players
     const prevSubs: string[] = [];
     if (currRound.subs && currRound.subs.length > 0) {
       for (let i = 0; i < currRound.subs.length; i += 1) {
         prevSubs.push(currRound.subs[i]);
       }
     }
-    // @ts-ignore
+
     actionData.subbedPlayers = [
       ...new Set([...notSelectedPlayers, ...prevSubs]),
     ];
@@ -370,26 +373,7 @@ class EmitEvents {
       this.socket.emit("update-tie-breaker-from-client", actionData);
   }
 
-  // Helper functions
-  private isAuthorized(userInfo: IUser): boolean {
-    this.isAuthenticated = false;
-    return [
-      UserRole.admin,
-      UserRole.director,
-      UserRole.captain,
-      UserRole.co_captain,
-    ].includes(userInfo.role);
-  }
 
-  private isTeamValid(teamA: ITeam, teamB: ITeam): boolean {
-    this.isValidTeam = !!(
-      teamA &&
-      teamB &&
-      (teamA.captain || teamA.cocaptain) &&
-      (teamB.captain || teamB.cocaptain)
-    );
-    return this.isValidTeam;
-  }
 
   private async getTeamId(
     userInfo: IUser | null,

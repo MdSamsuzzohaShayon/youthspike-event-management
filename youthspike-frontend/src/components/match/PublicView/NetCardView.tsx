@@ -1,8 +1,10 @@
-import { ESRRole, EView, INetRelatives, IPlayer, IServerReceiverOnNetMixed, ITeam } from "@/types";
+import { ESRRole, EView, INetRelatives, IPlayer, IRoundRelatives, IServerReceiverOnNetMixed, ITeam } from "@/types";
 import TeamView from "./TeamView";
 import { useMemo } from "react";
+import LocalStorageService from "@/utils/LocalStorageService";
 
 interface INetCardViewProps {
+  matchId: string;
   net: INetRelatives;
   teamA: ITeam | null;
   teamB: ITeam | null;
@@ -11,8 +13,10 @@ interface INetCardViewProps {
   setView: React.Dispatch<React.SetStateAction<EView>>;
   netNumber?: number;
   srNet: IServerReceiverOnNetMixed | null;
+  currRound: IRoundRelatives | null;
 }
 const NetCardView = ({
+  matchId,
   net,
   teamA,
   teamB,
@@ -20,8 +24,16 @@ const NetCardView = ({
   teamBPlayers,
   setView,
   netNumber,
-  srNet
+  srNet,
+  currRound
 }: INetCardViewProps) => {
+
+
+  const handleRoundSelect=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    setView(EView.ROUND);
+    LocalStorageService.setMatch(matchId, net.round)
+  }
 
   const tap = useMemo(()=>{
     return teamAPlayers.filter((p)=> p._id === net.teamAPlayerA || p._id === net.teamAPlayerB)
@@ -39,6 +51,7 @@ const NetCardView = ({
       teamBScore: srNet?.teamBScore || net.teamBScore,
     };
   }, [net, srNet]);
+
 
   const roleMap = useMemo(()=> {
     const newMap = new Map<string, ESRRole>();
@@ -69,11 +82,9 @@ const NetCardView = ({
         </h3>
         <button
           className="btn btn-info"
-          onClick={() => {
-            setView(EView.ROUND);
-          }}
+          onClick={handleRoundSelect}
         >
-          Round
+          Round {currRound?.num || 0}
         </button>
         <div className="flex items-center space-x-3 bg-black px-3 py-1 rounded-full border border-yellow-400">
           <span className="text-white font-bold text-lg">{selectedNet?.teamAScore || 0}</span>

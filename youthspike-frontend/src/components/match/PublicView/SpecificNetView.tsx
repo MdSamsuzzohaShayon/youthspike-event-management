@@ -1,4 +1,11 @@
-import { EView, INetRelatives, IPlayer, IServerReceiverOnNetMixed, ITeam } from "@/types";
+import {
+  EView,
+  INetRelatives,
+  IPlayer,
+  IRoundRelatives,
+  IServerReceiverOnNetMixed,
+  ITeam,
+} from "@/types";
 import NetCardView from "./NetCardView";
 import { useMemo } from "react";
 
@@ -12,6 +19,7 @@ interface ISpecificNetViewProps {
   srMap: Map<string, IServerReceiverOnNetMixed>;
   setView: React.Dispatch<React.SetStateAction<EView>>;
   matchId: string;
+  currRound: IRoundRelatives | null;
 }
 
 const SpecificNetView = ({
@@ -24,6 +32,7 @@ const SpecificNetView = ({
   srMap,
   setView,
   matchId,
+  currRound
 }: ISpecificNetViewProps) => {
   const net = useMemo(() => {
     return currRoundNets.find((n) => n.num === currNetNum);
@@ -34,6 +43,7 @@ const SpecificNetView = ({
         <p>No net has been selected</p>
       ) : (
         <NetCardView
+          matchId={matchId}
           net={net}
           teamA={teamA}
           teamB={teamB}
@@ -42,6 +52,7 @@ const SpecificNetView = ({
           netNumber={net.num}
           srNet={srMap.get(net._id) || null}
           setView={setView}
+          currRound={currRound}
         />
       )}
     </div>

@@ -1,12 +1,6 @@
 import TextImg from "@/components/elements/TextImg";
 import { useAppSelector } from "@/redux/hooks";
-import {
-  EPosition,
-  EServerPositionPair,
-  ESRRole,
-  ETeam,
-  IPlayer,
-} from "@/types";
+import { EServerPositionPair, ESRRole, IPlayer } from "@/types";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 import Link from "next/link";
@@ -61,7 +55,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
       positionPairE === EServerPositionPair.PAIR_A_LEFT ||
       positionPairE === EServerPositionPair.PAIR_B_RIGHT
     );
-  }, [positionPairE]);
+  }, [positionPairE, player]);
 
   const bgColor = isServingTeam ? "bg-yellow-400/90" : "bg-gray-900/90";
   const borderColor = isServingTeam ? "border-yellow-400" : "border-gray-700";
