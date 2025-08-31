@@ -31,7 +31,6 @@ import useMakeTeam from "@/hooks/score-keeping/useMakeTeam";
 import useInitialSelection from "@/hooks/score-keeping/useInitialSelection";
 import useServerReceiverSocket from "@/hooks/score-keeping/useServerReceiverSocket";
 import ScoreBoard from "./ScoreBoard";
-import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
 import ServerReceiverPlayInput from "./ServerReceiverPlayInput";
 import { setMessage } from "@/redux/slices/elementSlice";
 import LocalStorageService from "@/utils/LocalStorageService";
@@ -185,6 +184,7 @@ export default function ServerReceiver({
 
     LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
 
+    /*
     const newServerReceiver = serverReceiversOnNet.find(
       (sr) => sr.net === net?._id
     );
@@ -205,6 +205,8 @@ export default function ServerReceiver({
       setActionPreview(false);
     }
     dispatch(setCurrentServerReceiver(newServerReceiver || null));
+    */
+   window.location.reload();
   };
 
   const handleSetPlayers = useCallback(() => {
@@ -359,8 +361,6 @@ export default function ServerReceiver({
     }
     return null;
   }, [teamAPlayers, teamBPlayers, selectedServer, selectedReceiver]);
-
-  console.log({"currServerReceiver?.net === selectedNet?._id": currServerReceiver?.net === selectedNet?._id, currServerReceiver, selectedNet});
   
 
   const currNet = useMemo(() => {

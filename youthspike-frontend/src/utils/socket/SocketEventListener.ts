@@ -715,9 +715,9 @@ class SocketEventListener {
       const selectedNet = netByNum.get(currNetNum);
       if(selectedNet?._id === data.net){
         dispatch(setCurrentServerReceiver(data));
+        if (setActionPreview) setActionPreview(true);
       }
 
-      if (setActionPreview) setActionPreview(true);
     }
   }
 

@@ -156,7 +156,7 @@ export default function useServerReceiverSocket({
           currNetNum,
           netByNum,
           currRound,
-          currServerReceiver
+          currServerReceiver,
         }),
       "revert-play-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleRevertPlay({
@@ -180,7 +180,13 @@ export default function useServerReceiverSocket({
     teamB,
     currRound,
     matchId,
+    currNetNum,
+    netByNum,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
+    setSelectedServer,
+    setSelectedReceiver,
+    setActionPreview,
   ]);
 }

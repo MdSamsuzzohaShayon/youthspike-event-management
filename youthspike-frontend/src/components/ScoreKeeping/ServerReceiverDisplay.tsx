@@ -1,13 +1,8 @@
 import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import {
-  EPair,
-  EPosition,
   EServerPositionPair,
-  ESide,
   ESRRole,
-  ETeam,
-  INetRelatives,
   IPlayer,
   IReceiverTeam,
   IServerReceiverOnNetMixed,
