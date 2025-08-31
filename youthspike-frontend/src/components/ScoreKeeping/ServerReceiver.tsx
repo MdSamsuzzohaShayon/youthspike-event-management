@@ -7,7 +7,6 @@ import { setCurrNetNum } from "@/redux/slices/netSlice";
 import {
   EActionProcess,
   EMessage,
-  EServerReceiverAction,
   ETeam,
   ETieBreaker,
   ETieBreakingStrategy,
@@ -136,12 +135,25 @@ export default function ServerReceiver({
     teamB,
     currRound,
     matchId,
+    currNetNum,
+    netByNum,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
     setActionPreview,
+    setSelectedServer,
+    setSelectedReceiver,
   });
 
   /* ───── Derived memo ───── */
+
+  const selectedNet = useMemo(() => {
+    const net = netByNum.get(currNetNum);
+    if (!net) return null;
+    return net;
+  }, [netByNum, currNetNum]);
+
+
   const playersOfSelectedNet: INetPlayers | null = useMemo(() => {
     if (!currNetNum) return null;
     const net = netByNum.get(currNetNum);
@@ -153,7 +165,7 @@ export default function ServerReceiver({
       teamBPlayerA: net.teamBPlayerA ?? null,
       teamBPlayerB: net.teamBPlayerB ?? null,
     };
-  }, [currNetNum, netByNum]);
+  }, [selectedNet]);
 
   const serverTeam = useMemo(
     () => makeTeam(selectedServer, currNetNum, true) as IServerTeam | null,
@@ -348,6 +360,9 @@ export default function ServerReceiver({
     return null;
   }, [teamAPlayers, teamBPlayers, selectedServer, selectedReceiver]);
 
+  console.log({"currServerReceiver?.net === selectedNet?._id": currServerReceiver?.net === selectedNet?._id, currServerReceiver, selectedNet});
+  
+
   const currNet = useMemo(() => {
     const net = netByNum.get(currNetNum);
     return net;
@@ -475,7 +490,31 @@ export default function ServerReceiver({
 
             {/* Right side start  */}
             <div className="3/6 hidden md:flex justify-center items-center flex-col">
-              <div className="w-5/6">
+              {currServerReceiver?.net === selectedNet?._id && (
+                <div className="w-5/6">
+                  <ScoreBoard
+                    currServerReceiver={currServerReceiver}
+                    handleOpenPlays={(e) => {
+                      changePlayEl?.current?.showModal();
+                    }}
+                    teamA={teamA || null}
+                    teamB={teamB || null}
+                    awardTo={awardTo}
+                    setAwardTo={setAwardTo}
+                    currPlays={currPlays}
+                    revertPlayEl={revertPlayEl}
+                    key="sb-1"
+                  />
+                </div>
+              )}
+            </div>
+            {/* Right side end  */}
+          </div>
+
+          {/* Handle action for each button pressed  */}
+          <div className="scrollable-action-handler w-full relative">
+            <div className="w-full sticky top-0 md:hidden bg-black py-2">
+              {currServerReceiver?.net === selectedNet?._id && (
                 <ScoreBoard
                   currServerReceiver={currServerReceiver}
                   handleOpenPlays={(e) => {
@@ -487,29 +526,9 @@ export default function ServerReceiver({
                   setAwardTo={setAwardTo}
                   currPlays={currPlays}
                   revertPlayEl={revertPlayEl}
-                  key="sb-1"
+                  key="sb-2"
                 />
-              </div>
-            </div>
-            {/* Right side end  */}
-          </div>
-
-          {/* Handle action for each button pressed  */}
-          <div className="scrollable-action-handler w-full relative">
-            <div className="w-full sticky top-0 md:hidden bg-black py-2">
-              <ScoreBoard
-                currServerReceiver={currServerReceiver}
-                handleOpenPlays={(e) => {
-                  changePlayEl?.current?.showModal();
-                }}
-                teamA={teamA || null}
-                teamB={teamB || null}
-                awardTo={awardTo}
-                setAwardTo={setAwardTo}
-                currPlays={currPlays}
-                revertPlayEl={revertPlayEl}
-                key="sb-2"
-              />
+              )}
             </div>
             <ActionHandler
               teamA={teamA || null}

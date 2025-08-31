@@ -109,9 +109,13 @@ export enum ESide {
 interface IServerReceiverCommonResponse {
   dispatch: React.Dispatch<React.SetStateAction<any>>;
   serverReceiversOnNet: IServerReceiverOnNetMixed[]; // From redux store
+  currServerReceiver: IServerReceiverOnNetMixed | null;
 }
 export interface IResetServerReceiverResponse extends IServerReceiverCommonResponse {
   data: { net: string };
+  serverReceiverPlays: IServerReceiverSinglePlay[];
+  setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 
@@ -133,10 +137,7 @@ export interface IServerReceiverActionResponse extends IServerReceiverCommonResp
 export interface ISRConfirmResponse extends IServerReceiverCommonResponse {
   data: IServerReceiverOnNetMixed;
   setActionPreview?: React.Dispatch<React.SetStateAction<boolean>>;
-  /*
-data,
-    dispatch,
-    serverReceiversOnNet,
-    setActionPreview,
-  */
+  currRound: IRoundRelatives | null;
+  currNetNum: number;
+  netByNum: Map<number, INetRelatives>;
 }

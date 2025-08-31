@@ -2,10 +2,17 @@ import React, { useMemo, useRef, useState } from "react";
 import RoundView from "./PublicView/RoundView";
 import AllNetsView from "./PublicView/AllNetsView";
 import SpecificNetView from "./PublicView/SpecificNetView";
-import { EView, INetRelatives, IRoundRelatives, IServerReceiverOnNetMixed, ITeam } from "@/types";
+import {
+  EView,
+  INetRelatives,
+  IRoundRelatives,
+  IServerReceiverOnNetMixed,
+  ITeam,
+} from "@/types";
 import { useAppSelector } from "@/redux/hooks";
 import Image from "next/image";
 import LocalStorageService from "@/utils/LocalStorageService";
+import NetInRoundView from "./PublicView/NetInRoundView";
 
 interface IMatchPublicViewProps {
   nets: INetRelatives[];
@@ -26,13 +33,13 @@ function MatchPublicView({
   currRoundNets,
   teamA,
   teamB,
-  serverReceiversOnNet, 
+  serverReceiversOnNet,
   currServerReceiver,
-  matchId
+  matchId,
 }: IMatchPublicViewProps) {
-  const [view, setView] = useState<EView>(()=> {
+  const [view, setView] = useState<EView>(() => {
     const match = LocalStorageService.getMatch(matchId);
-    if(match && match.netId){
+    if (match && match.netId) {
       return EView.NET;
     }
     return EView.ROUND;
@@ -49,11 +56,10 @@ function MatchPublicView({
     const entries = serverReceiversOnNet.map((s) => {
       const key = s.netId ?? (typeof s.net === "string" ? s.net : s.net._id);
 
-
       if (
         currServerReceiver &&
         (key === currServerReceiver.net || key === currServerReceiver.netId)
-      ) {  
+      ) {
         return [
           key,
           {
@@ -63,10 +69,17 @@ function MatchPublicView({
             teamAScore: currServerReceiver.teamAScore,
             teamBScore: currServerReceiver.teamBScore,
             serverPositionPair: currServerReceiver.serverPositionPair,
-            serverId: currServerReceiver.serverId || String(currServerReceiver.server),
-            receiverId: currServerReceiver.receiverId || String(currServerReceiver.receiver),
-            servingPartnerId: currServerReceiver.servingPartnerId  || String(currServerReceiver.servingPartner),
-            receivingPartnerId: currServerReceiver.receivingPartnerId  || String(currServerReceiver.receivingPartner),
+            serverId:
+              currServerReceiver.serverId || String(currServerReceiver.server),
+            receiverId:
+              currServerReceiver.receiverId ||
+              String(currServerReceiver.receiver),
+            servingPartnerId:
+              currServerReceiver.servingPartnerId ||
+              String(currServerReceiver.servingPartner),
+            receivingPartnerId:
+              currServerReceiver.receivingPartnerId ||
+              String(currServerReceiver.receivingPartner),
 
             server: currServerReceiver.server,
             receiver: currServerReceiver.receiver,
@@ -75,13 +88,16 @@ function MatchPublicView({
           },
         ] as const;
       }
-  
+
       return [key, s] as const;
     });
-  
+
     return new Map<string, IServerReceiverOnNetMixed>(entries);
   }, [serverReceiversOnNet, currServerReceiver]);
-  
+
+  const selectedNet = useMemo(() => {
+    return currRoundNets.find((n) => n.num === currNetNum);
+  }, [currNetNum, currRoundNets]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -92,9 +108,6 @@ function MatchPublicView({
       setFullscreen(false);
     }
   };
-
-  console.log({currRound});
-  
 
   return (
     <div
@@ -164,18 +177,30 @@ function MatchPublicView({
           matchId={matchId}
         />
       )}
-      {view === EView.NET && (
-        <SpecificNetView
-          currNetNum={currNetNum}
-          currRoundNets={currRoundNets}
+      {view === EView.NET && selectedNet && (
+        // <SpecificNetView
+        //   currNetNum={currNetNum}
+        //   currRoundNets={currRoundNets}
+        //   teamA={teamA}
+        //   teamB={teamB}
+        //   teamAPlayers={teamAPlayers}
+        //   teamBPlayers={teamBPlayers}
+        //   setView={setView}
+        //   srMap={srMap}
+        //   matchId={matchId}
+        //   currRound={currRound}
+        // />
+        <NetInRoundView
+          key={"nirv"}
+          srNet={(selectedNet ? srMap.get(selectedNet._id) : null) || null}
+          net={selectedNet || null}
+          setView={setView}
           teamA={teamA}
           teamB={teamB}
+          currRoundNets={currRoundNets}
           teamAPlayers={teamAPlayers}
           teamBPlayers={teamBPlayers}
-          setView={setView}
-          srMap={srMap}
           matchId={matchId}
-          currRound={currRound}
         />
       )}
     </div>

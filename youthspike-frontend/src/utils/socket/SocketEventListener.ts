@@ -69,6 +69,10 @@ class SocketEventListener {
       this.audioPlayEl.current.click();
   }
 
+  /**
+   * Running a match
+   * ========================================================================
+   */
   handleCheckInResponse({
     data,
     dispatch,
@@ -437,12 +441,17 @@ class SocketEventListener {
     this.dispatch(setRoundList([]));
   }
 
+  /**
+   * Server/Receiver actions to change state (Total 9 actions)
+   * ========================================================================
+   */
   // Score Keeper
   private handleScoreKeeperUpdate({
     data,
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverResponse) {
     this.dispatch = dispatch;
 
@@ -465,32 +474,12 @@ class SocketEventListener {
 
     dispatch(setServerReceiverPlays([...serverReceiverPlays, data.singlePlay]));
     dispatch(setServerReceiversOnNet(updatedList));
-    dispatch(setCurrentServerReceiver(srObj));
-  }
 
-  handleSetPlayers({
-    data,
-    dispatch,
-    serverReceiversOnNet,
-    setActionPreview,
-  }: ISRConfirmResponse) {
-    this.dispatch = dispatch;
-
-    // Score Keeper
-    if (data) {
-      dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
-      dispatch(setCurrentServerReceiver(data));
-
-      if (setActionPreview) setActionPreview(true);
+    // console.log({"currServerReceiver?.net === srObj.net": currServerReceiver?.net === srObj.net, currServerReceiver, srObj});
+    
+    if (currServerReceiver?.net === srObj.net) {
+      dispatch(setCurrentServerReceiver(srObj));
     }
-
-    // Change state
-    // Change player stats state -> later
-
-    // Update server receivers on net list
-    // This would typically involve fetching or updating the list
-    // For now, we'll add the current one to the list if it doesn't exist
-    // You may need to adjust this logic based on your specific requirements
   }
 
   handleServiceFaultResponse({
@@ -498,14 +487,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
-    console.log("Service fault-----");
-    
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -514,12 +503,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -528,12 +519,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -542,12 +535,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -556,12 +551,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -570,12 +567,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -584,12 +583,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -598,12 +599,14 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
@@ -612,23 +615,50 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   }: IServerReceiverActionResponse) {
     this.handleScoreKeeperUpdate({
       data,
       dispatch,
       serverReceiversOnNet,
       serverReceiverPlays,
+      currServerReceiver,
     });
   }
 
+  /**
+   * Server/Receiver Database changes
+   * ========================================================================
+   */
   handleResetServerReceiver({
     data,
     dispatch,
     serverReceiversOnNet,
+    serverReceiverPlays,
+    currServerReceiver,
+    setSelectedServer,
+    setSelectedReceiver,
   }: IResetServerReceiverResponse) {
     this.dispatch = dispatch;
 
-    window.location.reload();
+    // Check which net has been resetted, delete that
+    dispatch(
+      setServerReceiversOnNet(
+        serverReceiversOnNet.filter((sr) => sr.net !== data.net)
+      )
+    );
+    dispatch(
+      setServerReceiverPlays(
+        serverReceiverPlays.filter((srp) => srp.net !== data.net)
+      )
+    );
+    if (currServerReceiver?.net === data.net) {
+      dispatch(setCurrentServerReceiver(null));
+      setSelectedServer(null);
+      setSelectedReceiver(null);
+    }
+
+    // no selected server or receiver
   }
 
   handleRevertPlay({
@@ -665,6 +695,29 @@ class SocketEventListener {
       });
 
       dispatch(setServerReceiversOnNet(newSRArr));
+    }
+  }
+
+  handleSetPlayers({
+    data,
+    dispatch,
+    serverReceiversOnNet,
+    setActionPreview,
+    currNetNum,
+    netByNum
+  }: ISRConfirmResponse) {
+    this.dispatch = dispatch;
+
+    // Score Keeper
+    if (data) {
+      dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
+      // Set current server receiver only for sender
+      const selectedNet = netByNum.get(currNetNum);
+      if(selectedNet?._id === data.net){
+        dispatch(setCurrentServerReceiver(data));
+      }
+
+      if (setActionPreview) setActionPreview(true);
     }
   }
 

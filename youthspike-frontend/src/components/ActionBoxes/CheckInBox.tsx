@@ -8,6 +8,7 @@ import PointText from './PointText';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import { useSocket } from '@/lib/SocketProvider';
 import { useUser } from '@/lib/UserProvider';
+import submitLineup from '@/utils/match/submitLineup';
 
 interface IBoxProps {
   teamA: ITeam | null;
@@ -61,9 +62,10 @@ function CheckInBox({ currRoundNets, currRoom, otp, eventId, teamA, teamB }: IBo
 
   const handleSubmitLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const emitEvents = new EmitEvents(socket, dispatch);
-    const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
-    emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
+    // const emitEvents = new EmitEvents(socket, dispatch);
+    // const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
+    // emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
+    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets, currRound, myPlayers, roundList, closePSCAvailable });
   };
 
   const renderSubmitButton = () => (

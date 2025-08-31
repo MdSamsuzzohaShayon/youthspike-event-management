@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { IServerReceiverOnNetMixed } from '@/types';
+import { INetRelatives, IServerReceiverOnNetMixed } from '@/types';
 
 export default function useInitialSelection(
   currNetNum: number | null,
-  netByNum: Map<number, any>,
+  netByNum: Map<number, INetRelatives>,
   serverReceiverByNetId: Map<string, IServerReceiverOnNetMixed>,
   setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>,
   setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>,

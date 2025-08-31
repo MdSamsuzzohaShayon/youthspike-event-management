@@ -32,6 +32,7 @@ interface UseMatchSocketProps {
   currRoundNets: INetRelatives[];
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
   serverReceiverPlays: IServerReceiverSinglePlay[];
+  currServerReceiver: IServerReceiverOnNetMixed;
 }
 
 export default function useMatchSocket({
@@ -44,7 +45,8 @@ export default function useMatchSocket({
   allNets,
   currRoundNets,
   serverReceiversOnNet,
-  serverReceiverPlays
+  serverReceiverPlays,
+  currServerReceiver,
 }: UseMatchSocketProps) {
   const dispatch = useAppDispatch();
 
@@ -124,6 +126,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "ace-no-touch-from-server": (data: IActionResponse) =>
         listener.handleAceNoTouchResponse({
@@ -131,6 +134,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "ace-no-third-touch-from-server": (data: IActionResponse) =>
         listener.handleAceNoThirdTouchResponse({
@@ -138,6 +142,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "one-two-three-put-away-from-server": (data: IActionResponse) =>
         listener.handleOneTwoThreePutAwayResponse({
@@ -145,6 +150,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "rally-conversion-from-server": (data: IActionResponse) =>
         listener.handleRalleyConversionResponse({
@@ -152,6 +158,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "defensive-conversion-from-server": (data: IActionResponse) =>
         listener.handleDefensiveConversionResponse({
@@ -159,6 +166,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "receiving-hitting-error-from-server": (data: IActionResponse) =>
         listener.handleHittingErrorResponse({
@@ -166,6 +174,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "server-do-not-know-from-server": (data: IActionResponse) =>
         listener.handleServerDoNotKnowResponse({
@@ -173,6 +182,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
       "receiver-do-not-know-from-server": (data: IActionResponse) =>
         listener.handleReceiverDoNotKnowResponse({
@@ -180,6 +190,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
 
       "reset-score-from-server": (data: { net: string }) =>
@@ -187,12 +198,15 @@ export default function useMatchSocket({
           data,
           dispatch,
           serverReceiversOnNet,
+          serverReceiverPlays,
+          currServerReceiver,
         }),
       "set-players-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleSetPlayers({
           data,
           dispatch,
           serverReceiversOnNet,
+          currServerReceiver,
         }),
       "revert-play-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleRevertPlay({
@@ -200,6 +214,7 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           serverReceiverPlays,
+          currServerReceiver,
         }),
     };
 

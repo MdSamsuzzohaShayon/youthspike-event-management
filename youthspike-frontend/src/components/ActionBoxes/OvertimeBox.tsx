@@ -3,6 +3,7 @@ import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { EPlayerStatus, IRoom } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
+import submitLineup from '@/utils/match/submitLineup';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import React, { useEffect, useState } from 'react';
 
@@ -25,9 +26,10 @@ function OvertimeBox({ currRoom, eventId, teamA, teamB}: IOvertimeBoxProps) {
 
   const handleOvertimeNetLineup = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const emitEvents = new EmitEvents(socket, dispatch);
-    const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
-    emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
+    // const emitEvents = new EmitEvents(socket, dispatch);
+    // const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
+    // emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
+    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets: currRoundNets, currRound, myPlayers, roundList, closePSCAvailable });
   };
 
   useEffect(() => {
