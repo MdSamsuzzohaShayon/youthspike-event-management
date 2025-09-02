@@ -73,7 +73,8 @@ export class PlayerStatsResolver {
       ]);
       // Get team of the players
       if (player.teams.length > 0) {
-        team = await this.teamService.findOne({ _id: { $in: player.teams } });
+        // team = await this.teamService.findOne({ _id: { $in: player.teams } });
+        team = await this.teamService.findOne({ players: playerId });
         if (team) {
           // Get all matches of the player
           matches = await this.matchService.find({ $or: [{ teamA: team._id }, { teamB: team._id }] });

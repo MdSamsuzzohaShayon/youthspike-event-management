@@ -1,10 +1,11 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { RoomLocal, ReceivingHittingErrorInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 
 export class ReceivingHittingErrorHandler {
   constructor(
@@ -16,7 +17,7 @@ export class ReceivingHittingErrorHandler {
   async handle(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: ReceivingHittingErrorInput,
-    roomsLocal: Map<string, RoomLocal>,
+    server: Server,
   ) {
     try {
       // Serving team Scores
@@ -29,20 +30,20 @@ export class ReceivingHittingErrorHandler {
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server as string], {
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         break: 0.5
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
+      const receiverUpdatedKeys =this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
         hittingOpportunity: 1,
         broken: -0.5,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
+      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
         broken: -0.5,
       });
@@ -54,6 +55,12 @@ export class ReceivingHittingErrorHandler {
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
+      // After rotation it will be changed for next play
+      const serverBefore = String(net.server);
+      const receiverBefore = String(net.receiver);
+      const receivingPartnerBefore = String(net.receivingPartner);
+
+      // Rotation logic & update play
       this.scoreKeeperHelper.rotateReceiver(net);
       const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
@@ -63,11 +70,20 @@ export class ReceivingHittingErrorHandler {
       const singlePlayNet = {...currNetObj, action: EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR};
       delete singlePlayNet.mutate;
 
+      // Organize data
+      const playersStats: Record<string, Partial<PlayerStats>> = {
+        [serverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[serverBefore], serverUpdatedKeys),
+        [receiverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receiverBefore], receiverUpdatedKeys),
+        [receivingPartnerBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receivingPartnerBefore], receivingPartnerUpdatedKeys),
+      };
+      const playerRooms = [serverBefore, receiverBefore, receivingPartnerBefore];
+
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
-        this.scoreKeeperHelper.publishRoom(body.room, 'receiving-hitting-error-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj})
+        this.scoreKeeperHelper.publishRoom(body.room, 'receiving-hitting-error-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj}),
+        server.to(playerRooms).emit('update-player-stats-from-server', playersStats),
       ]);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');

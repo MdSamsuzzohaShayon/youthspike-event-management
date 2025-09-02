@@ -137,6 +137,25 @@ class EmitEvents {
     this.socket.emit("join-room-from-client", joinData);
   }
 
+  async joinPlayerRoom({ playerId }: { playerId: string }) {
+    if (!this.socket) {
+      console.warn("No socket available");
+      return;
+    }
+
+    this.socket.emit("join-player-room-from-client", { playerId });
+  }
+
+  // 
+  async leavePlayerRoom({ playerId }: { playerId: string }) {
+    if (!this.socket) {
+      console.warn("No socket available");
+      return;
+    }
+
+    this.socket.emit("leave-player-room-from-client", { playerId });
+  }
+
   checkIn({ user, currRoom, currRound, roundList, myTeamE }: IStatusChange) {
     if (!currRoom || !currRound || !user?.info) return;
 
@@ -172,7 +191,15 @@ class EmitEvents {
     myPlayerIds,
     myTeamE,
   }: ISubmitLineupProps) {
-    if (!user || !user?.token || !teamA || !teamB || !currRoom || !currRound || !eventId) {
+    if (
+      !user ||
+      !user?.token ||
+      !teamA ||
+      !teamB ||
+      !currRoom ||
+      !currRound ||
+      !eventId
+    ) {
       console.error({
         msg: "Not provided required value",
         user,
@@ -181,7 +208,7 @@ class EmitEvents {
         teamB,
         currRoom,
         currRound,
-        eventId
+        eventId,
       });
       return;
     }
@@ -216,7 +243,10 @@ class EmitEvents {
     });
     if (!filledAllNets) {
       this.dispatch(
-        setMessage({ type: EMessage.ERROR, message: "Every net must have players!" })
+        setMessage({
+          type: EMessage.ERROR,
+          message: "Every net must have players!",
+        })
       );
       return;
     }
@@ -250,7 +280,10 @@ class EmitEvents {
   }: ISubmitUpdatePointsProps) {
     if (!currRoom || !currRound || !currNet) {
       this.dispatch(
-        setMessage({ type: EMessage.ERROR, message: "No room, net or round found!" })
+        setMessage({
+          type: EMessage.ERROR,
+          message: "No room, net or round found!",
+        })
       );
       return;
     }
@@ -372,8 +405,6 @@ class EmitEvents {
     if (this.socket)
       this.socket.emit("update-tie-breaker-from-client", actionData);
   }
-
-
 
   private async getTeamId(
     userInfo: IUser | null,
@@ -597,7 +628,7 @@ class EmitEvents {
       round: currRound._id,
       net: currNet._id,
       accessCode: accessCode,
-      serverPositionPair: EServerPositionPair.PAIR_A_LEFT
+      serverPositionPair: EServerPositionPair.PAIR_A_LEFT,
     };
 
     // Update state
@@ -610,11 +641,7 @@ class EmitEvents {
     this.socket?.emit("service-fault-from-client", actionData);
   }
 
-  serverDefensiveConversion({
-    match,
-    net,
-    room,
-  }: IDefensiveConversionInput) {
+  serverDefensiveConversion({ match, net, room }: IDefensiveConversionInput) {
     const actionData = { match, net, room };
     this.socket?.emit("server-defensive-conversion-from-client", actionData);
   }
@@ -639,11 +666,7 @@ class EmitEvents {
     this.socket?.emit("receiver-do-not-know-from-client", actionData);
   }
 
-  receivingHittingError({
-    match,
-    net,
-    room,
-  }: IReceivingHittingErrorInput) {
+  receivingHittingError({ match, net, room }: IReceivingHittingErrorInput) {
     const actionData = { match, net, room };
     this.socket?.emit("receiving-hitting-error-from-client", actionData);
   }

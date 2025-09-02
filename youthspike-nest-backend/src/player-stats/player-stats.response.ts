@@ -25,6 +25,9 @@ export class CustomPlayerStats extends PlayerStats {
 
   @Field((_type) => String, { nullable: true })
   match: string;
+
+  @Field((_type) => String, { nullable: true })
+  net: string;
 }
 
 @ObjectType()

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { QueryRef, useFragment, useQuery, useReadQuery } from "@apollo/client";
+import { QueryRef, useApolloClient, useFragment, useQuery, useReadQuery } from "@apollo/client";
 import StatBox from "./StatBox";
 import SelectInput from "../elements/SelectInput";
 import DateInput from "../elements/DateInput";
@@ -15,6 +15,10 @@ import {
   IProStats,
 } from "@/types";
 import StatAddBox from "./StatAddBox";
+import usePlayerSocket from "@/hooks/player/usePlayerScoket";
+import { useSocket } from "@/lib/SocketProvider";
+import { useAppDispatch } from "@/redux/hooks";
+import { useUser } from "@/lib/UserProvider";
 
 interface IPlayerStatsMainProps {
   queryRef: QueryRef<{
@@ -34,6 +38,13 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   if (error) console.error(error);
   if (!data?.getPlayerWithStats?.data) return <div>No data found</div>;
 
+
+  const socket = useSocket();
+  const dispatch = useAppDispatch();
+  const user = useUser();
+  const apolloClient = useApolloClient();
+
+
   const {
     player,
     team,
@@ -45,14 +56,20 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     stats,
   } = data.getPlayerWithStats.data;
   const totalGames = playerstats?.length || 0;
-
-  console.log({    multiplayer,
-    weight,
-    stats,});
   
 
   const [filter, setFilter] = useState<Partial<IFilter>>({});
 
+  usePlayerSocket({
+    socket,
+    dispatch,
+    playerId: player._id,
+    apolloClient
+  });
+  
+
+
+  // Event handlers
   const handleInputChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
     setFilter((prev) => ({ ...prev, [inputEl.name]: inputEl.value }));
@@ -62,6 +79,14 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     if (!filter.match) return [];
     return nets.filter((n) => n.match === filter.match);
   }, [filter.match, nets]);
+
+  let totalServe = 0;
+  for (const ps of playerstats) {
+    totalServe += ps.serveOpportunity;
+  }
+
+  
+  
 
   // ✅ Single-pass aggregation with filtering
   const playerTotalStats = useMemo(() => {
@@ -83,30 +108,31 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       broken: 0,
       matchPlayed: 0,
     };
-
-    // Pre-parse filter dates
-    const startDate = filter.startDate
-      ? new Date(filter.startDate).getTime()
-      : null;
+  
+    // Parse filter dates
+    const startDate = filter.startDate ? new Date(filter.startDate).getTime() : null;
     const endDate = filter.endDate ? new Date(filter.endDate).getTime() : null;
-
-    // Precompute valid matches for O(1) lookup
+  
+    // Precompute valid matches
     const validMatches = new Set<string>();
     for (const match of matches) {
       const matchTime = match.date ? new Date(match.date).getTime() : null;
-
+  
       if (startDate && matchTime && matchTime < startDate) continue;
       if (endDate && matchTime && matchTime > endDate) continue;
       if (filter.match && match._id !== filter.match) continue;
-
+  
       validMatches.add(match._id);
     }
-
-    // Single pass over playerstats
+  
+    // Aggregate stats
     for (const ps of playerstats || []) {
-      if (typeof ps.match !== "string" || !validMatches.has(ps.match)) continue;
-      if (filter.game && ps.net !== filter.game) continue;
-
+      const matchId = typeof ps.match === "string" ? ps.match : ps.match?._id;
+      if (!matchId || !validMatches.has(matchId)) continue;
+  
+      const netId = typeof ps.net === "string" ? ps.net : ps.net?._id;
+      if (filter.game && netId !== filter.game) continue;
+  
       for (const key in totals) {
         if (Object.prototype.hasOwnProperty.call(totals, key)) {
           const value = ps[key as keyof IPlayerTotalStats];
@@ -115,10 +141,16 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           }
         }
       }
+  
+      totals.matchPlayed += 1; // ✅ Count this match
     }
-
+  
     return totals;
   }, [matches, playerstats, filter]);
+  
+
+  console.log({totalServe, ts: playerTotalStats.serveOpportunity});
+
 
   const proScore: number = useMemo(() => {
     const fields: (keyof IProStats)[] = [

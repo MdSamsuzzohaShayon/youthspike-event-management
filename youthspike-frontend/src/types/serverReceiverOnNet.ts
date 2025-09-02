@@ -114,8 +114,8 @@ interface IServerReceiverCommonResponse {
 export interface IResetServerReceiverResponse extends IServerReceiverCommonResponse {
   data: { net: string };
   serverReceiverPlays: IServerReceiverSinglePlay[];
-  setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>;
-  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedServer?: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedReceiver?: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 

@@ -1,3 +1,4 @@
+import { GET_PLAYER_WITH_STATS } from "@/graphql/player-stats";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { setMatchInfo } from "@/redux/slices/matchesSlice";
 import {
@@ -16,6 +17,8 @@ import {
   EMessage,
   ICheckInResponse,
   ILineUpResponse,
+  IPlayerStats,
+  IPlayerStatsResponse,
   IResetServerReceiverResponse,
   IRevertPlayReceiverResponse,
   IRoom,
@@ -32,6 +35,7 @@ import {
 } from "@/types";
 import { ETieBreaker } from "@/types/net";
 import { IRoomRoundProcess } from "@/types/room";
+import { gql, StoreObject } from "@apollo/client";
 import React from "react";
 import { Socket } from "socket.io-client";
 
@@ -62,6 +66,10 @@ class SocketEventListener {
     this.dispatch = dispatch;
 
     dispatch(setCurrentRoom(data));
+  }
+
+  handleJoinPlayerRoom(data: { success: boolean; playerId: string }) {
+    console.log(`You have joined to player(${data.playerId}) room`);
   }
 
   restartAudio() {
@@ -476,7 +484,7 @@ class SocketEventListener {
     dispatch(setServerReceiversOnNet(updatedList));
 
     // console.log({"currServerReceiver?.net === srObj.net": currServerReceiver?.net === srObj.net, currServerReceiver, srObj});
-    
+
     if (currServerReceiver?.net === srObj.net) {
       dispatch(setCurrentServerReceiver(srObj));
     }
@@ -654,8 +662,8 @@ class SocketEventListener {
     );
     if (currServerReceiver?.net === data.net) {
       dispatch(setCurrentServerReceiver(null));
-      setSelectedServer(null);
-      setSelectedReceiver(null);
+      if (setSelectedServer) setSelectedServer(null);
+      if (setSelectedReceiver) setSelectedReceiver(null);
     }
 
     // no selected server or receiver
@@ -704,7 +712,7 @@ class SocketEventListener {
     serverReceiversOnNet,
     setActionPreview,
     currNetNum,
-    netByNum
+    netByNum,
   }: ISRConfirmResponse) {
     this.dispatch = dispatch;
 
@@ -713,11 +721,78 @@ class SocketEventListener {
       dispatch(setServerReceiversOnNet([...serverReceiversOnNet, data]));
       // Set current server receiver only for sender
       const selectedNet = netByNum.get(currNetNum);
-      if(selectedNet?._id === data.net){
+      if (selectedNet?._id === data.net) {
         dispatch(setCurrentServerReceiver(data));
         if (setActionPreview) setActionPreview(true);
       }
+    }
+  }
 
+  /**
+   * Update Player Stats
+   * ========================================================================
+   */
+
+  handleUpdatePlayerStats({
+    playerId,
+    data,
+    apolloClient,
+  }: IPlayerStatsResponse) {
+    console.log(`Player stats have been updated`, data);
+
+    const updatedPlayerStats = data[playerId];
+    if (!updatedPlayerStats) return;
+
+    try {
+      // Read the current data from cache
+      const queryData = apolloClient.readQuery({
+        query: GET_PLAYER_WITH_STATS,
+        variables: { playerId },
+      });
+
+      if (!queryData?.getPlayerWithStats?.data?.playerstats) {
+        console.warn("No playerstats found in cache");
+        return;
+      }
+
+      const currentStats = queryData.getPlayerWithStats.data.playerstats;
+
+      // Check if this is an update or a new stat
+      const existingIndex = currentStats.findIndex(
+        (stat: IPlayerStats) => stat.match === updatedPlayerStats.match && stat.net === updatedPlayerStats.net
+      );
+
+      let updatedStatsArray;
+      if (existingIndex !== -1) {
+        // Update existing stat
+        updatedStatsArray = currentStats.map(
+          (stat: IPlayerStats, index: number) =>
+            index === existingIndex ? { ...stat, ...updatedPlayerStats } : stat
+        );
+      } else {
+        // Add new stat (for newly created stats)
+        updatedStatsArray = [...currentStats, updatedPlayerStats];
+      }
+
+      // Write the updated data back to cache
+      apolloClient.writeQuery({
+        query: GET_PLAYER_WITH_STATS,
+        variables: { playerId },
+        data: {
+          ...queryData,
+          getPlayerWithStats: {
+            ...queryData.getPlayerWithStats,
+            data: {
+              ...queryData.getPlayerWithStats.data,
+              playerstats: updatedStatsArray,
+            },
+          },
+        },
+      });
+
+      console.log("Player stats updated in cache successfully");
+    } catch (error) {
+      console.error("Error updating player stats in cache:", error);
     }
   }
 

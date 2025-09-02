@@ -20,24 +20,26 @@ function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
         <span className="w-6 text-center font-medium">
           {teamRank ? player.rank : index + 1}
         </span>
+
         <div className="ml-2 md:ml-4 flex items-center">
+          {/* Player link (image + name) */}
           <Link href={`/players/${player._id}`} className="flex items-center">
             <div className="relative w-8 h-8 md:w-10 md:h-10 flex-shrink-0">
               {player.profile ? (
-                <CldImage 
-                  alt={player.firstName} 
-                  width="40" 
-                  height="40" 
-                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover" 
-                  src={player.profile} 
+                <CldImage
+                  alt={player.firstName}
+                  width="40"
+                  height="40"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover"
+                  src={player.profile}
                 />
               ) : (
-                <Image 
-                  width={40} 
-                  height={40} 
-                  src="/icons/sports-man.svg" 
-                  alt="Player Avatar" 
-                  className="svg-white w-8 h-8 md:w-10 md:h-10 rounded-full object-contain bg-gray-600 p-1" 
+                <Image
+                  width={40}
+                  height={40}
+                  src="/icons/sports-man.svg"
+                  alt="Player Avatar"
+                  className="svg-white w-8 h-8 md:w-10 md:h-10 rounded-full object-contain bg-gray-600 p-1"
                 />
               )}
             </div>
@@ -45,25 +47,36 @@ function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
               <div className="text-sm md:text-base font-medium hover:text-yellow-400 transition-colors">
                 {`${player.firstName} ${player.lastName}`}
               </div>
-              {player.teams && player.teams.length > 0 && typeof player.teams[0] === 'object' && (
-                <Link 
-                  href={`/teams/${(player.teams[0] as ITeam)._id}`} 
+            </div>
+          </Link>
+
+          {/* Team link + Captain info (sibling, not nested) */}
+          <div className="ml-2 md:ml-3 flex flex-col">
+            {player.teams &&
+              player.teams.length > 0 &&
+              typeof player.teams[0] === 'object' && (
+                <Link
+                  href={`/teams/${(player.teams[0] as ITeam)._id}`}
                   className="text-yellow-400 text-xs uppercase hover:underline"
                 >
                   {(player.teams[0] as ITeam).name}
                 </Link>
               )}
-              {player?.captainofteams?.length > 0 && (
-                <div className="text-yellow-400 text-xs uppercase">Captain</div>
-              )}
-            </div>
-          </Link>
+            {player?.captainofteams?.length > 0 && (
+              <div className="text-yellow-400 text-xs uppercase">Captain</div>
+            )}
+          </div>
         </div>
       </td>
+
+      {/* Other stats columns */}
       <td className="py-3 px-2 md:px-4 text-center hidden md:table-cell">
         {Number.isNaN((player.wins * 100) / (player.numOfGame - player.running))
           ? '0'
-          : (player.numOfGame - player.running === 0 ? 0 : (player.wins * 100) / (player.numOfGame - player.running)).toFixed(1)}
+          : (player.numOfGame - player.running === 0
+              ? 0
+              : (player.wins * 100) / (player.numOfGame - player.running)
+            ).toFixed(1)}
         %
       </td>
       <td className="py-3 px-2 md:px-4 text-center">
@@ -80,7 +93,10 @@ function PlayerRow({ player, index, teamRank }: IPlayerRowProps) {
       <td className="py-3 px-2 md:px-4 text-center font-medium">
         {Number.isNaN((player.wins * 100) / (player.numOfGame - player.running))
           ? '0'
-          : (player.numOfGame - player.running === 0 ? 0 : (player.wins * 100) / (player.numOfGame - player.running)).toFixed(1)}
+          : (player.numOfGame - player.running === 0
+              ? 0
+              : (player.wins * 100) / (player.numOfGame - player.running)
+            ).toFixed(1)}
         %
       </td>
     </tr>

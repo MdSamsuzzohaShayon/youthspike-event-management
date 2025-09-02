@@ -1,22 +1,19 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
-import { RoomLocal, OneTwoThreePutAwayInput } from '../gateway.types';
-import { GatewayService } from '../gateway.service';
-import { GatewayRedisService } from '../gateway.redis';
+import { Server, Socket } from 'socket.io';
+import { OneTwoThreePutAwayInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 
 export class OneTwoThreePutAwayHandler {
   constructor(
-    private readonly gatewayService: GatewayService,
-    private readonly gatewayRedisService: GatewayRedisService,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: OneTwoThreePutAwayInput,
-    roomsLocal: Map<string, RoomLocal>,
+    server: Server
   ) {
     try {
       // Receiving team Scores
@@ -29,24 +26,24 @@ export class OneTwoThreePutAwayHandler {
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match  as string, ids  as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server as string], {
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         defensiveOpportunity: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
+      const servingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
         defensiveOpportunity: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
+      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         receivedCount: 1,
         cleanHits: 1,
         hittingOpportunity: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
+      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
         settingOpportunity: 1,
         cleanSets: 1,
       });
@@ -63,6 +60,12 @@ export class OneTwoThreePutAwayHandler {
       net.mutate += 1;
       net.play += 1;
 
+      // After rotation it will be changed for next play
+      const serverBefore = String(net.server);
+      const receiverBefore = String(net.receiver);
+      const servingPartnerBefore = String(net.servingPartner);
+      const receivingPartnerBefore = String(net.receivingPartner);
+
       // After updating point check is the number odd or even
       const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
       this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
@@ -71,13 +74,23 @@ export class OneTwoThreePutAwayHandler {
       const singlePlayNet = {...currNetObj, action: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY};
       delete singlePlayNet.mutate;
 
+      // Organize data
+      const playersStats: Record<string, Partial<PlayerStats>> = {
+        [serverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[serverBefore], serverUpdatedKeys),
+        [receiverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receiverBefore], receiverUpdatedKeys),
+        [servingPartnerBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[servingPartnerBefore], servingPartnerUpdatedKeys),
+        [receivingPartnerBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receivingPartnerBefore], receivingPartnerUpdatedKeys),
+      };
+      const playerRooms = [serverBefore, receiverBefore, servingPartnerBefore, receivingPartnerBefore];
+
 
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
 
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
-        this.scoreKeeperHelper.publishRoom(body.room, 'one-two-three-put-away-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj})
+        this.scoreKeeperHelper.publishRoom(body.room, 'one-two-three-put-away-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj}),
+        server.to(playerRooms).emit('update-player-stats-from-server', playersStats),
       ]);
       
     } catch (err: any) {

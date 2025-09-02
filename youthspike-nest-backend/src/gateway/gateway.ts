@@ -31,6 +31,7 @@ import {
   ServerDoNotKnowInput,
   ReceiverDoNotKnowInput,
   RevertPlayInput,
+  JoinPlayerRoomInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -57,6 +58,8 @@ import { ServerDoNotKnowHandler } from './gateway.handlers/server-do-not-know';
 import { ReceiverDoNotKnowHandler } from './gateway.handlers/receiver-do-not-know';
 import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
 import { RevertPlayHandler } from './gateway.handlers/revert-play';
+import { JoinPlayerRoomHandler } from './gateway.handlers/join-player-room.handler';
+import { LeavePlayerRoomHandler } from './gateway.handlers/leave-player-room.handler';
 
 @WebSocketGateway({
   cors: true,
@@ -75,6 +78,8 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private clientList = new Map<string, GeneralClient>();
 
   private joinRoomHandler: JoinRoomHandler;
+  private joinPlayerRoomHandler: JoinPlayerRoomHandler;
+  private LeavePlayerRoomHandler: LeavePlayerRoomHandler;
   private checkInHandler: CheckInHandler;
   private submitLineupHandler: SubmitLineupHandler;
   private updatePointsHandler: UpdatePointsHandler;
@@ -103,8 +108,10 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
     private readonly pointsUpdateHelper: PointsUpdateHelper,
   ) {
-    // Initialize handlers for a prticular match
     this.joinRoomHandler = new JoinRoomHandler(gatewayService, gatewayRedisService, roomHelper, clientHelper);
+    this.joinPlayerRoomHandler = new JoinPlayerRoomHandler();
+    this.LeavePlayerRoomHandler = new LeavePlayerRoomHandler();
+    // Initialize handlers for a prticular match
     this.checkInHandler = new CheckInHandler(gatewayService, gatewayRedisService, validationHelper);
     this.submitLineupHandler = new SubmitLineupHandler(gatewayService, gatewayRedisService, roomHelper);
     this.updatePointsHandler = new UpdatePointsHandler(gatewayRedisService, pointsUpdateHelper);
@@ -113,22 +120,22 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Score keeper handlers
     // Server
-    this.aceNoTouch = new AceNoTouchHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.aceNoTouch = new AceNoTouchHandler(scoreKeeperHelper);
     this.aceNoThirdTouch = new AceNoThirdTouchHandler(scoreKeeperHelper);
     this.receivingHittingError = new ReceivingHittingErrorHandler(
       gatewayService,
       gatewayRedisService,
       scoreKeeperHelper,
     );
-    this.defensiveConversion = new DefensiveConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.defensiveConversion = new DefensiveConversionHandler(scoreKeeperHelper);
     this.serverDoNotKnow = new ServerDoNotKnowHandler(scoreKeeperHelper);
 
     // Receiver
-    this.serviceFault = new ServiceFaultHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
-    this.rallyConversion = new RallyConversionHandler(gatewayService, gatewayRedisService, scoreKeeperHelper);
+    this.serviceFault = new ServiceFaultHandler(scoreKeeperHelper);
+    this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(scoreKeeperHelper);
+    this.rallyConversion = new RallyConversionHandler(scoreKeeperHelper);
     this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
-    
+
     // Update database
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, validationHelper, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, validationHelper, scoreKeeperHelper);
@@ -193,6 +200,16 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     return this.joinRoomHandler.handle(client, joinData, this.roomsLocal, this.clientList);
   }
 
+  @SubscribeMessage('join-player-room-from-client')
+  async handleJoinPlayerRoom(@ConnectedSocket() client: Socket, @MessageBody() joinData: JoinPlayerRoomInput) {
+    return this.joinPlayerRoomHandler.handle(client, joinData);
+  }
+
+  @SubscribeMessage('leave-player-room-from-client')
+  async handleLeavePlayerRoom(@ConnectedSocket() client: Socket, @MessageBody() joinData: JoinPlayerRoomInput) {
+    return this.LeavePlayerRoomHandler.handle(client, joinData);
+  }
+
   @SubscribeMessage('check-in-from-client')
   async onCheckIn(@ConnectedSocket() client: Socket, @MessageBody() checkIn: CheckInInput) {
     return this.checkInHandler.handle(client, checkIn, this.roomsLocal);
@@ -221,15 +238,14 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   // Score keeper events handle
   // ======================================================================================================
 
-
   @SubscribeMessage('service-fault-from-client')
   async onServiceFault(@ConnectedSocket() client: Socket, @MessageBody() serviceFaultInput: ServiceFaultInput) {
-    return this.serviceFault.handle(client, serviceFaultInput, this.roomsLocal);
+    return this.serviceFault.handle(client, serviceFaultInput, this.server);
   }
 
   @SubscribeMessage('ace-no-touch-from-client')
   async onAceNoTouch(@ConnectedSocket() client: Socket, @MessageBody() aceNoTouchInput: ServiceFaultInput) {
-    return this.aceNoTouch.handle(client, aceNoTouchInput, this.roomsLocal);
+    return this.aceNoTouch.handle(client, aceNoTouchInput, this.server);
   }
 
   @SubscribeMessage('server-defensive-conversion-from-client')
@@ -237,7 +253,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() defensiveConversionInput: DefensiveConversionInput,
   ) {
-    return this.defensiveConversion.handle(client, defensiveConversionInput, this.roomsLocal);
+    return this.defensiveConversion.handle(client, defensiveConversionInput, this.server);
   }
 
   @SubscribeMessage('ace-no-third-touch-from-client')
@@ -245,7 +261,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() aceNoThirdTouchInput: AceNoThirdTouchInput,
   ) {
-    return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput);
+    return this.aceNoThirdTouch.handle(client, aceNoThirdTouchInput, this.server);
   }
 
   // Spiking error
@@ -254,7 +270,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() receivingHittingErrorInput: ReceivingHittingErrorInput,
   ) {
-    return this.receivingHittingError.handle(client, receivingHittingErrorInput, this.roomsLocal);
+    return this.receivingHittingError.handle(client, receivingHittingErrorInput, this.server);
   }
 
   // Receiving point
@@ -263,7 +279,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() oneTwoThreePutAwayInput: OneTwoThreePutAwayInput,
   ) {
-    return this.oneTwoThreePutAway.handle(client, oneTwoThreePutAwayInput, this.roomsLocal);
+    return this.oneTwoThreePutAway.handle(client, oneTwoThreePutAwayInput, this.server);
   }
 
   @SubscribeMessage('receiver-defensive-conversion-from-client')
@@ -271,10 +287,9 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() rallyConversionInput: RallyConversionInput,
   ) {
-    return this.rallyConversion.handle(client, rallyConversionInput, this.roomsLocal);
+    return this.rallyConversion.handle(client, rallyConversionInput, this.server);
   }
 
-  
   @SubscribeMessage('server-do-not-know-from-client')
   async onServerDoNotKnow(
     @ConnectedSocket() client: Socket,
@@ -290,8 +305,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     return this.receiverDoNotKnow.handle(client, receiverDoNotKnowInput, this.roomsLocal);
   }
-
-
 
   // MongoDB Database operations
   @SubscribeMessage('set-players-from-client')
@@ -311,7 +324,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   async onResetScore(@ConnectedSocket() client: Socket, @MessageBody() resetScoreInput: ResetScoreInput) {
     return this.resetScore.handle(client, resetScoreInput, this.roomsLocal);
   }
-
 
   @SubscribeMessage('revert-play-from-client')
   async onRevertPlay(@ConnectedSocket() client: Socket, @MessageBody() revertPlayInput: RevertPlayInput) {

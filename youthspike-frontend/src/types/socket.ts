@@ -18,6 +18,8 @@ import type { IAccessCode, IUserContext, UserRole } from "./user";
 import { IMatchExpRel, IMatchRelatives } from "./match";
 import { IPlayer } from "./player";
 import { EServerPositionPair } from "./serverReceiverOnNet";
+import { IPlayerStats } from "./playerStats";
+import { ApolloClient } from "@apollo/client";
 
 export interface IListenSocketProps {
   socket: Socket | null;
@@ -249,6 +251,14 @@ export interface IUpdateNetResponse {
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];
   match: IMatchRelatives;
+}
+
+
+
+export interface IPlayerStatsResponse{
+  playerId: string;
+  data: Record<string, IPlayerStats>;
+  apolloClient: ApolloClient<object>;
 }
 
 /**

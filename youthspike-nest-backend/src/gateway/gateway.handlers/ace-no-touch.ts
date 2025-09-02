@@ -1,22 +1,19 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
-import { RoomLocal, AceNoTouchInput } from '../gateway.types';
-import { GatewayService } from '../gateway.service';
-import { GatewayRedisService } from '../gateway.redis';
+import { Server, Socket } from 'socket.io';
+import { AceNoTouchInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 
 export class AceNoTouchHandler {
   constructor(
-    private readonly gatewayService: GatewayService,
-    private readonly gatewayRedisService: GatewayRedisService,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
   ) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: AceNoTouchInput,
-    roomsLocal: Map<string, RoomLocal>,
+    server: Server
   ) {
     try {
       /* 1️⃣ load “net” action + team splits */
@@ -28,7 +25,7 @@ export class AceNoTouchHandler {
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      this.scoreKeeperHelper.increment(stats[net.server as string], {
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         serveAce: 1,
@@ -36,7 +33,7 @@ export class AceNoTouchHandler {
         break: 1,
       });
 
-      this.scoreKeeperHelper.increment(stats[net.receiver as string], {
+      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], {
         receiverOpportunity: 1,
         noTouchAcedCount: 1,
         broken: -1,
@@ -49,20 +46,36 @@ export class AceNoTouchHandler {
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
+      // After rotation it will be changed for next play
+      const serverBefore = String(net.server);
+      const receiverBefore = String(net.receiver);
+
       this.scoreKeeperHelper.rotateReceiver(net);
       const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
 
       /* 6️⃣ persist & broadcast */
-      const singlePlayNet = {...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_TOUCH};
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_TOUCH };
       delete singlePlayNet.mutate;
+
+      const playersStats: Record<string, Partial<PlayerStats>> = {
+        [serverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[serverBefore], serverUpdatedKeys),
+        [receiverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receiverBefore], receiverUpdatedKeys),
+      };
+      
+      const playerRooms = [serverBefore, receiverBefore];
 
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),
-        this.scoreKeeperHelper.publishRoom(body.room, 'ace-no-touch-from-server', {serverReceiverOnNet: net, singlePlay: currSinglePlayObj})
+        this.scoreKeeperHelper.publishRoom(body.room, 'ace-no-touch-from-server', {
+          serverReceiverOnNet: net,
+          singlePlay: currSinglePlayObj,
+        }),
+        // Update player stats
+        server.to(playerRooms).emit('update-player-stats-from-server', playersStats),
       ]);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');

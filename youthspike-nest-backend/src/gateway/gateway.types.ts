@@ -21,6 +21,10 @@ export interface JoinRoomInput {
   userRole?: UserRole;
 }
 
+export interface JoinPlayerRoomInput {
+  playerId: string;
+}
+
 export interface CheckInInput {
   userId: string;
   room: string;

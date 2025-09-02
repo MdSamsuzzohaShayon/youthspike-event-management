@@ -14,7 +14,9 @@ export async function PlayerStatsPage({ params }: IPlayerStatsPageProps) {
   const { playerId } = await params;
 
   return (
-    <PreloadQuery query={GET_PLAYER_WITH_STATS} variables={{ playerId }}>
+    <PreloadQuery query={GET_PLAYER_WITH_STATS} variables={{ playerId }} 
+    // pollInterval={90000} // 90 seconds = 1.5 minutes
+    >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <PlayerStatsMain

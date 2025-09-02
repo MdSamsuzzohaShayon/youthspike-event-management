@@ -965,7 +965,7 @@ type CustomPlayerStats {
   broken: Float
   matchPlayed: Float
   match: String
-  net: Net
+  net: String
   player: String
 }
 

@@ -22,6 +22,8 @@ import {
 } from "@/types";
 
 interface UseMatchSocketProps {
+  currNetNum: number;
+  netByNum: Map<number, INetRelatives>;
   teamA: ITeam | null;
   teamB: ITeam | null;
   currRound: IRoundRelatives | null;
@@ -32,10 +34,12 @@ interface UseMatchSocketProps {
   currRoundNets: INetRelatives[];
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
   serverReceiverPlays: IServerReceiverSinglePlay[];
-  currServerReceiver: IServerReceiverOnNetMixed;
+  currServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
 export default function useMatchSocket({
+  currNetNum,
+  netByNum,
   teamA,
   teamB,
   currRound,
@@ -207,6 +211,9 @@ export default function useMatchSocket({
           dispatch,
           serverReceiversOnNet,
           currServerReceiver,
+          currNetNum,
+          currRound,
+          netByNum
         }),
       "revert-play-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleRevertPlay({

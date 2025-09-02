@@ -105,12 +105,37 @@ export class ScoreKeeperHelper {
   /**
    * Tiny utility to mutate a stat object with an “increments” map.
    */
-  increment(stats: PlayerStats, inc: Partial<Record<keyof PlayerStats, number>>) {
+  // increment(stats: PlayerStats, inc: Partial<Record<keyof PlayerStats, number>>) {
+  //   for (const [k, v] of Object.entries(inc)) {
+  //     //   stats[k as keyof PlayerStats] += v as number;
+  //     const key = k as keyof PlayerStats;
+  //     (stats[key] as number) += v as number;
+  //   }
+  // }
+  increment(stats: PlayerStats, inc: Partial<Record<keyof PlayerStats, number>>): (keyof PlayerStats)[] {
+    const updatedKeys: (keyof PlayerStats)[] = [];
+
     for (const [k, v] of Object.entries(inc)) {
-      //   stats[k as keyof PlayerStats] += v as number;
       const key = k as keyof PlayerStats;
       (stats[key] as number) += v as number;
+      updatedKeys.push(key);
     }
+
+    return updatedKeys;
+  }
+
+  extractUpdatedStats(stats: PlayerStats, updatedKeys: (keyof PlayerStats)[]): Partial<PlayerStats> {
+    const result: Partial<PlayerStats> = {
+      match: stats.match,
+      net: stats.net,
+      // _id: stats._id,
+    };
+
+    for (const key of updatedKeys) {
+      result[key as string] = stats[key];
+    }
+
+    return result;
   }
 
   /* ─────────────────────────── helpers for “scoring” ───────────────────────── */
@@ -120,16 +145,14 @@ export class ScoreKeeperHelper {
     else net.teamBScore += 1;
   }
 
-
-
   rotateReceiver(net: ServerReceiverOnNet) {
     const nextPositionMap: Record<EServerPositionPair, EServerPositionPair> = {
       [EServerPositionPair.PAIR_A_TOP]: EServerPositionPair.PAIR_A_LEFT,
       [EServerPositionPair.PAIR_A_LEFT]: EServerPositionPair.PAIR_A_TOP,
       [EServerPositionPair.PAIR_B_RIGHT]: EServerPositionPair.PAIR_B_BOTTOM,
-      [EServerPositionPair.PAIR_B_BOTTOM]: EServerPositionPair.PAIR_B_RIGHT
+      [EServerPositionPair.PAIR_B_BOTTOM]: EServerPositionPair.PAIR_B_RIGHT,
     };
-  
+
     net.serverPositionPair = nextPositionMap[net.serverPositionPair];
     [net.receiver, net.receivingPartner] = [net.receivingPartner, net.receiver];
   }
@@ -137,13 +160,13 @@ export class ScoreKeeperHelper {
   rotateServerReceiver(net: ServerReceiverOnNet, receivingTeamScore: number) {
     const prevServer = net.server;
     const prevPartner = net.servingPartner;
-  
+
     const swapTo = (
       newPos: EServerPositionPair,
       newServer: string | Player,
       newPartner: string | Player,
       newReceiver: string | Player,
-      newReceiverPartner: string | Player
+      newReceiverPartner: string | Player,
     ) => {
       net.serverPositionPair = newPos;
       net.server = newServer;
@@ -151,7 +174,7 @@ export class ScoreKeeperHelper {
       net.receiver = newReceiver;
       net.receivingPartner = newReceiverPartner;
     };
-  
+
     const evenMap: Record<EServerPositionPair, () => void> = {
       [EServerPositionPair.PAIR_B_BOTTOM]: () =>
         swapTo(EServerPositionPair.PAIR_A_LEFT, net.receivingPartner, net.receiver, prevPartner, prevServer),
@@ -162,7 +185,7 @@ export class ScoreKeeperHelper {
       [EServerPositionPair.PAIR_A_LEFT]: () =>
         swapTo(EServerPositionPair.PAIR_B_RIGHT, net.receiver, net.receivingPartner, prevServer, prevPartner),
     };
-  
+
     const oddMap: Record<EServerPositionPair, () => void> = {
       [EServerPositionPair.PAIR_A_TOP]: () =>
         swapTo(EServerPositionPair.PAIR_B_BOTTOM, net.receiver, net.receivingPartner, prevServer, prevPartner),
@@ -173,7 +196,7 @@ export class ScoreKeeperHelper {
       [EServerPositionPair.PAIR_B_RIGHT]: () =>
         swapTo(EServerPositionPair.PAIR_A_TOP, net.receivingPartner, net.receiver, prevPartner, prevServer),
     };
-  
+
     if (receivingTeamScore % 2 === 0) {
       evenMap[net.serverPositionPair]?.();
     } else {

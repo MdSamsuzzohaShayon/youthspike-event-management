@@ -1,13 +1,15 @@
 import TeamDetail from '@/components/team/TeamDetail';
 import getTeamData from '@/app/_requests/team';
 import { notFound } from 'next/navigation';
-import { IMatchExpRel, INetRelatives, IPlayer, IPlayerRanking, IPlayerRankingItem, IRoundRelatives, ITeam } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayer, IPlayerRanking, IPlayerRankingItem, IRoundRelatives, ITeam, TParams } from '@/types';
 
 interface TeamSinglePageProps {
-  params: { teamId: string };
+  params: TParams;
 }
 
-async function TeamSinglePage({ params: { teamId } }: TeamSinglePageProps) {
+async function TeamSinglePage({ params }: TeamSinglePageProps) {
+
+  const { teamId } = await params;
   const teamData = await getTeamData(teamId);
 
   if (!teamData) {

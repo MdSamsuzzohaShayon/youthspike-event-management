@@ -24,6 +24,7 @@ import { setTeamScore } from "@/redux/slices/matchesSlice";
 import MatchAuthenticatedView from "./MatchAuthenticatedView";
 import MatchPublicView from "./MatchPublicView";
 import useMatchSocket from "@/hooks/match/useMatchSocket";
+import useNetMaps from "@/hooks/score-keeping/useNetMaps";
 
 interface IMatchMainProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -42,10 +43,9 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   const { current: currRound, roundList } = useAppSelector(
     (state) => state.rounds
   );
-  const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector(
+  const { currentRoundNets: currRoundNets, nets: allNets, currNetNum } = useAppSelector(
     (state) => state.nets
   );
-
   const { serverReceiverPlays, serverReceiversOnNet, currentServerReceiver: currServerReceiver} = useAppSelector((state)=> state.serverReceiverOnNets);
   const {
     myPlayers,
@@ -58,7 +58,11 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
 
   } = useAppSelector((state) => state.matches);
 
+  const netByNum = useNetMaps(currRoundNets);
+
   useMatchSocket({
+    currNetNum,
+    netByNum,
     socket,
     match: currMatch,
     teamA: teamA || null,
@@ -69,6 +73,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     roundList,
     serverReceiversOnNet,
     serverReceiverPlays,
+    currServerReceiver,
   });
 
 

@@ -81,7 +81,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         break
         broken
         matchPlayed
-
+        net
         player
         match
       }
