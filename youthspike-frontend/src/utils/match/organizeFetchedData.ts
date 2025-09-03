@@ -270,7 +270,7 @@ const organizeFetchedData = async ({
     const selectedNet = filteredNets.find((n) => n.num === currNetNum);
     if (selectedNet) {
       const currServerReceiver = formattedNetsServerReceiver?.find(
-        (sr) => sr.netId === selectedNet._id
+        (sr) => sr.netId === selectedNet._id || sr.net === selectedNet._id
       );
       if (currServerReceiver)
         dispatch(setCurrentServerReceiver(currServerReceiver));

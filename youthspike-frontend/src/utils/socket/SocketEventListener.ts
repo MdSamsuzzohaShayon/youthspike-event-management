@@ -646,6 +646,7 @@ class SocketEventListener {
     currServerReceiver,
     setSelectedServer,
     setSelectedReceiver,
+    setActionPreview,
   }: IResetServerReceiverResponse) {
     this.dispatch = dispatch;
 
@@ -664,6 +665,7 @@ class SocketEventListener {
       dispatch(setCurrentServerReceiver(null));
       if (setSelectedServer) setSelectedServer(null);
       if (setSelectedReceiver) setSelectedReceiver(null);
+      if (setActionPreview) setActionPreview(false);
     }
 
     // no selected server or receiver
@@ -674,6 +676,8 @@ class SocketEventListener {
     dispatch,
     serverReceiversOnNet, // From redux store
     serverReceiverPlays,
+    netByNum,
+    currNetNum
   }: IRevertPlayReceiverResponse) {
     this.dispatch = dispatch;
 
@@ -691,7 +695,13 @@ class SocketEventListener {
 
     // If found, update current server receiver (Both, the array and current server receiver)
     if (serverReceiverOnNetData && serverReceiverOnNetData.room) {
-      dispatch(setCurrentServerReceiver(serverReceiverOnNetData));
+
+      if(currNetNum){
+        const selectedNet = netByNum.get(currNetNum);
+        if (selectedNet?._id === serverReceiverOnNetData.net) {
+          dispatch(setCurrentServerReceiver(serverReceiverOnNetData));
+        }
+      }
 
       // Update serverReceiversOnNet in one pass
       const newSRArr = serverReceiversOnNet.map((item) => {
@@ -759,7 +769,9 @@ class SocketEventListener {
 
       // Check if this is an update or a new stat
       const existingIndex = currentStats.findIndex(
-        (stat: IPlayerStats) => stat.match === updatedPlayerStats.match && stat.net === updatedPlayerStats.net
+        (stat: IPlayerStats) =>
+          stat.match === updatedPlayerStats.match &&
+          stat.net === updatedPlayerStats.net
       );
 
       let updatedStatsArray;

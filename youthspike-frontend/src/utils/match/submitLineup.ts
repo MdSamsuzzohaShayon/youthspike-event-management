@@ -72,7 +72,17 @@ const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets
           }
         }
       });
-      if (dupPlayerCount > 0) {
+
+      // Check all selected players are subbed already once
+      let allSubbed = true;
+      selectedPlayerIds.forEach((sp)=>{
+        if(!preSubbedPlayerIds.has(sp as string)){
+          allSubbed = false;
+        }
+      });
+
+
+      if (dupPlayerCount > 0 && !allSubbed) {
         errMsg = dupPlayerCount > 1 ? errMsg : errMsg.split(',')[0];
         errMsg += `${dupPlayerCount > 1 ? 'were' : ' was'} subbed previously, they must be selected in this round`;
         dispatch(setMessage({ type: EMessage.ERROR, message: errMsg }));

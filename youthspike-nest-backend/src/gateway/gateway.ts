@@ -165,12 +165,12 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
       connectedAt: new Date(),
     });
 
-    setTimeout(() => {
-      if (!this.clientList.get(client.id)?._id) {
-        this.logger.warn(`Client ${client.id} didn't authenticate, disconnecting`);
-        client.disconnect(true);
-      }
-    }, 30000);
+    // setTimeout(() => {
+    //   if (!this.clientList.get(client.id)?._id) {
+    //     this.logger.warn(`Client ${client.id} didn't authenticate, disconnecting`);
+    //     client.disconnect(true);
+    //   }
+    // }, 30000);
   }
 
   async handleDisconnect(client: Socket) {

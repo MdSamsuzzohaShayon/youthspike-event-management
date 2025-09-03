@@ -19,12 +19,38 @@ function SocketProvider({ children }: React.PropsWithChildren<{}>) {
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+    });
+
+    newSocket.on("reconnect", (attempt) => {
+      console.log("Socket reconnected after", attempt, "attempts");
+    });
+
+    newSocket.on("reconnect_error", (error) => {
+      console.log("Socket reconnection error:", error);
+    });
+
+    newSocket.on("reconnect_failed", () => {
+      console.log("Socket reconnection failed");
     });
 
     setSocket(newSocket);
 
     return () => {
       newSocket.disconnect();
+      newSocket.removeAllListeners();
     };
   }, []);
 

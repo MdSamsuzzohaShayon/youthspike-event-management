@@ -25,6 +25,7 @@ interface INetInRoundViewProps {
   teamBPlayers: IPlayer[];
   srNet: IServerReceiverOnNetMixed | null;
   matchId: string;
+  view: EView;
 }
 function NetInRoundView({
   net,
@@ -36,24 +37,30 @@ function NetInRoundView({
   teamBPlayers,
   srNet,
   matchId,
+  view
 }: INetInRoundViewProps) {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
 
   const handleScordboardRedirect = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log(pathname);
 
     LocalStorageService.setMatch(matchId, net.round, net._id);
     window.location.assign(`/score-keeping/${matchId}`);
   };
 
-  const handleNetSelect = (e: React.SyntheticEvent) => {
+  const handleRoundNetSelect = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    LocalStorageService.setMatch(matchId, net.round, net._id);
-    dispatch(setCurrNetNum(net.num));
-    setView(EView.NET);
+    if(view === EView.NET){
+      LocalStorageService.setMatch(matchId, net.round);
+      setView(EView.ROUND);
+    }else{
+      LocalStorageService.setMatch(matchId, net.round, net._id);
+      dispatch(setCurrNetNum(net.num));
+      setView(EView.NET);
+    }
   };
+  
 
   const teamAPlayerMap = useMemo(() => {
     return new Map(teamAPlayers.map((p) => [p._id, p]));
@@ -69,6 +76,8 @@ function NetInRoundView({
       teamBScore: srNet?.teamBScore || net.teamBScore,
     };
   }, [net, srNet]);
+
+  
 
   const roleMap = useMemo(() => {
     const newMap = new Map<string, ESRRole>();
@@ -131,9 +140,9 @@ function NetInRoundView({
 
         <button
           className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-400 text-black hover:bg-yellow-300 border-0"
-          onClick={handleNetSelect}
+          onClick={handleRoundNetSelect}
         >
-          ENTER NET
+          {view === EView.NET ? "ENTER ROUND" : "ENTER NET"}
         </button>
       </div>
 

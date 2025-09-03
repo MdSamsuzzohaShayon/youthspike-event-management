@@ -146,6 +146,7 @@ export default function useServerReceiverSocket({
           currServerReceiver,
           setSelectedServer,
           setSelectedReceiver,
+          setActionPreview
         }),
       "set-players-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleSetPlayers({
@@ -165,6 +166,8 @@ export default function useServerReceiverSocket({
           serverReceiversOnNet,
           serverReceiverPlays,
           currServerReceiver,
+          netByNum,
+          currNetNum
         }),
       "error-from-server": (err: string) => listener.handleError(err, dispatch),
     } as const;

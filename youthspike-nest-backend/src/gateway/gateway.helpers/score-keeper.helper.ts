@@ -155,6 +155,11 @@ export class ScoreKeeperHelper {
 
     net.serverPositionPair = nextPositionMap[net.serverPositionPair];
     [net.receiver, net.receivingPartner] = [net.receivingPartner, net.receiver];
+
+    net.serverId = String(net.server);
+    net.receiverId = String(net.receiver);
+    net.servingPartnerId = String(net.servingPartner);
+    net.receivingPartnerId = String(net.receivingPartner);
   }
 
   rotateServerReceiver(net: ServerReceiverOnNet, receivingTeamScore: number) {
@@ -202,11 +207,16 @@ export class ScoreKeeperHelper {
     } else {
       oddMap[net.serverPositionPair]?.();
     }
+
+    net.serverId = String(net.server);
+    net.receiverId = String(net.receiver);
+    net.servingPartnerId = String(net.servingPartner);
+    net.receivingPartnerId = String(net.receivingPartner);
   }
 
   /* ──────────────────────────────── misc I/O ──────────────────────────────── */
 
-  async publishRoom(room: string, event: string, payload: unknown) {
+  async publishRoom(room: string, event: string, payload: any) {
     await this.redis.publishToRoom(room, event, payload);
   }
 

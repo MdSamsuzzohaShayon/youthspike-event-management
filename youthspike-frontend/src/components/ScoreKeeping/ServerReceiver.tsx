@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import SelectInput from "@/components/elements/SelectInput";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setCurrNetNum } from "@/redux/slices/netSlice";
@@ -152,7 +158,6 @@ export default function ServerReceiver({
     return net;
   }, [netByNum, currNetNum]);
 
-
   const playersOfSelectedNet: INetPlayers | null = useMemo(() => {
     if (!currNetNum) return null;
     const net = netByNum.get(currNetNum);
@@ -165,6 +170,7 @@ export default function ServerReceiver({
       teamBPlayerB: net.teamBPlayerB ?? null,
     };
   }, [selectedNet]);
+  
 
   const serverTeam = useMemo(
     () => makeTeam(selectedServer, currNetNum, true) as IServerTeam | null,
@@ -184,29 +190,7 @@ export default function ServerReceiver({
 
     LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
 
-    /*
-    const newServerReceiver = serverReceiversOnNet.find(
-      (sr) => sr.net === net?._id
-    );
-    if (newServerReceiver) {
-      if (!newServerReceiver.server) {
-        setSelectedServer(null);
-      } else {
-        setSelectedServer(newServerReceiver.server as string);
-      }
-      if (!newServerReceiver.receiver) {
-        setSelectedReceiver(null);
-      } else {
-        setSelectedReceiver(newServerReceiver.receiver as string);
-      }
-    } else {
-      setSelectedServer(null);
-      setSelectedReceiver(null);
-      setActionPreview(false);
-    }
-    dispatch(setCurrentServerReceiver(newServerReceiver || null));
-    */
-   window.location.reload();
+    window.location.reload();
   };
 
   const handleSetPlayers = useCallback(() => {
@@ -235,6 +219,7 @@ export default function ServerReceiver({
   ]);
 
   const openResetConfirm = () => {
+    setActionPreview(false);
     confirmBoxEl.current?.showModal();
   };
   const closeResetConfirm = () => {
@@ -361,7 +346,6 @@ export default function ServerReceiver({
     }
     return null;
   }, [teamAPlayers, teamBPlayers, selectedServer, selectedReceiver]);
-  
 
   const currNet = useMemo(() => {
     const net = netByNum.get(currNetNum);
@@ -389,7 +373,7 @@ export default function ServerReceiver({
   }, [teamAPlayers, teamBPlayers]);
 
   /* ───── Hydrate redux ONCE ───── */
-  React.useEffect(() => {
+  useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
   }, []); // ← run exactly once
 

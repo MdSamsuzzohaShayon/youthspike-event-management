@@ -55,11 +55,12 @@ function MatchPublicView({
   const srMap = useMemo(() => {
     const entries = serverReceiversOnNet.map((s) => {
       const key = s.netId ?? (typeof s.net === "string" ? s.net : s.net._id);
-
-      if (
-        currServerReceiver &&
-        (key === currServerReceiver.net || key === currServerReceiver.netId)
-      ) {
+      
+      // Check if this serverReceiver matches the current one
+      const isCurrentServerReceiver = currServerReceiver && 
+        (key === currServerReceiver.net || key === currServerReceiver.netId);
+      
+      if (isCurrentServerReceiver) {
         return [
           key,
           {
@@ -69,18 +70,10 @@ function MatchPublicView({
             teamAScore: currServerReceiver.teamAScore,
             teamBScore: currServerReceiver.teamBScore,
             serverPositionPair: currServerReceiver.serverPositionPair,
-            serverId:
-              currServerReceiver.serverId || String(currServerReceiver.server),
-            receiverId:
-              currServerReceiver.receiverId ||
-              String(currServerReceiver.receiver),
-            servingPartnerId:
-              currServerReceiver.servingPartnerId ||
-              String(currServerReceiver.servingPartner),
-            receivingPartnerId:
-              currServerReceiver.receivingPartnerId ||
-              String(currServerReceiver.receivingPartner),
-
+            serverId: currServerReceiver.serverId || String(currServerReceiver.server),
+            receiverId: currServerReceiver.receiverId || String(currServerReceiver.receiver),
+            servingPartnerId: currServerReceiver.servingPartnerId || String(currServerReceiver.servingPartner),
+            receivingPartnerId: currServerReceiver.receivingPartnerId || String(currServerReceiver.receivingPartner),
             server: currServerReceiver.server,
             receiver: currServerReceiver.receiver,
             servingPartner: currServerReceiver.servingPartner,
@@ -88,10 +81,20 @@ function MatchPublicView({
           },
         ] as const;
       }
-
-      return [key, s] as const;
+      
+      // For non-current server receivers
+      return [
+        key,
+        {
+          ...s,
+          serverId: s.serverId || String(s.server),
+          receiverId: s.receiverId || String(s.receiver),
+          servingPartnerId: s.servingPartnerId || String(s.servingPartner),
+          receivingPartnerId: s.receivingPartnerId || String(s.receivingPartner),
+        },
+      ] as const;
     });
-
+  
     return new Map<string, IServerReceiverOnNetMixed>(entries);
   }, [serverReceiversOnNet, currServerReceiver]);
 
@@ -175,21 +178,10 @@ function MatchPublicView({
           roundList={roundList}
           srMap={srMap}
           matchId={matchId}
+          view={view}
         />
       )}
       {view === EView.NET && selectedNet && (
-        // <SpecificNetView
-        //   currNetNum={currNetNum}
-        //   currRoundNets={currRoundNets}
-        //   teamA={teamA}
-        //   teamB={teamB}
-        //   teamAPlayers={teamAPlayers}
-        //   teamBPlayers={teamBPlayers}
-        //   setView={setView}
-        //   srMap={srMap}
-        //   matchId={matchId}
-        //   currRound={currRound}
-        // />
         <NetInRoundView
           key={"nirv"}
           srNet={(selectedNet ? srMap.get(selectedNet._id) : null) || null}
@@ -201,6 +193,7 @@ function MatchPublicView({
           teamAPlayers={teamAPlayers}
           teamBPlayers={teamBPlayers}
           matchId={matchId}
+          view={view}
         />
       )}
     </div>

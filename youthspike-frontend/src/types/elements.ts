@@ -176,3 +176,25 @@ export enum ESRRole {
   RECEIVER = "RECEIVER",
   SETTER = "SETTER",
 }
+
+// Enums for better type safety
+export enum ENDirection {
+  PREV = "prev",
+  NEXT = "next"
+}
+
+export enum EArrowSize {
+  SM = "sm",
+  MD = "md",
+  LG = "lg"
+}
+
+export enum ELayout {
+  MOBILE = "mobile",
+  DESKTOP = "desktop"
+}
+
+export enum ETeamType {
+  TEAM_A = "teamA",
+  TEAM_B = "teamB"
+}

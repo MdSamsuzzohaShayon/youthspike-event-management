@@ -85,6 +85,8 @@ class EmitEvents {
     matchId,
   }: IJoinTheRoomProps) {
     if (!this.socket || !currRound) return;
+    console.log(`Joined to the room: ${new Date()}`);
+    
     const joinData: IJoinData = {
       match: matchId,
       round: currRound._id,

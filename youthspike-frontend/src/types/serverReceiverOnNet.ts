@@ -116,12 +116,15 @@ export interface IResetServerReceiverResponse extends IServerReceiverCommonRespo
   serverReceiverPlays: IServerReceiverSinglePlay[];
   setSelectedServer?: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedReceiver?: React.Dispatch<React.SetStateAction<string | null>>;
+  setActionPreview?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
 export interface IRevertPlayReceiverResponse extends IServerReceiverCommonResponse {
   data: IServerReceiverOnNetMixed;
   serverReceiverPlays: IServerReceiverSinglePlay[];
+  netByNum: Map<number, INetRelatives>; // Within round
+  currNetNum: number;
 }
 
 export interface IServerReceiverResponse extends IServerReceiverCommonResponse {

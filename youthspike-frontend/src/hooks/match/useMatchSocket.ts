@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getUserFromCookie } from "@/utils/cookie";
@@ -53,26 +53,46 @@ export default function useMatchSocket({
   currServerReceiver,
 }: UseMatchSocketProps) {
   const dispatch = useAppDispatch();
+  const joinRoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handlersRegisteredRef = useRef(false);
 
-  // Selectors
-  useEffect(() => {
-    if (!socket || !roundList.length) {
-      console.warn("No socket or round list available");
+  // Function to join room
+  const joinRoom = (socketInstance: Socket) => {
+    if (!roundList.length) {
+      console.warn("No round list available");
       return;
     }
 
     const userDetail = getUserFromCookie();
-    const emitEvents = new EmitEvents(socket, dispatch);
-    const listener = new SocketEventListener(socket, dispatch);
+    const emitEvents = new EmitEvents(socketInstance, dispatch);
 
-    // Join room
-    emitEvents.joinRoom({
-      user: userDetail,
-      teamA,
-      teamB,
-      currRound: currRound,
-      matchId: match._id,
-    });
+    // Clear any existing timeout
+    if (joinRoomTimeoutRef.current) {
+      clearTimeout(joinRoomTimeoutRef.current);
+      joinRoomTimeoutRef.current = null;
+    }
+
+    // Join room with a small delay to ensure socket is properly connected
+    joinRoomTimeoutRef.current = setTimeout(() => {
+      emitEvents.joinRoom({
+        user: userDetail,
+        teamA,
+        teamB,
+        currRound: currRound,
+        matchId: match._id,
+      });
+      console.log("Joined room on socket:", socketInstance.id);
+    }, 100);
+  };
+
+  // Selectors
+  useEffect(() => {
+    if (!socket) {
+      console.warn("No socket available");
+      return;
+    }
+
+    const listener = new SocketEventListener(socket, dispatch);
 
     // Event handlers
     const handlers = {
@@ -225,16 +245,52 @@ export default function useMatchSocket({
         }),
     };
 
-    // Register event listeners
-    Object.entries(handlers).forEach(([event, handler]) => {
-      socket.on(event, handler);
-    });
+    // Register event listeners only once
+    if (!handlersRegisteredRef.current) {
+      Object.entries(handlers).forEach(([event, handler]) => {
+        socket.on(event, handler);
+      });
+      handlersRegisteredRef.current = true;
+    }
+
+    // Join room initially
+    joinRoom(socket);
+
+    // Handle reconnect event
+    const handleReconnect = () => {
+      console.log("Socket reconnected, rejoining room...");
+      joinRoom(socket);
+    };
+
+    socket.on("reconnect", handleReconnect);
+
+    // Handle disconnect event
+    const handleDisconnect = (reason: string) => {
+      console.log("Socket disconnected:", reason);
+      handlersRegisteredRef.current = false;
+    };
+
+    socket.on("disconnect", handleDisconnect);
 
     // Cleanup function
     return () => {
-      Object.keys(handlers).forEach((event) => {
-        socket.off(event);
-      });
+      // Clear timeout
+      if (joinRoomTimeoutRef.current) {
+        clearTimeout(joinRoomTimeoutRef.current);
+      }
+
+      // Remove reconnect and disconnect listeners
+      socket.off("reconnect", handleReconnect);
+      socket.off("disconnect", handleDisconnect);
+
+      // Remove all event handlers if socket is still connected
+      if (socket.connected) {
+        Object.keys(handlers).forEach((event) => {
+          socket.off(event);
+        });
+      }
+      
+      handlersRegisteredRef.current = false;
     };
   }, [
     socket,
@@ -247,5 +303,10 @@ export default function useMatchSocket({
     allNets,
     match,
     match._id,
+    currNetNum,
+    netByNum,
+    serverReceiversOnNet,
+    serverReceiverPlays,
+    currServerReceiver,
   ]);
 }
