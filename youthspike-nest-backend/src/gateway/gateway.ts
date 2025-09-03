@@ -60,6 +60,7 @@ import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
 import { RevertPlayHandler } from './gateway.handlers/revert-play';
 import { JoinPlayerRoomHandler } from './gateway.handlers/join-player-room.handler';
 import { LeavePlayerRoomHandler } from './gateway.handlers/leave-player-room.handler';
+import { RevertPlayHelper } from './gateway.helpers/revert-play.helper';
 
 @WebSocketGateway({
   cors: true,
@@ -107,6 +108,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly validationHelper: ValidationHelper,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
     private readonly pointsUpdateHelper: PointsUpdateHelper,
+    private readonly revertPlayHelper: RevertPlayHelper,
   ) {
     this.joinRoomHandler = new JoinRoomHandler(gatewayService, gatewayRedisService, roomHelper, clientHelper);
     this.joinPlayerRoomHandler = new JoinPlayerRoomHandler();
@@ -120,26 +122,25 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Score keeper handlers
     // Server
-    this.aceNoTouch = new AceNoTouchHandler(scoreKeeperHelper);
-    this.aceNoThirdTouch = new AceNoThirdTouchHandler(scoreKeeperHelper);
+    this.aceNoTouch = new AceNoTouchHandler(scoreKeeperHelper, pointsUpdateHelper);
+    this.aceNoThirdTouch = new AceNoThirdTouchHandler(scoreKeeperHelper, pointsUpdateHelper);
     this.receivingHittingError = new ReceivingHittingErrorHandler(
-      gatewayService,
-      gatewayRedisService,
-      scoreKeeperHelper,
+      scoreKeeperHelper
+      , pointsUpdateHelper
     );
-    this.defensiveConversion = new DefensiveConversionHandler(scoreKeeperHelper);
+    this.defensiveConversion = new DefensiveConversionHandler(scoreKeeperHelper, pointsUpdateHelper);
     this.serverDoNotKnow = new ServerDoNotKnowHandler(scoreKeeperHelper);
 
     // Receiver
-    this.serviceFault = new ServiceFaultHandler(scoreKeeperHelper);
-    this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(scoreKeeperHelper);
-    this.rallyConversion = new RallyConversionHandler(scoreKeeperHelper);
+    this.serviceFault = new ServiceFaultHandler(scoreKeeperHelper, pointsUpdateHelper);
+    this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(scoreKeeperHelper, pointsUpdateHelper);
+    this.rallyConversion = new RallyConversionHandler(scoreKeeperHelper, pointsUpdateHelper);
     this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
 
     // Update database
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, validationHelper, scoreKeeperHelper);
     this.resetScore = new ResetScoreHandler(gatewayService, validationHelper, scoreKeeperHelper);
-    this.revertPlay = new RevertPlayHandler(gatewayService, scoreKeeperHelper, validationHelper);
+    this.revertPlay = new RevertPlayHandler(gatewayService, scoreKeeperHelper, validationHelper, revertPlayHelper, pointsUpdateHelper);
 
     /**
      * Handlers for Score keeper
@@ -327,6 +328,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('revert-play-from-client')
   async onRevertPlay(@ConnectedSocket() client: Socket, @MessageBody() revertPlayInput: RevertPlayInput) {
-    return this.revertPlay.handle(client, revertPlayInput, this.roomsLocal);
+    return this.revertPlay.handle(client, revertPlayInput);
   }
 }

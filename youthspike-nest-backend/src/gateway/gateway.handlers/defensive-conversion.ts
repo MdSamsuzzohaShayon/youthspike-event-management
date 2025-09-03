@@ -4,9 +4,10 @@ import { DefensiveConversionInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class DefensiveConversionHandler {
-  constructor(private readonly scoreKeeperHelper: ScoreKeeperHelper) {}
+  constructor(private readonly scoreKeeperHelper: ScoreKeeperHelper, private readonly pointsUpdateHelper: PointsUpdateHelper) {}
 
   async handle(@ConnectedSocket() client: Socket, @MessageBody() body: DefensiveConversionInput, server: Server) {
     try {
@@ -18,34 +19,16 @@ export class DefensiveConversionHandler {
       const ids = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
+      const defensiveStats = this.pointsUpdateHelper.statsDefensiveConversion();
+
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
-        serveOpportunity: 1,
-        serveCompletionCount: 1,
-        defensiveOpportunity: 1,
-        defensiveConversion: 1,
-        break: 0.5,
-      });
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], defensiveStats.server);
 
-      const servingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
-        defensiveOpportunity: 1,
-        defensiveConversion: 1,
-        break: 0.5,
-      });
+      const servingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.servingPartner as string], defensiveStats.servingPartner);
 
-      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], {
-        receiverOpportunity: 1,
-        receivedCount: 1,
-        hittingOpportunity: 1,
-        defensiveOpportunity: 1,
-        broken: -0.5,
-      });
+      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], defensiveStats.receiver);
 
-      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
-        settingOpportunity: 1,
-        defensiveOpportunity: 1,
-        broken: -0.5,
-      });
+      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], defensiveStats.receivingPartner );
 
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);

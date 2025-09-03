@@ -4,9 +4,10 @@ import { RoomLocal, ServiceFaultInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class ServiceFaultHandler {
-  constructor(private readonly scoreKeeperHelper: ScoreKeeperHelper) {}
+  constructor(private readonly scoreKeeperHelper: ScoreKeeperHelper, private readonly pointsUpdateHelper: PointsUpdateHelper, ) {}
 
   async handle(@ConnectedSocket() client: Socket, @MessageBody() body: ServiceFaultInput, server: Server) {
     try {
@@ -19,10 +20,9 @@ export class ServiceFaultHandler {
       const ids = [net.server];
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
+      const faultStats = this.pointsUpdateHelper.statsServiceFault();
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      const updatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
-        serveOpportunity: 1,
-      });
+      const updatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], faultStats.server);
 
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);

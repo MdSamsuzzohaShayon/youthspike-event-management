@@ -1,7 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import RoundView from "./PublicView/RoundView";
 import AllNetsView from "./PublicView/AllNetsView";
-import SpecificNetView from "./PublicView/SpecificNetView";
 import {
   EView,
   INetRelatives,

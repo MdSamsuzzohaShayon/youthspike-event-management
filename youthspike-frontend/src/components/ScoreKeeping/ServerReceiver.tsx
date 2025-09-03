@@ -42,6 +42,8 @@ import { setMessage } from "@/redux/slices/elementSlice";
 import LocalStorageService from "@/utils/LocalStorageService";
 import RoundInputBox from "../elements/RoundInputBox";
 import ChangePlayDialog from "../elements/Dialog/ChangePlayDialog";
+import ResetPlayDialog from "../elements/Dialog/ResetPlayDialog";
+import RevertPreviousDialog from "../elements/Dialog/RevertPreviousDialog";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -170,7 +172,6 @@ export default function ServerReceiver({
       teamBPlayerB: net.teamBPlayerB ?? null,
     };
   }, [selectedNet]);
-  
 
   const serverTeam = useMemo(
     () => makeTeam(selectedServer, currNetNum, true) as IServerTeam | null,
@@ -317,24 +318,6 @@ export default function ServerReceiver({
     accessCode,
   ]);
 
-  const handleRevertPlay = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const highestPlay = currPlays.reduce(
-      (max, current) => (current.play > max.play ? current : max),
-      currPlays[0]
-    );
-    const lastPlay: number = highestPlay.play;
-    const emit = new EmitEvents(socket, dispatch);
-    emit.revertPlay({
-      match: currMatch._id,
-      net: netByNum.get(currNetNum)?._id || null,
-      room: currRoom?._id || null,
-      accessCode: token || accessCode?.code || null,
-      play: lastPlay,
-    });
-    revertPlayEl.current?.close();
-  };
-
   const serverTeamE: ETeam | null = useMemo(() => {
     if (!selectedServer) return null;
     const teamAPlayerIds = new Set(teamAPlayers.map((p) => p._id));
@@ -358,13 +341,6 @@ export default function ServerReceiver({
     );
     return selectedPlays;
   }, [serverReceiverPlays, currNet]);
-
-  const lastPlay = useMemo(() => {
-    return currPlays.reduce(
-      (max, current) => (current.play > max.play ? current : max),
-      currPlays[0]
-    );
-  }, [currPlays]);
 
   const playerMap = useMemo(() => {
     return new Map<string, IPlayer>(
@@ -632,79 +608,27 @@ export default function ServerReceiver({
         playerMap={playerMap}
       />
 
-      <dialog ref={confirmBoxEl} className="modal-dialog">
-        <div className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-yellow-400">
-            Reset Scorekeeper Setting
-          </h2>
-          <p className="text-sm text-gray-300">
-            ⚠️ Warning: This will reset everything including player statistics,
-            team scores, and selected server player. Are you sure you want to
-            proceed?
-          </p>
+      <ResetPlayDialog
+        closeResetConfirm={closeResetConfirm}
+        confirmBoxEl={confirmBoxEl}
+        handleConfirmReset={handleConfirmReset}
+      />
 
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200"
-              onClick={handleConfirmReset}
-            >
-              Confirm
-            </button>
-            <button
-              className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
-              onClick={closeResetConfirm}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </dialog>
-
-      {/* handleRevertPlay */}
-      <dialog ref={revertPlayEl} className="modal-dialog">
-        <div className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-yellow-400">
-            Revert to previous play
-          </h2>
-
-          {lastPlay && (
-            <div className="flex-1 overflow-y-auto pr-1">
-              <ul className="space-y-2">
-                <ServerReceiverPlayInput
-                  sr={lastPlay}
-                  playerMap={playerMap}
-                  key={`last-play-${lastPlay.play}`}
-                  teamAPlayers={teamAPlayers}
-                  teamBPlayers={teamBPlayers}
-                />
-              </ul>
-            </div>
-          )}
-
-          <p className="text-sm text-gray-300">
-            ⚠️ Warning: This will revert the previous play (one single play
-            back). From that play you can continue the game. But this record
-            will be deleted.
-          </p>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              className="bg-yellow-logo hover:bg-yellow-400 text-black px-4 py-2 rounded-md font-medium transition duration-200"
-              onClick={handleRevertPlay}
-            >
-              Confirm
-            </button>
-            <button
-              className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
-              onClick={(e) => {
-                revertPlayEl.current?.close();
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </dialog>
+      <RevertPreviousDialog
+        accessCode={accessCode}
+        currMatch={currMatch}
+        currNetNum={currNetNum}
+        currPlays={currPlays}
+        currRoom={currRoom}
+        dispatch={dispatch}
+        socket={socket}
+        netByNum={netByNum}
+        playerMap={playerMap}
+        revertPlayEl={revertPlayEl}
+        teamAPlayers={teamAPlayers}
+        teamBPlayers={teamBPlayers}
+        token={token}
+      />
     </div>
   );
 }

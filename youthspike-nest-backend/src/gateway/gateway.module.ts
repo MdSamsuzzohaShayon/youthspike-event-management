@@ -11,6 +11,7 @@ import { RedisHelper } from './gateway.helpers/redis.helper';
 import { ScoreKeeperHelper } from './gateway.helpers/score-keeper.helper';
 import { PointsUpdateHelper } from './gateway.helpers/points-update.helper';
 import { JwtModule } from '@nestjs/jwt';
+import { RevertPlayHelper } from './gateway.helpers/revert-play.helper';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { JwtModule } from '@nestjs/jwt';
     ValidationHelper,
     RedisHelper,
     ScoreKeeperHelper,
+    RevertPlayHelper,
     PointsUpdateHelper,
   ],
 })

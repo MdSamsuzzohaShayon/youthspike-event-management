@@ -1,6 +1,6 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { ETeam, RevertPlayInput, RoomLocal } from '../gateway.types';
+import { ETeam, RevertPlayInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { singlePlayKey } from 'src/util/helper';
@@ -9,19 +9,26 @@ import {
   ServerReceiverOnNet,
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
-import { ServerReceiverOnNetModule } from 'src/server-receiver-on-net/server-receiver-on-net.module';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
+import { RevertPlayHelper } from '../gateway.helpers/revert-play.helper';
 
 export class RevertPlayHandler {
-  constructor(private readonly gatewayService: GatewayService, private readonly scoreKeeperHelper: ScoreKeeperHelper, private readonly validationHelper: ValidationHelper) {}
+  constructor(
+    private readonly gatewayService: GatewayService,
+    private readonly scoreKeeperHelper: ScoreKeeperHelper,
+    private readonly validationHelper: ValidationHelper,
+    private readonly revertPlayHelper: RevertPlayHelper,
+    private readonly pointsUpdateHelper: PointsUpdateHelper
+  ) {}
 
   async handle(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: RevertPlayInput,
-    roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
-      const { serverReceiverOnNetService, matchService, netService, playerService, jwtService } = this.gatewayService.getServices();
+      const { serverReceiverOnNetService, matchService, netService, playerService, jwtService } =
+        this.gatewayService.getServices();
 
       const [net, match] = await Promise.all([
         this.scoreKeeperHelper.loadNetAction(body.net, body.room),
@@ -36,9 +43,21 @@ export class RevertPlayHandler {
       const deletePromises = [];
       for (let i = 0; i < numOfItems; i += 1) {
         const playToDelete = body.play + i + 1;
-        deletePromises.push(this.scoreKeeperHelper.deleteSinglePlayAction(body.net, body.room, playToDelete));
+
+        try {
+          let singlePlayExist = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, playToDelete);
+          if(!singlePlayExist){
+            singlePlayExist =await serverReceiverOnNetService.findOneSinglePlay({net: body.net, room: body.room, play: playToDelete});
+
+          }
+          const success = await this.revertPlayHelper.revertPlayerScore(singlePlayExist, this.pointsUpdateHelper);
+        } catch (playErr) {
+          console.log(playErr);
+          
+        }
         // If there is _id in that play delete that
         const key = singlePlayKey(body.net, body.room, playToDelete);
+        deletePromises.push(this.scoreKeeperHelper.deleteSinglePlayAction(body.net, body.room, playToDelete));
         playKeys.add(key);
       }
       deletePromises.push(
@@ -127,7 +146,7 @@ export class RevertPlayHandler {
         EServerReceiverAction.RECEIVER_SERVICE_FAULT,
         EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
         EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
-        EServerReceiverAction.RECEIVER_DO_NOT_KNOW
+        EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
       ]);
       if (receiverActions.has(currPlay.action)) {
         if (receivingTeamE === ETeam.teamA) {
@@ -151,7 +170,7 @@ export class RevertPlayHandler {
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, srObj),
         this.scoreKeeperHelper.deleteSinglePlayAction(body.net, body.room, currPlay.play), // Delete current play, it will be created again automitically
-        serverReceiverOnNetService.deleteOneSinglePlay({net: body.net, play: currPlay.play}),
+        serverReceiverOnNetService.deleteOneSinglePlay({ net: body.net, play: currPlay.play }),
         this.scoreKeeperHelper.publishRoom(body.room, 'revert-play-from-server', srObj),
       ]);
     } catch (err: any) {

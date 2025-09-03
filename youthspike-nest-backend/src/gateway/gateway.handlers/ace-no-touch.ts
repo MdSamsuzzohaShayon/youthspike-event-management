@@ -4,10 +4,12 @@ import { AceNoTouchInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class AceNoTouchHandler {
   constructor(
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
+    private readonly pointsUpdateHelper: PointsUpdateHelper,
   ) {}
 
   async handle(
@@ -24,20 +26,12 @@ export class AceNoTouchHandler {
       const ids = [net.server, net.receiver];
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
-      /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
-        serveOpportunity: 1,
-        serveCompletionCount: 1,
-        serveAce: 1,
-        servingAceNoTouch: 1,
-        break: 1,
-      });
+      const aceStats = this.pointsUpdateHelper.statsAceNoTouch();
 
-      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], {
-        receiverOpportunity: 1,
-        noTouchAcedCount: 1,
-        broken: -1,
-      });
+      /* 3️⃣ mutate the stats (only the deltas differ per handler) */
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], aceStats.server);
+
+      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], aceStats.receiver);
 
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);

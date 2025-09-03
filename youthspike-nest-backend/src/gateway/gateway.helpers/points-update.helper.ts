@@ -5,19 +5,15 @@ import { ScoreKeeperHelper } from './score-keeper.helper';
 
 @Injectable()
 export class PointsUpdateHelper {
-  constructor(
-    private readonly gatewayService: GatewayService,
-    private readonly scoreKeeperHelper: ScoreKeeperHelper,
-  ) {}
-
+  constructor(private readonly gatewayService: GatewayService, private readonly scoreKeeperHelper: ScoreKeeperHelper) {}
 
   async calculateRoundScores(roundId: string) {
     const { netService } = this.gatewayService.getServices();
     const findNets = await netService.find({ round: roundId });
-    
+
     let teamAScore: number | null = null;
     let teamBScore: number | null = null;
-    
+
     for (const net of findNets) {
       if (net.teamAScore !== null && net.teamBScore !== null) {
         teamAScore = (teamAScore || 0) + net.teamAScore;
@@ -26,7 +22,7 @@ export class PointsUpdateHelper {
         return { teamAScore: null, teamBScore: null };
       }
     }
-    
+
     return { teamAScore, teamBScore };
   }
 
@@ -42,7 +38,7 @@ export class PointsUpdateHelper {
   ): Promise<RoundUpdatedResponse> {
     const { roundService, matchService } = this.gatewayService.getServices();
     const roundExist = await roundService.findById(roundId);
-    
+
     let matchCompleted = false;
     if (completed && roundExist.num === roundListLength) {
       await matchService.updateOne({ _id: matchId }, { completed });
@@ -77,5 +73,151 @@ export class PointsUpdateHelper {
       this.scoreKeeperHelper.publishRoom(room, 'update-points-response-all', pointsResponse),
       this.scoreKeeperHelper.publishRoom(room, 'net-update-all-pages', presizedRoundData),
     ]);
+  }
+
+  statsAceNoTouch() {
+    const server = {
+      serveOpportunity: 1,
+      serveCompletionCount: 1,
+      serveAce: 1,
+      servingAceNoTouch: 1,
+      break: 1,
+    };
+
+    const receiver = {
+      receiverOpportunity: 1,
+      noTouchAcedCount: 1,
+      broken: -1,
+    };
+
+    return { server, receiver };
+  }
+
+  statsServiceFault() {
+    return {
+      server: {
+        serveOpportunity: 1,
+      },
+    };
+  }
+
+  statsDefensiveConversion() {
+    return {
+      server: {
+        serveOpportunity: 1,
+        serveCompletionCount: 1,
+        defensiveOpportunity: 1,
+        defensiveConversion: 1,
+        break: 0.5,
+      },
+      servingPartner: {
+        defensiveOpportunity: 1,
+        defensiveConversion: 1,
+        break: 0.5,
+      },
+      receiver: {
+        receiverOpportunity: 1,
+        receivedCount: 1,
+        hittingOpportunity: 1,
+        defensiveOpportunity: 1,
+        broken: -0.5,
+      },
+      receivingPartner: {
+        settingOpportunity: 1,
+        defensiveOpportunity: 1,
+        broken: -0.5,
+      }
+    };
+  }
+
+  statsAceNoThird(){
+    return {
+      server: {
+        serveOpportunity: 1,
+        serveCompletionCount: 1,
+        break: 0.5,
+      },
+      servingPartner: {
+        broken: -0.5
+      },
+      receiver: {
+        receiverOpportunity: 1,
+        receivedCount: 1,
+        broken: -0.5,
+      },
+      receivingPartner: {
+        broken: -0.5
+      }
+    }
+  }
+
+  statsReceivingHittingError(){
+    return {
+      server:  {
+        serveOpportunity: 1,
+        serveCompletionCount: 1,
+        break: 0.5
+      },
+      receiver: {
+        receiverOpportunity: 1,
+        receivedCount: 1,
+        hittingOpportunity: 1,
+        broken: -0.5,
+      },
+      receivingPartner: {
+        settingOpportunity: 1,
+        broken: -0.5,
+      }
+    }
+  }
+
+  statsOneTwoThreePutAway(){
+    return {
+      server: {
+        serveOpportunity: 1,
+        serveCompletionCount: 1,
+        defensiveOpportunity: 1,
+      },
+      servingPartner: {
+        defensiveOpportunity: 1,
+      },
+      receiver: {
+        receiverOpportunity: 1,
+        receivedCount: 1,
+        cleanHits: 1,
+        hittingOpportunity: 1,
+      },
+      receivingPartner: {
+        settingOpportunity: 1,
+        cleanSets: 1,
+      }
+    }
+  }
+
+  statsRallyConversion(){
+    return {
+      server: {
+        serveOpportunity: 1,
+        serveCompletionCount: 1,
+        defensiveOpportunity: 2,
+        defensiveConversion: 1
+      }, 
+      servingPartner: {
+        defensiveOpportunity: 2,
+        defensiveConversion: 1
+      },
+      receiver: {
+        receiverOpportunity: 1,
+        receivedCount: 1,
+        hittingOpportunity: 1,
+        defensiveOpportunity: 1,
+        defensiveConversion: 1
+      },
+      receivingPartner: {
+        settingOpportunity: 1,
+        defensiveOpportunity: 1,
+        defensiveConversion: 1
+      }
+    }
   }
 }

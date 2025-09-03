@@ -6,12 +6,13 @@ import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class ReceivingHittingErrorHandler {
   constructor(
-    private readonly gatewayService: GatewayService,
-    private readonly gatewayRedisService: GatewayRedisService,
+
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
+    private readonly pointsUpdateHelper: PointsUpdateHelper,
   ) {}
 
   async handle(
@@ -29,24 +30,15 @@ export class ReceivingHittingErrorHandler {
       const ids = [net.server, net.receiver, net.receivingPartner];
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
+
+      const receivingStats = this.pointsUpdateHelper.statsReceivingHittingError();
+
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
-        serveOpportunity: 1,
-        serveCompletionCount: 1,
-        break: 0.5
-      });
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], receivingStats.server);
 
-      const receiverUpdatedKeys =this.scoreKeeperHelper.increment(stats[net.receiver as string], {
-        receiverOpportunity: 1,
-        receivedCount: 1,
-        hittingOpportunity: 1,
-        broken: -0.5,
-      });
+      const receiverUpdatedKeys =this.scoreKeeperHelper.increment(stats[net.receiver as string], receivingStats.receiver);
 
-      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
-        settingOpportunity: 1,
-        broken: -0.5,
-      });
+      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], receivingStats.receivingPartner);
 
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);

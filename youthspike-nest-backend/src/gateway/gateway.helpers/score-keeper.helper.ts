@@ -13,7 +13,10 @@ import { Player } from 'src/player/player.schema';
 
 @Injectable()
 export class ScoreKeeperHelper {
-  constructor(private readonly redis: GatewayRedisService, private readonly gateway: GatewayService) {}
+  constructor(
+    private readonly redis: GatewayRedisService,
+    private readonly gateway: GatewayService,
+  ) {}
 
   /* ───────────────────────────── helpers for “net” ─────────────────────────── */
 
@@ -124,6 +127,18 @@ export class ScoreKeeperHelper {
     return updatedKeys;
   }
 
+  decrement(stats: PlayerStats, inc: Partial<Record<keyof PlayerStats, number>>): (keyof PlayerStats)[] {
+    const updatedKeys: (keyof PlayerStats)[] = [];
+
+    for (const [k, v] of Object.entries(inc)) {
+      const key = k as keyof PlayerStats;
+      (stats[key] as number) -= v as number;
+      updatedKeys.push(key);
+    }
+
+    return updatedKeys;
+  }
+
   extractUpdatedStats(stats: PlayerStats, updatedKeys: (keyof PlayerStats)[]): Partial<PlayerStats> {
     const result: Partial<PlayerStats> = {
       match: stats.match,
@@ -213,7 +228,6 @@ export class ScoreKeeperHelper {
     net.servingPartnerId = String(net.servingPartner);
     net.receivingPartnerId = String(net.receivingPartner);
   }
-
   /* ──────────────────────────────── misc I/O ──────────────────────────────── */
 
   async publishRoom(room: string, event: string, payload: any) {

@@ -6,11 +6,13 @@ import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class RallyConversionHandler {
   constructor(
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
-  ) {}
+    private readonly pointsUpdateHelper: PointsUpdateHelper 
+  ){}
 
   async handle(
     @ConnectedSocket() client: Socket,
@@ -27,32 +29,17 @@ export class RallyConversionHandler {
       const ids = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
       const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
 
+
+      const rallyStats = this.pointsUpdateHelper.statsRallyConversion();
+
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
-      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], {
-        serveOpportunity: 1,
-        serveCompletionCount: 1,
-        defensiveOpportunity: 2,
-        defensiveConversion: 1
-      });
+      const serverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], rallyStats.server);
 
-      const servingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.servingPartner as string], {
-        defensiveOpportunity: 2,
-        defensiveConversion: 1
-      });
+      const servingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.servingPartner as string], rallyStats.servingPartner);
       
-      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], {
-        receiverOpportunity: 1,
-        receivedCount: 1,
-        hittingOpportunity: 1,
-        defensiveOpportunity: 1,
-        defensiveConversion: 1
-      });
+      const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], rallyStats.receiver);
 
-      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], {
-        settingOpportunity: 1,
-        defensiveOpportunity: 1,
-        defensiveConversion: 1
-      });
+      const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], rallyStats.receivingPartner);
 
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
