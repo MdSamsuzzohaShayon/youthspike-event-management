@@ -70,6 +70,7 @@ query GetEventDetails($eventId: String!) {
         sendCredentials
         num
         matches
+        group
       }
       ldo {
         _id

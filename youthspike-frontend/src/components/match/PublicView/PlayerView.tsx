@@ -1,6 +1,7 @@
 import TextImg from "@/components/elements/TextImg";
 import { ESRRole, IPlayer } from "@/types";
 import { CldImage } from "next-cloudinary";
+import Link from "next/link";
 
 interface IPlayerViewProps {
   player: IPlayer | null;
@@ -9,14 +10,15 @@ interface IPlayerViewProps {
 }
 
 const PlayerView = ({ player, role, compact = false }: IPlayerViewProps) => (
-  <div
+  <Link
+  href={`/players/${player?._id}`}
     className={`flex items-center p-2 bg-gray-800 rounded-lg border border-gray-700 hover:border-yellow-400 transition-all duration-200 group ${
       compact ? "space-x-3" : "space-x-4"
     }`}
   >
     {player && (
       <>
-        <div className="relative flex-shrink-0">
+        <div className="flex-shrink-0">
           {player.profile ? (
             <CldImage
               width={compact ? 40 : 48}
@@ -32,21 +34,14 @@ const PlayerView = ({ player, role, compact = false }: IPlayerViewProps) => (
               className={`rounded-full border-2 border-yellow-400 ${
                 compact ? "w-10 h-10" : "w-12 h-12"
               }`}
-              fullText={`${player.firstName.charAt(0)}${player.lastName.charAt(
-                0
-              )}`}
+              fullText={`${player.firstName}${player.lastName}`}
             />
           )}
-
-          {/* Role Badge */}
-          <div className="absolute -bottom-1 -right-1 bg-yellow-400 text-black text-xs font-bold px-1 rounded-full min-w-[16px] text-center">
-            {role === ESRRole.SERVER ? "S" : "R"}
-          </div>
         </div>
 
         <div className="overflow-hidden">
           <p
-            className={`text-white font-semibold truncate ${
+            className={`text-white font-semibold ${
               compact
                 ? "text-sm max-w-[100px] md:max-w-[120px]"
                 : "text-sm max-w-[80px] md:max-w-[100px]"
@@ -77,7 +72,7 @@ const PlayerView = ({ player, role, compact = false }: IPlayerViewProps) => (
         </div>
       </div>
     )}
-  </div>
+  </Link>
 );
 
 export default PlayerView;

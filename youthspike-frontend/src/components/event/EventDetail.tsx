@@ -97,14 +97,14 @@ function EventDetail({ queryRef }: IEventDetailProps) {
 
   const groupList = useMemo(() => {
     if (!currDivision || currDivision === "") {
-      return event.groups || [];
+      return groups || [];
     }
-    return (event.groups || []).filter(
+    return (groups || []).filter(
       (group) =>
         group.division?.trim().toLowerCase() ===
         currDivision.trim().toLowerCase()
     );
-  }, [event.groups, currDivision]);
+  }, [groups, currDivision]);
 
   const filteredData = useMemo(() => {
     const filterByDivision = (item: { division?: string }) =>
@@ -113,10 +113,13 @@ function EventDetail({ queryRef }: IEventDetailProps) {
           currDivision.trim().toLowerCase()
         : true;
 
-    const filterByGroup = (item: { group?: { _id: string } }) =>
-      selectedGroup ? item.group?._id === selectedGroup : true;
+        
+
+    const filterByGroup = (item: { group?: string }) =>
+      selectedGroup ? item.group === selectedGroup : true;
 
     return {
+      // @ts-ignore
       teams: sortedTeams?.filter(filterByDivision).filter(filterByGroup) || [],
       matches: matches?.filter(filterByDivision) || [],
       players: sortedPlayers?.filter(filterByDivision) || [],
@@ -175,11 +178,15 @@ function EventDetail({ queryRef }: IEventDetailProps) {
         />
       ),
       [EEventItem.MATCH]: (
-        <MatchList matchList={filteredData.matches as IMatch[]} />
+        <MatchList matchList={filteredData.matches as IMatch[]} nets={nets} rounds={rounds} />
       ),
     };
     return renderMap[selectedItem] || null;
   }, [filteredData, selectedGroup, selectedItem]);
+
+
+
+  
 
   const renderSponsors = useMemo(
     () => (

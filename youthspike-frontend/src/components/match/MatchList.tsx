@@ -1,4 +1,4 @@
-import { IMatchExpRel, IPlayer, ITeam } from '@/types';
+import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch } from '@/redux/hooks';
@@ -20,131 +20,139 @@ interface IMatch extends IMatchExpRel {
 }
 
 interface IMatchListProps {
-  // eslint-disable-next-line react/require-default-props
   matchList?: IMatch[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
 }
 
-// eslint-disable-next-line no-unused-vars, no-shadow
 enum EMatchStatus {
-  // eslint-disable-next-line no-unused-vars
   COMPLETED = 'COMPLETED',
-  // eslint-disable-next-line no-unused-vars
   IN_PROGRESS = 'IN_PROGRESS',
-  // eslint-disable-next-line no-unused-vars
   NOT_STARTED = 'NOT_STARTED',
 }
 
 const filterOptions = [
-  {
-    id: 1,
-    text: EEventPeriod.CURRENT,
-  },
-  {
-    id: 2,
-    text: EEventPeriod.PAST,
-  },
-  {
-    id: 3,
-    text: EMatchStatus.COMPLETED,
-  },
-  {
-    id: 4,
-    text: EMatchStatus.IN_PROGRESS,
-  },
-  {
-    id: 5,
-    text: EMatchStatus.NOT_STARTED,
-  },
+  { id: 1, text: EEventPeriod.CURRENT },
+  { id: 2, text: EEventPeriod.PAST },
+  { id: 3, text: EMatchStatus.COMPLETED },
+  { id: 4, text: EMatchStatus.IN_PROGRESS },
+  { id: 5, text: EMatchStatus.NOT_STARTED },
 ];
 
 const ITEMS_PER_PAGE = 30;
-function MatchList({ matchList }: IMatchListProps) {
+
+function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
-  const [filteredMatchList, setFilteredMatchList] = useState<IMatch[]>([]); // update this filtered match list when a round updated
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [filter, setFilter] = useState<string | null>(null);
 
-  const handleMatchFilter = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLSelectElement;
-    let newMatchList = matchList ? [...matchList] : [];
-    // Change filteredMatchList
-    switch (inputEl.value) {
+  // ✅ Pre-index rounds by matchId for O(1) lookup
+  const roundsByMatch = useMemo(() => {
+    const map = new Map<string, IRoundRelatives[]>();
+    for (const r of rounds) {
+      if (!map.has(r.match)) map.set(r.match, []);
+      map.get(r.match)!.push(r);
+    }
+    return map;
+  }, [rounds]);
+
+  // ✅ Pre-map nets once instead of recalculating every render
+  const normalizedNets = useMemo(
+    // @ts-ignore
+    () => nets.map((n) => ({ ...n, round: n.round?._id || n.round })),
+    [nets]
+  );
+
+  // ✅ Compute filtered matches on demand
+  const filteredMatchList = useMemo(() => {
+    if (!filter) return matchList;
+
+    switch (filter) {
       case EEventPeriod.CURRENT:
-        // validateMatchDatetime(currEvent.startDate)
-        newMatchList = newMatchList.filter((nm) => validateMatchDatetime(nm.date) === EEventPeriod.CURRENT);
-        break;
-
+        return matchList.filter((m) => validateMatchDatetime(m.date) === EEventPeriod.CURRENT);
       case EEventPeriod.PAST:
-        newMatchList = newMatchList.filter((nm) => validateMatchDatetime(nm.date) === EEventPeriod.PAST);
-        break;
-
+        return matchList.filter((m) => validateMatchDatetime(m.date) === EEventPeriod.PAST);
       case EMatchStatus.COMPLETED:
-        newMatchList = newMatchList.filter((nm) => nm.completed);
-        break;
+        return matchList.filter((m) => m.completed);
       case EMatchStatus.IN_PROGRESS:
-        newMatchList = newMatchList.filter((nm) => !nm.completed && nm.rounds[0].teamAProcess !== EActionProcess.INITIATE);
-        break;
+        return matchList.filter(
+          (m) => !m.completed && m.rounds[0].teamAProcess !== EActionProcess.INITIATE
+        );
       case EMatchStatus.NOT_STARTED:
-        newMatchList = newMatchList.filter((nm) => !nm.completed && nm.rounds[0].teamAProcess === EActionProcess.INITIATE);
-        break;
-
+        return matchList.filter(
+          (m) => !m.completed && m.rounds[0].teamAProcess === EActionProcess.INITIATE
+        );
       default:
-        break;
+        return matchList;
     }
+  }, [matchList, filter]);
 
-    setFilteredMatchList(newMatchList);
-  };
+  // ✅ Paginate without copying arrays
+  const paginatedMatchList = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredMatchList.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredMatchList, currentPage]);
 
+  // ✅ Stable event listener (doesn't reset on every list change)
   useEffect(() => {
-    if (matchList) {
-      setFilteredMatchList([...matchList]);
-    }
-  }, [matchList]);
+    if (!socket) return;
+    const eventListener = new SocketEventListener(socket, dispatch);
 
-  useEffect(() => {
-    // check-in-response-to-all-pages
-    if (socket) {
-      const eventListener = new SocketEventListener(socket, dispatch);
-      // Update match list
-      socket.on('round-update-all-pages', (actionData) => eventListener.handleUpdateRoundAllPages({ matchList: filteredMatchList, setMatchList: setFilteredMatchList, actionData }));
-      socket.on('net-update-all-pages', (actionData) => eventListener.handleUpdateNetAllPages({ matchList: filteredMatchList, setMatchList: setFilteredMatchList, actionData }));
-    }
+    const handleRoundUpdate = (actionData: any) =>
+      eventListener.handleUpdateRoundAllPages({
+        matchList: filteredMatchList,
+        setMatchList: () => {}, // ✅ no need to store filtered list in state
+        actionData,
+      });
+
+    const handleNetUpdate = (actionData: any) =>
+      eventListener.handleUpdateNetAllPages({
+        matchList: filteredMatchList,
+        setMatchList: () => {},
+        actionData,
+      });
+
+    socket.on('round-update-all-pages', handleRoundUpdate);
+    socket.on('net-update-all-pages', handleNetUpdate);
 
     return () => {
-      socket?.off('round-update-all-pages');
-      socket?.off('net-update-all-pages');
+      socket.off('round-update-all-pages', handleRoundUpdate);
+      socket.off('net-update-all-pages', handleNetUpdate);
     };
-  }, [dispatch, socket, filteredMatchList]);
-
-  const paginatedMatchList: IMatch[] = useMemo(() => {
-    if (!filteredMatchList) return [];
-
-    // Paginated
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedTeams = filteredMatchList.slice(start, start + ITEMS_PER_PAGE);
-
-    // inactive players won't have rankings
-    return paginatedTeams;
-  }, [filteredMatchList, currentPage]);
+  }, [socket, dispatch, filteredMatchList]);
 
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
       <SelectInput
         label="Match Filter"
         name="matchFilter"
-        optionList={filterOptions.map((o, oI) => ({ id: oI + 1, text: o.text.replace(/_/g, ' '), value: o.text }))}
-        handleSelect={handleMatchFilter}
+        optionList={filterOptions.map((o, i) => ({
+          id: i + 1,
+          text: o.text.replace(/_/g, ' '),
+          value: o.text,
+        }))}
+        handleSelect={(e) => setFilter((e.target as HTMLSelectElement).value)}
       />
-      {paginatedMatchList &&
-        paginatedMatchList.map((match) => (
+
+      {paginatedMatchList.map((match) => (
+        <MatchCard
+          key={match._id}
+          match={match}
           // @ts-ignore
-          <MatchCard match={match} key={match._id} roundList={match?.rounds ? match.rounds : []} allNets={match?.nets ? match.nets.map((n) => ({ ...n, round: n.round._id || n.round })) : []} />
-        ))}
+          roundList={roundsByMatch.get(match._id) || []}
+          allNets={normalizedNets}
+        />
+      ))}
 
       <div className="w-full mt-6">
-        <Pagination currentPage={currentPage} itemList={filteredMatchList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+        <Pagination
+          currentPage={currentPage}
+          itemList={filteredMatchList}
+          setCurrentPage={setCurrentPage}
+          ITEMS_PER_PAGE={ITEMS_PER_PAGE}
+        />
       </div>
     </div>
   );

@@ -151,8 +151,6 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     return totals;
   }, [matches, playerstats, filter]);
 
-  console.log({ totalServe, ts: playerTotalStats.serveOpportunity });
-
   const proScore: number = useMemo(() => {
     const fields: (keyof IProStats)[] = [
       "acePercentage",
@@ -201,7 +199,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   }, [player, safeNets]); // Use safeNets in dependency array
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container mx-auto px-2">
       {/* <!-- Player Profile Header --> */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
         <div className="order-2 md:order-1 flex-1">
