@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItem, ITeam } from '@/types';
 import { removePlayerRankings, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
@@ -15,7 +15,6 @@ import MatchCard from '../match/MatchCard';
 import Pagination from '../elements/Pagination';
 import Link from 'next/link';
 import TextImg from '../elements/TextImg';
-import useLdoUrl from '@/hooks/useLdoUrl';
 import { useLdoId } from '@/lib/LdoProvider';
 
 interface ITeamDetailProps {
@@ -31,11 +30,8 @@ interface ITeamDetailProps {
   rankings: IPlayerRankingItem[];
 }
 
-// eslint-disable-next-line no-unused-vars, no-shadow
 enum ETab {
-  // eslint-disable-next-line no-unused-vars
   ROSTER = 'ROSTER',
-  // eslint-disable-next-line no-unused-vars
   MATCHES = 'MATCHES',
 }
 
@@ -47,8 +43,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
 
   // ===== Local State =====
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
-  const [filteredPlayers, setFilteredPlayers] = useState<IPlayer[]>([]);
-  const [playerIdsToAdd, setPlayerIdsToAdd] = useState<string[]>([]);
+  const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -56,95 +51,101 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
   // ===== GraphQL =====
   const [mutateTeam] = useMutation(UPDATE_TEAM);
 
-  // ===== Change Events =====
-  const handleCheckboxChange = (pId: string, isChecked: boolean) => {
-    if (isChecked) {
-      // @ts-ignore
-      setPlayerIdsToAdd((prevState) => [...new Set([...prevState, pId])]);
-    } else {
-      setPlayerIdsToAdd((prevState) => prevState.filter((p) => p !== pId));
-    }
-  };
+  // ===== Memoized Values =====
+  const teamDivisionLower = useMemo(() => team.division.trim().toLowerCase(), [team.division]);
 
-  const handleSelectGroup = (e: React.SyntheticEvent, tab: ETab) => {
+  const divisionalPlayers = useMemo(() => {
+    if (!unassignedPlayers) return [];
+
+    return unassignedPlayers
+      .filter((p) => p.division && p.division.trim().toLowerCase() === teamDivisionLower)
+      .sort((a, b) => {
+        // Compare by last name first
+        const lastNameCompare = (a.lastName || '').localeCompare(b.lastName || '');
+        if (lastNameCompare !== 0) return lastNameCompare;
+
+        // If last names are the same, compare by first name
+        return (a.firstName || '').localeCompare(b.firstName || '');
+      });
+  }, [unassignedPlayers, teamDivisionLower]);
+
+  const activePlayers = useMemo(() => {
+    if (!playerList) return [];
+    return playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
+  }, [playerList]);
+
+  const inactivePlayers = useMemo(() => {
+    if (!playerList) return [];
+    return playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
+  }, [playerList]);
+
+  const paginatedMatchList = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return matchList.slice(start, start + ITEMS_PER_PAGE);
+  }, [matchList, currentPage]);
+
+  // ===== Event Handlers =====
+  const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
+    setPlayerIdsToAdd((prev) => {
+      const newSet = new Set(prev);
+      if (isChecked) {
+        newSet.add(pId);
+      } else {
+        newSet.delete(pId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleSelectGroup = useCallback((e: React.SyntheticEvent, tab: ETab) => {
     e.preventDefault();
     if (tab === ETab.ROSTER) {
       window.location.reload();
     }
     setSelectedItem(tab);
-  };
+  }, []);
 
-
-  const refetchFunc=()=>{
+  const refetchFunc = useCallback(() => {
     window.location.reload();
-  }
+  }, []);
 
-  const handleAddPlayersToTeam = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    try {
-      await mutateTeam({ variables: { input: { players: playerIdsToAdd }, teamId: team._id, eventId: event._id } });
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
-      // @ts-ignore
-      setActErr({ message: error?.message || '', success: false });
-    }
-  };
+  const handleAddPlayersToTeam = useCallback(
+    async (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      try {
+        await mutateTeam({
+          variables: {
+            input: { players: Array.from(playerIdsToAdd) },
+            teamId: team._id,
+            eventId: event._id,
+          },
+        });
+        window.location.reload();
+      } catch (error) {
+        console.error(error);
+        setActErr({ message: (error as Error)?.message || '', success: false });
+      }
+    },
+    [playerIdsToAdd, team._id, event._id, mutateTeam, setActErr],
+  );
 
-  const handleSelectMatch = (e: React.SyntheticEvent, matchId: string) => {};
+  const handleSelectMatch = useCallback((e: React.SyntheticEvent, matchId: string) => {
+    // Match selection logic
+  }, []);
 
+  // ===== Effects =====
   useEffect(() => {
-    //Removing player rankings
+    // One-time initialization
     removePlayerRankings();
-
-    // Set division
     setDivisionToStore(team.division);
     setTeamToStore(team._id);
-  }, []);
-
-  useEffect(() => {
-    // Get available players from all player list
-    const napList: IPlayer[] = playerList ? playerList.filter((p: IPlayer) => !p.teams || p.teams.length === 0) : []; // nap List = new available players List
-    let nfpList = [...napList]; // fnp List = new filtered player List
-
-    nfpList = napList.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase());
-    setFilteredPlayers(nfpList);
-  }, []);
-
-  
-
-  const divisionalPlayers = useMemo(() => {
-    const nfpList = unassignedPlayers ? unassignedPlayers.filter((p) => p.division && p.division.trim().toLowerCase() === team.division.trim().toLowerCase()) : [];
-    return nfpList;
-  }, [unassignedPlayers, team]);
-
-  const paginatedMatchList: IMatchExpRel[] = useMemo(() => {
-    // Paginated
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedTeams = matchList.slice(start, start + ITEMS_PER_PAGE);
-
-    // inactive players won't have rankings
-    return paginatedTeams;
-  }, [matchList, currentPage]);
-
-  const activePlayers: IPlayerExpRel[] = useMemo(() => {
-    if (!playerList) return [];
-    return playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
-  }, [playerList]);
-
-  const inactivePlayers: IPlayerExpRel[] = useMemo(() => {
-    if (!playerList) return [];
-    return playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
-  }, [playerList]);
+  }, [team.division, team._id]);
 
   return (
     <React.Fragment>
       <div className="flex flex-col items-center">
         {/* Header Section */}
         <div className="team-detail relative w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
-          {/* Decorative Glow */}
-          {/* <div className="overflow-gradient" /> */}
-
           {/* Team Logo */}
           {team.logo ? (
             <CldImage
@@ -268,7 +269,9 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
         <>
           <div className="w-full">
             {paginatedMatchList.length > 0 ? (
-              paginatedMatchList.map((match, i) => <MatchCard setActErr={setActErr} key={match._id} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />)
+              paginatedMatchList.map((match, i) => (
+                <MatchCard key={match._id} setActErr={setActErr} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
+              ))
             ) : (
               <p>No match found of this team!</p>
             )}
@@ -278,9 +281,6 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
           </div>
         </>
       )}
-
-      {/* Show captain  */}
-      {/* <CaptainCard team={team} /> */}
     </React.Fragment>
   );
 }

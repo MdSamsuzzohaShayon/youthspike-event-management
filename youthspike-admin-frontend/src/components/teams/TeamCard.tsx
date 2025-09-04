@@ -26,7 +26,7 @@ interface ITeamCardProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
-  fefetchFunc?: () => Promise<void>;
+  fefetchFunc?: () => void;
 }
 
 interface ITeamMove {

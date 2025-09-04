@@ -3,6 +3,8 @@
  * =========================================================================================================================================
  */
 
+import { gql } from "@apollo/client";
+
 const GET_AN_EVENT_RAW = `
 query GetEventDetails($eventId: String!) {
   getEventDetails(eventId: $eventId) {
@@ -134,6 +136,8 @@ query GetEventDetails($eventId: String!) {
 }
 `;
 
+const GET_AN_EVENT = gql`${GET_AN_EVENT_RAW}`;
+
 /**
  * Mutation
  * =========================================================================================================================================
@@ -167,4 +171,4 @@ const GET_EVENTS_RAW = `
 
 
 
-export { GET_AN_EVENT_RAW, GET_EVENTS_RAW };
+export { GET_AN_EVENT_RAW, GET_EVENTS_RAW, GET_AN_EVENT };

@@ -20,7 +20,7 @@ interface TeamListProps {
   groupList: IGroup[];
   eventList?: IEvent[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  fefetchFunc?: () => Promise<void>;
+  fefetchFunc?: () => void;
 }
 
 

@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { QueryRef, useApolloClient, useFragment, useQuery, useReadQuery } from "@apollo/client";
+import {
+  QueryRef,
+  useApolloClient,
+  useFragment,
+  useQuery,
+  useReadQuery,
+} from "@apollo/client";
 import StatBox from "./StatBox";
 import SelectInput from "../elements/SelectInput";
 import DateInput from "../elements/DateInput";
@@ -38,12 +44,10 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   if (error) console.error(error);
   if (!data?.getPlayerWithStats?.data) return <div>No data found</div>;
 
-
   const socket = useSocket();
   const dispatch = useAppDispatch();
   const user = useUser();
   const apolloClient = useApolloClient();
-
 
   const {
     player,
@@ -56,7 +60,6 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     stats,
   } = data.getPlayerWithStats.data;
   const totalGames = playerstats?.length || 0;
-  
 
   const [filter, setFilter] = useState<Partial<IFilter>>({});
 
@@ -64,10 +67,11 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     socket,
     dispatch,
     playerId: player._id,
-    apolloClient
+    apolloClient,
   });
-  
 
+  const safeNets = nets || [];
+  const safePlayerstats = playerstats || [];
 
   // Event handlers
   const handleInputChange = (e: React.SyntheticEvent) => {
@@ -77,16 +81,13 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
   const gameOfTheMatch = useMemo(() => {
     if (!filter.match) return [];
-    return nets.filter((n) => n.match === filter.match);
-  }, [filter.match, nets]);
+    return safeNets.filter((n) => n.match === filter.match);
+  }, [filter.match, safeNets]); // Use safeNets instead of nets
 
   let totalServe = 0;
   for (const ps of playerstats) {
     totalServe += ps.serveOpportunity;
   }
-
-  
-  
 
   // ✅ Single-pass aggregation with filtering
   const playerTotalStats = useMemo(() => {
@@ -108,31 +109,33 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       broken: 0,
       matchPlayed: 0,
     };
-  
+
     // Parse filter dates
-    const startDate = filter.startDate ? new Date(filter.startDate).getTime() : null;
+    const startDate = filter.startDate
+      ? new Date(filter.startDate).getTime()
+      : null;
     const endDate = filter.endDate ? new Date(filter.endDate).getTime() : null;
-  
+
     // Precompute valid matches
     const validMatches = new Set<string>();
     for (const match of matches) {
       const matchTime = match.date ? new Date(match.date).getTime() : null;
-  
+
       if (startDate && matchTime && matchTime < startDate) continue;
       if (endDate && matchTime && matchTime > endDate) continue;
       if (filter.match && match._id !== filter.match) continue;
-  
+
       validMatches.add(match._id);
     }
-  
+
     // Aggregate stats
-    for (const ps of playerstats || []) {
+    for (const ps of safePlayerstats) {
       const matchId = typeof ps.match === "string" ? ps.match : ps.match?._id;
       if (!matchId || !validMatches.has(matchId)) continue;
-  
+
       const netId = typeof ps.net === "string" ? ps.net : ps.net?._id;
       if (filter.game && netId !== filter.game) continue;
-  
+
       for (const key in totals) {
         if (Object.prototype.hasOwnProperty.call(totals, key)) {
           const value = ps[key as keyof IPlayerTotalStats];
@@ -141,16 +144,14 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           }
         }
       }
-  
+
       totals.matchPlayed += 1; // ✅ Count this match
     }
-  
+
     return totals;
   }, [matches, playerstats, filter]);
-  
 
-  console.log({totalServe, ts: playerTotalStats.serveOpportunity});
-
+  console.log({ totalServe, ts: playerTotalStats.serveOpportunity });
 
   const proScore: number = useMemo(() => {
     const fields: (keyof IProStats)[] = [
@@ -161,29 +162,31 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       "servingPercentage",
       "settingPercentage",
     ];
-  
+
     const total = fields.reduce((sum, key) => {
       // Type-safe null checks with proper typing
-      const m: number = multiplayer && typeof multiplayer === 'object' && key in multiplayer 
-        ? (multiplayer[key] as number) ?? 0 
-        : 0;
-      
-      const w: number = weight && typeof weight === 'object' && key in weight 
-        ? (weight[key] as number) ?? 0 
-        : 0;
-      
-  
-      return sum + m * w ;
+      const m: number =
+        multiplayer && typeof multiplayer === "object" && key in multiplayer
+          ? (multiplayer[key] as number) ?? 0
+          : 0;
+
+      const w: number =
+        weight && typeof weight === "object" && key in weight
+          ? (weight[key] as number) ?? 0
+          : 0;
+
+      return sum + m * w;
     }, 0);
-  
+
     return total * 10;
   }, [multiplayer, weight]);
-  
 
   const { noOfGamesPlayed, noOfGamesWon } = useMemo(() => {
     const playerId = player._id;
     let noOfGamesWon = 0;
-    for (const n of nets) {
+    
+    // Use safeNets instead of nets
+    for (const n of safeNets) {
       if (n.teamAPlayerA === playerId || n.teamAPlayerB === playerId) {
         if (n.teamAScore && n.teamBScore && n.teamAScore > n.teamBScore) {
           noOfGamesWon++;
@@ -194,8 +197,8 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
         }
       }
     }
-    return { noOfGamesPlayed: nets.length, noOfGamesWon };
-  }, [player, nets]);
+    return { noOfGamesPlayed: safeNets.length, noOfGamesWon };
+  }, [player, safeNets]); // Use safeNets in dependency array
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -11,9 +11,7 @@ import { CldImage } from "next-cloudinary";
 import React, { useMemo } from "react";
 import PlayerView from "./PlayerView";
 import LocalStorageService from "@/utils/LocalStorageService";
-import { usePathname } from "next/navigation";
-import { useAppDispatch } from "@/redux/hooks";
-import { setCurrNetNum } from "@/redux/slices/netSlice";
+import NetHeader from "./NetHeader";
 
 interface INetInRoundViewProps {
   net: INetRelatives;
@@ -39,8 +37,7 @@ function NetInRoundView({
   matchId,
   view
 }: INetInRoundViewProps) {
-  const pathname = usePathname();
-  const dispatch = useAppDispatch();
+
 
   const handleScordboardRedirect = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -49,17 +46,7 @@ function NetInRoundView({
     window.location.assign(`/score-keeping/${matchId}`);
   };
 
-  const handleRoundNetSelect = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if(view === EView.NET){
-      LocalStorageService.setMatch(matchId, net.round);
-      setView(EView.ROUND);
-    }else{
-      LocalStorageService.setMatch(matchId, net.round, net._id);
-      dispatch(setCurrNetNum(net.num));
-      setView(EView.NET);
-    }
-  };
+
   
 
   const teamAPlayerMap = useMemo(() => {
@@ -69,13 +56,7 @@ function NetInRoundView({
     return new Map(teamBPlayers.map((p) => [p._id, p]));
   }, [teamBPlayers, currRoundNets]);
 
-  const selectedNet = useMemo(() => {
-    return {
-      ...net,
-      teamAScore: srNet?.teamAScore || net.teamAScore,
-      teamBScore: srNet?.teamBScore || net.teamBScore,
-    };
-  }, [net, srNet]);
+  
 
   
 
@@ -97,53 +78,10 @@ function NetInRoundView({
   }, [srNet]);
 
   return (
-    <div className="bg-gray-800 p-4 md:p-5 rounded-xl shadow-lg border border-gray-700 hover:border-yellow-400 transition-all duration-300">
+    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 shadow-2xl border border-gray-700">
       {/* Net Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5 pb-4 border-b border-gray-600 gap-4">
-        <h3 className="text-yellow-400 font-bold text-xl whitespace-nowrap">
-          Net {net.num}
-        </h3>
-
-        {/* Score Display */}
-        <div className="flex items-center justify-center gap-6">
-          {/* Team A Score */}
-          <div className="relative">
-            <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-              <div className="text-black font-bold text-3xl">
-                {selectedNet?.teamAScore || 0}
-              </div>
-            </div>
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-black px-2 py-1 rounded-full border border-yellow-400">
-              <span className="text-yellow-400 text-xs font-bold truncate max-w-[60px]">
-                {teamA?.name?.split(" ")[0] || "A"}
-              </span>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <span className="text-yellow-400 font-bold text-2xl">-</span>
-
-          {/* Team B Score */}
-          <div className="relative">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-yellow-400">
-              <div className="text-black font-bold text-3xl">
-                {selectedNet?.teamBScore || 0}
-              </div>
-            </div>
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-black px-2 py-1 rounded-full border border-yellow-400">
-              <span className="text-yellow-400 text-xs font-bold truncate max-w-[60px]">
-                {teamB?.name?.split(" ")[0] || "B"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <button
-          className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-400 text-black hover:bg-yellow-300 border-0"
-          onClick={handleRoundNetSelect}
-        >
-          {view === EView.NET ? "ENTER ROUND" : "ENTER NET"}
-        </button>
+      <div className=" mb-5 pb-4 border-b border-gray-600">
+        <NetHeader matchId={matchId} net={net} setView={setView} srNet={srNet} teamA={teamA} teamB={teamB} view={view} />
       </div>
 
       {/* Team A Players */}
@@ -188,7 +126,7 @@ function NetInRoundView({
 
       {/* Divider */}
       <div className="flex justify-center my-3">
-        <div className="w-10 h-px bg-yellow-400"></div>
+        <div className="w-10 h-px bg-yellow-logo"></div>
       </div>
 
       {/* Team B Players */}
@@ -238,7 +176,7 @@ function NetInRoundView({
         net.teamBPlayerB && (
           <div className="w-full mt-4 flex justify-between items-center">
             <button
-              className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-400 text-black hover:bg-yellow-300 border-0"
+              className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-logo text-black hover:bg-yellow-300 border-0"
               onClick={handleScordboardRedirect}
             >
               SCOREBOARD

@@ -88,12 +88,12 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
           )}
 
           {/* Team Name */}
-          <h3 className="text-2xl font-semibold mt-5 relative z-10">Barcelona FC</h3>
+          <h3 className="text-2xl font-semibold mt-5 relative z-10">{team.name}</h3>
 
           {/* Event Title */}
           <div className="text-center mb-6 relative z-10">
             <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">Teams / Roster</h1>
-            <h2 className="text-sm text-gray-300 uppercase mt-1">Event-1</h2>
+            <h2 className="text-sm text-gray-300 uppercase mt-1">{event.name}</h2>
           </div>
 
           {/* Standings Button */}

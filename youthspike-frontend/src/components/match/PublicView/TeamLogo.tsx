@@ -21,14 +21,14 @@ const TeamLogo = ({
         alt={team.name}
         width={70}
         height={70}
-        className={`rounded-full border-4 object-cover ${borderColor} ${className}`}
+        className={`object-cover ${borderColor} ${className}`}
       />
     );
   }
   return (
     <TextImg
       fullText={team?.name || (teamType === ETeamType.TEAM_A ? "TA" : "TB")}
-      className={`rounded-full border-4 font-bold ${borderColor} ${className}`}
+      className={`font-bold ${borderColor} ${className}`}
     />
   );
 };

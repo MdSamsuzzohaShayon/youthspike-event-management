@@ -1,74 +1,36 @@
-import EventDetail from '@/components/event/EventDetail';
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam, TParams } from '@/types';
-import { notFound } from 'next/navigation';
-import getEventWithMatches from '../_fetch/event';
 
-interface IEventSingleProps{
-  params: Promise<TParams>;
+import React, { Suspense } from "react";
+import { IEventDetailData, IMatchExpRel, TParams } from "@/types";
+import Loader from "@/components/elements/Loader";
+import { PreloadQuery } from "@/lib/client";
+import { QueryRef } from "@apollo/client";
+import EventDetail from "@/components/event/EventDetail";
+import { GET_AN_EVENT } from "@/graphql/event";
+
+interface IEventPageProps {
+  params: TParams;
 }
+async function EventPage({ params }: IEventPageProps) {
+  const { eventId } = await params;
 
-// Create pagination
-// Manipulate team and players properly to show all valid data
-async function EventSingle({ params }: IEventSingleProps) {
-  const {eventId} = await params;
-  const matchesData = await getEventWithMatches(eventId);
-
-  if (!matchesData) {
-    notFound();
-  }
-
-  // Matches,
-  const { event, matches, teams, players, ldo, nets, rounds, groups, sponsors } = matchesData;
-
-  const teamMap = new Map(teams.map((t: ITeam) => [t._id, t]));
-  const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
-  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
-
-  const matchList = matches.map((m: IMatchExpRel) => {
-    const matchObj = { ...m };
-
-    // @ts-ignore
-    matchObj.rounds = m.rounds.map((roundId) => roundMap.get(roundId)).filter(Boolean);
-    // @ts-ignore
-    matchObj.nets = m.nets.map((netId) => netMap.get(netId)).filter(Boolean);
-
-    if (teamMap.has(m.teamA)) {
-      // @ts-ignore
-      matchObj.teamA = teamMap.get(m.teamA);
-    }
-    if (teamMap.has(m.teamB)) {
-      // @ts-ignore
-      matchObj.teamB = teamMap.get(m.teamB);
-    }
-
-    return matchObj;
-  });
-
-  const playerList = players.map((p: IPlayer) => {
-    const playerObj = { ...p };
-    if (p.teams && p.teams.length > 0 && teamMap.has(p.teams[0])) {
-      // @ts-ignore
-      playerObj.teams = [teamMap.get(p.teams[0])];
-    }
-    return playerObj;
-  });
-
-  const prevEvent = structuredClone(event);
-  prevEvent.ldo = ldo;
-  prevEvent.groups = groups;
-  prevEvent.matches = matchList;
-  prevEvent.teams = teams;
-  prevEvent.players = playerList;
-  prevEvent.sponsors = sponsors;
-
-  // Handle admin-specific logic for LDO_ID in the query parameters
-
-  // Render the event details
   return (
-    <div className="container mx-auto px-2 min-h-screen">
-      <EventDetail event={prevEvent} />
+    <div className="w-full min-h-screen">
+      <PreloadQuery
+        query={GET_AN_EVENT}
+        variables={{
+          eventId: eventId,
+        }}
+      >
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <EventDetail queryRef={
+                  queryRef as QueryRef<{ getEventDetails: { data: IEventDetailData } }>
+                } />
+          </Suspense>
+        )}
+      </PreloadQuery>
     </div>
   );
 }
 
-export default EventSingle;
+export default EventPage;

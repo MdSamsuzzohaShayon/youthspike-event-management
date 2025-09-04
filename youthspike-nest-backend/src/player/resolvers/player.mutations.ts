@@ -269,10 +269,13 @@ export class PlayerMutations implements IPlayerMutations {
           // const eventExist = await this.eventService.findById(eventId);
           let team = teamExist;
           if (teamExist) {
-            const teamPlayers = [...teamExist.players, teamPlayerIds];
+            // const teamPlayers = [...teamExist.players, ...teamPlayerIds];
             await this.teamService.updateOne(
               { _id: teamExist._id },
-              { $set: { name: teamObj.name, players: teamPlayers } },
+              { 
+                $set: { name: teamObj.name },
+                $addToSet: { players: { $each: teamPlayerIds } }
+              },
             );
           } else {
             team = await this.teamService.create(teamObj);

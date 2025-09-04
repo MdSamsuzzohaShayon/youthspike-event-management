@@ -22,8 +22,6 @@ import TeamInfo from "./TeamInfo";
 import VSBadge from "./VSBadge";
 import RoundNavigation from "./RoundNavigation";
 
-
-
 interface IRoundViewProps {
   roundList: IRoundRelatives[];
   allNets: INetRelatives[];
@@ -51,11 +49,13 @@ const RoundView = ({
   setView,
   srMap,
   matchId,
-  view
+  view,
 }: IRoundViewProps) => {
   const dispatch = useAppDispatch();
 
-  const { teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
+  const { teamATotalScore, teamBTotalScore } = useAppSelector(
+    (state) => state.matches
+  );
 
   const roundIdToIndex = useMemo(() => {
     const map: Record<string, number> = {};
@@ -92,9 +92,6 @@ const RoundView = ({
     [dispatch, netsByRound, roundList]
   );
 
-  
-  
-
   const handleRoundChange = useCallback(
     (direction: ENDirection) => (e: React.SyntheticEvent) => {
       e.preventDefault();
@@ -105,7 +102,10 @@ const RoundView = ({
 
       if (direction === ENDirection.PREV && currIdx > 0) {
         targetIdx = currIdx - 1;
-      } else if (direction === ENDirection.NEXT && currIdx < roundList.length - 1) {
+      } else if (
+        direction === ENDirection.NEXT &&
+        currIdx < roundList.length - 1
+      ) {
         targetIdx = currIdx + 1;
       } else {
         return;
@@ -115,74 +115,166 @@ const RoundView = ({
     },
     [currRound, roundIdToIndex, roundList.length, changeTheRound]
   );
-  
 
   return (
-    <div className="bg-gray-900 min-h-screen p-4 md:p-6 rounded-xl">
+    <div className="py-4 md:py-6 rounded-xl">
       {/* Header Section */}
-      <div className="bg-gray-800 rounded-xl p-4 md:p-6 mb-6 shadow-lg border border-gray-700">
-        
-        {/* Mobile Layout: Stacked */}
-        <div className="flex flex-col md:hidden items-center space-y-5">
-          {/* Round Title and Navigation */}
-          <div className="flex items-center justify-center space-x-5 w-full">
-            <NavArrow 
-              direction={ENDirection.PREV} 
-              onClick={handleRoundChange(ENDirection.PREV)} 
-              size={EArrowSize.SM}
-            />
-            
-            <div className="text-yellow-400 font-bold text-xl text-center bg-black px-4 py-2 rounded-full border border-yellow-400">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 md:p-8 mb-6 shadow-2xl border border-gray-700">
+        {/* Mobile Layout */}
+        <div className="md:hidden flex flex-col items-center space-y-6">
+          {/* Round Navigation - Mobile */}
+          <div className="flex items-center justify-between w-full mb-2">
+            <div className="text-yellow-logo font-bold text-lg bg-gray-900 px-4 py-2 rounded-full border border-yellow-logo shadow-md">
               Round {currRound?.num}
             </div>
 
-            <NavArrow 
-              direction={ENDirection.NEXT} 
-              onClick={handleRoundChange(ENDirection.NEXT)} 
-              size={EArrowSize.SM}
-            />
+            <div className="flex space-x-3">
+              <NavArrow
+                direction={ENDirection.PREV}
+                onClick={handleRoundChange(ENDirection.PREV)}
+                size={EArrowSize.SM}
+                className=""
+              />
+
+              <NavArrow
+                direction={ENDirection.NEXT}
+                onClick={handleRoundChange(ENDirection.NEXT)}
+                size={EArrowSize.SM}
+                className=""
+              />
+            </div>
           </div>
 
-          {/* Teams and Logos */}
-          <div className="flex items-center justify-between w-full px-4">
-            <TeamInfo team={teamA} teamType={ETeamType.TEAM_A} />
-            
-            <div className="mx-2">
-              <VSBadge size="sm" />
+          {/* Teams and Score - Mobile */}
+          <div className="w-full rounded-xl p-4 shadow-inner">
+            <div className="flex items-center justify-between">
+              <TeamInfo team={teamA} teamType={ETeamType.TEAM_A} />
+
+              <div className="flex flex-col items-center mx-2">
+                <VSBadge size="sm" />
+                <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-yellow-logo to-transparent my-2"></div>
+                <div className="text-white text-xs font-medium">VS</div>
+              </div>
+
+              <TeamInfo team={teamB} teamType={ETeamType.TEAM_B} />
             </div>
 
-            <TeamInfo team={teamB} teamType={ETeamType.TEAM_B} />
-          </div>
+            {/* Score Display - Mobile */}
+            <div className="flex items-center justify-between mt-6 px-2">
+              <ScoreCircle
+                score={teamATotalScore}
+                teamType={ETeamType.TEAM_A}
+                className="w-20 h-20"
+              />
 
-          {/* Score Display - Mobile */}
-          <div className="flex items-center justify-center space-x-6 w-full px-4">
-            <ScoreCircle score={teamATotalScore} teamType={ETeamType.TEAM_A} className="w-28 h-28" />
-            
-            <div className="text-yellow-400 font-bold text-4xl">-</div>
-            
-            <ScoreCircle score={teamBTotalScore} teamType={ETeamType.TEAM_B} className="w-28 h-28" />
+              <div className="flex flex-col items-center mx-2">
+                <div className="text-yellow-logo text-2xl font-bold mb-1">-</div>
+                <div className="text-gray-400 text-xs">SCORE</div>
+              </div>
+
+              <ScoreCircle
+                score={teamBTotalScore}
+                teamType={ETeamType.TEAM_B}
+                className="w-20 h-20"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Desktop Layout: Horizontal */}
-        <div className="hidden md:flex items-center justify-between">
-          <TeamInfo team={teamA} teamType={ETeamType.TEAM_A} layout={ELayout.DESKTOP} />
+        {/* Tablet Layout */}
+        <div className="hidden md:flex lg:hidden flex-col items-center">
+          {/* Round Navigation - Tablet */}
+          <RoundNavigation
+            size={EArrowSize.MD}
+            currRound={currRound}
+            handleRoundChange={handleRoundChange}
+            className="mb-6"
+          />
 
-          {/* Score Display - Desktop */}
-          <div className="flex items-center justify-center space-x-8 mx-6">
-            <ScoreCircle score={teamATotalScore} teamType={ETeamType.TEAM_A} className="w-40 h-40 border-6" />
-            
-            {/* Center: VS and Round Navigation */}
-            <div className="flex flex-col items-center space-y-4 mx-2">
-              <VSBadge size="md" />
+          {/* Teams and Score - Tablet */}
+          <div className="flex items-center justify-between w-full">
+            <TeamInfo
+              team={teamA}
+              teamType={ETeamType.TEAM_A}
+              layout={ELayout.TABLET}
+            />
 
-              <RoundNavigation size={EArrowSize.MD} currRound={currRound} handleRoundChange={handleRoundChange} />
+            <div className="flex flex-col items-center mx-4">
+              <div className="flex items-center">
+                <ScoreCircle
+                  score={teamATotalScore}
+                  teamType={ETeamType.TEAM_A}
+                  className="w-28 h-28"
+                />
+
+                <div className="mx-6 flex flex-col items-center">
+                  <VSBadge size="md" />
+                  <div className="h-0.5 w-16 bg-gradient-to-r from-transparent via-yellow-logo to-transparent my-3"></div>
+                  <div className="text-white text-sm font-medium">VERSUS</div>
+                </div>
+
+                <ScoreCircle
+                  score={teamBTotalScore}
+                  teamType={ETeamType.TEAM_B}
+                  className="w-28 h-28"
+                />
+              </div>
             </div>
 
-            <ScoreCircle score={teamBTotalScore} teamType={ETeamType.TEAM_B} className="w-40 h-40 border-6" />
+            <TeamInfo
+              team={teamB}
+              teamType={ETeamType.TEAM_B}
+              layout={ELayout.TABLET}
+            />
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:flex items-center justify-between">
+          <div className="w-3/12">
+            <TeamInfo
+              team={teamA}
+              teamType={ETeamType.TEAM_A}
+              layout={ELayout.DESKTOP}
+            />
           </div>
 
-          <TeamInfo team={teamB} teamType={ETeamType.TEAM_B} layout={ELayout.DESKTOP} />
+          {/* Center Content - Desktop */}
+          <div className="w-6/12 flex flex-col items-center flex-1">
+            <div className="flex items-center justify-center">
+              <ScoreCircle
+                score={teamATotalScore}
+                teamType={ETeamType.TEAM_A}
+                className="w-36 h-36 border-6 shadow-xl"
+              />
+
+              <div className="flex flex-col items-center">
+                <VSBadge size="lg" />
+                <div className="h-1 w-20 bg-gradient-to-r from-transparent via-yellow-logo to-transparent my-4"></div>
+
+                <RoundNavigation
+                  size={EArrowSize.LG}
+                  currRound={currRound}
+                  handleRoundChange={handleRoundChange}
+                  className="mt-2"
+                />
+              </div>
+
+              <ScoreCircle
+                score={teamBTotalScore}
+                teamType={ETeamType.TEAM_B}
+                className="w-36 h-36 border-6 shadow-xl"
+              />
+            </div>
+          </div>
+
+          <div className="w-3/12">
+            <TeamInfo
+              team={teamB}
+              teamType={ETeamType.TEAM_B}
+              layout={ELayout.DESKTOP}
+            />
+          </div>
         </div>
       </div>
 

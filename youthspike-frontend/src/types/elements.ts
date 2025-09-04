@@ -191,7 +191,8 @@ export enum EArrowSize {
 
 export enum ELayout {
   MOBILE = "mobile",
-  DESKTOP = "desktop"
+  DESKTOP = "desktop", 
+  TABLET = "tablet", 
 }
 
 export enum ETeamType {

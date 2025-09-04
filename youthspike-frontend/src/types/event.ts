@@ -1,10 +1,14 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
-import React from 'react';
-import { IMessage } from './elements';
-import { IDefaultMatch, IMatchRelatives } from './match';
-import { ILDO } from './ldo';
-import { IGroup } from './group';
+import React from "react";
+import { IMessage } from "./elements";
+import { IDefaultMatch, IMatchExpRel, IMatchRelatives } from "./match";
+import { ILDO } from "./ldo";
+import { IGroup, IGroupRelatives } from "./group";
+import { ITeam } from "./team";
+import { IPlayer } from "./player";
+import { INetRelatives } from "./net";
+import { IRoundRelatives } from "./round";
 
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
@@ -63,16 +67,28 @@ export interface IEventAddProps {
   prevEvent?: IEvent;
 }
 
+export interface IEventDetailData {
+  event: IEvent;
+  matches: IMatchExpRel[];
+  teams: ITeam[];
+  players: IPlayer[];
+  ldo: ILDO;
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+  groups: IGroupRelatives[];
+  sponsors: IEventSponsor[];
+}
+
 // eslint-disable-next-line no-shadow
 export enum EEventPeriod {
-  UPCOMING = 'UPCOMING',
-  CURRENT = 'CURRENT',
-  PAST = 'PAST',
+  UPCOMING = "UPCOMING",
+  CURRENT = "CURRENT",
+  PAST = "PAST",
 }
 
 // eslint-disable-next-line no-shadow
 export enum EEventItem {
-  PLAYER = 'PLAYER',
-  MATCH = 'MATCH',
-  TEAM = 'TEAM',
+  PLAYER = "PLAYER",
+  MATCH = "MATCH",
+  TEAM = "TEAM",
 }
