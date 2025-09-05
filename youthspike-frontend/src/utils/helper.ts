@@ -1,4 +1,4 @@
-import { IOption, IPlayer, IPlayerRankingItemExpRel } from '@/types';
+import { IAggregatedStats, IOption, IPlayer, IPlayerRankingItemExpRel, IPlayerStats, IServerReceiverSinglePlay } from '@/types';
 import { GraphQLError } from 'graphql';
 import { netSize, screen } from './constant';
 
@@ -114,4 +114,52 @@ export const fsToggle = (screenWidth: number) => {
 export const setNetH = (screenWidth: number) => {
   const hStyle = { height: screenWidth > screen.xs ? `${netSize.mhl}rem` : `${netSize.mhm}rem` };
   return hStyle;
+};
+
+
+
+
+
+export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats => {
+  // Initialize all fields to 0
+  const aggregated: IAggregatedStats = {
+    serveOpportunity: 0,
+    serveAce: 0,
+    serveCompletionCount: 0,
+    servingAceNoTouch: 0,
+    receiverOpportunity: 0,
+    receivedCount: 0,
+    noTouchAcedCount: 0,
+    settingOpportunity: 0,
+    cleanSets: 0,
+    hittingOpportunity: 0,
+    cleanHits: 0,
+    defensiveOpportunity: 0,
+    defensiveConversion: 0,
+    break: 0,
+    broken: 0,
+    matchPlayed: 0,
+  };
+
+  // Just sum all the numeric fields from each stat object
+  stats.forEach((stat: IPlayerStats) => {
+    aggregated.serveOpportunity += stat.serveOpportunity || 0;
+    aggregated.serveAce += stat.serveAce || 0;
+    aggregated.serveCompletionCount += stat.serveCompletionCount || 0;
+    aggregated.servingAceNoTouch += stat.servingAceNoTouch || 0;
+    aggregated.receiverOpportunity += stat.receiverOpportunity || 0;
+    aggregated.receivedCount += stat.receivedCount || 0;
+    aggregated.noTouchAcedCount += stat.noTouchAcedCount || 0;
+    aggregated.settingOpportunity += stat.settingOpportunity || 0;
+    aggregated.cleanSets += stat.cleanSets || 0;
+    aggregated.hittingOpportunity += stat.hittingOpportunity || 0;
+    aggregated.cleanHits += stat.cleanHits || 0;
+    aggregated.defensiveOpportunity += stat.defensiveOpportunity || 0;
+    aggregated.defensiveConversion += stat.defensiveConversion || 0;
+    aggregated.break += stat.break || 0;
+    aggregated.broken += stat.broken || 0;
+    aggregated.matchPlayed += stat.matchPlayed || 0;
+  });
+
+  return aggregated;
 };

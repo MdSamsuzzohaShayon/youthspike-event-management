@@ -65,6 +65,7 @@ export interface IServerReceiverSinglePlay extends IServerReceiverCommon {
 }
 
 
+
 export interface IActionResponse{
   serverReceiverOnNet: IServerReceiverOnNetMixed,
   singlePlay: IServerReceiverSinglePlay;

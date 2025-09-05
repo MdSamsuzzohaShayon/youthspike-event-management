@@ -7,6 +7,7 @@ import { Event } from '../event.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { PlayerStats, ProStats } from 'src/player-stats/player-stats.schema';
 import { Match } from 'src/match/match.schema';
+import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -26,27 +27,16 @@ export class GetEventResponse extends AppResponse<Event> {
   data?: Event | null;
 }
 
+
+
 @ObjectType()
-export class CustomPlayerStats extends PlayerStats{
+export class PlayerStatsEntry {
   @Field(() => String)
-  net: string;
+  playerId: string;
 
-  @Field(() => String)
-  player: string;
-
-  @Field(() => String)
-  match: string;
+  @Field(() => [CustomPlayerStats])
+  stats: CustomPlayerStats[];
 }
-
-
-// @ObjectType()
-// export class PlayerStatsEntry {
-//   @Field(() => String)
-//   playerId: string;
-
-//   @Field(() => [CustomPlayerStats])
-//   stats: CustomPlayerStats[];
-// }
 
 @ObjectType()
 export class EventDetails extends EventMatches {
@@ -56,8 +46,8 @@ export class EventDetails extends EventMatches {
   @Field((_type) => [Sponsor], { nullable: false })
   sponsors: Sponsor[];
 
-  // @Field(() => [PlayerStatsEntry])
-  // statsOfPlayer: PlayerStatsEntry[];
+  @Field(() => [PlayerStatsEntry])
+  statsOfPlayer: PlayerStatsEntry[];
 }
 
 

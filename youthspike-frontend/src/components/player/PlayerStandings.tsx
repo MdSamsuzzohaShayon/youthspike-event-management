@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { IMatch, IMatchExpRel, IPlayer, IPlayerRecord } from "@/types";
+import {
+  IMatch,
+  IMatchExpRel,
+  IPlayer,
+  IPlayerRecord,
+  IPlayerStats,
+  IServerReceiverSinglePlay,
+} from "@/types";
 import { calculatePlayerRecords } from "@/utils/scoreCalc";
 import { useAppSelector } from "@/redux/hooks";
 import PlayerRow from "./PlayerRow";
@@ -10,14 +17,16 @@ interface IPlayerStandingsProps {
   teamRank?: boolean;
   playerList: IPlayer[];
   matchList: IMatch[];
+  playerStatsMap: Map<string, IPlayerStats[]>;
 }
 
-const ITEMS_PER_PAGE = 50;
+const ITEMS_PER_PAGE = 30;
 
 function PlayerStandings({
   playerList,
   matchList,
   teamRank,
+  playerStatsMap,
 }: IPlayerStandingsProps) {
   // Local state
   const [players, setPlayers] = useState<IPlayerRecord[]>([]);
@@ -79,137 +88,128 @@ function PlayerStandings({
 
   return (
     <div className="playerList w-full flex flex-col">
-      <div className="overflow-x-auto">
-        <div className="min-w-[800px] md:min-w-0">
-          <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden">
-            <thead>
-              <tr className="bg-yellow-500 text-black font-semibold">
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 w-40 md:w-auto">
-                  Player
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 hidden md:table-cell">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>Pro Score</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span className="hidden md:inline">Serve %</span>
-                    <span className="md:hidden">S%</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>+/-</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 hidden lg:table-cell">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>Ace %</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 hidden lg:table-cell">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>Receive %</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 hidden lg:table-cell">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>Hitting %</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 hidden xl:table-cell">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>Set Assists %</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10 hidden xl:table-cell">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span>Defense %</span>
-                  </div>
-                </th>
-                <th className="py-3 px-2 md:px-4 sticky top-0 shadow-md z-10">
-                  <div className="flex items-center">
-                    <Image
-                      width={20}
-                      height={20}
-                      className="w-4 md:w-5 svg-black rotate-90 mr-1"
-                      alt="arrow"
-                      src="/icons/right-arrow.svg"
-                    />
-                    <span className="hidden md:inline">Win %</span>
-                    <span className="md:hidden">W%</span>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((player, index) => (
-                <PlayerRow
-                  key={player._id}
-                  index={index}
-                  player={player}
-                  teamRank={teamRank}
-                />
-              ))}
-            </tbody>
-          </table>
+      <div className="overflow-x-auto w-full">
+        <div className="min-w-[1000px] w-full">
+          {" "}
+          {/* Increased min-width to accommodate all columns */}
+          <div className="relative w-full">
+            <table className="w-full text-left text-sm text-gray-300 bg-gray-900">
+              <thead>
+                <tr className="bg-yellow-500 text-black font-semibold">
+                  <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-500 min-w-[120px] max-w-[120px]">
+                    Player
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Serve %</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>+/-</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Ace %</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Receive %</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Hitting %</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Set Assists %</span>
+                    </div>
+                  </th>
+                  <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Defense %</span>
+                    </div>
+                  </th>
+                  {/* <th className="py-3 px-4 sticky top-0 shadow-md z-10 bg-yellow-500 whitespace-nowrap">
+                    <div className="flex items-center justify-center">
+                      <Image
+                        width={20}
+                        height={20}
+                        className="w-5 svg-black rotate-90 mr-1"
+                        alt="arrow"
+                        src="/icons/right-arrow.svg"
+                      />
+                      <span>Win %</span>
+                    </div>
+                  </th> */}
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((player, index) => (
+                  <PlayerRow
+                    key={player?._id}
+                    index={index}
+                    player={player}
+                    teamRank={teamRank}
+                    playerStats={playerStatsMap.get(player?._id) || []}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div className="w-full mt-6">

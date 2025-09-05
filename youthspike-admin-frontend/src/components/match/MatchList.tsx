@@ -61,47 +61,54 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     let filteredList = [...sortedMatchList];
 
     if (user.info?.captainplayer) {
-      // Filter matches where user is a captain
+      // Filter matches where user is a captain - with null checks
       filteredList = filteredList.filter(
         (ml) =>
-          ml.teamA.captain === user.info?.captainplayer ||
-          ml.teamA.captain?._id === user.info?.captainplayer ||
-          ml.teamB.captain === user.info?.captainplayer ||
-          ml.teamB.captain?._id === user.info?.captainplayer,
+          ml.teamA?.captain === user.info?.captainplayer ||
+          ml.teamA?.captain?._id === user.info?.captainplayer ||
+          ml.teamB?.captain === user.info?.captainplayer ||
+          ml.teamB?.captain?._id === user.info?.captainplayer,
       );
     }
 
     if (user.info?.cocaptainplayer) {
-      // Filter matches where user is a captain
+      // Filter matches where user is a cocaptain - with null checks
       filteredList = filteredList.filter(
         (ml) =>
-          ml.teamA.cocaptain === user.info?.cocaptainplayer ||
-          ml.teamA.cocaptain?._id === user.info?.cocaptainplayer ||
-          ml.teamB.cocaptain === user.info?.cocaptainplayer ||
-          ml.teamB.cocaptain?._id === user.info?.cocaptainplayer,
+          ml.teamA?.cocaptain === user.info?.cocaptainplayer ||
+          ml.teamA?.cocaptain?._id === user.info?.cocaptainplayer ||
+          ml.teamB?.cocaptain === user.info?.cocaptainplayer ||
+          ml.teamB?.cocaptain?._id === user.info?.cocaptainplayer,
       );
     }
 
     if (filterParams.date) {
-      // Filter by selected date
-      filteredList = filteredList.filter((m) => filterParams.date === validateMatchDatetime(m.date));
+      // Filter by selected date - with null check
+      filteredList = filteredList.filter((m) => m.date && filterParams.date === validateMatchDatetime(m.date));
     }
 
     if (filterParams.opponent) {
-      // Filter by selected opponent
-      filteredList = filteredList.filter((m) => filterParams.opponent === m.teamA._id || filterParams.opponent === m.teamB._id);
+      // Filter by selected opponent - with null checks
+      filteredList = filteredList.filter((m) => 
+        (m.teamA?._id === filterParams.opponent) || 
+        (m.teamB?._id === filterParams.opponent)
+      );
     }
 
     if (filterParams.description) {
       const searchText = filterParams.description.trim().toLowerCase();
-      filteredList = filteredList.filter((match) => match.description?.toLowerCase().includes(searchText));
+      filteredList = filteredList.filter((match) => 
+        match.description?.toLowerCase().includes(searchText)
+      );
     }
 
     if (filterParams.group || filterParams.group === '') {
       if (filterParams.group === '') {
         filteredList = [...filteredList];
       } else if (filterParams.group) {
-        filteredList = filteredList.filter((m) => (m.group?._id || m.group) === filterParams.group);
+        filteredList = filteredList.filter((m) => 
+          (m.group?._id || m.group) === filterParams.group
+        );
       }
     }
 
@@ -114,7 +121,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   };
 
   const handleDescriptionChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
+    const inputEl = e.target as HTMLInputElement;
     setFilterParams((prevState) => ({ ...prevState, description: inputEl.value }));
   };
 
@@ -130,12 +137,20 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
 
   const getSelectableOpponents = () => {
     const division = getDivisionFromStore();
-    const isDifferentCaptain = (t: ITeam) => t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
-
-    return teamList.filter((t) => {
-      const sameDivision = division ? t.division.toString().trim().toUpperCase() === division.toString().trim().toUpperCase() : true;
-      return isDifferentCaptain(t) && sameDivision;
-    });
+    const isDifferentCaptain = (t: ITeam) =>
+      t.captain?._id !== user.info?.captainplayer &&
+      t.cocaptain?._id !== user.info?.cocaptainplayer;
+  
+    return teamList
+      .filter((t) => {
+        if (!t) return false; // Skip null/undefined teams
+        const sameDivision = division
+          ? t.division?.toString().trim().toUpperCase() === division.toString().trim().toUpperCase()
+          : true;
+        return isDifferentCaptain(t) && sameDivision;
+      })
+      // ✅ Sort alphabetically by team name (case-insensitive)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", undefined, { sensitivity: "base" }));
   };
 
   const getSelectableGroups: IOption[] = useCallback(() => {
@@ -143,7 +158,9 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     groupOptionList.push({ id: 0, value: '', text: 'All' });
     if (groupList && groupList.length > 0) {
       groupList.forEach((g, index) => {
-        groupOptionList.push({ id: index + 1, value: g._id, text: g.name });
+        if (g) { // Check if group exists
+          groupOptionList.push({ id: index + 1, value: g._id, text: g.name });
+        }
       });
     }
     return groupOptionList;
@@ -155,10 +172,9 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     if (inputEl.checked) {
       newCheckedMatches.set(matchId, true);
     } else {
-      newCheckedMatches.set(matchId, false);
+      newCheckedMatches.delete(matchId); // Use delete instead of setting to false
     }
     setCheckedMatches(newCheckedMatches);
-    // e.preventDefault();
   };
 
   const handleCheckAllToggle = (e: React.SyntheticEvent) => {
@@ -166,7 +182,9 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     const newCheckedMatches: Map<string, boolean> = new Map();
     if (inputEl.checked) {
       matchList.forEach((m) => {
-        newCheckedMatches.set(m._id, true);
+        if (m && m._id) { // Check if match exists and has ID
+          newCheckedMatches.set(m._id, true);
+        }
       });
       setCheckedMatches(newCheckedMatches);
     } else {
@@ -180,13 +198,21 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     try {
       setIsLoading(true);
       const checkedMatchIds = Array.from(checkedMatches)
-        .filter(([_, isChecked]) => isChecked) // Filter for checked items
-        .map(([matchId]) => matchId); // Map to just the match IDs
+        .filter(([_, isChecked]) => isChecked)
+        .map(([matchId]) => matchId)
+        .filter(matchId => matchId); // Filter out any falsy match IDs
+
+      if (checkedMatchIds.length === 0) return;
+
       const response = await deleteMultipleMatches({ variables: { matchIds: checkedMatchIds } });
       const success = await handleResponse({ response: response.data.deleteMatches, setActErr });
       if (!success) return;
       setCheckedMatches(new Map());
-      window.location.reload();
+      if (refetchFunc) {
+        await refetchFunc();
+      } else {
+        window.location.reload();
+      }
     } catch (error: any) {
       handleError({ error, setActErr });
     } finally {
@@ -198,21 +224,22 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     e.preventDefault();
   };
 
-  
   useEffect(() => {
     if (matchList) {
-      const sortedMatch = [...matchList].sort((a, b) => {
-        // Condition 1: Sort by `completed` status (false first)
-        if (a.completed !== b.completed) {
-          return Number(a.completed) - Number(b.completed); // False (0) comes before True (1)
-        }
-        // Condition 2: Sort numerically by the number in `description` (e.g., M1, M2)
-        const numA = parseInt(a.description?.replace(/\D/g, '') ?? '0', 10); // Remove non-digits, fallback to 0
-        const numB = parseInt(b.description?.replace(/\D/g, '') ?? '0', 10); // Remove non-digits, fallback to 0
-        return numA - numB; // Sort numerically in ascending order
-      });
+      const sortedMatch = [...matchList]
+        .filter(match => match != null) // Filter out null matches
+        .sort((a, b) => {
+          // Condition 1: Sort by `completed` status (false first)
+          if (a.completed !== b.completed) {
+            return Number(a.completed) - Number(b.completed);
+          }
+          // Condition 2: Sort numerically by the number in `description`
+          const numA = parseInt(a.description?.replace(/\D/g, '') ?? '0', 10);
+          const numB = parseInt(b.description?.replace(/\D/g, '') ?? '0', 10);
+          return numA - numB;
+        });
 
-      setSortedMatchList(sortedMatch); // Update state with the sorted list
+      setSortedMatchList(sortedMatch);
     }
   }, [matchList]);
 
@@ -229,8 +256,8 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
           name="opponent"
           optionList={getSelectableOpponents().map((t, i) => ({
             id: i + 1,
-            text: t.name,
-            value: t._id,
+            text: t?.name || 'Unknown Team', // Safe access to name
+            value: t?._id || '', // Safe access to _id
           }))}
           handleSelect={handleOpponentChange}
         />
@@ -275,7 +302,15 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       <div className="match-list w-full flex justify-between items-center flex-wrap">
         {filteredMatchList.map((match: IMatchExpRel, i) => (
           <motion.div initial={cInitial} animate={cAnimate} exit={cExit} className="match-card w-full md:w-5/12 " key={match._id}>
-            <MatchCard eventId={eventId} match={match} isChecked={checkedMatches.get(match._id) ?? false} sl={i + 1} refetchFunc={refetchFunc} handleSelectMatch={handleSelectMatch} setActErr={setActErr} />
+            <MatchCard 
+              eventId={eventId} 
+              match={match} 
+              isChecked={checkedMatches.get(match._id) ?? false} 
+              sl={i + 1} 
+              refetchFunc={refetchFunc} 
+              handleSelectMatch={handleSelectMatch} 
+              setActErr={setActErr} 
+            />
           </motion.div>
         ))}
       </div>

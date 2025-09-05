@@ -21,13 +21,19 @@ export const divisionsToOptionList = (divisions: string) => {
   if (divisions && divisions.trim() !== '') {
     const dl = divisions.split(',');
     for (let i = 0; i < dl.length; i++) {
-      if (dl[i].trim() !== "") {
-        divs.push({ id: i+1, text: dl[i].trim(), value: dl[i].trim().toLowerCase() });
+      const div = dl[i].trim();
+      if (div !== "") {
+        divs.push({ id: i + 1, text: div, value: div.toLowerCase() });
       }
     }
   }
-  return divs;
-}
+
+  // ✅ Sort alphabetically by text (case-insensitive)
+  return divs.sort((a, b) =>
+    (a.text ?? "").localeCompare(b.text ?? "", undefined, { sensitivity: "base" })
+  );
+};
+
 
 export const ISOToReadableDate = (isoString: string) => {
   const dateObj = new Date(isoString);

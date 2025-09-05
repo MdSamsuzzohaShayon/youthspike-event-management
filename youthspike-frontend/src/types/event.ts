@@ -10,6 +10,8 @@ import { IPlayer } from "./player";
 import { INetRelatives } from "./net";
 import { IRoundRelatives } from "./round";
 import { IMatch } from "./socket";
+import { IServerReceiverSinglePlay } from "./serverReceiverOnNet";
+import { IPlayerStats } from "./playerStats";
 
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
@@ -68,6 +70,11 @@ export interface IEventAddProps {
   prevEvent?: IEvent;
 }
 
+export interface IAllStats{
+  playerId: string;
+  stats: IPlayerStats[]
+}
+
 export interface IEventDetailData {
   event: IEvent;
   matches: IMatch[];
@@ -78,6 +85,7 @@ export interface IEventDetailData {
   rounds: IRoundRelatives[];
   groups: IGroupRelatives[];
   sponsors: IEventSponsor[];
+  statsOfPlayer: IAllStats[];
 }
 
 // eslint-disable-next-line no-shadow

@@ -132,18 +132,44 @@ query GetEventDetails($eventId: String!) {
         company
         logo
       }
+      statsOfPlayer {
+        playerId
+        stats {
+          _id
+          break
+          broken
+          cleanHits
+          cleanSets
+          defensiveConversion
+          defensiveOpportunity
+          match
+          hittingOpportunity
+          matchPlayed
+          net
+          noTouchAcedCount
+          player
+          receivedCount
+          receiverOpportunity
+          serveAce
+          serveCompletionCount
+          serveOpportunity
+          servingAceNoTouch
+          settingOpportunity
+        }
+      }
     }
   }
 }
 `;
 
-const GET_AN_EVENT = gql`${GET_AN_EVENT_RAW}`;
+const GET_AN_EVENT = gql`
+  ${GET_AN_EVENT_RAW}
+`;
 
 /**
  * Mutation
  * =========================================================================================================================================
  */
-
 
 const GET_EVENTS_RAW = `
   query GetEvents {
@@ -169,7 +195,5 @@ const GET_EVENTS_RAW = `
     }
   }
 `;
-
-
 
 export { GET_AN_EVENT_RAW, GET_EVENTS_RAW, GET_AN_EVENT };

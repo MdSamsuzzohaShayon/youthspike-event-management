@@ -17,16 +17,17 @@ import { UserRole } from 'src/user/user.schema';
 import { playerKey, tokenToUser } from 'src/util/helper';
 import { Event } from '../event.schema';
 import {
-  CustomPlayerStats,
   GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
   GetPlayerEventSettingResponse,
+  PlayerStatsEntry,
   // PlayerStatsEntry,
 } from './event.response';
 import { IEventQueries } from '../resolvers/event.types';
 import { RedisService } from 'src/redis/redis.service';
 import { Net } from 'src/net/net.schema';
+import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -107,15 +108,14 @@ export class EventQueries implements IEventQueries {
         this.groupService.find({ event: eventId }),
         this.sponsorService.find({ event: eventId }),
       ]);
-
+  
       const matchIds = matches.map((m) => m._id.toString());
       const [rounds, nets] = await Promise.all([
         this.roundService.find({ match: { $in: matchIds } }),
         this.netService.find({ match: { $in: matchIds } }),
       ]);
-
-      // playerstats = await Promise.all(nets.map((net) => this.redisService.get(playerKey(playerId, net._id))));
-      // Precompute player -> nets map in O(N) instead of O(P × N)
+  
+      // Precompute player -> nets map
       const playerToNets: Record<string, Net[]> = {};
       for (const net of nets) {
         [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
@@ -124,40 +124,84 @@ export class EventQueries implements IEventQueries {
           playerToNets[pid].push(net);
         });
       }
-
-      // const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
-
-      // // Process players in parallel
-      // await Promise.all(
-      //   players.map(async (player) => {
-      //     if (!player?._id) return;
-
-      //     const netsOfPlayer = playerToNets[player._id] || [];
-
-      //     // Batch Redis queries
-      //     const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
-      //     const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
-
-      //     const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
-      //     const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
-
-      //     // Query DB once, filter in DB if possible
-      //     let playerstatsDB = await this.playerStatsService.find({ player: player._id });
-      //     playerstatsDB = playerstatsDB.map((ps)=> ps.toObject());
-      //     playerstatsDB = playerstatsDB.filter((ps) => !redisNetIds.has(String(ps.net))) as CustomPlayerStats[];
-
-      //     // Merge both sources
-      //     statsOfPlayer[player._id] = [...playerstatsRedis, ...playerstatsDB];
-      //   }),
-      // );
-
-      // const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(
-      //   ([playerId, stats]) => ({
-      //     playerId,
-      //     stats,
-      //   }),
-      // );
-
+  
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+  
+      // Process players in parallel
+      await Promise.all(
+        players.map(async (player) => {
+          if (!player?._id) return;
+  
+          const netsOfPlayer = playerToNets[player._id] || [];
+          const netIds = netsOfPlayer.map(net => net._id.toString());
+  
+          // Batch Redis queries
+          const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+          const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+  
+          const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
+          const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+  
+          // Query DB for player stats not found in Redis
+          const playerstatsDB = await this.playerStatsService.find({ 
+            player: player._id,
+            net: { $nin: Array.from(redisNetIds) } // Filter out nets already in Redis
+          });
+  
+          // Convert Mongoose documents to plain objects
+          const playerstatsDBPlain = playerstatsDB
+            .map((ps) => {
+              const plainObj = ps.toObject() as any;
+              return {
+                ...plainObj,
+                net: String(plainObj.net),
+                player: String(plainObj.player),
+                match: String(plainObj.match),
+              } as CustomPlayerStats;
+            })
+            .filter((ps: CustomPlayerStats) => !redisNetIds.has(String(ps.net)));
+  
+          // Merge both sources
+          let mergedStats = [...playerstatsRedis, ...playerstatsDBPlain];
+  
+          // If no stats found for some nets, create empty records for those nets
+          const existingNetIds = new Set(mergedStats.map(ps => ps.net));
+          const missingNetIds = netIds.filter(netId => !existingNetIds.has(netId));
+  
+          const emptyStats = missingNetIds.map(netId => {
+            const net = netsOfPlayer.find(n => n._id.toString() === netId);
+            return {
+              serveOpportunity: 0,
+              serveAce: 0,
+              serveCompletionCount: 0,
+              servingAceNoTouch: 0,
+              receiverOpportunity: 0,
+              receivedCount: 0,
+              noTouchAcedCount: 0,
+              settingOpportunity: 0,
+              cleanSets: 0,
+              hittingOpportunity: 0,
+              cleanHits: 0,
+              defensiveOpportunity: 0,
+              defensiveConversion: 0,
+              break: 0,
+              broken: 0,
+              matchPlayed: 0,
+              net: netId,
+              player: player._id.toString(),
+              match: net?.match?.toString() || '',
+            } as CustomPlayerStats;
+          });
+  
+          statsOfPlayer[player._id] = [...mergedStats, ...emptyStats];
+        }),
+      );
+  
+      const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+        playerId,
+        stats,
+      }));
+  
       return {
         code: HttpStatus.OK,
         success: true,
@@ -184,7 +228,7 @@ export class EventQueries implements IEventQueries {
           rounds: rounds.map((r) => ({ ...r.toObject(), match: typeof r.match === 'object' ? r.match._id : r.match })),
           nets: nets.map((n) => ({ ...n.toObject(), match: typeof n.match === 'object' ? n.match._id : n.match })),
           sponsors,
-          // statsOfPlayer: statsArray,
+          statsOfPlayer: statsArray,
         },
       };
     } catch (err) {

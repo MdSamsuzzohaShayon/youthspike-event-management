@@ -16,7 +16,7 @@ async function TeamSinglePage({ params }: TeamSinglePageProps) {
     notFound();
   }
 
-  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = teamData;
+  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams, statsOfPlayer } = teamData;
   
 
   playerRanking.rankings = rankings;
@@ -76,7 +76,7 @@ async function TeamSinglePage({ params }: TeamSinglePageProps) {
   currTeam.players = playerList;
   currTeam.event = eventData;
 
-  return <div className="container mx-auto px-2 min-h-screen">{teamData && <TeamDetail event={eventData} team={currTeam} nets={nets} rounds={rounds} />}</div>;
+  return <div className="container mx-auto px-2 min-h-screen">{teamData && <TeamDetail event={eventData} team={currTeam} nets={nets} rounds={rounds} statsOfPlayer={statsOfPlayer} />}</div>;
 }
 
 export default TeamSinglePage;

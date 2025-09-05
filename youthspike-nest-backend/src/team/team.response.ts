@@ -10,6 +10,7 @@ import { Round } from 'src/round/round.schema';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayer, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
 import { CustomGroup, CustomTeam } from 'src/match/match.response';
+import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
 
 @ObjectType()
 export class CreateOrUpdateTeamResponse extends AppResponse<Team> {
@@ -169,6 +170,9 @@ export class TeamDetails {
   // oponentTeams: Team[];
   @Field((_type) => [Team], { nullable: true })
   teams: Team[];
+
+  @Field(() => [PlayerStatsEntry])
+  statsOfPlayer: PlayerStatsEntry[];
 }
 @ObjectType()
 export class GetTeamDetailsResponse extends AppResponse<TeamDetails> {

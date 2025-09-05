@@ -4,7 +4,12 @@ import { AppResponse } from 'src/shared/response';
 import { PlayerStats } from './player-stats.schema';
 import { ConfigService } from '@nestjs/config';
 import { PlayerStatsService } from './player-stats.service';
-import { PlayersStatsResponse, PlayerStatsResponse, PlayerWithStatsResponse } from './player-stats.response';
+import {
+  CustomPlayerStats,
+  PlayersStatsResponse,
+  PlayerStatsResponse,
+  PlayerWithStatsResponse,
+} from './player-stats.response';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
@@ -22,7 +27,7 @@ export class PlayerStatsResolver {
     private netService: NetService,
     private playerStatsService: PlayerStatsService,
     private readonly redisService: RedisService,
-    private eventService: EventService
+    private eventService: EventService,
   ) {}
 
   @Query((_returns) => PlayerStatsResponse)
@@ -55,35 +60,42 @@ export class PlayerStatsResolver {
   }
 
   @Query((_returns) => PlayerWithStatsResponse)
+  @Query((_returns) => PlayerWithStatsResponse)
   async getPlayerWithStats(@Args('playerId') playerId: string) {
     try {
-      // Get a player
+      // Get the player
       const player = await this.playerService.findById(playerId);
       if (!player) return AppResponse.notFound('Player');
+
       let team = null,
         matches = null,
         nets = null,
         playerstats = [];
 
+      // Get the event the player is participating in
       const eventExist = await this.eventService.findOne({ _id: { $in: player.events } });
-      
-      const [multiplayer, weight] = await Promise.all([
-        this.playerStatsService.proStatFindOne({_id: eventExist.multiplayer}),
-        this.playerStatsService.proStatFindOne({_id: eventExist.weight}),
-      ]);
-      // Get team of the players
-      if (player.teams.length > 0) {
-        // team = await this.teamService.findOne({ _id: { $in: player.teams } });
-        team = await this.teamService.findOne({ players: playerId });
-        if (team) {
-          // Get all matches of the player
-          matches = await this.matchService.find({ $or: [{ teamA: team._id }, { teamB: team._id }] });
 
-          // This is how
-          // Get list of all player stats
+      const [multiplayer, weight] = await Promise.all([
+        this.playerStatsService.proStatFindOne({ _id: eventExist.multiplayer }),
+        this.playerStatsService.proStatFindOne({ _id: eventExist.weight }),
+      ]);
+
+      // Get team of the player
+      if (player.teams.length > 0) {
+        team = await this.teamService.findOne({ players: playerId });
+
+        if (team) {
+          // Get all matches of the player's team
+          matches = await this.matchService.find({
+            $or: [{ teamA: team._id }, { teamB: team._id }],
+          });
+
           if (matches.length > 0) {
-            // Get all nets of the player
+            const matchIds = matches.map((m) => m._id.toString());
+
+            // Get all nets from the player's matches
             nets = await this.netService.find({
+              match: { $in: matchIds },
               $or: [
                 { teamAPlayerA: playerId },
                 { teamAPlayerB: playerId },
@@ -92,19 +104,73 @@ export class PlayerStatsResolver {
               ],
             });
 
-            // Find updated player stats from redis
-            playerstats = await Promise.all(nets.map((net) => this.redisService.get(playerKey(playerId, net._id)))); // Redis key: <player:id:net>
-            playerstats = playerstats.filter((ps) => ps);
+            // Create player-to-nets mapping (similar to multiple players approach)
+            const playerToNets: Record<string, any[]> = {};
+            nets.forEach((net) => {
+              if (!playerToNets[playerId]) playerToNets[playerId] = [];
+              playerToNets[playerId].push(net);
+            });
 
-            if (!playerstats || playerstats.length === 0) {
-              // Check if there is already a record in mongodb or not, if there is a record do not create a new record from scratch
-              playerstats = await this.playerStatsService.find({ player: playerId });
-              await Promise.all(playerstats.map((ps) => this.redisService.set(playerKey(playerId, ps.net), ps)));
+            const netsOfPlayer = playerToNets[playerId] || [];
+
+            // Batch Redis queries
+            const redisKeys = netsOfPlayer.map((net) => playerKey(playerId, net._id));
+            const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+
+            const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
+            const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+
+            // Query DB once, filter in DB if possible
+            const playerstatsDB = await this.playerStatsService.find({
+              player: playerId,
+              net: { $nin: Array.from(redisNetIds) }, // Filter out nets already in Redis
+            });
+
+            // Convert Mongoose documents to plain objects
+            const playerstatsDBPlain = playerstatsDB.map((ps) => {
+              const plainObj = ps.toObject() as any;
+              return {
+                ...plainObj,
+                net: String(plainObj.net),
+                player: String(plainObj.player),
+                match: String(plainObj.match),
+              } as CustomPlayerStats;
+            });
+
+            // Merge both sources
+            playerstats = [...playerstatsRedis, ...playerstatsDBPlain];
+
+            // If no stats found, create empty records (optional)
+            if (playerstats.length === 0) {
+              playerstats = netsOfPlayer.map(
+                (net) =>
+                  ({
+                    serveOpportunity: 0,
+                    serveAce: 0,
+                    serveCompletionCount: 0,
+                    servingAceNoTouch: 0,
+                    receiverOpportunity: 0,
+                    receivedCount: 0,
+                    noTouchAcedCount: 0,
+                    settingOpportunity: 0,
+                    cleanSets: 0,
+                    hittingOpportunity: 0,
+                    cleanHits: 0,
+                    defensiveOpportunity: 0,
+                    defensiveConversion: 0,
+                    break: 0,
+                    broken: 0,
+                    matchPlayed: 0,
+                    net: net._id.toString(),
+                    player: playerId,
+                    match: net.match.toString(),
+                  } as CustomPlayerStats),
+              );
             }
           }
         }
       }
-      // player, team, playerstats
+
       return {
         code: HttpStatus.OK,
         success: true,
@@ -114,8 +180,8 @@ export class PlayerStatsResolver {
           playerstats,
           matches,
           nets,
-          multiplayer, 
-          weight
+          multiplayer,
+          weight,
         },
       };
     } catch (error) {

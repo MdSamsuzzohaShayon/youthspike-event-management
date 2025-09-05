@@ -689,6 +689,7 @@ type TeamDetails {
   rounds: [CustomRound!]
   nets: [CustomNet!]
   teams: [Team!]
+  statsOfPlayer: [PlayerStatsEntry!]!
 }
 
 type GetTeamDetailsResponse {
@@ -790,6 +791,61 @@ type GetEventWithMatchesResponse {
   data: EventMatches
 }
 
+type PlayerStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [PlayerStats!]
+}
+
+type PlayersStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [PlayerStats!]
+}
+
+type CustomPlayerStats {
+  _id: String
+  serveOpportunity: Float
+  serveAce: Float
+  serveCompletionCount: Float
+  servingAceNoTouch: Float
+  receiverOpportunity: Float
+  receivedCount: Float
+  noTouchAcedCount: Float
+  settingOpportunity: Float
+  cleanSets: Float
+  hittingOpportunity: Float
+  cleanHits: Float
+  defensiveOpportunity: Float
+  defensiveConversion: Float
+  break: Float
+  broken: Float
+  matchPlayed: Float
+  match: String
+  net: String
+  player: String
+}
+
+type PlayerStatsDetails {
+  player: CustomPlayer!
+  team: CustomTeam
+  playerstats: [CustomPlayerStats!]!
+  matches: [CustomMatch!]
+  nets: [CustomNet!]
+  multiplayer: ProStats
+  weight: ProStats
+  stats: ProStats
+}
+
+type PlayerWithStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: PlayerStatsDetails
+}
+
 type CreateOrUpdateEventResponse {
   code: Int!
   success: Boolean!
@@ -811,6 +867,11 @@ type GetEventResponse {
   data: Event
 }
 
+type PlayerStatsEntry {
+  playerId: String!
+  stats: [CustomPlayerStats!]!
+}
+
 type EventDetails {
   event: Event!
   matches: [CustomMatch!]!
@@ -821,6 +882,7 @@ type EventDetails {
   rounds: [CustomRound!]!
   players: [CustomPlayer!]!
   sponsors: [Sponsor!]!
+  statsOfPlayer: [PlayerStatsEntry!]!
 }
 
 type PlayerEventSetting {
@@ -930,61 +992,6 @@ type GetGroupResponse {
   success: Boolean!
   message: String
   data: Group!
-}
-
-type PlayerStatsResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: [PlayerStats!]
-}
-
-type PlayersStatsResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: [PlayerStats!]
-}
-
-type CustomPlayerStats {
-  _id: String
-  serveOpportunity: Float
-  serveAce: Float
-  serveCompletionCount: Float
-  servingAceNoTouch: Float
-  receiverOpportunity: Float
-  receivedCount: Float
-  noTouchAcedCount: Float
-  settingOpportunity: Float
-  cleanSets: Float
-  hittingOpportunity: Float
-  cleanHits: Float
-  defensiveOpportunity: Float
-  defensiveConversion: Float
-  break: Float
-  broken: Float
-  matchPlayed: Float
-  match: String
-  net: String
-  player: String
-}
-
-type PlayerStatsDetails {
-  player: CustomPlayer!
-  team: CustomTeam
-  playerstats: [CustomPlayerStats!]!
-  matches: [CustomMatch!]
-  nets: [CustomNet!]
-  multiplayer: ProStats
-  weight: ProStats
-  stats: ProStats
-}
-
-type PlayerWithStatsResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: PlayerStatsDetails
 }
 
 input EventSponsorInput {

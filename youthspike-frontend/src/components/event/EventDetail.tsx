@@ -74,6 +74,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     rounds,
     groups,
     sponsors,
+    statsOfPlayer
   } = data.getEventDetails.data;
 
   // Sort teams and players alphabetically
@@ -118,9 +119,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     const filterByGroup = (item: { group?: string }) =>
       selectedGroup ? item.group === selectedGroup : true;
 
-    const filterMatchByGroup = (m: IMatch) => {
-      return true;
-    };
+    
 
     return {
       // @ts-ignore
@@ -139,6 +138,10 @@ function EventDetail({ queryRef }: IEventDetailProps) {
       players: sortedPlayers?.filter(filterByDivision) || [],
     };
   }, [sortedTeams, sortedPlayers, matches, currDivision, selectedGroup]);
+
+  const playerStatsMap = useMemo(()=> {
+    return new Map(statsOfPlayer.map((ps)=> [ps.playerId, ps.stats]));
+  }, [statsOfPlayer]);
 
   const initializeLists = useCallback(() => {
     const rankingMap = new Map<string, number>();
@@ -181,7 +184,8 @@ function EventDetail({ queryRef }: IEventDetailProps) {
       [EEventItem.PLAYER]: (
         <PlayerStandings
           playerList={filteredData.players}
-          matchList={filteredData.matches}
+          matchList={filteredData.matches as IMatch[]}
+          playerStatsMap={playerStatsMap}
         />
       ),
       [EEventItem.TEAM]: (

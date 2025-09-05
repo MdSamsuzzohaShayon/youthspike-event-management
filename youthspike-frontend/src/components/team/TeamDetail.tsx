@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { IEvent, INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { IEvent, IMatch, INetRelatives, IPlayerStats, IRoundRelatives, ITeam } from '@/types';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import { setRankingMap } from '@/redux/slices/playerRankingSlice';
 import Link from 'next/link';
 import { EVENT_ITEM } from '@/utils/constant';
-import { EEventItem } from '@/types/event';
+import { EEventItem, IAllStats } from '@/types/event';
 import TextImg from '../elements/TextImg';
 import MatchList from '../match/MatchList';
 import PlayerStandings from '../player/PlayerStandings';
@@ -18,6 +18,7 @@ interface ITeamDetailProps {
   team: ITeam;
   nets: INetRelatives[]; 
   rounds: IRoundRelatives[];
+  statsOfPlayer: IAllStats[];
 }
 
 // eslint-disable-next-line no-unused-vars, no-shadow
@@ -28,7 +29,7 @@ enum ETab {
   MATCHES = 'MATCHES',
 }
 
-function TeamDetail({ event, team, nets, rounds }: ITeamDetailProps) {
+function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailProps) {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
   const [redirectSymbol, setRedirectSymbol] = useState<string>('?');
@@ -39,6 +40,10 @@ function TeamDetail({ event, team, nets, rounds }: ITeamDetailProps) {
     e.preventDefault();
     setSelectedItem(tab);
   };
+
+  const playerStatsMap = useMemo(()=> {
+    return new Map(statsOfPlayer.map((ps)=> [ps.playerId, ps.stats]));
+  }, [statsOfPlayer]);
 
   useEffect(() => {
     if (team && team.playerRanking) {
@@ -59,16 +64,14 @@ function TeamDetail({ event, team, nets, rounds }: ITeamDetailProps) {
     switch (selectedItem) {
       case ETab.ROSTER:
         // Players should be shown with their records. Win / losses for games
-        return <PlayerStandings matchList={team.matches} playerList={team.players} teamRank />;
+        return <PlayerStandings playerStatsMap={playerStatsMap} matchList={team.matches as IMatch[]} playerList={team.players} teamRank />;
       case ETab.MATCHES:
         // @ts-ignore
         return <MatchList matchList={team.matches} nets={nets} rounds={rounds} />;
       default:
-        return <PlayerStandings matchList={team.matches} playerList={team.players} teamRank />;
+        return <PlayerStandings playerStatsMap={playerStatsMap} matchList={team.matches as IMatch[]} playerList={team.players} teamRank />;
     }
   }, [selectedItem, team.division, team.matches, team.players]);
-
-  // href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
 
   return (
     <React.Fragment>

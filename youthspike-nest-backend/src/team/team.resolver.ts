@@ -32,6 +32,11 @@ import {
   GetTeamstandingsResponse,
 } from './team.response';
 import { RoundService } from 'src/round/round.service';
+import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { Net } from 'src/net/net.schema';
+import { playerKey } from 'src/util/helper';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
+import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
 
 @Resolver((of) => Team)
 export class TeamResolver {
@@ -46,6 +51,7 @@ export class TeamResolver {
     private playerRankingService: PlayerRankingService,
     private groupService: GroupService,
     private roundService: RoundService,
+    private playerStatsService: PlayerStatsService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -561,6 +567,7 @@ export class TeamResolver {
         this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
       ]);
 
+
       // Attributes of matches
       const matchIds = matches.map((m) => m._id);
       // const oponentTeamIds = [
@@ -571,6 +578,62 @@ export class TeamResolver {
         this.netService.find({ match: { $in: matchIds } }),
         this.teamService.find({ event: team.event }),
       ]);
+
+
+      // All player stats
+
+      const playerToNets: Record<string, Net[]> = {};
+      for (const net of nets) {
+        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
+          if (!pid) return;
+          if (!playerToNets[pid]) playerToNets[pid] = [];
+          playerToNets[pid].push(net);
+        });
+      }
+
+
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+
+      // Process players in parallel
+      await Promise.all(
+        players.map(async (player) => {
+          if (!player?._id) return;
+
+          const netsOfPlayer = playerToNets[player._id] || [];
+
+          // Batch Redis queries
+          const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+          const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+
+          const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
+          const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+
+          // Query DB once, filter in DB if possible
+          const playerstatsDB = await this.playerStatsService.find({ player: player._id });
+
+          // Convert Mongoose documents to plain objects and filter
+          const playerstatsDBPlain = playerstatsDB
+            .map((ps) => {
+              const plainObj = ps.toObject() as any;
+              return {
+                ...plainObj,
+                net: String(plainObj.net),
+                player: String(plainObj.player),
+                match: String(plainObj.match),
+              } as CustomPlayerStats;
+            })
+            .filter((ps: CustomPlayerStats) => !redisNetIds.has(String(ps.net)));
+
+          // Merge both sources
+          statsOfPlayer[player._id] = [...playerstatsRedis, ...playerstatsDBPlain];
+        }),
+      );
+
+      const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+        playerId,
+        stats,
+      }));
+
 
       return {
         code: HttpStatus.OK,
@@ -588,6 +651,7 @@ export class TeamResolver {
           rounds,
           nets,
           teams,
+          statsOfPlayer: statsArray,
         },
       };
     } catch (err) {

@@ -23,7 +23,6 @@ interface IPlayerCommonStats {
   matchPlayed: number;
 }
 
-export interface IPlayerTotalStats extends IPlayerCommonStats {}
 
 export interface IPlayerStats extends IPlayerCommonStats {
   // Relationship
@@ -31,6 +30,27 @@ export interface IPlayerStats extends IPlayerCommonStats {
   net: string | INetRelatives;
   player: string | IPlayer;
 }
+
+
+export interface IAggregatedStats {
+  serveOpportunity: number;
+  serveAce: number;
+  serveCompletionCount: number;
+  servingAceNoTouch: number;
+  receiverOpportunity: number;
+  receivedCount: number;
+  noTouchAcedCount: number;
+  settingOpportunity: number;
+  cleanSets: number;
+  hittingOpportunity: number;
+  cleanHits: number;
+  defensiveOpportunity: number;
+  defensiveConversion: number;
+  break: number;
+  broken: number;
+  matchPlayed: number;
+}
+
 
 interface IProStatsCommon {
   servingPercentage: number; // serving %

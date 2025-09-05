@@ -167,6 +167,7 @@ const GET_A_TEAM = gql`
   }
 `;
 
+
 const GET_TEAM_DETAIL_RAW = `
 query GetTeamDetails($teamId: String!) {
   getTeamDetails(teamId: $teamId) {
@@ -305,6 +306,32 @@ query GetTeamDetails($teamId: String!) {
         name
         logo
         num
+      }
+
+      statsOfPlayer {
+        playerId
+        stats {
+          _id
+          break
+          broken
+          cleanHits
+          cleanSets
+          defensiveConversion
+          defensiveOpportunity
+          match
+          hittingOpportunity
+          matchPlayed
+          net
+          noTouchAcedCount
+          player
+          receivedCount
+          receiverOpportunity
+          serveAce
+          serveCompletionCount
+          serveOpportunity
+          servingAceNoTouch
+          settingOpportunity
+        }
       }
     }
   }

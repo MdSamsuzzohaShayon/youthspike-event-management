@@ -15,9 +15,8 @@ import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
 import {
+  IAggregatedStats,
   IGetPlayerStats,
-  IPlayerStats,
-  IPlayerTotalStats,
   IProStats,
 } from "@/types";
 import StatAddBox from "./StatAddBox";
@@ -25,6 +24,7 @@ import usePlayerSocket from "@/hooks/player/usePlayerScoket";
 import { useSocket } from "@/lib/SocketProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import { useUser } from "@/lib/UserProvider";
+import { aggregatePlayerStats } from "@/utils/helper";
 
 interface IPlayerStatsMainProps {
   queryRef: QueryRef<{
@@ -95,66 +95,68 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
   
   // ✅ Single-pass aggregation with filtering
-  const playerTotalStats = useMemo(() => {
-    const totals: IPlayerTotalStats = {
-      serveOpportunity: 0,
-      serveAce: 0,
-      serveCompletionCount: 0,
-      servingAceNoTouch: 0,
-      receiverOpportunity: 0,
-      receivedCount: 0,
-      noTouchAcedCount: 0,
-      settingOpportunity: 0,
-      cleanSets: 0,
-      hittingOpportunity: 0,
-      cleanHits: 0,
-      defensiveOpportunity: 0,
-      defensiveConversion: 0,
-      break: 0,
-      broken: 0,
-      matchPlayed: 0,
-    };
+  // const aggregatedStats = useMemo(() => {
+  //   const totals: IAggregatedStats = {
+  //     serveOpportunity: 0,
+  //     serveAce: 0,
+  //     serveCompletionCount: 0,
+  //     servingAceNoTouch: 0,
+  //     receiverOpportunity: 0,
+  //     receivedCount: 0,
+  //     noTouchAcedCount: 0,
+  //     settingOpportunity: 0,
+  //     cleanSets: 0,
+  //     hittingOpportunity: 0,
+  //     cleanHits: 0,
+  //     defensiveOpportunity: 0,
+  //     defensiveConversion: 0,
+  //     break: 0,
+  //     broken: 0,
+  //     matchPlayed: 0,
+  //   };
 
-    // Parse filter dates
-    const startDate = filter.startDate
-      ? new Date(filter.startDate).getTime()
-      : null;
-    const endDate = filter.endDate ? new Date(filter.endDate).getTime() : null;
+  //   // Parse filter dates
+  //   const startDate = filter.startDate
+  //     ? new Date(filter.startDate).getTime()
+  //     : null;
+  //   const endDate = filter.endDate ? new Date(filter.endDate).getTime() : null;
 
-    // Precompute valid matches
-    const validMatches = new Set<string>();
-    for (const match of safeMatches) {
-      const matchTime = match.date ? new Date(match.date).getTime() : null;
+  //   // Precompute valid matches
+  //   const validMatches = new Set<string>();
+  //   for (const match of safeMatches) {
+  //     const matchTime = match.date ? new Date(match.date).getTime() : null;
 
-      if (startDate && matchTime && matchTime < startDate) continue;
-      if (endDate && matchTime && matchTime > endDate) continue;
-      if (filter.match && match._id !== filter.match) continue;
+  //     if (startDate && matchTime && matchTime < startDate) continue;
+  //     if (endDate && matchTime && matchTime > endDate) continue;
+  //     if (filter.match && match._id !== filter.match) continue;
 
-      validMatches.add(match._id);
-    }
+  //     validMatches.add(match._id);
+  //   }
 
-    // Aggregate stats
-    for (const ps of safePlayerstats) {
-      const matchId = typeof ps.match === "string" ? ps.match : ps.match?._id;
-      if (!matchId || !validMatches.has(matchId)) continue;
+  //   // Aggregate stats
+  //   for (const ps of safePlayerstats) {
+  //     const matchId = typeof ps.match === "string" ? ps.match : ps.match?._id;
+  //     if (!matchId || !validMatches.has(matchId)) continue;
 
-      const netId = typeof ps.net === "string" ? ps.net : ps.net?._id;
-      if (filter.game && netId !== filter.game) continue;
+  //     const netId = typeof ps.net === "string" ? ps.net : ps.net?._id;
+  //     if (filter.game && netId !== filter.game) continue;
 
-      for (const key in totals) {
-        if (Object.prototype.hasOwnProperty.call(totals, key)) {
-          const value = ps[key as keyof IPlayerTotalStats];
-          if (typeof value === "number") {
-            totals[key as keyof IPlayerTotalStats] += value;
-          }
-        }
-      }
+  //     for (const key in totals) {
+  //       if (Object.prototype.hasOwnProperty.call(totals, key)) {
+  //         const value = ps[key as keyof IaggregatedStats];
+  //         if (typeof value === "number") {
+  //           totals[key as keyof IaggregatedStats] += value;
+  //         }
+  //       }
+  //     }
 
-      totals.matchPlayed += 1; // ✅ Count this match
-    }
+  //     totals.matchPlayed += 1; // ✅ Count this match
+  //   }
 
-    return totals;
-  }, [matches, safePlayerstats, filter]);
+  //   return totals;
+  // }, [matches, safePlayerstats, filter]);
+
+  const aggregatedStats = aggregatePlayerStats(safePlayerstats);
 
   const proScore: number = useMemo(() => {
     const fields: (keyof IProStats)[] = [
@@ -321,18 +323,18 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             <div className="space-y-4">
               <StatBox
                 label="Serve COMPLETION %"
-                value={playerTotalStats.serveCompletionCount}
-                total={playerTotalStats.serveOpportunity}
+                value={aggregatedStats.serveCompletionCount}
+                total={aggregatedStats.serveOpportunity}
               />
               <StatBox
                 label="ACE % (NO 2ND TOUCH)"
-                value={playerTotalStats.serveAce}
-                total={playerTotalStats.serveOpportunity}
+                value={aggregatedStats.serveAce}
+                total={aggregatedStats.serveOpportunity}
               />
               {/* <StatBox
                 label="Ace No Touch %"
-                value={playerTotalStats.servingAceNoTouch}
-                total={playerTotalStats.serveOpportunity}
+                value={aggregatedStats.servingAceNoTouch}
+                total={aggregatedStats.serveOpportunity}
               /> */}
             </div>
           </div>
@@ -348,18 +350,18 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             <div className="space-y-4">
               <StatBox
                 label="Receiving %"
-                value={playerTotalStats.receivedCount}
-                total={playerTotalStats.receiverOpportunity}
+                value={aggregatedStats.receivedCount}
+                total={aggregatedStats.receiverOpportunity}
               />
               <StatBox
                 label="Set Assist %"
-                value={playerTotalStats.cleanSets}
-                total={playerTotalStats.settingOpportunity}
+                value={aggregatedStats.cleanSets}
+                total={aggregatedStats.settingOpportunity}
               />
               <StatAddBox
                 label="Break +/-"
-                plus={playerTotalStats.break}
-                minus={playerTotalStats.broken}
+                plus={aggregatedStats.break}
+                minus={aggregatedStats.broken}
               />
             </div>
           </div>
@@ -375,13 +377,13 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             <div className="space-y-4">
               <StatBox
                 label="Hitting %"
-                value={playerTotalStats.cleanHits}
-                total={playerTotalStats.hittingOpportunity}
+                value={aggregatedStats.cleanHits}
+                total={aggregatedStats.hittingOpportunity}
               />
               <StatBox
                 label="Defensive %"
-                value={playerTotalStats.defensiveConversion}
-                total={playerTotalStats.defensiveOpportunity}
+                value={aggregatedStats.defensiveConversion}
+                total={aggregatedStats.defensiveOpportunity}
               />
             </div>
           </div>
