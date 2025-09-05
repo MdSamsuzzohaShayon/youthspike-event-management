@@ -52,15 +52,28 @@ function MatchPublicView({
   const { currNetNum } = useAppSelector((state) => state.nets);
 
   const srMap = useMemo(() => {
-    const entries = serverReceiversOnNet.map((s) => {
-      const key = s.netId ?? (typeof s.net === "string" ? s.net : s.net._id);
+    const entries = serverReceiversOnNet.reduce((acc, s) => {
+      // Safely handle potential null values
+      let key: string | null = null;
       
+      if (s.netId) {
+        key = s.netId;
+      } else if (s.net) {
+        key = typeof s.net === "string" ? s.net : s.net._id;
+      }
+      
+      // If we still don't have a key, skip this entry
+      if (!key) {
+        console.warn("Could not determine key for serverReceiver entry:", s);
+        return acc;
+      }
+  
       // Check if this serverReceiver matches the current one
       const isCurrentServerReceiver = currServerReceiver && 
         (key === currServerReceiver.net || key === currServerReceiver.netId);
       
       if (isCurrentServerReceiver) {
-        return [
+        acc.push([
           key,
           {
             ...s,
@@ -78,21 +91,22 @@ function MatchPublicView({
             servingPartner: currServerReceiver.servingPartner,
             receivingPartner: currServerReceiver.receivingPartner,
           },
-        ] as const;
+        ]);
+      } else {
+        acc.push([
+          key,
+          {
+            ...s,
+            serverId: s.serverId || String(s.server),
+            receiverId: s.receiverId || String(s.receiver),
+            servingPartnerId: s.servingPartnerId || String(s.servingPartner),
+            receivingPartnerId: s.receivingPartnerId || String(s.receivingPartner),
+          },
+        ]);
       }
       
-      // For non-current server receivers
-      return [
-        key,
-        {
-          ...s,
-          serverId: s.serverId || String(s.server),
-          receiverId: s.receiverId || String(s.receiver),
-          servingPartnerId: s.servingPartnerId || String(s.servingPartner),
-          receivingPartnerId: s.receivingPartnerId || String(s.receivingPartner),
-        },
-      ] as const;
-    });
+      return acc;
+    }, [] as [string, IServerReceiverOnNetMixed][]);
   
     return new Map<string, IServerReceiverOnNetMixed>(entries);
   }, [serverReceiversOnNet, currServerReceiver]);

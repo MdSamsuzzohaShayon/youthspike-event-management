@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { IEvent, ITeam } from '@/types';
+import { IEvent, INetRelatives, IRoundRelatives, ITeam } from '@/types';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useAppDispatch } from '@/redux/hooks';
 import { setRankingMap } from '@/redux/slices/playerRankingSlice';
@@ -16,6 +16,8 @@ import { CldImage } from 'next-cloudinary';
 interface ITeamDetailProps {
   event: IEvent;
   team: ITeam;
+  nets: INetRelatives[]; 
+  rounds: IRoundRelatives[];
 }
 
 // eslint-disable-next-line no-unused-vars, no-shadow
@@ -26,7 +28,7 @@ enum ETab {
   MATCHES = 'MATCHES',
 }
 
-function TeamDetail({ event, team }: ITeamDetailProps) {
+function TeamDetail({ event, team, nets, rounds }: ITeamDetailProps) {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
   const [redirectSymbol, setRedirectSymbol] = useState<string>('?');
@@ -60,7 +62,7 @@ function TeamDetail({ event, team }: ITeamDetailProps) {
         return <PlayerStandings matchList={team.matches} playerList={team.players} teamRank />;
       case ETab.MATCHES:
         // @ts-ignore
-        return <MatchList matchList={team.matches} division={team.division} />;
+        return <MatchList matchList={team.matches} nets={nets} rounds={rounds} />;
       default:
         return <PlayerStandings matchList={team.matches} playerList={team.players} teamRank />;
     }

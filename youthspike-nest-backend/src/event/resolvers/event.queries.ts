@@ -14,15 +14,20 @@ import { UserService } from 'src/user/user.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
-import { tokenToUser } from 'src/util/helper';
+import { playerKey, tokenToUser } from 'src/util/helper';
 import { Event } from '../event.schema';
 import {
+  CustomPlayerStats,
   GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
   GetPlayerEventSettingResponse,
+  // PlayerStatsEntry,
 } from './event.response';
 import { IEventQueries } from '../resolvers/event.types';
+import { RedisService } from 'src/redis/redis.service';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
+import { Net } from 'src/net/net.schema';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -39,6 +44,7 @@ export class EventQueries implements IEventQueries {
     private netService: NetService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
+    private redisService: RedisService,
   ) {}
 
   async getEvents(context: any, directorId?: string): Promise<GetEventsResponse> {
@@ -109,20 +115,77 @@ export class EventQueries implements IEventQueries {
         this.netService.find({ match: { $in: matchIds } }),
       ]);
 
+      // playerstats = await Promise.all(nets.map((net) => this.redisService.get(playerKey(playerId, net._id))));
+      // Precompute player -> nets map in O(N) instead of O(P × N)
+      const playerToNets: Record<string, Net[]> = {};
+      for (const net of nets) {
+        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
+          if (!pid) return;
+          if (!playerToNets[pid]) playerToNets[pid] = [];
+          playerToNets[pid].push(net);
+        });
+      }
+
+      // const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+
+      // // Process players in parallel
+      // await Promise.all(
+      //   players.map(async (player) => {
+      //     if (!player?._id) return;
+
+      //     const netsOfPlayer = playerToNets[player._id] || [];
+
+      //     // Batch Redis queries
+      //     const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+      //     const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+
+      //     const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
+      //     const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+
+      //     // Query DB once, filter in DB if possible
+      //     let playerstatsDB = await this.playerStatsService.find({ player: player._id });
+      //     playerstatsDB = playerstatsDB.map((ps)=> ps.toObject());
+      //     playerstatsDB = playerstatsDB.filter((ps) => !redisNetIds.has(String(ps.net))) as CustomPlayerStats[];
+
+      //     // Merge both sources
+      //     statsOfPlayer[player._id] = [...playerstatsRedis, ...playerstatsDB];
+      //   }),
+      // );
+
+      // const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(
+      //   ([playerId, stats]) => ({
+      //     playerId,
+      //     stats,
+      //   }),
+      // );
+
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
-        data: { 
-          event, 
-          matches: matches.map(m => ({ ...m.toObject(), group: typeof m.group === 'object' ? m.group._id : m.group })), 
-          teams: teams.map(t => ({ ...t.toObject(), matches: t.matches?.map(m => typeof m === 'object' ? m._id : m) || [] })), 
-          players: players.map(p => ({ ...p.toObject(), teams: p.teams?.map(t => typeof t === 'object' ? t._id : t) || [] })), 
-          ldo, 
-          groups: groups.map(g => ({ ...g.toObject(), teams: g.teams?.map(t => typeof t === 'object' ? t._id : t) || [] })), 
-          rounds: rounds.map(r => ({ ...r.toObject(), match: typeof r.match === 'object' ? r.match._id : r.match })), 
-          nets: nets.map(n => ({ ...n.toObject(), match: typeof n.match === 'object' ? n.match._id : n.match })), 
-          sponsors 
+        data: {
+          event,
+          matches: matches.map((m) => ({
+            ...m.toObject(),
+            group: typeof m.group === 'object' ? m.group._id : m.group,
+          })),
+          teams: teams.map((t) => ({
+            ...t.toObject(),
+            matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
+          })),
+          players: players.map((p) => ({
+            ...p.toObject(),
+            teams: p.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+          })),
+          ldo,
+          groups: groups.map((g) => ({
+            ...g.toObject(),
+            teams: g.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+          })),
+          rounds: rounds.map((r) => ({ ...r.toObject(), match: typeof r.match === 'object' ? r.match._id : r.match })),
+          nets: nets.map((n) => ({ ...n.toObject(), match: typeof n.match === 'object' ? n.match._id : n.match })),
+          sponsors,
+          // statsOfPlayer: statsArray,
         },
       };
     } catch (err) {
@@ -141,16 +204,24 @@ export class EventQueries implements IEventQueries {
       if (!loggedUser) return AppResponse.unauthorized();
 
       const teams = await this.teamService.find({ event: eventId });
-      if(loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain){
-        const playerExist = await this.playerService.findOne({$or: [{_id: loggedUser.captainplayer}, {_id: loggedUser.cocaptainplayer}]});
-        if(!playerExist) return AppResponse.notFound("Player");
+      if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
+        const playerExist = await this.playerService.findOne({
+          $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }],
+        });
+        if (!playerExist) return AppResponse.notFound('Player');
         return {
           code: HttpStatus.OK,
           success: true,
           message: 'event, teams, ldo, sponsors, multiplayer, weight, stats',
-          data: { 
-            player: { ...playerExist.toObject(), teams: playerExist.teams?.map(t => typeof t === 'object' ? t._id : t) || [] }, 
-            teams: teams.map(t => ({ ...t.toObject(), matches: t.matches?.map(m => typeof m === 'object' ? m._id : m) || [] }))
+          data: {
+            player: {
+              ...playerExist.toObject(),
+              teams: playerExist.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+            },
+            teams: teams.map((t) => ({
+              ...t.toObject(),
+              matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
+            })),
           },
         };
       }
@@ -161,25 +232,26 @@ export class EventQueries implements IEventQueries {
         this.ldoService.findOne({ events: { $in: [eventId] } }),
         this.sponsorService.find({ event: eventId }),
       ]);
-      
+
       const [multiplayer, weight] = await Promise.all([
-        this.playerStatsService.proStatFindOne({_id: event.multiplayer}),
-        this.playerStatsService.proStatFindOne({_id: event.weight}),
+        this.playerStatsService.proStatFindOne({ _id: event.multiplayer }),
+        this.playerStatsService.proStatFindOne({ _id: event.weight }),
       ]);
-
-
 
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'event, teams, ldo, sponsors, multiplayer, weight',
-        data: { 
-          event, 
-          teams: teams.map(t => ({ ...t.toObject(), matches: t.matches?.map(m => typeof m === 'object' ? m._id : m) || [] })), 
-          ldo, 
-          sponsors, 
-          multiplayer, 
-          weight
+        data: {
+          event,
+          teams: teams.map((t) => ({
+            ...t.toObject(),
+            matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
+          })),
+          ldo,
+          sponsors,
+          multiplayer,
+          weight,
         },
       };
     } catch (err) {

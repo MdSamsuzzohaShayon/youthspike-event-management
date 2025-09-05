@@ -1,4 +1,3 @@
-
 import React, { Suspense } from "react";
 import { IEventDetailData, IMatchExpRel, TParams } from "@/types";
 import Loader from "@/components/elements/Loader";
@@ -23,9 +22,13 @@ async function EventPage({ params }: IEventPageProps) {
       >
         {(queryRef) => (
           <Suspense fallback={<Loader />}>
-            <EventDetail queryRef={
-                  queryRef as QueryRef<{ getEventDetails: { data: IEventDetailData } }>
-                } />
+            <EventDetail
+              queryRef={
+                queryRef as QueryRef<{
+                  getEventDetails: { data: IEventDetailData };
+                }>
+              }
+            />
           </Suspense>
         )}
       </PreloadQuery>

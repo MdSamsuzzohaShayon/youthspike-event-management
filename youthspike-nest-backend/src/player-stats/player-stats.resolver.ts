@@ -79,6 +79,7 @@ export class PlayerStatsResolver {
           // Get all matches of the player
           matches = await this.matchService.find({ $or: [{ teamA: team._id }, { teamB: team._id }] });
 
+          // This is how
           // Get list of all player stats
           if (matches.length > 0) {
             // Get all nets of the player

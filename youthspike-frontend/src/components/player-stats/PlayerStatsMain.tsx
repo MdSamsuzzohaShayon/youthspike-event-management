@@ -59,7 +59,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     weight,
     stats,
   } = data.getPlayerWithStats.data;
-  const totalGames = playerstats?.length || 0;
+  
 
   const [filter, setFilter] = useState<Partial<IFilter>>({});
 
@@ -72,6 +72,9 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
   const safeNets = nets || [];
   const safePlayerstats = playerstats || [];
+  const safeMatches = matches || [];
+
+  const totalGames = safePlayerstats?.length || 0;
 
   // Event handlers
   const handleInputChange = (e: React.SyntheticEvent) => {
@@ -85,10 +88,12 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   }, [filter.match, safeNets]); // Use safeNets instead of nets
 
   let totalServe = 0;
-  for (const ps of playerstats) {
+  for (const ps of safePlayerstats) {
     totalServe += ps.serveOpportunity;
   }
 
+
+  
   // ✅ Single-pass aggregation with filtering
   const playerTotalStats = useMemo(() => {
     const totals: IPlayerTotalStats = {
@@ -118,7 +123,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
     // Precompute valid matches
     const validMatches = new Set<string>();
-    for (const match of matches) {
+    for (const match of safeMatches) {
       const matchTime = match.date ? new Date(match.date).getTime() : null;
 
       if (startDate && matchTime && matchTime < startDate) continue;
@@ -149,7 +154,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     }
 
     return totals;
-  }, [matches, playerstats, filter]);
+  }, [matches, safePlayerstats, filter]);
 
   const proScore: number = useMemo(() => {
     const fields: (keyof IProStats)[] = [
@@ -212,7 +217,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           <div className="mt-4 flex gap-4">
             <div className="bg-gray-800 px-4 py-2 rounded-lg">
               <p className="text-xs text-gray-400 uppercase">Team</p>
-              <p className="font-medium">{team.name}</p>
+              <p className="font-medium">{team?.name || ""}</p>
             </div>
             {player.username && (
               <div className="bg-gray-800 px-4 py-2 rounded-lg">
@@ -274,7 +279,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           <SelectInput
             name="match"
             handleSelect={handleInputChange}
-            optionList={matches.map((m, i) => ({
+            optionList={safeMatches.map((m, i) => ({
               id: i + 1,
               value: m._id,
               text: m.description || "",
@@ -300,9 +305,9 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       <div className="mb-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Performance Overview</h2>
-          <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+          {/* <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
             Pro Score: {proScore}
-          </div>
+          </div> */}
         </div>
 
         {/* <!-- Stats Grid --> */}
@@ -384,14 +389,12 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       </div>
 
       {/* Winning percentage  */}
-      <div className="mb-12">
+      {/* <div className="mb-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Winning Percentage</h2>
         </div>
 
-        {/* <!-- Stats Grid --> */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* <!-- Serving Stats --> */}
           <div className="bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-800">
             <div className="flex items-center gap-2 mb-4">
               <div className="bg-yellow-400 w-2 h-6 rounded-full"></div>
@@ -406,7 +409,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
