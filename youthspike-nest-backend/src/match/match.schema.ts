@@ -23,9 +23,9 @@ export class Match extends AppDocument {
   date: string;
 
   // Default properties
-  @Field({ nullable: false })
-  @Prop({ required: true })
-  division: string;
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  division?: string;
 
   @Field((_type) => Int)
   @Prop({ required: false })

@@ -2,6 +2,7 @@
 import { IEvent } from './event';
 import { IGroup } from './group';
 import { INetRelatives } from './net';
+import { IPlayer } from './player';
 import { IPlayerRanking, IPlayerRankingExpRel } from './playerRanking';
 import { IRoom } from './room';
 import { IRoundExpRel } from './round';
@@ -72,4 +73,14 @@ export interface IMatchExpRel extends IMatchBase {
 
   serverReceiverOnNet?: IServerReceiverOnNetMixed[];
   serverReceiverSinglePlay?: IServerReceiverSinglePlay[];
+}
+
+
+export interface ITeamCaptain extends ITeam {
+  captain: IPlayer;
+}
+
+export interface IMatch extends IMatchExpRel {
+  teamA: ITeamCaptain;
+  teamB: ITeamCaptain;
 }

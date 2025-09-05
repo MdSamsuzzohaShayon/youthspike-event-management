@@ -1,4 +1,4 @@
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
+import { IMatch, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch } from '@/redux/hooks';
@@ -10,14 +10,7 @@ import MatchCard from './MatchCard';
 import SelectInput from '../elements/SelectInput';
 import Pagination from '../elements/Pagination';
 
-interface ITeamCaptain extends ITeam {
-  captain: IPlayer;
-}
 
-interface IMatch extends IMatchExpRel {
-  teamA: ITeamCaptain;
-  teamB: ITeamCaptain;
-}
 
 interface IMatchListProps {
   matchList?: IMatch[];

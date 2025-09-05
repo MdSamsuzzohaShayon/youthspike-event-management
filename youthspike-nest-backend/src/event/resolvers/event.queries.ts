@@ -26,7 +26,6 @@ import {
 } from './event.response';
 import { IEventQueries } from '../resolvers/event.types';
 import { RedisService } from 'src/redis/redis.service';
-import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Net } from 'src/net/net.schema';
 
 @Injectable()

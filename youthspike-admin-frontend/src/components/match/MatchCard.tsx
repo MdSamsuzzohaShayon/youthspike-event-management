@@ -5,9 +5,9 @@ import { FRONTEND_URL } from '@/utils/keys';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
-import { readDate, readDateTemp } from '@/utils/datetime';
+import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
-import { ApolloError, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
 import PointsByRound from './PointsByRound';
 import { IError, INetRelatives, IRoundRelatives } from '@/types';
@@ -18,7 +18,6 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { handleError } from '@/utils/handleError';
-import Image from 'next/image';
 import TextImg from '../elements/TextImg';
 
 interface MatchCardProps {
@@ -32,6 +31,17 @@ interface MatchCardProps {
 }
 
 function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
+  // Add null check at the beginning
+  if (!match.teamA || !match.teamB) {
+    return (
+      <div className="w-full bg-gray-800 relative rounded-lg p-4" style={{ minHeight: '6rem' }}>
+        <div className="text-red-500">Invalid Match Data</div>
+        <p className="text-white">{match.description || 'No description'}</p>
+        <p className="text-gray-400 text-sm">Match ID: {match._id}</p>
+      </div>
+    );
+  }
+
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
 
@@ -89,10 +99,18 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
     return (
       <React.Fragment>
         <div className="advanced-img w-14">
-          {team?.logo ? <CldImage width={100} height={100} alt="team logo" src={team?.logo} className="w-full h-full" /> : <TextImg className="w-full h-full" fullText={team.name} />}
+          {team?.logo ? (
+            <CldImage width={100} height={100} alt="team logo" src={team?.logo} className="w-full h-full" />
+          ) : (
+            <TextImg className="w-full h-full" fullText={team.name} />
+          )}
         </div>
-        <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && win ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>{team?.name}</h3>
-        <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${match.completed && win ? 'bg-green-600' : ''}`}>{myPointsOfRound}</h1>
+        <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && win ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>
+          {team?.name}
+        </h3>
+        <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${match.completed && win ? 'bg-green-600' : ''}`}>
+          {myPointsOfRound}
+        </h1>
       </React.Fragment>
     );
   };
@@ -108,7 +126,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         )}
 
         <div className="w-10/12 flex items-center justify-center">
-          {/* <h2>Match Name</h2> */}
           <a href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
             Enter
           </a>
@@ -118,7 +135,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
       {/* ===== LEVEL 1 END ===== */}
 
       {/* ===== LEVEL 2 START ===== */}
-      <div className="lavel-2 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">{teamCard(match?.teamA, ETeam.teamA)}</div>
+      <div className="lavel-2 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">
+        {teamCard(match.teamA, ETeam.teamA)}
+      </div>
       {/* ===== LEVEL 2 END ===== */}
 
       {/* ===== LEVEL 3 START ===== */}
@@ -148,7 +167,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
       {/* ===== LEVEL 3 END ===== */}
 
       {/* ===== LEVEL 4 START ===== */}
-      <div className="lavel-4 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">{teamCard(match?.teamB, ETeam.teamB)}</div>
+      <div className="lavel-4 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">
+        {teamCard(match.teamB, ETeam.teamB)}
+      </div>
       {/* ===== LEVEL 4 END ===== */}
 
       {/* ===== LEVEL 5 START ===== */}
@@ -160,10 +181,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
             </span>
             <span>{readDate(match.date)}</span>
           </p>
-          {/* <p className='flex justify-start items-center gap-x-2'>
-            <span><img src='/icons/date.svg' className='w-6 svg-white' /></span>
-            <span>Start {readTime(match.date)}</span>
-          </p> */}
         </div>
         <div className="w-3/6 text-end">
           {match.location && (
@@ -192,6 +209,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
       {/* Actions items start  */}
       {actionOpen && (
         <motion.ul
+          ref={actionItemEl}
           className="absolute z-10 right-6 top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
           variants={menuVariants}
           initial="hidden"
@@ -199,18 +217,12 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
           exit="exit"
           transition={{ duration: 0.2 }}
         >
-          {/* <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}>
-
-                        Make Captain
-                      </li> */}
           {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
             <React.Fragment>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                {' '}
                 <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                {' '}
                 <button type="button" onClick={(e) => handleDeleteMatch(e, match._id)}>
                   Delete
                 </button>
@@ -218,7 +230,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
             </React.Fragment>
           )}
           <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-            <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`}>View</Link>{' '}
+            <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`}>View</Link>
           </li>
         </motion.ul>
       )}

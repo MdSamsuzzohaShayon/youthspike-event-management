@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { IMatchExpRel, IPlayer, IPlayerRecord } from "@/types";
+import { IMatch, IMatchExpRel, IPlayer, IPlayerRecord } from "@/types";
 import { calculatePlayerRecords } from "@/utils/scoreCalc";
 import { useAppSelector } from "@/redux/hooks";
 import PlayerRow from "./PlayerRow";
@@ -9,7 +9,7 @@ import Image from "next/image";
 interface IPlayerStandingsProps {
   teamRank?: boolean;
   playerList: IPlayer[];
-  matchList: IMatchExpRel[];
+  matchList: IMatch[];
 }
 
 const ITEMS_PER_PAGE = 50;

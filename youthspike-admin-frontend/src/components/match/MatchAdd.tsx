@@ -307,7 +307,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
       </div>
 
       <div className="part-8 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField key="field-location" type="text" handleInputChange={handleInputChange} label="Location" name="location" value={addMatch.location || ''} />
+        <InputField key="field-location" type="text" handleInputChange={handleInputChange} label="Location / Start time" name="location" defaultValue={addMatch.location || ''} />
         <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" value={addMatch.accessCode || ''} />
       </div>
 

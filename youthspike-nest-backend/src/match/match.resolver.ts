@@ -174,9 +174,9 @@ export class MatchResolver {
 
       const createPromises = [];
 
-      if (!input.division || !eventExist.divisions.toLowerCase().includes(input.division.trim().toLowerCase())) {
-        return AppResponse.notFound('Event');
-      }
+      // if (!input.division || !eventExist.divisions.toLowerCase().includes(input.division.trim().toLowerCase())) {
+      //   return AppResponse.notFound('Event');
+      // }
 
       // ===== Set Event default value ====
       // Prepare defaults based on the event

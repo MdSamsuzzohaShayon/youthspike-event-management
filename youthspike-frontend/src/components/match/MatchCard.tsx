@@ -25,6 +25,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const params = useParams();
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
+  
 
   // Precompute nets by round to avoid repeated filtering
   const netsByRoundId = useMemo(() => {

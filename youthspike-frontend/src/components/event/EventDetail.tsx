@@ -48,7 +48,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
   // Handle loading and error states
   if (error) {
     console.error(error);
-    
+
     return (
       <div className="min-h-screen flex w-full justify-center items-center">
         <h3 className="text-center">Error loading event details</h3>
@@ -80,6 +80,8 @@ function EventDetail({ queryRef }: IEventDetailProps) {
   const sortedTeams = useMemo(() => {
     return [...(teams || [])].sort((a, b) => a.name.localeCompare(b.name));
   }, [teams]);
+
+  const teamMap = new Map<string, ITeam>(teams.map((t) => [t._id, t]));
 
   const sortedPlayers = useMemo(() => {
     return [...(players || [])].sort((a, b) => {
@@ -113,15 +115,27 @@ function EventDetail({ queryRef }: IEventDetailProps) {
           currDivision.trim().toLowerCase()
         : true;
 
-        
-
     const filterByGroup = (item: { group?: string }) =>
       selectedGroup ? item.group === selectedGroup : true;
+
+    const filterMatchByGroup = (m: IMatch) => {
+      return true;
+    };
 
     return {
       // @ts-ignore
       teams: sortedTeams?.filter(filterByDivision).filter(filterByGroup) || [],
-      matches: matches?.filter(filterByDivision) || [],
+      matches: (matches?.filter(filterByDivision) || [])
+        .map((m) => ({
+          ...m,
+          teamA: m.teamA ? teamMap.get(String(m.teamA)) : null,
+          teamB: m.teamB ? teamMap.get(String(m.teamB)) : null,
+        }))
+        .filter((m)=>{
+          if(!selectedGroup) return true;
+          if(m.teamA?.group === m.teamA?.group && String(m.teamA?.group) === selectedGroup) return true;
+          return false;
+        }),
       players: sortedPlayers?.filter(filterByDivision) || [],
     };
   }, [sortedTeams, sortedPlayers, matches, currDivision, selectedGroup]);
@@ -178,15 +192,15 @@ function EventDetail({ queryRef }: IEventDetailProps) {
         />
       ),
       [EEventItem.MATCH]: (
-        <MatchList matchList={filteredData.matches as IMatch[]} nets={nets} rounds={rounds} />
+        <MatchList
+          matchList={filteredData.matches as IMatch[]}
+          nets={nets}
+          rounds={rounds}
+        />
       ),
     };
     return renderMap[selectedItem] || null;
   }, [filteredData, selectedGroup, selectedItem]);
-
-
-
-  
 
   const renderSponsors = useMemo(
     () => (

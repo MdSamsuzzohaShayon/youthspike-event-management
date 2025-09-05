@@ -40,9 +40,9 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             setActErr(null);
             // Get updated match
         } else {
-            if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' });
+            // if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' });
             const addMatchObj = { ...addMatch, event: eventId };
-            if (currDivision) addMatchObj.division = currDivision;
+            if (currDivision && currDivision !== '') addMatchObj.division = currDivision;
             if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ code: 400, success: false, message: 'Teams can not be empty to unselected!' });
             if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' });
             // @ts-ignore

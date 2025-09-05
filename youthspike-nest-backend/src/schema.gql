@@ -219,7 +219,7 @@ type Room {
 type Match {
   _id: String
   date: String!
-  division: String!
+  division: String
   numberOfNets: Int!
   numberOfRounds: Int!
   netVariance: Float
@@ -602,7 +602,7 @@ type CustomNet {
 type CustomMatch {
   _id: String
   date: String!
-  division: String!
+  division: String
   numberOfNets: Int!
   numberOfRounds: Int!
   netVariance: Float
@@ -1218,7 +1218,7 @@ input CreateMatchInput {
   date: String!
   teamA: String
   teamB: String
-  division: String!
+  division: String
   group: String
   numberOfNets: Float
   numberOfRounds: Float

@@ -112,7 +112,7 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
       </div>
 
       <div className="part-4.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField type="text" name="location" label="Location" required={!update} handleInputChange={onInputChange} value={eventState.location} />
+        <InputField type="text" name="location" label="Location" required={!update} handleInputChange={onInputChange} defaultValue={eventState.location} />
 
         <InputField
           type="text"

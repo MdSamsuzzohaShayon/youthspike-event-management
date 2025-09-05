@@ -9,6 +9,7 @@ import { ITeam } from "./team";
 import { IPlayer } from "./player";
 import { INetRelatives } from "./net";
 import { IRoundRelatives } from "./round";
+import { IMatch } from "./socket";
 
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
@@ -69,7 +70,7 @@ export interface IEventAddProps {
 
 export interface IEventDetailData {
   event: IEvent;
-  matches: IMatchExpRel[];
+  matches: IMatch[];
   teams: ITeam[];
   players: IPlayer[];
   ldo: ILDO;

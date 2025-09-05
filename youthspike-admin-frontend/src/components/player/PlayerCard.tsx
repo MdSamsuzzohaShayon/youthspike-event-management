@@ -224,11 +224,19 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     if (!teamList) return;
     const inputEl = e.target as HTMLSelectElement;
     const dl: IOption[] = [];
+  
     for (let i = 0; i < teamList.length; i += 1) {
-      if (teamList[i]._id !== teamId && teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
+      if (
+        teamList[i]._id !== teamId &&
+        teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()
+      ) {
         dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
       }
     }
+  
+    // ✅ Sort alphabetically by team name
+    dl.sort((a, b) => a.text!.localeCompare(b.text!));
+  
     setTeamOptions(dl);
   };
 
