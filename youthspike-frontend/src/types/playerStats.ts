@@ -76,3 +76,17 @@ export interface IGetPlayerStats {
   weight: IProStats;
   stats: IProStats;
 }
+
+
+export enum EPlayerStatType {
+  Player = "player",
+  ServePercentage = "servePercentage",
+  PlusMinus = "plusMinus",
+  AcePercentage = "acePercentage",
+  ReceivePercentage = "receivePercentage",
+  HittingPercentage = "hittingPercentage",
+  SetAssistsPercentage = "setAssistsPercentage",
+  DefensePercentage = "defensePercentage",
+  WinPercentage = "winPercentage",
+}
+
