@@ -36,7 +36,7 @@ export class PointsUpdateHelper {
     completed: boolean,
     roundListLength: number,
   ): Promise<RoundUpdatedResponse> {
-    const { roundService, matchService } = this.gatewayService.getServices();
+    const { roundService, matchService, netService } = this.gatewayService.getServices();
     const roundExist = await roundService.findById(roundId);
 
     let matchCompleted = false;
@@ -44,6 +44,20 @@ export class PointsUpdateHelper {
       await matchService.updateOne({ _id: matchId }, { completed });
       matchCompleted = true;
     }
+
+    // if(matchCompleted){
+    //   // Update cache to database
+    //   // Update player stats
+    //   // Update single play stats
+    //   // Update server receiver 
+    //   const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+    //       const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+    //   const netsOfMatch = await netService.find({match: matchId});
+    //   const players = new Set();
+    //   for (const element of netsOfMatch) {
+        
+    //   }
+    // }
 
     return {
       nets: nets,

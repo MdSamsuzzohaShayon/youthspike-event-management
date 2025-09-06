@@ -39,6 +39,7 @@ async function updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlaye
     // if (refetch) await refetch();
     if (responseData?.data) {
       await handleRedirect(router, eventId, ldoIdUrl, team);
+      // router.push(` /${eventId}/players`)
     }
   } catch (err) {
     console.error(err);

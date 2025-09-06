@@ -54,19 +54,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   const [checkedPlayers, setCheckedPlayers] = useState<Map<string, boolean>>(new Map());
   const [canRank, setCanRank] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayerRank[]>([]);
-  const [rankingsMap, setRankingsMap] = useState<Map<string, number>>(new Map());
-
-  // Pagination elements
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length, ITEMS_PER_PAGE]);
-
-  const handlePrev = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNext = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
 
   /** Handle checkbox */
   const handleSelectPlayer = (e: React.SyntheticEvent, matchId: string) => {
@@ -125,7 +112,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
       });
 
       // Setting state
-      setRankingsMap(newRankingsMap);
       setPlayers(newRankedPlayers); // This need to rank properly
 
       // Set it to local storage
@@ -156,7 +142,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
               newRankingsMap.set(pr.player, pr.rank);
             });
           }
-          setRankingsMap(newRankingsMap);
           const playersWithRank: IPlayerRank[] = [];
           playerList.forEach((p) => {
             playersWithRank.push({ ...p, rank: newRankingsMap.get(p._id) });
@@ -214,16 +199,12 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
 
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
-    // Paginated
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedPlayers = players.slice(start, start + ITEMS_PER_PAGE);
-
     // inactive players won't have rankings
-    if (inactive) return paginatedPlayers;
+    if (inactive) return players;
 
     // If ranking is allowed then sort them or keep it as it is
-    return showRank && rankControls ? [...paginatedPlayers].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : paginatedPlayers;
-  }, [players, showRank, rankControls, playerRanking, currentPage]);
+    return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
+  }, [players, showRank, rankControls, playerRanking]);
 
   /** Render List **/
   return (
@@ -264,7 +245,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
           </motion.li>
         ))}
       </ul>
-      {totalPages > 1 && (
+      {/* {totalPages > 1 && (
         <div className="flex items-center space-x-2 mt-4">
           <button onClick={handlePrev} disabled={currentPage === 1} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
             Prev
@@ -276,7 +257,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
             Next
           </button>
         </div>
-      )}
+      )} */}
     </>
   );
 }

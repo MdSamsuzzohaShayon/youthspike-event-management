@@ -23,7 +23,6 @@ interface IPlayerStandingsProps {
 
 const ITEMS_PER_PAGE = 30;
 
-
 function PlayerStandings({
   playerList,
   matchList,
@@ -40,17 +39,24 @@ function PlayerStandings({
   // Redux state
   const { rankingMap } = useAppSelector((state) => state.playerRanking);
 
-  // Memoize player records calculation
+  // Memoize player records calculation with null filtering
   const allPlayerRecords = useMemo(() => {
     if (!playerList.length) return [];
     
     const newMatchList: IMatchExpRel[] = matchList.length > 0 ? matchList : [];
     const newRankingMap = new Map<string, number>(rankingMap);
     
-    return calculatePlayerRecords(playerList, newMatchList, newRankingMap);
+    const records = calculatePlayerRecords(playerList, newMatchList, newRankingMap);
+    
+    // Filter out null or invalid player records
+    return records.filter(record => 
+      record && 
+      record._id && 
+      record.firstName !== undefined
+    );
   }, [playerList, matchList, rankingMap]);
 
-  // Memoize sorted players
+  // Memoize sorted players with additional safety checks
   const sortedPlayers = useMemo(() => {
     if (!allPlayerRecords.length) return [];
 
@@ -62,6 +68,9 @@ function PlayerStandings({
 
     // Custom sorting based on sortConfig
     sorted.sort((a, b) => {
+      // Safety check for null players
+      if (!a || !b) return 0;
+
       const aStats = playerStatsMap.get(a._id) || [];
       const bStats = playerStatsMap.get(b._id) || [];
       
@@ -73,8 +82,8 @@ function PlayerStandings({
 
       switch (sortConfig.key) {
         case EPlayerStatType.Player:
-          aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
-          bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+          aValue = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase().trim();
+          bValue = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase().trim();
           break;
         
         case EPlayerStatType.ServePercentage:
@@ -87,60 +96,60 @@ function PlayerStandings({
           break;
         
         case EPlayerStatType.PlusMinus:
-          aValue = aAggregated.break + aAggregated.broken;
-          bValue = bAggregated.break + bAggregated.broken;
+          aValue = (aAggregated.break || 0) + (aAggregated.broken || 0);
+          bValue = (bAggregated.break || 0) + (bAggregated.broken || 0);
           break;
         
         case EPlayerStatType.AcePercentage:
           aValue = aAggregated.serveAce > 0 
-            ? (aAggregated.servingAceNoTouch / aAggregated.serveAce) * 100 
+            ? ((aAggregated.servingAceNoTouch || 0) / aAggregated.serveAce) * 100 
             : 0;
           bValue = bAggregated.serveAce > 0 
-            ? (bAggregated.servingAceNoTouch / bAggregated.serveAce) * 100 
+            ? ((bAggregated.servingAceNoTouch || 0) / bAggregated.serveAce) * 100 
             : 0;
           break;
         
         case EPlayerStatType.ReceivePercentage:
           aValue = aAggregated.receiverOpportunity > 0 
-            ? (aAggregated.receivedCount / aAggregated.receiverOpportunity) * 100 
+            ? ((aAggregated.receivedCount || 0) / aAggregated.receiverOpportunity) * 100 
             : 0;
           bValue = bAggregated.receiverOpportunity > 0 
-            ? (bAggregated.receivedCount / bAggregated.receiverOpportunity) * 100 
+            ? ((bAggregated.receivedCount || 0) / bAggregated.receiverOpportunity) * 100 
             : 0;
           break;
         
         case EPlayerStatType.HittingPercentage:
           aValue = aAggregated.hittingOpportunity > 0 
-            ? (aAggregated.cleanHits / aAggregated.hittingOpportunity) * 100 
+            ? ((aAggregated.cleanHits || 0) / aAggregated.hittingOpportunity) * 100 
             : 0;
           bValue = bAggregated.hittingOpportunity > 0 
-            ? (bAggregated.cleanHits / bAggregated.hittingOpportunity) * 100 
+            ? ((bAggregated.cleanHits || 0) / bAggregated.hittingOpportunity) * 100 
             : 0;
           break;
         
-        case EPlayerStatType.ReceivePercentage:
+        case EPlayerStatType.SetAssistsPercentage:
           aValue = aAggregated.settingOpportunity > 0 
-            ? (aAggregated.cleanSets / aAggregated.settingOpportunity) * 100 
+            ? ((aAggregated.cleanSets || 0) / aAggregated.settingOpportunity) * 100 
             : 0;
           bValue = bAggregated.settingOpportunity > 0 
-            ? (bAggregated.cleanSets / bAggregated.settingOpportunity) * 100 
+            ? ((bAggregated.cleanSets || 0) / bAggregated.settingOpportunity) * 100 
             : 0;
           break;
         
         case EPlayerStatType.DefensePercentage:
           aValue = aAggregated.defensiveOpportunity > 0 
-            ? (aAggregated.defensiveConversion / aAggregated.defensiveOpportunity) * 100 
+            ? ((aAggregated.defensiveConversion || 0) / aAggregated.defensiveOpportunity) * 100 
             : 0;
           bValue = bAggregated.defensiveOpportunity > 0 
-            ? (bAggregated.defensiveConversion / bAggregated.defensiveOpportunity) * 100 
+            ? ((bAggregated.defensiveConversion || 0) / bAggregated.defensiveOpportunity) * 100 
             : 0;
           break;
         
         case EPlayerStatType.WinPercentage:
-          const aGamesPlayed = a.numOfGame - a.running;
-          const bGamesPlayed = b.numOfGame - b.running;
-          aValue = aGamesPlayed > 0 ? (a.wins / aGamesPlayed) * 100 : 0;
-          bValue = bGamesPlayed > 0 ? (b.wins / bGamesPlayed) * 100 : 0;
+          const aGamesPlayed = (a.numOfGame || 0) - (a.running || 0);
+          const bGamesPlayed = (b.numOfGame || 0) - (b.running || 0);
+          aValue = aGamesPlayed > 0 ? ((a.wins || 0) / aGamesPlayed) * 100 : 0;
+          bValue = bGamesPlayed > 0 ? ((b.wins || 0) / bGamesPlayed) * 100 : 0;
           break;
         
         default:
@@ -163,10 +172,12 @@ function PlayerStandings({
     return sorted;
   }, [allPlayerRecords, teamRank, sortConfig, playerStatsMap]);
 
-  // Memoize paginated players
+  // Memoize paginated players with safety check
   const paginatedPlayers = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedPlayers.slice(start, start + ITEMS_PER_PAGE);
+    return sortedPlayers.slice(start, start + ITEMS_PER_PAGE).filter(player => 
+      player && player._id
+    );
   }, [sortedPlayers, currentPage]);
 
   const handleSort = useCallback((key: EPlayerStatType) => {
@@ -174,7 +185,7 @@ function PlayerStandings({
       key,
       direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
     }));
-    setCurrentPage(1); // Reset to first page when sorting changes
+    setCurrentPage(1);
   }, []);
 
   return (
@@ -242,11 +253,11 @@ function PlayerStandings({
               <tbody>
                 {paginatedPlayers.map((player, index) => (
                   <PlayerRow
-                    key={player._id}
+                    key={player?._id}
                     index={index}
                     player={player}
                     teamRank={teamRank}
-                    playerStats={playerStatsMap.get(player._id) || []}
+                    playerStats={playerStatsMap.get(player?._id) || []}
                   />
                 ))}
               </tbody>
@@ -265,6 +276,5 @@ function PlayerStandings({
     </div>
   );
 }
-
 
 export default PlayerStandings;

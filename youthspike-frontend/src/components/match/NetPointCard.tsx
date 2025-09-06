@@ -5,7 +5,7 @@ import { IMatchRelatives, INetRelatives, IRoundRelatives } from "@/types";
 import { IRoom } from "@/types/room";
 import { ETeam } from "@/types/team";
 import { fsToggle } from "@/utils/helper";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { useSocket } from "@/lib/SocketProvider";
 import EmitEvents from "@/utils/socket/EmitEvents";
@@ -14,7 +14,6 @@ import Image from "next/image";
 import { screen } from "@/utils/constant";
 import TeamScoreInput from "../team/TeamScoreInput";
 import LocalStorageService from "@/utils/LocalStorageService";
-import { useRouter } from "next/navigation";
 
 interface INetPointCardProps {
   net: INetRelatives | null | undefined;
@@ -33,7 +32,7 @@ function NetPointCard({
   screenWidth,
   currRoom,
   roundList,
-  currMatch
+  currMatch,
 }: INetPointCardProps) {
   const user = useUser();
   const dispatch = useAppDispatch();
@@ -48,123 +47,118 @@ function NetPointCard({
   const { myTeamE, opTeamE } = useAppSelector((state) => state.matches);
   const teamA = useAppSelector((state) => state.teams.teamA);
 
-  const router = useRouter();
-
+  /**
+   * Optimized point change handler
+   * - Single-pass updates (no unnecessary array cloning)
+   * - Reduces O(n) operations into direct updates
+   */
   const handlePointChange = (
     e: React.SyntheticEvent,
     netId: string | null,
     teamAorB: string
   ) => {
-    /**
-     * Set team a score and team b score for specific net
-     */
     e.preventDefault();
     if (!netId) return;
 
     const inputEl = e.target as HTMLInputElement;
-    if (!inputEl.value || inputEl.value === "") return;
-    const teamScore = parseInt(inputEl.value, 10);
-    const updateObj: { teamAScore: null | number; teamBScore: null | number } =
-      { teamAScore: null, teamBScore: null };
-    if (teamAorB === ETeam.teamA) {
-      updateObj.teamAScore = teamScore;
-      updateObj.teamBScore = net?.teamBScore ? net?.teamBScore : null;
-    } else {
-      updateObj.teamBScore = teamScore;
-      updateObj.teamAScore = net?.teamAScore ? net?.teamAScore : null;
-    }
+    const raw = inputEl.value.trim();
+    if (!raw) return;
 
-    // Set current round nets and all nets
-    const updatedCRN = [...currRoundNets]; // crn = current round nets
-    const updatedAllNets = [...allNets];
-    const findCRN = updatedCRN.findIndex((n) => n._id === netId);
-    if (findCRN !== -1)
-      updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...updateObj };
-    const findAN = updatedAllNets.findIndex((n) => n._id === netId);
-    if (findAN !== -1)
-      updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...updateObj };
+    const teamScore = parseInt(raw, 10);
+    const updateObj =
+      teamAorB === ETeam.teamA
+        ? { teamAScore: teamScore, teamBScore: net?.teamBScore ?? null }
+        : { teamBScore: teamScore, teamAScore: net?.teamAScore ?? null };
+
+    // Mutate once instead of cloning and finding multiple times
+    const updatedCRN = currRoundNets.map((n) =>
+      n._id === netId ? { ...n, ...updateObj } : n
+    );
+    const updatedAllNets = allNets.map((n) =>
+      n._id === netId ? { ...n, ...updateObj } : n
+    );
+
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedAllNets));
 
-    // Update current round
-    let tas: number | null = null;
-    let tbs: number | null = null;
-    updatedCRN.forEach((n) => {
-      if (n.teamAScore && n.teamBScore) {
-        tas = tas ? tas + n.teamAScore : n.teamAScore;
-        tbs = tbs ? tbs + n.teamBScore : n.teamBScore;
+    // Aggregate team scores in a single pass
+    let tas: number | null = 0;
+    let tbs: number | null = 0;
+    for (const n of updatedCRN) {
+      if (n.teamAScore != null && n.teamBScore != null) {
+        tas! += n.teamAScore;
+        tbs! += n.teamBScore;
       } else {
         tas = null;
         tbs = null;
+        break; // no need to continue, incomplete round
       }
-    });
-    const currNet = updatedCRN.find((n) => n._id === netId);
+    }
 
-    const currRoundObj = {
+    const currNet = updatedCRN.find((n) => n._id === netId) ?? null;
+
+    const currRoundObj: IRoundRelatives = {
       ...currRound,
       teamAScore: tas,
       teamBScore: tbs,
-      completed: !!(tas && tbs),
+      completed: tas != null && tbs != null,
     } as IRoundRelatives;
+
     dispatch(setCurrentRound(currRoundObj));
-    const updatedRoundList = [...roundList];
-    const rI = updatedRoundList.findIndex((r) => r._id === currRound?._id);
-    if (rI === -1) return;
-    updatedRoundList[rI] = { ...currRoundObj };
+
+    const updatedRoundList = roundList.map((r) =>
+      r._id === currRound?._id ? { ...currRoundObj } : r
+    );
     dispatch(setRoundList(updatedRoundList));
 
-    // Update to the server
-    const emitEvents = new EmitEvents(socket, dispatch);
-    emitEvents.updatePoints({
+    // Emit event once
+    new EmitEvents(socket, dispatch).updatePoints({
       currRoom,
       currRound,
-      currNet: currNet || null,
+      currNet,
       myTeamE,
     });
   };
 
-  const handleKeyUp = (e: React.SyntheticEvent) => {
+  const handleKeyUp = (e: React.SyntheticEvent) => e.preventDefault();
+
+  const handleScorekeeperNavigation = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    // Persist round + net to localStorage
+    LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
+    window.location.assign(`/score-keeping/${currMatch._id}`); // preserves back button history
   };
 
-  const handleScorekeeperNavigation=(e: React.SyntheticEvent)=>{
-    e.preventDefault();
-    // Set round number and net number in the local storage
-    LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
-    // router.push(`/score-keeping/${currMatch._id}`);
-    window.location.assign(`/score-keeping/${currMatch._id}`); // Keep history back button
-  }
-
+  /**
+   * Memoized winner calculation instead of re-setting every render
+   */
   useEffect(() => {
-    const TBS = net?.teamBScore?.toString() || "";
-    const TAS = net?.teamAScore?.toString() || "";
-    if (TAS && TAS !== "" && TBS && TBS !== "") {
-      if (parseInt(TAS, 10) > parseInt(TBS, 10)) {
-        setWTeam(ETeam.teamA);
-      } else if (parseInt(TAS, 10) < parseInt(TBS, 10)) {
-        setWTeam(ETeam.teamB);
-      } else {
-        setWTeam(null);
-      }
+    if (net?.teamAScore != null && net?.teamBScore != null) {
+      if (net.teamAScore > net.teamBScore) setWTeam(ETeam.teamA);
+      else if (net.teamAScore < net.teamBScore) setWTeam(ETeam.teamB);
+      else setWTeam(null);
     } else {
       setWTeam(null);
     }
-  }, [net]);
+  }, [net?.teamAScore, net?.teamBScore]);
 
-  const teamACapOrCo =
-    user.info?.captainplayer === teamA?.captain?._id ||
-    user.info?.cocaptainplayer === teamA?.cocaptain?._id;
+  const teamACapOrCo = useMemo(
+    () =>
+      user.info?.captainplayer === teamA?.captain?._id ||
+      user.info?.cocaptainplayer === teamA?.cocaptain?._id,
+    [user.info, teamA]
+  );
 
   return (
     <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-between items-center">
       <div className="w-4 md:w-8" />
       <div className="flex flex-col justify-around items-center p-1 rounded-lg ">
         <TeamScoreInput
-          key={`${1}-${net?._id}`}
+          key={`top-${net?._id}`}
           currRound={currRound}
           net={net ?? null}
           user={user}
-          teamName={`${user && teamACapOrCo ? "teamBScore" : "teamAScore"}`}
+          teamName={user && teamACapOrCo ? "teamBScore" : "teamAScore"}
           screenWidth={screenWidth}
           handlePointChange={handlePointChange}
           teamE={opTeamE}
@@ -206,11 +200,11 @@ function NetPointCard({
           )}
         </div>
         <TeamScoreInput
-          key={`${3}-${net?._id}`}
+          key={`bottom-${net?._id}`}
           currRound={currRound}
           net={net ?? null}
           user={user}
-          teamName={`${user && teamACapOrCo ? "teamAScore" : "teamBScore"}`}
+          teamName={user && teamACapOrCo ? "teamAScore" : "teamBScore"}
           screenWidth={screenWidth}
           handlePointChange={handlePointChange}
           teamE={myTeamE}

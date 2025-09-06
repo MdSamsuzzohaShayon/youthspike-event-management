@@ -21,19 +21,14 @@ import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, set
 import Pagination from '@/components/elements/Pagination';
 import { getUserFromCookie } from '@/utils/clientCookie';
 
-
-
-interface IMatchesMainProps{
+interface IMatchesMainProps {
   matches: IMatchExpRel[];
   teams: ITeam[];
   groups: IGroupExpRel[];
   currEvent: IEventExpRel;
 }
 
-const ITEMS_PER_PAGE = 30;
-function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
-  
-
+function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addMatch, setAddMatch] = useState<boolean>(false);
@@ -42,8 +37,6 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
   const [filteredGroupList, setFilteredGroupList] = useState<IGroupExpRel[]>([]);
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
   const [divisionList, setDivisionList] = useState<IOption[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  
 
   // Hooks
   const user = useUser();
@@ -97,8 +90,6 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
     }
   };
 
-
-
   const refetchFunc = async () => {
     // await fetchEvent();
   };
@@ -109,10 +100,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
     // refetchFunc();
   };
 
-
   useEffect(() => {
-    
-
     let newFilteredMatchList = matches;
     let newFilteredTeamList = teams;
     let newFilteredGroupList = groups;
@@ -138,26 +126,15 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
     setFilteredGroupList(newFilteredGroupList);
 
     // Making divisions list
-    const divisions = currEvent?.divisions ||  '';
+    const divisions = currEvent?.divisions || '';
     const divs = divisionsToOptionList(divisions);
     setDivisionList(divs);
   }, []);
 
-  const paginatedMatchList: IMatchExpRel[] = useMemo(() => {
-    // Paginated
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedTeams = filteredMatchList.slice(start, start + ITEMS_PER_PAGE);
-
-    // inactive players won't have rankings
-    return paginatedTeams;
-  }, [filteredMatchList, currentPage]);
-
   if (isLoading) return <Loader />;
-
 
   return (
     <React.Fragment>
-
       {/* Event Menu Start */}
       <div className="event-and-menu">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
@@ -169,7 +146,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
 
       <div className="mt-4">
         {addMatch ? (
-          <div className='match-add-wrapper w-full'>
+          <div className="match-add-wrapper w-full">
             {/* Only director and admin can create match  */}
             {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
               <>
@@ -178,7 +155,7 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
                 </button>
 
                 <div className="division-selection w-full">
-                  <SelectInput key={"matches-si-1"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList}  />
+                  <SelectInput key={'matches-si-1'} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
                 </div>
 
                 <MatchAdd
@@ -204,15 +181,12 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
             <br />
             {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
               <div className="division-selection w-full">
-                <SelectInput key={"matches-si-2"} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
+                <SelectInput key={'matches-si-2'} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
               </div>
             )}
-            {paginatedMatchList.length > 0 ? (
+            {filteredMatchList.length > 0 ? (
               <>
-                <MatchList eventId={currEvent._id} setIsLoading={setIsLoading} matchList={paginatedMatchList} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroupList} />
-                <div className="w-full">
-                  <Pagination currentPage={currentPage} itemList={matches} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
-                </div>
+                <MatchList eventId={currEvent._id} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroupList} />
               </>
             ) : (
               <p>No match created yet!</p>
@@ -226,4 +200,3 @@ function MatchesMain({currEvent, matches, teams, groups}: IMatchesMainProps) {
 }
 
 export default MatchesMain;
-

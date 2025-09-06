@@ -1,5 +1,5 @@
-import { IMatchExpRel, IPlayer, ITeam } from '@/types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
+import React, { useEffect, useMemo, useState } from 'react';
 import { calcMatchScore } from '@/utils/scoreCalc';
 import { ETeam, ITeamScore } from '@/types/team';
 import TeamRow from './TeamRow';
@@ -15,49 +15,61 @@ interface IMatch extends IMatchExpRel {
 }
 
 interface ITeamListProps {
-  teamList?: ITeamCaptain[];
+  rounds: IRoundRelatives[];
+  nets: INetRelatives[];
+  teamList: ITeamCaptain[];
   matchList?: IMatch[];
   selectedGroup?: string | null;
 }
 
+const ITEMS_PER_PAGE = 20;
 
-const ITEMS_PER_PAGE: number = 20;
-
-function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
-  const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
+function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamListProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   /**
-   * Memoized Map of Matches by Team ID
+   * Precompute lookups for rounds and nets
+   * O(1) access instead of filtering repeatedly
+   */
+  const roundMap = useMemo(() => {
+    const map = new Map<string, IRoundRelatives>();
+    for (const r of rounds) map.set(r._id, r);
+    return map;
+  }, [rounds]);
+
+  const netMap = useMemo(() => {
+    const map = new Map<string, INetRelatives>();
+    for (const n of nets) map.set(n._id, n);
+    return map;
+  }, [nets]);
+
+  /**
+   * Map of matches by team for quick access
    */
   const matchesByTeam = useMemo(() => {
     const map = new Map<string, IMatch[]>();
+    if (!matchList) return map;
 
-    if (matchList) {
-      for (const match of matchList) {
-        if (match.completed) {
-          if (match.teamA?._id) {
-            if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
-            map.get(match.teamA._id)?.push(match);
-          }
-          if (match.teamB?._id) {
-            if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
-            map.get(match.teamB._id)?.push(match);
-          }
-        }
+    for (const match of matchList) {
+      if (!match.completed) continue;
+
+      if (match.teamA?._id) {
+        if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
+        map.get(match.teamA._id)!.push(match);
+      }
+      if (match.teamB?._id) {
+        if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
+        map.get(match.teamB._id)!.push(match);
       }
     }
-
     return map;
   }, [matchList]);
 
   /**
-   * Calculate Team Scores
+   * Compute scores per team
    */
-  const calculateTeamScore = useCallback(() => {
-    if (!teamList || teamList.length === 0) return;
-
-    const newTeamScores = new Map<string, ITeamScore>();
+  const teamScores = useMemo(() => {
+    const scores = new Map<string, ITeamScore>();
 
     for (const team of teamList) {
       const teamMatches = matchesByTeam.get(team._id) || [];
@@ -78,89 +90,84 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
 
       for (const match of teamMatches) {
         const isTeamA = match.teamA._id === team._id;
+
+        // direct lookups instead of filter
         // @ts-ignore
-        const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
+        const roundList = match.rounds.map((id) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[];
+        // @ts-ignore
+        const allNets = match.nets.map((id) => netMap.get(id)).filter(Boolean) as INetRelatives[];
+
+        const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(
+          roundList,
+          allNets,
+          isTeamA ? ETeam.teamA : ETeam.teamB
+        );
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
 
         if (teamScore > oponentScore) {
-          teamRecord.overallWins += 1;
-          if (match?.group?._id) teamRecord.groupWins += 1;
+          teamRecord.overallWins++;
+          if (match?.group?._id) teamRecord.groupWins++;
         } else if (oponentScore > teamScore) {
-          teamRecord.overallLoses += 1;
-          if (match?.group?._id) teamRecord.groupLoses += 1;
+          teamRecord.overallLoses++;
+          if (match?.group?._id) teamRecord.groupLoses++;
         }
+
         totalNets += match.nets.length;
       }
 
       teamRecord.totalMatches = teamMatches.length;
       teamRecord.matchAvgDiff = teamMatches.length ? totalMatchDiff / teamMatches.length : 0;
-      teamRecord.gameAvgDiff = teamMatches.length ? totalGameDiff / totalNets : 0;
+      teamRecord.gameAvgDiff = totalNets ? totalGameDiff / totalNets : 0;
 
-      newTeamScores.set(team._id, teamRecord);
+      scores.set(team._id, teamRecord);
     }
 
-    setTeamScores(newTeamScores);
-  }, [teamList, matchesByTeam]);
+    return scores;
+  }, [teamList, matchesByTeam, roundMap, netMap]);
 
   /**
-   * Rank Teams
+   * Sort by score (not alphabetically) and paginate
    */
   const paginatedSortedTeams = useMemo(() => {
-    if (!teamList || teamScores.size === 0) return [];
+    if (!teamList.length || !teamScores.size) return [];
 
-    const sortedList =  [...teamList].sort((teamA, teamB) => {
-      const scoreA = teamScores.get(teamA._id);
-      const scoreB = teamScores.get(teamB._id);
-
-      if (!scoreA || !scoreB) return 0;
+    const sortedList = [...teamList].sort((teamA, teamB) => {
+      const scoreA = teamScores.get(teamA._id)!;
+      const scoreB = teamScores.get(teamB._id)!;
 
       if (selectedGroup) {
-        // Sorting by Group Wins first
-        // if (scoreA.groupWins !== scoreB.groupWins) {
-        //   return scoreB.groupWins - scoreA.groupWins; // Higher group wins go up
-        // }
-        // If Group Wins are tied, sort by Group Losses (lower group losses go up)
+        // group-based ranking
         if (scoreA.groupLoses !== scoreB.groupLoses) {
-          return scoreA.groupLoses - scoreB.groupLoses; // Lower group losses go up
+          return scoreA.groupLoses - scoreB.groupLoses;
         }
-      } else if (scoreA.overallLoses !== scoreB.overallLoses) {
-        return scoreA.overallLoses - scoreB.overallLoses; // Lower overall losses go up
+      } else {
+        // overall ranking
+        if (scoreA.overallLoses !== scoreB.overallLoses) {
+          return scoreA.overallLoses - scoreB.overallLoses;
+        }
       }
 
-      // If the above criteria are tied, sort by matchAvgDiff (higher matchAvgDiff goes up)
+      // tiebreakers
       if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
         return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
       }
-
-      // If the matchAvgDiff is also tied, sort by gameAvgDiff (higher gameAvgDiff goes up)
       if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
         return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
       }
-
-      return 0; // If all criteria are equal, retain the original order
+      return 0;
     });
 
-
-    // Paginated
+    // paginate
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedTeams = sortedList.slice(start, start + ITEMS_PER_PAGE);
-
-    return paginatedTeams;
-  }, [teamList, teamScores, currentPage, selectedGroup]); // Re-run when teamList, teamScores, or selectedGroup change
-
-  /**
-   * Trigger Calculations on Dependency Changes
-   */
-  useEffect(() => {
-    calculateTeamScore();
-  }, [calculateTeamScore]);
+    return sortedList.slice(start, start + ITEMS_PER_PAGE);
+  }, [teamList, teamScores, currentPage, selectedGroup]);
 
   return (
     <div className="teamList w-full flex flex-col">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" >
+        <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden">
           <thead>
             <tr className="bg-yellow-500 text-black font-semibold">
               <th className="py-3 px-2">Team</th>
@@ -172,13 +179,24 @@ function TeamList({ teamList, matchList, selectedGroup }: ITeamListProps) {
           </thead>
           <tbody>
             {paginatedSortedTeams.map((team, index) => (
-              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
+              <TeamRow
+                key={team._id}
+                selectedGroup={selectedGroup}
+                team={team}
+                teamScores={teamScores.get(team._id)}
+                index={index}
+              />
             ))}
           </tbody>
         </table>
       </div>
       <div className="w-full mt-6">
-        <Pagination currentPage={currentPage} itemList={teamList || []} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+        <Pagination
+          currentPage={currentPage}
+          itemList={teamList}
+          setCurrentPage={setCurrentPage}
+          ITEMS_PER_PAGE={ITEMS_PER_PAGE}
+        />
       </div>
     </div>
   );

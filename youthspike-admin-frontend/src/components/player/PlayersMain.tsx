@@ -1,15 +1,15 @@
 'use client';
 
-import { EPlayerStatus, IPlayer, IPlayerExpRel } from '@/types/player';
+import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import React, { useState, useEffect, useMemo } from 'react';
 import Loader from '@/components/elements/Loader';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { IEvent, IGroupRelatives, IMatchExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
+import { IEvent, IGroupRelatives, IPlayerRankingExpRel, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import CurrentEvent from '@/components/event/CurrentEvent';
-import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { getDivisionFromStore, getPlayerPage, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore, setPlayerPage } from '@/utils/localStorage';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
@@ -23,97 +23,117 @@ interface IPlayersMainProps {
   playerRanking: IPlayerRankingExpRel | null;
 }
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
+
 function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlayersMainProps) {
   const user = useUser();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [addPlayer, setAddPlayer] = useState<boolean>(false);
-  const [showRank, setShowRank] = useState<boolean>(false);
-  const [rankControls, setRankControls] = useState<boolean>(false);
-  const [lockRank, setLockRank] = useState<boolean>(false);
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [addPlayer, setAddPlayer] = useState(false);
+  const [showRank, setShowRank] = useState(false);
+  const [rankControls, setRankControls] = useState(false);
+  const [lockRank, setLockRank] = useState(false);
+
+  const [currentPageActive, setCurrentPageActive] = useState(1);
+  const [currentPageInactive, setCurrentPageInactive] = useState(1);
 
   const [currDivision, setCurrDivision] = useState('');
-  // const [teamPlayerRanking, setTeamPlayerRanking] = useState<IPlayerRankingExpRel | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
 
+  // Handle division change
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLInputElement;
-    const value = inputEl.value.trim();
+    const value = (e.target as HTMLInputElement).value.trim();
     setCurrDivision(value);
 
-    if (!value) {
-      removeDivisionFromStore();
-    } else {
-      setDivisionToStore(value);
-    }
+    if (!value) removeDivisionFromStore();
+    else setDivisionToStore(value);
   };
 
-  const refetchFunc = async () => {
-    window.location.reload();
-  };
+  const refetchFunc = async () => window.location.reload();
 
-  // Filter captain's team players if captain/co-captain
-  const teamScopedPlayers = useMemo(() => {
-    if (user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain].includes(user.info.role)) return players;
+  // ✅ Load pagination state from localStorage when mounting
+  useEffect(() => {
+    const activePage = getPlayerPage(`${currEvent._id}-active`);
+    const inactivePage = getPlayerPage(`${currEvent._id}-inactive`);
 
-    const pId = user.info?.captainplayer || user.info?.cocaptainplayer;
-    const playerExist = players.find((p) => p._id === pId);
+    if (activePage?.page) setCurrentPageActive(activePage.page);
+    if (inactivePage?.page) setCurrentPageInactive(inactivePage.page);
+  }, [currEvent._id]);
 
-    if (!playerExist || !playerExist.teams?.[0]) return [];
+  // ✅ Save pagination state to localStorage when it changes
+  useEffect(() => {
+    setPlayerPage(`${currEvent._id}-active`, currentPageActive);
+  }, [currEvent._id, currentPageActive]);
 
-    const tId = playerExist.teams[0]._id;
-    const teamExist = teams.find((t) => t._id === tId);
-    if (!teamExist) return [];
-
-    setShowRank(true);
-    setRankControls(true);
-    setTeamId(tId);
-
-    return players.filter((p) => p.teams?.some((t) => t._id === tId));
-  }, [user, players, teams]);
-
-  // Filtered by division
-  const [filteredPlayerList, filteredTeamList] = useMemo(() => {
-    const basePlayers = teamScopedPlayers;
-    const baseTeams = teams;
-
-    if (!currDivision) return [basePlayers, baseTeams];
-
-    const div = currDivision.trim().toLowerCase();
-
-    const fp = basePlayers.filter((p) => p.division?.trim().toLowerCase() === div);
-    const ft = baseTeams.filter((t) => t.division?.trim().toLowerCase() === div);
-
-    return [fp, ft];
-  }, [currDivision, teamScopedPlayers, teams]);
+  useEffect(() => {
+    setPlayerPage(`${currEvent._id}-inactive`, currentPageInactive);
+  }, [currEvent._id, currentPageInactive]);
 
   // Load division from store initially
   useEffect(() => {
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
-    if (divisionExist) {
-      setCurrDivision(divisionExist);
-    }
+    if (divisionExist) setCurrDivision(divisionExist);
   }, []);
 
-  const activeList = useMemo(() => filteredPlayerList.filter((p) => p.status === EPlayerStatus.ACTIVE), [filteredPlayerList]);
+  /** ------------------------------
+   * FILTERING & SCOPING
+   * ------------------------------ */
+  const { filteredPlayers, filteredTeams } = useMemo(() => {
+    let basePlayers = players;
+    let baseTeams = teams;
 
-  const inactiveList = useMemo(() => filteredPlayerList.filter((p) => p.status === EPlayerStatus.INACTIVE), [filteredPlayerList]);
+    // Captain / Co-captain scope → only their team players
+    if (user?.info?.role && [UserRole.captain, UserRole.co_captain].includes(user.info.role)) {
+      const pId = user.info?.captainplayer || user.info?.cocaptainplayer;
+      const playerExist = players.find((p) => p._id === pId);
+
+      if (playerExist?.teams?.[0]) {
+        const tId = playerExist.teams[0]._id;
+        const teamExist = teams.find((t) => t._id === tId);
+
+        if (teamExist) {
+          setShowRank(true);
+          setRankControls(true);
+          setTeamId(tId);
+
+          basePlayers = players.filter((p) => p.teams?.some((t) => t._id === tId));
+          baseTeams = teams.filter((t) => t._id === tId);
+        }
+      }
+    }
+
+    // Division filter
+    if (currDivision) {
+      const div = currDivision.trim().toLowerCase();
+      basePlayers = basePlayers.filter((p) => p.division?.trim().toLowerCase() === div);
+      baseTeams = baseTeams.filter((t) => t.division?.trim().toLowerCase() === div);
+    }
+
+    return { filteredPlayers: basePlayers, filteredTeams: baseTeams };
+  }, [players, teams, user, currDivision]);
+
+  /** ------------------------------
+   * ACTIVE + INACTIVE SPLIT
+   * ------------------------------ */
+  const activePlayers = useMemo(() => filteredPlayers.filter((p) => p.status === EPlayerStatus.ACTIVE), [filteredPlayers]);
+
+  const inactivePlayers = useMemo(() => filteredPlayers.filter((p) => p.status === EPlayerStatus.INACTIVE), [filteredPlayers]);
+
+  /** ------------------------------
+   * PAGINATION
+   * ------------------------------ */
+  const paginatedActivePlayers = useMemo(() => {
+    const start = (currentPageActive - 1) * ITEMS_PER_PAGE;
+    return activePlayers.slice(start, start + ITEMS_PER_PAGE);
+  }, [activePlayers, currentPageActive]);
+
+  const paginatedInactivePlayers = useMemo(() => {
+    const start = (currentPageInactive - 1) * ITEMS_PER_PAGE;
+    return inactivePlayers.slice(start, start + ITEMS_PER_PAGE);
+  }, [inactivePlayers, currentPageInactive]);
 
   const divisions = useMemo(() => (currEvent?.divisions ? divisionsToOptionList(currEvent.divisions) : []), [currEvent]);
-
-
-  const paginatedPlayerList: IPlayerExpRel[] = useMemo(() => {
-
-    // Paginated
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    const paginatedTeams = activeList.slice(start, start + ITEMS_PER_PAGE);
-
-    // inactive players won't have rankings
-    return paginatedTeams;
-  }, [activeList, currentPage]);
 
   if (isLoading) return <Loader />;
 
@@ -144,7 +164,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             </div>
           )}
 
-          <PlayerAdd eventId={currEvent._id} setAddPlayer={setAddPlayer} teamList={filteredTeamList} division={currDivision} />
+          <PlayerAdd eventId={currEvent._id} setAddPlayer={setAddPlayer} teamList={filteredTeams} division={currDivision} />
         </>
       ) : (
         <>
@@ -160,12 +180,13 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
 
           <div className="player-list mt-6">
             <PlayerList
-              playerList={activeList}
+              key={`active-page-${currentPageActive}`}
+              playerList={paginatedActivePlayers}
               eventId={currEvent._id}
               setIsLoading={setIsLoading}
               rankControls={rankControls && !lockRank}
               refetchFunc={refetchFunc}
-              teamList={filteredTeamList}
+              teamList={filteredTeams}
               divisionList={divisions}
               showRank={showRank}
               playerRanking={playerRanking}
@@ -173,29 +194,24 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
               currEvent={currEvent}
             />
 
-            {/* <div className="w-full">
-              <Pagination currentPage={currentPage} itemList={activeList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
-            </div> */}
+            {/* Active Players Pagination */}
+            <Pagination currentPage={currentPageActive} itemList={activePlayers} setCurrentPage={setCurrentPageActive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
           </div>
 
-          {inactiveList.length > 0 && (
-            <div className="w-full">
-              <h3 className="mt-4">Inactive Players List</h3>
-              <PlayerList
-                key="inactive-players"
-                inactive
-                currEvent={currEvent}
-                eventId={currEvent._id}
-                playerList={inactiveList}
-                setIsLoading={setIsLoading}
-                refetchFunc={refetchFunc}
-                teamList={filteredTeamList}
-                divisionList={divisions}
-              />
+          <PlayerList
+            key={`inactive-page-${currentPageInactive}`}
+            inactive
+            currEvent={currEvent}
+            eventId={currEvent._id}
+            playerList={paginatedInactivePlayers}
+            setIsLoading={setIsLoading}
+            refetchFunc={refetchFunc}
+            teamList={filteredTeams}
+            divisionList={divisions}
+          />
 
-              
-            </div>
-          )}
+          {/* Inactive Players Pagination */}
+          <Pagination currentPage={currentPageInactive} itemList={inactivePlayers} setCurrentPage={setCurrentPageInactive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
         </>
       )}
     </>

@@ -74,12 +74,13 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     rounds,
     groups,
     sponsors,
-    statsOfPlayer
+    statsOfPlayer,
   } = data.getEventDetails.data;
 
   // Sort teams and players alphabetically
   const sortedTeams = useMemo(() => {
-    return [...(teams || [])].sort((a, b) => a.name.localeCompare(b.name));
+    // return [...(teams || [])].sort((a, b) => a.name.localeCompare(b.name));
+    return teams;
   }, [teams]);
 
   const teamMap = new Map<string, ITeam>(teams.map((t) => [t._id, t]));
@@ -119,8 +120,6 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     const filterByGroup = (item: { group?: string }) =>
       selectedGroup ? item.group === selectedGroup : true;
 
-    
-
     return {
       // @ts-ignore
       teams: sortedTeams?.filter(filterByDivision).filter(filterByGroup) || [],
@@ -130,17 +129,21 @@ function EventDetail({ queryRef }: IEventDetailProps) {
           teamA: m.teamA ? teamMap.get(String(m.teamA)) : null,
           teamB: m.teamB ? teamMap.get(String(m.teamB)) : null,
         }))
-        .filter((m)=>{
-          if(!selectedGroup) return true;
-          if(m.teamA?.group === m.teamA?.group && String(m.teamA?.group) === selectedGroup) return true;
+        .filter((m) => {
+          if (!selectedGroup) return true;
+          if (
+            m.teamA?.group === m.teamA?.group &&
+            String(m.teamA?.group) === selectedGroup
+          )
+            return true;
           return false;
         }),
       players: sortedPlayers?.filter(filterByDivision) || [],
     };
   }, [sortedTeams, sortedPlayers, matches, currDivision, selectedGroup]);
 
-  const playerStatsMap = useMemo(()=> {
-    return new Map(statsOfPlayer.map((ps)=> [ps.playerId, ps.stats]));
+  const playerStatsMap = useMemo(() => {
+    return new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats]));
   }, [statsOfPlayer]);
 
   const initializeLists = useCallback(() => {
@@ -193,6 +196,8 @@ function EventDetail({ queryRef }: IEventDetailProps) {
           teamList={filteredData.teams as ITeamCaptain[]}
           selectedGroup={selectedGroup}
           matchList={filteredData.matches as IMatch[]}
+          nets={nets}
+          rounds={rounds}
         />
       ),
       [EEventItem.MATCH]: (

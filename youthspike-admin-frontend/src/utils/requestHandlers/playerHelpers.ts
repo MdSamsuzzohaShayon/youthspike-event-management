@@ -14,7 +14,7 @@ export const handleRedirect = async (
   } else {
     await router.push(`/${eventId}/players/${ldoIdUrl}`);
   }
-  router.refresh();
+  // router.refresh();
 };
 
 export const sendGraphQLFormData = async (

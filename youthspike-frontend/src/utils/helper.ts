@@ -141,6 +141,8 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
     matchPlayed: 0,
   };
 
+  
+
   // Just sum all the numeric fields from each stat object
   stats.forEach((stat: IPlayerStats) => {
     aggregated.serveOpportunity += stat.serveOpportunity || 0;

@@ -149,6 +149,13 @@ export interface ITextCommon {
 }
 */
 
+
+export interface IPlayerPage{
+  eventId: string;
+  date: string;
+  page: number;
+}
+
 export interface ISelectInputProps extends ITextCommon {
   optionList: IOption[];
   defaultValue?: string | number | null;
