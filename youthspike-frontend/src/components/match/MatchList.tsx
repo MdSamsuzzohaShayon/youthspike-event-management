@@ -25,10 +25,10 @@ enum EMatchStatus {
 }
 
 const filterOptions = [
+  { id: 4, text: EMatchStatus.IN_PROGRESS },
   { id: 1, text: EEventPeriod.CURRENT },
   { id: 2, text: EEventPeriod.PAST },
   { id: 3, text: EMatchStatus.COMPLETED },
-  { id: 4, text: EMatchStatus.IN_PROGRESS },
   { id: 5, text: EMatchStatus.NOT_STARTED },
 ];
 
@@ -126,6 +126,7 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
           text: o.text.replace(/_/g, ' '),
           value: o.text,
         }))}
+        defaultValue={filterOptions[0].id}
         handleSelect={(e) => setFilter((e.target as HTMLSelectElement).value)}
       />
 

@@ -102,10 +102,10 @@ function PlayerStandings({
         
         case EPlayerStatType.AcePercentage:
           aValue = aAggregated.serveAce > 0 
-            ? ((aAggregated.servingAceNoTouch || 0) / aAggregated.serveAce) * 100 
+            ? ((aAggregated.serveAce || 0) / aAggregated.serveOpportunity) * 100 
             : 0;
           bValue = bAggregated.serveAce > 0 
-            ? ((bAggregated.servingAceNoTouch || 0) / bAggregated.serveAce) * 100 
+            ? ((bAggregated.serveAce || 0) / bAggregated.serveOpportunity) * 100 
             : 0;
           break;
         

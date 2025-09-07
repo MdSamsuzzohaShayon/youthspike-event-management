@@ -52,9 +52,9 @@ function EventDetail({ queryRef }: IEventDetailProps) {
   const initialDivision = searchParams.get("division");
   const initialSearch = searchParams.get("search");
   const initialGroup = searchParams.get("group");
-  const initialPlayerPage = parseInt(searchParams.get("pp") ?? "1", 10);
-  const initialTeamPage = parseInt(searchParams.get("tp") ?? "1", 10);
-  const initialMatchPage = parseInt(searchParams.get("mp") ?? "1", 10);
+  // const initialPlayerPage = parseInt(searchParams.get("pp") ?? "1", 10);
+  // const initialTeamPage = parseInt(searchParams.get("tp") ?? "1", 10);
+  // const initialMatchPage = parseInt(searchParams.get("mp") ?? "1", 10);
 
   const [selectedItem, setSelectedItem] =
     useState<EEventItem>(initialSelectedItem);

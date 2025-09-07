@@ -10,13 +10,26 @@ export const handleRedirect = async (
   team: string | null
 ) => {
   if (team) {
-    await router.push(`/${eventId}/teams/${team}/${ldoIdUrl}`);
+    // Try to use document.referrer if available
+    const previousUrl = document.referrer;
+
+    if (previousUrl) {
+      // Check if referrer is internal
+      const url = new URL(previousUrl);
+      if (url.origin === window.location.origin) {
+        router.push(url.pathname + url.search); // preserves query params
+        return;
+      }
+    }
+
+    // fallback if referrer not available or external
+    router.push(`/${eventId}/teams/${team}/${ldoIdUrl}`);
   } else {
-    // await router.push(`/${eventId}/players/${ldoIdUrl}`);
-    window.location.assign(`/${eventId}/players/${ldoIdUrl}`);
+    // For players page
+    router.push(`/${eventId}/players/${ldoIdUrl}`);
   }
-  router.refresh();
 };
+
 
 export const sendGraphQLFormData = async (
   query: string,

@@ -96,7 +96,7 @@ function NetHeader({
             className="w-full sm:w-auto px-6 py-3 text-base font-bold rounded-lg bg-yellow-logo text-black hover:bg-yellow-300 transition-all shadow-md"
             onClick={handleRoundNetSelect}
           >
-            {view === EView.NET ? "ENTER ROUND" : "ENTER NET"}
+            {view === EView.NET ? "Main scoreboard" : "ENTER NET"}
           </button>
         </div>
       </div>

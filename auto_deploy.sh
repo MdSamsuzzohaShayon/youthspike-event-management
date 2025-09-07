@@ -83,12 +83,12 @@ rm -rf "$CLONE_DIR"
 success "Backend moved to $PROJECT_DIR"
 
 ### Setup Redis
-info "Restarting Redis..."
-sudo systemctl restart redis-server
-sudo systemctl status redis-server --no-pager || warn "Redis might not be running properly."
-cd "$PROJECT_DIR"
-[ -f ./redis_cluster.sh ] && ./redis_cluster.sh || warn "redis_cluster.sh not found."
-success "Redis setup completed."
+# info "Restarting Redis..."
+# sudo systemctl restart redis-server
+# sudo systemctl status redis-server --no-pager || warn "Redis might not be running properly."
+# cd "$PROJECT_DIR"
+# [ -f ./redis_cluster.sh ] && ./redis_cluster.sh || warn "redis_cluster.sh not found."
+# success "Redis setup completed."
 
 
 ### Environment setup

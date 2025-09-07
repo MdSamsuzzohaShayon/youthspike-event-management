@@ -2,7 +2,7 @@
 
 import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Loader from '@/components/elements/Loader';
 import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
 import { IEvent, IGroupRelatives, IPlayerRankingExpRel, ITeam } from '@/types';
@@ -14,6 +14,8 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import Pagination from '../elements/Pagination';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useDebounce } from 'use-debounce';
 
 interface IPlayersMainProps {
   currEvent: IEvent;
@@ -27,54 +29,80 @@ const ITEMS_PER_PAGE = 10;
 
 function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlayersMainProps) {
   const user = useUser();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Get initial state from query params
+  const initialDivision = searchParams.get('division') || '';
+  const initialPageActive = parseInt(searchParams.get('pageActive') || '1');
+  const initialPageInactive = parseInt(searchParams.get('pageInactive') || '1');
+  const initialAddPlayer = searchParams.get('addPlayer') === 'true';
 
   const [isLoading, setIsLoading] = useState(false);
-  const [addPlayer, setAddPlayer] = useState(false);
+  const [addPlayer, setAddPlayer] = useState(initialAddPlayer);
   const [showRank, setShowRank] = useState(false);
   const [rankControls, setRankControls] = useState(false);
   const [lockRank, setLockRank] = useState(false);
 
-  const [currentPageActive, setCurrentPageActive] = useState(1);
-  const [currentPageInactive, setCurrentPageInactive] = useState(1);
+  const [currentPageActive, setCurrentPageActive] = useState(initialPageActive);
+  const [currentPageInactive, setCurrentPageInactive] = useState(initialPageInactive);
 
-  const [currDivision, setCurrDivision] = useState('');
+  const [currDivision, setCurrDivision] = useState(initialDivision);
   const [teamId, setTeamId] = useState<string | null>(null);
+
+  // Function to update query params
+  const updateQueryParams = useCallback((updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '') {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    // Replace instead of push to avoid cluttering history
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
+
+  // Update URL when state changes
+  useEffect(() => {
+    updateQueryParams({
+      division: currDivision || null,
+      pageActive: currentPageActive.toString(),
+      pageInactive: currentPageInactive.toString(),
+      addPlayer: addPlayer ? 'true' : null,
+    });
+  }, [currDivision, currentPageActive, currentPageInactive, addPlayer, updateQueryParams]);
 
   // Handle division change
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
     const value = (e.target as HTMLInputElement).value.trim();
     setCurrDivision(value);
+    // Reset pagination when division changes
+    setCurrentPageActive(1);
+    setCurrentPageInactive(1);
 
     if (!value) removeDivisionFromStore();
     else setDivisionToStore(value);
   };
 
+  const handleAddPlayerToggle = () => {
+    setAddPlayer(prev => !prev);
+  };
+
   const refetchFunc = async () => window.location.reload();
 
-  // ✅ Load pagination state from localStorage when mounting
-  useEffect(() => {
-    const activePage = getPlayerPage(`${currEvent._id}-active`);
-    const inactivePage = getPlayerPage(`${currEvent._id}-inactive`);
-
-    if (activePage?.page) setCurrentPageActive(activePage.page);
-    if (inactivePage?.page) setCurrentPageInactive(inactivePage.page);
-  }, [currEvent._id]);
-
-  // ✅ Save pagination state to localStorage when it changes
-  useEffect(() => {
-    setPlayerPage(`${currEvent._id}-active`, currentPageActive);
-  }, [currEvent._id, currentPageActive]);
-
-  useEffect(() => {
-    setPlayerPage(`${currEvent._id}-inactive`, currentPageInactive);
-  }, [currEvent._id, currentPageInactive]);
-
-  // Load division from store initially
+  // Load division from store initially (fallback for backward compatibility)
   useEffect(() => {
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
-    if (divisionExist) setCurrDivision(divisionExist);
-  }, []);
+    if (divisionExist && !currDivision) {
+      setCurrDivision(divisionExist);
+    }
+  }, [currDivision]);
 
   /** ------------------------------
    * FILTERING & SCOPING
@@ -153,7 +181,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
         <>
           <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
             <h3>Player Add</h3>
-            <button className="btn-info" onClick={() => setAddPlayer(false)}>
+            <button className="btn-info" onClick={handleAddPlayerToggle}>
               Player List
             </button>
           </div>
@@ -172,11 +200,17 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
           <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
             <h3>Player List</h3>
             {(user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director) && (
-              <button className="btn-info" onClick={() => setAddPlayer(true)}>
+              <button className="btn-info" onClick={handleAddPlayerToggle}>
                 Add player
               </button>
             )}
           </div>
+
+          {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain].includes(user.info.role)) && (
+            <div className="mb-4 division-selection w-full mt-6">
+              <SelectInput key="players-pg-2" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
+            </div>
+          )}
 
           <div className="player-list mt-6">
             <PlayerList

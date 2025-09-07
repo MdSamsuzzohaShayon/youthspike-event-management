@@ -19,6 +19,8 @@ import { UserRole } from '@/types/user';
 import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 import Pagination from '../elements/Pagination';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useDebounce } from 'use-debounce';
 
 const { initial: cInitial, animate: cAnimate, exit: cExit, transition: cTransition } = cardAnimate;
 
@@ -41,11 +43,30 @@ interface IFilterParams {
 const ITEMS_PER_PAGE = 10;
 
 const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, groupList }: IMatchListProps) => {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [filterParams, setFilterParams] = useState<IFilterParams>({ date: EEventPeriod.CURRENT });
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  // Get initial state from query params
+  const initialPage = parseInt(searchParams.get('page') || '1');
+  const initialDate = searchParams.get('date') || EEventPeriod.CURRENT;
+  const initialOpponent = searchParams.get('opponent') || '';
+  const initialDescription = searchParams.get('description') || '';
+  const initialGroup = searchParams.get('group') || '';
+
+  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+  const [filterParams, setFilterParams] = useState<IFilterParams>({ 
+    date: initialDate,
+    opponent: initialOpponent || undefined,
+    description: initialDescription || undefined,
+    group: initialGroup || null
+  });
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [checkedMatches, setCheckedMatches] = useState<Map<string, boolean>>(new Map());
   const actionEl = useRef<HTMLUListElement | null>(null);
+
+  // Debounce description filter to avoid too many URL updates
+  const [debouncedDescription] = useDebounce(filterParams.description, 300);
 
   const [deleteMultipleMatches] = useMutation(DELETE_MATCHES);
   const user = useUser();
@@ -54,6 +75,33 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   useClickOutside(actionEl, () => {
     setShowFilter(false);
   });
+
+  // Function to update query params
+  const updateQueryParams = useCallback((updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '') {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    // Replace instead of push to avoid cluttering history
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
+
+  // Update URL when filters or pagination change
+  useEffect(() => {
+    updateQueryParams({
+      page: currentPage.toString(),
+      date: filterParams.date || null,
+      opponent: filterParams.opponent || null,
+      description: debouncedDescription || null,
+      group: filterParams.group || null,
+    });
+  }, [currentPage, filterParams.date, filterParams.opponent, debouncedDescription, filterParams.group, updateQueryParams]);
 
   // Memoize sorted match list to avoid re-sorting on every render
   const sortedMatchList = useMemo(() => {
@@ -169,29 +217,28 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     return filteredMatchList.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredMatchList, currentPage]);
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filterParams]);
-
   const handlePeriodChange = useCallback((e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
     setFilterParams((prev) => ({ ...prev, date: inputEl.value }));
+    setCurrentPage(1); // Reset page when this specific filter changes
   }, []);
 
   const handleDescriptionChange = useCallback((e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
     setFilterParams((prev) => ({ ...prev, description: inputEl.value }));
+    setCurrentPage(1); // Reset page when this specific filter changes
   }, []);
 
   const handleOpponentChange = useCallback((e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
     setFilterParams((prev) => ({ ...prev, opponent: inputEl.value }));
+    setCurrentPage(1); // Reset page when this specific filter changes
   }, []);
 
   const handleGroupChange = useCallback((e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
     setFilterParams((prev) => ({ ...prev, group: inputEl.value }));
+    setCurrentPage(1); // Reset page when this specific filter changes
   }, []);
 
   const handleSelectMatch = useCallback((e: React.SyntheticEvent, matchId: string) => {
@@ -261,7 +308,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
           name="period" 
           optionList={eventPeriods} 
           label="Date" 
-          defaultValue={EEventPeriod.CURRENT} 
+          value={filterParams.date || EEventPeriod.CURRENT}
           handleSelect={handlePeriodChange} 
         />
         <SelectInput
@@ -271,19 +318,22 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
             text: t?.name || 'Unknown Team',
             value: t?._id || '',
           }))}
+          value={filterParams.opponent || ''}
           handleSelect={handleOpponentChange}
         />
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
           <SelectInput 
             name="group" 
             optionList={groupOptions} 
+            value={filterParams.group || ''}
             handleSelect={handleGroupChange} 
           />
         )}
         <InputField 
           type="text" 
           name="description" 
-          required={false} 
+          required={false}
+          value={filterParams.description || ''}
           handleInputChange={handleDescriptionChange} 
         />
       </div>

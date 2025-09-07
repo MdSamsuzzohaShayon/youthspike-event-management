@@ -25,7 +25,6 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const params = useParams();
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
-  
 
   // Precompute nets by round to avoid repeated filtering
   const netsByRoundId = useMemo(() => {
@@ -65,37 +64,39 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const teamCard = useCallback(
     (team: ITeam, teamE: ETeam) => {
       const teamScore = teamE === ETeam.teamA ? teamScores.teamA : teamScores.teamB;
-      const oponentScore = teamE === ETeam.teamA ? teamScores.teamB : teamScores.teamA;
-      const won = teamScore > oponentScore && match.completed;
+      const opponentScore = teamE === ETeam.teamA ? teamScores.teamB : teamScores.teamA;
+      const won = teamScore > opponentScore && match.completed;
 
       return (
-        <>
-          <div className="advanced-img w-14">
+        <div className={`flex items-center gap-2 p-2 rounded-lg ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
+          <div className="flex-shrink-0 w-8 h-8">
             {team?.logo ? (
               <CldImage 
                 alt={team.name} 
-                width="200" 
-                height="200" 
-                className="w-full h-full" 
+                width={32} 
+                height={32} 
+                className="w-8 h-8 object-contain" 
                 src={team.logo} 
               />
             ) : (
               <Image 
                 src="/free-logo.png" 
-                width={imgW.logo} 
-                height={imgW.logo} 
-                className="w-full h-full" 
+                width={32} 
+                height={32} 
+                className="w-8 h-8 object-contain" 
                 alt="free-logo" 
               />
             )}
           </div>
-          <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && won ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>
-            {team?.name}
-          </h3>
-          <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border ${match.completed && won ? 'bg-green-600' : ''}`}>
-            {teamScore}
-          </h1>
-        </>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-medium text-white truncate capitalize">
+              {team?.name}
+            </h3>
+          </div>
+          <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border-2 ${won ? 'border-green-500 bg-green-600' : 'border-gray-400'}`}>
+            <span className="text-sm font-bold">{teamScore}</span>
+          </div>
+        </div>
       );
     },
     [teamScores, match.completed]
@@ -120,7 +121,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           !net.teamAScore || !net.teamBScore
         );
         if (hasIncompleteNet) {
-          return `ASSIGNING PLAYERS ROUND ${currRound.num}`;
+          return `ROUND ${currRound.num} - ASSIGNING`;
         }
       }
       
@@ -131,13 +132,13 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           !net.teamAScore || !net.teamBScore
         );
         if (hasIncompleteNet) {
-          return `ROUND ${currRound.num} IN ACTION`;
+          return `ROUND ${currRound.num} - LIVE`;
         }
       }
     }
     
-    return '';
-  }, [roundList, netsByRoundId]);
+    return match.completed ? 'COMPLETED' : 'UPCOMING';
+  }, [roundList, netsByRoundId, match.completed]);
 
   const statusMessage = useMemo(() => messageCreate(), [messageCreate]);
   const isAdminOrDirector = useMemo(() => 
@@ -145,111 +146,116 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     [user.info?.role]
   );
 
+  const getStatusColor = () => {
+    if (statusMessage.includes('LIVE')) return 'bg-red-500';
+    if (statusMessage.includes('ASSIGNING')) return 'bg-blue-500';
+    if (statusMessage === 'COMPLETED') return 'bg-green-500';
+    if (statusMessage === 'SCHEDULED') return 'bg-yellow-500';
+    return 'bg-gray-500';
+  };
+
   return (
-    <div
-      className="w-full bg-gray-800 flex flex-col justify-between items-center relative rounded-lg shadow-lg overflow-hidden"
-      style={{ minHeight: '6rem' }}
-    >
-      {/* ===== LEVEL 1 START ===== */}
-      <div className="level-1 w-full flex justify-center px-4 md:px-8 py-3 border-b-2 border-yellow-500 text-white font-bold text-lg tracking-wide">
-        {match.completed ? 'FINAL SCORE' : statusMessage}
+    <div className="w-full bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-600">
+      {/* Header with status */}
+      <div className={`px-3 py-2 ${getStatusColor()} text-white text-xs font-semibold uppercase tracking-wide text-center`}>
+        {statusMessage}
       </div>
-      {/* ===== LEVEL 1 END ===== */}
 
-      {/* ===== LEVEL 2 START ===== */}
-      <div className="level-2 w-full flex justify-between items-center px-4 md:px-8 py-4 text-white">
-        {teamCard(match?.teamA, ETeam.teamA)}
-      </div>
-      {/* ===== LEVEL 2 END ===== */}
+      {/* Main content */}
+      <div className="p-3 space-y-3">
+        {/* Teams and scores */}
+        <div className="grid grid-cols-2 gap-3">
+          {teamCard(match?.teamA, ETeam.teamA)}
+          {teamCard(match?.teamB, ETeam.teamB)}
+        </div>
 
-      {/* ===== LEVEL 3 START ===== */}
-      <div className="level-3 w-full flex justify-center items-center px-4 md:px-8 py-4 gap-x-4 text-white">
-        {isAdminOrDirector && (
-          <Link href={`${ADMIN_FRONTEND_URL}/${params.eventId}/matches/${match._id}/${ldoIdUrl}`}>
-            <Image 
-              height={imgW.logo} 
-              width={imgW.logo} 
-              src="/icons/setting.svg" 
-              alt="setting-icon" 
-              className="w-6 svg-white cursor-pointer hover:opacity-80" 
-            />
-          </Link>
-        )}
-        <div className="rounds flex flex-col justify-center items-center w-full">
-          <ul className="round-numbers w-full flex justify-center items-center gap-x-2">
-            {roundList.map((round, i) => (
-              <li key={round._id} className="w-12 flex justify-center items-center text-yellow-logo text-sm font-semibold">
-                {`RD${match.extendedOvertime && i === roundList.length - 1 ? 'X' : round.num}`}
-              </li>
-            ))}
-          </ul>
-          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center mt-2">
+        {/* Rounds and points */}
+        <div className="rounded-lg p-2">
+          <div className="flex justify-center items-center mb-2">
+            <ul className="flex gap-1">
+              {roundList.map((round, i) => (
+                <li key={round._id} className="text-xs text-gray-300 font-medium px-1">
+                  {`R${match.extendedOvertime && i === roundList.length - 1 ? 'X' : round.num}`}
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className="space-y-1">
             <PointsByRoundPublic 
-            // @ts-ignore
+              // @ts-ignore
               roundList={roundList} 
               allNets={allNets} 
               teamE={ETeam.teamA} 
               precomputedScores={teamScores.roundScores}
+              compact
             />
-          </div>
-          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center mt-2">
             <PointsByRoundPublic 
-            // @ts-ignore
+              // @ts-ignore
               roundList={roundList} 
               allNets={allNets} 
               teamE={ETeam.teamB} 
               dark 
               precomputedScores={teamScores.roundScores}
+              compact
             />
           </div>
         </div>
-        <Image 
-          height={imgW.logo} 
-          width={imgW.logo} 
-          src="/icons/share.svg" 
-          alt="share-icon" 
-          className="w-6 svg-white cursor-pointer hover:opacity-80" 
-        />
-      </div>
-      {/* ===== LEVEL 3 END ===== */}
 
-      {/* ===== LEVEL 4 START ===== */}
-      <div className="level-4 w-full flex justify-between items-center px-4 md:px-8 py-4 text-white">
-        {teamCard(match?.teamB, ETeam.teamB)}
-      </div>
-      {/* ===== LEVEL 4 END ===== */}
-
-      {/* ===== LEVEL 5 START ===== */}
-      <div className="level-5 w-full flex justify-between items-start px-4 md:px-8 py-4 text-white">
-        <div className="w-1/2">
-          <p className="flex items-center gap-x-2">
-            <Image width={20} height={20} src="/icons/clock.svg" className="w-6 svg-white" alt="clock-logo" />
+        {/* Match details */}
+        <div className="flex flex-wrap gap-3 text-xs text-gray-300">
+          <div className="flex items-center gap-1">
+            <Image width={12} height={12} src="/icons/clock.svg" className="w-3 h-3 svg-white" alt="clock" />
             <span>{readDate(match.date)}</span>
-          </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <Image width={12} height={12} src="/icons/location.svg" className="w-3 h-3 svg-white" alt="location" />
+            <span >{match.location}</span>
+          </div>
+          {match.description && (
+            <div className="flex items-center gap-1">
+              <Image width={12} height={12} src="/icons/info.svg" className="w-3 h-3 svg-white" alt="info" />
+              <span >{match.description}</span>
+            </div>
+          )}
         </div>
-        <div className="w-1/2 text-right">
-          <p className="flex items-center gap-x-2">
-            <Image width={20} height={20} src="/icons/location.svg" className="w-6 svg-white" alt="location-logo" />
-            <span>{match.location}</span>
-          </p>
-          <p className="flex items-center gap-x-2">
-            <Image width={20} height={20} src="/icons/location.svg" className="w-6 svg-white" alt="location-logo" />
-            <span>{match.description}</span>
-          </p>
-        </div>
-      </div>
-      {/* ===== LEVEL 5 END ===== */}
 
-      {/* ===== LEVEL 7 START ===== */}
-      <div className="level-7 w-full flex justify-center px-4 md:px-8 py-4" >
-        <Link 
-          href={`/matches/${match._id}/${ldoIdUrl}`} 
-          className="px-6 py-2 bg-yellow-logo text-black font-semibold rounded-md shadow-md hover:bg-yellow-600 transition-colors duration-300"
-        >
-          Enter
-        </Link>
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-600">
+          <div className="flex items-center gap-2">
+            {isAdminOrDirector && (
+              <Link 
+                href={`${ADMIN_FRONTEND_URL}/${params.eventId}/matches/${match._id}/${ldoIdUrl}`}
+                className="p-1 hover:bg-gray-600 rounded transition-colors"
+              >
+                <Image 
+                  height={16} 
+                  width={16} 
+                  src="/icons/setting.svg" 
+                  alt="settings" 
+                  className="w-4 h-4 svg-white" 
+                />
+              </Link>
+            )}
+            <button className="p-1 hover:bg-gray-600 rounded transition-colors">
+              <Image 
+                height={16} 
+                width={16} 
+                src="/icons/share.svg" 
+                alt="share" 
+                className="w-4 h-4 svg-white" 
+              />
+            </button>
+          </div>
+          
+          <Link 
+            href={`/matches/${match._id}/${ldoIdUrl}`} 
+            className="px-3 py-1 bg-yellow-500 text-black text-xs font-semibold rounded hover:bg-yellow-400 transition-colors"
+          >
+            View Match
+          </Link>
+        </div>
       </div>
-      {/* ===== LEVEL 7 END ===== */}
     </div>
   );
 }
