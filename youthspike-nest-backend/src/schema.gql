@@ -1158,6 +1158,7 @@ type Mutation {
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, multiplayerInput: ProStatsInput, weightInput: ProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
   updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], multiplayerInput: UpdateProStatsInput, weightInput: UpdateProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
   cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
+  updateEventCache(eventId: String!): CreateOrUpdateEventResponse!
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!

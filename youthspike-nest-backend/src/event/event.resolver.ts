@@ -90,6 +90,15 @@ export class EventResolver {
     return this.eventMutations.cloneEvent(eventId, context);
   }
 
+
+  // Temporary
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
+  async updateEventCache(@Args({ name: 'eventId', type: () => String }) eventId: string) {
+    return this.eventMutations.updateEventCache(eventId);
+  }
+
+
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => GetEventResponse)

@@ -12,9 +12,10 @@ export const handleRedirect = async (
   if (team) {
     await router.push(`/${eventId}/teams/${team}/${ldoIdUrl}`);
   } else {
-    await router.push(`/${eventId}/players/${ldoIdUrl}`);
+    // await router.push(`/${eventId}/players/${ldoIdUrl}`);
+    window.location.assign(`/${eventId}/players/${ldoIdUrl}`);
   }
-  // router.refresh();
+  router.refresh();
 };
 
 export const sendGraphQLFormData = async (

@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import {
   IEvent,
+  IGroup,
   IMatch,
   IMatchExpRel,
   IPlayer,
@@ -29,6 +30,8 @@ import SelectInput from "../elements/SelectInput";
 import PlayerStandings from "../player/PlayerStandings";
 import { CldImage } from "next-cloudinary";
 import { QueryRef, useReadQuery } from "@apollo/client";
+import InputField from "../elements/InputField";
+import { useDebounce } from "use-debounce";
 
 interface IEventDetailProps {
   queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
@@ -38,12 +41,63 @@ function EventDetail({ queryRef }: IEventDetailProps) {
   const { ldoIdUrl } = useLdoId();
   const dispatch = useAppDispatch();
   const user = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data, error } = useReadQuery(queryRef);
 
-  const [selectedItem, setSelectedItem] = useState<EEventItem>(EEventItem.TEAM);
-  const [currDivision, setCurrDivision] = useState<string | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  // Get initial state from query params
+  const initialSelectedItem =
+    (searchParams.get(EVENT_ITEM) as EEventItem) || EEventItem.MATCH;
+  const initialDivision = searchParams.get("division");
+  const initialSearch = searchParams.get("search");
+  const initialGroup = searchParams.get("group");
+  const initialPlayerPage = parseInt(searchParams.get("pp") ?? "1", 10);
+  const initialTeamPage = parseInt(searchParams.get("tp") ?? "1", 10);
+  const initialMatchPage = parseInt(searchParams.get("mp") ?? "1", 10);
+
+  const [selectedItem, setSelectedItem] =
+    useState<EEventItem>(initialSelectedItem);
+  const [currDivision, setCurrDivision] = useState<string | null>(
+    initialDivision
+  );
+  const [search, setSearch] = useState<string | null>(initialSearch);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(
+    initialGroup
+  );
+
+  // Debounce search to avoid too many URL updates
+  const [debouncedSearch] = useDebounce(search, 300);
+
+  // Function to update query params
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      // Replace instead of push to avoid cluttering history
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
+
+  // Update URL when filters change
+  useEffect(() => {
+    updateQueryParams({
+      [EVENT_ITEM]: selectedItem,
+      division: currDivision,
+      search: debouncedSearch,
+      group: selectedGroup,
+    });
+  }, [selectedItem, currDivision, debouncedSearch, selectedGroup, updateQueryParams]);
+  
 
   // Handle loading and error states
   if (error) {
@@ -111,36 +165,72 @@ function EventDetail({ queryRef }: IEventDetailProps) {
   }, [groups, currDivision]);
 
   const filteredData = useMemo(() => {
+    const searchLower = search?.toLowerCase() || "";
+
     const filterByDivision = (item: { division?: string }) =>
       currDivision
         ? item.division?.trim().toLowerCase() ===
           currDivision.trim().toLowerCase()
         : true;
 
-    const filterByGroup = (item: { group?: string }) =>
-      selectedGroup ? item.group === selectedGroup : true;
+    const filterByGroup = (item: ITeam) => {
+      if (!selectedGroup) return true;
+
+      // group might be an object or a string
+      const groupId =
+        typeof item.group === "string" ? item.group : item.group?._id;
+
+      return groupId === selectedGroup;
+    };
+
+    const filterBySearchPlayer = (player: IPlayer) =>
+      !searchLower ||
+      player.firstName.toLowerCase().includes(searchLower) ||
+      player.lastName.toLowerCase().includes(searchLower);
+
+    const filterBySearchTeam = (team: ITeam) =>
+      !searchLower || team.name.toLowerCase().includes(searchLower);
+
+    const filterBySearchMatch = (match: IMatch) =>
+      !searchLower ||
+      match.teamA?.name?.toLowerCase().includes(searchLower) ||
+      match.teamB?.name?.toLowerCase().includes(searchLower) ||
+      match.description?.toLowerCase().includes(searchLower);
 
     return {
-      // @ts-ignore
-      teams: sortedTeams?.filter(filterByDivision).filter(filterByGroup) || [],
-      matches: (matches?.filter(filterByDivision) || [])
-        .map((m) => ({
-          ...m,
-          teamA: m.teamA ? teamMap.get(String(m.teamA)) : null,
-          teamB: m.teamB ? teamMap.get(String(m.teamB)) : null,
-        }))
-        .filter((m) => {
-          if (!selectedGroup) return true;
-          if (
-            m.teamA?.group === m.teamA?.group &&
-            String(m.teamA?.group) === selectedGroup
-          )
-            return true;
-          return false;
-        }),
-      players: sortedPlayers?.filter(filterByDivision) || [],
+      teams:
+        sortedTeams
+          ?.filter(filterByDivision)
+          .filter(filterByGroup)
+          .filter(filterBySearchTeam) || [],
+
+      matches:
+        matches
+          ?.filter(filterByDivision)
+          .map((m) => ({
+            ...m,
+            teamA: m.teamA ? teamMap.get(String(m.teamA)) : null,
+            teamB: m.teamB ? teamMap.get(String(m.teamB)) : null,
+          }))
+          .filter((m) => {
+            if (!selectedGroup) return true;
+            return String(m.teamA?.group) === selectedGroup;
+          })
+          // @ts-ignore
+          .filter(filterBySearchMatch) || [],
+
+      players:
+        sortedPlayers?.filter(filterByDivision).filter(filterBySearchPlayer) ||
+        [],
     };
-  }, [sortedTeams, sortedPlayers, matches, currDivision, selectedGroup]);
+  }, [
+    sortedTeams,
+    sortedPlayers,
+    matches,
+    currDivision,
+    selectedGroup,
+    search,
+  ]);
 
   const playerStatsMap = useMemo(() => {
     return new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats]));
@@ -174,13 +264,37 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     dispatch(setRankingMap(Array.from(rankingMap.entries())));
   }, [dispatch, event._id, sortedTeams]);
 
+  // Update the handlers to use the setter functions
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value || null);
+  };
+
+  const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrDivision(e.target.value || null);
+    setSelectedGroup(null); // Reset group when division changes
+  };
+
+  const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedGroup(e.target.value || null);
+  };
+
+  const handleItemSelect = (item: EEventItem) => {
+    setSelectedItem(item);
+  };
+
   useEffect(() => {
     initializeLists();
-    const eventItem = searchParams.get(EVENT_ITEM) as EEventItem;
-    if (eventItem && Object.values(EEventItem).includes(eventItem)) {
-      setSelectedItem(eventItem);
+  
+    // Only initialize once from query params
+    if (!selectedItem) {
+      const eventItem = searchParams.get(EVENT_ITEM) as EEventItem;
+      if (eventItem && Object.values(EEventItem).includes(eventItem)) {
+        setSelectedItem(eventItem);
+      }
     }
-  }, [event, initializeLists, searchParams]);
+  }, [event, initializeLists]);
+  
+  
 
   const renderContent = useMemo(() => {
     const renderMap = {
@@ -271,23 +385,29 @@ function EventDetail({ queryRef }: IEventDetailProps) {
         </div>
       )}
 
-      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="search-filter w-full mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+          <InputField
+            key="search-input"
+            type="text"
+            name="search"
+            label="Search"
+            defaultValue={search || ''}
+            handleInputChange={handleSearchChange}
+          />
+
           <SelectInput
             key="division-input"
-            handleSelect={(e) => {
-              setCurrDivision(e.target.value || null);
-              setSelectedGroup(null); // Reset group when division changes
-            }}
-            defaultValue=""
+            handleSelect={handleDivisionChange}
+            defaultValue={currDivision || ""}
             name="division"
             optionList={divisionList}
             label="Division"
           />
           <SelectInput
             key="group-input"
-            handleSelect={(e) => setSelectedGroup(e.target.value || null)}
-            defaultValue=""
+            handleSelect={handleGroupChange}
+            defaultValue={selectedGroup || ""}
             name="group"
             optionList={[
               { id: 1, value: "", text: "All Groups" },
@@ -314,7 +434,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
                       ? "bg-yellow-500 text-black font-semibold"
                       : "bg-gray-700 text-white hover:bg-gray-600"
                   }`}
-                  onClick={() => setSelectedItem(item)}
+                  onClick={() => handleItemSelect(item)}
                 >
                   {item === EEventItem.TEAM ? "Standings / Teams" : item}
                 </li>

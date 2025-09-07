@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { IEventDetailData, IMatchExpRel, TParams } from "@/types";
+import { IEventDetailData, TParams } from "@/types";
 import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";
 import { QueryRef } from "@apollo/client";

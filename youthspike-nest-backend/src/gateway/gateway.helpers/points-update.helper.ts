@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UpdatePointsInput, RoundUpdatedResponse, MatchRoundNet, NetScore } from '../gateway.types';
+import { RoundUpdatedResponse, MatchRoundNet, NetScore } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from './score-keeper.helper';
 
@@ -45,19 +45,19 @@ export class PointsUpdateHelper {
       matchCompleted = true;
     }
 
-    // if(matchCompleted){
-    //   // Update cache to database
-    //   // Update player stats
-    //   // Update single play stats
-    //   // Update server receiver 
-    //   const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
-    //       const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
-    //   const netsOfMatch = await netService.find({match: matchId});
-    //   const players = new Set();
-    //   for (const element of netsOfMatch) {
+    if(matchCompleted){
+      // Update cache to database
+      // Update player stats
+      // Update single play stats
+      // Update server receiver 
+      // const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+      // const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+      // const netsOfMatch = await netService.find({match: matchId});
+      // const players = new Set();
+      // for (const element of netsOfMatch) {
         
-    //   }
-    // }
+      // }
+    }
 
     return {
       nets: nets,

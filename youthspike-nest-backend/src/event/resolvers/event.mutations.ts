@@ -461,4 +461,32 @@ export class EventMutations implements IEventMutations {
       return AppResponse.handleError(err);
     }
   }
+
+
+  async updateEventCache(eventId: string){
+    try {      
+      const event = await this.eventService.findOne({_id: eventId});
+      if(!event) throw new Error("No event found");
+      
+      const matches = await this.matchService.find({event: event._id});
+      if(matches.length === 0)throw new Error("No match created");
+
+
+      for (const match of matches) {
+        if(match.completed){
+          // this.scoreKeeperHelper.loadNetAction(body.net, body.room)
+          // const nets = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
+
+          // server receiver 
+          // Player stats
+          // play stats
+          
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      return AppResponse.handleError(err);
+    }
+    
+  }
 }

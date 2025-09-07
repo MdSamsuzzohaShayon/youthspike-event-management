@@ -179,7 +179,7 @@ function NetInRoundView({
               className="btn btn-info px-4 py-2 text-sm font-bold ml-auto sm:ml-0 whitespace-nowrap bg-yellow-logo text-black hover:bg-yellow-300 border-0"
               onClick={handleScordboardRedirect}
             >
-              SCOREBOARD
+              Scorekeeper Access
             </button>
           </div>
         )}
