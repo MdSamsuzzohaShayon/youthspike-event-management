@@ -6,13 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
-import {
-  IEvent,
-  IMatch,
-  IPlayer,
-  ITeam,
-  ITeamCaptain,
-} from "@/types";
+import { IEvent, IMatch, IPlayer, ITeam, ITeamCaptain } from "@/types";
 import { EEventItem, IEventDetailData } from "@/types/event";
 import {
   setRankingMap,
@@ -94,8 +88,13 @@ function EventDetail({ queryRef }: IEventDetailProps) {
       search: debouncedSearch,
       group: selectedGroup,
     });
-  }, [selectedItem, currDivision, debouncedSearch, selectedGroup, updateQueryParams]);
-  
+  }, [
+    selectedItem,
+    currDivision,
+    debouncedSearch,
+    selectedGroup,
+    updateQueryParams,
+  ]);
 
   // Handle loading and error states
   if (error) {
@@ -282,7 +281,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
 
   useEffect(() => {
     initializeLists();
-  
+
     // Only initialize once from query params
     if (!selectedItem) {
       const eventItem = searchParams.get(EVENT_ITEM) as EEventItem;
@@ -291,9 +290,8 @@ function EventDetail({ queryRef }: IEventDetailProps) {
       }
     }
   }, [event, initializeLists]);
-  
-  
 
+  // Working
   const renderContent = useMemo(() => {
     const renderMap = {
       [EEventItem.PLAYER]: (
@@ -385,14 +383,61 @@ function EventDetail({ queryRef }: IEventDetailProps) {
 
       <div className="search-filter w-full mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-          <InputField
-            key="search-input"
-            type="text"
-            name="search"
-            label="Search"
-            defaultValue={search || ''}
-            handleInputChange={handleSearchChange}
-          />
+          {/* <div className="w-full flex justify-between items-end">
+            <div className="w-10/12">
+              <InputField
+                key="search-input"
+                type="text"
+                name="search"
+                label="Search"
+                defaultValue={search || ""}
+                handleInputChange={handleSearchChange}
+              />
+            </div>
+            <div className="w-2/12 py-1 rounded-md border border-gray-700">
+              <Image
+                src="/icons/close.svg"
+                className="w-3/6 svg-white"
+                alt="close"
+                height={20}
+                width={20}
+              />
+            </div>
+          </div> */}
+
+          <div className="w-full">
+            <label
+              htmlFor="search"
+              className="block text-lg font-semibold text-gray-200 mb-2"
+            >
+              Search
+            </label>
+
+            <div className="relative">
+              <input
+                id="search"
+                name="search"
+                type="text"
+                placeholder="Type to search..."
+                className="w-full px-4 pr-10 py-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                value={search || ""}
+                onChange={handleSearchChange}
+              />
+
+              {/* Close button inside input */}
+              <button
+                type="button"
+                className="absolute inset-y-0 right-3 flex items-center justify-center text-gray-400 hover:text-white focus:outline-none"
+                onClick={() => setSearch("")}
+              >
+                <img
+                  src="/icons/close.svg"
+                  alt="Clear search"
+                  className="w-5 h-5 invert"
+                />
+              </button>
+            </div>
+          </div>
 
           <SelectInput
             key="division-input"

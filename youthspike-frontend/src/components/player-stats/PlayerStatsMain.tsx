@@ -46,7 +46,6 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
   const socket = useSocket();
   const dispatch = useAppDispatch();
-  const user = useUser();
   const apolloClient = useApolloClient();
 
   const {

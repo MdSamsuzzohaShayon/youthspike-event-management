@@ -108,10 +108,10 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
 
         if (teamScore > oponentScore) {
           teamRecord.overallWins++;
-          if (match?.group?._id) teamRecord.groupWins++;
+          if (match?.group?._id || match?.group) teamRecord.groupWins++;
         } else if (oponentScore > teamScore) {
           teamRecord.overallLoses++;
-          if (match?.group?._id) teamRecord.groupLoses++;
+          if (match?.group?._id || match?.group) teamRecord.groupLoses++;
         }
 
         totalNets += match.nets.length;

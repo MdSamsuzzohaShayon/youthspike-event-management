@@ -22,6 +22,11 @@ interface IPlayerStandingsProps {
 }
 
 const ITEMS_PER_PAGE = 30;
+/*
+ value={aggregatedStats.serveAce}
+                total={aggregatedStats.serveOpportunity}
+
+*/
 
 function PlayerStandings({
   playerList,
@@ -29,10 +34,12 @@ function PlayerStandings({
   teamRank,
   playerStatsMap,
 }: IPlayerStandingsProps) {
+
   // Local state
+  const [showRank, setShowRank] = useState<boolean>(teamRank || false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [sortConfig, setSortConfig] = useState<{ key: EPlayerStatType; direction: 'asc' | 'desc' }>({
-    key: teamRank ? EPlayerStatType.Player : EPlayerStatType.WinPercentage,
+    key: showRank ? EPlayerStatType.Player : EPlayerStatType.WinPercentage,
     direction: 'desc'
   });
 
@@ -62,7 +69,7 @@ function PlayerStandings({
 
     let sorted = [...allPlayerRecords];
 
-    if (teamRank) {
+    if (showRank) {
       return sorted.sort((a, b) => (a.rank || 0) - (b.rank || 0));
     }
 
@@ -170,7 +177,7 @@ function PlayerStandings({
     });
 
     return sorted;
-  }, [allPlayerRecords, teamRank, sortConfig, playerStatsMap]);
+  }, [allPlayerRecords, showRank, sortConfig, playerStatsMap]);
 
   // Memoize paginated players with safety check
   const paginatedPlayers = useMemo(() => {
@@ -181,6 +188,7 @@ function PlayerStandings({
   }, [sortedPlayers, currentPage]);
 
   const handleSort = useCallback((key: EPlayerStatType) => {
+    setShowRank(false);
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
@@ -256,7 +264,7 @@ function PlayerStandings({
                     key={player?._id}
                     index={index}
                     player={player}
-                    teamRank={teamRank}
+                    teamRank={showRank}
                     playerStats={playerStatsMap.get(player?._id) || []}
                   />
                 ))}

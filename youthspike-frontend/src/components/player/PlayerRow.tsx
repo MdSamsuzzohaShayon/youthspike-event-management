@@ -119,13 +119,13 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
       </td>
       <td className="py-3 px-4 text-center whitespace-nowrap flex flex-col">
         <span>
-          {aggregatedStats.servingAceNoTouch} / {aggregatedStats.serveAce}
+          {aggregatedStats.serveAce} / {aggregatedStats.serveOpportunity}
         </span>
         <span>
           (
           {aggregatedStats.serveAce > 0
             ? (
-                (aggregatedStats.servingAceNoTouch / aggregatedStats.serveAce) *
+                (aggregatedStats.serveAce / aggregatedStats.serveOpportunity) *
                 100
               ).toFixed(1)
             : 0}
@@ -159,7 +159,7 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
           </span>
           <span>
             (
-            {aggregatedStats.hittingOpportunity > 0
+            {aggregatedStats.cleanHits > 0
               ? (
                   (aggregatedStats.cleanHits /
                     aggregatedStats.hittingOpportunity) *

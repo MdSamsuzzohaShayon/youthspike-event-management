@@ -1,22 +1,29 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { IEvent, IMatch, INetRelatives, IPlayerStats, IRoundRelatives, ITeam } from '@/types';
-import { useLdoId } from '@/lib/LdoProvider';
-import { useAppDispatch } from '@/redux/hooks';
-import { setRankingMap } from '@/redux/slices/playerRankingSlice';
-import Link from 'next/link';
-import { EVENT_ITEM } from '@/utils/constant';
-import { EEventItem, IAllStats } from '@/types/event';
-import TextImg from '../elements/TextImg';
-import MatchList from '../match/MatchList';
-import PlayerStandings from '../player/PlayerStandings';
-import { CldImage } from 'next-cloudinary';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  IEvent,
+  IMatch,
+  INetRelatives,
+  IPlayerStats,
+  IRoundRelatives,
+  ITeam,
+} from "@/types";
+import { useLdoId } from "@/lib/LdoProvider";
+import { useAppDispatch } from "@/redux/hooks";
+import { setRankingMap } from "@/redux/slices/playerRankingSlice";
+import Link from "next/link";
+import { EVENT_ITEM } from "@/utils/constant";
+import { EEventItem, IAllStats } from "@/types/event";
+import TextImg from "../elements/TextImg";
+import MatchList from "../match/MatchList";
+import PlayerStandings from "../player/PlayerStandings";
+import { CldImage } from "next-cloudinary";
 
 interface ITeamDetailProps {
   event: IEvent;
   team: ITeam;
-  nets: INetRelatives[]; 
+  nets: INetRelatives[];
   rounds: IRoundRelatives[];
   statsOfPlayer: IAllStats[];
 }
@@ -24,15 +31,21 @@ interface ITeamDetailProps {
 // eslint-disable-next-line no-unused-vars, no-shadow
 enum ETab {
   // eslint-disable-next-line no-unused-vars
-  ROSTER = 'ROSTER',
+  ROSTER = "ROSTER",
   // eslint-disable-next-line no-unused-vars
-  MATCHES = 'MATCHES',
+  MATCHES = "MATCHES",
 }
 
-function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailProps) {
+function TeamDetail({
+  event,
+  team,
+  nets,
+  rounds,
+  statsOfPlayer,
+}: ITeamDetailProps) {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
-  const [redirectSymbol, setRedirectSymbol] = useState<string>('?');
+  const [redirectSymbol, setRedirectSymbol] = useState<string>("?");
 
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
 
@@ -41,35 +54,62 @@ function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailPro
     setSelectedItem(tab);
   };
 
-  const playerStatsMap = useMemo(()=> {
-    return new Map(statsOfPlayer.map((ps)=> [ps.playerId, ps.stats]));
+  const playerStatsMap = useMemo(() => {
+    return new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats]));
   }, [statsOfPlayer]);
 
   useEffect(() => {
     if (team && team.playerRanking) {
       const rankingMap = new Map();
       // @ts-ignore
-      team.playerRanking.rankings.forEach(({ player, rank }) => rankingMap.set(player._id, rank));
+      team.playerRanking.rankings.forEach(({ player, rank }) =>
+        rankingMap.set(player._id, rank)
+      );
       dispatch(setRankingMap(Array.from(rankingMap)));
     }
   }, [dispatch, team]);
 
   useEffect(() => {
-    if (ldoIdUrl && ldoIdUrl !== '') {
-      setRedirectSymbol('&');
+    if (ldoIdUrl && ldoIdUrl !== "") {
+      setRedirectSymbol("&");
     }
   }, [ldoIdUrl]);
+
+  /*
+<PlayerStandings
+          playerList={filteredData.players}
+          matchList={filteredData.matches as IMatch[]}
+          playerStatsMap={playerStatsMap}
+        />
+
+  */
 
   const showContent = useCallback(() => {
     switch (selectedItem) {
       case ETab.ROSTER:
         // Players should be shown with their records. Win / losses for games
-        return <PlayerStandings playerStatsMap={playerStatsMap} matchList={team.matches as IMatch[]} playerList={team.players} teamRank />;
+        return (
+          <PlayerStandings
+            playerStatsMap={playerStatsMap}
+            matchList={team.matches as IMatch[]}
+            playerList={team.players}
+            teamRank
+          />
+        );
       case ETab.MATCHES:
-        // @ts-ignore
-        return <MatchList matchList={team.matches} nets={nets} rounds={rounds} />;
+        return (
+          // @ts-ignore
+          <MatchList matchList={team.matches} nets={nets} rounds={rounds} />
+        );
       default:
-        return <PlayerStandings playerStatsMap={playerStatsMap} matchList={team.matches as IMatch[]} playerList={team.players} teamRank />;
+        return (
+          <PlayerStandings
+            playerStatsMap={playerStatsMap}
+            matchList={team.matches as IMatch[]}
+            playerList={team.players}
+            teamRank
+          />
+        );
     }
   }, [selectedItem, team.division, team.matches, team.players]);
 
@@ -83,7 +123,13 @@ function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailPro
 
           {/* Team Logo */}
           {team.logo ? (
-            <CldImage alt={team.name} width="200" height="200" className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10" src={team.logo} />
+            <CldImage
+              alt={team.name}
+              width="200"
+              height="200"
+              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
+              src={team.logo}
+            />
           ) : (
             <TextImg
               className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
@@ -93,12 +139,18 @@ function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailPro
           )}
 
           {/* Team Name */}
-          <h3 className="text-2xl font-semibold mt-5 relative z-10">{team.name}</h3>
+          <h3 className="text-2xl font-semibold mt-5 relative z-10">
+            {team.name}
+          </h3>
 
           {/* Event Title */}
           <div className="text-center mb-6 relative z-10">
-            <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">Teams / Roster</h1>
-            <h2 className="text-sm text-gray-300 uppercase mt-1">{event.name}</h2>
+            <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">
+              Teams / Roster
+            </h1>
+            <h2 className="text-sm text-gray-300 uppercase mt-1">
+              {event.name}
+            </h2>
           </div>
 
           {/* Standings Button */}
@@ -114,7 +166,9 @@ function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailPro
             <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
               <li
                 className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.ROSTER ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  selectedItem === ETab.ROSTER
+                    ? "bg-yellow-500 text-gray-900 font-bold tracking-wide"
+                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                 }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
@@ -123,7 +177,9 @@ function TeamDetail({ event, team, nets, rounds, statsOfPlayer }: ITeamDetailPro
               </li>
               <li
                 className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.MATCHES ? 'bg-yellow-500 text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  selectedItem === ETab.MATCHES
+                    ? "bg-yellow-500 text-gray-900 font-bold tracking-wide"
+                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                 }`}
                 role="presentation"
                 onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
