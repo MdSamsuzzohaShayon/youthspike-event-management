@@ -8,9 +8,7 @@ import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import {
   IEvent,
-  IGroup,
   IMatch,
-  IMatchExpRel,
   IPlayer,
   ITeam,
   ITeamCaptain,

@@ -99,7 +99,7 @@ export class MatchHelpers {
     updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
     updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
     updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
-    updatePromises.push(this.matchService.delete({ _id: matchExist._id }));
+    updatePromises.push(this.matchService.deleteMany({ _id: matchExist._id }));
     await Promise.all(updatePromises);
   }
 

@@ -84,7 +84,7 @@ export class ResetScoreHandler {
         netService.updateOne({ _id: body.net }, { $set: { teamAScore: 0, teamBScore: 0 } }),
 
         // Remove server-receiver link
-        serverReceiverOnNetService.delete({ net: body.net }),
+        serverReceiverOnNetService.deleteMany({ net: body.net }),
 
         // Remove redis action
         this.scoreKeeperHelper.deleteNetAction(body.net, body.room),

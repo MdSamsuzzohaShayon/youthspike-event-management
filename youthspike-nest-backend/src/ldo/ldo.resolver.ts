@@ -346,7 +346,7 @@ export class LdoResolver {
             }
             if (event.matches && event.matches.length > 0) {
               const matchIds = event.matches.map((match) => match.toString());
-              promisesToDelete.push(this.matchService.delete({ event: event._id }));
+              promisesToDelete.push(this.matchService.deleteMany({ event: event._id }));
 
               // Rounds, nets
               const matches = await this.matchService.query({ event: event._id });
@@ -356,7 +356,7 @@ export class LdoResolver {
                   promisesToDelete.push(this.roundsService.deleteMany({ _id: { $in: roundIds } }));
 
                   const netIds = match.nets.map((r) => r.toString());
-                  promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));
+                  promisesToDelete.push(this.netService.deleteMany({ _id: { $in: netIds } }));
                 }
               }
             }

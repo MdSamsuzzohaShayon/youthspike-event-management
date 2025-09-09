@@ -27,7 +27,7 @@ import {
   GetMatchResponse,
 } from './match.response';
 import { LdoService } from 'src/ldo/ldo.service';
-import { netKey, singlePlayKey } from 'src/util/helper';
+import { netKey, playerKey, singlePlayKey } from 'src/util/helper';
 import { RedisService } from 'src/redis/redis.service';
 import {
   EServerPositionPair,
@@ -36,6 +36,7 @@ import {
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 
 @Resolver((_of) => Match)
 export class MatchResolver {
@@ -48,6 +49,7 @@ export class MatchResolver {
     private readonly serverReceiverOnNetService: ServerReceiverOnNetService,
     private readonly roomService: RoomService,
     private readonly playerService: PlayerService,
+    private readonly playerStatsService: PlayerStatsService,
     private readonly playerRankingService: PlayerRankingService,
     private readonly groupService: GroupService,
     private readonly ldoService: LdoService,
@@ -107,21 +109,97 @@ export class MatchResolver {
   }
 
   async deleteSingle(matchExist: Match) {
-    const updatePromises = [];
-    const roundIds = matchExist.rounds.map((m) => m.toString());
-    if (roundIds.length > 0) {
-      updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
-    }
-    const netIds = matchExist.nets.map((n) => n.toString());
-    if (netIds.length > 0) {
-      updatePromises.push(this.roundService.deleteMany({ _id: { $in: netIds } }));
-    }
+    try {
+      const updatePromises: Promise<any>[] = [];
 
-    updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }));
-    updatePromises.push(this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }));
-    updatePromises.push(this.roomService.deleteOne({ _id: matchExist.room }));
-    updatePromises.push(this.matchService.delete({ _id: matchExist._id }));
-    await Promise.all(updatePromises);
+      // ✅ Delete all rounds and nets in one go
+      const roundIds = matchExist.rounds.map(String);
+      const netIds = matchExist.nets.map(String);
+
+      // ✅ Fetch related event, room, and all nets in one round
+      const [roomExist, nets] = await Promise.all([
+        this.roomService.findOne({ match: matchExist._id }),
+        this.netService.find({ match: matchExist._id }), // batch fetch
+      ]);
+
+      if (roundIds.length) {
+        updatePromises.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
+      }
+      if (netIds.length) {
+        updatePromises.push(this.netService.deleteMany({ _id: { $in: netIds } }));
+      }
+
+      // ✅ Update teams (parallel)
+      updatePromises.push(
+        this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }),
+        this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }),
+      );
+
+      // ✅ Remove room + match
+      updatePromises.push(
+        this.roomService.deleteOne({ _id: matchExist.room }),
+        this.matchService.deleteMany({ _id: matchExist._id }),
+      );
+
+      // ✅ Collect all playerIds from nets in one pass
+      const playerIds = new Set<string>();
+      const redisDeletePromises: Promise<any>[] = [];
+
+      for (const net of nets) {
+        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB]
+          .filter(Boolean)
+          .forEach((p) => playerIds.add(String(p)));
+
+        // delete cache for all players of this net
+        const netPlayerIds = [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].filter(Boolean);
+        redisDeletePromises.push(
+          ...netPlayerIds.map((player) => this.redisService.delete(netKey(String(player), String(net._id)))),
+        );
+      }
+
+      // ✅ Player stats cleanup (batch)
+      const playerStatsOfMatch = await this.playerStatsService.find({ match: matchExist._id });
+      if (playerStatsOfMatch.length) {
+        updatePromises.push(this.playerStatsService.deleteMany({ match: matchExist._id }));
+        updatePromises.push(
+          this.playerService.updateMany(
+            { _id: { $in: playerStatsOfMatch.map((ps) => ps.player) } },
+            { $pullAll: { playerstats: playerStatsOfMatch.map((p) => p._id) } },
+          ),
+        );
+      }
+
+      // ✅ Delete all server receiver + single play caches in parallel
+      const srCaches = await Promise.all(
+        netIds.map((netId) => this.redisService.get(netKey(String(netId), String(roomExist?._id || '')))),
+      );
+
+      for (const sr of srCaches.filter(Boolean) as ServerReceiverOnNet[]) {
+        const plays = Array.from({ length: sr.mutate || 20 }, (_, i) => i + 1);
+        redisDeletePromises.push(
+          ...plays.map((p) => this.redisService.delete(singlePlayKey(String(sr.net), String(matchExist.room), p))),
+        );
+      }
+
+      redisDeletePromises.push(
+        ...netIds.map((netId) => this.redisService.delete(netKey(String(netId), roomExist?._id || ''))),
+      );
+
+      // ✅ Delete serverReceiverOnNet + detach from players
+      const serverReceiverNets = await this.serverReceiverOnNetService.find({ net: { $in: netIds } });
+      if (serverReceiverNets.length) {
+        const srIds = serverReceiverNets.map((sr) => sr._id);
+        updatePromises.push(this.serverReceiverOnNetService.deleteManySinglePlay({ match: matchExist._id }));
+        updatePromises.push(
+          this.playerService.updateMany({ _id: { $in: [...playerIds] } }, { $pullAll: { serverReceiverOnNet: srIds } }),
+        );
+      }
+
+      // ✅ Run all updates and deletes in parallel
+      await Promise.all([...updatePromises, ...redisDeletePromises]);
+    } catch (err) {
+      console.error('Error deleting match:', err);
+    }
   }
 
   private async getTeamRanking(
@@ -614,10 +692,10 @@ export class MatchResolver {
       teamAScore: play?.teamAScore || 0,
       teamBScore: play?.teamBScore || 0,
       play: play.play || 1,
-      
+
       action: play.action || EServerReceiverAction.SERVER_DO_NOT_KNOW,
       serverPositionPair: play.serverPositionPair || EServerPositionPair.PAIR_A_TOP,
-      
+
       match: play.match || play.matchId || '',
       net: play.net || play.netId || '',
       server: play.server || play.serverId || '',

@@ -113,7 +113,7 @@ export function netKey(netId: string, room: string) {
 }
 
 
-export function playerKey(id: string, netId: string) {
+export function playerKey(playerId: string, netId: string) {
   // A player can play in multiple nets in a match
-  return `player:${id}:${netId}`;
+  return `player:${playerId}:${netId}`;
 }

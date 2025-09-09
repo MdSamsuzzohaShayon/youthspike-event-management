@@ -433,7 +433,7 @@ export class EventMutations implements IEventMutations {
       }
       if (eventExist.matches && eventExist.matches.length > 0) {
         const matchIds = eventExist.matches.map((match) => match.toString());
-        promisesToDelete.push(this.matchService.delete({ _id: { $in: matchIds } }));
+        promisesToDelete.push(this.matchService.deleteMany({ _id: { $in: matchIds } }));
 
         // Rounds, nets
         const matches = await this.matchService.find({ _id: { $in: matchIds } });
@@ -443,7 +443,7 @@ export class EventMutations implements IEventMutations {
             promisesToDelete.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
 
             const netIds = match.nets.map((r) => r.toString());
-            promisesToDelete.push(this.netService.delete({ _id: { $in: netIds } }));
+            promisesToDelete.push(this.netService.deleteMany({ _id: { $in: netIds } }));
           }
         }
       }

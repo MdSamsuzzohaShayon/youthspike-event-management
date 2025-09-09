@@ -40,7 +40,7 @@ export class ServerReceiverOnNetService {
     return this.serverReceiverOnNetModel.findById(id);
   }
 
-  async delete(filter: FilterQuery<ServerReceiverOnNet>) {
+  async deleteMany(filter: FilterQuery<ServerReceiverOnNet>) {
     return this.serverReceiverOnNetModel.deleteMany(filter);
   }
 

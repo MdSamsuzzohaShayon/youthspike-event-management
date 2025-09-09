@@ -50,7 +50,7 @@ export class NetService {
   }
 
 
-  async delete(filter: FilterQuery<Net>) {
+  async deleteMany(filter: FilterQuery<Net>) {
     return this.netModel.deleteMany(filter);
   }
 }
