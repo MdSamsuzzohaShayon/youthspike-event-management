@@ -6,7 +6,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
-import { IEvent, IMatch, IPlayer, ITeam, ITeamCaptain } from "@/types";
+import {
+  IEvent,
+  IMatch,
+  IPlayer,
+  IPlayerRankingExpRel,
+  ITeam,
+  ITeamCaptain,
+} from "@/types";
 import { EEventItem, IEventDetailData } from "@/types/event";
 import {
   setRankingMap,
@@ -21,32 +28,41 @@ import TeamList from "../team/TeamList";
 import SelectInput from "../elements/SelectInput";
 import PlayerStandings from "../player/PlayerStandings";
 import { CldImage } from "next-cloudinary";
-import { QueryRef, useReadQuery } from "@apollo/client";
-import InputField from "../elements/InputField";
 import { useDebounce } from "use-debounce";
 
 interface IEventDetailProps {
-  queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
+  eventData: IEventDetailData;
 }
 
-function EventDetail({ queryRef }: IEventDetailProps) {
+function EventDetail({ eventData }: IEventDetailProps) {
   const { ldoIdUrl } = useLdoId();
   const dispatch = useAppDispatch();
   const user = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data, error } = useReadQuery(queryRef);
 
-  // Get initial state from query params
-  const initialSelectedItem =
-    (searchParams.get(EVENT_ITEM) as EEventItem) || EEventItem.MATCH;
-  const initialDivision = searchParams.get("division");
-  const initialSearch = searchParams.get("search");
-  const initialGroup = searchParams.get("group");
-  // const initialPlayerPage = parseInt(searchParams.get("pp") ?? "1", 10);
-  // const initialTeamPage = parseInt(searchParams.get("tp") ?? "1", 10);
-  // const initialMatchPage = parseInt(searchParams.get("mp") ?? "1", 10);
+  // Memoize search params access
+  const searchParamsString = searchParams.toString();
+  const initialSelectedItem = useMemo(() => {
+    const item = searchParams.get(EVENT_ITEM);
+    return item && Object.values(EEventItem).includes(item as EEventItem)
+      ? (item as EEventItem)
+      : EEventItem.MATCH;
+  }, [searchParamsString]);
+
+  const initialDivision = useMemo(
+    () => searchParams.get("division"),
+    [searchParamsString]
+  );
+  const initialSearch = useMemo(
+    () => searchParams.get("search"),
+    [searchParamsString]
+  );
+  const initialGroup = useMemo(
+    () => searchParams.get("group"),
+    [searchParamsString]
+  );
 
   const [selectedItem, setSelectedItem] =
     useState<EEventItem>(initialSelectedItem);
@@ -64,7 +80,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
   // Function to update query params
   const updateQueryParams = useCallback(
     (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParamsString);
 
       Object.entries(updates).forEach(([key, value]) => {
         if (value === null || value === "") {
@@ -74,10 +90,12 @@ function EventDetail({ queryRef }: IEventDetailProps) {
         }
       });
 
-      // Replace instead of push to avoid cluttering history
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      const newParams = params.toString();
+      if (newParams !== searchParamsString) {
+        router.replace(`${pathname}?${newParams}`, { scroll: false });
+      }
     },
-    [searchParams, router, pathname]
+    [searchParamsString, router, pathname]
   );
 
   // Update URL when filters change
@@ -96,18 +114,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     updateQueryParams,
   ]);
 
-  // Handle loading and error states
-  if (error) {
-    console.error(error);
-
-    return (
-      <div className="min-h-screen flex w-full justify-center items-center">
-        <h3 className="text-center">Error loading event details</h3>
-      </div>
-    );
-  }
-
-  if (!data) {
+  if (!eventData) {
     return (
       <div className="min-h-screen flex w-full justify-center items-center">
         <h3 className="text-center">Loading...</h3>
@@ -126,118 +133,152 @@ function EventDetail({ queryRef }: IEventDetailProps) {
     groups,
     sponsors,
     statsOfPlayer,
-  } = data.getEventDetails.data;
+  } = eventData;
 
-  // Sort teams and players alphabetically
-  const sortedTeams = useMemo(() => {
-    // return [...(teams || [])].sort((a, b) => a.name.localeCompare(b.name));
-    return teams;
-  }, [teams]);
+  // Precompute teamMap once
+  const teamMap = useMemo(
+    () => new Map<string, ITeam>(teams.map((t) => [t._id, t])),
+    [teams]
+  );
 
-  const teamMap = new Map<string, ITeam>(teams.map((t) => [t._id, t]));
-
+  // Memoize sorted players with stable sorting
   const sortedPlayers = useMemo(() => {
-    return [...(players || [])].sort((a, b) => {
+    const playersCopy = [...players];
+    return playersCopy.sort((a, b) => {
       const aName = `${a.firstName} ${a.lastName}`;
       const bName = `${b.firstName} ${b.lastName}`;
       return aName.localeCompare(bName);
     });
   }, [players]);
 
-  // @ts-ignore
+  // Memoize division list
   const divisionList = useMemo(
     () => divisionsToOptionList(event.divisions || ""),
     [event.divisions]
   );
 
+  // Memoize filtered group list
   const groupList = useMemo(() => {
-    if (!currDivision || currDivision === "") {
-      return groups || [];
-    }
+    if (!currDivision) return groups || [];
+
+    const divisionLower = currDivision.trim().toLowerCase();
     return (groups || []).filter(
-      (group) =>
-        group.division?.trim().toLowerCase() ===
-        currDivision.trim().toLowerCase()
+      (group) => group.division?.trim().toLowerCase() === divisionLower
     );
   }, [groups, currDivision]);
 
+  // Memoize player stats map
+  const playerStatsMap = useMemo(
+    () => new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats])),
+    [statsOfPlayer]
+  );
+
+  // Optimize filtered data computation
   const filteredData = useMemo(() => {
     const searchLower = search?.toLowerCase() || "";
+    const divisionLower = currDivision?.trim().toLowerCase();
+    const hasSearch = searchLower.length > 0;
+    const hasDivision = !!divisionLower;
+    const hasGroup = !!selectedGroup;
 
+    // Precompute group team IDs if needed
+    const groupTeamIds = hasGroup
+      ? new Set(
+          teams
+            .filter((t) => {
+              const groupId =
+                typeof t.group === "string" ? t.group : t.group?._id;
+              return groupId === selectedGroup;
+            })
+            .map((t) => t._id)
+        )
+      : null;
+
+    // Filter functions
     const filterByDivision = (item: { division?: string }) =>
-      currDivision
-        ? item.division?.trim().toLowerCase() ===
-          currDivision.trim().toLowerCase()
-        : true;
+      !hasDivision || item.division?.trim().toLowerCase() === divisionLower;
 
-    const filterByGroup = (item: ITeam) => {
-      if (!selectedGroup) return true;
-
-      // group might be an object or a string
+    const filterByGroupTeam = (team: ITeam) => {
+      if (!hasGroup) return true;
       const groupId =
-        typeof item.group === "string" ? item.group : item.group?._id;
-
+        typeof team.group === "string" ? team.group : team.group?._id;
       return groupId === selectedGroup;
     };
 
     const filterBySearchPlayer = (player: IPlayer) =>
-      !searchLower ||
+      !hasSearch ||
       player.firstName.toLowerCase().includes(searchLower) ||
       player.lastName.toLowerCase().includes(searchLower);
 
     const filterBySearchTeam = (team: ITeam) =>
-      !searchLower || team.name.toLowerCase().includes(searchLower);
+      !hasSearch || team.name.toLowerCase().includes(searchLower);
 
     const filterBySearchMatch = (match: IMatch) =>
-      !searchLower ||
+      !hasSearch ||
       match.teamA?.name?.toLowerCase().includes(searchLower) ||
       match.teamB?.name?.toLowerCase().includes(searchLower) ||
       match.description?.toLowerCase().includes(searchLower);
 
+    const filterByGroupPlayer = (player: IPlayer) => {
+      if (!hasGroup) return true;
+      return player.teams?.some((teamId) => groupTeamIds?.has(String(teamId)));
+    };
+
+    const filterByGroupMatch = (match: IMatch) => {
+      if (!hasGroup) return true;
+      return String(match.teamA?.group) === selectedGroup;
+    };
+
+    // Filter teams
+    const filteredTeams = teams.filter(
+      (team) =>
+        filterByDivision(team) &&
+        filterByGroupTeam(team) &&
+        filterBySearchTeam(team)
+    );
+
+    // Filter matches with team resolution
+    const filteredMatches = matches
+      .filter(filterByDivision)
+      .filter(filterByGroupMatch)
+      .filter(filterBySearchMatch)
+      .map((match) => ({
+        ...match,
+        teamA: match.teamA ? teamMap.get(String(match.teamA)) : null,
+        teamB: match.teamB ? teamMap.get(String(match.teamB)) : null,
+      }));
+
+    // Filter players
+    const filteredPlayers = sortedPlayers.filter(
+      (player) =>
+        filterByDivision(player) &&
+        filterBySearchPlayer(player) &&
+        filterByGroupPlayer(player)
+    );
+
     return {
-      teams:
-        sortedTeams
-          ?.filter(filterByDivision)
-          .filter(filterByGroup)
-          .filter(filterBySearchTeam) || [],
-
-      matches:
-        matches
-          ?.filter(filterByDivision)
-          .map((m) => ({
-            ...m,
-            teamA: m.teamA ? teamMap.get(String(m.teamA)) : null,
-            teamB: m.teamB ? teamMap.get(String(m.teamB)) : null,
-          }))
-          .filter((m) => {
-            if (!selectedGroup) return true;
-            return String(m.teamA?.group) === selectedGroup;
-          })
-          // @ts-ignore
-          .filter(filterBySearchMatch) || [],
-
-      players:
-        sortedPlayers?.filter(filterByDivision).filter(filterBySearchPlayer) ||
-        [],
+      teams: filteredTeams,
+      matches: filteredMatches,
+      players: filteredPlayers,
     };
   }, [
-    sortedTeams,
+    teams,
     sortedPlayers,
     matches,
+    teamMap,
     currDivision,
     selectedGroup,
     search,
   ]);
 
-  const playerStatsMap = useMemo(() => {
-    return new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats]));
-  }, [statsOfPlayer]);
-
+  // Initialize rankings with optimized data structures
   const initializeLists = useCallback(() => {
     const rankingMap = new Map<string, number>();
-    const teamsPlayerRanking = sortedTeams?.reduce((rankings: any[], team) => {
+    const teamsPlayerRanking = [];
+
+    for (const team of teams) {
       if (team?.playerRanking && !team.playerRanking.rankLock) {
-        rankings.push({
+        teamsPlayerRanking.push({
           ...team.playerRanking,
           team: {
             _id: team._id,
@@ -247,107 +288,124 @@ function EventDetail({ queryRef }: IEventDetailProps) {
           },
         });
 
-        team.playerRanking.rankings?.forEach(
-          // @ts-ignore
-          ({ player, rank }: { player: { _id: string }; rank: number }) => {
-            rankingMap.set(player._id, rank);
+        if (team.playerRanking.rankings) {
+          for (const ranking of team.playerRanking.rankings) {
+            // @ts-ignore
+            if (ranking.player?._id) {
+              // @ts-ignore
+              rankingMap.set(ranking.player._id, ranking.rank);
+            }
           }
-        );
-      }
-      return rankings;
-    }, []);
-
-    dispatch(setTeamsPlayerRanking(teamsPlayerRanking || []));
-    dispatch(setRankingMap(Array.from(rankingMap.entries())));
-  }, [dispatch, event._id, sortedTeams]);
-
-  // Update the handlers to use the setter functions
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value || null);
-  };
-
-  const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrDivision(e.target.value || null);
-    setSelectedGroup(null); // Reset group when division changes
-  };
-
-  const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedGroup(e.target.value || null);
-  };
-
-  const handleItemSelect = (item: EEventItem) => {
-    setSelectedItem(item);
-  };
-
-  useEffect(() => {
-    initializeLists();
-
-    // Only initialize once from query params
-    if (!selectedItem) {
-      const eventItem = searchParams.get(EVENT_ITEM) as EEventItem;
-      if (eventItem && Object.values(EEventItem).includes(eventItem)) {
-        setSelectedItem(eventItem);
+        }
       }
     }
-  }, [event, initializeLists]);
 
-  // Working
-  const renderContent = useMemo(() => {
-    const renderMap = {
-      [EEventItem.PLAYER]: (
-        <PlayerStandings
-          playerList={filteredData.players}
-          matchList={filteredData.matches as IMatch[]}
-          playerStatsMap={playerStatsMap}
-        />
-      ),
-      [EEventItem.TEAM]: (
-        <TeamList
-          teamList={filteredData.teams as ITeamCaptain[]}
-          selectedGroup={selectedGroup}
-          matchList={filteredData.matches as IMatch[]}
-          nets={nets}
-          rounds={rounds}
-        />
-      ),
-      [EEventItem.MATCH]: (
-        <MatchList
-          matchList={filteredData.matches as IMatch[]}
-          nets={nets}
-          rounds={rounds}
-        />
-      ),
-    };
-    return renderMap[selectedItem] || null;
-  }, [filteredData, selectedGroup, selectedItem]);
+    // @ts-ignore
+    dispatch(setTeamsPlayerRanking(teamsPlayerRanking));
+    dispatch(setRankingMap(Array.from(rankingMap.entries())));
+  }, [dispatch, event._id, teams]);
 
-  const renderSponsors = useMemo(
-    () => (
-      <>
-        <div className="w-20" key="default-logo">
-          <Image
-            width={imgW.xs}
-            height={imgW.xs}
-            src="/free-logo.png"
-            alt={`${APP_NAME}-logo`}
-          />
-        </div>
-        {sponsors?.map((sponsor) => (
-          <CldImage
-            key={sponsor._id}
-            alt={sponsor.company}
-            width="200"
-            height="200"
-            className="w-20"
-            src={sponsor.logo.toString()}
-          />
-        ))}
-      </>
-    ),
-    [sponsors]
+  // Event handlers
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearch(e.target.value || null);
+    },
+    []
   );
 
-  if (players?.length === 0 && teams?.length === 0 && matches?.length === 0) {
+  const handleDivisionChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setCurrDivision(e.target.value || null);
+      setSelectedGroup(null);
+    },
+    []
+  );
+
+  const handleGroupChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedGroup(e.target.value || null);
+    },
+    []
+  );
+
+  const handleItemSelect = useCallback((item: EEventItem) => {
+    setSelectedItem(item);
+  }, []);
+
+  // Initialize once
+  useEffect(() => {
+    initializeLists();
+  }, [initializeLists]);
+
+  // Memoize render content to avoid unnecessary re-renders
+  const renderContent = useMemo(() => {
+    switch (selectedItem) {
+      case EEventItem.PLAYER:
+        return (
+          <PlayerStandings
+            playerList={filteredData.players}
+            matchList={filteredData.matches as IMatch[]}
+            playerStatsMap={playerStatsMap}
+            teamMap={teamMap}
+          />
+        );
+      case EEventItem.TEAM:
+        return (
+          <TeamList
+            teamList={filteredData.teams as ITeamCaptain[]}
+            selectedGroup={selectedGroup}
+            matchList={filteredData.matches as IMatch[]}
+            nets={nets}
+            rounds={rounds}
+          />
+        );
+      case EEventItem.MATCH:
+        return (
+          <MatchList
+            matchList={filteredData.matches as IMatch[]}
+            nets={nets}
+            rounds={rounds}
+          />
+        );
+      default:
+        return null;
+    }
+  }, [filteredData, selectedGroup, selectedItem, playerStatsMap, nets, rounds]);
+
+  // Memoize sponsors rendering
+  const renderSponsors = useMemo(() => {
+    if (!user.token && sponsors?.length) {
+      return (
+        <div className="mb-6">
+          <h3 className="mb-4 text-lg font-semibold">Sponsors</h3>
+          <div className="flex gap-4 flex-wrap justify-center">
+            <div className="w-20" key="default-logo">
+              <Image
+                width={imgW.xs}
+                height={imgW.xs}
+                src="/free-logo.png"
+                alt={`${APP_NAME}-logo`}
+              />
+            </div>
+            {sponsors.map((sponsor) => (
+              <CldImage
+                key={sponsor._id}
+                alt={sponsor.company}
+                width="200"
+                height="200"
+                className="w-20"
+                src={sponsor.logo.toString()}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }, [user.token, sponsors]);
+
+  // Early return for empty data
+  if (players.length === 0 && teams.length === 0 && matches.length === 0) {
     return (
       <div className="min-h-screen flex w-full justify-center items-center">
         <h3 className="text-center">
@@ -356,6 +414,12 @@ function EventDetail({ queryRef }: IEventDetailProps) {
       </div>
     );
   }
+
+  // Memoize navigation items
+  const navItems = useMemo(
+    () => [EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH],
+    []
+  );
 
   return (
     <div className="container mx-auto px-4 mb-8">
@@ -372,39 +436,10 @@ function EventDetail({ queryRef }: IEventDetailProps) {
         <h1 className="text-2xl font-bold mt-2">{event.name}</h1>
       </div>
 
-      {!user.token && sponsors && sponsors.length > 0 && (
-        <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold">Sponsors</h3>
-          <div className="flex gap-4 flex-wrap justify-center">
-            {renderSponsors}
-          </div>
-        </div>
-      )}
+      {renderSponsors}
 
       <div className="search-filter w-full mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* <div className="w-full flex justify-between items-end">
-            <div className="w-10/12">
-              <InputField
-                key="search-input"
-                type="text"
-                name="search"
-                label="Search"
-                defaultValue={search || ""}
-                handleInputChange={handleSearchChange}
-              />
-            </div>
-            <div className="w-2/12 py-1 rounded-md border border-gray-700">
-              <Image
-                src="/icons/close.svg"
-                className="w-3/6 svg-white"
-                alt="close"
-                height={20}
-                width={20}
-              />
-            </div>
-          </div> */}
-
           <div className="w-full">
             <label
               htmlFor="search"
@@ -412,7 +447,6 @@ function EventDetail({ queryRef }: IEventDetailProps) {
             >
               Search
             </label>
-
             <div className="relative">
               <input
                 id="search"
@@ -423,8 +457,6 @@ function EventDetail({ queryRef }: IEventDetailProps) {
                 value={search || ""}
                 onChange={handleSearchChange}
               />
-
-              {/* Close button inside input */}
               <button
                 type="button"
                 className="absolute inset-y-0 right-3 flex items-center justify-center text-gray-400 hover:text-white focus:outline-none"
@@ -453,7 +485,7 @@ function EventDetail({ queryRef }: IEventDetailProps) {
             defaultValue={selectedGroup || ""}
             name="group"
             optionList={[
-              { id: 1, value: "", text: "All Groups" },
+              // { id: 1, value: "", text: "All Groups" },
               ...groupList.map((g, index) => ({
                 id: index + 2,
                 value: g._id,
@@ -468,21 +500,19 @@ function EventDetail({ queryRef }: IEventDetailProps) {
       <div className="flex flex-col lg:flex-row gap-6 mt-8">
         <div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:max-h-screen overflow-auto">
           <ul className="flex flex-col gap-2">
-            {[EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH].map(
-              (item) => (
-                <li
-                  key={item}
-                  className={`cursor-pointer p-2 rounded-md uppercase text-center transition-colors ${
-                    selectedItem === item
-                      ? "bg-yellow-500 text-black font-semibold"
-                      : "bg-gray-700 text-white hover:bg-gray-600"
-                  }`}
-                  onClick={() => handleItemSelect(item)}
-                >
-                  {item === EEventItem.TEAM ? "Standings / Teams" : item}
-                </li>
-              )
-            )}
+            {navItems.map((item) => (
+              <li
+                key={item}
+                className={`cursor-pointer p-2 rounded-md uppercase text-center transition-colors ${
+                  selectedItem === item
+                    ? "bg-yellow-500 text-black font-semibold"
+                    : "bg-gray-700 text-white hover:bg-gray-600"
+                }`}
+                onClick={() => handleItemSelect(item)}
+              >
+                {item === EEventItem.TEAM ? "Standings / Teams" : item}
+              </li>
+            ))}
           </ul>
         </div>
 

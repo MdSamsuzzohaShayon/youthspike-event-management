@@ -6,6 +6,7 @@ import {
   IPlayer,
   IPlayerRecord,
   IPlayerStats,
+  ITeam,
 } from "@/types";
 import { calculatePlayerRecords } from "@/utils/scoreCalc";
 import { useAppSelector } from "@/redux/hooks";
@@ -15,10 +16,11 @@ import SortableHeader from "../elements/SortableHeader";
 import { aggregatePlayerStats } from "@/utils/helper";
 
 interface IPlayerStandingsProps {
-  teamRank?: boolean;
   playerList: IPlayer[];
   matchList: IMatch[];
   playerStatsMap: Map<string, IPlayerStats[]>;
+  teamRank?: boolean;
+  teamMap?: Map<string, ITeam>;
 }
 
 const ITEMS_PER_PAGE = 30;
@@ -33,6 +35,7 @@ function PlayerStandings({
   matchList,
   teamRank,
   playerStatsMap,
+  teamMap
 }: IPlayerStandingsProps) {
 
   // Local state
@@ -266,6 +269,7 @@ function PlayerStandings({
                     player={player}
                     teamRank={showRank}
                     playerStats={playerStatsMap.get(player?._id) || []}
+                    team={(player.teams && player.teams?.length > 0 && teamMap?.has(String(player.teams[0]))) ? teamMap?.get(String(player.teams[0])) : null}
                   />
                 ))}
               </tbody>

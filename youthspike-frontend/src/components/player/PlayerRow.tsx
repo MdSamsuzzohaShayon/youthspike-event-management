@@ -15,9 +15,16 @@ interface IPlayerRowProps {
   index: number;
   playerStats: IPlayerStats[];
   teamRank?: boolean;
+  team?: ITeam | null;
 }
 
-function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
+function PlayerRow({
+  player,
+  index,
+  playerStats,
+  teamRank,
+  team,
+}: IPlayerRowProps) {
   // Aggregate the stats - simple sum of all numeric fields
   const aggregatedStats = aggregatePlayerStats(playerStats);
   return (
@@ -65,6 +72,14 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
                       </span>
                     )}
                   </div>
+                  {team && (
+                    <Link
+                      href={`/`}
+                      className="text-xs font-medium hover:text-yellow-400 transition-colors break-words capitalize text-yellow-logo"
+                    >
+                      {team.name}
+                    </Link>
+                  )}
                 </div>
               </Link>
 
@@ -94,11 +109,10 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
       {/* Serve %  */}
       <td className="py-3 px-4 text-center whitespace-nowrap flex flex-col">
         <span>
-          {aggregatedStats.serveCompletionCount} /{" "}
-          {aggregatedStats.serveOpportunity}{" "}
+          ( {aggregatedStats.serveCompletionCount} /{" "}
+          {aggregatedStats.serveOpportunity} )
         </span>
-        <span>
-          (
+        <span className="font-bold text-xl">
           {aggregatedStats.serveOpportunity > 0
             ? (
                 (aggregatedStats.serveCompletionCount /
@@ -106,41 +120,41 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
                 100
               ).toFixed(1)
             : 0}
-          %)
+          %
         </span>
       </td>
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="flex flex-col">
           <span>
-            {aggregatedStats.break} / {aggregatedStats.broken}
+            ( {aggregatedStats.break} / {aggregatedStats.broken} )
           </span>
-          <span>{aggregatedStats.break + aggregatedStats.broken}</span>
+          <span className="font-bold text-xl">
+            {aggregatedStats.break + aggregatedStats.broken}
+          </span>
         </div>
       </td>
       <td className="py-3 px-4 text-center whitespace-nowrap flex flex-col">
         <span>
-          {aggregatedStats.serveAce} / {aggregatedStats.serveOpportunity}
+          ( {aggregatedStats.serveAce} / {aggregatedStats.serveOpportunity} )
         </span>
-        <span>
-          (
+        <span className="font-bold text-xl">
           {aggregatedStats.serveAce > 0
             ? (
                 (aggregatedStats.serveAce / aggregatedStats.serveOpportunity) *
                 100
               ).toFixed(1)
             : 0}
-          %)
+          %
         </span>
       </td>
 
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="w-full flex flex-col">
           <span>
-            {aggregatedStats.receivedCount} /{" "}
-            {aggregatedStats.receiverOpportunity}
+            ( {aggregatedStats.receivedCount} /{" "}
+            {aggregatedStats.receiverOpportunity} )
           </span>
-          <span>
-            (
+          <span className="font-bold text-xl">
             {aggregatedStats.receiverOpportunity > 0
               ? (
                   (aggregatedStats.receivedCount /
@@ -148,17 +162,17 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
                   100
                 ).toFixed(1)
               : 0}
-            %)
+            %
           </span>
         </div>
       </td>
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="w-full flex flex-col">
           <span>
-            {aggregatedStats.cleanHits} / {aggregatedStats.hittingOpportunity}
+            ({aggregatedStats.cleanHits} / {aggregatedStats.hittingOpportunity})
           </span>
-          <span>
-            (
+          <span className="font-bold text-xl">
+            
             {aggregatedStats.cleanHits > 0
               ? (
                   (aggregatedStats.cleanHits /
@@ -166,17 +180,17 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
                   100
                 ).toFixed(1)
               : 0}
-            %)
+            %
           </span>
         </div>
       </td>
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="w-full flex flex-col">
           <span>
-            {aggregatedStats.cleanSets} / {aggregatedStats.settingOpportunity}
+           ( {aggregatedStats.cleanSets} / {aggregatedStats.settingOpportunity})
           </span>
-          <span>
-            (
+          <span className="font-bold text-xl">
+            
             {aggregatedStats.settingOpportunity > 0
               ? (
                   (aggregatedStats.cleanSets /
@@ -184,18 +198,18 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
                   100
                 ).toFixed(1)
               : 0}
-            %)
+            %
           </span>
         </div>
       </td>
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="w-full flex flex-col">
           <span>
-            {aggregatedStats.defensiveConversion} /{" "}
-            {aggregatedStats.defensiveOpportunity}
+           ( {aggregatedStats.defensiveConversion} /{" "}
+            {aggregatedStats.defensiveOpportunity})
           </span>
-          <span>
-            (
+          <span className="font-bold text-xl">
+            
             {aggregatedStats.defensiveOpportunity > 0
               ? (
                   (aggregatedStats.defensiveConversion /
@@ -203,7 +217,7 @@ function PlayerRow({ player, index, playerStats, teamRank }: IPlayerRowProps) {
                   100
                 ).toFixed(1)
               : 0}
-            %)
+            %
           </span>
         </div>
       </td>

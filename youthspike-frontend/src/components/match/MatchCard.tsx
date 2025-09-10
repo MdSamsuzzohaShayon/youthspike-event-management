@@ -89,9 +89,9 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-white truncate capitalize">
+            <h5 className="text-xs md:text-sm font-medium text-white capitalize">
               {team?.name}
-            </h3>
+            </h5>
           </div>
           <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full border-2 ${won ? 'border-green-500 bg-green-600' : 'border-gray-400'}`}>
             <span className="text-sm font-bold">{teamScore}</span>

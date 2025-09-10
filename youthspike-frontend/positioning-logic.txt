@@ -23,9 +23,11 @@ Receiver Team:
 | B           | A          | A             | B            |
 | B           | B          | A             | A            |
 
-[
-    "68486d6ba46c501ab11114ff"
-]
-
+- [x]  If delete the match, delete all stats
+- [x]  A close icon for search box
+- [x]  Group record is not working (Who plays in a group)
+- [x]  Player stats sorting is not working in a team
+- [x]  Players add after creating a match, then try if the player is added to the match
+- [x]  Check player will be added to a team that is playing a match, and those players will be visiable (if player is added until ranking has been locked)
 
 
