@@ -495,7 +495,7 @@ type TeamWithStringPlayers {
   rankLock: Boolean
   sendCredentials: Boolean
   num: Float
-  captain: Player
+  captain: String
   cocaptain: Player
   matches: [Match!]
   event: Event!

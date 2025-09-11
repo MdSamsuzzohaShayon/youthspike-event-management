@@ -383,7 +383,7 @@ query GetEventWithTeams($eventId: String) {
         num
         players
         group
-        
+        captain
       }
       groups {
         _id

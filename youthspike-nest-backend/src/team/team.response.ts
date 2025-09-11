@@ -31,6 +31,9 @@ export class TeamWithStringPlayers extends Team {
 
   @Field((_type) => String, { nullable: true })
   group: string;
+
+  @Field((_type) => String, { nullable: true })
+  captain?: string; // Make the captain field nullable
 }
 
 @ObjectType()

@@ -15,6 +15,7 @@ import CurrentEvent from '../event/CurrentEvent';
 import UserMenuList from '../layout/UserMenuList';
 import { useLdoId } from '@/lib/LdoProvider';
 import SelectGeneralInput from '../elements/forms/SelectGeneralInput';
+import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 
 interface IEventDetail {
   event: IEventExpRel;
@@ -46,8 +47,29 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
     return divisionsToOptionList(divisions);
   }, [eventDetail.event?.divisions]);
 
-  const teamList = useMemo(() => eventDetail?.teams || [], [eventDetail?.teams]);
+  const playerMap = useMemo(()=> {
+    const map = new Map(eventDetail.players.map((p)=> [p._id, p]));
+    return map;
+  }, [eventDetail, eventDetail?.players]);
+
+console.log(eventDetail.players);
+
+
+  const teamList = useMemo(() => {
+    const newTl = (eventDetail?.teams || []);
+    const tl = [];
+    for (let i = 0; i < newTl.length; i+=1) {
+      const tlObj = {...newTl[i]};
+      if(tlObj.captain){
+        tlObj.captain = playerMap.get(String(tlObj.captain)) || null;
+      }
+      tl.push(tlObj);
+    }
+    return tl;
+  }, [eventDetail?.teams, playerMap]);
   const groupList = useMemo(() => eventDetail?.groups || [], [eventDetail?.groups]);
+
+
 
   const filteredTeamList = useMemo(() => {
     if (!currDivision) {
@@ -125,25 +147,7 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
 
   return (
     <React.Fragment>
-      <dialog ref={importerEl} className="modal-dialog">
-        <div className="p-4">
-          <div className="flex justify-end">
-            <button 
-              type="button" 
-              className="bg-transparent text-white" 
-              onClick={() => importerEl.current?.close()}
-            >
-              ✖
-            </button>
-          </div>
-          <MultiPlayerAdd 
-            eventId={eventDetail.event._id} 
-            setIsLoading={setIsLoading} 
-            closeDialog={() => importerEl.current?.close()} 
-            divisionList={divisionList} 
-          />
-        </div>
-      </dialog>
+      <MultiPlayerAddDialog divisionList={divisionList} eventId={eventDetail.event._id} importerEl={importerEl} setIsLoading={setIsLoading} />
 
       {/* Event Menu Start */}
       <div className="event-and-menu">

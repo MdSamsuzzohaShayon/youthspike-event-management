@@ -35,8 +35,6 @@ interface ITeamMove {
 }
 
 function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, fefetchFunc }: ITeamCardProps) {
-  
-
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -54,11 +52,9 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   const [deleteTeam] = useMutation(DELETE_TEAM);
   const [updateGroup] = useMutation(UPDATE_GROUP);
 
-
   useClickOutside(actionEl, () => {
     setActionOpen(false);
   });
-
 
   /**
    * Handle Events
@@ -76,7 +72,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         const dl: IOption[] = [];
         for (let i = 0; i < divs.length; i += 1) {
           if (divs[i].trim().toLowerCase() !== '') {
-            dl.push({ id: i+ 1, text: divs[i].trim().toLowerCase(), value: divs[i].trim() });
+            dl.push({ id: i + 1, text: divs[i].trim().toLowerCase(), value: divs[i].trim() });
           }
         }
         setDivisionOptions(dl);
@@ -88,7 +84,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     const inputEl = e.target as HTMLSelectElement;
     setMoveTeam((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
   };
-
 
   // eslint-disable-next-line no-unused-vars
   const handleOpenMoveTeam = (e: React.SyntheticEvent, teamId: string) => {
@@ -133,7 +128,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     }
   };
 
-
   const handleGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     try {
@@ -143,19 +137,17 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       const groupRes = await updateGroup({
         variables: {
           updateInput: { _id: inputEl.value, teams: [team._id] },
-          eventId
-        }
+          eventId,
+        },
       });
     } catch (error) {
       console.log(error);
-
     }
-  }
-
+  };
 
   useEffect(() => {
     if (eventList && eventList.length > 0) {
-      const newEventList = eventList.map((e, eI) => ({ id: eI + 1,text: e.name, value: e._id }));
+      const newEventList = eventList.map((e, eI) => ({ id: eI + 1, text: e.name, value: e._id }));
       setEventOptions(newEventList);
     }
   }, [eventList]);
@@ -163,8 +155,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   useEffect(() => {
     setCardResponsiveH(openMoveTeam ? { minHeight: cardHeight } : { height: cardHeight });
   }, [openMoveTeam]);
-
-  
 
   return (
     <div className="team-card w-full bg-gray-800 rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
@@ -180,47 +170,27 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
               exit="exit"
               transition={{ duration: 0.2 }}
             >
-              <li
-                onClick={(e) => handleEditTeam(e, team._id)}
-                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-              >
+              <li onClick={(e) => handleEditTeam(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
                 <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={16} height={16} /> Edit
               </li>
-              <li
-                onClick={(e) => handleOpenMoveTeam(e, team._id)}
-                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-              >
+              <li onClick={(e) => handleOpenMoveTeam(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
                 <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} /> Move Team
               </li>
-              <li
-                onClick={(e) => handleSendCredential(e, team._id)}
-                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-              >
-                <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={16} height={16} />{' '}
-                {team.sendCredentials ? 'Resend' : 'Send'} Credential
+              <li onClick={(e) => handleSendCredential(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={16} height={16} /> {team.sendCredentials ? 'Resend' : 'Send'}{' '}
+                Credential
               </li>
-              <li
-                onClick={(e) => handleDeleteTeam(e, team._id)}
-                className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
-              >
+              <li onClick={(e) => handleDeleteTeam(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400">
                 <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
               </li>
             </motion.ul>
           </AnimatePresence>
         )}
 
-
         {/* Team Selection and Number */}
         <div className="flex flex-col items-center gap-2">
-          <CheckboxInput
-            _id={team._id}
-            name="team-select"
-            defaultValue={isChecked}
-            handleInputChange={handleCheckedTeam}
-          />
-          <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs">
-            {team.num}
-          </span>
+          <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+          <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs">{team.num}</span>
         </div>
 
         {/* Team Name and Logo */}
@@ -229,26 +199,22 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           <div className="flex items-center gap-4">
             {team.logo ? (
               <div className="rounded-full overflow-hidden w-14 h-14 border border-yellow-400">
-                <CldImage width={100} height={100}  src={team.logo} alt={team.name} />
+                <CldImage width={100} height={100} src={team.logo} alt={team.name} />
               </div>
             ) : (
-              <Image
-                src="/icons/sports-man.svg"
-                width={56}
-                height={56}
-                alt="sports-man-logo"
-                className="rounded-full border border-yellow-400"
-              />
+              <Image src="/icons/sports-man.svg" width={56} height={56} alt="sports-man-logo" className="rounded-full border border-yellow-400" />
             )}
             <div className="flex flex-col text-center lg:text-left">
               <h3 className="text-lg font-semibold">{team.name}</h3>
               <SelectInput
                 name="group"
-                optionList={groupList.filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()).map((g, gI) => ({
-                  id: gI + 1,
-                  value: g._id,
-                  text: g.name,
-                }))}
+                optionList={groupList
+                  .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase())
+                  .map((g, gI) => ({
+                    id: gI + 1,
+                    value: g._id,
+                    text: g.name,
+                  }))}
                 handleSelect={handleGroupChange}
                 defaultValue={team.group ? team.group.toString() : ''}
               />
@@ -266,16 +232,10 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             <div className="flex flex-col lg:flex-row items-center gap-3">
               {team.captain.profile ? (
                 <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden">
-                  <CldImage width={100} height={100}  src={team.captain.profile} alt={team.captain.firstName} />
+                  <CldImage width={100} height={100} src={team.captain.profile} alt={team.captain.firstName} />
                 </div>
               ) : (
-                <Image
-                  src="/icons/sports-man.svg"
-                  width={48}
-                  height={48}
-                  alt="Captain"
-                  className="rounded-full border border-yellow-400"
-                />
+                <Image src="/icons/sports-man.svg" width={48} height={48} alt="Captain" className="rounded-full border border-yellow-400" />
               )}
               <div className="text-center lg:text-left">
                 <p className="text-xs text-gray-400 uppercase">Captain</p>
@@ -297,13 +257,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             aria-label="Options"
           >
-            <Image
-              width={imgSize.logo}
-              height={imgSize.logo}
-              src="/icons/dots-vertical.svg"
-              alt="options"
-              className="w-5 h-5 svg-white"
-            />
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
           </button>
           <Image
             onClick={(e) => handleSendCredential(e, team._id)}

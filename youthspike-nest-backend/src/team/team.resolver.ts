@@ -528,7 +528,6 @@ export class TeamResolver {
       if (!teamExist) return AppResponse.notFound('Team');
 
       const locked = await this.playerRankingService.lockPlayerRanking(teamId, teamExist.event.toString());
-      console.log({ locked });
 
       return {
         code: HttpStatus.OK,

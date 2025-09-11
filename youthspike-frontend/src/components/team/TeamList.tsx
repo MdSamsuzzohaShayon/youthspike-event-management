@@ -125,7 +125,7 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
     }
 
     return scores;
-  }, [teamList, matchesByTeam, roundMap, netMap]);
+  }, [teamList, matchesByTeam, roundMap, netMap, selectedGroup]);
 
   /**
    * Sort by score (not alphabetically) and paginate
@@ -142,11 +142,9 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
         if (scoreA.groupLoses !== scoreB.groupLoses) {
           return scoreA.groupLoses - scoreB.groupLoses;
         }
-      } else {
-        // overall ranking
-        if (scoreA.overallLoses !== scoreB.overallLoses) {
-          return scoreA.overallLoses - scoreB.overallLoses;
-        }
+      }
+      if (scoreA.overallLoses !== scoreB.overallLoses) {
+        return scoreA.overallLoses - scoreB.overallLoses;
       }
 
       // tiebreakers

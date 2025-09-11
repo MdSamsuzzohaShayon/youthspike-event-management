@@ -129,7 +129,7 @@ export interface ICheckboxInputProps {
   _id: string;
   handleInputChange: (e: React.SyntheticEvent, _id: string) => void;
   defaultValue?: boolean;
-  extraCls?: string;
+  className?: string;
 }
 
 export interface IOption {

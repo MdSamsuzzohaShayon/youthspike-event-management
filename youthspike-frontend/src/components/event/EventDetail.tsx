@@ -240,13 +240,15 @@ function EventDetail({ eventData }: IEventDetailProps) {
     // Filter matches with team resolution
     const filteredMatches = matches
       .filter(filterByDivision)
-      .filter(filterByGroupMatch)
-      .filter(filterBySearchMatch)
       .map((match) => ({
         ...match,
         teamA: match.teamA ? teamMap.get(String(match.teamA)) : null,
         teamB: match.teamB ? teamMap.get(String(match.teamB)) : null,
-      }));
+      }))
+      // @ts-ignore
+      .filter(filterByGroupMatch)
+      // @ts-ignore
+      .filter(filterBySearchMatch);
 
     // Filter players
     const filteredPlayers = sortedPlayers.filter(
@@ -482,7 +484,7 @@ function EventDetail({ eventData }: IEventDetailProps) {
           <SelectInput
             key="group-input"
             handleSelect={handleGroupChange}
-            defaultValue={selectedGroup || ""}
+            value={selectedGroup || ""}
             name="group"
             optionList={[
               // { id: 1, value: "", text: "All Groups" },

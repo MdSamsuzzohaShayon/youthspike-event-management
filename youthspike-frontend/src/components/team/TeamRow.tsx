@@ -8,10 +8,14 @@ import { CldImage } from 'next-cloudinary';
 interface ITeamRowProps {
   team: ITeam;
   index: number;
-  teamScores?: ITeamScore;
+  teamScores?: ITeamScore | null;
   selectedGroup?: string | null;
 }
+
 function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
+  // Handle case where teamScores might be undefined or null
+  const hasScores = teamScores && typeof teamScores === 'object';
+  
   return (
     <tr
       key={team._id}
@@ -30,10 +34,20 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
           {team.name}
         </Link>
       </td>
-      {selectedGroup && <td className="py-3 px-2">{teamScores && `${teamScores.groupWins}-${teamScores.groupLoses}`}</td>}
-      <td className="py-3 px-2">{teamScores && `${teamScores.overallWins}-${teamScores.overallLoses}`}</td>
-      <td className="py-3 px-2">{teamScores && `${teamScores.matchAvgDiff.toFixed(2)}`}</td>
-      <td className="py-3 px-2">{teamScores && `${teamScores.gameAvgDiff.toFixed(2)}`}</td>
+      {selectedGroup && (
+        <td className="py-3 px-2">
+          {hasScores ? `${teamScores.groupWins}-${teamScores.groupLoses}` : '0-0'}
+        </td>
+      )}
+      <td className="py-3 px-2">
+        {hasScores ? `${teamScores.overallWins}-${teamScores.overallLoses}` : '0-0'}
+      </td>
+      <td className="py-3 px-2">
+        {hasScores ? teamScores.matchAvgDiff.toFixed(2) : '0.00'}
+      </td>
+      <td className="py-3 px-2">
+        {hasScores ? teamScores.gameAvgDiff.toFixed(2) : '0.00'}
+      </td>
     </tr>
   );
 }
