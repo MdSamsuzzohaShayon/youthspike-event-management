@@ -46,7 +46,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   const screenWidth = useScreenWidth();
   const user = useUser();
   const { setActErr } = useError();
-  
 
   const [mutatePlayerRanking] = useMutation(UPDATE_PLAYER_RANKING);
 
@@ -132,7 +131,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
         isMounted.current = true;
       }
       if (!isMounted.current && playerList && playerList.length > 0) {
-        
         if (playerRanking) {
           const newRankingsMap = new Map();
           if (playerRanking && playerRanking.rankings.length > 0) {
@@ -161,6 +159,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   useEffect(() => {
     const newCanRank = (() => {
       if (!user?.info || !currEvent) return false; // Default to true if data is missing
+      if (user?.info.role === UserRole.player) return false;
       if (playerRanking?.rankLock) {
         if (user.info.role === UserRole.admin || user.info.role === UserRole.director) return true;
 

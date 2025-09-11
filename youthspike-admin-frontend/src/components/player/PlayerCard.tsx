@@ -1,23 +1,23 @@
 import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { IPlayerExpRel, EPlayerStatus } from '@/types/player';
-import { ApolloError, useMutation } from '@apollo/client';
+import { EPlayerStatus } from '@/types/player';
+import { useMutation } from '@apollo/client';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { IError, IOption, IPlayerRank, ITeam } from '@/types';
+import React, { useRef, useState } from 'react';
+import { IOption, IPlayerRank, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import EmailInput from '../elements/forms/EmailInput';
-import SelectInput from '../elements/forms/SelectInput';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorProvider';
+import PlayerMoveDialog from './PlayerMoveDialog';
 
 interface PlayerCardProps {
   player: IPlayerRank;
@@ -39,8 +39,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
-  const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
-  const [newTeamId, setNewTeamId] = useState<null | string>(null);
 
   const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
   const [newEmail, setNewEmail] = useState<string>('');
@@ -89,36 +87,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     setActionOpen((prevState) => !prevState);
     dialogMoveEl.current?.showModal();
   };
-  const handleMovePlayer = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    try {
-      const prevTeamId = teamId;
-      const playerInputObj: { newTeamId?: string; team: string | null } = { team: teamId || null };
-      if (prevTeamId && player?.teams && player?.teams.length > 0) {
-        // const nti = player?.teams[0];
-        const teamExist = teamList?.find((t) => t._id === newTeamId);
-        if (teamExist) {
-          playerInputObj.newTeamId = teamExist._id;
-        }
-      }
-      const response = await mutatePlayer({
-        variables: {
-          input: playerInputObj,
-          playerId,
-        },
-      });
 
-      const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
-      if (!success) return;
-
-      if (refetchFunc) await refetchFunc();
-      setActionOpen(false);
-      setMovePlayer(false);
-      dialogMoveEl.current?.close();
-    } catch (error: any) {
-      handleError({ error, setActErr });
-    }
-  };
   const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
     e.preventDefault();
 
@@ -182,12 +151,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     closeModal();
   };
 
-  const handleCloseMovePlayer = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setMovePlayer(false);
-    dialogMoveEl.current?.close();
-  };
-
   const handleCaptainEmail = async (e: React.SyntheticEvent) => {
     /**
      * Add email for player
@@ -218,51 +181,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
     }
   };
 
-  // ====== Change events ======
-  const handleDivisionChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (!teamList) return;
-    const inputEl = e.target as HTMLSelectElement;
-    const dl: IOption[] = [];
-  
-    for (let i = 0; i < teamList.length; i += 1) {
-      if (
-        teamList[i]._id !== teamId &&
-        teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()
-      ) {
-        dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
-      }
-    }
-  
-    // ✅ Sort alphabetically by team name
-    dl.sort((a, b) => a.text!.localeCompare(b.text!));
-  
-    setTeamOptions(dl);
-  };
-
-  // eslint-disable-next-line no-unused-vars
-  const handleTeamChange = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLSelectElement;
-    setNewTeamId(inputEl.value);
-  };
-
-  const teamMap: Map<string, ITeam> = useMemo(() => {
-    // `teamList?.map(...)` returns array of [key, value] pairs
-    // Wrap it with `new Map()` to actually create a Map
-    return new Map(teamList?.map((t) => [t._id, t]) ?? []);
-  }, [teamList]);
-
-  // O(n^2)
-  const playerAssignment = useMemo((): null | string => {
-    let teamFound = null;
-    if (player?.teams && player?.teams.length > 0) {
-      const nti = player?.teams[0];
-      teamFound = teamList?.find((t) => t._id === nti._id);
-    }
-    return teamFound ? teamFound.name : null;
-  }, [player]);
-
   return (
     <>
       <div className={`relative flex items-center gap-3 w-full`}>
@@ -280,6 +198,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
 
               <div className="player-name flex flex-col w-full">
                 <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
+                <p className="">{player?.username}</p>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
                 {!showRank && !teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && (
@@ -389,34 +308,18 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
         </dialog>
         {/* Add email operation end  */}
 
-        {/* Move player operation start  */}
-        <dialog ref={dialogMoveEl} className="modal-dialog">
-          <div className="relative p-6 bg-white dark:bg-gray-900 rounded-xl w-full max-w-md">
-            {/* Close Button */}
-            <button type="button" className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition" aria-label="close" onClick={handleCloseMovePlayer}>
-              <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="Close" className="w-6 h-6 svg-white" />
-            </button>
-
-            {/* Player Details */}
-            <div className="text-center border-b pb-4 mb-4">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                {player.firstName} {player.lastName}
-              </h2>
-              {/* @ts-ignore  */}
-              <p className="text-sm text-gray-500 dark:text-gray-400">{player.teams && (teamMap.get(player.teams[0]) ?? "")}</p>
-            </div>
-
-            {/* Move Form */}
-            <form className="space-y-4" onSubmit={(e) => handleMovePlayer(e, player._id)}>
-              <SelectInput key="division-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList || []} />
-              <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} name="team" optionList={teamOptions} />
-
-              <button className="btn-info w-full" type="submit">
-                Move Player
-              </button>
-            </form>
-          </div>
-        </dialog>
+        <PlayerMoveDialog
+          dialogMoveEl={dialogMoveEl}
+          divisionList={divisionList || []}
+          mutatePlayer={mutatePlayer}
+          player={player}
+          refetchFunc={refetchFunc}
+          setActErr={setActErr}
+          setActionOpen={setActionOpen}
+          setMovePlayer={setMovePlayer}
+          teamId={teamId || null}
+          teamList={teamList || []}
+        />
 
         {/* Move player operation end  */}
       </div>

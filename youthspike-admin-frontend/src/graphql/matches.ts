@@ -175,6 +175,7 @@ query GetEventWithMatches($eventId: String!) {
         matches
         captain
         cocaptain
+        players
       }
       ldo {
         _id

@@ -1,9 +1,7 @@
 'use client';
 
-// React.js and Next.js
 import React, { useEffect, useMemo, useState } from 'react';
 
-// Components
 import Loader from '@/components/elements/Loader';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import CurrentEvent from '@/components/event/CurrentEvent';
@@ -11,14 +9,12 @@ import UserMenuList from '@/components/layout/UserMenuList';
 import MatchAdd from '@/components/match/MatchAdd';
 import MatchList from '@/components/match/MatchList';
 
-// GraphQL, helpers, utils, types
 import { useUser } from '@/lib/UserProvider';
-import { IEventExpRel, IGroupExpRel, IGroupRelatives, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
 import { IUserContext, UserRole } from '@/types/user';
 import { divisionsToOptionList } from '@/utils/helper';
 import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
 
-import Pagination from '@/components/elements/Pagination';
 import { getUserFromCookie } from '@/utils/clientCookie';
 
 interface IMatchesMainProps {
@@ -28,113 +24,101 @@ interface IMatchesMainProps {
   currEvent: IEventExpRel;
 }
 
+/**
+ * Filters matches for a user based on role (captain, co-captain, player)
+ */
+function filterMatchesForUser(user: IUserContext, teams: ITeam[], matches: IMatchExpRel[]): IMatchExpRel[] {
+  if (!user?.info) return matches;
+
+  let findTeam: ITeam | undefined;
+
+  switch (user.info.role) {
+    case UserRole.captain:
+      findTeam = teams.find((t) => t.captain?._id === user.info?.captainplayer);
+      break;
+    case UserRole.co_captain:
+      findTeam = teams.find((t) => t.cocaptain?._id === user.info?.cocaptainplayer);
+      break;
+    case UserRole.player:
+      // @ts-ignore
+      findTeam = teams.find((t) => t.players.includes(user.info?.player));
+      break;
+    default:
+      break;
+  }
+
+  if (!findTeam) return matches;
+
+  return matches.filter((m) => m.teamA._id === findTeam!._id || m.teamB._id === findTeam!._id);
+}
+
 function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addMatch, setAddMatch] = useState<boolean>(false);
   const [currDivision, setCurrDivision] = useState<string>('');
-  const [filteredMatchList, setFilteredMatchList] = useState<IMatchExpRel[]>([]);
-  const [filteredGroupList, setFilteredGroupList] = useState<IGroupExpRel[]>([]);
-  const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>([]);
-  const [divisionList, setDivisionList] = useState<IOption[]>([]);
 
   // Hooks
   const user = useUser();
+  const localUser = useMemo(() => getUserFromCookie(), []);
 
-  // Fetch teams and players of the teams
-  const captainsMatches = (localUser: IUserContext, prevFilteredTeams: ITeam[], prevFilteredMatches: IMatchExpRel[]): IMatchExpRel[] => {
-    let filteredMatches = [...prevFilteredMatches];
-    let findTeam: ITeam | null = null;
-    if (localUser.info?.role === UserRole.captain) {
-      findTeam = prevFilteredTeams.find((team) => team.captain?._id === localUser.info?.captainplayer) ?? null;
+  // Memoized division list (static per event)
+  const divisionList: IOption[] = useMemo(() => divisionsToOptionList(currEvent?.divisions || ''), [currEvent?.divisions]);
+
+  // Memoized filtered data
+  const { filteredTeams, filteredMatches, filteredGroups } = useMemo(() => {
+    let filteredTeams = teams;
+    let filteredMatches = matches;
+    let filteredGroups = groups;
+
+    // Apply division filter if selected
+    if (currDivision) {
+      const division = currDivision.trim().toLowerCase();
+      filteredTeams = filteredTeams.filter((t) => t.division?.trim().toLowerCase() === division);
+      filteredMatches = filteredMatches.filter((m) => m.division?.trim().toLowerCase() === division);
+      filteredGroups = filteredGroups.filter((g) => g.division?.trim().toLowerCase() === division);
     }
-    if (localUser.info?.role === UserRole.co_captain) {
-      findTeam = prevFilteredTeams.find((team) => team.cocaptain?._id === localUser.info?.cocaptainplayer) ?? null;
+
+    // Apply captain/player filtering if logged in as one
+    if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain || localUser.info?.role === UserRole.player) {
+      filteredMatches = filterMatchesForUser(localUser, filteredTeams, filteredMatches);
     }
-    if (findTeam) {
-      filteredMatches = prevFilteredMatches.filter((m) => findTeam && (m.teamA._id === findTeam._id || m.teamB._id === findTeam._id));
-    }
-    return filteredMatches;
-  };
+
+    return { filteredTeams, filteredMatches, filteredGroups };
+  }, [currDivision, localUser, teams, matches, groups]);
+
+  const refetchFunc = async () =>
+    // Effect: Load division from store on mount
+    useEffect(() => {
+      removeTeamFromStore();
+      const divisionExist = getDivisionFromStore();
+      if (divisionExist) setCurrDivision(divisionExist);
+    }, []);
 
   const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    /**
-     * Filter Matches and teams
-     */
-    const inputEl = e.target as HTMLInputElement;
-    setCurrDivision(inputEl.value.trim());
-    // If logged in as captain check me I the captain of one of the team or not
-    const localUser = getUserFromCookie();
-    let newTeamList = [...teams];
-    let newMatchList = [...matches];
-    let newGroupList = [...groups];
-    if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain) {
-      newMatchList = captainsMatches(localUser, newTeamList, newMatchList);
-    }
+    const inputEl = e.target as HTMLSelectElement;
+    const selectedValue = inputEl.value.trim();
+    setCurrDivision(selectedValue);
 
-    if (inputEl.value === '') {
-      setFilteredTeamList([...teams]);
-      setFilteredMatchList([...newMatchList]);
+    if (selectedValue === '') {
       removeDivisionFromStore();
     } else {
-      setDivisionToStore(inputEl.value.trim());
-      newTeamList = newTeamList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredTeamList([...newTeamList]);
-
-      newMatchList = newMatchList.filter((t) => t.division && t.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredMatchList([...newMatchList]);
-
-      newGroupList = newGroupList.filter((g) => g.division && g.division.trim().toLowerCase() === inputEl.value.trim().toLowerCase());
-      setFilteredGroupList(newGroupList);
+      setDivisionToStore(selectedValue);
     }
-  };
-
-  const refetchFunc = async () => {
-    // await fetchEvent();
   };
 
   const addMatchCB = (matchData: IMatchExpRel) => {
-    // setMatchList((prevState) => [...prevState, matchData]);
-    setFilteredMatchList((prevState) => [...prevState, matchData]);
-    // refetchFunc();
+    // Directly append to filteredMatches for instant UI update
+    // Avoids extra re-fetch
+    // This works because we compute filtered list based on division
+    // and we already know matchData belongs to current division
+    matches.push(matchData);
   };
-
-  useEffect(() => {
-    let newFilteredMatchList = matches;
-    let newFilteredTeamList = teams;
-    let newFilteredGroupList = groups;
-
-    // Division and team value
-    removeTeamFromStore();
-    const divisionExist = getDivisionFromStore();
-    if (divisionExist) {
-      setCurrDivision(divisionExist);
-      newFilteredMatchList = matches.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-      newFilteredTeamList = teams.filter((t) => t.division && t.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-      newFilteredGroupList = groups.filter((g) => g.division && g.division.trim().toLowerCase() === divisionExist.trim().toLowerCase());
-    }
-
-    // If logged in as captain check me I the captain of one of the team or not
-    const localUser = getUserFromCookie();
-    if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain) {
-      newFilteredMatchList = captainsMatches(localUser, newFilteredTeamList, newFilteredMatchList);
-    }
-
-    setFilteredMatchList(newFilteredMatchList);
-    setFilteredTeamList(newFilteredTeamList);
-    setFilteredGroupList(newFilteredGroupList);
-
-    // Making divisions list
-    const divisions = currEvent?.divisions || '';
-    const divs = divisionsToOptionList(divisions);
-    setDivisionList(divs);
-  }, []);
 
   if (isLoading) return <Loader />;
 
   return (
-    <React.Fragment>
+    <>
       {/* Event Menu Start */}
       <div className="event-and-menu">
         {currEvent && <CurrentEvent currEvent={currEvent} />}
@@ -147,25 +131,26 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
       <div className="mt-4">
         {addMatch ? (
           <div className="match-add-wrapper w-full">
-            {/* Only director and admin can create match  */}
-            {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+            {user?.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
               <>
                 <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(false)}>
                   Match List
                 </button>
 
-                <div className="division-selection w-full">
-                  <SelectInput key={'matches-si-1'} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
-                </div>
+                {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
+                  <div className="division-selection w-full">
+                    <SelectInput key="matches-si-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
+                  </div>
+                )}
 
                 <MatchAdd
                   eventData={currEvent}
-                  teamList={filteredTeamList}
+                  teamList={filteredTeams}
                   eventId={currEvent._id}
                   addMatchCB={addMatchCB}
                   setIsLoading={setIsLoading}
                   showAddMatch={setAddMatch}
-                  groupList={filteredGroupList}
+                  groupList={filteredGroups}
                   currDivision={currDivision}
                 />
               </>
@@ -173,21 +158,19 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
           </div>
         ) : (
           <div className="match-list-wrapper w-full">
-            {user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+            {user?.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
               <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(true)}>
                 Add Match
               </button>
             )}
             <br />
-            {user?.info?.role !== UserRole.captain && user?.info?.role !== UserRole.co_captain && (
+            {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
               <div className="division-selection w-full">
-                <SelectInput key={'matches-si-2'} handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
+                <SelectInput key="matches-si-2" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
               </div>
             )}
-            {filteredMatchList.length > 0 ? (
-              <>
-                <MatchList eventId={currEvent._id} setIsLoading={setIsLoading} matchList={filteredMatchList} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroupList} />
-              </>
+            {filteredMatches.length > 0 ? (
+              <MatchList eventId={currEvent._id} setIsLoading={setIsLoading} matchList={filteredMatches} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroups} />
             ) : (
               <p>No match created yet!</p>
             )}
@@ -195,7 +178,7 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
         )}
       </div>
       <br />
-    </React.Fragment>
+    </>
   );
 }
 

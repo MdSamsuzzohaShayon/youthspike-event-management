@@ -1,5 +1,4 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { CustomTeam, EventMatches } from 'src/match/match.response';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
@@ -8,6 +7,7 @@ import { LDO } from 'src/ldo/ldo.schema';
 import { PlayerStats, ProStats } from 'src/player-stats/player-stats.schema';
 import { Match } from 'src/match/match.schema';
 import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { CustomTeam, EventMatches } from 'src/match/resolvers/match.response';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {

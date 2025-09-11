@@ -20,6 +20,7 @@ const LOGIN_USER_RAW = `
           event
           captainplayer
           cocaptainplayer
+          player
         }
       }
     }

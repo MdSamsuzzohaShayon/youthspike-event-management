@@ -164,7 +164,7 @@ const RoundView = ({
               <ScoreCircle
                 score={teamATotalScore}
                 teamType={ETeamType.TEAM_A}
-                className="w-20 h-20"
+                className="w-20 h-20  bg-yellow-logo"
               />
 
               <div className="flex flex-col items-center mx-2">
@@ -175,7 +175,7 @@ const RoundView = ({
               <ScoreCircle
                 score={teamBTotalScore}
                 teamType={ETeamType.TEAM_B}
-                className="w-20 h-20"
+                className="w-20 h-20 bg-white"
               />
             </div>
           </div>
@@ -204,7 +204,7 @@ const RoundView = ({
                 <ScoreCircle
                   score={teamATotalScore}
                   teamType={ETeamType.TEAM_A}
-                  className="w-28 h-28"
+                  className="w-28 h-28 bg-yellow-logo"
                 />
 
                 <div className="mx-6 flex flex-col items-center">
@@ -216,7 +216,7 @@ const RoundView = ({
                 <ScoreCircle
                   score={teamBTotalScore}
                   teamType={ETeamType.TEAM_B}
-                  className="w-28 h-28"
+                  className="w-28 h-28 bg-white"
                 />
               </div>
             </div>
@@ -245,7 +245,7 @@ const RoundView = ({
               <ScoreCircle
                 score={teamATotalScore}
                 teamType={ETeamType.TEAM_A}
-                className="w-36 h-36 border-6 shadow-xl"
+                className="w-36 h-36 border-6 shadow-xl bg-yellow-logo"
               />
 
               <div className="flex flex-col items-center">
@@ -263,7 +263,7 @@ const RoundView = ({
               <ScoreCircle
                 score={teamBTotalScore}
                 teamType={ETeamType.TEAM_B}
-                className="w-36 h-36 border-6 shadow-xl"
+                className="w-36 h-36 border-6 shadow-xl bg-white"
               />
             </div>
           </div>

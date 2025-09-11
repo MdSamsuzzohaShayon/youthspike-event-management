@@ -220,10 +220,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
               />
             </div>
           </div>
-          {/* Preview Link */}
-          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-            <button className="text-yellow-400 hover:underline text-sm mt-1">Preview</button>
-          </Link>
         </div>
 
         {/* Captain Info and Active Players */}
@@ -242,12 +238,22 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
                 <h4 className="text-md font-semibold">
                   {team.captain.firstName} {team.captain.lastName}
                 </h4>
+                <p className="text-xs text-gray-400 capitalize">username</p>
+                <h4 className="text-md font-semibold">{team.captain.username}</h4>
               </div>
             </div>
           )}
-          <p className="flex items-center text-sm mt-2 lg:mt-0">
-            Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team?.players?.length || 0}</span>
-          </p>
+
+          <div className="w-full">
+            {/* Preview Link */}
+            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+              <button className="text-yellow-400 hover:underline text-sm mt-1">Preview</button>
+            </Link>
+
+            <p className="flex items-center text-sm mt-2 lg:mt-0">
+              Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team?.players?.length || 0}</span>
+            </p>
+          </div>
         </div>
 
         {/* Action Buttons */}

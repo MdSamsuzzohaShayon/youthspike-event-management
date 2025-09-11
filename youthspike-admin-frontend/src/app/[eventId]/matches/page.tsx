@@ -83,10 +83,8 @@ async function MatchesPage({ params }: IMatchesPageProps) {
         if (teamAId && teamMap.has(teamAId)) {
           matchObj.teamA = teamMap.get(teamAId)!;
         } else {
-          matchObj.teamA = typeof m.teamA === 'object' ? m.teamA : null;
+          matchObj.teamA = m.teamA
         }
-      } else {
-        matchObj.teamA = null;
       }
 
       if (m.teamB) {
@@ -94,17 +92,16 @@ async function MatchesPage({ params }: IMatchesPageProps) {
         if (teamBId && teamMap.has(teamBId)) {
           matchObj.teamB = teamMap.get(teamBId)!;
         } else {
-          matchObj.teamB = typeof m.teamB === 'object' ? m.teamB : null;
+          matchObj.teamB =  m.teamB 
         }
-      } else {
-        matchObj.teamB = null;
-      }
+      } 
 
       return matchObj;
     });
 
     // Process groups safely
     const groupList: IGroupExpRel[] = groups.map((g: IGroupRelatives) => {
+      // @ts-ignore
       const groupObj = { ...g } as IGroupExpRel;
       
       if (Array.isArray(groupObj.teams)) {

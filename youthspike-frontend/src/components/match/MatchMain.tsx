@@ -9,6 +9,7 @@ import {
   EPlayerStatus,
   ETeam,
   IMatchExpRel,
+  UserRole,
 } from "@/types"; // Your match type
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -177,7 +178,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     return <Loader />;
   }
 
-  if (user && user?.token) {
+  if (user && user?.token && user.info?.role !== UserRole.player) {
     return (
       <MatchAuthenticatedView
         activeOpPlayers={activeOpPlayers}

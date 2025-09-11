@@ -27,8 +27,8 @@ export class EventService {
     return this.eventModel.findOne({ name });
   }
 
-  async findOne(query: any) {
-    return this.eventModel.findOne(query);
+  async findOne(filter: FilterQuery<Event>) {
+    return this.eventModel.findOne(filter);
   }
 
   async find(filter: FilterQuery<Event>) {

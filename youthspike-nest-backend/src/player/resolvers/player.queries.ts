@@ -13,7 +13,7 @@ import { AppResponse } from 'src/shared/response';
 import { QueryOptions } from 'mongoose';
 import { Player } from '../player.schema';
 import { GetEventWithPlayersResponse, GetPlayerAndTeamsResponse, PlayerResponse, CustomPlayer } from './player.response';
-import { CustomGroup, CustomTeam } from 'src/match/match.response';
+import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 
 @Injectable()
 export class PlayerQueries implements IPlayerQueries{

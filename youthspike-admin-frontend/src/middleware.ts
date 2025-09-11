@@ -4,7 +4,7 @@ import { UserRole } from './types/user';
 
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
 const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/newevent', '/teamstandings'];
-const captainAuthPages = ['/players', '/matches', '/settings', '/teamstandings'];
+const capCoPlayerPages = ['/players', '/matches', '/settings', '/teamstandings']; // Player
 const adminPages = ['/', '/admin', '/directors', '/settings', '/teamstandings'];
 
 export const config = {
@@ -15,7 +15,7 @@ export const config = {
 
 
 function handleUnauthenticated(request: NextRequest, pathname: string) {
-  const protectedPages = [...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])];
+  const protectedPages = [...new Set([...directorAuthPages, ...capCoPlayerPages, ...adminPages])];
   
   
 
@@ -56,7 +56,7 @@ function handleUnauthenticatedPage(request: NextRequest) {
 }
 
 function isAuthenticatedPage(pathname: string, userObj: any) {
-  const authorizedPages = [...directorAuthPages, ...captainAuthPages];
+  const authorizedPages = [...directorAuthPages, ...capCoPlayerPages];
 
   return authorizedPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname)) && userObj?.role !== UserRole.admin;
 }
@@ -64,9 +64,9 @@ function isAuthenticatedPage(pathname: string, userObj: any) {
 function handleAuthenticatedPage(request: NextRequest, pathname: string, userObj: any) {
   if (userObj?.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
     return NextResponse.next();
-  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain) && captainAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && capCoPlayerPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
     return NextResponse.next();
-  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain) && userObj.event) {
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && userObj.event) {
     return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url).toString());
   }
 

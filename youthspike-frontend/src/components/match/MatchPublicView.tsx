@@ -169,15 +169,6 @@ function MatchPublicView({
       </div>
 
       {/* Views */}
-      {view === EView.ALL_NETS && (
-        <AllNetsView
-          nets={currRoundNets}
-          teamA={teamA}
-          teamB={teamB}
-          teamAPlayers={teamAPlayers}
-          teamBPlayers={teamBPlayers}
-        />
-      )}
       {view === EView.ROUND && (
         <RoundView
           currRound={currRound}

@@ -36,6 +36,9 @@ class LoginUser extends UserBase {
 
   @Field((type) => String, { nullable: true })
   cocaptainplayer?: string;
+
+  @Field((type) => String, { nullable: true })
+  player?: string;
 }
 
 @ObjectType()
@@ -77,136 +80,146 @@ export class UserResolver {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  @Mutation((_returns) => LoginResponse)
+  @Mutation(() => LoginResponse)
   async login(
     @Args('email') email: string,
     @Args('password') password: string,
     @Args('passcode', { nullable: true }) passcode?: string,
   ): Promise<LoginResponse> {
     try {
-      const existingUser: any = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
+      // 1️⃣ Find user by email (case-insensitive)
+      let existingUser: any = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
 
+      // 2️⃣ If no user exists, try to create one from player data
       if (!existingUser) {
-        return AppResponse.invalidCredentials();
+        const playerExist = await this.playerService.findOne({ username: email });
+        if (!playerExist) return AppResponse.invalidCredentials();
+
+        const eventOfPlayer = await this.eventService.findOne({ teams: { $in: playerExist.teams } });
+        const newPassword = eventOfPlayer?.coachPassword || password;
+
+        existingUser = await this.userService.create({
+          active: true,
+          email,
+          firstName: playerExist.firstName,
+          lastName: playerExist.lastName,
+          password: newPassword,
+          role: UserRole.player,
+          player: playerExist._id,
+        });
       }
 
-      const users: any = await this.userService.find({ email: { $regex: new RegExp(email, 'i') } });
+      // 3️⃣ Validate password
+      const passwordMatched = await bcrypt.compare(password, existingUser.password);
+      if (!passwordMatched) return AppResponse.invalidCredentials();
 
-      const passwordFromUser = existingUser.password;
-      const passwordMatched = await bcrypt.compare(password, passwordFromUser);
-
-      if (!passwordMatched) {
-        return AppResponse.invalidCredentials();
-      }
-
-      const userObj = existingUser._doc;
+      // 4️⃣ Prepare user object (without password)
+      const userObj = { ...existingUser._doc };
       delete userObj.password;
 
-      // advanced
-      /*
-      const roleMapping = {
-        [UserRole.captain]: 'captainplayer',
-        [UserRole.co_captain]: 'cocaptainplayer',
-      };
+      /**
+       * ⚡ EARLY RETURN for admin/director
+       * ---------------------------------------------------
+       * No need to fetch player, team, or event for admin/director
+       */
+      if (userObj.role === UserRole.admin || userObj.role === UserRole.director) {
+        const payload = {
+          _id: existingUser._id,
+          email: existingUser.email,
+          role: userObj.role,
+          passcode: null,
+        };
 
-      const roleKey = roleMapping[userObj.role];
+        const token = await this.jwtService.sign(payload);
 
-      if (roleKey && userObj[roleKey]) {
-        const teamExist = await this.teamService.findOne({ [userObj.role]: userObj[roleKey].toString() });
-        if (teamExist) {
-          userObj.event = teamExist.event;
-          userObj.team = teamExist.name;
-          userObj.teamLogo = teamExist.logo;
-        }
-      }
-        */
-      if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
-        let teamExist = null;
-        if (userObj.role === UserRole.captain && userObj.captainplayer) {
-          teamExist = await this.teamService.findOne({ captainplayer: userObj.captainplayer });
-        } else if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
-          teamExist = await this.teamService.findOne({ cocaptainplayer: userObj.cocaptainplayer });
-        }
-        if (teamExist) {
-          userObj.event = teamExist.event;
-          userObj.team = teamExist.name;
-          userObj.teamLogo = teamExist.logo;
-        }
+        return {
+          code: HttpStatus.ACCEPTED,
+          success: true,
+          message: 'Token issued successfully for admin/director',
+          data: { token, user: userObj },
+        };
       }
 
+      /**
+       * TEAM LOOKUP (optimized)
+       * -------------------------------------------------------
+       * - Determine playerId (captain/co_captain/player)
+       * - Query team only once
+       */
+      let playerId: string | null = null;
+      if (userObj.role === UserRole.captain) playerId = userObj.captainplayer;
+      else if (userObj.role === UserRole.co_captain) playerId = userObj.cocaptainplayer;
+      else if (userObj.role === UserRole.player) playerId = userObj.player;
 
-      if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
-        let teamExist = null;
-        let captainOrCoCaptainPlayerId = null;
-        if (userObj.role === UserRole.captain && userObj.captainplayer) {
-          teamExist = await this.teamService.findOne({ captain: userObj.captainplayer });
-          captainOrCoCaptainPlayerId = userObj.captainplayer;
-        } else if (userObj.role === UserRole.co_captain && userObj.cocaptainplayer) {
-          teamExist = await this.teamService.findOne({ cocaptain: userObj.cocaptainplayer });
-          captainOrCoCaptainPlayerId = userObj.cocaptainplayer;
-        }
-        if (!captainOrCoCaptainPlayerId) {
-          return AppResponse.notFound('Captain player');
-        }
-        if (!teamExist) {
-          return AppResponse.notFound('Team');
-        }
-        const playerExist = await this.playerService.findOne({ _id: captainOrCoCaptainPlayerId });
-        if (!playerExist) {
-          return AppResponse.notFound('Player');
-        }
-        if (playerExist.events[0].toString() !== teamExist.event.toString()) {
-          console.log('Player event and team event did not match, ', {
-            playerEvent: playerExist.events[0],
-            teamEvent: teamExist.event,
-          });
-        }
-        userObj.event = playerExist.events[0].toString();
-        userObj.team = teamExist.name;
-        userObj.teamLogo = teamExist.logo;
+      let teamExist = null;
+      if (playerId) {
+        const teamQuery =
+          userObj.role === UserRole.captain
+            ? { $or: [{ captainplayer: playerId }, { captain: playerId }] }
+            : userObj.role === UserRole.co_captain
+            ? { $or: [{ cocaptainplayer: playerId }, { cocaptain: playerId }] }
+            : { players: playerId };
+
+        teamExist = await this.teamService.findOne(teamQuery);
       }
 
-      const payload = {
-        _id: existingUser._id,
-        email: existingUser.email,
-        role: userObj.role,
-        passcode: null,
-      };
+      if (!playerId) return AppResponse.notFound('Captain player');
+      if (!teamExist) return AppResponse.notFound('Team');
 
-      // Check ldo, event, and players relation
-      // Match passcode
-      if (userObj.role === UserRole.captain || userObj.role === UserRole.co_captain) {
-        let captainOrCoCaptainId = null;
-        if (userObj.captainplayer) {
-          captainOrCoCaptainId = userObj.captainplayer;
-        } else if (userObj.cocaptainplayer) {
-          captainOrCoCaptainId = userObj.cocaptainplayer;
-        }
-        if (captainOrCoCaptainId && userObj.event) {
-          const eventExist = await this.eventService.findOne({ _id: userObj.event });
-          if (eventExist) {
-            // db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
-            const ldoExist = await this.ldoService.findOne({ _id: eventExist.ldo.toString() });
-            if (ldoExist) {
-              const directorUsers = await this.userService.find({
-                $or: [{ _id: ldoExist.director.toString() }, { role: UserRole.admin }],
-              });
-              const passcodeList = directorUsers.map((du) => du.passcode && du.passcode.toString().toUpperCase());
-              if (passcode && passcodeList.includes(passcode.toUpperCase())) {
-                payload.passcode = passcode;
-                userObj.passcode = passcode; // Now, This is a player user but has access to director
+      // Fetch player to check event consistency
+      const playerExist = await this.playerService.findById(playerId);
+      if (!playerExist) return AppResponse.notFound('Player');
+
+      if (playerExist.events?.[0]?.toString() !== teamExist.event.toString()) {
+        console.log('Player event and team event did not match', {
+          playerEvent: playerExist.events[0],
+          teamEvent: teamExist.event,
+        });
+      }
+
+      // Attach team/event info to user
+      userObj.event = playerExist.events?.[0]?.toString();
+      userObj.team = teamExist.name;
+      userObj.teamLogo = teamExist.logo;
+
+      /**
+       * PASSCODE MATCHING (unchanged but optimized)
+       * -------------------------------------------------------
+       * - Only runs if player has event + passcode was provided
+       */
+      if (playerId && userObj.event) {
+        const eventExist = await this.eventService.findById(userObj.event);
+        if (eventExist?.ldo) {
+          const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
+          if (ldoExist) {
+            const directorUsers = await this.userService.find({
+              $or: [{ _id: ldoExist.director.toString() }, { role: UserRole.admin }],
+            });
+
+            if (passcode) {
+              const passcodeList = directorUsers.map((du) => du.passcode?.toUpperCase()).filter(Boolean);
+
+              if (passcodeList.includes(passcode.toUpperCase())) {
+                userObj.passcode = passcode;
               }
             }
           }
         }
       }
 
+      // 5️⃣ Issue JWT token
+      const payload = {
+        _id: existingUser._id,
+        email: existingUser.email,
+        role: userObj.role,
+        passcode: userObj.passcode || null,
+      };
       const token = await this.jwtService.sign(payload);
 
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
-        message: 'A token has been issued successfully, you can login authenticate with this!',
+        message: 'A token has been issued successfully, you can authenticate with this!',
         data: { token, user: userObj },
       };
     } catch (err) {

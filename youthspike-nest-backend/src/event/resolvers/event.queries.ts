@@ -247,9 +247,9 @@ export class EventQueries implements IEventQueries {
       if (!loggedUser) return AppResponse.unauthorized();
 
       const teams = await this.teamService.find({ event: eventId });
-      if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
+      if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain || loggedUser.role === UserRole.player) {
         const playerExist = await this.playerService.findOne({
-          $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }],
+          $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }, { _id: loggedUser.player }],
         });
         if (!playerExist) return AppResponse.notFound('Player');
         return {

@@ -39,11 +39,11 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
   const initialPageInactive = parseInt(searchParams.get('pageInactive') || '1');
   const initialAddPlayer = searchParams.get('addPlayer') === 'true';
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addPlayer, setAddPlayer] = useState(initialAddPlayer);
-  const [showRank, setShowRank] = useState(false);
-  const [rankControls, setRankControls] = useState(false);
-  const [lockRank, setLockRank] = useState(false);
+  const [showRank, setShowRank] = useState<boolean>(false);
+  const [rankControls, setRankControls] = useState<boolean>(false);
+  const [lockRank, setLockRank] = useState<boolean>(false);
 
   const [currentPageActive, setCurrentPageActive] = useState(initialPageActive);
   const [currentPageInactive, setCurrentPageInactive] = useState(initialPageInactive);
@@ -93,6 +93,9 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     setAddPlayer(prev => !prev);
   };
 
+  console.log(user);
+  
+
   const refetchFunc = async () => window.location.reload();
 
   // Load division from store initially (fallback for backward compatibility)
@@ -112,8 +115,8 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     let baseTeams = teams;
 
     // Captain / Co-captain scope → only their team players
-    if (user?.info?.role && [UserRole.captain, UserRole.co_captain].includes(user.info.role)) {
-      const pId = user.info?.captainplayer || user.info?.cocaptainplayer;
+    if (user?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) {
+      const pId = user.info?.captainplayer || user.info?.cocaptainplayer || user.info?.player;; 
       const playerExist = players.find((p) => p._id === pId);
 
       if (playerExist?.teams?.[0]) {
@@ -186,7 +189,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             </button>
           </div>
 
-          {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain].includes(user.info.role)) && (
+          {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
             <div className="mb-4 division-selection w-full mt-6">
               <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
             </div>
@@ -206,7 +209,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             )}
           </div>
 
-          {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain].includes(user.info.role)) && (
+          {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
             <div className="mb-4 division-selection w-full mt-6">
               <SelectInput key="players-pg-2" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
             </div>

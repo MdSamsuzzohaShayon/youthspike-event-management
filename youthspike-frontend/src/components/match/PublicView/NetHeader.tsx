@@ -7,6 +7,7 @@ import {
   ITeam,
 } from "@/types";
 import LocalStorageService from "@/utils/LocalStorageService";
+import Image from "next/image";
 import React, { useMemo } from "react";
 
 interface INetHeaderProps {
@@ -92,12 +93,19 @@ function NetHeader({
 
         {/* Action Button */}
         <div className="flex justify-center sm:justify-end">
-          <button
-            className="w-full sm:w-auto px-6 py-3 text-base font-bold rounded-lg bg-yellow-logo text-black hover:bg-yellow-300 transition-all shadow-md"
+          <Image
+            role="presentation"
             onClick={handleRoundNetSelect}
-          >
-            {view === EView.NET ? "Main scoreboard" : "ENTER NET"}
-          </button>
+            className="w-8 svg-white"
+            src={
+              view === EView.NET
+                ? "/icons/minimize.svg"
+                : "/icons/maximize.svg"
+            }
+            width={50}
+            height={50}
+            alt="minimize-maximize"
+          />
         </div>
       </div>
     </div>

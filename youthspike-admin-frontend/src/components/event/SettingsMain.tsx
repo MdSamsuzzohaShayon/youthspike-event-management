@@ -30,10 +30,12 @@ const SettingsMain = ({ queryRef, eventId }: ISettingsMainProps) => {
 
   return (
     <div className="event-player-action mb-10">
-      <h1 className="text-3xl font-bold text-center mb-8">{user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? 'Update Captain' : 'Update Event'}</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">
+        {user.info?.role === UserRole.player ? 'Update Player' : user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain ? 'Update Captain' : 'Update Event'}
+      </h1>
 
       {!player && !eventObj && <p>No data found</p>}
-      {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain
+      {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain || user.info?.role === UserRole.player
         ? player && <PlayerAdd eventId={eventId} update prevPlayer={player} teamList={teams || []} />
         : eventObj && <EventAddUpdate update prevEvent={eventObj} prevMultiplayer={multiplayer} prevWight={weight} />}
     </div>

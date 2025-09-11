@@ -1,9 +1,9 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
 import { Player } from '../player.schema';
-import { CustomGroup, CustomTeam } from 'src/match/match.response';
 import { Event } from 'src/event/event.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
+import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {

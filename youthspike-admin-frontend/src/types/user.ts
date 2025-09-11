@@ -29,6 +29,7 @@ export interface IUser extends IDocument {
   passcode?: string | null;
   captainplayer?: string | null;
   cocaptainplayer?: string | null;
+  player?: string | null;
 }
 
 /**

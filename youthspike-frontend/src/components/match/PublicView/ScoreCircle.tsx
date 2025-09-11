@@ -24,7 +24,7 @@ const ScoreCircle = ({
 
   return (
     <div
-      className={`rounded-full flex items-center justify-center border-4 ${borderColor} bg-yellow-logo ${shadowColor} shadow-2xl ${className}`}
+      className={`rounded-full flex items-center justify-center border-4 ${borderColor} ${shadowColor} shadow-2xl ${className}`}
     >
       <div className={`text-black font-bold ${textSize} drop-shadow-md`}>{score}</div>
     </div>

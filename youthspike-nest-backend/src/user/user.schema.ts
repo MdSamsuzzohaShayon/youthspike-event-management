@@ -18,6 +18,7 @@ export enum UserRole {
   'captain' = 'captain',
   'co_captain' = 'co_captain',
   'public' = 'public',
+  'player' = 'player',
 }
 registerEnumType(UserRole, {
   name: 'UserRole',
@@ -51,6 +52,10 @@ export class UserBase extends AppDocument {
   @Field((_type) => Player, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   cocaptainplayer?: Player | string;
+
+  @Field((_type) => Player, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
+  player?: Player | string;
 
   @Field({ nullable: true })
   @Prop({ required: false })

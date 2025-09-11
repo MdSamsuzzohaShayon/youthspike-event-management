@@ -1,11 +1,11 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
-import { Match } from './match.schema';
 import { Event } from 'src/event/event.schema';
 import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
 import { CustomMatch, CustomNet, CustomRound } from 'src/team/team.response';
+import { Match } from '../match.schema';
 
 
 @ObjectType()

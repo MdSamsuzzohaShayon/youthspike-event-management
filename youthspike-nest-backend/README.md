@@ -1,3 +1,24 @@
+### Database operation
+
+```
+db.players.find({ username: { $exists: false } }).forEach(player => {
+  // Generate a random 4-digit number
+  const randomNumber = Math.floor(1000 + Math.random() * 9000);
+
+  // Build a username: firstName + random number
+  const username = player.firstName.toLowerCase() + randomNumber;
+
+  // Update the document
+  db.players.updateOne(
+    { _id: player._id },
+    { $set: { username: username } }
+  );
+});
+
+```
+
+---
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
