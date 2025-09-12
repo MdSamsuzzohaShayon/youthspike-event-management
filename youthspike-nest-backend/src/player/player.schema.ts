@@ -35,8 +35,8 @@ export class Player extends AppDocument {
   @Prop({ required: true })
   name: string;
 
-  @Field((_type) => String, { nullable: true })
-  @Prop({ required: false, unique: true })
+  @Field((_type) => String, { nullable: false })
+  @Prop({ required: true, unique: true })
   username: string;
 
   @Field({ nullable: true })
@@ -69,6 +69,10 @@ export class Player extends AppDocument {
   @Field(() => [Team], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
   teams?: Team[] | string[];
+
+  @Field(() => [Team], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
+  prevteams?: Team[] | string[];
 
   // Create a user itself for captain of an event and make relation with event
   @Field((_type) => [Team], { nullable: true })

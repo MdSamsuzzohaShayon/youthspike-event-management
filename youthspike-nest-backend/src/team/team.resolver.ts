@@ -701,6 +701,22 @@ export class TeamResolver {
       return []; // Return an empty array in case of error
     }
   }
+
+  @ResolveField(() => [Player]) // Specify the return type for "players"
+  async moved(@Parent() team: Team): Promise<Player[]> {
+    try {
+      // If not cached, fetch the players from the database
+      const players = await this.playerService.find({ prevteams: { $in: [team._id.toString()] } });
+
+      return players;
+    } catch (error) {
+      // Handle errors gracefully
+      console.error('Error resolving players:', error);
+      return []; // Return an empty array in case of error
+    }
+  }
+
+
   @ResolveField(() => PlayerRanking, { nullable: true })
   async playerRanking(@Parent() team: Team): Promise<PlayerRanking> {
     try {

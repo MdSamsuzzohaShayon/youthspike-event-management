@@ -41,7 +41,7 @@ function filterMatchesForUser(user: IUserContext, teams: ITeam[], matches: IMatc
       break;
     case UserRole.player:
       // @ts-ignore
-      findTeam = teams.find((t) => t.players.includes(user.info?.player));
+      findTeam = teams.find((t) => t.players?.includes(user.info?.player));
       break;
     default:
       break;
@@ -49,10 +49,24 @@ function filterMatchesForUser(user: IUserContext, teams: ITeam[], matches: IMatc
 
   if (!findTeam) return matches;
 
-  return matches.filter((m) => m.teamA._id === findTeam!._id || m.teamB._id === findTeam!._id);
+  return matches.filter((m) => {
+    const teamAId = m?.teamA?._id;
+    const teamBId = m?.teamB?._id;
+    const findTeamId = findTeam?._id;
+
+    return teamAId === findTeamId || teamBId === findTeamId;
+  });
 }
 
 function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
+  console.log('currEvent:', currEvent);
+  console.log('matches:', matches);
+  console.log('teams:', teams);
+
+  if (!currEvent) {
+    return <div>Event not found</div>;
+  }
+
   // Local state
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [addMatch, setAddMatch] = useState<boolean>(false);
@@ -67,20 +81,20 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
 
   // Memoized filtered data
   const { filteredTeams, filteredMatches, filteredGroups } = useMemo(() => {
-    let filteredTeams = teams;
-    let filteredMatches = matches;
-    let filteredGroups = groups;
+    let filteredTeams = teams || [];
+    let filteredMatches = matches || [];
+    let filteredGroups = groups || [];
 
     // Apply division filter if selected
     if (currDivision) {
       const division = currDivision.trim().toLowerCase();
-      filteredTeams = filteredTeams.filter((t) => t.division?.trim().toLowerCase() === division);
-      filteredMatches = filteredMatches.filter((m) => m.division?.trim().toLowerCase() === division);
-      filteredGroups = filteredGroups.filter((g) => g.division?.trim().toLowerCase() === division);
+      filteredTeams = filteredTeams.filter((t) => t?.division?.trim().toLowerCase() === division);
+      filteredMatches = filteredMatches.filter((m) => m?.division?.trim().toLowerCase() === division);
+      filteredGroups = filteredGroups.filter((g) => g?.division?.trim().toLowerCase() === division);
     }
 
-    // Apply captain/player filtering if logged in as one
-    if (localUser.info?.role === UserRole.captain || localUser.info?.role === UserRole.co_captain || localUser.info?.role === UserRole.player) {
+    // Apply user filtering
+    if (localUser?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(localUser.info.role)) {
       filteredMatches = filterMatchesForUser(localUser, filteredTeams, filteredMatches);
     }
 
@@ -121,10 +135,14 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
     <>
       {/* Event Menu Start */}
       <div className="event-and-menu">
-        {currEvent && <CurrentEvent currEvent={currEvent} />}
-        <div className="navigator mt-4">
-          <UserMenuList eventId={currEvent._id} />
-        </div>
+        {currEvent && (
+          <>
+            <CurrentEvent currEvent={currEvent} />
+            <div className="navigator mt-4">
+              <UserMenuList eventId={currEvent?._id} />
+            </div>
+          </>
+        )}
       </div>
       {/* Event Menu End */}
 
@@ -146,7 +164,7 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
                 <MatchAdd
                   eventData={currEvent}
                   teamList={filteredTeams}
-                  eventId={currEvent._id}
+                  eventId={currEvent?._id}
                   addMatchCB={addMatchCB}
                   setIsLoading={setIsLoading}
                   showAddMatch={setAddMatch}
@@ -170,7 +188,7 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
               </div>
             )}
             {filteredMatches.length > 0 ? (
-              <MatchList eventId={currEvent._id} setIsLoading={setIsLoading} matchList={filteredMatches} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroups} />
+              <MatchList eventId={currEvent?._id} setIsLoading={setIsLoading} matchList={filteredMatches} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroups} />
             ) : (
               <p>No match created yet!</p>
             )}

@@ -1,4 +1,4 @@
-import { CreateEventBody, UpdateEventBody } from "./event.input";
+import { CreateEventBody, EventFilterInput, UpdateEventBody } from "./event.input";
 import { CreateOrUpdateEventResponse, GetEventDetailsResponse, GetEventResponse, GetEventsResponse, GetPlayerEventSettingResponse } from "./event.response";
 
 export interface EventResolverContext {
@@ -15,7 +15,7 @@ export interface IEventMutations {
 
 export interface IEventQueries {
   getEvents(context: any, directorId?: string): Promise<GetEventsResponse>;
-  getEventDetails(eventId: string): Promise<GetEventDetailsResponse>;
+  getEventDetails(eventId: string, filter: EventFilterInput): Promise<GetEventDetailsResponse>;
   getPlayerEventSetting(context: any, eventId: string): Promise<GetPlayerEventSettingResponse>;
   getEvent(eventId: string): Promise<GetEventResponse>;
 }

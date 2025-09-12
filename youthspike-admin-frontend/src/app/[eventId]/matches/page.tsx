@@ -79,7 +79,7 @@ async function MatchesPage({ params }: IMatchesPageProps) {
 
       // Handle teams safely
       if (m.teamA) {
-        const teamAId = typeof m.teamA === 'string' ? m.teamA : m.teamA._id;
+        const teamAId = typeof m.teamA === 'string' ? m.teamA : m.teamA?._id;
         if (teamAId && teamMap.has(teamAId)) {
           matchObj.teamA = teamMap.get(teamAId)!;
         } else {

@@ -68,6 +68,10 @@ export class Team extends AppDocument {
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
   players?: Player[] | string[]; // Update the type of players to allow null values
 
+  @Field(() => [Player], { nullable: true })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
+  moved?: Player[] | string[];
+
   @Field(() => [Net], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets?: Net[] | string[]; // Update the type of Nets to allow null values

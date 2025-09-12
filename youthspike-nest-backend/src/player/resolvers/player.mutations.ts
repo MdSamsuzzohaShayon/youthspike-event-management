@@ -33,7 +33,12 @@ export class PlayerMutations implements IPlayerMutations {
   ) {
     // Remove player from old team(s)
     if (currentTeams.length > 0) {
-      updatePromises.push(this.teamService.updateOne({ _id: { $in: currentTeams } }, { $pull: { players: playerId } }));
+      updatePromises.push(
+        this.teamService.updateOne(
+          { _id: { $in: currentTeams } },
+          { $pull: { players: playerId }, $addToSet: { moved: playerId } },
+        ),
+      );
       // 1️⃣ Normalise: always end up with string[]
       const existingTeams: string[] = Array.isArray(playerObj?.teams)
         ? (playerObj.teams as unknown[]).map((t) => t.toString())
@@ -41,6 +46,7 @@ export class PlayerMutations implements IPlayerMutations {
 
       // 2️⃣ Filter out the teams you’re removing
       input.teams = existingTeams.filter((t) => !currentTeams.includes(t));
+      input.$addToSet = { prevteams: currentTeams[0] };
     }
 
     // Add player to the new team
@@ -48,9 +54,19 @@ export class PlayerMutations implements IPlayerMutations {
     // Later, when you add the new team:
     input.teams.push(newTeamId);
 
-    // Remove player rankings from previous team
-    const currentRankings = await this.playerRankingService.find({ team: currentTeams[0] });
-    const rankingItems = await this.playerRankingService.findItems({ player: playerId });
+    // Remove player rankings from previous team (Do not remove match ranking)
+    const currentRankings = await this.playerRankingService.find({
+      team: currentTeams[0],
+      rankLock: false,
+      $or: [
+        { match: null }, // match is explicitly null
+        { match: { $exists: false } }, // match field does not exist
+      ],
+    });
+    const rankingItems = await this.playerRankingService.findItems({
+      player: playerId,
+      playerRanking: { $in: currentRankings.map((r) => r._id) },
+    });
 
     if (rankingItems.length) {
       const rankingItemIds = rankingItems.map((r) => r._id);

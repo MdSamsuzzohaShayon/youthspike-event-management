@@ -17,6 +17,7 @@ export interface ITeam {
   event: IEvent;
   matches: IMatchExpRel[];
   players: IPlayer[];
+  moved?: IPlayer[];
   captain: IPlayer | null;
   cocaptain: IPlayer | null;
   playerRanking: IPlayerRanking;

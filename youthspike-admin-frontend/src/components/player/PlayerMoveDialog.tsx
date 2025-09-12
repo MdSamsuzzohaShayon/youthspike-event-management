@@ -94,7 +94,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
   }
   return (
     <dialog ref={dialogMoveEl} className="modal-dialog">
-      <div className="relative p-6 bg-white dark:bg-gray-900 rounded-xl w-full max-w-md">
+      <div className="relative p-6 bg-white dark:bg-gray-900 rounded-xl w-full">
         {/* Close Button */}
         <button type="button" className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition" aria-label="close" onClick={handleCloseMovePlayer}>
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="Close" className="w-6 h-6 svg-white" />

@@ -52,8 +52,6 @@ function TeamMain({ eventDetail }: ITeamsOfEventPage) {
     return map;
   }, [eventDetail, eventDetail?.players]);
 
-console.log(eventDetail.players);
-
 
   const teamList = useMemo(() => {
     const newTl = (eventDetail?.teams || []);

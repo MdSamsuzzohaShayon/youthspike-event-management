@@ -118,18 +118,21 @@ const organizeFetchedData = async ({
   dispatch(setTeamB({ ...teamBF }));
 
   // Setting players
-  const reformatPlayers = (players: IPlayer[] | undefined, teamId: string) => {
-    if (!players) return [];
-    return players.map((player) => ({
+  const reformatPlayers = (team: ITeam) => {
+    if (!team.players && !team.moved) return [];
+    let pl = [...team.players];
+    if(team.moved) pl = [...team.moved,...team.players];
+
+    return pl.map((player) => ({
       ...player,
-      teams: [teamId],
+      teams: [team._id],
       event: event?._id,
       profile: player.profile,
     }));
   };
 
-  const teamAPlayers = reformatPlayers(teamAF?.players, teamAF?._id || "");
-  const teamBPlayers = reformatPlayers(teamBF?.players, teamBF?._id || "");
+  const teamAPlayers = reformatPlayers(teamAF);
+  const teamBPlayers = reformatPlayers(teamBF);
 
   dispatch(setTeamAPlayers(teamAPlayers));
   dispatch(setTeamBPlayers(teamBPlayers));

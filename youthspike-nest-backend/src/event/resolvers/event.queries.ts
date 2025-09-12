@@ -28,6 +28,7 @@ import { IEventQueries } from '../resolvers/event.types';
 import { RedisService } from 'src/redis/redis.service';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { EventFilterInput } from './event.input';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -202,7 +203,7 @@ export class EventQueries implements IEventQueries {
         stats,
       }));
   
-      return {
+      const res: GetEventDetailsResponse = {
         code: HttpStatus.OK,
         success: true,
         message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
@@ -219,6 +220,7 @@ export class EventQueries implements IEventQueries {
           players: players.map((p) => ({
             ...p.toObject(),
             teams: p.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+            username: p?.username || "Unknown"
           })),
           ldo,
           groups: groups.map((g) => ({
@@ -231,6 +233,7 @@ export class EventQueries implements IEventQueries {
           statsOfPlayer: statsArray,
         },
       };
+      return res;
     } catch (err) {
       return AppResponse.handleError(err);
     }

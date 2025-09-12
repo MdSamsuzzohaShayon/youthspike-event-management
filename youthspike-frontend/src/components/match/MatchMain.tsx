@@ -100,10 +100,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     [myTeamE, teamATotalScore, teamBTotalScore]
   );
 
-  const activeOpPlayers = useMemo(
-    () => opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
-    [opPlayers]
-  );
+  
 
   // Organize data only when necessary
   const organizeData = useCallback(async () => {
@@ -181,7 +178,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   if (user && user?.token && user.info?.role !== UserRole.player) {
     return (
       <MatchAuthenticatedView
-        activeOpPlayers={activeOpPlayers}
         currMatch={currMatch}
         myPlayers={myPlayers}
         myS={myS}

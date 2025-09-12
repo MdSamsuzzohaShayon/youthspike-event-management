@@ -120,6 +120,22 @@ export class CreateEventInput {
   defaultSponsor: boolean;
 }
 
+
+@InputType()
+export class EventFilterInput {
+  @Field(()=> String, {nullable: true})
+  search?: string;
+
+  @Field(() => String, {nullable: true})
+  division?: string;
+
+  @Field(() => String, {nullable: true})
+  group?: string;
+
+  @Field(() => Int, {nullable: true, defaultValue: 90})
+  limit?: number;
+}
+
 @InputType()
 export class UpdateEventInput extends PartialType(CreateEventInput) {}
 

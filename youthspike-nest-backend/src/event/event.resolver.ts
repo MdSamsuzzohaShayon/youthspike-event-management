@@ -12,6 +12,7 @@ import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
 import {
   CreateEventInput,
+  EventFilterInput,
   EventSponsorInput,
   EventSponsorStringInput,
   ProStatsInput,
@@ -114,6 +115,7 @@ export class EventResolver {
 
   @Query((__returns) => GetEventDetailsResponse)
   async getEventDetails(@Args('eventId', { nullable: false }) eventId: string) {
+    // , @Args('filter') filter: EventFilterInput
     return this.eventQueries.getEventDetails(eventId);
   }
 

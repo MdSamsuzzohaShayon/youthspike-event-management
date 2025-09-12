@@ -28,24 +28,37 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
   const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
   const oponentTeamMap = new Map<string, ITeam>(teams.map((t: ITeam) => [t._id, t]));
 
+
   // --- Process Matches Efficiently ---
-  const matchList = matches.map((m: any) => {
-    const enrichedMatch: IMatchExpRel = {
-      ...m,
-      rounds: m.rounds.map((id: string) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[],
-      nets: m.nets.map((id: string) => netMap.get(id)).filter(Boolean) as INetRelatives[],
-    };
+const matchList = matches.map((m: any) => {
+  const enrichedMatch: IMatchExpRel = {
+    ...m,
+    rounds: m.rounds.map((id: string) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[],
+    nets: m.nets.map((id: string) => netMap.get(id)).filter(Boolean) as INetRelatives[],
+  };
 
-    if (oponentTeamMap.has(m.teamA)) {
-      enrichedMatch.teamA = oponentTeamMap.get(m.teamA)!;
-      enrichedMatch.teamB = team;
-    } else if (oponentTeamMap.has(m.teamB)) {
-      enrichedMatch.teamB = oponentTeamMap.get(m.teamB)!;
-      enrichedMatch.teamA = team;
-    }
+  // Determine opponent team
+  let opponentTeam: ITeam | undefined;
+  
+  if (m.teamA !== team._id && oponentTeamMap.has(m.teamA)) {
+    opponentTeam = oponentTeamMap.get(m.teamA)!;
+    enrichedMatch.teamA = opponentTeam;
+    enrichedMatch.teamB = team;
+  } 
+  else if (m.teamB !== team._id && oponentTeamMap.has(m.teamB)) {
+    opponentTeam = oponentTeamMap.get(m.teamB)!;
+    enrichedMatch.teamB = opponentTeam;
+    enrichedMatch.teamA = team;
+  }
 
-    return enrichedMatch;
-  });
+  // If no valid opponent found, skip this match
+  if (!opponentTeam) {
+    console.warn(`Match ${m._id} has no valid opponent team`);
+    return null;
+  }
+
+  return enrichedMatch;
+}).filter(Boolean) as IMatchExpRel[];
 
   // --- Separate Players into assigned/unassigned ---
   const classifyPlayers = (players: IPlayerExpRel[]) => {

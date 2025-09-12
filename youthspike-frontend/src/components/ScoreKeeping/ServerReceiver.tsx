@@ -351,7 +351,24 @@ export default function ServerReceiver({
   /* ───── Hydrate redux ONCE ───── */
   useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
+    return () => {
+      handleUpdateScore();
+    };
   }, []); // ← run exactly once
+
+  useEffect(() => {
+    // ✅ Call when tab is closed or refreshed
+    const handleBeforeUnload = () => {
+      handleUpdateScore();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   /* ───── UI ───── */
 

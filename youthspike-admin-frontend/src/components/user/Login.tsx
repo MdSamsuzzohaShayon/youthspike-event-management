@@ -54,7 +54,7 @@ function Login() {
         // Navigate based on user role
         if (resultData.data.user.role === UserRole.admin) {
           router.push('/admin/directors');
-        } else if ([UserRole.captain, UserRole.co_captain].includes(resultData.data.user.role)) {
+        } else if ([UserRole.captain, UserRole.co_captain, UserRole.player].includes(resultData.data.user.role)) {
           const eventIdOfPlayer = resultData.data.user.event;
           router.push(eventIdOfPlayer ? `/${eventIdOfPlayer}/matches` : '/');
         } else {

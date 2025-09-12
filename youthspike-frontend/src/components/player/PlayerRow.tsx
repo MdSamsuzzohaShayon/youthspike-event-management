@@ -72,16 +72,16 @@ function PlayerRow({
                       </span>
                     )}
                   </div>
-                  {team && (
-                    <Link
-                      href={`/`}
-                      className="text-xs font-medium hover:text-yellow-400 transition-colors break-words capitalize text-yellow-logo"
-                    >
-                      {team.name}
-                    </Link>
-                  )}
                 </div>
               </Link>
+              {team && (
+                <Link
+                  href={`/`}
+                  className="text-xs font-medium hover:text-yellow-400 transition-colors break-words capitalize text-yellow-logo"
+                >
+                  {team.name}
+                </Link>
+              )}
 
               {/* Team link + Captain info - Always below */}
               <div className="mt-1 flex flex-col items-center sm:items-start">
@@ -172,7 +172,6 @@ function PlayerRow({
             ({aggregatedStats.cleanHits} / {aggregatedStats.hittingOpportunity})
           </span>
           <span className="font-bold text-xl">
-            
             {aggregatedStats.cleanHits > 0
               ? (
                   (aggregatedStats.cleanHits /
@@ -187,10 +186,10 @@ function PlayerRow({
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="w-full flex flex-col">
           <span>
-           ( {aggregatedStats.cleanSets} / {aggregatedStats.settingOpportunity})
+            ( {aggregatedStats.cleanSets} / {aggregatedStats.settingOpportunity}
+            )
           </span>
           <span className="font-bold text-xl">
-            
             {aggregatedStats.settingOpportunity > 0
               ? (
                   (aggregatedStats.cleanSets /
@@ -205,11 +204,10 @@ function PlayerRow({
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="w-full flex flex-col">
           <span>
-           ( {aggregatedStats.defensiveConversion} /{" "}
+            ( {aggregatedStats.defensiveConversion} /{" "}
             {aggregatedStats.defensiveOpportunity})
           </span>
           <span className="font-bold text-xl">
-            
             {aggregatedStats.defensiveOpportunity > 0
               ? (
                   (aggregatedStats.defensiveConversion /

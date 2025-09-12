@@ -4,8 +4,6 @@ import React, { useMemo, useState } from "react";
 import {
   QueryRef,
   useApolloClient,
-  useFragment,
-  useQuery,
   useReadQuery,
 } from "@apollo/client";
 import StatBox from "./StatBox";

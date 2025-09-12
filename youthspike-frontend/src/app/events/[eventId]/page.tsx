@@ -14,6 +14,7 @@ async function EventPage({ params }: IEventPageProps) {
 
   // Fetch the event details directly using getEventDetails
   const eventData = await getEventDetails(eventId);
+  
 
   if (!eventData) {
     notFound();

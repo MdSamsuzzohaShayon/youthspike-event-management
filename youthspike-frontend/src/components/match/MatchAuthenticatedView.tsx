@@ -20,7 +20,6 @@ import {
   ETeam,
   IMatchRelatives,
   IPlayer,
-  IRoundRelatives,
   ITeam,
   UserRole,
 } from "@/types";
@@ -30,7 +29,6 @@ import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
 import SelectTeam from "./SelectTeam";
 import { APP_NAME } from "@/utils/keys";
-import useMatchSocket from "@/hooks/match/useMatchSocket";
 
 interface IMatchAuthenticatedViewProps {
   currMatch: IMatchRelatives;
@@ -38,14 +36,13 @@ interface IMatchAuthenticatedViewProps {
   opS: number;
   myTeam: ITeam | null;
   opTeam: ITeam | null;
-  activeOpPlayers: IPlayer[];
   teamA: ITeam | null;
   teamB: ITeam | null;
   verifyLineup: boolean;
   myTeamE: ETeam;
   myPlayers: IPlayer[];
   opPlayers: IPlayer[];
-  audioPlayEl: React.RefObject<HTMLButtonElement | null>
+  audioPlayEl: React.RefObject<HTMLButtonElement | null>;
 }
 
 function MatchAuthenticatedView({
@@ -54,14 +51,13 @@ function MatchAuthenticatedView({
   opS,
   myTeam,
   opTeam,
-  activeOpPlayers,
   teamA,
   teamB,
   verifyLineup,
   myTeamE,
   myPlayers,
   opPlayers,
-  audioPlayEl
+  audioPlayEl,
 }: IMatchAuthenticatedViewProps) {
   const dispatch = useAppDispatch();
   const socket = useSocket();
@@ -73,14 +69,12 @@ function MatchAuthenticatedView({
     nets: allNets,
     notTieBreakerNetId,
   } = useAppSelector((state) => state.nets);
-  const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
+  const { current: currRound, roundList } = useAppSelector(
+    (state) => state.rounds
+  );
   const { current: currRoom } = useAppSelector((state) => state.rooms);
   const eventSponsors = useAppSelector((state) => state.events.sponsors);
 
-
-
-
-  
   // Local State
   const [selectTeam, setSelectTeam] = useState<boolean>(false);
 
@@ -130,10 +124,14 @@ function MatchAuthenticatedView({
     }
     return false;
   }, [user, teamA, teamB]);
-
-  const activeMyPlayers = useMemo(
+  const myActivePlayers = useMemo(
     () => myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
-    [myPlayers]
+    [myPlayers, myTeamE, teamB, teamA]
+  );
+
+  const opActivePlayers = useMemo(
+    () => opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
+    [opPlayers]
   );
 
   // User interaction at the beginning
@@ -165,7 +163,7 @@ function MatchAuthenticatedView({
           </h1>
         </div>
         <TeamPlayers
-          teamPlayers={activeOpPlayers}
+          teamPlayers={opActivePlayers}
           roundList={roundList}
           screenWidth={screenWidth}
           onTop
@@ -240,7 +238,7 @@ function MatchAuthenticatedView({
       <div className="my-roster-wrapper w-full bg-black-logo text-white">
         <TeamPlayers
           roundList={roundList}
-          teamPlayers={activeMyPlayers}
+          teamPlayers={myActivePlayers}
           screenWidth={screenWidth}
         />
 

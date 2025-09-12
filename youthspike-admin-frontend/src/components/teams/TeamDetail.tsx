@@ -132,6 +132,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
   const handleSelectMatch = useCallback((e: React.SyntheticEvent, matchId: string) => {
     // Match selection logic
   }, []);
+  
 
   // ===== Effects =====
   useEffect(() => {

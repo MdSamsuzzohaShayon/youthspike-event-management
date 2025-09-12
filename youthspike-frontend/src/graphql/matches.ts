@@ -13,6 +13,14 @@ players {
   email
   status
 }
+moved{
+  _id
+  firstName
+  lastName
+  profile
+  email
+  status
+}
 captain {
   _id
   firstName

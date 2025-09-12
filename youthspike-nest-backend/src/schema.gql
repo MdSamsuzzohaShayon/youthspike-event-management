@@ -173,6 +173,7 @@ type Team {
   matches: [Match!]
   event: Event!
   players: [Player!]
+  moved: [Player!]
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
   group: Group
@@ -316,7 +317,7 @@ type Player {
   firstName: String!
   lastName: String!
   name: String!
-  username: String
+  username: String!
   email: String
   status: EPlayerStatus!
   profile: String
@@ -324,6 +325,7 @@ type Player {
   division: String!
   events: [Event!]
   teams: [Team!]
+  prevteams: [Team!]
   captainofteams: [Team!]
   cocaptainofteams: [Team!]
   captainuser: User
@@ -424,6 +426,7 @@ type TeamWithStringPlayers {
   matches: [Match!]
   event: Event!
   players: [String!]
+  moved: [Player!]
   nets: [Net!]!
   playerRankings: [PlayerRanking!]
   group: String
@@ -437,7 +440,7 @@ type PlayerWithTeam {
   firstName: String!
   lastName: String!
   name: String!
-  username: String
+  username: String!
   email: String
   status: EPlayerStatus!
   profile: String
@@ -445,6 +448,7 @@ type PlayerWithTeam {
   division: String!
   events: [Event!]
   teams: [String!]
+  prevteams: [Team!]
   captainofteams: [Team!]
   cocaptainofteams: [Team!]
   captainuser: User
@@ -561,7 +565,7 @@ type CaptainPlayer {
   firstName: String!
   lastName: String!
   name: String!
-  username: String
+  username: String!
   email: String
   status: EPlayerStatus!
   profile: String
@@ -569,6 +573,7 @@ type CaptainPlayer {
   division: String!
   events: [Event!]
   teams: [Team!]
+  prevteams: [Team!]
   captainofteams: [String!]
   cocaptainofteams: [Team!]
   captainuser: User
@@ -583,7 +588,7 @@ type CoCaptainPlayer {
   firstName: String!
   lastName: String!
   name: String!
-  username: String
+  username: String!
   email: String
   status: EPlayerStatus!
   profile: String
@@ -591,6 +596,7 @@ type CoCaptainPlayer {
   division: String!
   events: [Event!]
   teams: [Team!]
+  prevteams: [Team!]
   captainofteams: [Team!]
   cocaptainofteams: [String!]
   captainuser: User
@@ -679,6 +685,7 @@ type CustomTeam {
   matches: [String!]
   event: Event!
   players: [String!]
+  moved: [Player!]
   nets: [String!]
   playerRankings: [PlayerRanking!]
   group: String
@@ -734,7 +741,7 @@ type CustomPlayer {
   firstName: String!
   lastName: String!
   name: String!
-  username: String
+  username: String!
   email: String
   status: EPlayerStatus!
   profile: String
@@ -742,6 +749,7 @@ type CustomPlayer {
   division: String!
   events: [Event!]
   teams: [String!]!
+  prevteams: [Team!]
   captainofteams: [String!]
   cocaptainofteams: [String!]
   captainuser: User
