@@ -61,6 +61,11 @@ export class ScoreKeeperHelper {
     return action || [];
   }
 
+  async getSinglePlay(key: string): Promise<ServerReceiverSinglePlay> {
+    let action = await this.redis.getAction(key);
+    return action;
+  }
+
   async saveNetAction(netId: string, room: string, data: ServerReceiverOnNet) {
     await this.redis.setAction(netKey(netId, room), data);
   }

@@ -47,7 +47,6 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
     if (!net) return null;
 
     const baseProps = {
-      key: net._id,
       type: 'button' as const,
       className: net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED ? 'btn-light-outline' : 'btn-light',
     };
@@ -55,11 +54,15 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
     const content = net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED ? `Net ${net.num} banned` : `Net ${net.num}`;
 
     if (net.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED) {
-      return <button {...baseProps}>{content}</button>;
+      return (
+        <button key={net._id} {...baseProps}>
+          {content}
+        </button>
+      );
     }
 
     return (
-      <button {...baseProps} onClick={(e) => handleSelectNet(e, net._id)}>
+      <button key={net._id} {...baseProps} onClick={(e) => handleSelectNet(e, net._id)}>
         {content}
       </button>
     );

@@ -328,6 +328,6 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('revert-play-from-client')
   async onRevertPlay(@ConnectedSocket() client: Socket, @MessageBody() revertPlayInput: RevertPlayInput) {
-    return this.revertPlay.handle(client, revertPlayInput);
+    return this.revertPlay.handle(client, revertPlayInput, this.server);
   }
 }

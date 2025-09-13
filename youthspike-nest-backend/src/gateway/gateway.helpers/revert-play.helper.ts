@@ -8,20 +8,21 @@ import { ScoreKeeperHelper } from './score-keeper.helper';
 
 @Injectable()
 export class RevertPlayHelper {
-  constructor(
-    private readonly scoreKeeper: ScoreKeeperHelper,
-  ) {}
+  constructor(private readonly scoreKeeper: ScoreKeeperHelper) {}
 
-  async revertPlayerScore(singlePlay: ServerReceiverSinglePlay, pointsUpdateHelper: PointsUpdateHelper) {
+  async revertPlayerScore(
+    singlePlay: ServerReceiverSinglePlay,
+    pointsUpdateHelper: PointsUpdateHelper,
+  ): Promise<string[]> {
     let stats = null,
-      ids = [];
+      playerIds = [];
     switch (singlePlay.action) {
       case EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH:
-        ids = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
+        playerIds = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const aceThirdStats = pointsUpdateHelper.statsAceNoThird();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], aceThirdStats.server);
@@ -31,11 +32,11 @@ export class RevertPlayHelper {
         break;
 
       case EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION:
-        ids = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
+        playerIds = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const defensiveStats = pointsUpdateHelper.statsDefensiveConversion();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], defensiveStats.server);
@@ -45,11 +46,11 @@ export class RevertPlayHelper {
         break;
 
       case EServerReceiverAction.SERVER_ACE_NO_TOUCH:
-        ids = [singlePlay.server, singlePlay.receiver];
+        playerIds = [singlePlay.server, singlePlay.receiver];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const aceStats = pointsUpdateHelper.statsAceNoTouch();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], aceStats.server);
@@ -57,11 +58,11 @@ export class RevertPlayHelper {
         break;
 
       case EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR:
-        ids = [singlePlay.server, singlePlay.receiver, singlePlay.receivingPartner];
+        playerIds = [singlePlay.server, singlePlay.receiver, singlePlay.receivingPartner];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const hittingErrStats = pointsUpdateHelper.statsReceivingHittingError();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], hittingErrStats.server);
@@ -70,11 +71,11 @@ export class RevertPlayHelper {
         break;
 
       case EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY:
-        ids = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
+        playerIds = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const putAwayStats = pointsUpdateHelper.statsOneTwoThreePutAway();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], putAwayStats.server);
@@ -84,11 +85,11 @@ export class RevertPlayHelper {
         break;
 
       case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:
-        ids = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
+        playerIds = [singlePlay.server, singlePlay.receiver, singlePlay.servingPartner, singlePlay.receivingPartner];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const rallyStats = pointsUpdateHelper.statsRallyConversion();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], rallyStats.server);
@@ -98,11 +99,11 @@ export class RevertPlayHelper {
         break;
 
       case EServerReceiverAction.RECEIVER_SERVICE_FAULT:
-        ids = [singlePlay.server];
+        playerIds = [singlePlay.server];
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
-          ids as [],
+          playerIds as [],
         );
         const faultStats = pointsUpdateHelper.statsRallyConversion();
         this.scoreKeeper.decrement(stats[singlePlay.server as string], faultStats.server);
@@ -115,5 +116,7 @@ export class RevertPlayHelper {
     if (stats) {
       await this.scoreKeeper.savePlayerStats(stats);
     }
+
+    return playerIds;
   }
 }

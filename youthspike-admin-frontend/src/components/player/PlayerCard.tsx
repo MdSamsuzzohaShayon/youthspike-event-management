@@ -199,6 +199,7 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
               <div className="player-name flex flex-col w-full">
                 <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
                 <p className="">{player?.username}</p>
+                <p className="">{player?.email || ""}</p>
                 {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
                 {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
                 {!showRank && !teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && (

@@ -1,5 +1,6 @@
 import {
   IPlayerStats,
+  IServerReceiverOnNetMixed,
 } from "@/types";
 import EmitEvents from "@/utils/socket/EmitEvents";
 import SocketEventListener from "@/utils/socket/SocketEventListener";
@@ -43,6 +44,12 @@ const usePlayerSocket = ({
         listener.handleUpdatePlayerStats({ playerId, data, apolloClient }),
       "error-from-server": (error: string) =>
         listener.handleError(error, dispatch),
+      // revert-play-from-server
+      "revert-player-notify": ({players}: {players: string}) =>{
+        console.log({players});
+        
+        window.location.reload();
+      },
     };
 
     // Register event listeners

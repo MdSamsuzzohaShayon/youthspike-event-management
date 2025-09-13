@@ -50,8 +50,12 @@ function VerifyLineup() {
   // Filter subbed players
   const subbedPlayers = useMemo(() => {
     const players = myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers;
-    return players.filter((player) => !assignedPlayers.has(player._id) && player.status === EPlayerStatus.ACTIVE);
-  }, [assignedPlayers, myTeamE, teamAPlayers, teamBPlayers]);
+    const movedPlayersMap = new Map(
+      [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])].map((p) => [p._id, p])
+    );
+
+    return players.filter((player) => !movedPlayersMap.has(player._id) && !assignedPlayers.has(player._id) && player.status === EPlayerStatus.ACTIVE);
+  }, [assignedPlayers, myTeamE, teamAPlayers, teamBPlayers, teamA, teamB]);
 
   const renderSubbedPlayers = useCallback(
     () => (

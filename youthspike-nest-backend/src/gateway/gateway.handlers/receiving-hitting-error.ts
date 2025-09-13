@@ -68,7 +68,7 @@ export class ReceivingHittingErrorHandler {
         [receiverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receiverBefore], receiverUpdatedKeys),
         [receivingPartnerBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receivingPartnerBefore], receivingPartnerUpdatedKeys),
       };
-      const playerRooms = [serverBefore, receiverBefore, receivingPartnerBefore];
+      const playerRooms = [serverBefore, receiverBefore, receivingPartnerBefore]; // 
 
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([

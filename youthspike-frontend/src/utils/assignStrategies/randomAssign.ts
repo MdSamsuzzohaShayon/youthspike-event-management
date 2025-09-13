@@ -63,6 +63,9 @@ function randomAssign(props: IRandomAssignProps) {
   const { currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr, tbpr } = props;
   const selectedPlayerIds = new Set<string>();
 
+  
+
+
   // Precompute player rankings for O(1) lookup
   const { myRankings, opRankings } = organizeRankings({ myTeamE, tapr, tbpr });
   const myRankingsMap = new Map<string, number>(myRankings.map(({ player, rank }) => [player._id, rank]));

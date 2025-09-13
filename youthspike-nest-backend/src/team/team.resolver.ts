@@ -508,11 +508,19 @@ export class TeamResolver {
         this.playerService.find({ event: eventId }),
       ]);
 
+      const updatePlayerPromises = [];
+      for (let i = 0; i < players.length; i++) {
+        if(!players[i]?.username){
+          updatePlayerPromises.push(this.playerService.updateOne({_id: players[i]._id}, {$set: {username: this.playerService.playerUsername(players[i].firstName + "2")}}))
+        }
+      }
+      await Promise.all(updatePlayerPromises);
+      const newPlayers = await this.playerService.find({ event: eventId });
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of teams!',
-        data: { event: eventExist, teams, groups, players },
+        data: { event: eventExist, teams, groups, players: newPlayers },
       };
     } catch (err) {
       return AppResponse.handleError(err);

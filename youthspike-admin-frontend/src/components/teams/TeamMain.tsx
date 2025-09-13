@@ -29,6 +29,9 @@ interface ITeamsOfEventPage {
 }
 
 function TeamMain({ eventDetail }: ITeamsOfEventPage) {
+
+  console.log(eventDetail);
+  
   // Hooks
   const pathname = usePathname();
   const { ldoIdUrl } = useLdoId();

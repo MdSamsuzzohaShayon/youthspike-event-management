@@ -1,17 +1,17 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ETeam, RevertPlayInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { singlePlayKey } from 'src/util/helper';
 import {
-  EServerReceiverAction,
   ServerReceiverOnNet,
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 import { RevertPlayHelper } from '../gateway.helpers/revert-play.helper';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 
 export class RevertPlayHandler {
   constructor(
@@ -19,13 +19,10 @@ export class RevertPlayHandler {
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
     private readonly validationHelper: ValidationHelper,
     private readonly revertPlayHelper: RevertPlayHelper,
-    private readonly pointsUpdateHelper: PointsUpdateHelper
+    private readonly pointsUpdateHelper: PointsUpdateHelper,
   ) {}
 
-  async handle(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() body: RevertPlayInput,
-  ) {
+  async handle(@ConnectedSocket() client: Socket, @MessageBody() body: RevertPlayInput, server: Server) {
     try {
       const { serverReceiverOnNetService, matchService, netService, playerService, jwtService } =
         this.gatewayService.getServices();
@@ -38,36 +35,43 @@ export class RevertPlayHandler {
       this.validationHelper.authCheck(body.accessCode, jwtService, match.accessCode);
       const playKeys = new Set<string>();
 
-      // Delete all plays of the net after selected play
+      // Delete selectedPlay and all plays of the net after selected play
       const numOfItems = net.mutate - body.play;
       const deletePromises = [];
+      const redisResults = [];
+      const playerIds = new Set();
+
       for (let i = 0; i < numOfItems; i += 1) {
-        const playToDelete = body.play + i + 1;
+        const playToDelete = body.play + i;
 
         try {
           let singlePlayExist = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, playToDelete);
-          if(!singlePlayExist){
-            singlePlayExist =await serverReceiverOnNetService.findOneSinglePlay({net: body.net, room: body.room, play: playToDelete});
-
+          if (!singlePlayExist) {
+            singlePlayExist = await serverReceiverOnNetService.findOneSinglePlay({
+              net: body.net,
+              room: body.room,
+              play: playToDelete,
+            });
           }
-          const success = await this.revertPlayHelper.revertPlayerScore(singlePlayExist, this.pointsUpdateHelper);
+          const pIds = await this.revertPlayHelper.revertPlayerScore(singlePlayExist, this.pointsUpdateHelper);
+          pIds.forEach((p) => playerIds.add(p));
         } catch (playErr) {
           console.log(playErr);
-          
         }
         // If there is _id in that play delete that
         const key = singlePlayKey(body.net, body.room, playToDelete);
+        const sp = await this.scoreKeeperHelper.getSinglePlays(key);
+        redisResults.push(sp);
         deletePromises.push(this.scoreKeeperHelper.deleteSinglePlayAction(body.net, body.room, playToDelete));
         playKeys.add(key);
       }
+
       deletePromises.push(
-        serverReceiverOnNetService.deleteManySinglePlay({ $and: [{ net: body.net }, { play: { $gt: body.play } }] }),
+        serverReceiverOnNetService.deleteManySinglePlay({ $and: [{ net: body.net }, { play: { $gte: body.play } }] }),
       );
 
-      const redisResults = await Promise.all([...playKeys].map((key) => this.scoreKeeperHelper.getSinglePlays(key)));
-
       const savedIds = new Set();
-      redisResults.flat().forEach((rr: ServerReceiverSinglePlay) => {
+      redisResults.forEach((rr: ServerReceiverSinglePlay) => {
         // Process each individual play
         if (net?._id && rr?._id) {
           savedIds.add(rr._id);
@@ -78,6 +82,10 @@ export class RevertPlayHandler {
         deletePromises.push(
           netService.updateOne({ _id: body.net }, { $pull: { serverReceiverSinglePlay: { $in: [...savedIds] } } }),
         );
+        playerIds.add(net.server);
+        playerIds.add(net.servingPartner);
+        playerIds.add(net.receiver);
+        playerIds.add(net.receivingPartner);
         deletePromises.push(
           playerService.updateMany(
             { serverReceiverOnNet: { $in: [net.server, net.servingPartner, net.receiver, net.receivingPartner] } },
@@ -89,10 +97,9 @@ export class RevertPlayHandler {
         );
       }
       // Update points of each team
-
       await Promise.all(deletePromises);
 
-      const currPlay = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, body.play);
+      const currPlay = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, body.play - 1);
       if (!currPlay) {
         throw new Error('Can not found that specific play.');
       }
@@ -124,54 +131,25 @@ export class RevertPlayHandler {
         throw new Error('Can not detech receiving team.');
       }
 
-      let teamAScore = currPlay.teamAScore,
-        teamBScore = currPlay.teamBScore;
-
-      const serverActions = new Set<EServerReceiverAction>([
-        EServerReceiverAction.SERVER_ACE_NO_TOUCH,
-        EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
-        EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
-        EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
-        EServerReceiverAction.SERVER_DO_NOT_KNOW,
-      ]);
-      if (serverActions.has(currPlay.action)) {
-        if (servingTeamE === ETeam.teamA) {
-          teamAScore -= 1;
-        } else if (servingTeamE === ETeam.teamB) {
-          teamBScore -= 1;
-        }
-      }
-
-      const receiverActions = new Set<EServerReceiverAction>([
-        EServerReceiverAction.RECEIVER_SERVICE_FAULT,
-        EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
-        EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
-        EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
-      ]);
-      if (receiverActions.has(currPlay.action)) {
-        if (receivingTeamE === ETeam.teamA) {
-          teamAScore -= 1;
-        } else if (receivingTeamE === ETeam.teamB) {
-          teamBScore -= 1;
-        }
-      }
-
+      // current Server Receiver
       const srObj: ServerReceiverOnNet = {
         ...currPlay,
-        mutate: currPlay.play,
-        play: currPlay.play,
+        mutate: currPlay.play + 1,
+        play: currPlay.play + 1,
         room: body.room,
         round: net.round,
-        teamAScore,
-        teamBScore,
       };
+
+      const playerRooms = [];
+      for (const p of playerIds) {
+        if (p) playerRooms.push(p);
+      }
 
       // Notify room
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, srObj),
-        this.scoreKeeperHelper.deleteSinglePlayAction(body.net, body.room, currPlay.play), // Delete current play, it will be created again automitically
-        serverReceiverOnNetService.deleteOneSinglePlay({ net: body.net, play: currPlay.play }),
         this.scoreKeeperHelper.publishRoom(body.room, 'revert-play-from-server', srObj),
+        server.to(playerRooms).emit('revert-player-notify', {players: playerRooms}),
       ]);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');

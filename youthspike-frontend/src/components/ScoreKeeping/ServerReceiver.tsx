@@ -37,7 +37,6 @@ import useMakeTeam from "@/hooks/score-keeping/useMakeTeam";
 import useInitialSelection from "@/hooks/score-keeping/useInitialSelection";
 import useServerReceiverSocket from "@/hooks/score-keeping/useServerReceiverSocket";
 import ScoreBoard from "./ScoreBoard";
-import ServerReceiverPlayInput from "./ServerReceiverPlayInput";
 import { setMessage } from "@/redux/slices/elementSlice";
 import LocalStorageService from "@/utils/LocalStorageService";
 import RoundInputBox from "../elements/RoundInputBox";
@@ -276,12 +275,14 @@ export default function ServerReceiver({
   const handleUpdateScore = useCallback(() => {
     const net = netByNum.get(currNetNum);
     if (!socket || !currMatch._id || !net?._id || !currRoom?._id) {
-      dispatch(
-        setMessage({
-          type: EMessage.ERROR,
-          message: "Match, net, receiver, or room does not exist!",
-        })
-      );
+      // dispatch(
+      //   setMessage({
+      //     type: EMessage.ERROR,
+      //     message: "Match, net, receiver, or room does not exist!",
+      //   })
+      // );
+      console.log("Match, net, receiver, or room does not exist!");
+      
       return;
     }
 
@@ -317,6 +318,8 @@ export default function ServerReceiver({
     token,
     accessCode,
   ]);
+  // Create a ref to store the current handleUpdateScore function
+  const handleUpdateScoreRef = useRef(handleUpdateScore);
 
   const serverTeamE: ETeam | null = useMemo(() => {
     if (!selectedServer) return null;
@@ -349,17 +352,28 @@ export default function ServerReceiver({
   }, [teamAPlayers, teamBPlayers]);
 
   /* ───── Hydrate redux ONCE ───── */
+  // Update the ref when the function changes
   useEffect(() => {
-    organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
-    return () => {
-      handleUpdateScore();
-    };
-  }, []); // ← run exactly once
+    handleUpdateScoreRef.current = handleUpdateScore;
+  }, [handleUpdateScore]);
 
   useEffect(() => {
-    // ✅ Call when tab is closed or refreshed
+    organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
+   
+  }, []); // ← run exactly once
+
+
+  useEffect(() => {
+    return () => {
+      // Use the ref version to avoid dependency issues
+      handleUpdateScoreRef.current();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Create a wrapper function that uses the ref
     const handleBeforeUnload = () => {
-      handleUpdateScore();
+      handleUpdateScoreRef.current();
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -368,7 +382,7 @@ export default function ServerReceiver({
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, []);
+  }, []); // Empty dependency array since we're using the ref
 
   /* ───── UI ───── */
 

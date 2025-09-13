@@ -27,6 +27,7 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
 
   const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
+  const { teamA, teamB } = useAppSelector((state) => state.teams);
 
   const handlePASSelect = (e: React.SyntheticEvent, pas: EAssignStrategies) => {
     // PAS = Player Assign Strategies
@@ -36,20 +37,28 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
     // Check first assign or match up
     const matchUp = currRound?.firstPlacing !== myTeamE;
 
+    // Remove moved players from myPlayers and opPlayers
+    const movedPlayersMap = new Map(
+      [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])].map((p) => [p._id, p])
+    );
+
+    const newOpPlayers = opPlayers.filter((p)=> !movedPlayersMap.has(p._id));
+    const newMyPlayers = myPlayers.filter((p)=> !movedPlayersMap.has(p._id));
+
     // Make sure selecting all players subbed previously
     switch (pas) {
       case EAssignStrategies.RANDOM:
-        randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
+        randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers, opPlayers: newOpPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
         break;
 
       case EAssignStrategies.ANCHOR:
         // Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and so on
-        anchorAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
+        anchorAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers, opPlayers: newOpPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
         break;
 
       case EAssignStrategies.HIERARCHY:
         // Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
-        hierarchyAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers, opPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
+        hierarchyAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers, opPlayers: newOpPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
         break;
 
       default:
