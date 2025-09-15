@@ -14,11 +14,10 @@ import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 
-
 // IMatchQueries
 
 @Injectable()
-export class MatchQueries  {
+export class MatchQueries {
   constructor(
     private configService: ConfigService,
     private userService: UserService,
@@ -30,8 +29,6 @@ export class MatchQueries  {
     private netService: NetService,
     private groupService: GroupService,
   ) {}
-
-
 
   async getMatches(filter?: FilterQueryInput) {
     try {
@@ -58,7 +55,6 @@ export class MatchQueries  {
       // // Get user
       // const loggedUser = await this.userService.findById(userPayload?._id);
       // if (!loggedUser) return AppResponse.unauthorized();
-
 
       // Assuming matchService is injected in your class
       const [event, matches, teams, ldo, groups] = await Promise.all([
@@ -91,15 +87,31 @@ export class MatchQueries  {
     try {
       const matchExist = await this.matchService.findById(matchId);
 
+      if (!matchExist) return AppResponse.notFound("Match");
+
+      // Auto-complete match if all nets have scores (even 0 is valid)
+      if (!matchExist.completed) {
+        // Find nets that are missing scores
+        const incompleteNets = await this.netService.find({
+          match: matchExist._id,
+          $or: [{ teamAScore: null }, { teamBScore: null }],
+        });
+
+        // If no incomplete nets, mark match as completed
+        if (incompleteNets.length === 0) {
+          await this.matchService.updateOne({ _id: matchExist._id }, { $set: { completed: true } });
+          matchExist.completed = true; // update local object
+        }
+      }
+
       return {
-        code: matchExist ? HttpStatus.OK : HttpStatus.NOT_FOUND,
-        success: matchExist ? true : false,
-        message: matchExist ? 'Got the match' : 'No match found!',
+        code: HttpStatus.OK,
+        success: true,
+        message: 'Got the match',
         data: matchExist,
       };
     } catch (err) {
       return AppResponse.handleError(err);
     }
   }
-
 }

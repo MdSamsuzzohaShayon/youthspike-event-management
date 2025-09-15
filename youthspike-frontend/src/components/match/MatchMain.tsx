@@ -56,7 +56,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     match: currMatch,
     teamATotalScore,
     teamBTotalScore,
-
   } = useAppSelector((state) => state.matches);
 
   const netByNum = useNetMaps(currRoundNets);

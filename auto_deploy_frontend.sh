@@ -73,7 +73,7 @@ nano src/utils/keys.ts
 
 info "Copy environment variables..."
 touch .env
-echo "Environment variables for youthspike-admin-frontend" > .env
+echo "#Environment variables for youthspike-admin-frontend" > .env
 nano .env
 cat .env
 success "Done copying environment variable."
@@ -95,7 +95,7 @@ npm install
 nano src/utils/keys.ts
 info "Copy environment variables..."
 touch .env
-echo "Environment variables for youthspike-frontend" > .env
+echo "#Environment variables for youthspike-frontend" > .env
 nano .env
 cat .env
 success "Done copying environment variable."

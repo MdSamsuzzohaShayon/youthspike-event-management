@@ -53,6 +53,8 @@ export class ValidationHelper {
       throw new Error('Does not have any round in the match!');
     }
 
+    
+    /*
     // Build a quick lookup: match _id  ➜ earliest round
     const firstRoundByMatch = new Map<string, any>();
     for (const r of rounds) {
@@ -60,7 +62,7 @@ export class ValidationHelper {
       if (!firstRoundByMatch.has(id)) firstRoundByMatch.set(id, r);
     }
 
-    /* ---------- 5 . Validate that no unfinished match is in progress ---------- */
+    // Validate that no unfinished match is in progress
     const captainTeam = teamIds[0]; // business rule: pick the first team
 
     for (const match of matches) {
@@ -77,6 +79,8 @@ export class ValidationHelper {
         );
       }
     }
+
+    */
   }
 
   async authCheck(accessCode: string | null, jwtService: JwtService, matchAccessCode: string | null){

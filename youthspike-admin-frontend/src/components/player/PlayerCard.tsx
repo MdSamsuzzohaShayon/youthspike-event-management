@@ -4,7 +4,7 @@ import { EPlayerStatus } from '@/types/player';
 import { useMutation } from '@apollo/client';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { IOption, IPlayerRank, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
@@ -18,214 +18,259 @@ import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorProvider';
 import PlayerMoveDialog from './PlayerMoveDialog';
+import TextImg from '../elements/TextImg';
+import InputField from '../elements/forms/InputField';
+import AddEmailDialog from './AddEmailDialog';
 
-interface PlayerCardProps {
+interface IPlayerCardProps {
   player: IPlayerRank;
   eventId: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isChecked: boolean;
   handleSelectPlayer: (e: React.SyntheticEvent, _id: string) => void;
-  teamId?: string | null;
   showRank?: boolean;
   rankControls?: boolean;
   divisionList?: IOption[];
-  teamList?: ITeam[];
+  team: ITeam | null;
+  teamList: ITeam[];
   refetchFunc?: () => void;
   rank?: number | null;
 }
 
-function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankControls, divisionList, teamList, refetchFunc, isChecked, handleSelectPlayer }: PlayerCardProps) {
-  const { setActErr } = useError();
-
+export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, eventId, rankControls }: IPlayerCardProps) {
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
-
-  const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
   const [newEmail, setNewEmail] = useState<string>('');
+  const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
+
   const dialogEl = useRef<HTMLDialogElement | null>(null);
   const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
+
+  const { setActErr } = useError();
+  const user = useUser();
+  const { ldoIdUrl } = useLdoId();
 
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
   const [deleteAPlayer] = useMutation(DELETE_A_PLAYER);
 
-  const playerLiEl = useRef<HTMLDivElement | null>(null);
+  // Memoized values
+  const name = useMemo(() => `${player.firstName} ${player.lastName}`, [player.firstName, player.lastName]);
 
-  const user = useUser();
-  const { ldoIdUrl } = useLdoId();
+  const teamId = team?._id;
+  const captainofteams = useMemo(() => player.captainofteams?.map((t) => (typeof t === 'object' ? t._id : t)) || [], [player.captainofteams]);
 
-  // ====== Actions for players  ======
+  const cocaptainofteams = useMemo(() => player.cocaptainofteams?.map((t) => (typeof t === 'object' ? t._id : t)) || [], [player.cocaptainofteams]);
 
-  const makeCaptainOrCoCaptain = async (input: { captain?: string; cocaptain?: string }) => {
-    setActionOpen((prevState) => !prevState);
-    try {
-      setIsLoading(true);
-      if (teamId && eventId) {
-        const response = await mutateTeam({ variables: { input, teamId, eventId } });
-        const success = await handleResponse({ response: response.data.updateTeam, setActErr });
-        if (!success) return;
-        // Not recommended
-        window.location.reload();
+  const isCaptain = useMemo(() => teamId && captainofteams.includes(teamId), [teamId, captainofteams]);
+  const isCoCaptain = useMemo(() => teamId && cocaptainofteams.includes(teamId), [teamId, cocaptainofteams]);
+
+  // Optimized callbacks
+  const makeCaptainOrCoCaptain = useCallback(
+    async (input: { captain?: string; cocaptain?: string }) => {
+      setActionOpen((prev) => !prev);
+      try {
+        setIsLoading(true);
+        if (teamId && eventId) {
+          const response = await mutateTeam({ variables: { input, teamId, eventId } });
+          const success = await handleResponse({ response: response.data.updateTeam, setActErr });
+          if (!success) return;
+          window.location.reload();
+        }
+      } catch (error: any) {
+        handleError({ error, setActErr });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error: any) {
-      handleError({ error, setActErr });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const handleMakeCaptain = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    makeCaptainOrCoCaptain({ captain: playerId });
-  };
-  const handleMakeCoCaptain = (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    makeCaptainOrCoCaptain({ cocaptain: playerId });
-  };
-  const handleMovePlayerBox = (e: React.SyntheticEvent) => {
+    },
+    [teamId, eventId, mutateTeam, setActErr, setIsLoading],
+  );
+
+  const handleMakeCaptain = useCallback(
+    (e: React.SyntheticEvent, playerId: string) => {
+      e.preventDefault();
+      makeCaptainOrCoCaptain({ captain: playerId });
+    },
+    [makeCaptainOrCoCaptain],
+  );
+
+  const handleMakeCoCaptain = useCallback(
+    (e: React.SyntheticEvent, playerId: string) => {
+      e.preventDefault();
+      makeCaptainOrCoCaptain({ cocaptain: playerId });
+    },
+    [makeCaptainOrCoCaptain],
+  );
+
+  const handleMovePlayerBox = useCallback((e: React.SyntheticEvent) => {
     e.preventDefault();
     setMovePlayer(true);
-    setActionOpen((prevState) => !prevState);
+    setActionOpen((prev) => !prev);
     dialogMoveEl.current?.showModal();
-  };
+  }, []);
 
-  const handleChangeStatus = async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
-    e.preventDefault();
+  const handleChangeStatus = useCallback(
+    async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
+      e.preventDefault();
+      setActionOpen((prev) => !prev);
+      try {
+        const response = await mutatePlayer({
+          variables: {
+            input: { status: newStatus, newTeamId: teamId },
+            playerId,
+          },
+        });
+        const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
+        if (!success) return;
 
-    setActionOpen((prevState) => !prevState);
-    try {
-      const response = await mutatePlayer({
-        variables: {
-          input: { status: newStatus, newTeamId: teamId },
-          playerId,
-        },
-      });
-      const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
-      if (!success) return;
-
-      if (refetchFunc) {
-        window.location.reload();
+        if (refetchFunc) {
+          window.location.reload();
+        }
+      } catch (error: any) {
+        handleError({ error, setActErr });
       }
-    } catch (error: any) {
-      handleError({ error, setActErr });
-    }
-  };
-  const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    try {
-      setActionOpen((prevState) => !prevState);
-      setIsLoading(true);
-      const response = await deleteAPlayer({ variables: { playerId } });
-      const success = await handleResponse({ response: response.data.deletePlayer, setActErr });
-      if (!success) return;
-      if (refetchFunc) {
-        await refetchFunc();
-      } else {
-        await client.refetchQueries({ include: [GET_A_TEAM] });
-      }
-    } catch (error: any) {
-      handleError({ error, setActErr });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [teamId, mutatePlayer, setActErr, refetchFunc],
+  );
 
-  const closeModal = () => {
-    if (dialogEl && dialogEl.current) {
+  const handleDelete = useCallback(
+    async (e: React.SyntheticEvent, playerId: string) => {
+      e.preventDefault();
+      try {
+        setActionOpen((prev) => !prev);
+        setIsLoading(true);
+        const response = await deleteAPlayer({ variables: { playerId } });
+        const success = await handleResponse({ response: response.data.deletePlayer, setActErr });
+        if (!success) return;
+        if (refetchFunc) {
+          await refetchFunc();
+        } else {
+          await client.refetchQueries({ include: [GET_A_TEAM] });
+        }
+      } catch (error: any) {
+        handleError({ error, setActErr });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [deleteAPlayer, setActErr, refetchFunc, client, setIsLoading],
+  );
+
+  const closeModal = useCallback(() => {
+    if (dialogEl.current) {
       dialogEl.current.close();
       setNewPlayerRole(null);
       setNewEmail('');
     }
-  };
+  }, []);
 
-  const handleOpenDialog = (e: React.SyntheticEvent, capOrCo: UserRole) => {
+  const handleOpenDialog = useCallback((e: React.SyntheticEvent, capOrCo: UserRole) => {
     e.preventDefault();
-    if (dialogEl && dialogEl.current) {
+    if (dialogEl.current) {
       setNewPlayerRole(capOrCo);
-      setActionOpen((prevState) => !prevState);
+      setActionOpen((prev) => !prev);
       dialogEl.current.showModal();
     }
-  };
+  }, []);
 
-  const handleCloseModal = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    closeModal();
-  };
-
-  const handleCaptainEmail = async (e: React.SyntheticEvent) => {
-    /**
-     * Add email for player
-     * And Make him captain
-     */
-    e.preventDefault();
-    if (!newEmail || newEmail === '') return;
-    const updateObj: { email?: string; captain?: string; cocaptain?: string } = { email: newEmail };
-    if (newPlayerRole === UserRole.captain) {
-      updateObj.captain = player._id;
-    } else if (newPlayerRole === UserRole.co_captain) {
-      updateObj.cocaptain = player._id;
-    }
-    try {
-      await mutatePlayer({
-        variables: {
-          input: { email: newEmail },
-          playerId: player._id,
-        },
-      });
-      if (updateObj.email) {
-        delete updateObj.email;
-        await makeCaptainOrCoCaptain(updateObj);
-      }
+  const handleCloseModal = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
       closeModal();
-    } catch (error: any) {
-      handleError({ error, setActErr });
-    }
-  };
+    },
+    [closeModal],
+  );
 
-  return (
-    <>
-      <div className={`relative flex items-center gap-3 w-full`}>
-        {/* Draggable element start  */}
-        <div className="draggable-element w-11/12 flex justify-between items-center" draggable={!!rankControls}>
-          <div ref={playerLiEl} className="mobile-draggable-element w-11/12 flex justify-between items-center gap-1">
-            <div className="img-wrapper h-full w-9/12 flex justify-between items-center gap-1">
-              <div className="advanced-img w-20 h-20 border border-yellow rounded-lg border-4">
-                {player.profile ? (
-                  <CldImage width={100} height={100} alt="player's profile picture" className="w-full h-full " src={player.profile} />
-                ) : (
-                  <Image width={imgSize.xs} height={imgSize.xs} src="/icons/sports-man.svg" alt="" className="svg-white w-full h-full" />
-                )}
-              </div>
+  const handleCaptainEmail = useCallback(
+    async (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      if (!newEmail.trim()) return;
 
-              <div className="player-name flex flex-col w-full">
-                <h3 className="break-words w-28 md:w-full capitalize">{`${player.firstName} ${player.lastName}`}</h3>
-                <p className="">{player?.username}</p>
-                <p className="">{player?.email || ""}</p>
-                {player?.captainofteams && player?.captainofteams.length > 0 && <p className="text-yellow-logo uppercase">Captain</p>}
-                {player?.cocaptainofteams && player?.cocaptainofteams.length > 0 && <p className="text-yellow-logo uppercase">Co-Captain</p>}
-                {!showRank && !teamId && user.info?.role !== UserRole.captain && user.info?.role !== UserRole.co_captain && (
-                  <p className="text-yellow-logo uppercase">{(player?.teams || [])[0]?.name || 'Unassigned'}</p>
-                )}
-              </div>
-            </div>
+      const updateObj: { email?: string; captain?: string; cocaptain?: string } = { email: newEmail };
+      if (newPlayerRole === UserRole.captain) {
+        updateObj.captain = player._id;
+      } else if (newPlayerRole === UserRole.co_captain) {
+        updateObj.cocaptain = player._id;
+      }
 
-            <div className="text-box w-3/12 flex flex-col justify-center items-center">
-              {showRank && player.rank && (
-                <div className="rank-box flex flex-col items-center rounded-lg">
-                  <h3 className="bg-yellow-logo text-black px-2 flex justify-center items-center text-base">{player.rank}</h3>
-                  <p>Rank</p>
-                </div>
-              )}
-              {player.phone && (
-                <div className="flex flex-col justify-center items-center w-full text-center">
-                  <p className="break-words">{formatUSPhoneNumber(player.phone)}</p>
-                </div>
-              )}
-            </div>
-          </div>
+      try {
+        await mutatePlayer({
+          variables: {
+            input: { email: newEmail },
+            playerId: player._id,
+          },
+        });
+        if (updateObj.email) {
+          delete updateObj.email;
+          await makeCaptainOrCoCaptain(updateObj);
+        }
+        closeModal();
+      } catch (error: any) {
+        handleError({ error, setActErr });
+      }
+    },
+    [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, setActErr],
+  );
+
+  // Memoized components
+  const PlayerRole = useMemo(
+    () => (
+      <div className="username flex flex-col justify-between items-center">
+        <p className="text-gray-400 text-sm">{player.username}</p>
+        {isCaptain && <p className="text-yellow-logo uppercase">Captain</p>}
+        {isCoCaptain && <p className="text-yellow-logo uppercase">Co-Captain</p>}
+      </div>
+    ),
+    [player.username, isCaptain, isCoCaptain],
+  );
+
+  const PlayerInfo = useMemo(
+    () => (
+      <div className="player-name flex flex-col w-full text-white">
+        <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
+          <h3 className="break-words text-lg font-semibold capitalize">{name}</h3>
         </div>
-        {/* Draggable element End  */}
+        {player.email && <p className="text-gray-300 text-sm break-words max-w-xs">{player.email}</p>}
+        {team && (
+          <div className="w-full flex justify-between items-center">
+            <p className="text-yellow-400 uppercase font-bold tracking-wide">{team.name}</p>
+            {rank && (
+              <button
+                className="md:hidden flex w-10 h-10 items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                aria-label="Options"
+              >
+                <p className="text-yellow-400 uppercase font-bold tracking-wide">{rank}</p>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    ),
+    [name, player.email, team, rank],
+  );
 
-        {/* Operation menu start  */}
+  const PlayerImage = useMemo(
+    () => (
+      <div className="advanced-img w-12 md:w-24 h-12 md:h-24 border border-yellow rounded-xl overflow-hidden bg-gray-900 flex items-center justify-center">
+        {player.profile ? (
+          <CldImage width={100} height={100} alt={name} src={player.profile} className="w-full h-full object-cover object-fit" />
+        ) : (
+          <TextImg fullText={name} className="w-full h-full object-cover object-fit" />
+        )}
+      </div>
+    ),
+    [player.profile, name],
+  );
+
+  const OptionsButton = useMemo(
+    () => (
+      <div
+        className="w-10 h-10 relative flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        aria-label="Options"
+        role="presentation"
+        onClick={() => setIsOptionsOpen(true)}
+      >
         <AnimatePresence>
           {actionOpen && (
             <motion.ul
@@ -240,20 +285,20 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                 <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
               {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
-                <React.Fragment>
+                <>
                   {rankControls && player.status === EPlayerStatus.ACTIVE && (
                     <>
                       <li
                         role="presentation"
                         className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}
+                        onClick={(e) => (player.email?.trim() ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}
                       >
                         Make Captain
                       </li>
                       <li
                         role="presentation"
                         className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={(e) => (player.email && player.email.trim() !== '' ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}
+                        onClick={(e) => (player.email?.trim() ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}
                       >
                         Make Co-Captain
                       </li>
@@ -262,9 +307,6 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                       </li>
                     </>
                   )}
-                  {/* <li role="presentation" className='px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={handleMovePlayerBox}>
-                    Move Player
-                  </li> */}
                   {player.status === EPlayerStatus.ACTIVE ? (
                     <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
                       Make Inactive
@@ -277,55 +319,87 @@ function PlayerCard({ player, teamId, eventId, setIsLoading, showRank, rankContr
                   <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleDelete(e, player._id)}>
                     Delete
                   </li>
-                </React.Fragment>
+                </>
               )}
             </motion.ul>
           )}
         </AnimatePresence>
 
-        <div className="dot-img-wrapper w-1/12 flex justify-end items-end">
-          <button
-            onClick={() => setActionOpen((prev) => !prev)}
-            className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            aria-label="Options"
-          >
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
-          </button>
-        </div>
-        {/* Operation menu ende  */}
-
-        {/* Add email operation start  */}
-        <dialog ref={dialogEl} className="modal-dialog">
-          <div className="p-4">
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
-            <form onSubmit={handleCaptainEmail}>
-              {/* @ts-ignore */}
-              <EmailInput key="eml-pc-1" name="email" required handleInputChange={(e) => setNewEmail(e.target.value)} />
-              <button className="btn-info mt-4" type="submit">
-                Make Captain
-              </button>
-            </form>
-          </div>
-        </dialog>
-        {/* Add email operation end  */}
-
-        <PlayerMoveDialog
-          dialogMoveEl={dialogMoveEl}
-          divisionList={divisionList || []}
-          mutatePlayer={mutatePlayer}
-          player={player}
-          refetchFunc={refetchFunc}
-          setActErr={setActErr}
-          setActionOpen={setActionOpen}
-          setMovePlayer={setMovePlayer}
-          teamId={teamId || null}
-          teamList={teamList || []}
-        />
-
-        {/* Move player operation end  */}
+        <button
+          onClick={() => setActionOpen((prev) => !prev)}
+          className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          aria-label="Options"
+        >
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
+        </button>
       </div>
+    ),
+    [
+      actionOpen,
+      eventId,
+      player._id,
+      player.email,
+      player.status,
+      ldoIdUrl,
+      user.info?.role,
+      rankControls,
+      handleMakeCaptain,
+      handleMakeCoCaptain,
+      handleMovePlayerBox,
+      handleChangeStatus,
+      handleDelete,
+      handleOpenDialog,
+    ],
+  );
+
+  return (
+    <>
+      {/* ✅ Desktop Layout */}
+      <div className="hidden md:flex w-full items-center justify-between transition">
+        <div className="flex items-center gap-4 w-full">
+          {PlayerImage}
+          {PlayerInfo}
+        </div>
+
+        <div className="player-role mr-4">{PlayerRole}</div>
+
+        {rank && (
+          <button className="mr-4 flex w-10 h-10 items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" aria-label="Options">
+            <p className="text-yellow-400 uppercase font-bold tracking-wide">{rank}</p>
+          </button>
+        )}
+
+        {OptionsButton}
+      </div>
+
+      {/* ✅ Mobile Layout */}
+      <div className="w-full flex flex-col items-center gap-3 md:hidden">
+        <div className="w-full flex justify-between items-center">
+          {PlayerImage}
+          {PlayerRole}
+          {OptionsButton}
+        </div>
+        {PlayerInfo}
+      </div>
+
+      {/* Add email operation start  */}
+      <AddEmailDialog dialogEl={dialogEl} handleCaptainEmail={handleCaptainEmail} handleCloseModal={handleCaptainEmail} setNewEmail={setNewEmail} />
+
+      {/* Add email operation end  */}
+
+      {/* ✅ Options Modal */}
+      <PlayerMoveDialog
+        dialogMoveEl={dialogMoveEl}
+        divisionList={divisionList || []}
+        mutatePlayer={mutatePlayer}
+        player={player}
+        refetchFunc={refetchFunc}
+        setActErr={setActErr}
+        setActionOpen={setActionOpen}
+        setMovePlayer={setMovePlayer}
+        teamId={teamId || null}
+        teamList={teamList || []}
+      />
     </>
   );
 }
-
-export default PlayerCard;

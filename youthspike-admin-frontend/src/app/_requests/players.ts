@@ -57,6 +57,9 @@ async function getEventPlayersGroupsTeams(eventId: string, token?: string | null
   });
 
   const { data, errors } = await res.json();
+
+  // console.log({data, errors});
+  
   return handleServerResponse(data, 'getEventWithPlayers', errors);
 }
 

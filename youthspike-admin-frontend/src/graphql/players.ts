@@ -216,6 +216,8 @@ query GetEventWithPlayers($eventId: String!) {
 }
 `;
 
+const GET_EVENT_PLAYERS_GROUPS_TEAMS = gql`${GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW}`;
+
 const GET_EVENT_WITH_TEAM_PLAYERS_RAW = `
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
@@ -339,6 +341,7 @@ export {
   GET_A_PLAYER,
   GET_A_PLAYER_RAW,
   GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
+  GET_EVENT_PLAYERS_GROUPS_TEAMS,
   CREATE_MULTIPLE_PLAYERS_RAW,
   CREATE_MULTIPLE_PLAYERS,
   CREATE_PLAYER_RAW,

@@ -12,11 +12,16 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
 import { AppResponse } from 'src/shared/response';
 import { QueryOptions } from 'mongoose';
 import { Player } from '../player.schema';
-import { GetEventWithPlayersResponse, GetPlayerAndTeamsResponse, PlayerResponse, CustomPlayer } from './player.response';
+import {
+  GetEventWithPlayersResponse,
+  GetPlayerAndTeamsResponse,
+  PlayerResponse,
+  CustomPlayer,
+} from './player.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 
 @Injectable()
-export class PlayerQueries implements IPlayerQueries{
+export class PlayerQueries implements IPlayerQueries {
   constructor(
     private configService: ConfigService,
     private eventService: EventService,
@@ -24,7 +29,7 @@ export class PlayerQueries implements IPlayerQueries{
     private playerService: PlayerService,
     private userService: UserService,
     private groupService: GroupService,
-    private playerRankingService: PlayerRankingService
+    private playerRankingService: PlayerRankingService,
   ) {}
 
   async getEventWithPlayers(context: any, eventId: string): Promise<GetEventWithPlayersResponse> {
@@ -51,15 +56,28 @@ export class PlayerQueries implements IPlayerQueries{
         const capPlayer = await this.playerService.findOne({
           $or: [{ captainuser: loggedUser._id }, { cocaptainuser: loggedUser._id }],
         });
-        const teamIds = capPlayer.teams.map((t) => t._id.toString());
-        playerRankings = await this.playerRankingService.find({ team: { $in: teamIds } });
-        const playerRankingIds = playerRankings.map((pr) => pr._id.toString());
-        rankings = await this.playerRankingService.findItems({ playerRanking: { $in: playerRankingIds } });
+
+        if (capPlayer?.teams?.length) {
+          const teamIds = capPlayer.teams.map((t) => t._id.toString());
+          playerRankings = await this.playerRankingService.find({ team: { $in: teamIds } });
+
+          const playerRankingIds = playerRankings.map((pr) => pr._id.toString());
+          rankings = await this.playerRankingService.findItems({ playerRanking: { $in: playerRankingIds } });
+        } else {
+          // Optional: log or handle case when capPlayer is null
+          console.warn('No captain player found for logged user:', loggedUser._id);
+        }
       }
 
       // Normalize to Custom* GraphQL output shapes (string IDs for refs)
       const normalizedPlayers: CustomPlayer[] = players.map((p: any) => {
         const obj = typeof p?.toObject === 'function' ? p.toObject() : p;
+        if (!obj?.username) {
+          obj.username = this.playerService.playerUsername((obj?.firstName || '') + '2');
+          (async () => {
+            await this.playerService.updateOne({ _id: obj._id }, { username: obj.username });
+          })();
+        }
         return {
           ...obj,
           teams: (obj?.teams || []).map((t: any) => t?.toString?.() || String(t)),
@@ -93,7 +111,14 @@ export class PlayerQueries implements IPlayerQueries{
         code: HttpStatus.OK,
         success: true,
         message: 'Get details of Players, teams, groups',
-        data: { event, players: normalizedPlayers, teams: normalizedTeams, groups: normalizedGroups, playerRankings, rankings },
+        data: {
+          event,
+          players: normalizedPlayers,
+          teams: normalizedTeams,
+          groups: normalizedGroups,
+          playerRankings,
+          rankings,
+        },
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -116,7 +141,7 @@ export class PlayerQueries implements IPlayerQueries{
     }
   }
 
-  async getPlayerAndTeams( playerId: string, eventId: string): Promise<GetPlayerAndTeamsResponse> {
+  async getPlayerAndTeams(playerId: string, eventId: string): Promise<GetPlayerAndTeamsResponse> {
     try {
       const [player, teams] = await Promise.all([
         this.playerService.findById(playerId.toString()),
@@ -124,6 +149,12 @@ export class PlayerQueries implements IPlayerQueries{
       ]);
       const normalizedPlayer: CustomPlayer = (() => {
         const obj: any = typeof (player as any)?.toObject === 'function' ? (player as any).toObject() : player;
+        // if(obj?.username){
+        //   obj.username = this.playerService.playerUsername((obj?.firstName || "abc") + "4");
+        //   (async()=>{
+        //     await this.playerService.updateOne({_id: obj._id}, {username: obj.username});
+        //   })()
+        // }
         return {
           ...obj,
           teams: (obj?.teams || []).map((t: any) => t?.toString?.() || String(t)),

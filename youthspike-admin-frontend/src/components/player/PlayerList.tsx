@@ -124,6 +124,12 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     e.preventDefault(); // Prevent the default context menu from showing
   };
 
+
+  const teamMap = useMemo(()=> {
+    return new Map<string, ITeam>(teamList?.map((t)=> [t._id, t]));
+  }, [teamList]);
+
+
   useEffect(() => {
     if (playerList.length > 0) {
       if (!isMounted.current && inactive && playerList) {
@@ -212,7 +218,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
         {sortedPlayerList.map((player) => (
           <motion.li
             key={player._id}
-            className="sortable-item mb-2 flex items-center bg-gray-800 rounded-lg p-2"
+            className="sortable-item mb-2 flex items-center bg-gray-800 rounded-xl p-2"
             variants={itemVariants}
             initial="hidden"
             animate="visible"
@@ -234,14 +240,15 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
               player={player}
               setIsLoading={setIsLoading}
               showRank={showRank}
-              teamList={teamList}
+              team={teamId ? (teamMap.get(teamId) || null) : null}
+              teamList={teamList || []}
               divisionList={divisionList}
               refetchFunc={refetchFunc}
               rankControls={rankControls}
-              teamId={teamId}
               rank={player.rank}
             />
           </motion.li>
+        
         ))}
       </ul>
       {/* {totalPages > 1 && (

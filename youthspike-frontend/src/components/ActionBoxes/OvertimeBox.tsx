@@ -15,8 +15,6 @@ interface IOvertimeBoxProps {
 }
 function OvertimeBox({ currRoom, eventId, teamA, teamB}: IOvertimeBoxProps) {
   const dispatch = useAppDispatch();
-  const socket = useSocket();
-  const user = useUser();
 
   const [fillNet, setFillNet] = useState<boolean>(false);
 
@@ -29,7 +27,7 @@ function OvertimeBox({ currRoom, eventId, teamA, teamB}: IOvertimeBoxProps) {
     // const emitEvents = new EmitEvents(socket, dispatch);
     // const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
     // emitEvents.submitLineup({ eventId, currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
-    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets: currRoundNets, currRound, myPlayers, roundList, closePSCAvailable });
+    submitLineup({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets: currRoundNets, currRound, myPlayers, roundList, closePSCAvailable, teamA, teamB });
   };
 
   useEffect(() => {

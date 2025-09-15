@@ -93,7 +93,6 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     setAddPlayer(prev => !prev);
   };
 
-  console.log(user);
   
 
   const refetchFunc = async () => window.location.reload();
@@ -200,7 +199,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
       ) : (
         <>
           {/* Player List Mode */}
-          <div className="w-full bg-gray-800 flex justify-between items-center p-4 mt-6 rounded-lg">
+          <div className="w-full flex justify-between items-center mt-6 rounded-lg">
             <h3>Player List</h3>
             {(user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director) && (
               <button className="btn-info" onClick={handleAddPlayerToggle}>

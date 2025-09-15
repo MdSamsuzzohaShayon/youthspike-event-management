@@ -4,12 +4,12 @@ import { ITextInputProps } from '@/types';
 const EmailInput = (props: ITextInputProps) => {
     const defaultInputVal = props.defaultValue ? props.defaultValue : '' ;
     return (
-        <div className={`input-group mt-4 w-full flex ${props.vertical ? 'flex-col' : ''} justify-between items-center ${props.extraCls}`}>
-            <label htmlFor={props.name} className={`capitalize ${props.vertical ? 'w-full': ''} ${props.lw}`}>{props.lblTxt ? props.lblTxt : props.name}</label>
+        <div className={`input-group mt-4 w-full flex justify-between items-center ${props.className}`}>
+            <label htmlFor={props.name} className={`capitalize`}>{props.label ? props.label : props.name}</label>
             <input onChange={props.handleInputChange}
                 id={props.name} name={props.name}
-                className={`${props.vertical ? 'w-full': ''} border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center ${props.rw ? props.rw : "w-20"}`} type="email"
-                placeholder={props.placeholder ?? ''} defaultValue={defaultInputVal} required={props.required} />
+                className={`border border-gray-300 bg-transparent outline-none px-2 rounded-lg h-10 text-center`} type="email"
+                defaultValue={defaultInputVal} required={props.required} />
         </div>
     )
 }

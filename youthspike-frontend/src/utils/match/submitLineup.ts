@@ -2,7 +2,7 @@ import { setMessage } from '@/redux/slices/elementSlice';
 import { setclosePSCAvailable, setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { EMessage, IMatchRelatives, INetRelatives, IPlayer, IRoom, IRoundRelatives } from '@/types';
 import { EPlayerStatus } from '@/types/player';
-import { ETeam } from '@/types/team';
+import { ETeam, ITeam } from '@/types/team';
 import React from 'react';
 
 interface ISubmitLineupProps {
@@ -15,10 +15,16 @@ interface ISubmitLineupProps {
   myPlayers: IPlayer[];
   roundList: IRoundRelatives[];
   closePSCAvailable: boolean;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
 }
 
-const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets, currRound, myPlayers, roundList, closePSCAvailable }: ISubmitLineupProps) => {
+const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets, currRound, myPlayers, roundList, closePSCAvailable, teamA, teamB }: ISubmitLineupProps) => {
   if (!currRoom) return;
+
+  const teamPlayerIds = new Set();
+  (teamA?.players || []).forEach((p)=> teamPlayerIds.add(p._id));
+  (teamB?.players || []).forEach((p)=> teamPlayerIds.add(p._id));
   // ===== Make sure all nets are filled with players =====
   let filled = true;
   const selectedPlayerIds = [];
@@ -48,14 +54,14 @@ const submitLineup = ({ dispatch, currMatch, currRoom, myTeamE, currentRoundNets
     roundList.forEach((rl: IRoundRelatives) => {
       if (rl.subs && rl.subs.length > 0) {
         rl.subs.forEach((rls) => {
-          if (rls) preSubbedPlayerIds.add(rls); // This line will produce an error
+          if (rls && teamPlayerIds.has(rls)) preSubbedPlayerIds.add(rls); // This line will produce an error
         });
       }
     });
 
     // Subbed players of this round
     for (let j = 0; j < myPlayerIds.length; j += 1) {
-      if (!selectedPlayerIds.includes(myPlayerIds[j])) subbedPlayerIds.add(myPlayerIds[j]);
+      if (!selectedPlayerIds.includes(myPlayerIds[j]) && teamPlayerIds.has(myPlayerIds[j])) subbedPlayerIds.add(myPlayerIds[j]);
     }
 
     // All player has not been subbed atleast for once
