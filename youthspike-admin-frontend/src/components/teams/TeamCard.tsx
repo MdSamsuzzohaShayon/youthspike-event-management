@@ -26,7 +26,7 @@ interface ITeamCardProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
-  fefetchFunc?: () => void;
+  refetchFunc?: () => void;
 }
 
 interface ITeamMove {
@@ -34,7 +34,7 @@ interface ITeamMove {
   division: string;
 }
 
-function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, fefetchFunc }: ITeamCardProps) {
+function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, refetchFunc }: ITeamCardProps) {
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -104,7 +104,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     try {
       const dRes = await deleteTeam({ variables: { teamId } });
 
-      if (fefetchFunc) await fefetchFunc();
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     }
@@ -119,7 +119,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       } else {
         const moveTeamRes = await moveTeamMutation({ variables: { eventId, input: { division: moveTeam.division, event: moveTeam.event }, teamId: team._id } });
         console.log(moveTeamRes);
-        if (fefetchFunc) await fefetchFunc();
+        if (refetchFunc) await refetchFunc();
       }
     } catch (error) {
       console.log(error);

@@ -12,10 +12,6 @@ export enum UserRole {
   "public" = "public",
 }
 
-export interface ILogin{
-  email: string;
-  password: string;
-}
 
 /**
  * User
@@ -23,12 +19,14 @@ export interface ILogin{
 export interface IUser extends IDocument {
   firstName: string;
   lastName: string;
-  role: UserRole;
   team?: string;
+  teamLogo?: string;
+  role: UserRole;
   active: boolean;
-  login: ILogin;
-  captainplayer: string | null;
-  cocaptainplayer: string | null;
+  passcode?: string | null;
+  captainplayer?: string | null;
+  cocaptainplayer?: string | null;
+  player?: string | null;
 }
 
 /**

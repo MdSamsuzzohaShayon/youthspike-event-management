@@ -64,6 +64,7 @@ function ScoreKeepingMain({
     );
   }
 
+
   return (
     <React.Fragment>
       {renderHeadings()}

@@ -11,10 +11,6 @@ export enum UserRole {
   "player" = "player",
 }
 
-export interface ILogin {
-  email: string;
-  password: string;
-}
 
 /**
  * User

@@ -304,6 +304,8 @@ query GetTeamDetails($teamId: String!) {
 }
 `;
 
+const GET_TEAM_DETAIL = gql`${GET_TEAM_DETAIL_RAW}`;
+
 const GET_TEAMS_MIN_RAW = `
 query GetTeams {
   getTeams {
@@ -590,6 +592,7 @@ export {
   DELETE_MULTIPLE_TEAMS,
   GET_TEAMS_AND_MATCHES_RAW,
   GET_TEAM_DETAIL_RAW,
+  GET_TEAM_DETAIL,
   GET_A_TEAM_RAW,
   GET_TEAMS_MIN_RAW,
 };

@@ -169,17 +169,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
               disabledPlayerIds={disabledPlayerIds}
             />
           </div>
-          <div
-            className="px-2 w-full mt-4"
-            style={{ minHeight: "fit-content" }}
-          >
-            <SubbedPlayers
-              availablePlayerIds={availablePlayerIds}
-              currentRound={currentRound}
-              myPlayers={myPlayers}
-              roundList={roundList}
-            />
-          </div>
         </div>
       );
     }

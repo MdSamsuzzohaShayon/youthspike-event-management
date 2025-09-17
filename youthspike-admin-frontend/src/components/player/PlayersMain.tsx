@@ -15,7 +15,7 @@ import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import Pagination from '../elements/Pagination';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { useDebounce } from 'use-debounce';
+import InputField from '../elements/forms/InputField';
 
 interface IPlayersMainProps {
   currEvent: IEvent;
@@ -23,6 +23,11 @@ interface IPlayersMainProps {
   groups: IGroupRelatives[];
   teams: ITeam[];
   playerRanking: IPlayerRankingExpRel | null;
+}
+
+interface IFilter {
+  division: string;
+  search: string;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -35,6 +40,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
 
   // Get initial state from query params
   const initialDivision = searchParams.get('division') || '';
+  const initialSearch = searchParams.get('search') || '';
   const initialPageActive = parseInt(searchParams.get('pageActive') || '1');
   const initialPageInactive = parseInt(searchParams.get('pageInactive') || '1');
   const initialAddPlayer = searchParams.get('addPlayer') === 'true';
@@ -48,52 +54,71 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
   const [currentPageActive, setCurrentPageActive] = useState(initialPageActive);
   const [currentPageInactive, setCurrentPageInactive] = useState(initialPageInactive);
 
-  const [currDivision, setCurrDivision] = useState(initialDivision);
+  const [filter, setFilter] = useState<IFilter>({
+    division: initialDivision,
+    search: initialSearch,
+  });
+
   const [teamId, setTeamId] = useState<string | null>(null);
 
   // Function to update query params
-  const updateQueryParams = useCallback((updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '') {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    // Replace instead of push to avoid cluttering history
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, router, pathname]);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      // Replace instead of push to avoid cluttering history
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname],
+  );
 
   // Update URL when state changes
   useEffect(() => {
     updateQueryParams({
-      division: currDivision || null,
+      division: filter.division || null,
+      search: filter.search || null,
       pageActive: currentPageActive.toString(),
       pageInactive: currentPageInactive.toString(),
       addPlayer: addPlayer ? 'true' : null,
     });
-  }, [currDivision, currentPageActive, currentPageInactive, addPlayer, updateQueryParams]);
+  }, [filter.division, filter.search, currentPageActive, currentPageInactive, addPlayer, updateQueryParams]);
 
   // Handle division change
-  const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    const value = (e.target as HTMLInputElement).value.trim();
-    setCurrDivision(value);
+  const handleDivisionChange = useCallback((e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLSelectElement;
+    const value = inputEl.value.trim();
+    setFilter((prev) => ({ ...prev, division: value }));
+
     // Reset pagination when division changes
     setCurrentPageActive(1);
     setCurrentPageInactive(1);
 
     if (!value) removeDivisionFromStore();
     else setDivisionToStore(value);
-  };
+  }, []);
+
+  // Handle search change - remove debounce for immediate feedback
+  const handleSearchChange = useCallback((e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    const value = inputEl.value;
+    setFilter((prev) => ({ ...prev, search: value }));
+
+    // Reset pagination when search changes
+    setCurrentPageActive(1);
+    setCurrentPageInactive(1);
+  }, []);
 
   const handleAddPlayerToggle = () => {
-    setAddPlayer(prev => !prev);
+    setAddPlayer((prev) => !prev);
   };
-
-  
 
   const refetchFunc = async () => window.location.reload();
 
@@ -101,10 +126,10 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
   useEffect(() => {
     removeTeamFromStore();
     const divisionExist = getDivisionFromStore();
-    if (divisionExist && !currDivision) {
-      setCurrDivision(divisionExist);
+    if (divisionExist && !filter.division) {
+      setFilter((prev) => ({ ...prev, division: divisionExist }));
     }
-  }, [currDivision]);
+  }, [filter.division]);
 
   /** ------------------------------
    * FILTERING & SCOPING
@@ -115,7 +140,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
 
     // Captain / Co-captain scope → only their team players
     if (user?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) {
-      const pId = user.info?.captainplayer || user.info?.cocaptainplayer || user.info?.player;; 
+      const pId = user.info?.captainplayer || user.info?.cocaptainplayer || user.info?.player;
       const playerExist = players.find((p) => p._id === pId);
 
       if (playerExist?.teams?.[0]) {
@@ -134,14 +159,25 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     }
 
     // Division filter
-    if (currDivision) {
-      const div = currDivision.trim().toLowerCase();
+    if (filter.division) {
+      const div = filter.division.trim().toLowerCase();
       basePlayers = basePlayers.filter((p) => p.division?.trim().toLowerCase() === div);
       baseTeams = baseTeams.filter((t) => t.division?.trim().toLowerCase() === div);
     }
 
+    // Search filter - use immediate value (not debounced)
+    if (filter.search) {
+      const searchTerm = filter.search.toLowerCase().trim();
+      basePlayers = basePlayers.filter((p) => {
+        const firstName = p.firstName?.toLowerCase() || '';
+        const lastName = p.lastName?.toLowerCase() || '';
+        const username = p.username?.toLowerCase() || '';
+        return firstName.includes(searchTerm) || lastName.includes(searchTerm) || username.includes(searchTerm);
+      });
+    }
+
     return { filteredPlayers: basePlayers, filteredTeams: baseTeams };
-  }, [players, teams, user, currDivision]);
+  }, [players, teams, user, filter.division, filter.search]); // Use filter.search directly
 
   /** ------------------------------
    * ACTIVE + INACTIVE SPLIT
@@ -163,7 +199,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     return inactivePlayers.slice(start, start + ITEMS_PER_PAGE);
   }, [inactivePlayers, currentPageInactive]);
 
-  const divisions = useMemo(() => (currEvent?.divisions ? divisionsToOptionList(currEvent.divisions) : []), [currEvent]);
+  const divisionList = useMemo(() => (currEvent?.divisions ? divisionsToOptionList(currEvent.divisions) : []), [currEvent]);
 
   if (isLoading) return <Loader />;
 
@@ -190,11 +226,11 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
 
           {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
             <div className="mb-4 division-selection w-full mt-6">
-              <SelectInput key="players-pg-1" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
+              <SelectInput key="players-pg-1" handleSelect={handleDivisionChange} value={filter.division} name="division" optionList={divisionList} />
             </div>
           )}
 
-          <PlayerAdd eventId={currEvent._id} setAddPlayer={setAddPlayer} teamList={filteredTeams} division={currDivision} />
+          <PlayerAdd eventId={currEvent._id} setAddPlayer={setAddPlayer} teamList={filteredTeams} division={filter.division} />
         </>
       ) : (
         <>
@@ -208,22 +244,24 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             )}
           </div>
 
-          {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
-            <div className="mb-4 division-selection w-full mt-6">
-              <SelectInput key="players-pg-2" handleSelect={handleDivisionSelection} value={currDivision} name="division" optionList={divisions} />
-            </div>
-          )}
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
+              <SelectInput key="players-pg-2" handleSelect={handleDivisionChange} value={filter.division} name="division" optionList={divisionList} />
+            )}
+            <InputField name="search" type="text" value={filter.search} placeholder="Search by name..." handleInputChange={handleSearchChange} />
+          </div>
 
           <div className="player-list mt-6">
             <PlayerList
-              key={`active-page-${currentPageActive}`}
+              key={`active-page-${currentPageActive}-search-${filter.search}`}
               playerList={paginatedActivePlayers}
               eventId={currEvent._id}
               setIsLoading={setIsLoading}
               rankControls={rankControls && !lockRank}
               refetchFunc={refetchFunc}
               teamList={filteredTeams}
-              divisionList={divisions}
+              divisionList={divisionList}
               showRank={showRank}
               playerRanking={playerRanking}
               teamId={teamId}
@@ -231,23 +269,35 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             />
 
             {/* Active Players Pagination */}
-            <Pagination currentPage={currentPageActive} itemList={activePlayers} setCurrentPage={setCurrentPageActive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+            {activePlayers.length > 0 && (
+              <Pagination currentPage={currentPageActive} itemList={activePlayers} setCurrentPage={setCurrentPageActive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+            )}
           </div>
 
-          <PlayerList
-            key={`inactive-page-${currentPageInactive}`}
-            inactive
-            currEvent={currEvent}
-            eventId={currEvent._id}
-            playerList={paginatedInactivePlayers}
-            setIsLoading={setIsLoading}
-            refetchFunc={refetchFunc}
-            teamList={filteredTeams}
-            divisionList={divisions}
-          />
+          {inactivePlayers.length > 0 && (
+            <>
+              <PlayerList
+                key={`inactive-page-${currentPageInactive}-search-${filter.search}`}
+                inactive
+                currEvent={currEvent}
+                eventId={currEvent._id}
+                playerList={paginatedInactivePlayers}
+                setIsLoading={setIsLoading}
+                refetchFunc={refetchFunc}
+                teamList={filteredTeams}
+                divisionList={divisionList}
+              />
 
-          {/* Inactive Players Pagination */}
-          <Pagination currentPage={currentPageInactive} itemList={inactivePlayers} setCurrentPage={setCurrentPageInactive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+              {/* Inactive Players Pagination */}
+              <Pagination currentPage={currentPageInactive} itemList={inactivePlayers} setCurrentPage={setCurrentPageInactive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+            </>
+          )}
+
+          {filteredPlayers.length === 0 && (
+            <p className="text-center text-gray-400 mt-6">
+              {filter.search || filter.division ? 'No players match your filters.' : 'No players available.'}
+            </p>
+          )}
         </>
       )}
     </>

@@ -1,6 +1,6 @@
 /* eslint-disable react/require-default-props */
 import { useUser } from '@/lib/UserProvider';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { EActionProcess, IRoom } from '@/types/room';
 import { useSocket } from '@/lib/SocketProvider';
 import { INetRelatives, IRoundRelatives, ITeam } from '@/types';
@@ -15,6 +15,7 @@ import CompletedBox from '../ActionBoxes/CompletedBox';
 import FinalRoundBox from '../ActionBoxes/FinalRoundBox';
 import AskOvertimeScore from '../ActionBoxes/AskOvertimeScore';
 import OvertimeBox from '../ActionBoxes/OvertimeBox';
+import ConfirmCompleteDialog from './ConfirmCompleteDialog';
 
 interface IRoundRunnerProps {
   currentRound: IRoundRelatives | null;
@@ -35,6 +36,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTea
 
 
   // ===== Local State =====
+  const completeDialogEl = useRef<HTMLDialogElement | null>(null);
   const [mtp, setMtp] = useState<EActionProcess>(EActionProcess.INITIATE); // mtp = my team process
   const [otp, setOtp] = useState<EActionProcess>(EActionProcess.INITIATE); // otp = Oponent team process
 
@@ -54,17 +56,17 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTea
     }
 
     // Check both teams points are same
-    if (isFinalRound && currentRound?.completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && teamATotalScore === teamBTotalScore) {
-      return <AskOvertimeScore currRoom={currentRoom} currRound={currentRound} />;
+    if ( !match.completed && isFinalRound && currentRound?.completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && teamATotalScore === teamBTotalScore) {
+      return <AskOvertimeScore completeDialogEl={completeDialogEl} currRoom={currentRoom} currRound={currentRound} />;
     }
 
     if (match.extendedOvertime && currentRound?.teamAProcess !== EActionProcess.LINEUP && currentRound?.teamBProcess !== EActionProcess.LINEUP) {
-      return <OvertimeBox currRoom={currentRoom} eventId={currEvent?._id || null} teamA={teamA} teamB={teamB} />;
+      return <OvertimeBox currRoom={currentRoom} teamA={teamA} teamB={teamB}  />;
     }
 
     // Main round completed
     if (currentRound?.completed) {
-      return <CompletedBox />;
+      return <CompletedBox completeDialogEl={completeDialogEl} />;
     }
 
     switch (mtp) {
@@ -96,6 +98,8 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTea
       <div className="mx-auto text-center">
         <div className="box w-full flex flex-col justify-center items-center">{currentRoom && renderActionBoxes()}</div>
       </div>
+
+      <ConfirmCompleteDialog completeDialogEl={completeDialogEl} matchId={match._id} eventId={currEvent?._id || null} />
     </div>
   );
 }

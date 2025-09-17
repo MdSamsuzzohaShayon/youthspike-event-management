@@ -71,11 +71,11 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
         return matchList.filter((m) => m.completed);
       case EMatchStatus.IN_PROGRESS:
         return matchList.filter(
-          (m) => !m.completed && m.rounds[0].teamAProcess !== EActionProcess.INITIATE
+          (m) => !m.completed && m.rounds.length > 0 && m.rounds[0]?.teamAProcess !== EActionProcess.INITIATE
         );
       case EMatchStatus.NOT_STARTED:
         return matchList.filter(
-          (m) => !m.completed && m.rounds[0].teamAProcess === EActionProcess.INITIATE
+          (m) => !m.completed && m.rounds.length > 0 && m.rounds[0]?.teamAProcess === EActionProcess.INITIATE
         );
       default:
         return matchList;

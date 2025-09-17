@@ -167,6 +167,7 @@ function MatchAuthenticatedView({
           roundList={roundList}
           screenWidth={screenWidth}
           onTop
+          teamE={myTeamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA}
         />
       </div>
 
@@ -240,6 +241,7 @@ function MatchAuthenticatedView({
           roundList={roundList}
           teamPlayers={myActivePlayers}
           screenWidth={screenWidth}
+          teamE={myTeamE}
         />
 
         <div className="team-name-selection">

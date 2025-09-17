@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
-import TeamMain from './TeamMain';
 import { getEventWithTeams } from '@/app/_requests/teams';
 import { TParams } from '@/types';
+import TeamListMain from './TeamListMain';
 
 
 
@@ -9,7 +9,7 @@ import { TParams } from '@/types';
 interface ITeamProps{
   params: TParams;
 }
-export default async function Team({params}: ITeamProps) {
+export default async function Teams({params}: ITeamProps) {
   const pathParams = await params;
   const eventDetail = await getEventWithTeams(pathParams.eventId);
 
@@ -20,7 +20,7 @@ export default async function Team({params}: ITeamProps) {
   return (
     <div className="w-full">
       <h1 className="text-4xl font-bold text-center text-white mb-6">Team Management</h1>
-      <TeamMain eventDetail={eventDetail} />
+      <TeamListMain eventDetail={eventDetail} />
     </div>
   );
 }

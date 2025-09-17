@@ -20,13 +20,13 @@ interface TeamListProps {
   groupList: IGroup[];
   eventList?: IEvent[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  fefetchFunc?: () => void;
+  refetchFunc?: () => void;
 }
 
 
 const ITEMS_PER_PAGE = 20;
 
-function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefetchFunc }: TeamListProps) {
+function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refetchFunc }: TeamListProps) {
 
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
   const [updateGroup] = useMutation(UPDATE_GROUP);
@@ -96,7 +96,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
         .map(([teamId]) => teamId); // Map to just the team IDs
       const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
       const success = await handleResponse({ response: response.data.deleteTeams, setActErr });
-      if (success && fefetchFunc) await fefetchFunc();
+      if (success && refetchFunc) await refetchFunc();
 
     } catch (error: any) {
       handleError({ error, setActErr });
@@ -116,7 +116,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     try {
       setIsLoading(true);
       await sendCredentials({ variables: { eventId, teamIds: [...checkedTeamIds] } });
-      if (fefetchFunc) await fefetchFunc();
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -159,7 +159,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     try {
       setIsLoading(true);
       await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } })
-      if (fefetchFunc) await fefetchFunc();
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -177,7 +177,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
-      if (fefetchFunc) await fefetchFunc();
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -189,7 +189,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
     try {
       setIsLoading(true);
       await sendCredentials({ variables: { eventId, teamIds: [teamId] } });
-      if (fefetchFunc) await fefetchFunc();
+      if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -298,7 +298,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, fefet
                 groupList={groupList}
                 setIsLoading={setIsLoading}
                 isChecked={checkedTeams.get(team._id) ?? false}
-                fefetchFunc={fefetchFunc}
+                refetchFunc={refetchFunc}
                 handleSendCredential={handleSendCredential}
                 handleCheckedTeam={handleCheckedTeam}
               />

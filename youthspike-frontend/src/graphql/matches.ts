@@ -188,6 +188,17 @@ mutation AccessCodeValidation($input: AccessCodeInput!) {
 const ACCESS_CODE_VALIDATION = gql`${ACCESS_CODE_VALIDATION_RAW}`;
 
 
+const UPDATE_MATCH = gql`
+mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
+  updateMatch(input: $input, matchId: $matchId) {
+    code
+    success
+    message
+  }
+}
+`;
+
+
 
 // eslint-disable-next-line import/prefer-default-export
-export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION, GET_MATCH_DETAIL_RAW };
+export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION, GET_MATCH_DETAIL_RAW, UPDATE_MATCH };

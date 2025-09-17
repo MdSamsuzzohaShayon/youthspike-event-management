@@ -107,7 +107,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">{player?.username}</p>
           {/* @ts-ignore  */}
-          <p className="text-sm text-gray-500 dark:text-gray-400">{player.teams && (teamMap.get(player.teams[0]) ?? '')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{player.teams?.length ? teamMap.get(player.teams[0])?.name : 'No Team'}</p>
         </div>
 
         {/* Move Form */}

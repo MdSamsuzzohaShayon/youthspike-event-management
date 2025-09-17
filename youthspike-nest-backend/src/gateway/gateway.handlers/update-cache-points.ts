@@ -12,6 +12,7 @@ import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
+import { ETieBreakingStrategy } from 'src/event/event.schema';
 
 export class UpdateCachePointsHandler {
   constructor(
@@ -337,8 +338,17 @@ export class UpdateCachePointsHandler {
         const roundList = await roundService.find({ match: net.match });
         // Check this is last round or not
         const lastRound = roundList.reduce((max, current) => (current.num > max.num ? current : max), roundList[0]);
-        if (String(lastRound._id) === String(round._id)) {
-          await matchService.updateOne({ _id: body.match }, { $set: { completed: true } });
+
+        if (match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND) {
+          if (match.extendedOvertime) {
+            if (String(lastRound._id) === String(round._id)) {
+              await matchService.updateOne({ _id: body.match }, { $set: { completed: true } });
+            }
+          }
+        } else {
+          if (String(lastRound._id) === String(round._id)) {
+            await matchService.updateOne({ _id: body.match }, { $set: { completed: true } });
+          }
         }
       }
 

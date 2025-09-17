@@ -238,7 +238,7 @@ input[type=number] {
   /* Positioning & sizing */
   @apply fixed top-1/2 left-1/2 w-11/12 md:w-6/12 -translate-x-1/2 -translate-y-1/2 z-50;
   /* Coloring  */
-  @apply bg-gray-900 text-white;
+  @apply bg-gray-900 text-white rounded-xl;
 
   /* @apply bg-gray-900 w-11/12 max-w-md rounded-2xl text-white shadow-xl border border-yellow-logo animate-fade-in; */
 }

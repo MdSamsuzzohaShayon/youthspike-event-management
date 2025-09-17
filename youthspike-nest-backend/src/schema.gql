@@ -1274,6 +1274,7 @@ input UpdateMatchInput {
   location: String
   accessCode: String
   fwango: String
+  completed: Boolean
 }
 
 input AccessCodeInput {

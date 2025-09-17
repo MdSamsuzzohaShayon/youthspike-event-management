@@ -2,7 +2,9 @@
 /* eslint-disable import/prefer-default-export */
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { UserRole } from './types/user';
+import { IUser, UserRole } from './types/user';
+import { NODE_ENV } from './utils/keys';
+import { EEnv } from './types';
 
 // Define arrays for unauthenticated, authenticated, and admin pages
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
@@ -39,19 +41,26 @@ export function middleware(request: NextRequest) {
 
   console.log({ pathname, token: token?.value, user: user && user.value !== '' ? JSON.parse(user.value) : null });
 
-  /**
-   * Unauthenticated pages can not access authenticated or admin content
-   */
-  /*
-  if (!token || !token.value || token.value === '' || !user || !user.value || user.value === '') {
-
-    // Redirect to login page if the requested page requires authentication or admin access
-    // @ts-ignore
-    if ([...new Set([...directorAuthPages, ...captainAuthPages, ...adminPages])].some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    } else {
-      return NextResponse.next(); // Continue to the requested page if no authentication is required
+  // https://aslsquads.com/events/68afc5f30bf9dbb4ac0f69cb
+  if(pathname === "/"){
+    if (token && token.value && token.value !== '' && user && user.value){
+      const userObj: IUser = JSON.parse(user.value);
+      if(userObj.role === UserRole.admin){
+        return NextResponse.next();
+      }
     }
+    return NextResponse.redirect(new URL(`/events/${process.env.NEXT_PUBLIC_CURRENT_EVENT_ID}`, request.url));
   }
-  */
+
 }
+
+
+
+
+
+
+
+
+
+
+

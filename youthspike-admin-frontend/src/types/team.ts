@@ -1,4 +1,18 @@
-import { IEvent, IGroupRelatives, INetRelatives, IPlayer, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel } from ".";
+import {
+  ICommonQuery,
+  IEvent,
+  IGroupRelatives,
+  IMatchExpRel,
+  IMatchRelatives,
+  INetRelatives,
+  IPlayer,
+  IPlayerExpRel,
+  IPlayerRanking,
+  IPlayerRankingExpRel,
+  IPlayerRankingItem,
+  IPlayerStats,
+  IRoundRelatives,
+} from '.';
 
 export interface ITeam {
   _id: string;
@@ -18,8 +32,6 @@ export interface ITeam {
   group?: IGroupRelatives;
 }
 
-
-
 export interface ITeamAdd {
   active: boolean;
   name: string;
@@ -29,7 +41,6 @@ export interface ITeamAdd {
   players: string[];
   captain?: string | null;
 }
-
 
 export interface ITeamScore {
   rank: number;
@@ -41,7 +52,26 @@ export interface ITeamScore {
   matchAvgDiff: number;
   gameAvgDiff: number;
 }
-export enum ETeam{
-  teamA = "teamA",
-  teamB = "teamB",
+
+export interface IGetTeamDetailQuery extends ICommonQuery {
+  data: {
+    team: ITeam;
+    playerRanking: IPlayerRanking;
+    players: IPlayer[];
+    group: IGroupRelatives;
+    captain?: IPlayer;
+    cocaptain?: IPlayer;
+    event: IEvent;
+    matches: IMatchExpRel[];
+    rankings: IPlayerRankingItem[];
+    rounds: IRoundRelatives[];
+    nets: INetRelatives[];
+    teams: ITeam[];
+    statsOfPlayer: IPlayerStats[];
+  };
+}
+
+export enum ETeam {
+  teamA = 'teamA',
+  teamB = 'teamB',
 }

@@ -1,10 +1,15 @@
 'use client';
 
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { motion } from 'motion/react';
-import { IEvent, IMatch, IMatchExpRel, IMenuItem, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItem, ITeam } from '@/types';
-import { removePlayerRankings, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
-import { useMutation } from '@apollo/client';
+import React, { useMemo, useState, useCallback } from 'react';
+import {
+  IGetTeamDetailQuery,
+  IMatchExpRel,
+  INetRelatives,
+  IPlayerExpRel,
+  IRoundRelatives,
+  ITeam,
+} from '@/types';
+import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { CldImage } from 'next-cloudinary';
 import { EPlayerStatus } from '@/types/player';
@@ -16,18 +21,11 @@ import Pagination from '../elements/Pagination';
 import Link from 'next/link';
 import TextImg from '../elements/TextImg';
 import { useLdoId } from '@/lib/LdoProvider';
+import { divisionsToOptionList } from '@/utils/helper';
 
-interface ITeamDetailProps {
-  event: IEvent;
-  team: ITeam;
+interface ITeamDetailMainProps {
   eventId: string;
-  divisionList: IOption[];
-  teamList: ITeam[];
-  playerList: IPlayer[];
-  unassignedPlayers: IPlayer[];
-  playerRanking: IPlayerRankingExpRel;
-  matchList: IMatchExpRel[];
-  rankings: IPlayerRankingItem[];
+  queryRef: QueryRef<{ getTeamDetails: IGetTeamDetailQuery }>;
 }
 
 enum ETab {
@@ -37,22 +35,144 @@ enum ETab {
 
 const ITEMS_PER_PAGE = 20;
 
-function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, unassignedPlayers, playerRanking, matchList, rankings }: ITeamDetailProps) {
+function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   const { setActErr } = useError();
   const { ldoIdUrl } = useLdoId();
 
-  // ===== Local State =====
+  const { data, error } = useReadQuery(queryRef);
+
+
+  // Check error here
+  
+  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = data?.getTeamDetails?.data ?? {};
+
+
+  // Local state
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // ===== GraphQL =====
-  const [mutateTeam] = useMutation(UPDATE_TEAM);
+   // ===== GraphQL =====
+   const [mutateTeam] = useMutation(UPDATE_TEAM);
 
-  // ===== Memoized Values =====
-  const teamDivisionLower = useMemo(() => team.division.trim().toLowerCase(), [team.division]);
+   // ===== Memoized Values =====
+  const divisionList = useMemo(() => {
+    return event?.divisions ? divisionsToOptionList(event.divisions) : [];
+  }, [event, event?.divisions]);
+
+  const teamData = useMemo(() => {
+    return {
+      ...team,
+      captain: captain,
+      cocaptain: cocaptain,
+    };
+  }, [team, captain, cocaptain]);
+
+  const playerRankingData = useMemo(()=>{
+    return {
+      ...playerRanking,
+      rankings: rankings
+    };
+  }, [playerRanking, rankings]);
+
+  // --- Build lookup maps in O(n) ---
+  const roundMap: Map<string, IRoundRelatives> = useMemo(() => {
+    console.log({ rounds });
+
+    if (!rounds) new Map<string, IRoundRelatives>();
+    return new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
+  }, [rounds]);
+  const netMap: Map<string, INetRelatives> = useMemo(() => {
+    return new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
+  }, [nets]);
+  const oponentTeamMap: Map<string, ITeam> = useMemo(() => {
+    return new Map<string, ITeam>(teams.map((t: ITeam) => [t._id, t]));
+  }, [teams]);
+
+  // --- Process Matches Efficiently ---
+  const matchList = useMemo(() => {
+
+    if (!matches) return [];
+    return matches
+      .map((m: IMatchExpRel) => {
+        const enrichedMatch: IMatchExpRel = {
+          ...m,
+          // @ts-ignore
+          rounds: m.rounds.map((id: string) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[],
+          // @ts-ignore
+          nets: m.nets.map((id: string) => netMap.get(id)).filter(Boolean) as INetRelatives[],
+        };
+
+        // Determine opponent team
+        let opponentTeam: ITeam | undefined;
+
+        if (String(m.teamA) !== team._id && oponentTeamMap.has(String(m.teamA))) {
+          opponentTeam = oponentTeamMap.get(String(m.teamA))!;
+          enrichedMatch.teamA = opponentTeam;
+          enrichedMatch.teamB = team;
+        } else if (String(m.teamB) !== team._id && oponentTeamMap.has(String(m.teamB))) {
+          opponentTeam = oponentTeamMap.get(String(m.teamB))!;
+          enrichedMatch.teamB = opponentTeam;
+          enrichedMatch.teamA = team;
+        }
+
+        // If no valid opponent found, skip this match
+        if (!opponentTeam) {
+          console.warn(`Match ${m._id} has no valid opponent team`);
+          return null;
+        }
+
+        return enrichedMatch;
+      })
+      .filter(Boolean) as IMatchExpRel[];
+  }, [matches, roundMap, netMap, team]);
+
+  // --- Separate Players into assigned/unassigned ---
+  const { teamPlayers, unassignedPlayers } = useMemo(() => {
+    const teamPlayers: IPlayerExpRel[] = [];
+    const unassignedPlayers: IPlayerExpRel[] = [];
+
+    for (const p of players) {
+      const playerObj = structuredClone(p);
+
+      if (p.teams?.length && p.teams?.length > 0) {
+        if (playerObj.teams?.includes(teamData._id)) {
+          if (teamData._id) playerObj.teams = [teamData._id];
+
+          if (playerObj.captainofteams?.length) {
+            // @ts-ignore
+            playerObj.captainofteams = [teamData._id];
+          }
+
+          if (playerObj.cocaptainofteams?.length) {
+            // @ts-ignore
+            playerObj.cocaptainofteams = [teamData._id];
+          }
+
+          teamPlayers.push(playerObj as IPlayerExpRel);
+        }
+      } else {
+        playerObj.teams = [];
+        unassignedPlayers.push(playerObj as IPlayerExpRel);
+      }
+    }
+
+    return { teamPlayers, unassignedPlayers };
+  }, [players, teamData]);
+
+  const activePlayers = useMemo(() => {
+    if (!teamPlayers) return [];
+    return teamPlayers.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
+  }, [teamPlayers]);
+
+  const inactivePlayers = useMemo(() => {
+    if (!teamPlayers) return [];
+    return teamPlayers.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
+  }, [teamPlayers]);
+
+  const teamDivisionLower = useMemo(() => teamData.division.trim().toLowerCase(), [teamData, teamData.division]);
 
   const divisionalPlayers = useMemo(() => {
     if (!unassignedPlayers) return [];
@@ -69,44 +189,19 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
       });
   }, [unassignedPlayers, teamDivisionLower]);
 
-  const activePlayers = useMemo(() => {
-    if (!playerList) return [];
-    return playerList.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
-  }, [playerList]);
-
-  const inactivePlayers = useMemo(() => {
-    if (!playerList) return [];
-    return playerList.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
-  }, [playerList]);
-
   const paginatedMatchList = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return matchList.slice(start, start + ITEMS_PER_PAGE);
   }, [matchList, currentPage]);
 
-  // ===== Event Handlers =====
-  const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
-    setPlayerIdsToAdd((prev) => {
-      const newSet = new Set(prev);
-      if (isChecked) {
-        newSet.add(pId);
-      } else {
-        newSet.delete(pId);
-      }
-      return newSet;
-    });
-  }, []);
 
+  // Event handlers
   const handleSelectGroup = useCallback((e: React.SyntheticEvent, tab: ETab) => {
     e.preventDefault();
     if (tab === ETab.ROSTER) {
       window.location.reload();
     }
     setSelectedItem(tab);
-  }, []);
-
-  const refetchFunc = useCallback(() => {
-    window.location.reload();
   }, []);
 
   const handleAddPlayersToTeam = useCallback(
@@ -129,18 +224,28 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
     [playerIdsToAdd, team._id, event._id, mutateTeam, setActErr],
   );
 
+  const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
+    setPlayerIdsToAdd((prev) => {
+      const newSet = new Set(prev);
+      if (isChecked) {
+        newSet.add(pId);
+      } else {
+        newSet.delete(pId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const refetchFunc = useCallback(() => {
+    window.location.reload();
+  }, []);
+
   const handleSelectMatch = useCallback((e: React.SyntheticEvent, matchId: string) => {
     // Match selection logic
   }, []);
-  
 
-  // ===== Effects =====
-  useEffect(() => {
-    // One-time initialization
-    removePlayerRankings();
-    setDivisionToStore(team.division);
-    setTeamToStore(team._id);
-  }, [team.division, team._id]);
+  console.log({inactivePlayers});
+  
 
   return (
     <React.Fragment>
@@ -214,6 +319,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
               </button>
             </div>
             <form onSubmit={handleAddPlayersToTeam} className="mb-4">
+            {/*  @ts-ignore */}
               <PlayerSelectInput availablePlayers={divisionalPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
               <button type="submit" className="btn-info mt-4">
                 Add
@@ -239,11 +345,12 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
                 setIsLoading={setIsLoading}
                 rankControls
                 refetchFunc={refetchFunc}
-                teamList={teamList}
+                teamList={teams}
                 divisionList={divisionList}
                 teamId={team._id}
                 showRank
-                playerRanking={playerRanking}
+                // @ts-ignore
+                playerRanking={playerRankingData}
                 currEvent={event}
               />
             </div>
@@ -256,7 +363,7 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
                   eventId={eventId}
                   setIsLoading={setIsLoading}
                   refetchFunc={refetchFunc}
-                  teamList={teamList}
+                  teamList={teams}
                   divisionList={divisionList}
                   teamId={team._id}
                   currEvent={event}
@@ -287,4 +394,4 @@ function TeamDetail({ event, team, eventId, divisionList, teamList, playerList, 
   );
 }
 
-export default TeamDetail;
+export default TeamDetailMain;

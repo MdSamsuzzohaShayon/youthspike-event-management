@@ -76,7 +76,12 @@ export default function ServerReceiver({
     serverReceiverPlays,
   } = useAppSelector((s) => s.serverReceiverOnNets);
   const { teamAPlayers, teamBPlayers } = useAppSelector((s) => s.players);
-  const { match: currMatch, myTeamE } = useAppSelector((s) => s.matches);
+  const {
+    match: currMatch,
+    myTeamE,
+    teamATotalScore,
+    teamBTotalScore,
+  } = useAppSelector((s) => s.matches);
   const currRoom = useAppSelector((s) => s.rooms?.current);
   const { teamA, teamB } = useAppSelector((s) => s.teams);
 
@@ -181,6 +186,10 @@ export default function ServerReceiver({
     [selectedReceiver, currNetNum, makeTeam]
   );
 
+  const isFinalRound = useMemo(() => {
+    return currRound?.num === roundList.length;
+  }, [currRound]);
+
   /* ───── Handlers ───── */
   const handleNetChange = (e: React.SyntheticEvent) => {
     const netNum = Number((e.target as HTMLSelectElement).value);
@@ -282,7 +291,7 @@ export default function ServerReceiver({
       //   })
       // );
       console.log("Match, net, receiver, or room does not exist!");
-      
+
       return;
     }
 
@@ -359,9 +368,7 @@ export default function ServerReceiver({
 
   useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
-   
   }, []); // ← run exactly once
-
 
   useEffect(() => {
     return () => {
@@ -440,6 +447,36 @@ export default function ServerReceiver({
         </div>
       </div>
     );
+  }
+
+
+  if (
+    !currMatch.completed &&
+    isFinalRound &&
+    currRound?.completed &&
+    currMatch.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND &&
+    teamATotalScore === teamBTotalScore
+  ) {
+    {
+      return (
+        <div className="w-full">
+          <RoundInputBox
+            allNets={allNets}
+            currMatch={currMatch}
+            currRound={currRound}
+            dispatch={dispatch}
+            myTeamE={myTeamE}
+            roundList={roundList}
+          />
+          <div className="w-full flex justify-center mt-10">
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+              <h2 className="text-lg font-semibold mb-2">Match Tied</h2>
+              <p>Score of both teams are same, the match is tied! Either you play overtime round or you finish the match!</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
   }
 
   return (

@@ -149,7 +149,7 @@ export class TeamResolver {
         // =====  Create new user for captain =====
         const findPlayer = await this.playerService.findById(input.captain.toString());
         // const username = findPlayer.firstName.toLowerCase() + newTeam.num.toString();
-        const username = this.playerService.playerUsername(findPlayer.username);
+        const username = findPlayer?.username ?? this.playerService.playerUsername(findPlayer.username);
         promiseOperations.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
         const rawPassword = findEvent.coachPassword;
         const captainUser = await this.userService.create({
@@ -224,7 +224,7 @@ export class TeamResolver {
 
         if (playerExist) {
           // const newUsername = playerExist.firstName.trim().toLowerCase() + teamExist.num.toString();
-          const newUsername = this.playerService.playerUsername(playerExist.firstName);
+          const newUsername = playerExist?.username ?? this.playerService.playerUsername(playerExist.firstName);
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
@@ -271,7 +271,7 @@ export class TeamResolver {
         if (playerExist) {
           const playerUserExist = await this.userService.findOne({ email: playerExist.username });
           // const newUsername = playerExist.firstName.toLowerCase() + teamExist.num.toString();
-          const newUsername = this.playerService.playerUsername(playerExist.firstName);
+          const newUsername = playerExist?.username ?? this.playerService.playerUsername(playerExist.firstName);
           const createOrUpdatePlayer = await this.userService.createCapUser(
             playerExist,
             playerUserExist,
@@ -510,8 +510,13 @@ export class TeamResolver {
 
       const updatePlayerPromises = [];
       for (let i = 0; i < players.length; i++) {
-        if(!players[i]?.username){
-          updatePlayerPromises.push(this.playerService.updateOne({_id: players[i]._id}, {$set: {username: this.playerService.playerUsername(players[i].firstName + "2")}}))
+        if (!players[i]?.username) {
+          updatePlayerPromises.push(
+            this.playerService.updateOne(
+              { _id: players[i]._id },
+              { $set: { username: this.playerService.playerUsername(players[i].firstName + '2') } },
+            ),
+          );
         }
       }
       await Promise.all(updatePlayerPromises);
@@ -574,7 +579,6 @@ export class TeamResolver {
         this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
       ]);
 
-
       // Attributes of matches
       const matchIds = matches.map((m) => m._id);
       // const oponentTeamIds = [
@@ -585,7 +589,6 @@ export class TeamResolver {
         this.netService.find({ match: { $in: matchIds } }),
         this.teamService.find({ event: team.event }),
       ]);
-
 
       // All player stats
 
@@ -598,13 +601,17 @@ export class TeamResolver {
         });
       }
 
-
       const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
 
       // Process players in parallel
       await Promise.all(
         players.map(async (player) => {
           if (!player?._id) return;
+          if (!player.username) {
+            const username = this.playerService.playerUsername(player.firstName);
+            await this.playerService.updateOne({ _id: player._id }, { username });
+            player.username = username;
+          }
 
           const netsOfPlayer = playerToNets[player._id] || [];
 
@@ -640,7 +647,6 @@ export class TeamResolver {
         playerId,
         stats,
       }));
-
 
       return {
         code: HttpStatus.OK,
@@ -723,7 +729,6 @@ export class TeamResolver {
       return []; // Return an empty array in case of error
     }
   }
-
 
   @ResolveField(() => PlayerRanking, { nullable: true })
   async playerRanking(@Parent() team: Team): Promise<PlayerRanking> {

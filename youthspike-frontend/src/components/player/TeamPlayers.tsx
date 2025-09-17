@@ -1,6 +1,6 @@
 /* eslint-disable react/require-default-props */
 import React, { useEffect, useMemo, useState } from 'react';
-import { IPlayer, IRoundRelatives } from '@/types';
+import { ETeam, IPlayer, IRoundRelatives } from '@/types';
 import { useAppSelector } from '@/redux/hooks';
 import { sortPlayerRanking } from '@/utils/helper';
 import PlayerScoreCard from './PlayerScoreCard';
@@ -11,9 +11,10 @@ interface ITeamPlayersProps {
   roundList: IRoundRelatives[];
   screenWidth: number;
   onTop?: boolean;
+  teamE: ETeam;
 }
 
-function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop }: ITeamPlayersProps) {
+function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop, teamE }: ITeamPlayersProps) {
   const { myTeamE } = useAppSelector((state) => state.matches);
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
@@ -24,10 +25,7 @@ function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop }: ITeamPlayer
   const sortedPlayers = useMemo(() => {
     if (!teamPlayers || (!teamAPlayerRanking && !teamBPlayerRanking)) return [];
 
-    const rankings = [
-      ...(teamAPlayerRanking?.rankings || []),
-      ...(teamBPlayerRanking?.rankings || []),
-    ];
+    let rankings = teamE === ETeam.teamA ? (teamAPlayerRanking?.rankings || []) : (teamBPlayerRanking?.rankings || []);
 
     const { sortedPlayers: sortedPlayerList } = sortPlayerRanking(teamPlayers, rankings);
 

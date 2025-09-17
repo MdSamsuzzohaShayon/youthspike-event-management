@@ -1,114 +1,32 @@
-import { notFound } from 'next/navigation';
-import TeamDetail from '@/components/teams/TeamDetail';
-import { divisionsToOptionList } from '@/utils/helper';
-import { IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam, TParams } from '@/types';
-import { getTeamData } from '../../../_requests/teams';
+import { IGetTeamDetailQuery, TParams } from '@/types';
+import { PreloadQuery } from '@/lib/client';
+import { GET_TEAM_DETAIL } from '@/graphql/teams';
+import { Suspense } from 'react';
+import Loader from '@/components/elements/Loader';
+import { QueryRef } from '@apollo/client';
+import TeamDetailMain from '@/components/teams/TeamDetailMain';
 
 interface TeamSingleMainProps {
   params: TParams;
 }
 
 export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
-  const pathParams = await params;
-  const teamData = await getTeamData(pathParams.teamId);
-  if (!teamData) return notFound();
+  const { teamId, eventId } = await params;
 
-  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = teamData;
-  
-
-  const divisionList = event?.divisions ? divisionsToOptionList(event.divisions) : [];
-
-  // Assign captain/cocaptain
-  playerRanking.rankings = rankings;
-  team.captain = captain;
-  team.cocaptain = cocaptain;
-
-  // --- Build lookup maps in O(n) ---
-  const roundMap = new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
-  const netMap = new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
-  const oponentTeamMap = new Map<string, ITeam>(teams.map((t: ITeam) => [t._id, t]));
-
-
-  // --- Process Matches Efficiently ---
-const matchList = matches.map((m: any) => {
-  const enrichedMatch: IMatchExpRel = {
-    ...m,
-    rounds: m.rounds.map((id: string) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[],
-    nets: m.nets.map((id: string) => netMap.get(id)).filter(Boolean) as INetRelatives[],
-  };
-
-  // Determine opponent team
-  let opponentTeam: ITeam | undefined;
-  
-  if (m.teamA !== team._id && oponentTeamMap.has(m.teamA)) {
-    opponentTeam = oponentTeamMap.get(m.teamA)!;
-    enrichedMatch.teamA = opponentTeam;
-    enrichedMatch.teamB = team;
-  } 
-  else if (m.teamB !== team._id && oponentTeamMap.has(m.teamB)) {
-    opponentTeam = oponentTeamMap.get(m.teamB)!;
-    enrichedMatch.teamB = opponentTeam;
-    enrichedMatch.teamA = team;
-  }
-
-  // If no valid opponent found, skip this match
-  if (!opponentTeam) {
-    console.warn(`Match ${m._id} has no valid opponent team`);
-    return null;
-  }
-
-  return enrichedMatch;
-}).filter(Boolean) as IMatchExpRel[];
-
-  // --- Separate Players into assigned/unassigned ---
-  const classifyPlayers = (players: IPlayerExpRel[]) => {
-    const teamPlayers: IPlayerExpRel[] = [];
-    const unassignedPlayers: IPlayerExpRel[] = [];
-
-    for (const p of players) {
-      const playerObj = structuredClone(p);
-
-      if (p.teams?.length && p.teams?.length > 0) {
-        if (playerObj.teams?.includes(team._id)) {
-          playerObj.teams = [team];
-
-          if (playerObj.captainofteams?.length) {
-            playerObj.captainofteams = [team._id];
-          }
-
-          if (playerObj.cocaptainofteams?.length) {
-            playerObj.cocaptainofteams = [team._id];
-          }
-
-          teamPlayers.push(playerObj);
-        }
-      } else {
-        playerObj.teams = [];
-        unassignedPlayers.push(playerObj);
-      }
-    }
-
-    return { teamPlayers, unassignedPlayers };
-  };
-
-  const { teamPlayers, unassignedPlayers } = classifyPlayers(players);
 
   return (
     <div className="container mx-auto px-4 min-h-screen">
-      <TeamDetail
-        event={event}
-        // @ts-ignore
-        unassignedPlayers={unassignedPlayers}
-        team={team}
-        eventId={pathParams.eventId}
-        divisionList={divisionList}
-        teamList={teams}
-        // @ts-ignore
-        playerList={teamPlayers}
-        playerRanking={playerRanking}
-        matchList={matchList}
-        rankings={rankings}
-      />
+      <PreloadQuery query={GET_TEAM_DETAIL} variables={{ teamId }}>
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <TeamDetailMain
+              queryRef={queryRef as QueryRef<{ getTeamDetails: IGetTeamDetailQuery }>}
+              eventId={eventId}
+            />
+          </Suspense>
+        )}
+      </PreloadQuery>
     </div>
   );
 }
+

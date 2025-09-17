@@ -66,6 +66,9 @@ export class CreateMatchInput {
 export class UpdateMatchInput extends PartialType(CreateMatchInput) {
   @Field({ nullable: true })
   date?: string;
+
+  @Field((_type) => Boolean, { nullable: true })
+  completed?: boolean;
 }
 
 @InputType()

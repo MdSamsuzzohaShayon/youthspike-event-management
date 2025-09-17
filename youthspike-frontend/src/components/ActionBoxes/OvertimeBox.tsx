@@ -9,11 +9,11 @@ import React, { useEffect, useState } from 'react';
 
 interface IOvertimeBoxProps {
   currRoom: IRoom | null;
-  eventId: string | null;
   teamA: ITeam | null;
   teamB: ITeam | null;
+  
 }
-function OvertimeBox({ currRoom, eventId, teamA, teamB}: IOvertimeBoxProps) {
+function OvertimeBox({ currRoom, teamA, teamB}: IOvertimeBoxProps) {
   const dispatch = useAppDispatch();
 
   const [fillNet, setFillNet] = useState<boolean>(false);

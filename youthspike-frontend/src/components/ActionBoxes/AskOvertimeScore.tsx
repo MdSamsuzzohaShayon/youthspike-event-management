@@ -9,9 +9,10 @@ import PointText from './PointText';
 interface IAskOvertimeScoreProps {
   currRoom: IRoom;
   currRound: IRoundRelatives;
+  completeDialogEl: React.RefObject<HTMLDialogElement | null>;
 }
 
-function AskOvertimeScore({ currRoom, currRound }: IAskOvertimeScoreProps) {
+function AskOvertimeScore({ currRoom, currRound, completeDialogEl }: IAskOvertimeScoreProps) {
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
@@ -33,7 +34,7 @@ function AskOvertimeScore({ currRoom, currRound }: IAskOvertimeScoreProps) {
         <button className="btn-light uppercase m-2" type="button" onClick={handleOvertimeRound}>
           Overtime round
         </button>
-        <button className="btn-light uppercase m-2" type="button" onClick={handleFinishMatch}>
+        <button className="btn-light uppercase m-2" type="button" onClick={() => completeDialogEl.current?.showModal()}>
           Finish match
         </button>
       </div>
