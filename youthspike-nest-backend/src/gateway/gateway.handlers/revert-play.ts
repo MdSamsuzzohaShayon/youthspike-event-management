@@ -4,14 +4,10 @@ import { ETeam, RevertPlayInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { singlePlayKey } from 'src/util/helper';
-import {
-  ServerReceiverOnNet,
-  ServerReceiverSinglePlay,
-} from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 import { RevertPlayHelper } from '../gateway.helpers/revert-play.helper';
-import { PlayerStats } from 'src/player-stats/player-stats.schema';
 
 export class RevertPlayHandler {
   constructor(
@@ -31,6 +27,10 @@ export class RevertPlayHandler {
         this.scoreKeeperHelper.loadNetAction(body.net, body.room),
         matchService.findById(body.match),
       ]);
+      const currPlay = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, body.play);
+      if (!currPlay) {
+        throw new Error('Can not found that specific play.');
+      }
 
       this.validationHelper.authCheck(body.accessCode, jwtService, match.accessCode);
       const playKeys = new Set<string>();
@@ -99,11 +99,6 @@ export class RevertPlayHandler {
       // Update points of each team
       await Promise.all(deletePromises);
 
-      const currPlay = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, body.play - 1);
-      if (!currPlay) {
-        throw new Error('Can not found that specific play.');
-      }
-
       const netExist = await netService.findOne({ _id: body.net });
       if (!netExist) {
         throw new Error('Can not net for this play.');
@@ -150,7 +145,7 @@ export class RevertPlayHandler {
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, srObj),
         this.scoreKeeperHelper.publishRoom(body.room, 'revert-play-from-server', srObj),
-        server.to(playerRooms).emit('revert-player-notify', {players: playerRooms}),
+        server.to(playerRooms).emit('revert-player-notify', { players: playerRooms }),
       ]);
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');

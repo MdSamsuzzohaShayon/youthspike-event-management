@@ -17,6 +17,10 @@ export class ServerDoNotKnowHandler {
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room); // Redis key: <sr:net:room>
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
 
+      /* 5️⃣ scoring + rotation */
+      const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
+      this.scoreKeeperHelper.updateScore(net, scoringTeam);
+
       // Single play object
       const currNetObj = structuredClone(net); // Without increment of mutate and play
       const singlePlayNet = {
@@ -26,10 +30,6 @@ export class ServerDoNotKnowHandler {
       };
       delete singlePlayNet.mutate;
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
-
-      /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
-      this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       this.scoreKeeperHelper.rotateReceiver(net);
       net.mutate += 1;

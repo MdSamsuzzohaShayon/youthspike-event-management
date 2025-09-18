@@ -17,15 +17,15 @@ export class ReceiverDoNotKnowHandler {
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room); // Redis key: <sr:net:room>
       const { teamA, teamB } = await this.scoreKeeperHelper.getTeamSets(body.net);
 
+      /* 5️⃣ scoring + rotation */
+      const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
+      this.scoreKeeperHelper.updateScore(net, scoringTeam);
+
       // Single play object
       const currNetObj = structuredClone(net); // Without increment of mutate and play
       const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_DO_NOT_KNOW };
       delete singlePlayNet.mutate;
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
-
-      /* 5️⃣ scoring + rotation */
-      const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
-      this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
       // After updating point check is the number odd or even
       const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;

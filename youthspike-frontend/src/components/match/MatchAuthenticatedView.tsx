@@ -27,8 +27,8 @@ import RoundRunner from "./RoundRunner";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
-import SelectTeam from "./SelectTeam";
 import { APP_NAME } from "@/utils/keys";
+import SelectTeamDialog from "./SelectTeamDialog";
 
 interface IMatchAuthenticatedViewProps {
   currMatch: IMatchRelatives;
@@ -247,7 +247,7 @@ function MatchAuthenticatedView({
         <div className="team-name-selection">
           {selectTeam && teamA && teamB ? (
             <div className="select-team-wrapper px-4">
-              <SelectTeam
+              <SelectTeamDialog
                 teamA={teamA}
                 teamB={teamB}
                 setSelectTeam={setSelectTeam}

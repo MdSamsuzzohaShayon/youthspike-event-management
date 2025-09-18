@@ -45,15 +45,17 @@ export class RallyConversionHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
-      // Single net object
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION };
-      delete singlePlayNet.mutate;
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+   
 
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
+
+         // Single net object
+         const currNetObj = structuredClone(net); // Without increment of mutate and play
+         const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION };
+         delete singlePlayNet.mutate;
+         const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
 
       // After rotation it will be changed for next play
       const serverBefore = String(net.server);

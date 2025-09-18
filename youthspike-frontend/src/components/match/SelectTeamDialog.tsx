@@ -10,7 +10,7 @@ interface ISelectTeamProps {
   setSelectTeam: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function SelectTeam({ teamA, teamB, setSelectTeam }: ISelectTeamProps) {
+function SelectTeamDialog({ teamA, teamB, setSelectTeam }: ISelectTeamProps) {
   const dialogTeamEl = useRef<HTMLDialogElement | null>(null);
 
 
@@ -49,4 +49,4 @@ function SelectTeam({ teamA, teamB, setSelectTeam }: ISelectTeamProps) {
   );
 }
 
-export default SelectTeam;
+export default SelectTeamDialog;

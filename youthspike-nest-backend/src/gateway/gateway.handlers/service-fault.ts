@@ -7,7 +7,10 @@ import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 
 export class ServiceFaultHandler {
-  constructor(private readonly scoreKeeperHelper: ScoreKeeperHelper, private readonly pointsUpdateHelper: PointsUpdateHelper, ) {}
+  constructor(
+    private readonly scoreKeeperHelper: ScoreKeeperHelper,
+    private readonly pointsUpdateHelper: PointsUpdateHelper,
+  ) {}
 
   async handle(@ConnectedSocket() client: Socket, @MessageBody() body: ServiceFaultInput, server: Server) {
     try {
@@ -27,15 +30,14 @@ export class ServiceFaultHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT };
-      delete singlePlayNet.mutate;
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
-
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
 
       // After rotation it will be changed for next play
       const serverBefore = String(net.server);
@@ -45,15 +47,12 @@ export class ServiceFaultHandler {
       this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
       net.mutate += 1;
       net.play += 1;
-      
-
-      
 
       /* Send all updated player stats */
       const playersStats: Record<string, Partial<PlayerStats>> = {
         [serverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[serverBefore], updatedKeys),
       };
-      
+
       const playerRooms = [serverBefore];
 
       await Promise.all([

@@ -32,14 +32,17 @@ export class AceNoTouchHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_TOUCH };
-      delete singlePlayNet.mutate;
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+
 
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
+
+      // Create single play object
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_TOUCH };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
 
       // After rotation it will be changed for next play
       const serverBefore = String(net.server);
