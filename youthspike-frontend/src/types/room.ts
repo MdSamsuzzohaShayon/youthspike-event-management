@@ -1,7 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable import/no-cycle */
 import { ETieBreaker, INetPlayers } from './net';
-import { IServerReceiverOnNetMixed } from './socket';
 import { ETeam } from './team';
 import { UserRole } from './user';
 

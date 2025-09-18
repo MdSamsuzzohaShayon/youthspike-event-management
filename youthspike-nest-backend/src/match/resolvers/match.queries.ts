@@ -13,6 +13,7 @@ import { EventService } from 'src/event/event.service';
 import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
+import { ETieBreakingStrategy } from 'src/event/event.schema';
 
 // IMatchQueries
 
@@ -87,7 +88,7 @@ export class MatchQueries {
     try {
       const matchExist = await this.matchService.findById(matchId);
 
-      if (!matchExist) return AppResponse.notFound("Match");
+      if (!matchExist) return AppResponse.notFound('Match');
 
       // Auto-complete match if all nets have scores (even 0 is valid)
       if (!matchExist.completed) {
@@ -99,8 +100,15 @@ export class MatchQueries {
 
         // If no incomplete nets, mark match as completed
         if (incompleteNets.length === 0) {
-          await this.matchService.updateOne({ _id: matchExist._id }, { $set: { completed: true } });
-          matchExist.completed = true; // update local object
+          if (matchExist.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND) {
+            if (matchExist.extendedOvertime) {
+              await this.matchService.updateOne({ _id: matchExist._id }, { $set: { completed: true } });
+              matchExist.completed = true; // update local object
+            }
+          } else {
+            await this.matchService.updateOne({ _id: matchExist._id }, { $set: { completed: true } });
+            matchExist.completed = true; // update local object
+          }
         }
       }
 

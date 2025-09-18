@@ -12,11 +12,7 @@ export class AceNoTouchHandler {
     private readonly pointsUpdateHelper: PointsUpdateHelper,
   ) {}
 
-  async handle(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() body: AceNoTouchInput,
-    server: Server
-  ) {
+  async handle(@ConnectedSocket() client: Socket, @MessageBody() body: AceNoTouchInput, server: Server) {
     try {
       /* 1️⃣ load “net” action + team splits */
       const net = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
@@ -36,6 +32,11 @@ export class AceNoTouchHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_TOUCH };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
@@ -45,22 +46,16 @@ export class AceNoTouchHandler {
       const receiverBefore = String(net.receiver);
 
       this.scoreKeeperHelper.rotateReceiver(net);
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
-
-      /* 6️⃣ persist & broadcast */
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_TOUCH };
-      delete singlePlayNet.mutate;
 
       const playersStats: Record<string, Partial<PlayerStats>> = {
         [serverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[serverBefore], serverUpdatedKeys),
         [receiverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[receiverBefore], receiverUpdatedKeys),
       };
-      
+
       const playerRooms = [serverBefore, receiverBefore];
 
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),

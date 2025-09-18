@@ -1,9 +1,11 @@
-import { INetRelatives } from ".";
+import { EActionProcess, INetRelatives } from ".";
 
 export interface IRoundBase {
     num: number,
     teamAScore?: null | number,
     teamBScore?: null | number,
+    teamAProcess: EActionProcess;
+    teamBProcess: EActionProcess;
 }
 
 export interface IRoundRelatives extends IRoundBase {

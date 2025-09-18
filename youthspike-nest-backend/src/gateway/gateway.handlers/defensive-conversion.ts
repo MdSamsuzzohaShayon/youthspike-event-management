@@ -30,6 +30,11 @@ export class DefensiveConversionHandler {
 
       const receivingPartnerUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receivingPartner as string], defensiveStats.receivingPartner );
 
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
@@ -43,14 +48,12 @@ export class DefensiveConversionHandler {
       const servingPartnerBefore = String(net.servingPartner);
       const receivingPartnerBefore = String(net.receivingPartner);
 
+
+
       this.scoreKeeperHelper.rotateReceiver(net);
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
 
-      /* 6️⃣ persist & broadcast */
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION };
-      delete singlePlayNet.mutate;
 
       const playersStats: Record<string, Partial<PlayerStats>> = {
         [serverBefore]: this.scoreKeeperHelper.extractUpdatedStats(stats[serverBefore], serverUpdatedKeys),
@@ -61,7 +64,7 @@ export class DefensiveConversionHandler {
 
       const playerRooms = [serverBefore, receiverBefore, servingPartnerBefore, receivingPartnerBefore];
 
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+      
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),

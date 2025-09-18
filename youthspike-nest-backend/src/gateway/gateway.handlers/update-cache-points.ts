@@ -333,6 +333,7 @@ export class UpdateCachePointsHandler {
         }
       }
 
+      let matchCompleted = false;
       if (roundCompleted) {
         // roundList
         const roundList = await roundService.find({ match: net.match });
@@ -342,12 +343,30 @@ export class UpdateCachePointsHandler {
         if (match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND) {
           if (match.extendedOvertime) {
             if (String(lastRound._id) === String(round._id)) {
-              await matchService.updateOne({ _id: body.match }, { $set: { completed: true } });
+              // Check teamA score and teamB score
+              // if both do no match then match will be completed
+              let teamARoundScore = 0,
+                teamBRoundScore = 0;
+              for (const r of roundList) {
+                const roundNets = await netService.find({ round: r._id });
+                for (const n of roundNets) {
+                  if (n.teamAScore > n.teamBScore) {
+                    teamARoundScore += n.points;
+                  } else if (n.teamAScore < n.teamBScore) {
+                    teamBRoundScore += n.points;
+                  }
+                }
+              }
+              if (teamARoundScore !== teamBRoundScore) {
+                matchCompleted = true;
+                await matchService.updateOne({ _id: body.match }, { $set: { completed: matchCompleted } });
+              }
             }
           }
         } else {
           if (String(lastRound._id) === String(round._id)) {
-            await matchService.updateOne({ _id: body.match }, { $set: { completed: true } });
+            matchCompleted = true;
+            await matchService.updateOne({ _id: body.match }, { $set: { completed: matchCompleted } });
           }
         }
       }
@@ -370,7 +389,7 @@ export class UpdateCachePointsHandler {
           teamBScore: teamBScore,
           completed: roundCompleted,
         },
-        matchCompleted: false,
+        matchCompleted,
         teamAProcess: round.teamAProcess,
         teamBProcess: round.teamBProcess,
       };
@@ -379,7 +398,7 @@ export class UpdateCachePointsHandler {
         nets,
         _id: round._id,
         match: body.match,
-        matchCompleted: pointsResponse.matchCompleted,
+        matchCompleted,
       };
 
       await Promise.all([

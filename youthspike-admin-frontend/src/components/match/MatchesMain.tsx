@@ -59,9 +59,6 @@ function filterMatchesForUser(user: IUserContext, teams: ITeam[], matches: IMatc
 }
 
 function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
-  console.log('currEvent:', currEvent);
-  console.log('matches:', matches);
-  console.log('teams:', teams);
 
   if (!currEvent) {
     return <div>Event not found</div>;

@@ -117,22 +117,41 @@ const organizeFetchedData = async ({
   dispatch(setTeamA({ ...teamAF }));
   dispatch(setTeamB({ ...teamBF }));
 
+  // Setting ranking
+  if (teamARanking) dispatch(setTeamAPlayerRanking(teamARanking));
+  if (teamBRanking) dispatch(setTeamBPlayerRanking(teamBRanking));
+
+  const teamAPlayersRanking = new Set(
+    teamARanking?.rankings.map((r) =>
+      typeof r.player === "object" ? r.player._id : r.player
+    )
+  );
+  const teamBPlayersRanking = new Set(
+    teamBRanking?.rankings.map((r) =>
+      typeof r.player === "object" ? r.player._id : r.player
+    )
+  );
+
   // Setting players
-  const reformatPlayers = (team: ITeam) => {
+  const reformatPlayers = (team: ITeam, pr: Set<string>) => {
     if (!team.players && !team.moved) return [];
+    const movedIds = new Set();
     let pl = [...team.players];
-    if(team.moved) pl = [...team.moved,...team.players];
+    if (team.moved) {
+      team.moved.forEach((p) => movedIds.add(p._id));
+      pl = [...team.moved.filter((mp) => pr.has(mp._id)), ...team.players];
+    }
 
     return pl.map((player) => ({
       ...player,
-      teams: [team._id],
+      teams: movedIds.has(player._id) ? [] : [team._id],
       event: event?._id,
       profile: player.profile,
     }));
   };
 
-  const teamAPlayers = reformatPlayers(teamAF);
-  const teamBPlayers = reformatPlayers(teamBF);
+  const teamAPlayers = reformatPlayers(teamAF, teamAPlayersRanking);
+  const teamBPlayers = reformatPlayers(teamBF, teamBPlayersRanking);
 
   dispatch(setTeamAPlayers(teamAPlayers));
   dispatch(setTeamBPlayers(teamBPlayers));
@@ -322,10 +341,6 @@ const organizeFetchedData = async ({
   };
   dispatch(setMatchInfo(matchObj));
   // console.log('Match info: ', matchObj);
-
-  // Setting ranking
-  if (teamARanking) dispatch(setTeamAPlayerRanking(teamARanking));
-  if (teamBRanking) dispatch(setTeamBPlayerRanking(teamBRanking));
 
   // Setting variables for team A and team B
 

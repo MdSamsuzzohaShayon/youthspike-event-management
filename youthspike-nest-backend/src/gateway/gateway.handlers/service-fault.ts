@@ -27,13 +27,15 @@ export class ServiceFaultHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
-      net.mutate += 1;
-      net.play += 1;
 
       // After rotation it will be changed for next play
       const serverBefore = String(net.server);
@@ -41,12 +43,11 @@ export class ServiceFaultHandler {
       // After updating point check is the number odd or even
       const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
       this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
+      net.mutate += 1;
+      net.play += 1;
+      
 
-      /* 6️⃣ persist & broadcast */
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT };
-      delete singlePlayNet.mutate;
-
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+      
 
       /* Send all updated player stats */
       const playersStats: Record<string, Partial<PlayerStats>> = {

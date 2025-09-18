@@ -67,3 +67,9 @@ export interface IMatchExpRel extends IMatchBase{
   nets: INetRelatives[];
   group?: IGroup;
 }
+
+export enum EMatchStatus {
+  COMPLETED = 'COMPLETED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  NOT_STARTED = 'NOT_STARTED',
+}

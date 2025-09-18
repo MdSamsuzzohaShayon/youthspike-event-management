@@ -4,13 +4,13 @@ import { UserRole } from '@/types/user';
 import { FRONTEND_URL } from '@/utils/keys';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
 import PointsByRound from './PointsByRound';
-import { IError, INetRelatives, IRoundRelatives } from '@/types';
+import { EActionProcess, IError, INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
@@ -31,6 +31,72 @@ interface MatchCardProps {
 }
 
 function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
+
+  // Precompute nets by round to avoid repeated filtering
+  const netsByRoundId = useMemo(() => {
+    const map = new Map<string, INetRelatives[]>();
+    match.nets.forEach(net => {
+      if (!map.has(net.round)) {
+        map.set(net.round, []);
+      }
+      map.get(net.round)!.push(net);
+    });
+    return map;
+  }, [match.nets]);
+
+
+  const statusMessage = useMemo(() => {
+    if (match.completed) {
+      return "COMPLETED";
+    }
+    for (let i = 0; i < match.rounds.length; i += 1) {
+      const currRound = match.rounds[i];
+      const roundNets = netsByRoundId.get(currRound._id) || [];
+      
+      // Check for INITIATE status
+      if (currRound.teamAProcess === EActionProcess.INITIATE || 
+          currRound.teamBProcess === EActionProcess.INITIATE) {
+        return 'SCHEDULED';
+      }
+      
+      // Check for CHECKIN status with incomplete nets
+      if (currRound.teamAProcess === EActionProcess.CHECKIN || 
+          currRound.teamBProcess === EActionProcess.CHECKIN) {
+        const hasIncompleteNet = roundNets.some(net => 
+          !net.teamAScore || !net.teamBScore
+        );
+        if (hasIncompleteNet) {
+          return `ROUND ${currRound.num} - ASSIGNING`;
+        }
+      }
+      
+      // Check for LINEUP status with incomplete nets
+      if (currRound.teamAProcess === EActionProcess.LINEUP && 
+          currRound.teamBProcess === EActionProcess.LINEUP) {
+        const hasIncompleteNet = roundNets.some(net => 
+          !net.teamAScore || !net.teamBScore
+        );
+        if (hasIncompleteNet) {
+          return `ROUND ${currRound.num} - LIVE`;
+        }
+      }
+    }
+    
+    return match.completed ? 'COMPLETED' : 'UPCOMING';
+  }, [match.rounds, netsByRoundId, match.completed]);
+
+
+
+  const statusColor = useMemo(()=>{
+    if (statusMessage.includes('LIVE')) return 'bg-red-500';
+    if (statusMessage.includes('ASSIGNING')) return 'bg-blue-500';
+    if (statusMessage === 'COMPLETED') return 'bg-green-500';
+    if (statusMessage === 'SCHEDULED') return 'bg-yellow-500';
+    return 'bg-gray-500';
+  }, [statusMessage]);
+
+
+
   // Add null check at the beginning
   if (!match.teamA || !match.teamB) {
     return (
@@ -117,6 +183,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
   return (
     <div className="w-full bg-gray-800 relative rounded-lg" style={{ minHeight: '6rem' }}>
+      <div className={`w-full ${statusColor} text-center`}>
+        {statusMessage}
+      </div>
       {/* ===== LEVEL 1 START ===== */}
       <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6 md:py-4 py-2">
         {user.info?.role === UserRole.admin || user.info?.role === UserRole.director ? (

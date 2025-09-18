@@ -1,0 +1,8 @@
+export enum EActionProcess {
+    INITIATE = 'INITIATE',
+    CHECKIN = 'CHECKIN',
+    LINEUP = 'LINEUP',
+    LINEUP_SUBMITTED = 'LINEUP_SUBMITTED',
+    LOCKED = 'LOCKED',
+    COMPLETE = 'COMPLETE',
+  }

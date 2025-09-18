@@ -132,13 +132,14 @@ export class RevertPlayHandler {
       }
 
       // current Server Receiver
-      const srObj: ServerReceiverOnNet = {
+      const srObj: any = {
         ...currPlay,
         mutate: currPlay.play + 1,
         play: currPlay.play + 1,
         room: body.room,
         round: net.round,
       };
+      delete srObj.action;
 
       const playerRooms = [];
       for (const p of playerIds) {

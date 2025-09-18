@@ -43,6 +43,12 @@ export class AceNoThirdTouchHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats);
 
+      // Single net object
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
@@ -55,13 +61,8 @@ export class AceNoThirdTouchHandler {
 
       // Rotation logic
       this.scoreKeeperHelper.rotateReceiver(net);
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
       net.mutate += 1;
       net.play += 1;
-
-      /* 6️⃣ persist & broadcast */
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH };
-      delete singlePlayNet.mutate;
 
       // Organize data
       const playersStats: Record<string, Partial<PlayerStats>> = {
@@ -78,7 +79,6 @@ export class AceNoThirdTouchHandler {
       };
       const playerRooms = [serverBefore, receiverBefore, servingPartnerBefore, receivingPartnerBefore];
 
-      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
       await Promise.all([
         this.scoreKeeperHelper.saveNetAction(body.net, body.room, net),
         this.scoreKeeperHelper.saveNetSinglePlayAction(body.net, body.room, singlePlayNet),

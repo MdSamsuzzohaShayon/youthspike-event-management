@@ -46,7 +46,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   // Get initial state from query params
   const initialPage = parseInt(searchParams.get('page') || '1');
   const initialDate = searchParams.get('date') || EEventPeriod.CURRENT;
@@ -55,11 +55,11 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   const initialGroup = searchParams.get('group') || '';
 
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
-  const [filterParams, setFilterParams] = useState<IFilterParams>({ 
+  const [filterParams, setFilterParams] = useState<IFilterParams>({
     date: initialDate,
     opponent: initialOpponent || undefined,
     description: initialDescription || undefined,
-    group: initialGroup || null
+    group: initialGroup || null,
   });
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [checkedMatches, setCheckedMatches] = useState<Map<string, boolean>>(new Map());
@@ -77,20 +77,23 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   });
 
   // Function to update query params
-  const updateQueryParams = useCallback((updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '') {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-    // Replace instead of push to avoid cluttering history
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, router, pathname]);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      // Replace instead of push to avoid cluttering history
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname],
+  );
 
   // Update URL when filters or pagination change
   useEffect(() => {
@@ -106,7 +109,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   // Memoize sorted match list to avoid re-sorting on every render
   const sortedMatchList = useMemo(() => {
     if (!matchList) return [];
-    
+
     return [...matchList]
       .filter((match) => match != null)
       .sort((a, b) => {
@@ -122,16 +125,12 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   // Memoize selectable opponents to avoid re-computation
   const selectableOpponents = useMemo(() => {
     const division = getDivisionFromStore();
-    const isDifferentCaptain = (t: ITeam) => 
-      t.captain?._id !== user.info?.captainplayer && 
-      t.cocaptain?._id !== user.info?.cocaptainplayer;
+    const isDifferentCaptain = (t: ITeam) => t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
 
     return teamList
       .filter((t) => {
         if (!t) return false;
-        const sameDivision = division 
-          ? t.division?.toString().trim().toUpperCase() === division.toString().trim().toUpperCase() 
-          : true;
+        const sameDivision = division ? t.division?.toString().trim().toUpperCase() === division.toString().trim().toUpperCase() : true;
         return isDifferentCaptain(t) && sameDivision;
       })
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }));
@@ -140,13 +139,13 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   // Memoize group options
   const groupOptions = useMemo(() => {
     const options: IOption[] = [{ id: 0, value: '', text: 'All' }];
-    
+
     groupList?.forEach((g, index) => {
       if (g) {
         options.push({ id: index + 1, value: g._id, text: g.name });
       }
     });
-    
+
     return options;
   }, [groupList]);
 
@@ -164,7 +163,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
           ml.teamA?.captain === user.info?.captainplayer ||
           ml.teamA?.captain?._id === user.info?.captainplayer ||
           ml.teamB?.captain === user.info?.captainplayer ||
-          ml.teamB?.captain?._id === user.info?.captainplayer
+          ml.teamB?.captain?._id === user.info?.captainplayer,
       );
     }
 
@@ -174,7 +173,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
           ml.teamA?.cocaptain === user.info?.cocaptainplayer ||
           ml.teamA?.cocaptain?._id === user.info?.cocaptainplayer ||
           ml.teamB?.cocaptain === user.info?.cocaptainplayer ||
-          ml.teamB?.cocaptain?._id === user.info?.cocaptainplayer
+          ml.teamB?.cocaptain?._id === user.info?.cocaptainplayer,
       );
     }
 
@@ -185,26 +184,19 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
 
     // Opponent filtering
     if (filterParams.opponent) {
-      filteredList = filteredList.filter((m) => 
-        m.teamA?._id === filterParams.opponent || 
-        m.teamB?._id === filterParams.opponent
-      );
+      filteredList = filteredList.filter((m) => m.teamA?._id === filterParams.opponent || m.teamB?._id === filterParams.opponent);
     }
 
     // Description filtering
     if (filterParams.description) {
       const searchText = filterParams.description.trim().toLowerCase();
-      filteredList = filteredList.filter((match) => 
-        match.description?.toLowerCase().includes(searchText)
-      );
+      filteredList = filteredList.filter((match) => match.description?.toLowerCase().includes(searchText));
     }
 
     // Group filtering
     if (filterParams.group || filterParams.group === '') {
       if (filterParams.group) {
-        filteredList = filteredList.filter((m) => 
-          (m.group?._id || m.group) === filterParams.group
-        );
+        filteredList = filteredList.filter((m) => (m.group?._id || m.group) === filterParams.group);
       }
     }
 
@@ -254,48 +246,54 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     });
   }, []);
 
-  const handleCheckAllToggle = useCallback((e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLInputElement;
-    if (inputEl.checked) {
-      const newMap = new Map();
-      sortedMatchList.forEach((m) => {
-        if (m && m._id) {
-          newMap.set(m._id, true);
-        }
-      });
-      setCheckedMatches(newMap);
-    } else {
-      setCheckedMatches(new Map());
-    }
-  }, [sortedMatchList]);
-
-  const handleDeleteMatches = useCallback(async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (checkedMatches.size <= 0) return;
-    
-    try {
-      setIsLoading(true);
-      const checkedMatchIds = Array.from(checkedMatches.keys()).filter(Boolean);
-
-      if (checkedMatchIds.length === 0) return;
-
-      const response = await deleteMultipleMatches({ variables: { matchIds: checkedMatchIds } });
-      const success = await handleResponse({ response: response.data.deleteMatches, setActErr });
-      
-      if (!success) return;
-      
-      setCheckedMatches(new Map());
-      if (refetchFunc) {
-        await refetchFunc();
+  const handleCheckAllToggle = useCallback(
+    (e: React.SyntheticEvent) => {
+      const inputEl = e.target as HTMLInputElement;
+      if (inputEl.checked) {
+        const newMap = new Map();
+        sortedMatchList.forEach((m) => {
+          if (m && m._id) {
+            newMap.set(m._id, true);
+          }
+        });
+        setCheckedMatches(newMap);
       } else {
-        window.location.reload();
+        setCheckedMatches(new Map());
       }
-    } catch (error: any) {
-      handleError({ error, setActErr });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [checkedMatches, deleteMultipleMatches, setIsLoading, setActErr, refetchFunc]);
+    },
+    [sortedMatchList],
+  );
+
+  const handleDeleteMatches = useCallback(
+    async (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      if (checkedMatches.size <= 0) return;
+
+      try {
+        setIsLoading(true);
+        const checkedMatchIds = Array.from(checkedMatches.keys()).filter(Boolean);
+
+        if (checkedMatchIds.length === 0) return;
+
+        const response = await deleteMultipleMatches({ variables: { matchIds: checkedMatchIds } });
+        const success = await handleResponse({ response: response.data.deleteMatches, setActErr });
+
+        if (!success) return;
+
+        setCheckedMatches(new Map());
+        if (refetchFunc) {
+          await refetchFunc();
+        } else {
+          window.location.reload();
+        }
+      } catch (error: any) {
+        handleError({ error, setActErr });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [checkedMatches, deleteMultipleMatches, setIsLoading, setActErr, refetchFunc],
+  );
 
   const handleMoveMatches = useCallback((e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -304,13 +302,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   return (
     <div className="matchList w-full flex flex-col md:flex-row justify-between gap-4 flex-wrap">
       <div className="search-filter w-full mb-8">
-        <SelectInput 
-          name="period" 
-          optionList={eventPeriods} 
-          label="Date" 
-          value={filterParams.date || EEventPeriod.CURRENT}
-          handleSelect={handlePeriodChange} 
-        />
+        <SelectInput name="period" optionList={eventPeriods} label="Date" value={filterParams.date || EEventPeriod.CURRENT} handleSelect={handlePeriodChange} />
         <SelectInput
           name="opponent"
           optionList={selectableOpponents.map((t, i) => ({
@@ -322,51 +314,24 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
           handleSelect={handleOpponentChange}
         />
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
-          <SelectInput 
-            name="group" 
-            optionList={groupOptions} 
-            value={filterParams.group || ''}
-            handleSelect={handleGroupChange} 
-          />
+          <SelectInput name="group" optionList={groupOptions} value={filterParams.group || ''} handleSelect={handleGroupChange} />
         )}
-        <InputField 
-          type="text" 
-          name="description" 
-          required={false}
-          value={filterParams.description || ''}
-          handleInputChange={handleDescriptionChange} 
-        />
+        <InputField type="text" name="description" required={false} value={filterParams.description || ''} handleInputChange={handleDescriptionChange} />
       </div>
 
       {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
         <div className="bulk-selection relative w-full flex justify-between">
           <div className="input-group flex items-center gap-2 justify-between">
-            <input 
-              onClick={handleCheckAllToggle} 
-              type="checkbox" 
-              name="bulkaction" 
-              id="bulk-action" 
-            />
+            <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
             <label htmlFor="bulk-action">Bulk Action</label>
-            <Image
-              width={imgSize.logo}
-              height={imgSize.logo}
-              src="/icons/dropdown.svg"
-              alt="dropdown"
-              className="w-6 svg-white"
-              role="presentation"
-              onClick={() => setShowFilter((prev) => !prev)}
-            />
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role="presentation" onClick={() => setShowFilter((prev) => !prev)} />
           </div>
           <div className="input-group flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prev) => !prev)}>
             <p>A-Z</p>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
           </div>
 
-          <ul 
-            ref={actionEl} 
-            className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-14 z-10 rounded-lg`}
-          >
+          <ul ref={actionEl} className={`${showFilter ? 'flex' : 'hidden'} flex-col justify-start items-start gap-1 py-2 px-4 bg-gray-900 absolute top-7 left-14 z-10 rounded-lg`}>
             <li role="presentation" className="capitalize" onClick={handleDeleteMatches}>
               delete
             </li>
@@ -377,15 +342,9 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         </div>
       )}
 
-      <div className="match-list w-full flex justify-between items-center flex-wrap">
+      <div className="match-list w-full grid grid-cols-1 md:grid-cols-2 gap-4">
         {paginatedMatchList.map((match: IMatchExpRel, i) => (
-          <motion.div 
-            initial={cInitial} 
-            animate={cAnimate} 
-            exit={cExit} 
-            className="match-card w-full md:w-5/12" 
-            key={match._id}
-          >
+          <motion.div initial={cInitial} animate={cAnimate} exit={cExit} className="match-card w-full rounded-xl" key={match._id}>
             <MatchCard
               eventId={eventId}
               match={match}
@@ -397,15 +356,10 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
             />
           </motion.div>
         ))}
+      </div>
 
-        <div className="w-full">
-          <Pagination 
-            currentPage={currentPage} 
-            itemList={filteredMatchList} 
-            setCurrentPage={setCurrentPage} 
-            ITEMS_PER_PAGE={ITEMS_PER_PAGE} 
-          />
-        </div>
+      <div className="w-full">
+        <Pagination currentPage={currentPage} itemList={filteredMatchList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
     </div>
   );
