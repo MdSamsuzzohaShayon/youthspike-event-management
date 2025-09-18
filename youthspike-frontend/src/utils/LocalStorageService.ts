@@ -23,10 +23,10 @@ class LocalStorageService {
   // Generic methods
   private getItem<T>(key: string): T | string | null {
     if (typeof window === "undefined") return null; // ⬅️ Guard for SSR
-  
+
     const item = window.localStorage.getItem(key);
     if (!item) return null;
-  
+
     try {
       const parsed = JSON.parse(item);
       if (typeof parsed === "object" && parsed !== null) {
@@ -40,7 +40,6 @@ class LocalStorageService {
       return item; // not JSON
     }
   }
-  
 
   private setItem(key: string, value: string | Record<string, any>): void {
     localStorage.setItem(key, JSON.stringify(value));
@@ -148,6 +147,16 @@ class LocalStorageService {
       return this.getItem<ETeam>("selectedTeamForAdmin");
     } catch (error) {
       throw error;
+    }
+  }
+
+  /** ✅ NEW: Clear all local storage */
+  public clearAll(): void {
+    try {
+      if (typeof window === "undefined") return; // SSR Guard
+      localStorage.clear();
+    } catch (error) {
+      console.error("Error clearing localStorage:", error);
     }
   }
 }

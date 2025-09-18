@@ -1,11 +1,15 @@
 "use client";
 
+// Reference - https://github.com/MdSamsuzzohaShayon/youthspike-event-management/blob/f612e8d69aba785095e59bc97dc6dacb6de6a004/youthspike-frontend/src/app/matches/%5BmatchId%5D/page.tsx
+
 import { useReadQuery } from "@apollo/client";
 import type { QueryRef } from "@apollo/client";
 import {
   EMessage,
+  EPlayerStatus,
   ETeam,
   IMatchExpRel,
+  UserRole,
 } from "@/types"; // Your match type
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -14,23 +18,21 @@ import organizeFetchedData from "@/utils/match/organizeFetchedData";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Loader from "../elements/Loader";
 import { setMessage } from "@/redux/slices/elementSlice";
-import { useUser } from "@/lib/UserProvider";
 import { useSocket } from "@/lib/SocketProvider";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import { setTeamScore } from "@/redux/slices/matchesSlice";
-import MatchAuthenticatedView from "./MatchAuthenticatedView";
 import useMatchSocket from "@/hooks/match/useMatchSocket";
 import useNetMaps from "@/hooks/score-keeping/useNetMaps";
+import MatchPublicView from "../match/MatchPublicView";
 
-interface IMatchMainProps {
+interface IMatchScoreBoardProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
 }
 
-export function MatchMain({ queryRef }: IMatchMainProps) {
+export function MatchScoreBoard({ queryRef }: IMatchScoreBoardProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
   const dispatch = useAppDispatch();
-  const user = useUser();
   const socket = useSocket();
 
   // Selectors
@@ -39,24 +41,12 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   const { current: currRound, roundList } = useAppSelector(
     (state) => state.rounds
   );
+  const { currentRoundNets: currRoundNets, nets: allNets, currNetNum } = useAppSelector(
+    (state) => state.nets
+  );
+  const { serverReceiverPlays, serverReceiversOnNet, currentServerReceiver: currServerReceiver} = useAppSelector((state)=> state.serverReceiverOnNets);
   const {
-    currentRoundNets: currRoundNets,
-    nets: allNets,
-    currNetNum,
-  } = useAppSelector((state) => state.nets);
-  const {
-    serverReceiverPlays,
-    serverReceiversOnNet,
-    currentServerReceiver: currServerReceiver,
-  } = useAppSelector((state) => state.serverReceiverOnNets);
-  const {
-    myPlayers,
-    opPlayers,
-    myTeamE,
-    verifyLineup,
     match: currMatch,
-    teamATotalScore,
-    teamBTotalScore,
   } = useAppSelector((state) => state.matches);
 
   const netByNum = useNetMaps(currRoundNets);
@@ -77,26 +67,11 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     currServerReceiver,
   });
 
-  const audioPlayEl = useRef<HTMLButtonElement>(null);
 
   // Memoize the match data to prevent unnecessary re-renders
   const match = useMemo(() => data?.getMatch?.data, [data]);
-  const myTeam = useMemo(
-    () => (myTeamE === ETeam.teamA ? teamA : teamB),
-    [myTeamE, teamA, teamB]
-  );
-  const opTeam = useMemo(
-    () => (myTeamE === ETeam.teamA ? teamB : teamA),
-    [myTeamE, teamA, teamB]
-  );
-  const myS = useMemo(
-    () => (myTeamE === ETeam.teamA ? teamATotalScore : teamBTotalScore),
-    [myTeamE, teamATotalScore, teamBTotalScore]
-  );
-  const opS = useMemo(
-    () => (myTeamE === ETeam.teamA ? teamBTotalScore : teamATotalScore),
-    [myTeamE, teamATotalScore, teamBTotalScore]
-  );
+
+  
 
   // Organize data only when necessary
   const organizeData = useCallback(async () => {
@@ -172,21 +147,18 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   }
 
   return (
-    <MatchAuthenticatedView
-      currMatch={currMatch}
-      myPlayers={myPlayers}
-      myS={myS}
-      opS={opS}
-      myTeam={myTeam || null}
-      opTeam={opTeam || null}
-      myTeamE={myTeamE}
-      verifyLineup={verifyLineup}
-      opPlayers={opPlayers}
+    <MatchPublicView
+      currRound={currRound}
+      currRoundNets={currRoundNets}
+      nets={allNets}
+      roundList={roundList}
       teamA={teamA || null}
       teamB={teamB || null}
-      audioPlayEl={audioPlayEl}
+      serverReceiversOnNet={serverReceiversOnNet}
+      currServerReceiver={currServerReceiver}
+      matchId={match._id}
     />
   );
 }
 
-export default MatchMain;
+export default MatchScoreBoard;

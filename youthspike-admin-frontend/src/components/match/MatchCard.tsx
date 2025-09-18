@@ -4,12 +4,11 @@ import { UserRole } from '@/types/user';
 import { FRONTEND_URL } from '@/utils/keys';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
-import PointsByRound from './PointsByRound';
 import { EActionProcess, IError, INetRelatives, IRoundRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
@@ -19,6 +18,7 @@ import { motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { handleError } from '@/utils/handleError';
 import TextImg from '../elements/TextImg';
+import Image from 'next/image';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -31,71 +31,72 @@ interface MatchCardProps {
 }
 
 function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
+  const user = useUser();
+  const { ldoIdUrl } = useLdoId();
+  const actionItemEl = useRef<HTMLUListElement | null>(null);
+  const [actionOpen, setActionOpen] = useState<boolean>(false);
+  const [deleteMatch, { loading }] = useMutation(DELETE_MATCH);
 
-  // Precompute nets by round to avoid repeated filtering
+  // Precompute nets by round to avoid repeated filtering - optimized with direct assignment
   const netsByRoundId = useMemo(() => {
     const map = new Map<string, INetRelatives[]>();
-    match.nets.forEach(net => {
-      if (!map.has(net.round)) {
-        map.set(net.round, []);
+    for (let i = 0; i < match.nets.length; i++) {
+      const net = match.nets[i];
+      const roundId = net.round;
+      if (!map.has(roundId)) {
+        map.set(roundId, []);
       }
-      map.get(net.round)!.push(net);
-    });
+      map.get(roundId)!.push(net);
+    }
     return map;
   }, [match.nets]);
 
-
+  // Optimized status message calculation with early returns
   const statusMessage = useMemo(() => {
-    if (match.completed) {
-      return "COMPLETED";
-    }
-    for (let i = 0; i < match.rounds.length; i += 1) {
-      const currRound = match.rounds[i];
+    if (match.completed) return 'COMPLETED';
+    
+    const rounds = match.rounds;
+    for (let i = 0; i < rounds.length; i++) {
+      const currRound = rounds[i];
       const roundNets = netsByRoundId.get(currRound._id) || [];
-      
+
       // Check for INITIATE status
-      if (currRound.teamAProcess === EActionProcess.INITIATE || 
-          currRound.teamBProcess === EActionProcess.INITIATE) {
+      if (currRound.teamAProcess === EActionProcess.INITIATE || currRound.teamBProcess === EActionProcess.INITIATE) {
         return 'SCHEDULED';
       }
-      
+
       // Check for CHECKIN status with incomplete nets
-      if (currRound.teamAProcess === EActionProcess.CHECKIN || 
-          currRound.teamBProcess === EActionProcess.CHECKIN) {
-        const hasIncompleteNet = roundNets.some(net => 
-          !net.teamAScore || !net.teamBScore
-        );
-        if (hasIncompleteNet) {
-          return `ROUND ${currRound.num} - ASSIGNING`;
+      if (currRound.teamAProcess === EActionProcess.CHECKIN || currRound.teamBProcess === EActionProcess.CHECKIN) {
+        for (let j = 0; j < roundNets.length; j++) {
+          const net = roundNets[j];
+          if (!net.teamAScore || !net.teamBScore) {
+            return `ROUND ${currRound.num} - ASSIGNING`;
+          }
         }
       }
-      
+
       // Check for LINEUP status with incomplete nets
-      if (currRound.teamAProcess === EActionProcess.LINEUP && 
-          currRound.teamBProcess === EActionProcess.LINEUP) {
-        const hasIncompleteNet = roundNets.some(net => 
-          !net.teamAScore || !net.teamBScore
-        );
-        if (hasIncompleteNet) {
-          return `ROUND ${currRound.num} - LIVE`;
+      if (currRound.teamAProcess === EActionProcess.LINEUP && currRound.teamBProcess === EActionProcess.LINEUP) {
+        for (let j = 0; j < roundNets.length; j++) {
+          const net = roundNets[j];
+          if (!net.teamAScore || !net.teamBScore) {
+            return `ROUND ${currRound.num} - LIVE`;
+          }
         }
       }
     }
-    
-    return match.completed ? 'COMPLETED' : 'UPCOMING';
+
+    return 'UPCOMING';
   }, [match.rounds, netsByRoundId, match.completed]);
 
-
-
-  const statusColor = useMemo(()=>{
+  // Memoize status color to avoid recalculating
+  const statusColor = useMemo(() => {
     if (statusMessage.includes('LIVE')) return 'bg-red-500';
     if (statusMessage.includes('ASSIGNING')) return 'bg-blue-500';
     if (statusMessage === 'COMPLETED') return 'bg-green-500';
     if (statusMessage === 'SCHEDULED') return 'bg-yellow-500';
     return 'bg-gray-500';
   }, [statusMessage]);
-
-
 
   // Add null check at the beginning
   if (!match.teamA || !match.teamB) {
@@ -107,16 +108,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
       </div>
     );
   }
-
-  const user = useUser();
-  const { ldoIdUrl } = useLdoId();
-
-  const actionItemEl = useRef<HTMLUListElement | null>(null);
-  const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const [deleteMatch, { loading }] = useMutation(DELETE_MATCH);
-  const [roundList, setRoundList] = useState<IRoundRelatives[]>(match?.rounds ? match.rounds : []);
-  // @ts-ignore
-  const [allNets, setAllNets] = useState<INetRelatives[]>(match?.nets ? match.nets.map((n) => ({ ...n, round: n.round?._id || n.round })) : []);
 
   useClickOutside(actionItemEl, () => {
     setActionOpen(false);
@@ -140,139 +131,136 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
     }
   };
 
-  const teamCard = (team: ITeam, teamE: ETeam) => {
-    let myPointsOfRound = 0;
-    let opPointsOfRound = 0;
-    const mE = teamE;
-    const oE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+  /** ✅ Precompute team scores - optimized with direct array access */
+  const teamScores = useMemo(() => {
+    let teamA = 0;
+    let teamB = 0;
+    const rounds = match.rounds;
+    
+    for (let i = 0; i < rounds.length; i++) {
+      const round = rounds[i];
+      const roundNets = netsByRoundId.get(round._id) || [];
+      teamA += calcRoundScore(roundNets, ETeam.teamA);
+      teamB += calcRoundScore(roundNets, ETeam.teamB);
+    }
+    
+    return { teamA, teamB };
+  }, [match.rounds, netsByRoundId]);
 
-    roundList.forEach((r) => {
-      const myScore = calcRoundScore(
-        allNets.filter((n) => n.round === r._id),
-        r,
-        mE,
-      );
-      const opScore = calcRoundScore(
-        allNets.filter((n) => n.round === r._id),
-        r,
-        oE,
-      );
-      myPointsOfRound += myScore;
-      opPointsOfRound += opScore;
-    });
-    let win = myPointsOfRound > opPointsOfRound;
+  /** ✅ Team card reusable component - optimized with direct props */
+  const TeamCard = React.memo(({ team, teamScore, opponentScore, won }: { 
+    team: ITeam; 
+    teamScore: number; 
+    opponentScore: number; 
+    won: boolean;
+  }) => (
+    <div className={`flex items-center gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
+      <div className="flex-shrink-0 w-6 h-6">
+        {team?.logo ? 
+          <CldImage alt={team.name} width={24} height={24} className="w-6 h-6 object-contain" src={team.logo} /> : 
+          <TextImg fullText={team.name} className="w-6 h-6 object-contain" />
+        }
+      </div>
+      <div className="flex-1 min-w-0">
+        <h5 className="text-xs font-medium text-white capitalize truncate">{team?.name}</h5>
+      </div>
+      <div className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full border ${won ? 'border-green-500 bg-green-600' : 'border-gray-400'}`}>
+        <span className="text-xs font-bold">{teamScore}</span>
+      </div>
+    </div>
+  ));
+
+  TeamCard.displayName = 'TeamCard';
+
+  /** ✅ Reusable Action Buttons - optimized with useCallback */
+  const ActionButtons = useCallback(({ iconSize = 20 }: { iconSize?: number }) => {
+    const iconClass = `w-${iconSize / 4} h-${iconSize / 4}`;
 
     return (
-      <React.Fragment>
-        <div className="advanced-img w-14">
-          {team?.logo ? (
-            <CldImage width={100} height={100} alt="team logo" src={team?.logo} className="w-full h-full" />
-          ) : (
-            <TextImg className="w-full h-full" fullText={team.name} />
-          )}
-        </div>
-        <h3 className={`text-2xl md:text-3xl font-semibold text-white capitalize text-center ${match.completed && win ? 'bg-green-600 text-white p-2 rounded-lg' : ''}`}>
-          {team?.name}
-        </h3>
-        <h1 className={`h-12 w-12 flex justify-center items-center rounded-full border border-gray-100 ${match.completed && win ? 'bg-green-600' : ''}`}>
-          {myPointsOfRound}
-        </h1>
-      </React.Fragment>
+      <div className="flex justify-between items-center gap-2 mt-2 md:mt-0">
+        {/* Spectate */}
+        <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+          <Image width={iconSize} height={iconSize} src="/icons/spectate.svg" alt="Spectate" className={iconClass} />
+          <span className="text-[10px] md:text-xs uppercase mt-1">Spectate</span>
+        </Link>
+
+        {/* Captain */}
+        <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+          <Image width={iconSize} height={iconSize} src="/icons/captain.png" alt="Captain" className={iconClass} />
+          <span className="text-[10px] md:text-xs uppercase mt-1">Captain</span>
+        </Link>
+
+        {/* Scorekeeper */}
+        <Link href={`${FRONTEND_URL}/score-keeping/${match._id}/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+          <Image width={iconSize} height={iconSize} src="/icons/scorekeeper.png" alt="Scorekeeper" className={iconClass} />
+          <span className="text-[10px] md:text-xs uppercase mt-1">Scorekeeper</span>
+        </Link>
+      </div>
     );
-  };
+  }, [match._id, ldoIdUrl]);
+
+  /** ✅ Reusable Header - optimized with useCallback */
+  const MatchHeader = useCallback(() => (
+    <div className={`px-2 md:px-3 py-1 md:py-2 ${statusColor} text-white text-xs font-semibold uppercase flex justify-between items-center rounded-t`}>
+      {user.info?.role === UserRole.admin || user.info?.role === UserRole.director ? (
+        <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />
+      ) : (
+        <div className="w-4" />
+      )}
+      <span className="truncate">{statusMessage}</span>
+      {match.location && <span className="hidden md:inline">{match.location}</span>}
+      <span>{readDate(match.date)}</span>
+      <Image src="/icons/dots-vertical.svg" height={20} width={20} alt="dot-vertical" className="w-4 svg-white" role="presentation" onClick={handleOpenAction} />
+    </div>
+  ), [statusColor, user.info?.role, isChecked, match._id, handleSelectMatch, statusMessage, match.location, match.date]);
+
+  // Precompute values for TeamCard components
+  const teamAWon = teamScores.teamA > teamScores.teamB && match.completed;
+  const teamBWon = teamScores.teamB > teamScores.teamA && match.completed;
 
   return (
-    <div className="w-full bg-gray-800 relative rounded-lg" style={{ minHeight: '6rem' }}>
-      <div className={`w-full ${statusColor} text-center`}>
-        {statusMessage}
-      </div>
-      {/* ===== LEVEL 1 START ===== */}
-      <div className="level-1 w-full flex justify-between px-2 md:px-6 mt-2 md:mt-6 md:py-4 py-2">
-        {user.info?.role === UserRole.admin || user.info?.role === UserRole.director ? (
-          <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />
-        ) : (
-          <div className="w-4" />
-        )}
-
-        <div className="w-10/12 flex items-center justify-center">
-          <a href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="btn-info">
-            Enter
-          </a>
+    <div className='relative'>
+      {/* Mobile View */}
+      <div className="block md:hidden bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-2">
+        <MatchHeader />
+        {match.location && <div className="text-xs text-gray-400 text-center py-1 truncate">{match.location}</div>}
+        <div className="grid grid-cols-2 gap-2 mt-1">
+          <TeamCard 
+            team={match.teamA} 
+            teamScore={teamScores.teamA} 
+            opponentScore={teamScores.teamB} 
+            won={teamAWon} 
+          />
+          <TeamCard 
+            team={match.teamB} 
+            teamScore={teamScores.teamB} 
+            opponentScore={teamScores.teamA} 
+            won={teamBWon} 
+          />
         </div>
-        <img src="/icons/dots-vertical.svg" alt="dot-vertical" className="w-1/12 md:h-10 svg-white" role="presentation" onClick={handleOpenAction} />
+        <ActionButtons iconSize={20} />
       </div>
-      {/* ===== LEVEL 1 END ===== */}
 
-      {/* ===== LEVEL 2 START ===== */}
-      <div className="lavel-2 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">
-        {teamCard(match.teamA, ETeam.teamA)}
-      </div>
-      {/* ===== LEVEL 2 END ===== */}
-
-      {/* ===== LEVEL 3 START ===== */}
-      <div className="lavel-3 w-full flex justify-center items-center px-2 md:px-6 mt-2 md:mt-6 gap-x-2">
-        <div className="">
-          <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`}>
-            <img src="/icons/setting.svg" alt="setting-icon" className="w-6 svg-white" />
-          </Link>
-        </div>
-        <div className="rounds flex flex-col justify-center items-center w-full ">
-          <ul className="round-numbers w-full flex justify-center items-center gap-x-1">
-            {roundList.map((round, i) => (
-              <li key={round._id} className="w-12 flex justify-center items-center text-yellow-logo">
-                {match.extendedOvertime && i === roundList.length - 1 ? 'OT' : 'RD' + round.num}
-              </li>
-            ))}
-          </ul>
-          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center">
-            <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamA} />
+      {/* Desktop View */}
+      <div className="hidden md:block bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-3">
+        <MatchHeader />
+        <div className="flex flex-col items-center justify-between mt-2">
+          <div className="grid grid-cols-2 gap-3 flex-1">
+            <TeamCard 
+              team={match.teamA} 
+              teamScore={teamScores.teamA} 
+              opponentScore={teamScores.teamB} 
+              won={teamAWon} 
+            />
+            <TeamCard 
+              team={match.teamB} 
+              teamScore={teamScores.teamB} 
+              opponentScore={teamScores.teamA} 
+              won={teamBWon} 
+            />
           </div>
-          <div className="points-by-rounds w-full flex flex-wrap justify-center items-center mt-2">
-            <PointsByRound roundList={roundList} allNets={allNets} teamE={ETeam.teamB} dark />
-          </div>
+          <ActionButtons iconSize={24} />
         </div>
-        <div className="">{/* <img src="/icons/share.svg" alt="share-icon" className="w-6 svg-white" /> */}</div>
-      </div>
-      {/* ===== LEVEL 3 END ===== */}
-
-      {/* ===== LEVEL 4 START ===== */}
-      <div className="lavel-4 w-full flex justify-between items-center px-2 md:px-6 mt-2 md:mt-6">
-        {teamCard(match.teamB, ETeam.teamB)}
-      </div>
-      {/* ===== LEVEL 4 END ===== */}
-
-      {/* ===== LEVEL 5 START ===== */}
-      <div className="lavel-4 w-full flex justify-between items-start px-2 md:px-6 mt-2 md:mt-6 pb-2">
-        <div className="w-3/6">
-          <p className="flex justify-start items-center gap-x-2 mb-2">
-            <span>
-              <img src="/icons/clock.svg" className="w-6 svg-white" />
-            </span>
-            <span>{readDate(match.date)}</span>
-          </p>
-        </div>
-        <div className="w-3/6 text-end">
-          {match.location && (
-            <p className="flex justify-start items-center gap-x-2">
-              <span>
-                <img src="/icons/location.svg" className="w-6 svg-white" />
-              </span>
-              <span>{match.location}</span>
-            </p>
-          )}
-        </div>
-      </div>
-      {/* ===== LEVEL 5 END ===== */}
-
-      <div className="w-full px-2 md:px-6 mt-2 md:mt-6 pb-2">
-        {match.description && (
-          <p className="flex justify-start items-center gap-x-2">
-            <span>
-              <img src="/icons/pencil.svg" className="w-6 svg-white" />
-            </span>
-            <span>{match.description}</span>
-          </p>
-        )}
       </div>
 
       {/* Actions items start  */}
@@ -308,4 +296,4 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   );
 }
 
-export default MatchCard;
+export default React.memo(MatchCard);

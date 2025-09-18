@@ -9,13 +9,15 @@ import {
 import LocalStorageService from "@/utils/LocalStorageService";
 import { EActionProcess } from "@/types/room";
 import { ETeam } from "@/types/team";
-import { INetRelatives, IRoundRelatives } from "@/types";
+import { EMessage, IMatchRelatives, INetRelatives, IRoundRelatives } from "@/types";
+import { setMessage } from "@/redux/slices/elementSlice";
 
 interface UseRoundNavigationProps {
   roundList: IRoundRelatives[];
   netsByRound: Record<string, INetRelatives[]>;
   myTeamE: ETeam;
   currentRound?: IRoundRelatives | null;
+  match: IMatchRelatives
 }
 
 export const useRoundNavigation = ({
@@ -23,6 +25,7 @@ export const useRoundNavigation = ({
   netsByRound,
   myTeamE,
   currentRound,
+  match
 }: UseRoundNavigationProps) => {
   const dispatch = useAppDispatch();
 
@@ -91,13 +94,16 @@ export const useRoundNavigation = ({
 
       const targetRound = roundList[targetRoundIndex];
 
+      if(match?.completed && targetRound.num > currentRound.num && !targetRound.completed){
+        dispatch(setMessage({message: "This  match is finished. Unselect the finish match box to go to the next round.", type: EMessage.ERROR}));
+        return false;
+      }
+
       // Check if previous round is completed when moving forward
       if (targetRound.num > currentRound.num) {
         const prevRound = roundList[targetRoundIndex - 1];
         if (!prevRound?.completed) {
-          onError?.(
-            "Complete the previous round by putting players on all nets and points."
-          );
+          dispatch(setMessage({message: "Complete the previous round by putting players on all nets and points.", type: EMessage.ERROR}))
           return false;
         }
       }
@@ -108,7 +114,7 @@ export const useRoundNavigation = ({
       
       return true;
     },
-    [changeTheRound, currentRound, dispatch, roundIdToIndex, roundList]
+    [changeTheRound, currentRound, dispatch, roundIdToIndex, roundList, match]
   );
 
   return {

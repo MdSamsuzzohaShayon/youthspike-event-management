@@ -65,13 +65,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   );
 
   // Precompute lookups for faster access
-  const roundIdToIndex = useMemo(() => {
-    const map: Record<string, number> = {};
-    roundList.forEach((round, idx) => {
-      map[round._id] = idx;
-    });
-    return map;
-  }, [roundList]);
 
   const netsByRound = useMemo(() => {
     const map: Record<string, INetRelatives[]> = {};
@@ -87,6 +80,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     netsByRound,
     myTeamE,
     currentRound,
+    match
   });
 
   // Simplified event handler using the hook
@@ -94,16 +88,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     (e: React.SyntheticEvent, roundId: string) => {
       e.preventDefault();
 
-      if (match.completed) {
-        dispatch(
-          setMessage({
-            type: EMessage.ERROR,
-            message:
-              "This match is completed, you can not go to the next round.",
-          })
-        );
-        return;
-      }
+
 
       handleRoundChange(roundId, (errorMessage) => {
         dispatch(

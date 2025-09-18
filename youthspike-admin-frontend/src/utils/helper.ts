@@ -93,7 +93,7 @@ export function rearrangeMenu(userDetail: IUserContext, eventPath: string | null
 }
 
 
-export function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives, teamE: ETeam): number {
+export function calcRoundScore(findNets: INetRelatives[], teamE: ETeam): number {
   // Remove the teamE declaration here
   let score = 0;
 
@@ -108,9 +108,6 @@ export function calcRoundScore(findNets: INetRelatives[], round: IRoundRelatives
       score += net.points;
     }
   });
-
-
-  const fullPoints = teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
 
   return score;
 }

@@ -16,6 +16,7 @@
     "autoprefixer": "^10.4.21",
     "express": "^5.1.0",
     "graphql": "^16.11.0",
+    "motion": "^12.23.15",
     "next": "15.4.5",
     "next-cloudinary": "^6.16.0",
     "postcss": "^8.5.6",

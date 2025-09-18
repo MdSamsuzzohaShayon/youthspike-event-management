@@ -18,3 +18,9 @@ export interface IMotionConfig {
   exit?: IVariant;
   transition?: ITransition;
 }
+
+
+
+
+
+

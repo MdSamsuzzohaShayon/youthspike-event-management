@@ -217,7 +217,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
             </>
           ) : (
             <>
-              <h2 className="text-center">{`Round ${currentRound?.num} - Finished`}</h2>
+              <h2 className="text-center">{match.completed ? "Match Completed" : `Round ${currentRound?.num} - Finished`}</h2>
               <Image
                 src="/imgs/spikeball-players.png"
                 alt="spikeball-players"

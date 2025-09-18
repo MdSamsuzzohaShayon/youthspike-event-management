@@ -1,11 +1,10 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import { IAccessCode, IMatchExpRel } from "@/types";
 import AccessCodeForm from "@/components/ScoreKeeping/AccessCodeForm";
 import ServerReceiver from "@/components/ScoreKeeping/ServerReceiver";
 import Link from "next/link";
-import Loader from "@/components/elements/Loader";
 import { QueryRef, useReadQuery } from "@apollo/client";
 import { useUser } from "@/lib/UserProvider";
 
@@ -20,6 +19,9 @@ function ScoreKeepingMain({
   accessCodeList,
 }: IScoreKeepingMainProps) {
   const { data, error } = useReadQuery(queryRef);
+
+  console.log({error});
+  
 
   const user = useUser();
 

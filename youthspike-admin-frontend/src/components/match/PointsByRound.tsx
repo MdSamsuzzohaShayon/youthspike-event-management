@@ -17,7 +17,7 @@ function PointsByRound({ roundList, dark, allNets, teamE}: IPointsByRoundProps) 
 
   const calcScore = (round: IRoundRelatives): React.ReactNode => {
 
-    const score  = calcRoundScore(allNets.filter((n) => n.round === round._id), round, teamE);
+    const score  = calcRoundScore(allNets.filter((n) => n.round === round._id), teamE);
 
     return (
       <React.Fragment>

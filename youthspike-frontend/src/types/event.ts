@@ -99,5 +99,5 @@ export enum EEventPeriod {
 export enum EEventItem {
   PLAYER = "PLAYER",
   MATCH = "MATCH",
-  TEAM = "TEAM",
+  TEAM = "STANDINGS",
 }

@@ -2,12 +2,9 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import {
-  IEvent,
   IMatch,
   IPlayer,
   IPlayerRankingExpRel,
@@ -20,19 +17,39 @@ import {
   setTeamsPlayerRanking,
 } from "@/redux/slices/playerRankingSlice";
 import { divisionsToOptionList } from "@/utils/helper";
-import { EVENT_ITEM, imgW, APP_NAME } from "@/utils/constant";
-
+import { EVENT_ITEM } from "@/utils/constant";
 import { useLdoId } from "@/lib/LdoProvider";
 import MatchList from "../match/MatchList";
 import TeamList from "../team/TeamList";
-import SelectInput from "../elements/SelectInput";
 import PlayerStandings from "../player/PlayerStandings";
-import { CldImage } from "next-cloudinary";
 import { useDebounce } from "use-debounce";
+import { motion, AnimatePresence } from "framer-motion";
+import EventSponsors from "./EventSponsors";
+import EventHeader from "./EventHeader";
+import EventFilter from "./EventFilter";
+import EventNavigationTabs from "./EventNavigationTabs";
 
 interface IEventDetailProps {
   eventData: IEventDetailData;
 }
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.4 } },
+};
+
+// Sub-components
 
 function EventDetail({ eventData }: IEventDetailProps) {
   const { ldoIdUrl } = useLdoId();
@@ -226,7 +243,10 @@ function EventDetail({ eventData }: IEventDetailProps) {
 
     const filterByGroupMatch = (match: IMatch) => {
       if (!hasGroup) return true;
-      return String(match.teamA?.group) === selectedGroup;
+      return (
+        groupTeamIds?.has(String(match.teamA?._id)) ||
+        groupTeamIds?.has(String(match.teamB?._id))
+      );
     };
 
     // Filter teams
@@ -245,10 +265,8 @@ function EventDetail({ eventData }: IEventDetailProps) {
         teamA: match.teamA ? teamMap.get(String(match.teamA)) : null,
         teamB: match.teamB ? teamMap.get(String(match.teamB)) : null,
       }))
-      // @ts-ignore
-      .filter(filterByGroupMatch)
-      // @ts-ignore
-      .filter(filterBySearchMatch);
+      .filter(filterByGroupMatch as any)
+      .filter(filterBySearchMatch as any);
 
     // Filter players
     const filteredPlayers = sortedPlayers.filter(
@@ -276,7 +294,7 @@ function EventDetail({ eventData }: IEventDetailProps) {
   // Initialize rankings with optimized data structures
   const initializeLists = useCallback(() => {
     const rankingMap = new Map<string, number>();
-    const teamsPlayerRanking = [];
+    const teamsPlayerRanking: IPlayerRankingExpRel[] = [];
 
     for (const team of teams) {
       if (team?.playerRanking && !team.playerRanking.rankLock) {
@@ -286,23 +304,21 @@ function EventDetail({ eventData }: IEventDetailProps) {
             _id: team._id,
             name: team.name,
             division: team.division,
+            // @ts-ignore
             event: event._id,
           },
         });
 
         if (team.playerRanking.rankings) {
-          for (const ranking of team.playerRanking.rankings) {
-            // @ts-ignore
+          for (const ranking of team.playerRanking.rankings as any[]) {
             if (ranking.player?._id) {
-              // @ts-ignore
-              rankingMap.set(ranking.player._id, ranking.rank);
+              rankingMap.set(String(ranking.player._id), ranking.rank);
             }
           }
         }
       }
     }
 
-    // @ts-ignore
     dispatch(setTeamsPlayerRanking(teamsPlayerRanking));
     dispatch(setRankingMap(Array.from(rankingMap.entries())));
   }, [dispatch, event._id, teams]);
@@ -374,38 +390,6 @@ function EventDetail({ eventData }: IEventDetailProps) {
     }
   }, [filteredData, selectedGroup, selectedItem, playerStatsMap, nets, rounds]);
 
-  // Memoize sponsors rendering
-  const renderSponsors = useMemo(() => {
-    if (!user.token && sponsors?.length) {
-      return (
-        <div className="mb-6">
-          <h3 className="mb-4 text-lg font-semibold">Sponsors</h3>
-          <div className="flex gap-4 flex-wrap justify-center">
-            <div className="w-20" key="default-logo">
-              <Image
-                width={imgW.xs}
-                height={imgW.xs}
-                src="/free-logo.png"
-                alt={`${APP_NAME}-logo`}
-              />
-            </div>
-            {sponsors.map((sponsor) => (
-              <CldImage
-                key={sponsor._id}
-                alt={sponsor.company}
-                width="200"
-                height="200"
-                className="w-20"
-                src={sponsor.logo.toString()}
-              />
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }, [user.token, sponsors]);
-
   // Early return for empty data
   if (players.length === 0 && teams.length === 0 && matches.length === 0) {
     return (
@@ -424,105 +408,74 @@ function EventDetail({ eventData }: IEventDetailProps) {
   );
 
   return (
-    <div className="container mx-auto px-4 mb-8">
-      <div className="text-center w-full flex flex-col items-center mb-6">
-        <Link href={`/${ldoIdUrl}`}>
-          <Image
-            height={100}
-            width={100}
-            src="/free-logo.png"
-            alt="youthspike-logo"
-            className="w-24"
+    <motion.div
+      className="container mx-auto px-2 md:px-4 mb-6 md:mb-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <EventHeader event={event} ldoIdUrl={ldoIdUrl} />
+
+      <EventSponsors sponsors={sponsors} userToken={user.token} />
+
+      <EventNavigationTabs
+        selectedItem={selectedItem}
+        handleItemSelect={handleItemSelect}
+        navItems={navItems}
+        isMobile
+      />
+
+      <EventFilter
+        search={search}
+        handleSearchChange={handleSearchChange}
+        currDivision={currDivision}
+        handleDivisionChange={handleDivisionChange}
+        selectedGroup={selectedGroup}
+        handleGroupChange={handleGroupChange}
+        divisionList={divisionList}
+        groupList={groupList}
+        isMobile
+      />
+
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 mt-4 md:mt-6">
+        <EventNavigationTabs
+          selectedItem={selectedItem}
+          handleItemSelect={handleItemSelect}
+          navItems={navItems}
+        />
+
+        <div className="block md:hidden">
+          <EventFilter
+            search={search}
+            handleSearchChange={handleSearchChange}
+            currDivision={currDivision}
+            handleDivisionChange={handleDivisionChange}
+            selectedGroup={selectedGroup}
+            handleGroupChange={handleGroupChange}
+            divisionList={divisionList}
+            groupList={groupList}
           />
-        </Link>
-        <h1 className="text-2xl font-bold mt-2">{event.name}</h1>
-      </div>
+        </div>
 
-      {renderSponsors}
-
-      <div className="search-filter w-full mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="w-full">
-            <label
-              htmlFor="search"
-              className="block text-lg font-semibold text-gray-200 mb-2"
+        <motion.div
+          className="content w-full lg:w-3/4 rounded-md bg-gray-800 p-3 md:p-4"
+          variants={fadeIn}
+          key={selectedItem}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedItem}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
             >
-              Search
-            </label>
-            <div className="relative">
-              <input
-                id="search"
-                name="search"
-                type="text"
-                placeholder="Type to search..."
-                className="w-full px-4 pr-10 py-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                value={search || ""}
-                onChange={handleSearchChange}
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 flex items-center justify-center text-gray-400 hover:text-white focus:outline-none"
-                onClick={() => setSearch("")}
-              >
-                <img
-                  src="/icons/close.svg"
-                  alt="Clear search"
-                  className="w-5 h-5 invert"
-                />
-              </button>
-            </div>
-          </div>
-
-          <SelectInput
-            key="division-input"
-            handleSelect={handleDivisionChange}
-            defaultValue={currDivision || ""}
-            name="division"
-            optionList={divisionList}
-            label="Division"
-          />
-          <SelectInput
-            key="group-input"
-            handleSelect={handleGroupChange}
-            value={selectedGroup || ""}
-            name="group"
-            optionList={[
-              // { id: 1, value: "", text: "All Groups" },
-              ...groupList.map((g, index) => ({
-                id: index + 2,
-                value: g._id,
-                text: g.name,
-              })),
-            ]}
-            label="Group"
-          />
-        </div>
+              {renderContent}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
       </div>
-
-      <div className="flex flex-col lg:flex-row gap-6 mt-8">
-        <div className="side-bar w-full lg:w-1/4 bg-gray-800 p-4 rounded-md lg:max-h-screen overflow-auto">
-          <ul className="flex flex-col gap-2">
-            {navItems.map((item) => (
-              <li
-                key={item}
-                className={`cursor-pointer p-2 rounded-md uppercase text-center transition-colors ${
-                  selectedItem === item
-                    ? "bg-yellow-500 text-black font-semibold"
-                    : "bg-gray-700 text-white hover:bg-gray-600"
-                }`}
-                onClick={() => handleItemSelect(item)}
-              >
-                {item === EEventItem.TEAM ? "Standings / Teams" : item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="content w-full lg:w-3/4 rounded-md bg-gray-800 p-4">
-          {renderContent}
-        </div>
-      </div>
-    </div>
+    </motion.div>
   );
 }
 
