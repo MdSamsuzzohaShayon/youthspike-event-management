@@ -2,22 +2,21 @@ import { UPDATE_MATCH } from "@/graphql/matches";
 import { useMutation, ApolloError } from "@apollo/client";
 import React from "react";
 import { useAppDispatch } from "@/redux/hooks";
-import { EMessage } from "@/types";
+import { EMessage, IMatchExpRel, IMatchRelatives } from "@/types";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useRouter } from "next/navigation";
 
 interface IConfirmCompleteDialogProps {
   completeDialogEl: React.RefObject<HTMLDialogElement | null>;
   matchId: string;
-  eventId: string | null;
+  match: IMatchRelatives;
 }
 
 function ConfirmCompleteDialog({
   completeDialogEl,
   matchId,
-  eventId,
+  match,
 }: IConfirmCompleteDialogProps) {
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const [mutateMatch, { loading }] = useMutation(UPDATE_MATCH);
 
@@ -28,14 +27,17 @@ function ConfirmCompleteDialog({
         console.log("Still loading");
         return;
       }
+
+      const completed = match?.completed ? false : true; // Match is compled make it incomplete, if it is completed then make it completed
       const { data } = await mutateMatch({
-        variables: { input: { completed: true }, matchId },
+        variables: { input: { completed }, matchId },
       });
 
       // ✅ Handle GraphQL response success/failure
       if (data?.updateMatch?.success) {
         completeDialogEl.current?.close();
-        router.push(`/events/${eventId}`); // ✅ Navigate to /matches
+        // router.push(`/events/${eventId}`); // ✅ Navigate to /matches
+        window.location.reload();
       } else {
         alert(data?.updateMatch?.message || "Failed to complete match.");
       }
@@ -50,11 +52,13 @@ function ConfirmCompleteDialog({
     <dialog className="modal-dialog" ref={completeDialogEl}>
       <div className="p-6 space-y-4">
         <h2 className="text-xl font-semibold text-yellow-400">
-          Complete match
+          {match.completed ? "Undo completed match!" : "Complete match"}
         </h2>
         <p className="text-sm text-gray-300">
-          ⚠️ Warning: Make sure you are okay with completing match without
-          completing all next rounds.
+          ⚠️ Warning:{" "}
+          {match.completed
+            ? "You can undo completed match if you had a few hounds left to complete!"
+            : "Make sure you are okay with completing match without completing all next rounds."}
         </p>
 
         <div className="flex justify-end gap-3 pt-4">

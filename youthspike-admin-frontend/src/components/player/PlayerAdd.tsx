@@ -7,7 +7,8 @@ import { IOption, ITeam } from '@/types';
 import { useMutation } from '@apollo/client';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getDivisionFromStore, getTeamFromStore, setDivisionToStore, setTeamToStore } from '@/utils/localStorage';
+import { getDivisionFromStore, getTeamFromStore, setTeamToStore } from '@/utils/localStorage';
+import sessionStorageService from '@/utils/SessionStorageService';
 import ImageInput from '../elements/forms/ImageInput';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
@@ -17,6 +18,7 @@ import InputField from '../elements/forms/InputField';
 import Loader from '../elements/Loader';
 import updatePlayerFn from '@/utils/requestHandlers/updatePlayerFn';
 import createPlayer from '@/utils/requestHandlers/createPlayer';
+import { TEAM } from '@/utils/constant';
 
 interface IPlayerAddProps {
   eventId: string;
@@ -116,14 +118,15 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
 
   // Load from local storage once
   useEffect(() => {
+    const team = sessionStorageService.getItem(TEAM);
+    
     setPlayerState((prev) => ({
       ...prev,
-      ...(getTeamFromStore() ? { team: getTeamFromStore()! } : {}),
+      ...(team ? { team: String(team)! } : {}),
       ...(getDivisionFromStore() ? { division: getDivisionFromStore()! } : {}),
     }));
 
-    const teamExist = getTeamFromStore();
-    setTeamId(teamExist || null);
+    setTeamId(String(team) || null);
   }, []);
 
   // Set director id

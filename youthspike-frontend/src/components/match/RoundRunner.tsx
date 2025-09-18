@@ -91,7 +91,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTea
       if (currentRound?.teamBProcess) setMtp(currentRound.teamBProcess);
       if (currentRound?.teamAProcess) setOtp(currentRound.teamAProcess);
     }
-  }, [currentRound, user, teamA, myTeamE]);
+  }, [currentRound, user, teamA, myTeamE, match]);
 
   return (
     <div className="w-full">
@@ -99,7 +99,7 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTea
         <div className="box w-full flex flex-col justify-center items-center">{currentRoom && renderActionBoxes()}</div>
       </div>
 
-      <ConfirmCompleteDialog completeDialogEl={completeDialogEl} matchId={match._id} eventId={currEvent?._id || null} />
+      <ConfirmCompleteDialog completeDialogEl={completeDialogEl} matchId={match._id} match={match} />
     </div>
   );
 }

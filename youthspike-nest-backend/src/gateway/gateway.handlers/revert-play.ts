@@ -4,7 +4,10 @@ import { ETeam, RevertPlayInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { singlePlayKey } from 'src/util/helper';
-import { ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import {
+  EServerReceiverAction,
+  ServerReceiverSinglePlay,
+} from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 import { RevertPlayHelper } from '../gateway.helpers/revert-play.helper';
@@ -112,7 +115,7 @@ export class RevertPlayHandler {
           : null;
 
       if (!servingTeamE) {
-        throw new Error('Can not detech serving team.');
+        throw new Error('Can not detatch serving team.');
       }
 
       const receivingTeamE =
@@ -123,16 +126,49 @@ export class RevertPlayHandler {
           : null;
 
       if (!receivingTeamE) {
-        throw new Error('Can not detech receiving team.');
+        throw new Error('Can not detatch receiving team.');
+      }
+
+      const serverActions = new Set<EServerReceiverAction>([
+        EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
+        EServerReceiverAction.SERVER_ACE_NO_TOUCH,
+        EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
+        EServerReceiverAction.SERVER_DO_NOT_KNOW,
+        EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
+      ]);
+
+      const receiverActions = new Set<EServerReceiverAction>([
+        EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
+        EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
+        EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
+        EServerReceiverAction.RECEIVER_SERVICE_FAULT,
+      ]);
+
+      let teamAScore = currPlay.teamAScore,
+        teamBScore = currPlay.teamBScore;
+      if (serverActions.has(currPlay.action)) {
+        if (servingTeamE === ETeam.teamA) {
+          teamAScore -= 1;
+        } else if (servingTeamE === ETeam.teamB) {
+          teamBScore -= 1;
+        }
+      } else if (receiverActions.has(currPlay.action)) {
+        if (receivingTeamE === ETeam.teamA) {
+          teamAScore -= 1;
+        } else if (receivingTeamE === ETeam.teamB) {
+          teamBScore -= 1;
+        }
       }
 
       // current Server Receiver
       const srObj: any = {
         ...currPlay,
-        mutate: currPlay.play + 1,
-        play: currPlay.play + 1,
+        mutate: currPlay.play,
+        play: currPlay.play,
         room: body.room,
         round: net.round,
+        teamAScore,
+        teamBScore
       };
       delete srObj.action;
 

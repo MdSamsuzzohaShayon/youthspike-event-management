@@ -74,6 +74,15 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
 
   const handleNextRound = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    if (match.completed) {
+      dispatch(
+        setMessage({
+          type: EMessage.ERROR,
+          message: "This match is completed, you can not go to the next round.",
+        })
+      );
+      return;
+    }
     if (!currentRound?.num) return;
     const targetRoundIndex = roundList.findIndex(
       (r) => r.num === (currentRound?.num || 0) + 1
@@ -217,19 +226,21 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
                 width={100}
               />
               <div className="w-full flex flex-col md:flex-row justify-center items-center gap-2">
-                <button
-                  className="btn-light"
-                  type="button"
-                  onClick={handleNextRound}
-                >
-                  Next Round
-                </button>
+                {!match.completed && (
+                  <button
+                    className="btn-light"
+                    type="button"
+                    onClick={handleNextRound}
+                  >
+                    Next Round
+                  </button>
+                )}
                 <button
                   className="btn-light"
                   type="button"
                   onClick={() => completeDialogEl.current?.showModal()}
                 >
-                  Complete
+                  {match.completed ? "Unfinish Match" : "Finish Match"}
                 </button>
               </div>
             </>

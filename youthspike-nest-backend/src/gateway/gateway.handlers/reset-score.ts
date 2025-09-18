@@ -53,7 +53,7 @@ export class ResetScoreHandler {
         }
 
         // Delete all play cached
-        deletePlayPromises.push(this.scoreKeeperHelper.getSinglePlays(singlePlayKey(body.net, body.room, play.play)));
+        deletePlayPromises.push(this.scoreKeeperHelper.deleteSinglePlayAction(body.net, body.room, play.play));
       }
 
       deletePlayPromises.push(
@@ -122,6 +122,8 @@ export class ResetScoreHandler {
           netService.updateOne({ _id: body.net }, { $pull: { serverReceiverOnNet: { $in: statsIds } } }),
         ]);
       }
+
+      await serverReceiverOnNetService.deleteManySinglePlay({net: body.net});
 
       // Notify room
       await this.scoreKeeperHelper.publishRoom(body.room, 'reset-score-from-server', {

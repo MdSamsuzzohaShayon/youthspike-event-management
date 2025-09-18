@@ -1,16 +1,10 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
-import {
-  IGetTeamDetailQuery,
-  IMatchExpRel,
-  INetRelatives,
-  IPlayerExpRel,
-  IRoundRelatives,
-  ITeam,
-} from '@/types';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import { IGetTeamDetailQuery, IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam } from '@/types';
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
+import sessionStorageService from '@/utils/SessionStorageService';
 import { CldImage } from 'next-cloudinary';
 import { EPlayerStatus } from '@/types/player';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -22,6 +16,7 @@ import Link from 'next/link';
 import TextImg from '../elements/TextImg';
 import { useLdoId } from '@/lib/LdoProvider';
 import { divisionsToOptionList } from '@/utils/helper';
+import { DIVISION, TEAM } from '@/utils/constant';
 
 interface ITeamDetailMainProps {
   eventId: string;
@@ -41,11 +36,9 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
 
   const { data, error } = useReadQuery(queryRef);
 
-
   // Check error here
-  
-  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = data?.getTeamDetails?.data ?? {};
 
+  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = data?.getTeamDetails?.data ?? {};
 
   // Local state
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -54,10 +47,10 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-   // ===== GraphQL =====
-   const [mutateTeam] = useMutation(UPDATE_TEAM);
+  // ===== GraphQL =====
+  const [mutateTeam] = useMutation(UPDATE_TEAM);
 
-   // ===== Memoized Values =====
+  // ===== Memoized Values =====
   const divisionList = useMemo(() => {
     return event?.divisions ? divisionsToOptionList(event.divisions) : [];
   }, [event, event?.divisions]);
@@ -70,16 +63,15 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
     };
   }, [team, captain, cocaptain]);
 
-  const playerRankingData = useMemo(()=>{
+  const playerRankingData = useMemo(() => {
     return {
       ...playerRanking,
-      rankings: rankings
+      rankings: rankings,
     };
   }, [playerRanking, rankings]);
 
   // --- Build lookup maps in O(n) ---
   const roundMap: Map<string, IRoundRelatives> = useMemo(() => {
-    console.log({ rounds });
 
     if (!rounds) new Map<string, IRoundRelatives>();
     return new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
@@ -93,7 +85,6 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
 
   // --- Process Matches Efficiently ---
   const matchList = useMemo(() => {
-
     if (!matches) return [];
     return matches
       .map((m: IMatchExpRel) => {
@@ -172,7 +163,11 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
     return teamPlayers.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
   }, [teamPlayers]);
 
-  const teamDivisionLower = useMemo(() => teamData.division.trim().toLowerCase(), [teamData, teamData.division]);
+  const teamDivisionLower = useMemo(() => {
+    const d = teamData.division.trim().toLowerCase();
+    sessionStorageService.setItem(DIVISION, d);
+    return d;
+  }, [teamData, teamData.division]);
 
   const divisionalPlayers = useMemo(() => {
     if (!unassignedPlayers) return [];
@@ -193,7 +188,6 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return matchList.slice(start, start + ITEMS_PER_PAGE);
   }, [matchList, currentPage]);
-
 
   // Event handlers
   const handleSelectGroup = useCallback((e: React.SyntheticEvent, tab: ETab) => {
@@ -244,8 +238,12 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
     // Match selection logic
   }, []);
 
-  console.log({inactivePlayers});
-  
+  useEffect(() => {
+    // Set team to session storage
+    if (team && team._id) {
+      sessionStorageService.setItem(TEAM, team._id);
+    }
+  }, [team]);
 
   return (
     <React.Fragment>
@@ -319,7 +317,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
               </button>
             </div>
             <form onSubmit={handleAddPlayersToTeam} className="mb-4">
-            {/*  @ts-ignore */}
+              {/*  @ts-ignore */}
               <PlayerSelectInput availablePlayers={divisionalPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
               <button type="submit" className="btn-info mt-4">
                 Add
@@ -329,7 +327,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
         ) : (
           <div className="bulk-operations-players mt-6 mx-auto">
             {/* Header Section */}
-            
+
             <div className="flex flex-col md:flex-row w-full justify-between items-center bg-gray-800 rounded-xl p-4 gap-4">
               <h3 className="text-xl text-white font-semibold text-center md:text-left">Player List</h3>
               <button className="bg-yellow-logo text-black px-4 py-2 rounded-md font-semibold hover:bg-yellow-600 transition duration-300 w-full md:w-auto" onClick={() => setAddPlayer(true)}>

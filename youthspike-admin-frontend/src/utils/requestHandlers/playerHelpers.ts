@@ -10,18 +10,6 @@ export const handleRedirect = async (
   team: string | null
 ) => {
   if (team) {
-    // Try to use document.referrer if available
-    const previousUrl = document.referrer;
-
-    if (previousUrl) {
-      // Check if referrer is internal
-      const url = new URL(previousUrl);
-      if (url.origin === window.location.origin) {
-        router.push(url.pathname + url.search); // preserves query params
-        return;
-      }
-    }
-
     // fallback if referrer not available or external
     router.push(`/${eventId}/teams/${team}/${ldoIdUrl}`);
   } else {

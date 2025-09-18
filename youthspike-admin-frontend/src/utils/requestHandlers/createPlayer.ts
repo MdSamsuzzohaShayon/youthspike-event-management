@@ -50,11 +50,7 @@ async function createPlayer({
 
     let playerRes;
     if (uploadedProfile?.current) {
-      playerRes = await sendGraphQLFormData(
-        CREATE_PLAYER_RAW,
-        { input: playerAddObj, profile: null },
-        uploadedProfile.current
-      );
+      playerRes = await sendGraphQLFormData(CREATE_PLAYER_RAW, { input: playerAddObj, profile: null }, uploadedProfile.current);
     } else {
       playerRes = await addPlayer({ variables: { input: playerAddObj } });
     }
@@ -64,10 +60,18 @@ async function createPlayer({
     if (!success) return;
 
     if (responseData?.data) {
-      await handleRedirect(router, eventId, ldoIdUrl, team);
-      setPlayerState(initialPlayerAdd);
-      (e.target as HTMLFormElement).reset();
-      if (setAddPlayer) setAddPlayer(false);
+      // await handleRedirect(router, eventId, ldoIdUrl, team);
+      // setPlayerState(initialPlayerAdd);
+      // (e.target as HTMLFormElement).reset();
+      // if (setAddPlayer) setAddPlayer(false);
+
+      if (team) {
+        // fallback if referrer not available or external
+        router.push(`/${eventId}/teams/${team}/${ldoIdUrl}`);
+      } else {
+        // For players page
+        router.push(`/${eventId}/players/${ldoIdUrl}`);
+      }
     }
   } catch (err) {
     console.error(err);

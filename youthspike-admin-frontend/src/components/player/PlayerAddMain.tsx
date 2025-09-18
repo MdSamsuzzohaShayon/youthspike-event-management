@@ -5,9 +5,10 @@ import SelectInput from '@/components/elements/forms/SelectInput';
 import CurrentEvent from '@/components/event/CurrentEvent';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { IEventExpRel, ITeam } from '@/types';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
-import { getDivisionFromStore } from '@/utils/localStorage';
-import React, { useEffect, useMemo, useState } from 'react';
+import { divisionsToOptionList } from '@/utils/helper';
+import sessionStorageService from '@/utils/SessionStorageService';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { DIVISION } from '@/utils/constant';
 
 interface IPlayerAddMainProps {
   teams: ITeam[];
@@ -17,43 +18,55 @@ interface IPlayerAddMainProps {
 
 function PlayerAddMain({ teams, divisions, event }: IPlayerAddMainProps) {
   // ===== Local State =====
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [currDivision, setCurrDivision] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [currDivision, setCurrDivision] = useState('');
 
-  const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // ===== Filter Players =====
-    const inputEl = e.target as HTMLInputElement;
-    setCurrDivision(inputEl.value.trim());
-  };
-
+  // ===== Load division from sessionStorage only once =====
   useEffect(() => {
-    const divisionExist = getDivisionFromStore();
-    if (divisionExist) {
-      setCurrDivision(divisionExist);
-    }
+    const savedDivision = sessionStorageService.getItem(DIVISION);
+    if (savedDivision) setCurrDivision(String(savedDivision));
   }, []);
 
+  // ===== Memoize divisions list to avoid recalculating on every render =====
+  const divisionOptions = useMemo(() => divisionsToOptionList(divisions), [divisions]);
+
+  // ===== Memoize filtered teams for performance =====
   const filteredTeams = useMemo(() => {
-    if (currDivision) {
-      return teams.filter((t) => t.division.trim().toUpperCase() === currDivision.trim().toUpperCase());
-    }
-    return teams;
+    if (!currDivision) return teams;
+    const normalizedDivision = currDivision.trim().toUpperCase();
+    return teams.filter((t) => t.division.trim().toUpperCase() === normalizedDivision);
   }, [teams, currDivision]);
+
+  // ===== Callback avoids unnecessary re-renders of child components =====
+  const handleDivisionSelection = useCallback(
+    (e: React.SyntheticEvent) => {
+      const inputEl = e.target as HTMLSelectElement;
+      setCurrDivision(inputEl.value.trim());
+    },
+    []
+  );
 
   if (isLoading) return <Loader />;
 
   return (
-    <React.Fragment>
+    <>
       <h1 className="mb-8 text-center">Add Player</h1>
+
       {event && <CurrentEvent currEvent={event} />}
 
       <div className="mb-4 division-selection w-full">
-        <SelectInput key="player-new-pg-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionsToOptionList(divisions)} />
+        <SelectInput
+          key="player-new-pg-1"
+          handleSelect={handleDivisionSelection}
+          value={currDivision}
+          name="division"
+          optionList={divisionOptions}
+        />
       </div>
+
       <PlayerAdd eventId={event._id} teamList={filteredTeams} division={currDivision} />
-    </React.Fragment>
+    </>
   );
 }
 
-export default PlayerAddMain;
+export default React.memo(PlayerAddMain);

@@ -94,6 +94,17 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     (e: React.SyntheticEvent, roundId: string) => {
       e.preventDefault();
 
+      if (match.completed) {
+        dispatch(
+          setMessage({
+            type: EMessage.ERROR,
+            message:
+              "This match is completed, you can not go to the next round.",
+          })
+        );
+        return;
+      }
+
       handleRoundChange(roundId, (errorMessage) => {
         dispatch(
           setMessage({
@@ -105,7 +116,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
       dispatch(setMessage(null));
     },
-    [dispatch, handleRoundChange]
+    [dispatch, handleRoundChange, match]
   );
 
   const handleClosePlayers = useCallback(
