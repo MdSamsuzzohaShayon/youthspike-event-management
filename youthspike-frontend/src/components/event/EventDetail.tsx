@@ -437,7 +437,7 @@ function EventDetail({ eventData }: IEventDetailProps) {
         isMobile
       />
 
-      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 mt-4 md:mt-6">
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
         <EventNavigationTabs
           selectedItem={selectedItem}
           handleItemSelect={handleItemSelect}

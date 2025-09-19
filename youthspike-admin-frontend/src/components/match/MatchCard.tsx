@@ -34,6 +34,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
   const actionItemEl = useRef<HTMLUListElement | null>(null);
+  const deleteEl = useRef<HTMLDialogElement | null>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [deleteMatch, { loading }] = useMutation(DELETE_MATCH);
 
@@ -54,7 +55,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   // Optimized status message calculation with early returns
   const statusMessage = useMemo(() => {
     if (match.completed) return 'COMPLETED';
-    
+
     const rounds = match.rounds;
     for (let i = 0; i < rounds.length; i++) {
       const currRound = rounds[i];
@@ -91,10 +92,10 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
   // Memoize status color to avoid recalculating
   const statusColor = useMemo(() => {
-    if (statusMessage.includes('LIVE')) return 'bg-red-500';
-    if (statusMessage.includes('ASSIGNING')) return 'bg-blue-500';
-    if (statusMessage === 'COMPLETED') return 'bg-green-500';
-    if (statusMessage === 'SCHEDULED') return 'bg-yellow-500';
+    if (statusMessage.includes('LIVE')) return 'bg-red-500 text-white';
+    if (statusMessage.includes('ASSIGNING')) return 'bg-blue-500 text-white ';
+    if (statusMessage === 'COMPLETED') return 'bg-green-500 text-white ';
+    if (statusMessage === 'SCHEDULED') return 'bg-yellow-logo text-black';
     return 'bg-gray-500';
   }, [statusMessage]);
 
@@ -136,35 +137,31 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
     let teamA = 0;
     let teamB = 0;
     const rounds = match.rounds;
-    
+
     for (let i = 0; i < rounds.length; i++) {
       const round = rounds[i];
       const roundNets = netsByRoundId.get(round._id) || [];
       teamA += calcRoundScore(roundNets, ETeam.teamA);
       teamB += calcRoundScore(roundNets, ETeam.teamB);
     }
-    
+
     return { teamA, teamB };
   }, [match.rounds, netsByRoundId]);
 
   /** ✅ Team card reusable component - optimized with direct props */
-  const TeamCard = React.memo(({ team, teamScore, opponentScore, won }: { 
-    team: ITeam; 
-    teamScore: number; 
-    opponentScore: number; 
-    won: boolean;
-  }) => (
+  const TeamCard = React.memo(({ team, teamScore, opponentScore, won }: { team: ITeam; teamScore: number; opponentScore: number; won: boolean }) => (
     <div className={`flex items-center gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
-      <div className="flex-shrink-0 w-6 h-6">
-        {team?.logo ? 
-          <CldImage alt={team.name} width={24} height={24} className="w-6 h-6 object-contain" src={team.logo} /> : 
-          <TextImg fullText={team.name} className="w-6 h-6 object-contain" />
-        }
+      <div className="flex-shrink-0">
+        {team?.logo ? (
+          <CldImage alt={team.name} width={24} height={24} className="w-12 h-12 object-contain" src={team.logo} />
+        ) : (
+          <TextImg fullText={team.name} className="w-12 h-12 object-contain rounded-xl" />
+        )}
       </div>
       <div className="flex-1 min-w-0">
-        <h5 className="text-xs font-medium text-white capitalize truncate">{team?.name}</h5>
+        <h5 className="text-xs font-medium text-white capitalize break-words">{team?.name}</h5>
       </div>
-      <div className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full border ${won ? 'border-green-500 bg-green-600' : 'border-gray-400'}`}>
+      <div className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl border ${won ? 'border-green-500 bg-green-600 text-white' : 'border-gray-400 bg-white text-black'}`}>
         <span className="text-xs font-bold">{teamScore}</span>
       </div>
     </div>
@@ -173,70 +170,64 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   TeamCard.displayName = 'TeamCard';
 
   /** ✅ Reusable Action Buttons - optimized with useCallback */
-  const ActionButtons = useCallback(({ iconSize = 20 }: { iconSize?: number }) => {
-    const iconClass = `w-${iconSize / 4} h-${iconSize / 4}`;
+  const ActionButtons = useCallback(
+    ({ iconSize = 20 }: { iconSize?: number }) => {
+      const iconClass = `w-${iconSize / 4} h-${iconSize / 4}`;
 
-    return (
-      <div className="flex justify-between items-center gap-2 mt-2 md:mt-0">
-        {/* Spectate */}
-        <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
-          <Image width={iconSize} height={iconSize} src="/icons/spectate.svg" alt="Spectate" className={iconClass} />
-          <span className="text-[10px] md:text-xs uppercase mt-1">Spectate</span>
-        </Link>
+      return (
+        <div className="flex justify-between items-center gap-2 mt-2 md:mt-0 relative">
+          {user.info?.role === UserRole.admin ||
+            (user.info?.role === UserRole.director && <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />)}
+          {/* Spectate */}
+          <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+            <Image width={iconSize} height={iconSize} src="/icons/spectate.svg" alt="Spectate" className={iconClass} />
+            <span className="text-[10px] md:text-xs uppercase mt-1">Spectate</span>
+          </Link>
 
-        {/* Captain */}
-        <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
-          <Image width={iconSize} height={iconSize} src="/icons/captain.png" alt="Captain" className={iconClass} />
-          <span className="text-[10px] md:text-xs uppercase mt-1">Captain</span>
-        </Link>
+          {/* Captain */}
+          <Link href={`${FRONTEND_URL}/matches/${match._id}/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+            <Image width={iconSize} height={iconSize} src="/icons/captain.png" alt="Captain" className={iconClass} />
+            <span className="text-[10px] md:text-xs uppercase mt-1">Captain</span>
+          </Link>
 
-        {/* Scorekeeper */}
-        <Link href={`${FRONTEND_URL}/score-keeping/${match._id}/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
-          <Image width={iconSize} height={iconSize} src="/icons/scorekeeper.png" alt="Scorekeeper" className={iconClass} />
-          <span className="text-[10px] md:text-xs uppercase mt-1">Scorekeeper</span>
-        </Link>
-      </div>
-    );
-  }, [match._id, ldoIdUrl]);
+          {/* Scorekeeper */}
+          <Link href={`${FRONTEND_URL}/score-keeping/${match._id}/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+            <Image width={iconSize} height={iconSize} src="/icons/scorekeeper.png" alt="Scorekeeper" className={iconClass} />
+            <span className="text-[10px] md:text-xs uppercase mt-1">Scorekeeper</span>
+          </Link>
+
+          <Image src="/icons/dots-vertical.svg" height={20} width={20} alt="dot-vertical" className="w-4 svg-white" role="presentation" onClick={handleOpenAction} />
+        </div>
+      );
+    },
+    [match._id, ldoIdUrl],
+  );
 
   /** ✅ Reusable Header - optimized with useCallback */
-  const MatchHeader = useCallback(() => (
-    <div className={`px-2 md:px-3 py-1 md:py-2 ${statusColor} text-white text-xs font-semibold uppercase flex justify-between items-center rounded-t`}>
-      {user.info?.role === UserRole.admin || user.info?.role === UserRole.director ? (
-        <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />
-      ) : (
-        <div className="w-4" />
-      )}
-      <span className="truncate">{statusMessage}</span>
-      {match.location && <span className="hidden md:inline">{match.location}</span>}
-      <span>{readDate(match.date)}</span>
-      <Image src="/icons/dots-vertical.svg" height={20} width={20} alt="dot-vertical" className="w-4 svg-white" role="presentation" onClick={handleOpenAction} />
-    </div>
-  ), [statusColor, user.info?.role, isChecked, match._id, handleSelectMatch, statusMessage, match.location, match.date]);
+  const MatchHeader = useCallback(
+    () => (
+      <div className={`px-2 md:px-3 py-1 md:py-2 ${statusColor} text-xs font-semibold uppercase flex justify-between items-center rounded-t`}>
+        <span>{statusMessage}</span>
+        {match.location && <span>{match.location}</span>}
+        <span>{readDate(match.date)}</span>
+      </div>
+    ),
+    [statusColor, user.info?.role, isChecked, match._id, handleSelectMatch, statusMessage, match.location, match.date],
+  );
 
   // Precompute values for TeamCard components
   const teamAWon = teamScores.teamA > teamScores.teamB && match.completed;
   const teamBWon = teamScores.teamB > teamScores.teamA && match.completed;
 
   return (
-    <div className='relative'>
+    <div className="relative">
       {/* Mobile View */}
       <div className="block md:hidden bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-2">
         <MatchHeader />
-        {match.location && <div className="text-xs text-gray-400 text-center py-1 truncate">{match.location}</div>}
+
         <div className="grid grid-cols-2 gap-2 mt-1">
-          <TeamCard 
-            team={match.teamA} 
-            teamScore={teamScores.teamA} 
-            opponentScore={teamScores.teamB} 
-            won={teamAWon} 
-          />
-          <TeamCard 
-            team={match.teamB} 
-            teamScore={teamScores.teamB} 
-            opponentScore={teamScores.teamA} 
-            won={teamBWon} 
-          />
+          <TeamCard team={match.teamA} teamScore={teamScores.teamA} opponentScore={teamScores.teamB} won={teamAWon} />
+          <TeamCard team={match.teamB} teamScore={teamScores.teamB} opponentScore={teamScores.teamA} won={teamBWon} />
         </div>
         <ActionButtons iconSize={20} />
       </div>
@@ -246,18 +237,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <MatchHeader />
         <div className="flex flex-col items-center justify-between mt-2">
           <div className="grid grid-cols-2 gap-3 flex-1">
-            <TeamCard 
-              team={match.teamA} 
-              teamScore={teamScores.teamA} 
-              opponentScore={teamScores.teamB} 
-              won={teamAWon} 
-            />
-            <TeamCard 
-              team={match.teamB} 
-              teamScore={teamScores.teamB} 
-              opponentScore={teamScores.teamA} 
-              won={teamBWon} 
-            />
+            <TeamCard team={match.teamA} teamScore={teamScores.teamA} opponentScore={teamScores.teamB} won={teamAWon} />
+            <TeamCard team={match.teamB} teamScore={teamScores.teamB} opponentScore={teamScores.teamA} won={teamBWon} />
           </div>
           <ActionButtons iconSize={24} />
         </div>
@@ -280,7 +261,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
                 <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <button type="button" onClick={(e) => handleDeleteMatch(e, match._id)}>
+                <button type="button" onClick={(e) => deleteEl.current?.showModal()}>
                   Delete
                 </button>
               </li>
@@ -292,6 +273,21 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         </motion.ul>
       )}
       {/* Actions items end */}
+      <dialog ref={deleteEl} className="modal-dialog p-4">
+        <div className="flex flex-col gap-y-2">
+          <h2>Delete match</h2>
+          <p className="text-yellow-100/90">Are your sure you want to delete the match?</p>
+          <p>Description: {match?.description}</p>
+          <div className="buttons flex w-full justify-between items-center">
+            <div className="btn-info" onClick={(e) => handleDeleteMatch(e, match._id)}>
+              Confirm
+            </div>
+            <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>
+              Cancel
+            </div>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

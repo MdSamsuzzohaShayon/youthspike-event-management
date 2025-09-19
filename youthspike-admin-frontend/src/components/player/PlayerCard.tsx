@@ -43,6 +43,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
   const [newEmail, setNewEmail] = useState<string>('');
   const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
+  const deleteEl = useRef<HTMLDialogElement | null>(null);
 
   const dialogEl = useRef<HTMLDialogElement | null>(null);
   const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
@@ -316,7 +317,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
                       Make Active
                     </li>
                   )}
-                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleDelete(e, player._id)}>
+                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => deleteEl.current?.showModal()}>
                     Delete
                   </li>
                 </>
@@ -400,6 +401,25 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         teamId={teamId || null}
         teamList={teamList || []}
       />
+
+      {/* Actions items end */}
+      <dialog ref={deleteEl} className="modal-dialog p-4">
+        <div className="flex flex-col gap-y-2">
+          <h2>Delete player</h2>
+          <p className="text-yellow-100/90">Are your sure you want to delete the player?</p>
+          <p>
+            Name: {player?.firstName} {player?.lastName}
+          </p>
+          <div className="buttons flex w-full justify-between items-center">
+            <div className="btn-info" onClick={(e) => handleDelete(e, player._id)}>
+              Confirm
+            </div>
+            <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>
+              Cancel
+            </div>
+          </div>
+        </div>
+      </dialog>
     </>
   );
 }

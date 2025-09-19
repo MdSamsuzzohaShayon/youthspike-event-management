@@ -46,6 +46,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   const [eventOptions, setEventOptions] = useState<IOption[]>([]);
   const [divisionOptions, setDivisionOptions] = useState<IOption[]>([]);
   const [cardResponsiveH, setCardResponsiveH] = useState<CSSProperties>({ height: cardHeight });
+  const deleteEl = useRef<HTMLDialogElement | null>(null);
 
   const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
   const [moveTeamMutation] = useMutation(UPDATE_TEAM);
@@ -180,7 +181,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
                 <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={16} height={16} /> {team.sendCredentials ? 'Resend' : 'Send'}{' '}
                 Credential
               </li>
-              <li onClick={(e) => handleDeleteTeam(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400">
+              <li onClick={(e) => deleteEl.current?.showModal()} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400">
                 <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
               </li>
             </motion.ul>
@@ -292,6 +293,23 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         </div>
       )}
       {/* Level-2: Moving component end */}
+
+      {/* Actions items end */}
+      <dialog ref={deleteEl} className="modal-dialog p-4 ">
+        <div className="flex flex-col gap-y-2">
+          <h2>Delete Team</h2>
+          <p className="text-yellow-100/90">Are your sure you want to delete the team?</p>
+          <p>Name: {team?.name}</p>
+          <div className="buttons flex w-full justify-between items-center">
+            <div className="btn-info" onClick={(e) => handleDeleteTeam(e, team._id)}>
+              Confirm
+            </div>
+            <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>
+              Cancel
+            </div>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { ETeam, ITeam } from "@/types/team";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import Link from "next/link";
 import React, { useCallback, useMemo, useRef } from "react";
-import { readTime } from "@/utils/datetime";
+import { readDate, readTime } from "@/utils/datetime";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@/lib/UserProvider";
@@ -30,19 +30,20 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const handleCaptainView = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    if (user.token) {
-      router.push(`/matches/${match._id}/${ldoIdUrl}`);
+    if (user?.token) {
+      router.push(`/matches/${match?._id}/${ldoIdUrl}`);
       return;
     }
     // Remove all local storage
     localStorageService.clearAll();
     // sessionStorageService.setItem(MATCH, match._id);
-    router.push(`${ADMIN_FRONTEND_URL}/login/?matchId=${match._id}`);
+    router.push(`${ADMIN_FRONTEND_URL}/login/?matchId=${match?._id}`);
   };
 
   /** ✅ Precompute nets by round */
   const netsByRoundId = useMemo(() => {
     return allNets.reduce((map, net) => {
+      if (!net?.round) return map;
       if (!map.has(net.round)) map.set(net.round, []);
       map.get(net.round)!.push(net);
       return map;
@@ -53,6 +54,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const teamScores = useMemo(() => {
     return roundList.reduce(
       (scores, round) => {
+        if (!round?._id) return scores;
         const roundNets = netsByRoundId.get(round._id) || [];
         // @ts-ignore
         scores.teamA += calcRoundScore(roundNets, round, ETeam.teamA).score;
@@ -66,9 +68,11 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
   /** ✅ Determine match status */
   const statusMessage = useMemo(() => {
-    if (match.completed) return "COMPLETED";
+    if (match?.completed) return "COMPLETED";
 
     for (const currRound of roundList) {
+      if (!currRound?._id) continue;
+      
       const roundNets = netsByRoundId.get(currRound._id) || [];
 
       if (
@@ -78,7 +82,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         return "SCHEDULED";
 
       const hasIncompleteNet = roundNets.some(
-        (net) => !net.teamAScore || !net.teamBScore
+        (net) => !net?.teamAScore || !net?.teamBScore
       );
 
       if (
@@ -98,64 +102,66 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     }
 
     return "UPCOMING";
-  }, [roundList, netsByRoundId, match.completed]);
+  }, [roundList, netsByRoundId, match?.completed]);
 
   /** ✅ Map status to color */
   const statusColor = useMemo(() => {
-    if (statusMessage.includes("LIVE")) return "bg-red-500";
-    if (statusMessage.includes("ASSIGNING")) return "bg-blue-500";
-    if (statusMessage === "COMPLETED") return "bg-green-500";
-    if (statusMessage === "SCHEDULED") return "bg-yellow-500";
+    if (statusMessage.includes("LIVE")) return "bg-red-500 text-white";
+    if (statusMessage.includes("ASSIGNING")) return "bg-blue-500 text-white";
+    if (statusMessage === "COMPLETED") return "bg-green-500 text-white";
+    if (statusMessage === "SCHEDULED") return "bg-yellow-logo text-black";
     return "bg-gray-500";
   }, [statusMessage]);
 
   /** ✅ Team card reusable component */
   const TeamCard = useCallback(
-    ({ team, teamType }: { team: ITeam; teamType: ETeam }) => {
+    ({ team, teamType }: { team?: ITeam | null; teamType: ETeam }) => {
       const teamScore =
         teamType === ETeam.teamA ? teamScores.teamA : teamScores.teamB;
       const opponentScore =
         teamType === ETeam.teamA ? teamScores.teamB : teamScores.teamA;
-      const won = teamScore > opponentScore && match.completed;
+      const won = teamScore > opponentScore && match?.completed;
 
       return (
         <div
-          className={`flex items-center gap-1 p-1 rounded-md ${
+          className={`flex ${teamType === ETeam.teamA ? "flex-row" : "flex-row-reverse"} items-center gap-1 p-1 rounded-md ${
             won ? "bg-green-600/20 border border-green-500" : ""
           }`}
         >
-          <div className="flex-shrink-0 w-6 h-6">
+          <div className="flex-shrink-0">
             {team?.logo ? (
               <CldImage
-                alt={team.name}
+                alt={team?.name || "Team logo"}
                 width={24}
                 height={24}
-                className="w-6 h-6 object-contain"
+                className="w-12 h-12 object-contain"
                 src={team.logo}
               />
             ) : (
               <TextImg
-                fullText={team.name}
-                className="w-6 h-6 object-contain"
+                fullText={team?.name || "Team"}
+                className="w-12 h-12 object-contain rounded-xl"
               />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h5 className="text-xs font-medium text-white capitalize truncate">
-              {team?.name}
+            <h5 className="text-xs font-medium text-white capitalize word-breaks text-center">
+              {team?.name || "Unknown Team"}
             </h5>
           </div>
           <div
-            className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full border ${
-              won ? "border-green-500 bg-green-600" : "border-gray-400"
+            className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg border ${
+              won
+                ? "border-green-500 bg-green-600"
+                : "border-gray-400 bg-white text-black"
             }`}
           >
-            <span className="text-xs font-bold">{teamScore}</span>
+            <span className="text-xs font-bold">{teamScore} </span>
           </div>
         </div>
       );
     },
-    [teamScores, match.completed]
+    [teamScores, match?.completed]
   );
 
   /** ✅ Reusable Action Buttons */
@@ -163,11 +169,11 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     const iconClass = `w-${iconSize / 4} h-${iconSize / 4}`;
 
     return (
-      <div className="flex justify-between items-center gap-2 mt-2 md:mt-0">
+      <div className="flex justify-between items-center gap-2 mt-2">
         {/* Spectate */}
         <Link
-          href={`/matches/${match._id}/scoreboard/${ldoIdUrl}`}
-          className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors"
+          href={`/matches/${match?._id}/scoreboard/${ldoIdUrl}`}
+          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors"
         >
           <Image
             width={iconSize}
@@ -176,7 +182,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             alt="Spectate"
             className={iconClass}
           />
-          <span className="text-[10px] md:text-xs uppercase mt-1">
+          <span className="text-[10px] md:text-xs uppercase">
             Spectate
           </span>
         </Link>
@@ -185,7 +191,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         <div
           onClick={handleCaptainView}
           role="presentation"
-          className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors"
+          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors"
         >
           <Image
             width={iconSize}
@@ -194,13 +200,13 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             alt="Captain"
             className={iconClass}
           />
-          <span className="text-[10px] md:text-xs uppercase mt-1">Captain</span>
+          <span className="text-[10px] md:text-xs uppercase">Captain</span>
         </div>
 
         {/* Scorekeeper */}
         <Link
-          href={`/score-keeping/${match._id}/${ldoIdUrl}`}
-          className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors"
+          href={`/score-keeping/${match?._id}/${ldoIdUrl}`}
+          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors"
         >
           <Image
             width={iconSize}
@@ -209,7 +215,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             alt="Scorekeeper"
             className={iconClass}
           />
-          <span className="text-[10px] md:text-xs uppercase mt-1">
+          <span className="text-[10px] md:text-xs uppercase">
             Scorekeeper
           </span>
         </Link>
@@ -220,29 +226,26 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   /** ✅ Reusable Header */
   const MatchHeader = () => (
     <div
-      className={`px-2 md:px-3 py-1 md:py-2 ${statusColor} text-white text-xs font-semibold uppercase flex justify-between items-center rounded-t`}
+      className={`px-2 md:px-3 py-1 md:py-2 ${statusColor} text-xs font-semibold uppercase rounded-t flex flex-wrap justify-between items-center`}
     >
-      <span className="truncate">{statusMessage}</span>
-      {match.location && (
-        <span className="hidden md:inline">{match.location}</span>
-      )}
-      <span>{readTime(match.date)}</span>
+      <span>{statusMessage}</span>
+      {match?.description && <span>{match.description}</span>}
+      {match?.location && <span>{match.location}</span>}
+      <span>{readDate(match?.date)}</span>
     </div>
   );
+
+  if (!match) return null;
 
   return (
     <>
       {/* Mobile View */}
       <div className="block md:hidden bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-2">
         <MatchHeader />
-        {match.location && (
-          <div className="text-xs text-gray-400 text-center py-1 truncate">
-            {match.location}
-          </div>
-        )}
+
         <div className="grid grid-cols-2 gap-2 mt-1">
-          <TeamCard team={match.teamA} teamType={ETeam.teamA} />
-          <TeamCard team={match.teamB} teamType={ETeam.teamB} />
+          <TeamCard team={match?.teamA} teamType={ETeam.teamA} />
+          <TeamCard team={match?.teamB} teamType={ETeam.teamB} />
         </div>
         <ActionButtons iconSize={20} />
       </div>
@@ -252,8 +255,8 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         <MatchHeader />
         <div className="flex flex-col items-center justify-between mt-2">
           <div className="grid grid-cols-2 gap-3 flex-1">
-            <TeamCard team={match.teamA} teamType={ETeam.teamA} />
-            <TeamCard team={match.teamB} teamType={ETeam.teamB} />
+            <TeamCard team={match?.teamA} teamType={ETeam.teamA} />
+            <TeamCard team={match?.teamB} teamType={ETeam.teamB} />
           </div>
           <ActionButtons iconSize={24} />
         </div>

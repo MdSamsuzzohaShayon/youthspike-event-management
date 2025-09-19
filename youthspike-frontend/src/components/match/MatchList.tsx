@@ -10,8 +10,6 @@ import MatchCard from './MatchCard';
 import SelectInput from '../elements/SelectInput';
 import Pagination from '../elements/Pagination';
 
-
-
 interface IMatchListProps {
   matchList?: IMatch[];
   nets: INetRelatives[];
@@ -45,6 +43,7 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
   const roundsByMatch = useMemo(() => {
     const map = new Map<string, IRoundRelatives[]>();
     for (const r of rounds) {
+      if (!r?.match) continue;
       if (!map.has(r.match)) map.set(r.match, []);
       map.get(r.match)!.push(r);
     }
@@ -53,32 +52,35 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
 
   // ✅ Pre-map nets once instead of recalculating every render
   const normalizedNets = useMemo(
-    // @ts-ignore
-    () => nets.map((n) => ({ ...n, round: n.round?._id || n.round })),
+    () => (nets || []).map((n) => ({ 
+      ...n, 
+      // @ts-ignore
+      round: n?.round?._id || n?.round 
+    })),
     [nets]
   );
 
   // ✅ Compute filtered matches on demand
   const filteredMatchList = useMemo(() => {
-    if (!filter) return matchList;
+    if (!filter) return matchList || [];
 
     switch (filter) {
       case EEventPeriod.CURRENT:
-        return matchList.filter((m) => validateMatchDatetime(m.date) === EEventPeriod.CURRENT);
+        return (matchList || []).filter((m) => m?.date && validateMatchDatetime(m.date) === EEventPeriod.CURRENT);
       case EEventPeriod.PAST:
-        return matchList.filter((m) => validateMatchDatetime(m.date) === EEventPeriod.PAST);
+        return (matchList || []).filter((m) => m?.date && validateMatchDatetime(m.date) === EEventPeriod.PAST);
       case EMatchStatus.COMPLETED:
-        return matchList.filter((m) => m.completed);
+        return (matchList || []).filter((m) => m?.completed);
       case EMatchStatus.IN_PROGRESS:
-        return matchList.filter(
-          (m) => !m.completed && m.rounds.length > 0 && m.rounds[0]?.teamAProcess !== EActionProcess.INITIATE
+        return (matchList || []).filter(
+          (m) => !m?.completed && m?.rounds?.length > 0 && m.rounds[0]?.teamAProcess !== EActionProcess.INITIATE
         );
       case EMatchStatus.NOT_STARTED:
-        return matchList.filter(
-          (m) => !m.completed && m.rounds.length > 0 && m.rounds[0]?.teamAProcess === EActionProcess.INITIATE
+        return (matchList || []).filter(
+          (m) => !m?.completed && m?.rounds?.length > 0 && m.rounds[0]?.teamAProcess === EActionProcess.INITIATE
         );
       default:
-        return matchList;
+        return matchList || [];
     }
   }, [matchList, filter]);
 
@@ -132,10 +134,10 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
 
       {paginatedMatchList.map((match) => (
         <MatchCard
-          key={match._id}
+          key={match?._id || Math.random()}
           match={match}
           // @ts-ignore
-          roundList={roundsByMatch.get(match._id) || []}
+          roundList={roundsByMatch.get(match?._id || '') || []}
           allNets={normalizedNets}
         />
       ))}
