@@ -5,6 +5,7 @@ import {
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PointsUpdateHelper } from './points-update.helper';
 import { ScoreKeeperHelper } from './score-keeper.helper';
+import { PlayerStats } from 'src/player-stats/player-stats.schema';
 
 @Injectable()
 export class RevertPlayHelper {
@@ -14,7 +15,7 @@ export class RevertPlayHelper {
     singlePlay: ServerReceiverSinglePlay,
     pointsUpdateHelper: PointsUpdateHelper,
   ): Promise<string[]> {
-    let stats = null,
+    let stats: Record<string, PlayerStats> = null,
       playerIds = [];
     switch (singlePlay.action) {
       case EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH:
@@ -114,6 +115,36 @@ export class RevertPlayHelper {
     }
 
     if (stats) {
+      // Validate and sanitize stats to ensure no negative values (except break/broken)
+      Object.keys(stats).forEach((playerId) => {
+        const playerStats = stats[playerId];
+
+        // Define which stats cannot be negative
+        const nonNegativeStats = [
+          'serveOpportunity',
+          'serveAce',
+          'serveCompletionCount',
+          'servingAceNoTouch',
+          'receiverOpportunity',
+          'receivedCount',
+          'noTouchAcedCount',
+          'hittingOpportunity',
+          'hittingCompletion',
+          'cleanHits',
+          'defensiveOpportunity',
+          'defensiveConversion',
+          'matchPlayed',
+          'settingOpportunity',
+          'cleanSets',
+        ];
+
+        // Ensure non-negative stats are at least 0
+        nonNegativeStats.forEach((stat) => {
+          if (playerStats[stat] !== null && playerStats[stat] !== undefined) {
+            playerStats[stat] = Math.max(0, playerStats[stat]);
+          }
+        });
+      });
       await this.scoreKeeper.savePlayerStats(stats);
     }
 

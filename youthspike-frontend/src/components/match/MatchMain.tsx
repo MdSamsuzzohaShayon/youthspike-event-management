@@ -30,7 +30,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
   const dispatch = useAppDispatch();
-  const user = useUser();
   const socket = useSocket();
 
   // Selectors

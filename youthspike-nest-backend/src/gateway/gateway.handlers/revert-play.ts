@@ -49,13 +49,7 @@ export class RevertPlayHandler {
 
         try {
           let singlePlayExist = await this.scoreKeeperHelper.loadSinglePlayAction(body.net, body.room, playToDelete);
-          if (!singlePlayExist) {
-            singlePlayExist = await serverReceiverOnNetService.findOneSinglePlay({
-              net: body.net,
-              room: body.room,
-              play: playToDelete,
-            });
-          }
+          if (!singlePlayExist) continue;
           const pIds = await this.revertPlayHelper.revertPlayerScore(singlePlayExist, this.pointsUpdateHelper);
           pIds.forEach((p) => playerIds.add(p));
         } catch (playErr) {

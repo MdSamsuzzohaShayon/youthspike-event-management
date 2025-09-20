@@ -21,6 +21,7 @@ import PlayerMoveDialog from './PlayerMoveDialog';
 import TextImg from '../elements/TextImg';
 import InputField from '../elements/forms/InputField';
 import AddEmailDialog from './AddEmailDialog';
+import { FRONTEND_URL } from '@/utils/keys';
 
 interface IPlayerCardProps {
   player: IPlayerRank;
@@ -283,10 +284,13 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
               transition={{ duration: 0.2 }}
             >
               <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
+                <Link href={`${FRONTEND_URL}/players/${player._id}`}>Stats</Link>
               </li>
               {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
                 <>
+                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                    <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
+                  </li>
                   {rankControls && player.status === EPlayerStatus.ACTIVE && (
                     <>
                       <li
