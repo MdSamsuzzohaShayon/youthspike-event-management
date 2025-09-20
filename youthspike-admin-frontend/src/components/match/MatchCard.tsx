@@ -19,6 +19,7 @@ import { menuVariants } from '@/utils/animation';
 import { handleError } from '@/utils/handleError';
 import TextImg from '../elements/TextImg';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -32,6 +33,7 @@ interface MatchCardProps {
 
 function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
   const user = useUser();
+  const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const actionItemEl = useRef<HTMLUListElement | null>(null);
   const deleteEl = useRef<HTMLDialogElement | null>(null);
@@ -169,6 +171,12 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
   TeamCard.displayName = 'TeamCard';
 
+  // const redirectSpectate=(e: React.SyntheticEvent)=>{
+  //   e.preventDefault();
+  //   router.push()
+
+  // }
+
   /** ✅ Reusable Action Buttons - optimized with useCallback */
   const ActionButtons = useCallback(
     ({ iconSize = 20 }: { iconSize?: number }) => {
@@ -181,7 +189,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
           {/* Spectate */}
           <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
             <Image width={iconSize} height={iconSize} src="/icons/spectate.svg" alt="Spectate" className={iconClass} />
-            <span className="text-[10px] md:text-xs uppercase mt-1">Spectate</span>
+            <span className="text-[10px] md:text-xs uppercase mt-1">Full Scoreboard</span>
           </Link>
 
           {/* Captain */}

@@ -239,10 +239,10 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
             <p className="text-yellow-400 uppercase font-bold tracking-wide">{team.name}</p>
             {rank && (
               <button
-                className="md:hidden flex w-10 h-10 items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="md:hidden flex w-10 h-10 items-center justify-center bg-yellow-logo dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 aria-label="Options"
               >
-                <p className="text-yellow-400 uppercase font-bold tracking-wide">{rank}</p>
+                <p className="text-black uppercase font-bold tracking-wide">{rank}</p>
               </button>
             )}
           </div>
@@ -369,8 +369,8 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         <div className="player-role mr-4">{PlayerRole}</div>
 
         {rank && (
-          <button className="mr-4 flex w-10 h-10 items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" aria-label="Options">
-            <p className="text-yellow-400 uppercase font-bold tracking-wide">{rank}</p>
+          <button className="mr-4 flex w-10 h-10 items-center justify-center bg-yellow-logo text-black dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" aria-label="Options">
+            <p className="uppercase font-bold tracking-wide">{rank}</p>
           </button>
         )}
 

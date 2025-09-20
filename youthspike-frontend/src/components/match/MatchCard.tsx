@@ -72,7 +72,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
     for (const currRound of roundList) {
       if (!currRound?._id) continue;
-      
+
       const roundNets = netsByRoundId.get(currRound._id) || [];
 
       if (
@@ -124,7 +124,9 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
       return (
         <div
-          className={`flex ${teamType === ETeam.teamA ? "flex-row" : "flex-row-reverse"} items-center gap-1 p-1 rounded-md ${
+          className={`flex ${
+            teamType === ETeam.teamA ? "flex-row" : "flex-row-reverse"
+          } items-center gap-1 p-1 rounded-md ${
             won ? "bg-green-600/20 border border-green-500" : ""
           }`}
         >
@@ -183,7 +185,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             className={iconClass}
           />
           <span className="text-[10px] md:text-xs uppercase">
-            Spectate
+            Full Scoreboard
           </span>
         </Link>
 
@@ -215,9 +217,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             alt="Scorekeeper"
             className={iconClass}
           />
-          <span className="text-[10px] md:text-xs uppercase">
-            Scorekeeper
-          </span>
+          <span className="text-[10px] md:text-xs uppercase">Scorekeeper</span>
         </Link>
       </div>
     );

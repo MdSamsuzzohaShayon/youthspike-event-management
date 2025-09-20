@@ -364,7 +364,7 @@ export class UpdateCachePointsHandler {
             }
           }
         } else {
-          if (String(lastRound._id) === String(round._id) && !match.extendedOvertime) {
+          if (String(lastRound._id) === String(round._id)) {
             matchCompleted = true;
             await matchService.updateOne({ _id: body.match }, { $set: { completed: matchCompleted } });
           }

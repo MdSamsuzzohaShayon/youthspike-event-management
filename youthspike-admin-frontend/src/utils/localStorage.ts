@@ -97,4 +97,48 @@ function getPlayerPage(eventId: string): IPlayerPage | null {
   return pages[eventId] ?? null;
 }
 
-export { setDivisionToStore, getDivisionFromStore, removeDivisionFromStore, setTeamToStore, getTeamFromStore, removeTeamFromStore, setPlayerRankings, removePlayerRankings, getPlayerRankings, setPlayerPage, getPlayerPage };
+interface IMatchLS {
+  matchId: string;
+  roundId: string;
+  date: string;
+  netId?: string | null;
+}
+
+function setMatch(matchId: string, roundId: string, netId?: string | null): void {
+  try {
+    // Always fall back to an empty array if nothing is stored yet
+    const storedData = localStorage.getItem("MATCHES_LS");
+    const currentMatches: IMatchLS[] = storedData ? JSON.parse(storedData) : [];
+
+    const matchIndex = currentMatches.findIndex((m) => m.matchId === matchId);
+
+    const newMatch: IMatchLS = {
+      matchId,
+      roundId,
+      date: new Date().toISOString(),
+    };
+    if (netId) {
+      newMatch.netId = netId;
+    }
+
+    const updatedMatches =
+      matchIndex !== -1
+        ? currentMatches.map((m, i) => (i === matchIndex ? newMatch : m))
+        : [...currentMatches, newMatch];
+
+    // Filter expired matches inline (assuming expiry means older than 24 hours)
+    const filteredMatches = updatedMatches.filter((m) => {
+      const now = Date.now();
+      const matchDate = new Date(m.date).getTime();
+      const hoursPassed = (now - matchDate) / (1000 * 60 * 60);
+      return hoursPassed < 24;
+    });
+
+    localStorage.setItem("MATCHES_LS", JSON.stringify(filteredMatches));
+  } catch (error) {
+    console.error("Error setting match:", error);
+  }
+}
+
+
+export { setMatch, setDivisionToStore, getDivisionFromStore, removeDivisionFromStore, setTeamToStore, getTeamFromStore, removeTeamFromStore, setPlayerRankings, removePlayerRankings, getPlayerRankings, setPlayerPage, getPlayerPage };
