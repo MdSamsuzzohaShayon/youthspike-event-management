@@ -3,8 +3,10 @@ import EmitEvents from "@/utils/socket/EmitEvents";
 import SocketEventListener from "@/utils/socket/SocketEventListener";
 import {
   IActionResponse,
+  IMatchRelatives,
   INetRelatives,
   IRevertPlayInput,
+  IRoomNets,
   IRoundRelatives,
   IServerReceiverOnNetMixed,
   IServerReceiverSinglePlay,
@@ -29,6 +31,9 @@ interface IServerReceiverSocketProps {
   setActionPreview: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  currMatch: IMatchRelatives;
 }
 
 export default function useServerReceiverSocket({
@@ -47,6 +52,9 @@ export default function useServerReceiverSocket({
   setSelectedServer,
   setSelectedReceiver,
   setActionPreview,
+  currRoundNets,
+  allNets,
+  currMatch,
 }: IServerReceiverSocketProps) {
   useEffect(() => {
     if (!socket || !roundList.length) return;
@@ -63,6 +71,23 @@ export default function useServerReceiverSocket({
     const listener = new SocketEventListener(socket, dispatch);
     // {serverReceiverOnNet: net, singlePlay: currNetObj}
     const handlers = {
+      // Round change handler
+      "submit-lineup-response-all": (data: IRoomNets) => {
+        /*
+        listener.handleLineupResponse({
+                  data,
+                  dispatch,
+                  currRoundNets,
+                  allNets,
+                  roundList,
+                  currentRound: currRound,
+                  currMatch,
+                })
+
+        */
+
+        if(window)window?.location?.reload();
+      },
       // Server receiver actions
       "service-fault-from-server": (data: IActionResponse) =>
         listener.handleServiceFaultResponse({
@@ -146,7 +171,7 @@ export default function useServerReceiverSocket({
           currServerReceiver,
           setSelectedServer,
           setSelectedReceiver,
-          setActionPreview
+          setActionPreview,
         }),
       "set-players-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleSetPlayers({
@@ -167,7 +192,7 @@ export default function useServerReceiverSocket({
           serverReceiverPlays,
           currServerReceiver,
           netByNum,
-          currNetNum
+          currNetNum,
         }),
       "error-from-server": (err: string) => listener.handleError(err, dispatch),
     } as const;

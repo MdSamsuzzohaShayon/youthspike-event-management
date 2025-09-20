@@ -20,6 +20,7 @@ import { IPlayer } from "./player";
 import { EServerPositionPair } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
 import { ApolloClient } from "@apollo/client";
+import { AppDispatch } from "@/redux/store";
 
 export interface IListenSocketProps {
   socket: Socket | null;
@@ -85,7 +86,11 @@ export interface IReceiverDoNotKnowInput extends ICommonAction {}
 export interface IReceivingHittingErrorInput extends ICommonAction {}
 
 export interface IUpdateCachePointsInput extends ICommonAction {
+  dispatch: AppDispatch;
   accessCode: string | null;
+  currRoundNets: INetRelatives[];
+  roundList: IRoundRelatives[];
+  currRound: null | IRoundRelatives;
 }
 
 interface IRevertResetCommon {

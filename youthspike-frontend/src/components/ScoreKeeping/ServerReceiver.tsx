@@ -67,7 +67,7 @@ export default function ServerReceiver({
   const { roundList, current: currRound } = useAppSelector((s) => s.rounds);
   const {
     currNetNum,
-    currentRoundNets,
+    currentRoundNets: currRoundNets,
     nets: allNets,
   } = useAppSelector((s) => s.nets);
   const {
@@ -100,7 +100,7 @@ export default function ServerReceiver({
   const revertPlayEl = useRef<HTMLDialogElement | null>(null);
 
   /* Derived maps / helpers */
-  const netByNum = useNetMaps(currentRoundNets);
+  const netByNum = useNetMaps(currRoundNets);
   const { teamAById, teamBById } = usePlayerMaps(teamAPlayers, teamBPlayers);
   const makeTeam = useMakeTeam(netByNum, teamAById, teamBById);
 
@@ -116,16 +116,16 @@ export default function ServerReceiver({
   );
 
   const finalRoundIncomplete: boolean = useMemo(() => {
-    if (currRound?.num === roundList.length && currentRoundNets.length > 0) {
+    if (currRound?.num === roundList.length && currRoundNets.length > 0) {
       // Check 2 FINAL_ROUND_NET_LOCKED
-      const lockedNets = currentRoundNets.filter(
+      const lockedNets = currRoundNets.filter(
         (n) => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED
       );
       return lockedNets.length < 2;
       // Nets are banned in the final rtound
     }
     return false;
-  }, [currRound, roundList, currentRoundNets]);
+  }, [currRound, roundList, currRoundNets]);
 
   /* Populate initial selection once data is there */
   useInitialSelection(
@@ -154,6 +154,9 @@ export default function ServerReceiver({
     setActionPreview,
     setSelectedServer,
     setSelectedReceiver,
+    currRoundNets,
+    allNets,
+    currMatch
   });
 
   /* ───── Derived memo ───── */
@@ -208,7 +211,7 @@ export default function ServerReceiver({
       currRoom,
       currRound,
       currMatch,
-      currRoundNets: currentRoundNets,
+      currRoundNets,
       currNetNum,
       server: selectedServer,
       receiver: selectedReceiver,
@@ -220,7 +223,7 @@ export default function ServerReceiver({
     currRoom,
     currRound,
     currMatch,
-    currentRoundNets,
+    currRoundNets,
     currNetNum,
     selectedServer,
     selectedReceiver,
@@ -295,6 +298,18 @@ export default function ServerReceiver({
       return;
     }
 
+
+    console.log({serverReceiverPlays});
+
+    if(!serverReceiverPlays || serverReceiverPlays.length === 0){
+      console.log("This is the first play, you do not need to update anything here");
+      
+      return ;
+    }
+
+    console.log({serverReceiverPlays});
+    
+
     if (!token && !accessCode?.code) {
       dispatch(
         setMessage({
@@ -305,10 +320,14 @@ export default function ServerReceiver({
       return;
     }
     const actionData = {
+      dispatch,
       match: currMatch._id,
       net: net?._id,
       room: currRoom?._id,
       accessCode: token || (accessCode && accessCode.code) || null,
+      currRoundNets,
+      roundList,
+      currRound
     };
     const emit = new EmitEvents(socket, dispatch);
     emit.updateCachePoints(actionData);
@@ -322,6 +341,7 @@ export default function ServerReceiver({
     socket,
     currMatch,
     selectedReceiver,
+    serverReceiverPlays,
     currNetNum,
     currRoom,
     token,
@@ -494,7 +514,7 @@ export default function ServerReceiver({
           handleSelect={handleNetChange}
           name="currNetNum"
           label="Current Net"
-          optionList={currentRoundNets.map((n) => ({
+          optionList={currRoundNets.map((n) => ({
             id: n.num,
             value: String(n.num),
             text: `Net ${n.num}`,

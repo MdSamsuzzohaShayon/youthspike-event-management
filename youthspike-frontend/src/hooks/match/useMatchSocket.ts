@@ -233,7 +233,7 @@ export default function useMatchSocket({
           currServerReceiver,
           currNetNum,
           currRound,
-          netByNum
+          netByNum,
         }),
       "revert-play-from-server": (data: IServerReceiverOnNetMixed) =>
         listener.handleRevertPlay({
@@ -242,6 +242,8 @@ export default function useMatchSocket({
           serverReceiversOnNet,
           serverReceiverPlays,
           currServerReceiver,
+          currNetNum,
+          netByNum,
         }),
     };
 
@@ -289,7 +291,7 @@ export default function useMatchSocket({
           socket.off(event);
         });
       }
-      
+
       handlersRegisteredRef.current = false;
     };
   }, [

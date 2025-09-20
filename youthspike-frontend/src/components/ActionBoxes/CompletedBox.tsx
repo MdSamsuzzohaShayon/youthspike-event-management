@@ -74,7 +74,13 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
 
   const handleNextRound = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (match.completed) {
+   
+    if (!currentRound?.num) return;
+    const targetRoundIndex = roundList.findIndex(
+      (r) => r.num === (currentRound?.num || 0) + 1
+    );
+
+    if (match.completed && !roundList[targetRoundIndex]?.completed) {
       dispatch(
         setMessage({
           type: EMessage.ERROR,
@@ -83,10 +89,8 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
       );
       return;
     }
-    if (!currentRound?.num) return;
-    const targetRoundIndex = roundList.findIndex(
-      (r) => r.num === (currentRound?.num || 0) + 1
-    );
+
+
     if (targetRoundIndex !== -1 && currentRound) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
         const prevRound = roundList[targetRoundIndex - 1];
@@ -226,7 +230,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
                 width={100}
               />
               <div className="w-full flex flex-col md:flex-row justify-center items-center gap-2">
-                {!match.completed && (
+                {roundList.length !== currentRound?.num  && (
                   <button
                     className="btn-light"
                     type="button"
@@ -257,3 +261,5 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
 }
 
 export default CompletedBox;
+
+// db.matches.updateMany({division: ""}, {$set: {division: "MINOR"}});

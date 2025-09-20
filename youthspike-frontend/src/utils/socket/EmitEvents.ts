@@ -86,7 +86,7 @@ class EmitEvents {
   }: IJoinTheRoomProps) {
     if (!this.socket || !currRound) return;
     console.log(`Joined to the room: ${new Date()}`);
-    
+
     const joinData: IJoinData = {
       match: matchId,
       round: currRound._id,
@@ -148,7 +148,7 @@ class EmitEvents {
     this.socket.emit("join-player-room-from-client", { playerId });
   }
 
-  // 
+  //
   async leavePlayerRoom({ playerId }: { playerId: string }) {
     if (!this.socket) {
       console.warn("No socket available");
@@ -683,8 +683,51 @@ class EmitEvents {
     this.socket?.emit("receiver-defensive-conversion-from-client", actionData);
   }
 
-  updateCachePoints({ match, net, room, accessCode }: IUpdateCachePointsInput) {
+  updateCachePoints({
+    dispatch,
+    match,
+    net,
+    room,
+    accessCode,
+    currRoundNets,
+    roundList,
+    currRound
+  }: IUpdateCachePointsInput) {
     const actionData = { match, net, room, accessCode };
+    let roundCompleted = true; // Assume round is complete unless proven otherwise
+
+    for (const crn of currRoundNets) {
+      // Use updated net if IDs match, otherwise use current crn
+      const currentNet = crn;
+      if(net === crn._id) continue;
+      // // crn._id === net._id ? net : 
+      // if(crn._id === net){
+
+      // }
+
+      const teamAScore = currentNet.teamAScore;
+      const teamBScore = currentNet.teamBScore;
+
+      // ✅ Check if scores are valid (both must not be null/undefined, both cannot be 0)
+      if (
+        teamAScore === null ||
+        teamBScore === null ||
+        teamAScore === undefined ||
+        teamBScore === undefined ||
+        (teamAScore === 0 && teamBScore === 0)
+      ) {
+        roundCompleted = false;
+        break; // No need to check further nets, round is incomplete
+      }
+    }
+
+    if(roundCompleted && currRound){
+      dispatch(setCurrentRound({...currRound, completed: roundCompleted}));
+      const newRoundList = roundList.map((r)=>r._id === currRound._id ? {...r, completed: roundCompleted} : r);
+      dispatch(setRoundList(newRoundList ));
+
+    }
+    // Check all nets has points or not, then check current round is completed or not
     this.socket?.emit("update-cache-points-from-client", actionData);
   }
 

@@ -1,4 +1,4 @@
-import { IMatch, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
+import { IMatch, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, IRoundUpdateData, ITeam } from '@/types';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSocket } from '@/lib/SocketProvider';
 import { useAppDispatch } from '@/redux/hooks';
@@ -95,7 +95,7 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
     if (!socket) return;
     const eventListener = new SocketEventListener(socket, dispatch);
 
-    const handleRoundUpdate = (actionData: any) =>
+    const handleRoundUpdate = (actionData: IRoundUpdateData) =>
       eventListener.handleUpdateRoundAllPages({
         matchList: filteredMatchList,
         setMatchList: () => {}, // ✅ no need to store filtered list in state

@@ -149,8 +149,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   }, [match.rounds, netsByRoundId]);
 
   /** ✅ Team card reusable component - optimized with direct props */
-  const TeamCard = React.memo(({ team, teamScore, opponentScore, won }: { team: ITeam; teamScore: number; opponentScore: number; won: boolean }) => (
-    <div className={`flex items-center gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
+  const TeamCard = React.memo(({ team, teamScore, teamE, won }: { team: ITeam; teamScore: number; teamE: ETeam; won: boolean }) => (
+    <div className={`flex items-center ${teamE === ETeam.teamA ? 'flex-row' : 'flex-row-reverse'} gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
       <div className="flex-shrink-0">
         {team?.logo ? (
           <CldImage alt={team.name} width={24} height={24} className="w-12 h-12 object-contain" src={team.logo} />
@@ -226,8 +226,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <MatchHeader />
 
         <div className="grid grid-cols-2 gap-2 mt-1">
-          <TeamCard team={match.teamA} teamScore={teamScores.teamA} opponentScore={teamScores.teamB} won={teamAWon} />
-          <TeamCard team={match.teamB} teamScore={teamScores.teamB} opponentScore={teamScores.teamA} won={teamBWon} />
+          <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} />
+          <TeamCard team={match.teamB} teamScore={teamScores.teamB} teamE={ETeam.teamB} won={teamBWon} />
         </div>
         <ActionButtons iconSize={20} />
       </div>
@@ -237,8 +237,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <MatchHeader />
         <div className="flex flex-col items-center justify-between mt-2">
           <div className="grid grid-cols-2 gap-3 flex-1">
-            <TeamCard team={match.teamA} teamScore={teamScores.teamA} opponentScore={teamScores.teamB} won={teamAWon} />
-            <TeamCard team={match.teamB} teamScore={teamScores.teamB} opponentScore={teamScores.teamA} won={teamBWon} />
+            <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} />
+            <TeamCard team={match.teamB} teamScore={teamScores.teamB} teamE={ETeam.teamB} won={teamBWon} />
           </div>
           <ActionButtons iconSize={24} />
         </div>

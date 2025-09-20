@@ -405,6 +405,7 @@ export class UpdateCachePointsHandler {
         this.scoreKeeperHelper.publishRoom(body.room, 'update-points-response-all', pointsResponse),
         this.scoreKeeperHelper.publishRoom(body.room, 'net-update-all-pages', presizedRoundData),
       ]);
+
     } catch (err: any) {
       await this.scoreKeeperHelper.publishError(client.id, err?.message ?? 'Internal error');
     }
