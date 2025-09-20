@@ -89,15 +89,15 @@ export function initPlayerStat(net: string, match: string, player: string){
     receiverOpportunity: 0,
     receivedCount: 0,
     noTouchAcedCount: 0,
+    settingOpportunity: 0,  // Ensure this is 0, not null
+    cleanSets: 0,           // Ensure this is 0, not null
     hittingOpportunity: 0,
-    hittingCompletion: 0,
     cleanHits: 0,
     defensiveOpportunity: 0,
     defensiveConversion: 0,
     break: 0,
     broken: 0,
     matchPlayed: 0,
-    // Relationship
     net,
     match,
     player,
