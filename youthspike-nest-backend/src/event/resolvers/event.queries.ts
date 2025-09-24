@@ -15,7 +15,7 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
 import { playerKey, tokenToUser } from 'src/util/helper';
-import { Event } from '../event.schema';
+import { EEventItem, Event } from '../event.schema';
 import {
   GetEventDetailsResponse,
   GetEventResponse,
@@ -29,6 +29,9 @@ import { RedisService } from 'src/redis/redis.service';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
 import { EventFilterInput } from './event.input';
+import { Match } from 'src/match/match.schema';
+import { Team } from 'src/team/team.schema';
+import { Player } from 'src/player/player.schema';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -97,113 +100,169 @@ export class EventQueries implements IEventQueries {
     }
   }
 
-  async getEventDetails(eventId: string): Promise<GetEventDetailsResponse> {
+  async getEventDetails(eventId: string, filter: EventFilterInput): Promise<GetEventDetailsResponse> {
     try {
-      // Assuming matchService is injected in your class
-      const [event, matches, teams, players, ldo, groups, sponsors] = await Promise.all([
+      let matches = [];
+      let teams = [];
+      let players = [];
+      let event = null;
+      let ldo = null;
+      let groups = [];
+      let sponsors = [];
+      if (!filter.limit) {
+        // Assuming matchService is injected in your class
+        [event, matches, teams, players, ldo, groups, sponsors] = await Promise.all([
+          this.eventService.findById(eventId),
+          this.matchService.find({ event: eventId }),
+          this.teamService.find({ event: eventId }),
+          this.playerService.find({ events: { $in: [eventId] } }),
+          this.ldoService.findOne({ events: { $in: [eventId] } }),
+          this.groupService.find({ event: eventId }),
+          this.sponsorService.find({ event: eventId }),
+        ]);
+      } else {
+        // Collect IDs directly in sets for uniqueness
+        const teamIds = new Set<string>();
+        const matchIds = new Set<string>();
+
+        if (filter.item === EEventItem.MATCH) {
+          matches = await this.matchService.find({ event: eventId }, filter.limit);
+
+          matches.forEach((m) => {
+            if (m.teamA) teamIds.add(String(m.teamA));
+            if (m.teamB) teamIds.add(String(m.teamB));
+          });
+
+          const tIds = [...teamIds].filter((t) => t && t !== 'null');
+          [teams, players] = await Promise.all([
+            this.teamService.find({ event: eventId, _id: { $in: tIds } }),
+            this.playerService.find({ event: eventId, teams: { $in: tIds } }),
+          ]);
+        } else if (filter.item === EEventItem.TEAM) {
+          teams = await this.teamService.find({ event: eventId }, filter.limit);
+
+          teams.forEach((t) => t.matches?.forEach((m) => matchIds.add(String(m))));
+
+          const mIds = [...matchIds];
+          [matches, players] = await Promise.all([
+            this.matchService.find({ event: eventId, _id: { $in: mIds } }),
+            this.playerService.find({ event: eventId, matches: { $in: mIds } }),
+          ]);
+        } else if (filter.item === EEventItem.PLAYER) {
+          players = await this.playerService.find({ event: eventId }, filter.limit);
+
+          players.forEach((p) => p.teams?.forEach((t) => teamIds.add(String(t))));
+
+          const tIds = [...teamIds];
+          [teams, matches] = await Promise.all([
+            this.teamService.find({ _id: { $in: tIds } }),
+            this.matchService.find({
+              $or: [{ teamA: { $in: tIds } }, { teamB: { $in: tIds } }],
+            }),
+          ]);
+        }
+      }
+
+      // Fetch secondary resources in parallel
+      [event, ldo, groups, sponsors] = await Promise.all([
         this.eventService.findById(eventId),
-        this.matchService.find({ event: eventId }),
-        this.teamService.find({ event: eventId }),
-        this.playerService.find({ events: { $in: [eventId] } }),
         this.ldoService.findOne({ events: { $in: [eventId] } }),
         this.groupService.find({ event: eventId }),
         this.sponsorService.find({ event: eventId }),
       ]);
-  
-      const matchIds = matches.map((m) => m._id.toString());
+
+      const mIds = matches.map((m) => String(m._id));
       const [rounds, nets] = await Promise.all([
-        this.roundService.find({ match: { $in: matchIds } }),
-        this.netService.find({ match: { $in: matchIds } }),
+        this.roundService.find({ match: { $in: mIds } }),
+        this.netService.find({ match: { $in: mIds } }),
       ]);
-  
-      // Precompute player -> nets map
+
+      // --- Optimize player stats ---
+      // Precompute player->nets mapping
       const playerToNets: Record<string, Net[]> = {};
       for (const net of nets) {
-        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
-          if (!pid) return;
+        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].filter(Boolean).forEach((pid) => {
           if (!playerToNets[pid]) playerToNets[pid] = [];
           playerToNets[pid].push(net);
         });
       }
-  
+
+      // Batch Redis queries for all players
+      const allRedisKeys = players.flatMap((p) => (playerToNets[p._id] || []).map((net) => playerKey(p._id, net._id)));
+      const redisResults = await Promise.all(allRedisKeys.map((key) => this.redisService.get(key)));
+      const redisStats = (redisResults as CustomPlayerStats[]).filter(Boolean);
+
+      // Organize Redis stats by playerId
+      const redisByPlayer: Record<string, CustomPlayerStats[]> = {};
+      for (const stat of redisStats) {
+        if (!redisByPlayer[stat.player]) redisByPlayer[stat.player] = [];
+        redisByPlayer[stat.player].push(stat);
+      }
+
+      // Collect missing nets for DB fetch
+      const missingStatsQueries: any[] = [];
+      players.forEach((player) => {
+        const netsOfPlayer = playerToNets[player._id] || [];
+        const redisNetIds = new Set((redisByPlayer[player._id] || []).map((s) => s.net));
+        const missingNetIds = netsOfPlayer.map((net) => String(net._id)).filter((id) => !redisNetIds.has(id));
+
+        if (missingNetIds.length) {
+          missingStatsQueries.push(this.playerStatsService.find({ player: player._id, net: { $in: missingNetIds } }));
+        }
+      });
+
+      const dbStatsResults = await Promise.all(missingStatsQueries);
+
+      // Normalize DB stats
       const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
-  
-      // Process players in parallel
-      await Promise.all(
-        players.map(async (player) => {
-          if (!player?._id) return;
-  
-          const netsOfPlayer = playerToNets[player._id] || [];
-          const netIds = netsOfPlayer.map(net => net._id.toString());
-  
-          // Batch Redis queries
-          const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
-          const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
-  
-          const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
-          const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
-  
-          // Query DB for player stats not found in Redis
-          const playerstatsDB = await this.playerStatsService.find({ 
-            player: player._id,
-            net: { $nin: Array.from(redisNetIds) } // Filter out nets already in Redis
-          });
-  
-          // Convert Mongoose documents to plain objects
-          const playerstatsDBPlain = playerstatsDB
-            .map((ps) => {
-              const plainObj = ps.toObject() as any;
-              return {
-                ...plainObj,
-                net: String(plainObj.net),
-                player: String(plainObj.player),
-                match: String(plainObj.match),
-              } as CustomPlayerStats;
-            })
-            .filter((ps: CustomPlayerStats) => !redisNetIds.has(String(ps.net)));
-  
-          // Merge both sources
-          let mergedStats = [...playerstatsRedis, ...playerstatsDBPlain];
-  
-          // If no stats found for some nets, create empty records for those nets
-          const existingNetIds = new Set(mergedStats.map(ps => ps.net));
-          const missingNetIds = netIds.filter(netId => !existingNetIds.has(netId));
-  
-          const emptyStats = missingNetIds.map(netId => {
-            const net = netsOfPlayer.find(n => n._id.toString() === netId);
-            return {
-              serveOpportunity: 0,
-              serveAce: 0,
-              serveCompletionCount: 0,
-              servingAceNoTouch: 0,
-              receiverOpportunity: 0,
-              receivedCount: 0,
-              noTouchAcedCount: 0,
-              settingOpportunity: 0,
-              cleanSets: 0,
-              hittingOpportunity: 0,
-              cleanHits: 0,
-              defensiveOpportunity: 0,
-              defensiveConversion: 0,
-              break: 0,
-              broken: 0,
-              matchPlayed: 0,
-              net: netId,
-              player: player._id.toString(),
-              match: net?.match?.toString() || '',
-            } as CustomPlayerStats;
-          });
-  
-          statsOfPlayer[player._id] = [...mergedStats, ...emptyStats];
-        }),
-      );
-  
-      const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
-        playerId,
-        stats,
-      }));
-  
-      const res: GetEventDetailsResponse = {
+      dbStatsResults.flat().forEach((ps) => {
+        const plainObj = ps.toObject();
+        const stat: CustomPlayerStats = {
+          ...plainObj,
+          net: String(plainObj.net),
+          player: String(plainObj.player),
+          match: String(plainObj.match),
+        };
+        if (!statsOfPlayer[stat.player]) statsOfPlayer[stat.player] = [];
+        statsOfPlayer[stat.player].push(stat);
+      });
+
+      // Merge redis + db + fill empty nets
+      players.forEach((player) => {
+        const netsOfPlayer = playerToNets[player._id] || [];
+        const merged = [...(redisByPlayer[player._id] || []), ...(statsOfPlayer[player._id] || [])];
+        const existingNetIds = new Set(merged.map((s) => s.net));
+
+        const emptyStats = netsOfPlayer
+          .map((net) => String(net._id))
+          .filter((id) => !existingNetIds.has(id))
+          .map((netId) => ({
+            serveOpportunity: 0,
+            serveAce: 0,
+            serveCompletionCount: 0,
+            servingAceNoTouch: 0,
+            receiverOpportunity: 0,
+            receivedCount: 0,
+            noTouchAcedCount: 0,
+            settingOpportunity: 0,
+            cleanSets: 0,
+            hittingOpportunity: 0,
+            cleanHits: 0,
+            defensiveOpportunity: 0,
+            defensiveConversion: 0,
+            break: 0,
+            broken: 0,
+            matchPlayed: 0,
+            net: netId,
+            player: String(player._id),
+            match: netsOfPlayer.find((n) => String(n._id) === netId)?.match?.toString() || '',
+          }));
+
+        statsOfPlayer[player._id] = [...merged, ...emptyStats];
+      });
+
+      // Prepare response
+      return {
         code: HttpStatus.OK,
         success: true,
         message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
@@ -211,29 +270,37 @@ export class EventQueries implements IEventQueries {
           event,
           matches: matches.map((m) => ({
             ...m.toObject(),
-            group: typeof m.group === 'object' ? m.group._id : m.group,
+            group: String(typeof m.group === 'object' ? (m.group as any)._id : m.group),
           })),
           teams: teams.map((t) => ({
             ...t.toObject(),
-            matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
+            matches: t.matches?.map((m) => String(typeof m === 'object' ? (m as any)._id : m)) || [],
           })),
           players: players.map((p) => ({
             ...p.toObject(),
-            teams: p.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
-            username: p?.username || "Unknown"
+            teams: p.teams?.map((t) => String(typeof t === 'object' ? (t as any)._id : t)) || [],
+            username: p?.username || 'Unknown',
           })),
           ldo,
           groups: groups.map((g) => ({
             ...g.toObject(),
-            teams: g.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+            teams: g.teams?.map((t) => String(typeof t === 'object' ? (t as any)._id : t)) || [],
           })),
-          rounds: rounds.map((r) => ({ ...r.toObject(), match: typeof r.match === 'object' ? r.match._id : r.match })),
-          nets: nets.map((n) => ({ ...n.toObject(), match: typeof n.match === 'object' ? n.match._id : n.match })),
+          rounds: rounds.map((r) => ({
+            ...r.toObject(),
+            match: String(typeof r.match === 'object' ? (r.match as any)._id : r.match),
+          })),
+          nets: nets.map((n) => ({
+            ...n.toObject(),
+            match: String(typeof n.match === 'object' ? (n.match as any)._id : n.match),
+          })),
           sponsors,
-          statsOfPlayer: statsArray,
+          statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+            playerId,
+            stats,
+          })),
         },
       };
-      return res;
     } catch (err) {
       return AppResponse.handleError(err);
     }
@@ -250,7 +317,11 @@ export class EventQueries implements IEventQueries {
       if (!loggedUser) return AppResponse.unauthorized();
 
       const teams = await this.teamService.find({ event: eventId });
-      if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain || loggedUser.role === UserRole.player) {
+      if (
+        loggedUser.role === UserRole.captain ||
+        loggedUser.role === UserRole.co_captain ||
+        loggedUser.role === UserRole.player
+      ) {
         const playerExist = await this.playerService.findOne({
           $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }, { _id: loggedUser.player }],
         });

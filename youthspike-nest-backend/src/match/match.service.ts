@@ -24,11 +24,10 @@ export class MatchService {
       updatedAt: -1,
     });
   }
-  
-  async find(filter: FilterQuery<Match>) {
-    return this.matchModel.find(filter).sort({
-      updatedAt: -1,
-    });
+
+  async find(filter: FilterQuery<Match>, limit?: number) {
+    if (!limit) return this.matchModel.find(filter);
+    return this.matchModel.find(filter).limit(limit);
   }
 
   async findOne(filter: FilterQuery<Match>) {
@@ -52,7 +51,6 @@ export class MatchService {
     return null;
   }
 
-
   async updateMany(filter: FilterQuery<Match>, matchObj: UpdateQuery<Match>) {
     return this.matchModel.updateMany(filter, matchObj);
   }
@@ -63,5 +61,9 @@ export class MatchService {
 
   async deleteMany(filter: FilterQuery<Match>) {
     return this.matchModel.deleteMany(filter);
+  }
+
+  async deleteOne(filter: FilterQuery<Match>) {
+    return this.matchModel.deleteOne(filter);
   }
 }

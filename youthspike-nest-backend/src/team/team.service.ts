@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import {  FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
 
 @Injectable()
@@ -29,14 +29,15 @@ export class TeamService {
     return this.teamModel.findOne(filter);
   }
 
-  async find(filter: FilterQuery<Team>) {
-    return this.teamModel.find(filter);
+  async find(filter: FilterQuery<Team>, limit?: number) {
+    if (!limit) return this.teamModel.find(filter);
+    return this.teamModel.find(filter).limit(limit);
   }
 
   async create(team: Team) {
     const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
     const lastTeamNum: number = lastTeam?.num || 1;
-    
+
     return this.teamModel.create({
       ...team,
       active: true,
@@ -53,10 +54,10 @@ export class TeamService {
     return this.teamModel.findOneAndUpdate(filter, teamObj, { upsert: true, new: true });
   }
 
-  async updateMany(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>){
+  async updateMany(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>) {
     return this.teamModel.updateMany(filter, updateObj);
   }
-  async updateOne(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>){
+  async updateOne(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>) {
     const updateTeam = await this.teamModel.updateOne(filter, updateObj);
     return updateTeam;
   }

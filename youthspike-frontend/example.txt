@@ -1,0 +1,9 @@
+TeamB: Idaho Falls Freeze Minor B            ID: 68c4e90461f0ff77d53f546b
+TeamA: Idaho Falls Freeze Minor A            ID: 68c4e8e961f0ff77d53f4ffa
+
+
+
+
+
+Idaho Falls minor A -> 68c4e8e961f0ff77d53f4ffa
+Idaho Falls minor B -> 68c4e90461f0ff77d53f546b

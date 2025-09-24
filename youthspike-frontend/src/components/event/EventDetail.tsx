@@ -28,9 +28,14 @@ import EventSponsors from "./EventSponsors";
 import EventHeader from "./EventHeader";
 import EventFilter from "./EventFilter";
 import EventNavigationTabs from "./EventNavigationTabs";
+import { QueryRef, useQuery, useReadQuery } from "@apollo/client";
+import { GET_AN_EVENT } from "@/graphql/event";
+import Loader from "../elements/Loader";
 
 interface IEventDetailProps {
-  eventData: IEventDetailData;
+  // eventData: IEventDetailData;
+  queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
+  eventId: string;
 }
 
 // Animation variants
@@ -51,7 +56,8 @@ const fadeIn = {
 
 // Sub-components
 
-function EventDetail({ eventData }: IEventDetailProps) {
+function EventDetail({ queryRef, eventId }: IEventDetailProps) {
+  // Hooks
   const { ldoIdUrl } = useLdoId();
   const dispatch = useAppDispatch();
   const user = useUser();
@@ -59,8 +65,18 @@ function EventDetail({ eventData }: IEventDetailProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  // Background query: full data (no filter)
+  const { data: heavyData } = useQuery(GET_AN_EVENT, {
+    variables: { eventId, filter: {} },
+    fetchPolicy: "network-only", // always refetch fresh
+  });
+
+
   // Memoize search params access
   const searchParamsString = searchParams.toString();
+
+
+  // Memoization
   const initialSelectedItem = useMemo(() => {
     const item = searchParams.get(EVENT_ITEM);
     return item && Object.values(EEventItem).includes(item as EEventItem)
@@ -131,12 +147,12 @@ function EventDetail({ eventData }: IEventDetailProps) {
     updateQueryParams,
   ]);
 
+  const { data: lightData, error } = useReadQuery(queryRef);
+
+  const eventData: IEventDetailData = heavyData?.getEventDetails?.data || lightData?.getEventDetails?.data;
+
   if (!eventData) {
-    return (
-      <div className="min-h-screen flex w-full justify-center items-center">
-        <h3 className="text-center">Loading...</h3>
-      </div>
-    );
+    return <Loader />;
   }
 
   const {
@@ -149,7 +165,7 @@ function EventDetail({ eventData }: IEventDetailProps) {
     rounds,
     groups,
     sponsors,
-    statsOfPlayer,
+    statsOfPlayer
   } = eventData;
 
   // Precompute teamMap once
@@ -290,6 +306,9 @@ function EventDetail({ eventData }: IEventDetailProps) {
     selectedGroup,
     search,
   ]);
+
+  console.log({unfilteredMatches: matches, unfilteredMatchesLength: matches.length, filteredMatches: filteredData.matches, filteredMatchesLength: filteredData.matches.length});
+  
 
   // Initialize rankings with optimized data structures
   const initializeLists = useCallback(() => {

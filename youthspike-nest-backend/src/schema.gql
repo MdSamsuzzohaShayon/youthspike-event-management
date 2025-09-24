@@ -1116,7 +1116,7 @@ type Query {
   getAbout: AppAbout!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
-  getEventDetails(eventId: String!): GetEventDetailsResponse!
+  getEventDetails(eventId: String!, filter: EventFilterInput!): GetEventDetailsResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
@@ -1142,6 +1142,20 @@ type Query {
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
   getPlayersStats: PlayersStatsResponse!
   getPlayerWithStats(playerId: String!): PlayerWithStatsResponse!
+}
+
+input EventFilterInput {
+  item: EEventItem
+  search: String
+  division: String
+  group: String
+  limit: Int
+}
+
+enum EEventItem {
+  PLAYER
+  MATCH
+  TEAM
 }
 
 input FilterQueryInput {

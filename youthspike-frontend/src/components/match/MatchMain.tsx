@@ -29,6 +29,18 @@ interface IMatchMainProps {
 export function MatchMain({ queryRef }: IMatchMainProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
+  console.log({error});
+
+
+  if (!data?.getMatch?.data) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div>No match data found</div>
+      </div>
+    );
+  }
+
+  
   const dispatch = useAppDispatch();
   const socket = useSocket();
 

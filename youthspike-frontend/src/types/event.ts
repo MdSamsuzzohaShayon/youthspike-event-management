@@ -88,6 +88,14 @@ export interface IEventDetailData {
   statsOfPlayer: IAllStats[];
 }
 
+export interface IEventFilter{
+  item:  EEventItem,
+  search?: string;
+  division?: string;
+  group?: string;
+  limit?: number;
+}
+
 // eslint-disable-next-line no-shadow
 export enum EEventPeriod {
   UPCOMING = "UPCOMING",
@@ -99,5 +107,5 @@ export enum EEventPeriod {
 export enum EEventItem {
   PLAYER = "PLAYER",
   MATCH = "MATCH",
-  TEAM = "STANDINGS",
+  TEAM = "TEAM",
 }

@@ -11,10 +11,29 @@ import { AppDocument } from 'src/shared/schema/document.schema';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Team } from 'src/team/team.schema';
 
+
+// For filtering
+export enum EEventItem {
+  PLAYER = "PLAYER",
+  MATCH = "MATCH",
+  TEAM = "STANDINGS",
+}
+
+registerEnumType(EEventItem, {
+  name: 'EEventItem',
+});
+
+
+
 export enum ETieBreakingStrategy {
   TWO_POINTS_NET = 'TWO_POINTS_NET',
   OVERTIME_ROUND = 'OVERTIME_ROUND',
 }
+
+registerEnumType(ETieBreakingStrategy, {
+  name: 'ETieBreakingStrategy',
+});
+
 
 export enum ERosterLock {
   FIRST_ROSTER_SUBMIT = 'FIRST_ROSTER_SUBMIT',

@@ -2,6 +2,7 @@
 import { Field, Float, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as Upload from 'graphql-upload/Upload.js';
+import { EEventItem } from '../event.schema';
 
 @InputType()
 export class EventSponsorInput {
@@ -123,6 +124,9 @@ export class CreateEventInput {
 
 @InputType()
 export class EventFilterInput {
+  @Field(()=> EEventItem, {nullable: true})
+  item: EEventItem;
+  
   @Field(()=> String, {nullable: true})
   search?: string;
 
@@ -132,7 +136,7 @@ export class EventFilterInput {
   @Field(() => String, {nullable: true})
   group?: string;
 
-  @Field(() => Int, {nullable: true, defaultValue: 90})
+  @Field(() => Int, {nullable: true})
   limit?: number;
 }
 

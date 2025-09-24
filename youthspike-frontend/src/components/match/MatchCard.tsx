@@ -13,6 +13,7 @@ import { CldImage } from "next-cloudinary";
 import localStorageService from "@/utils/LocalStorageService";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import TextImg from "../elements/TextImg";
+import LocalStorageService from "@/utils/LocalStorageService";
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -38,6 +39,15 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     localStorageService.clearAll();
     // sessionStorageService.setItem(MATCH, match._id);
     router.push(`${ADMIN_FRONTEND_URL}/login/?matchId=${match?._id}`);
+  };
+
+  const redirectFullScoreboard = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const prevMatch = LocalStorageService.getMatch(match._id);
+    if (prevMatch) {
+      LocalStorageService.setMatch(match._id, prevMatch.roundId);
+    }
+    router.push(`/matches/${match?._id}/scoreboard/${ldoIdUrl}`);
   };
 
   /** ✅ Precompute nets by round */
@@ -173,9 +183,10 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     return (
       <div className="flex justify-between items-center gap-2 mt-2">
         {/* Spectate */}
-        <Link
-          href={`/matches/${match?._id}/scoreboard/${ldoIdUrl}`}
-          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors"
+        <div
+          role="presentation"
+          onClick={redirectFullScoreboard}
+          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors cursor-pointer"
         >
           <Image
             width={iconSize}
@@ -187,13 +198,13 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           <span className="text-[10px] md:text-xs uppercase">
             Full Scoreboard
           </span>
-        </Link>
+        </div>
 
         {/* Captain */}
         <div
           onClick={handleCaptainView}
           role="presentation"
-          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors"
+          className="flex flex-col items-center text-center rounded hover:bg-gray-700 transition-colors cursor-pointer"
         >
           <Image
             width={iconSize}

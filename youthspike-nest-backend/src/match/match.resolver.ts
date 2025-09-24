@@ -80,7 +80,7 @@ export class MatchResolver {
     return this.matchQueries.getEventWithMatches(context, eventId);
   }
 
-  @Query((returns) => GetMatchResponse)
+  @Query((_returns) => GetMatchResponse)
   async getMatch(@Args('matchId') matchId: string) {
     return this.matchQueries.getMatch(matchId);
   }

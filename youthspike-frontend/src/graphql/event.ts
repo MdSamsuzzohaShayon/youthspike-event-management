@@ -6,8 +6,8 @@
 import { gql } from "@apollo/client";
 
 const GET_AN_EVENT_RAW = `
-query GetEventDetails($eventId: String!) {
-  getEventDetails(eventId: $eventId) {
+query GetEventDetails($eventId: String!, $filter: EventFilterInput!) {
+  getEventDetails(eventId: $eventId, filter: $filter) {
     code
     success
     message

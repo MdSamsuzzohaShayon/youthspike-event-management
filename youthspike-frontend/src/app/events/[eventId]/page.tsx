@@ -1,30 +1,47 @@
 import React, { Suspense } from "react";
-import { IEventDetailData, TParams } from "@/types";
+import { GET_AN_EVENT } from "@/graphql/event";
+import { EEventItem, IEventDetailData, IEventFilter, TParams } from "@/types";
 import Loader from "@/components/elements/Loader";
 import EventDetail from "@/components/event/EventDetail";
-import { notFound } from "next/navigation";
-import getEventDetails from "../_fetch/event";
+import { PreloadQuery } from "@/lib/client";
+import { QueryRef } from "@apollo/client";
 
 interface IEventPageProps {
   params: TParams;
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
-async function EventPage({ params }: IEventPageProps) {
-  const { eventId } = await  params;
+async function EventPage({ params, searchParams }: IEventPageProps) {
+  const { eventId } = await params;
 
-  // Fetch the event details directly using getEventDetails
-  const eventData = await getEventDetails(eventId);
-  
+  const search = await searchParams;
 
-  if (!eventData) {
-    notFound();
-  }
+  // Extract from query string
+  const item = (search.item as EEventItem) || EEventItem.MATCH;
+  const limit = search.limit ? Number(search.limit) : 30;
+
+  const filter: Partial<IEventFilter> = {
+    item,
+    limit,
+  };
 
   return (
     <div className="w-full min-h-screen">
-      <Suspense fallback={<Loader />}>
-        <EventDetail eventData={eventData} />
-      </Suspense>
+      <PreloadQuery query={GET_AN_EVENT} variables={{ eventId, filter }}>
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <EventDetail
+              queryRef={
+                queryRef as QueryRef<{
+                  getEventDetails: { data: IEventDetailData };
+                }>
+              }
+
+              eventId={eventId}
+            />
+          </Suspense>
+        )}
+      </PreloadQuery>
     </div>
   );
 }

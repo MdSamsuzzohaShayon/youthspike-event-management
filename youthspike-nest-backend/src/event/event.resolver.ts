@@ -114,9 +114,9 @@ export class EventResolver {
   }
 
   @Query((__returns) => GetEventDetailsResponse)
-  async getEventDetails(@Args('eventId', { nullable: false }) eventId: string) {
+  async getEventDetails(@Args('eventId', { nullable: false }) eventId: string, @Args('filter', { nullable: false }) filter: EventFilterInput) {
     // , @Args('filter') filter: EventFilterInput
-    return this.eventQueries.getEventDetails(eventId);
+    return this.eventQueries.getEventDetails(eventId, filter);
   }
 
   @Query((__returns) => GetPlayerEventSettingResponse)

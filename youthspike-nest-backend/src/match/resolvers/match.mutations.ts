@@ -65,7 +65,7 @@ export class MatchMutations {
       // ✅ Remove room + match
       updatePromises.push(
         this.roomService.deleteOne({ _id: matchExist.room }),
-        this.matchService.deleteMany({ _id: matchExist._id }),
+        this.matchService.deleteOne({ _id: matchExist._id }),
       );
 
       // ✅ Collect all playerIds from nets in one pass
