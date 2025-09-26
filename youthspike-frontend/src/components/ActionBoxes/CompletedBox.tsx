@@ -74,7 +74,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
 
   const handleNextRound = (e: React.SyntheticEvent) => {
     e.preventDefault();
-   
+
     if (!currentRound?.num) return;
     const targetRoundIndex = roundList.findIndex(
       (r) => r.num === (currentRound?.num || 0) + 1
@@ -89,7 +89,6 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
       );
       return;
     }
-
 
     if (targetRoundIndex !== -1 && currentRound) {
       if (roundList[targetRoundIndex].num > currentRound?.num) {
@@ -190,6 +189,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
     );
   };
 
+
   return (
     <div className={`py-2 w-full bg-black text-white`}>
       <div className="container px-4 mx-auto flex py-2 w-full justify-between items-end gap-1">
@@ -201,7 +201,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
         {/* Middle side  */}
         <div className="w-2/6 flex justify-center items-center flex-col gap-y-2">
           {roundList.length === currentRound?.num ? (
-            <>
+            <div className="flex justify-between items-center flex-col gap-y-2">
               {winningTeam && (
                 <>
                   <h2 className="break-words uppercase font-bold text-sm">
@@ -212,16 +212,29 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
                   </h2>
                 </>
               )}
-              <a
-                href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${ldoIdUrl}`}
-                className="btn-success"
-              >
-                Next Match
-              </a>
-            </>
+              <div className="flex items-center gap-x-2">
+                <a
+                  href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${ldoIdUrl}`}
+                  className="btn-success"
+                >
+                  Next Match
+                </a>
+                <button
+                  className="btn-light"
+                  type="button"
+                  onClick={() => completeDialogEl.current?.showModal()}
+                >
+                  {match.completed ? "Unfinish Match" : "Finish Match"}
+                </button>
+              </div>
+            </div>
           ) : (
             <>
-              <h2 className="text-center">{match.completed ? "Match Completed" : `Round ${currentRound?.num} - Finished`}</h2>
+              <h2 className="text-center">
+                {match.completed
+                  ? "Match Completed"
+                  : `Round ${currentRound?.num} - Finished`}
+              </h2>
               <Image
                 src="/imgs/spikeball-players.png"
                 alt="spikeball-players"
@@ -230,7 +243,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
                 width={100}
               />
               <div className="w-full flex flex-col md:flex-row justify-center items-center gap-2">
-                {roundList.length !== currentRound?.num  && (
+                {roundList.length !== currentRound?.num && (
                   <button
                     className="btn-light"
                     type="button"

@@ -42,6 +42,7 @@ sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
 success "System updated."
 
 ### Backup MongoDB Database
+nano backup_db.sh
 ./backup_db.sh
 
 ### Stop and clean previous PM2 processes

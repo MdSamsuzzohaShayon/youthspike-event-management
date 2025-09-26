@@ -33,6 +33,9 @@ function makeClient() {
   return new ApolloClient({
     cache: new InMemoryCache(),
     link: authLink.concat(httpLink),
+    devtools: {
+      enabled: true, // ✅ replaces connectToDevTools
+    },
   });
 }
 

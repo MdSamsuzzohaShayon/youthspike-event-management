@@ -21,6 +21,7 @@ import TextImg from '../elements/TextImg';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ConfirmDeleteDialog from './ConfirmDeleteDialog';
+import { setMatch } from '@/utils/localStorage';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -54,6 +55,15 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
     }
     return map;
   }, [match.nets]);
+
+
+
+  const handleRedirectScoreboard=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    const lastRound = match.rounds[match.rounds.length - 1];
+    setMatch(match._id, String(lastRound?._id || lastRound));
+    router.push(`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`);
+  }
 
   // Optimized status message calculation with early returns
   const statusMessage = useMemo(() => {
@@ -178,7 +188,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
   // }
 
-  console.log(user.info?.role);
+ 
   
 
   /** ✅ Reusable Action Buttons - optimized with useCallback */
@@ -190,7 +200,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <div className="flex justify-between items-center gap-2 mt-2 md:mt-0 relative">
           {(user.info?.role === UserRole.admin ||user.info?.role === UserRole.director) && <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />}
           {/* Spectate */}
-          <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
+          <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/?view=ROUND${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
             <Image width={iconSize} height={iconSize} src="/icons/spectate.svg" alt="Spectate" className={iconClass} />
             <span className="text-[10px] md:text-xs uppercase mt-1">Full Scoreboard</span>
           </Link>

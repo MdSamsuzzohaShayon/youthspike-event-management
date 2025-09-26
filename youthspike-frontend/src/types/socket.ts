@@ -263,7 +263,7 @@ export interface IUpdateNetResponse {
 export interface IPlayerStatsResponse{
   playerId: string;
   data: Record<string, IPlayerStats>;
-  apolloClient: ApolloClient<object>;
+  apolloClient: ApolloClient<any>;
 }
 
 /**

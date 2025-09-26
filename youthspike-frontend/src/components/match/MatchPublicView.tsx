@@ -12,6 +12,7 @@ import { useAppSelector } from "@/redux/hooks";
 import Image from "next/image";
 import LocalStorageService from "@/utils/LocalStorageService";
 import NetInRoundView from "./PublicView/NetInRoundView";
+import { useSearchParams } from "next/navigation";
 
 interface IMatchPublicViewProps {
   nets: INetRelatives[];
@@ -36,8 +37,14 @@ function MatchPublicView({
   currServerReceiver,
   matchId,
 }: IMatchPublicViewProps) {
+  const searchParams = useSearchParams();
   const [view, setView] = useState<EView>(() => {
     const match = LocalStorageService.getMatch(matchId);
+    const viewInParams = searchParams.get('view');
+    if(viewInParams && viewInParams === EView.ROUND){
+      LocalStorageService.setMatch(matchId, match?.roundId || currRound?._id || "");
+      return EView.ROUND;
+    }
     if (match && match.netId) {
       return EView.NET;
     }

@@ -370,9 +370,9 @@ class SocketEventListener {
     }
 
     // Update current round nets and all nets
-    if (data.match === match._id) {
-      dispatch(setMatchInfo({ ...match, completed: true }));
-    }
+    // if (data.match === match._id) {
+    //   dispatch(setMatchInfo({ ...match, completed: true }));
+    // }
 
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedN));
