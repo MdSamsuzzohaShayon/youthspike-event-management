@@ -43,6 +43,7 @@ import RoundInputBox from "../elements/RoundInputBox";
 import ChangePlayDialog from "../elements/Dialog/ChangePlayDialog";
 import ResetPlayDialog from "../elements/Dialog/ResetPlayDialog";
 import RevertPreviousDialog from "../elements/Dialog/RevertPreviousDialog";
+import NetInputItem from "./NetInputItem";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -156,7 +157,7 @@ export default function ServerReceiver({
     setSelectedReceiver,
     currRoundNets,
     allNets,
-    currMatch
+    currMatch,
   });
 
   /* ───── Derived memo ───── */
@@ -194,9 +195,10 @@ export default function ServerReceiver({
   }, [currRound]);
 
   /* ───── Handlers ───── */
-  const handleNetChange = (e: React.SyntheticEvent) => {
-    const netNum = Number((e.target as HTMLSelectElement).value);
-    dispatch(setCurrNetNum(netNum));
+  const handleNetChange = (e: React.SyntheticEvent, netNum: number) => {
+    e.preventDefault();
+    // const netNum = Number((e.target as HTMLSelectElement).value);
+    // dispatch(setCurrNetNum(netNum));
 
     const net = netByNum.get(netNum);
 
@@ -298,17 +300,12 @@ export default function ServerReceiver({
       return;
     }
 
-
-    console.log({serverReceiverPlays});
-
-    if(!serverReceiverPlays || serverReceiverPlays.length === 0){
-      console.log("This is the first play, you do not need to update anything here");
-      
-      return ;
+    if (!serverReceiverPlays || serverReceiverPlays.length === 0) {
+      console.log(
+        "This is the first play, you do not need to update anything here"
+      );
+      return;
     }
-
-    console.log({serverReceiverPlays});
-    
 
     if (!token && !accessCode?.code) {
       dispatch(
@@ -327,7 +324,7 @@ export default function ServerReceiver({
       accessCode: token || (accessCode && accessCode.code) || null,
       currRoundNets,
       roundList,
-      currRound
+      currRound,
     };
     const emit = new EmitEvents(socket, dispatch);
     emit.updateCachePoints(actionData);
@@ -347,8 +344,6 @@ export default function ServerReceiver({
     token,
     accessCode,
   ]);
-  // Create a ref to store the current handleUpdateScore function
-  const handleUpdateScoreRef = useRef(handleUpdateScore);
 
   const serverTeamE: ETeam | null = useMemo(() => {
     if (!selectedServer) return null;
@@ -381,36 +376,10 @@ export default function ServerReceiver({
   }, [teamAPlayers, teamBPlayers]);
 
   /* ───── Hydrate redux ONCE ───── */
-  // Update the ref when the function changes
-  useEffect(() => {
-    handleUpdateScoreRef.current = handleUpdateScore;
-  }, [handleUpdateScore]);
 
   useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
   }, []); // ← run exactly once
-
-  useEffect(() => {
-    return () => {
-      // Use the ref version to avoid dependency issues
-      handleUpdateScoreRef.current();
-    };
-  }, []);
-
-  useEffect(() => {
-    // Create a wrapper function that uses the ref
-    const handleBeforeUnload = () => {
-      handleUpdateScoreRef.current();
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Cleanup listener on unmount
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []); // Empty dependency array since we're using the ref
-
   /* ───── UI ───── */
 
   if (
@@ -469,7 +438,6 @@ export default function ServerReceiver({
     );
   }
 
-
   if (
     !currMatch.completed &&
     isFinalRound &&
@@ -477,26 +445,27 @@ export default function ServerReceiver({
     currMatch.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND &&
     teamATotalScore === teamBTotalScore
   ) {
-    {
-      return (
-        <div className="w-full">
-          <RoundInputBox
-            allNets={allNets}
-            currMatch={currMatch}
-            currRound={currRound}
-            dispatch={dispatch}
-            myTeamE={myTeamE}
-            roundList={roundList}
-          />
-          <div className="w-full flex justify-center mt-10">
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
-              <h2 className="text-lg font-semibold mb-2">Match Tied</h2>
-              <p>Score of both teams are same, the match is tied! Either you play overtime round or you finish the match!</p>
-            </div>
+    return (
+      <div className="w-full">
+        <RoundInputBox
+          allNets={allNets}
+          currMatch={currMatch}
+          currRound={currRound}
+          dispatch={dispatch}
+          myTeamE={myTeamE}
+          roundList={roundList}
+        />
+        <div className="w-full flex justify-center mt-10">
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+            <h2 className="text-lg font-semibold mb-2">Match Tied</h2>
+            <p>
+              Score of both teams are same, the match is tied! Either you play
+              overtime round or you finish the match!
+            </p>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
   }
 
   return (
@@ -509,18 +478,45 @@ export default function ServerReceiver({
         myTeamE={myTeamE}
         roundList={roundList}
       />
+      {/* // In your ServerReceiver component, update the net input section: */}
       <div className="input-wrapper relative">
-        <SelectInput
-          handleSelect={handleNetChange}
-          name="currNetNum"
-          label="Current Net"
-          optionList={currRoundNets.map((n) => ({
-            id: n.num,
-            value: String(n.num),
-            text: `Net ${n.num}`,
-          }))}
-          value={currNetNum || ""}
-        />
+        {teamA && teamB && (
+          <div className="space-y-2 md:space-y-3">
+            {/* Mobile grid - 2 columns */}
+            <div className="md:hidden">
+              <ul className="grid grid-cols-2 gap-2 list-none">
+                {currRoundNets.map((n) => (
+                  <NetInputItem
+                    key={n._id}
+                    onNetChange={handleNetChange}
+                    net={n}
+                    playerMap={playerMap}
+                    teamA={teamA}
+                    teamB={teamB}
+                    isCurrentNet={n.num === currNetNum}
+                  />
+                ))}
+              </ul>
+            </div>
+
+            {/* Desktop grid - responsive columns */}
+            <div className="hidden md:block">
+              <ul className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 list-none">
+                {currRoundNets.map((n) => (
+                  <NetInputItem
+                    key={n._id}
+                    onNetChange={handleNetChange}
+                    net={n}
+                    playerMap={playerMap}
+                    teamA={teamA}
+                    teamB={teamB}
+                    isCurrentNet={n.num === currNetNum}
+                  />
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
 
       {actionPreview ? (

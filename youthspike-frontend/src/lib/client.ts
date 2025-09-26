@@ -12,5 +12,6 @@ export const { getClient, query, PreloadQuery } = registerApolloClient(() => {
     link: new HttpLink({
       uri: BACKEND_URL,
     }),
+    devtools: { enabled: true }, // <-- new recommended way
   });
 });

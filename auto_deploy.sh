@@ -42,11 +42,7 @@ sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
 success "System updated."
 
 ### Backup MongoDB Database
-info "Backing up MongoDB database '$DB_NAME'..."
-mkdir -p "$FOLDER_NAME"
-mongodump --db "$DB_NAME" --out "./$FOLDER_NAME"
-ls -la "./${FOLDER_NAME}/${DB_NAME}" || warn "Backup folder might be empty!"
-success "Database backup completed."
+./backup_db.sh
 
 ### Stop and clean previous PM2 processes
 info "Stopping previous PM2 processes..."

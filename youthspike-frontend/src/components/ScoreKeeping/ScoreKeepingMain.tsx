@@ -19,8 +19,6 @@ function ScoreKeepingMain({
   accessCodeList,
 }: IScoreKeepingMainProps) {
   const { data, error } = useReadQuery(queryRef);
-
-  console.log({error});
   
 
   const user = useUser();

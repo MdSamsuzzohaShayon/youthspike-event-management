@@ -229,10 +229,10 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
                 exit="exit"
                 transition={{ duration: 0.2 }}
               >
-                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkDelete}>
+                {/* <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkDelete}>
                   <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} />
                   delete
-                </li>
+                </li> */}
                 <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkCredentials}>
                   <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
                   Send Credentials

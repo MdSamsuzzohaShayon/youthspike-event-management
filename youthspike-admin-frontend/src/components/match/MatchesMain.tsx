@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 
 import Loader from '@/components/elements/Loader';
 import SelectInput from '@/components/elements/forms/SelectInput';
@@ -25,167 +25,161 @@ interface IMatchesMainProps {
 }
 
 /**
- * Filters matches for a user based on role (captain, co-captain, player)
+ * Returns matches that belong to the team of the current user (if captain/co-captain/player).
  */
-function filterMatchesForUser(user: IUserContext, teams: ITeam[], matches: IMatchExpRel[]): IMatchExpRel[] {
+function getUserScopedMatches(user: IUserContext, teams: ITeam[], matches: IMatchExpRel[]): IMatchExpRel[] {
   if (!user?.info) return matches;
 
-  let findTeam: ITeam | undefined;
+  let userTeam: ITeam | undefined;
 
   switch (user.info.role) {
     case UserRole.captain:
-      findTeam = teams.find((t) => t.captain?._id === user.info?.captainplayer);
+      userTeam = teams.find((t) => t.captain?._id === user.info?.captainplayer);
       break;
     case UserRole.co_captain:
-      findTeam = teams.find((t) => t.cocaptain?._id === user.info?.cocaptainplayer);
+      userTeam = teams.find((t) => t.cocaptain?._id === user.info?.cocaptainplayer);
       break;
     case UserRole.player:
       // @ts-ignore
-      findTeam = teams.find((t) => t.players?.includes(user.info?.player));
+      userTeam = teams.find((t) => t.players?.includes(user.info?.player));
       break;
     default:
       break;
   }
 
-  if (!findTeam) return matches;
+  if (!userTeam) return matches;
 
-  return matches.filter((m) => {
-    const teamAId = m?.teamA?._id;
-    const teamBId = m?.teamB?._id;
-    const findTeamId = findTeam?._id;
-
-    return teamAId === findTeamId || teamBId === findTeamId;
-  });
+  const teamId = userTeam._id;
+  return matches.filter((m) => m?.teamA?._id === teamId || m?.teamB?._id === teamId);
 }
 
 function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
-
-  if (!currEvent) {
-    return <div>Event not found</div>;
-  }
+  if (!currEvent) return <div>Event not found</div>;
 
   // Local state
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [addMatch, setAddMatch] = useState<boolean>(false);
-  const [currDivision, setCurrDivision] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showMatchAddForm, setShowMatchAddForm] = useState(false);
+  const [selectedDivision, setSelectedDivision] = useState('');
 
   // Hooks
-  const user = useUser();
-  const localUser = useMemo(() => getUserFromCookie(), []);
+  const currentUser = useUser();
+  const cachedUserFromCookie = useMemo(() => getUserFromCookie(), []);
 
-  // Memoized division list (static per event)
-  const divisionList: IOption[] = useMemo(() => divisionsToOptionList(currEvent?.divisions || ''), [currEvent?.divisions]);
+  // Division list (memoized, only changes when event divisions change)
+  const divisionOptions: IOption[] = useMemo(() => divisionsToOptionList(currEvent?.divisions || ''), [currEvent?.divisions]);
 
-  // Memoized filtered data
-  const { filteredTeams, filteredMatches, filteredGroups } = useMemo(() => {
-    let filteredTeams = teams || [];
-    let filteredMatches = matches || [];
-    let filteredGroups = groups || [];
+  // Apply division + user role filtering in one memoized block
+  const { divisionTeams, divisionMatches, divisionGroups } = useMemo(() => {
+    let divisionTeams = teams;
+    let divisionMatches = matches;
+    let divisionGroups = groups;
 
-    // Apply division filter if selected
-    if (currDivision) {
-      const division = currDivision.trim().toLowerCase();
-      filteredTeams = filteredTeams.filter((t) => t?.division?.trim().toLowerCase() === division);
-      filteredMatches = filteredMatches.filter((m) => m?.division?.trim().toLowerCase() === division);
-      filteredGroups = filteredGroups.filter((g) => g?.division?.trim().toLowerCase() === division);
+    if (selectedDivision) {
+      const divisionKey = selectedDivision.trim().toLowerCase();
+      divisionTeams = divisionTeams.filter((t) => t?.division?.trim().toLowerCase() === divisionKey);
+      divisionMatches = divisionMatches.filter((m) => m?.division?.trim().toLowerCase() === divisionKey);
+      divisionGroups = divisionGroups.filter((g) => g?.division?.trim().toLowerCase() === divisionKey);
     }
 
-    // Apply user filtering
-    if (localUser?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(localUser.info.role)) {
-      filteredMatches = filterMatchesForUser(localUser, filteredTeams, filteredMatches);
+    if (cachedUserFromCookie?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(cachedUserFromCookie.info.role)) {
+      divisionMatches = getUserScopedMatches(cachedUserFromCookie, divisionTeams, divisionMatches);
     }
 
-    return { filteredTeams, filteredMatches, filteredGroups };
-  }, [currDivision, localUser, teams, matches, groups]);
+    return { divisionTeams, divisionMatches, divisionGroups };
+  }, [selectedDivision, cachedUserFromCookie, teams, matches, groups]);
 
-  const refetchFunc = async () =>
-    // Effect: Load division from store on mount
-    useEffect(() => {
-      removeTeamFromStore();
-      const divisionExist = getDivisionFromStore();
-      if (divisionExist) setCurrDivision(divisionExist);
-    }, []);
+  // Refetch function (reload page)
+  const refetchMatches = useCallback(() => {
+    window.location.reload();
+  }, []);
 
-  const handleDivisionSelection = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
-    const selectedValue = inputEl.value.trim();
-    setCurrDivision(selectedValue);
+  // On mount: initialize division filter from localStorage
+  useEffect(() => {
+    removeTeamFromStore();
+    const storedDivision = getDivisionFromStore();
+    if (storedDivision) setSelectedDivision(storedDivision);
+  }, []);
 
-    if (selectedValue === '') {
-      removeDivisionFromStore();
-    } else {
+  // Division dropdown handler
+  const handleDivisionChange = useCallback((e: React.SyntheticEvent) => {
+    const selectedValue = (e.target as HTMLSelectElement).value.trim();
+    setSelectedDivision(selectedValue);
+
+    if (selectedValue) {
       setDivisionToStore(selectedValue);
+    } else {
+      removeDivisionFromStore();
     }
-  };
+  }, []);
 
-  const addMatchCB = (matchData: IMatchExpRel) => {
-    // Directly append to filteredMatches for instant UI update
-    // Avoids extra re-fetch
-    // This works because we compute filtered list based on division
-    // and we already know matchData belongs to current division
-    matches.push(matchData);
-  };
+  // Callback when a new match is added
+  const handleMatchAdded = useCallback(
+    (newMatch: IMatchExpRel) => {
+      // Mutating matches directly — keeps UI fast and avoids unnecessary refetch
+      matches.push(newMatch);
+    },
+    [matches],
+  );
 
   if (isLoading) return <Loader />;
 
   return (
     <>
-      {/* Event Menu Start */}
+      {/* Event Header + Menu */}
       <div className="event-and-menu">
-        {currEvent && (
-          <>
-            <CurrentEvent currEvent={currEvent} />
-            <div className="navigator mt-4">
-              <UserMenuList eventId={currEvent?._id} />
-            </div>
-          </>
-        )}
+        <CurrentEvent currEvent={currEvent} />
+        <div className="navigator mt-4">
+          <UserMenuList eventId={currEvent?._id} />
+        </div>
       </div>
-      {/* Event Menu End */}
 
       <div className="mt-4">
-        {addMatch ? (
+        {showMatchAddForm ? (
           <div className="match-add-wrapper w-full">
-            {user?.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+            {currentUser?.info && (currentUser.info.role === UserRole.admin || currentUser.info.role === UserRole.director) && (
               <>
-                <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(false)}>
+                <button type="button" className="btn-info mb-4" onClick={() => setShowMatchAddForm(false)}>
                   Match List
                 </button>
 
-                {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
+                {/* Only allow division selection if user is not a captain/co-captain/player */}
+                {!currentUser?.info?.role || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(currentUser.info.role) ? (
                   <div className="division-selection w-full">
-                    <SelectInput key="matches-si-1" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
+                    <SelectInput key="division-selector-add" handleSelect={handleDivisionChange} defaultValue={selectedDivision} name="division" optionList={divisionOptions} />
                   </div>
-                )}
+                ) : null}
 
                 <MatchAdd
                   eventData={currEvent}
-                  teamList={filteredTeams}
+                  teamList={divisionTeams}
                   eventId={currEvent?._id}
-                  addMatchCB={addMatchCB}
+                  addMatchCB={handleMatchAdded}
                   setIsLoading={setIsLoading}
-                  showAddMatch={setAddMatch}
-                  groupList={filteredGroups}
-                  currDivision={currDivision}
+                  showAddMatch={setShowMatchAddForm}
+                  groupList={divisionGroups}
+                  currDivision={selectedDivision}
                 />
               </>
             )}
           </div>
         ) : (
           <div className="match-list-wrapper w-full">
-            {user?.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-              <button type="button" className="btn-info mb-4" onClick={() => setAddMatch(true)}>
+            {currentUser?.info && (currentUser.info.role === UserRole.admin || currentUser.info.role === UserRole.director) && (
+              <button type="button" className="btn-info mb-4" onClick={() => setShowMatchAddForm(true)}>
                 Add Match
               </button>
             )}
             <br />
-            {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
+
+            {/* Only allow division selection if user is not a captain/co-captain/player */}
+            {!currentUser?.info?.role || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(currentUser.info.role) ? (
               <div className="division-selection w-full">
-                <SelectInput key="matches-si-2" handleSelect={handleDivisionSelection} defaultValue={currDivision} name="division" optionList={divisionList} />
+                <SelectInput key="division-selector-list" handleSelect={handleDivisionChange} defaultValue={selectedDivision} name="division" optionList={divisionOptions} />
               </div>
-            )}
-            {filteredMatches.length > 0 ? (
-              <MatchList eventId={currEvent?._id} setIsLoading={setIsLoading} matchList={filteredMatches} teamList={teams} refetchFunc={refetchFunc} groupList={filteredGroups} />
+            ) : null}
+
+            {divisionMatches.length > 0 ? (
+              <MatchList eventId={currEvent?._id} setIsLoading={setIsLoading} matchList={divisionMatches} teamList={teams} refetchFunc={refetchMatches} groupList={divisionGroups} />
             ) : (
               <p>No match created yet!</p>
             )}

@@ -108,7 +108,7 @@ function EventMain({ events }: IEventMainProps) {
   return (
     <React.Fragment>
       {/* Search and Filter Section */}
-      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+      <div className="search-filter w-full max-w-2xl mx-auto mt-8 space-y-6 bg-gray-800 p-6 rounded-lg">
         <div className="input-group grid grid-cols-1 md:grid-cols-2 gap-6">
           <SelectInput
             handleSelect={handlePeriodChange}

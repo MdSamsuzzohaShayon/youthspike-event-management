@@ -9,7 +9,7 @@ import { CLONE_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS } from '@/graphql/event'
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
-import { IEvent, IGetEventDirectorQuery } from '@/types';
+import { IEvent, IGetEventDirectorQuery, IOption } from '@/types';
 import { redirect, useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
@@ -17,17 +17,14 @@ import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorProvider';
+import EventFilterDialog from './EventFilterDialog';
 
-interface IItem {
-  id: number;
-  text: string;
-}
 
-const itemList: IItem[] = [
-  { id: 1, text: 'Upcoming' },
-  { id: 2, text: 'A-Z' },
-  { id: 3, text: 'Upcoming Matches' },
-  { id: 4, text: 'Orlando' },
+const itemList: IOption[] = [
+  { id: 1, text: 'Upcoming', value: "upcoming" },
+  { id: 2, text: 'A-Z', value: "a-z" },
+  { id: 3, text: 'Upcoming Matches', value: "upcoming-matches" },
+  { id: 4, text: 'Orlando', value: "orlando" },
 ];
 
 
@@ -46,7 +43,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
   const {setActErr} = useError();
 
   // Local States
-  const [filteredItems, setFilteredItems] = useState<IItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<IOption[]>([]);
   const filterListEl = useRef<HTMLDialogElement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -80,6 +77,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
     const findItem = itemList.find((il) => il.id === iid);
     if (!findItem || alreadyExist) return;
     setFilteredItems((prevState) => [...prevState, findItem]);
+    filterListEl.current?.close();
   };
 
   const handleClose = (e: React.SyntheticEvent) => {
@@ -143,14 +141,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
 
   return (
     <React.Fragment>
-      <dialog ref={filterListEl} className='modal-dialog'>
-        <img src="/icons/close.svg" alt="close" className="w-6 svg-black" role="presentation" onClick={handleClose} />
-        {itemList.map((item) => (
-          <p key={item.id} role="presentation" onClick={(e) => handleSelectItem(e, item.id)}>
-            {item.text}
-          </p>
-        ))}
-      </dialog>
+
       <h1 className="my-4 text-center">Events Director</h1>
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {ldo?.logo ? (
@@ -200,6 +191,8 @@ function EventsMain({queryRef}: IEventsMainProps) {
             <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} />
           ))}
       </div>
+
+      <EventFilterDialog filterListEl={filterListEl} itemList={itemList} onClose={handleClose} onSelectItem={handleSelectItem} />
     </React.Fragment>
   );
 }

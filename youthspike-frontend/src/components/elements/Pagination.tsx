@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import Image from 'next/image';
+import React, { useMemo } from "react";
+import Image from "next/image";
 
 interface IPaginationProps {
   currentPage: number;
@@ -8,8 +8,16 @@ interface IPaginationProps {
   itemList: Record<string, any>[];
 }
 
-function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: IPaginationProps) {
-  const totalPages = useMemo(() => Math.ceil(itemList.length / ITEMS_PER_PAGE), [itemList.length, ITEMS_PER_PAGE]);
+function Pagination({
+  currentPage,
+  setCurrentPage,
+  itemList,
+  ITEMS_PER_PAGE,
+}: IPaginationProps) {
+  const totalPages = useMemo(
+    () => Math.ceil(itemList.length / ITEMS_PER_PAGE),
+    [itemList.length, ITEMS_PER_PAGE]
+  );
 
   const handlePrev = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -29,12 +37,19 @@ function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: I
         type="button"
         onClick={handlePrev}
         disabled={currentPage === 1}
-        className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+        className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <Image alt="Left-arrow" height={20} width={20} className="mr-2 svg-white transform rotate-180" src="/icons/right-arrow.svg" /> Prev
+        <Image
+          alt="Left-arrow"
+          height={20}
+          width={20}
+          className="mr-2 svg-white transform rotate-180"
+          src="/icons/right-arrow.svg"
+        />{" "}
+        Prev
       </button>
 
-      <span className="text-lg font-bold text-yellow-400 bg-black px-8 py-3 rounded-full shadow-md border border-yellow-400">
+      <span className="text-lg font-bold text-yellow-400 bg-black px-8 py-3 rounded-full border border-yellow-400">
         Page {currentPage} of {totalPages}
       </span>
 
@@ -42,9 +57,16 @@ function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: I
         type="button"
         onClick={handleNext}
         disabled={currentPage === totalPages}
-        className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+        className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Next <Image alt="Right-arrow" height={20} width={20} className="ml-2 svg-white" src="/icons/right-arrow.svg" />
+        Next{" "}
+        <Image
+          alt="Right-arrow"
+          height={20}
+          width={20}
+          className="ml-2 svg-white"
+          src="/icons/right-arrow.svg"
+        />
       </button>
     </div>
   );

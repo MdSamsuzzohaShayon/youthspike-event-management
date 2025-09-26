@@ -90,12 +90,12 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
                 Edit
               </Link>
             </li>
-            <li role="presentation" onClick={(e) => handleDeleteEvent(e, event._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+            {/* <li role="presentation" onClick={(e) => handleDeleteEvent(e, event._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
               <span>
                 <Image width={20} height={20} src="/icons/delete.svg" alt="Edit-icon" className="svg-white" />
               </span>
               Delete
-            </li>
+            </li> */}
 
           </motion.ul>
         </AnimatePresence>

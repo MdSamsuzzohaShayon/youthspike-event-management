@@ -20,6 +20,7 @@ import { handleError } from '@/utils/handleError';
 import TextImg from '../elements/TextImg';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -28,7 +29,7 @@ interface MatchCardProps {
   isChecked: boolean;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-  refetchFunc?: () => Promise<void>;
+  refetchFunc?: () => void;
 }
 
 function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
@@ -177,6 +178,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
   // }
 
+  console.log(user.info?.role);
+  
+
   /** ✅ Reusable Action Buttons - optimized with useCallback */
   const ActionButtons = useCallback(
     ({ iconSize = 20 }: { iconSize?: number }) => {
@@ -184,8 +188,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
       return (
         <div className="flex justify-between items-center gap-2 mt-2 md:mt-0 relative">
-          {user.info?.role === UserRole.admin ||
-            (user.info?.role === UserRole.director && <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />)}
+          {(user.info?.role === UserRole.admin ||user.info?.role === UserRole.director) && <CheckboxInput name="bulk-match" defaultValue={isChecked} _id={match._id} handleInputChange={handleSelectMatch} />}
           {/* Spectate */}
           <Link href={`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`} className="flex flex-col items-center text-center p-1 md:p-2 rounded hover:bg-gray-700 transition-colors">
             <Image width={iconSize} height={iconSize} src="/icons/spectate.svg" alt="Spectate" className={iconClass} />
@@ -208,7 +211,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         </div>
       );
     },
-    [match._id, ldoIdUrl],
+    [user, match._id, ldoIdUrl],
   );
 
   /** ✅ Reusable Header - optimized with useCallback */
@@ -242,7 +245,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
       {/* Desktop View */}
       <div className="hidden md:block bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-3">
-        <MatchHeader />
+        <MatchHeader />  
         <div className="flex flex-col items-center justify-between mt-2">
           <div className="grid grid-cols-2 gap-3 flex-1">
             <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} />
@@ -281,21 +284,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         </motion.ul>
       )}
       {/* Actions items end */}
-      <dialog ref={deleteEl} className="modal-dialog p-4">
-        <div className="flex flex-col gap-y-2">
-          <h2>Delete match</h2>
-          <p className="text-yellow-100/90">Are your sure you want to delete the match?</p>
-          <p>Description: {match?.description}</p>
-          <div className="buttons flex w-full justify-between items-center">
-            <div className="btn-info" onClick={(e) => handleDeleteMatch(e, match._id)}>
-              Confirm
-            </div>
-            <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>
-              Cancel
-            </div>
-          </div>
-        </div>
-      </dialog>
+      <ConfirmDeleteDialog deleteEl={deleteEl} matchId={match._id} description={match?.description || null} handleDeleteMatch={handleDeleteMatch} />
     </div>
   );
 }

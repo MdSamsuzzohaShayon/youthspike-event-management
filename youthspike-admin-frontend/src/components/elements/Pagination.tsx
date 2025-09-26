@@ -45,20 +45,20 @@ function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: I
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 mt-6 p-4 rounded-lg shadow-xl">
+    <div className="flex flex-wrap items-center justify-center gap-3 mt-6 p-4 rounded-lg">
       {/* Prev Button */}
       <button
         type="button"
         onClick={handlePrev}
         disabled={currentPage === 1}
-        className="flex items-center px-4 py-2 sm:px-5 sm:py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+        className="flex items-center px-4 py-2 sm:px-5 sm:py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Image alt="Left-arrow" height={20} width={20} className="mr-2 transform rotate-180" src="/icons/right-arrow.svg" />
         Prev
       </button>
 
       {/* Mobile: only show "Page X of Y" */}
-      <span className="sm:hidden text-base font-bold text-yellow-400 px-4 py-2 rounded-full shadow-md border border-yellow-400">
+      <span className="sm:hidden text-base font-bold text-yellow-400 px-4 py-2 rounded-full border border-yellow-400">
         {currentPage}/{totalPages}
       </span>
 
@@ -69,7 +69,7 @@ function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: I
             <button
               key={idx}
               onClick={() => handlePageClick(p)}
-              className={`px-4 py-2 rounded-full font-semibold shadow-md transition-all duration-300 ${
+              className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
                 currentPage === p ? 'bg-yellow-400 text-black border border-yellow-500' : 'bg-transparent text-yellow-400 border border-yellow-400 hover:bg-yellow-500 hover:text-black'
               }`}
             >
@@ -88,7 +88,7 @@ function Pagination({ currentPage, setCurrentPage, itemList, ITEMS_PER_PAGE }: I
         type="button"
         onClick={handleNext}
         disabled={currentPage === totalPages}
-        className="flex items-center px-4 py-2 sm:px-5 sm:py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+        className="flex items-center px-4 py-2 sm:px-5 sm:py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Next
         <Image alt="Right-arrow" height={20} width={20} className="ml-2" src="/icons/right-arrow.svg" />

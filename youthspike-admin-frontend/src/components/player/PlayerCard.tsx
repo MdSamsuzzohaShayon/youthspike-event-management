@@ -332,7 +332,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
 
         <button
           onClick={() => setActionOpen((prev) => !prev)}
-          className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
           aria-label="Options"
         >
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />

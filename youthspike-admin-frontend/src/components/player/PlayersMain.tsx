@@ -234,22 +234,23 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
         </>
       ) : (
         <>
-          {/* Player List Mode */}
-          <div className="w-full flex justify-between items-center mt-6 rounded-lg">
-            <h3>Player List</h3>
-            {(user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director) && (
-              <button className="btn-info" onClick={handleAddPlayerToggle}>
-                Add player
-              </button>
-            )}
-          </div>
-
-          {/* Filter Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
-              <SelectInput key="players-pg-2" handleSelect={handleDivisionChange} value={filter.division} name="division" optionList={divisionList} />
-            )}
-            <InputField name="search" type="text" value={filter.search} placeholder="Search by name..." handleInputChange={handleSearchChange} />
+          <div className="bg-gray-800 p-2 rounded-xl mt-6 ">
+            {/* Player List Mode */}
+            <div className="w-full flex justify-between items-center rounded-lg">
+              <h3>Player List</h3>
+              {(user?.info?.role === UserRole.admin || user?.info?.role === UserRole.director) && (
+                <button className="btn-info" onClick={handleAddPlayerToggle}>
+                  Add player
+                </button>
+              )}
+            </div>
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
+                <SelectInput key="players-pg-2" handleSelect={handleDivisionChange} value={filter.division} name="division" optionList={divisionList} />
+              )}
+              <InputField name="search" type="text" value={filter.search} placeholder="Search by name..." handleInputChange={handleSearchChange} />
+            </div>
           </div>
 
           <div className="player-list mt-6">
@@ -269,9 +270,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             />
 
             {/* Active Players Pagination */}
-            {activePlayers.length > 0 && (
-              <Pagination currentPage={currentPageActive} itemList={activePlayers} setCurrentPage={setCurrentPageActive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
-            )}
+            {activePlayers.length > 0 && <Pagination currentPage={currentPageActive} itemList={activePlayers} setCurrentPage={setCurrentPageActive} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />}
           </div>
 
           {inactivePlayers.length > 0 && (
@@ -293,11 +292,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             </>
           )}
 
-          {filteredPlayers.length === 0 && (
-            <p className="text-center text-gray-400 mt-6">
-              {filter.search || filter.division ? 'No players match your filters.' : 'No players available.'}
-            </p>
-          )}
+          {filteredPlayers.length === 0 && <p className="text-center text-gray-400 mt-6">{filter.search || filter.division ? 'No players match your filters.' : 'No players available.'}</p>}
         </>
       )}
     </>
