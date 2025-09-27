@@ -14,7 +14,6 @@ import organizeFetchedData from "@/utils/match/organizeFetchedData";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Loader from "../elements/Loader";
 import { setMessage } from "@/redux/slices/elementSlice";
-import { useUser } from "@/lib/UserProvider";
 import { useSocket } from "@/lib/SocketProvider";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import { setTeamScore } from "@/redux/slices/matchesSlice";

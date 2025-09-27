@@ -86,14 +86,24 @@ function AvailablePlayers({
   }, [myPlayers, playerRankings]);
 
   // Memoize filtered and available players
-  const filteredPlayers = useMemo(() => {
-    const subbedPlayers = new Set(currentRound?.subs ?? []);
-    return sortedPlayers.filter(player => 
+  // Memoize filtered and available players with unique _id
+const filteredPlayers = useMemo(() => {
+  const subbedPlayers = new Set(currentRound?.subs ?? []);
+  const uniquePlayersMap = new Map<string, IPlayer>();
+
+  [...sortedPlayers].forEach(player => {
+    if (
       availablePlayerIds.includes(player._id) &&
       player.status !== EPlayerStatus.INACTIVE &&
       !subbedPlayers.has(player._id)
-    );
-  }, [sortedPlayers, availablePlayerIds, currentRound?.subs]);
+    ) {
+      uniquePlayersMap.set(player._id, player); // last occurrence wins
+    }
+  });
+
+  return Array.from(uniquePlayersMap.values());
+}, [sortedPlayers, availablePlayerIds, currentRound?.subs]);
+
 
   // Memoize all disabled IDs
   const allDisabledIds = useMemo(() => {

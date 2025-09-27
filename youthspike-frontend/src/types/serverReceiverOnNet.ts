@@ -1,3 +1,4 @@
+import { IAccessCode, IMatchExpRel, IUser } from '.';
 import { INetRelatives } from './net';
 import { IPlayer } from './player';
 import { IRoundRelatives } from './round';
@@ -18,10 +19,10 @@ export enum EServerPositionPair {
 export interface IServerReceiverCommon {
   play: number;
 
-  server: string | IPlayer;
-  servingPartner: string | IPlayer;
-  receiver: string | IPlayer;
-  receivingPartner: string | IPlayer;
+  server: string | IPlayer| null;
+  servingPartner: string | IPlayer| null;
+  receiver: string | IPlayer| null;
+  receivingPartner: string | IPlayer| null;
   match: string | IMatch;
   net: string | INetRelatives;
   round: string | IRoundRelatives;
@@ -32,12 +33,12 @@ export interface IServerReceiverCommon {
   serverPositionPair: EServerPositionPair;
 
   // Optional related fields
-  serverId?: string;
-  netId?: string;
-  receiverId?: string;
-  receivingPartnerId?: string;
-  servingPartnerId?: string;
-  matchId?: string;
+  serverId?: string | null;
+  netId?: string| null;
+  receiverId?: string| null;
+  receivingPartnerId?: string| null;
+  servingPartnerId?: string| null;
+  matchId?: string| null;
 }
 
 export interface IServerReceiverOnNetMixed extends IServerReceiverCommon {
@@ -46,6 +47,16 @@ export interface IServerReceiverOnNetMixed extends IServerReceiverCommon {
   round: string | IRoundRelatives;
   roundId?: string;
 }
+
+
+export interface IServerReceiverProps {
+  matchId: string;
+  matchData: IMatchExpRel;
+  accessCode: IAccessCode | null;
+  token: string | null;
+  userInfo: IUser | null;
+}
+
 
 export enum EServerReceiverAction {
   SERVER_ACE_NO_TOUCH = 'SERVER_ACE_NO_TOUCH',
@@ -69,16 +80,6 @@ export interface IServerReceiverSinglePlay extends IServerReceiverCommon {
 export interface IActionResponse{
   serverReceiverOnNet: IServerReceiverOnNetMixed,
   singlePlay: IServerReceiverSinglePlay;
-}
-
-export interface IServerTeam{
-  server: IPlayer | null;
-  servingPartner: IPlayer | null;
-}
-
-export interface IReceiverTeam{
-  receiver: IPlayer | null;
-  receivingPartner: IPlayer | null;
 }
 
 

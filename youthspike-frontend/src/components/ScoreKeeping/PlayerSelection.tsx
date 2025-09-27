@@ -1,7 +1,7 @@
 import TextImg from '@/components/elements/TextImg';
 import { useAppDispatch } from '@/redux/hooks';
 import { setMessage } from '@/redux/slices/elementSlice';
-import { EMessage, INetPlayers, IPlayer, ITeam } from '@/types';
+import { EMessage, INetPlayers, IPlayer, IServerReceiverOnNetMixed, ITeam } from '@/types';
 import { CldImage } from 'next-cloudinary';
 import React from 'react';
 
@@ -10,14 +10,13 @@ interface PlayerSelectionProps {
   teamBPlayers: IPlayer[];
   teamA: ITeam | null | undefined;
   teamB: ITeam | null | undefined;
-  selectedServer: null | string;
-  selectedReceiver: null | string;
   playersOfSelectedNet: null | INetPlayers;
   serverPlaceholder: boolean;
   receiverPlaceholder: boolean;
   handleServerSelection: (e: React.SyntheticEvent, playerId: string | null) => void;
   handleReceiverSelection: (e: React.SyntheticEvent, playerId: string | null) => void;
   handleClosePlayers: (e: React.SyntheticEvent) => void;
+  currServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
 const PlayerSelection: React.FC<PlayerSelectionProps> = ({
@@ -25,14 +24,13 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
   teamBPlayers,
   teamA,
   teamB,
-  selectedServer,
-  selectedReceiver,
   playersOfSelectedNet,
   serverPlaceholder,
   receiverPlaceholder,
   handleServerSelection,
   handleReceiverSelection,
   handleClosePlayers,
+  currServerReceiver,
 }) => {
   const dispatch = useAppDispatch();
   const getPlayersMap = (players: IPlayer[]) => new Map<string, IPlayer>(players.map((p) => [p._id, p]));
@@ -51,11 +49,11 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
 
     // Check player A or player B is selected or not
     let teamSelected = false;
-    if (selectedServer === playerA?._id || selectedServer === playerB?._id) {
+    if (currServerReceiver?.server === playerA?._id || currServerReceiver?.server === playerB?._id) {
       teamSelected = true;
     }
 
-    if (selectedReceiver === playerA?._id || selectedReceiver === playerB?._id) {
+    if (currServerReceiver?.receiver === playerA?._id || currServerReceiver?.receiver === playerB?._id) {
       teamSelected = true;
     }
 

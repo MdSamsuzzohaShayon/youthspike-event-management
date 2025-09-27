@@ -1,6 +1,6 @@
 import TextImg from "@/components/elements/TextImg";
 import { useAppSelector } from "@/redux/hooks";
-import { EServerPositionPair, ESRRole, IPlayer } from "@/types";
+import { EServerPositionPair, ESRRole, IPlayer, ITeam } from "@/types";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,8 @@ interface ISPPlayerCardProps {
   selected: string | null;
   player: IPlayer | null;
   role: ESRRole | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
   dark?: boolean;
   handlePlayerSelection?: (e: React.SyntheticEvent) => void;
   positionPairE: EServerPositionPair; // This is not server position pair
@@ -20,10 +22,14 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
   player,
   role,
   dark,
+  teamA,
+  teamB,
   handlePlayerSelection,
   positionPairE,
 }) => {
-  const { teamA, teamB } = useAppSelector((state) => state.teams);
+
+  console.log("Rendering SRPlayerCard");
+  
 
   // Memoization
   const teamOfPlayer = useMemo(() => {

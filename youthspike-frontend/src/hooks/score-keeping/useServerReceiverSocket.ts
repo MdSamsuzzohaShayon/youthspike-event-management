@@ -1,6 +1,3 @@
-import React, { useEffect } from "react";
-import EmitEvents from "@/utils/socket/EmitEvents";
-import SocketEventListener from "@/utils/socket/SocketEventListener";
 import {
   IActionResponse,
   IMatchRelatives,
@@ -12,6 +9,9 @@ import {
   IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
+import React, { useEffect, useMemo } from "react";
+import EmitEvents from "@/utils/socket/EmitEvents";
+import SocketEventListener from "@/utils/socket/SocketEventListener";
 import { getUserFromCookie } from "@/utils/cookie";
 import { Socket } from "socket.io-client";
 
@@ -29,192 +29,59 @@ interface IServerReceiverSocketProps {
   serverReceiverPlays: IServerReceiverSinglePlay[];
   currServerReceiver: IServerReceiverOnNetMixed | null;
   setActionPreview: React.Dispatch<React.SetStateAction<boolean>>;
-  setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>;
-  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>;
   currRoundNets: INetRelatives[];
   allNets: INetRelatives[];
   currMatch: IMatchRelatives;
 }
 
-export default function useServerReceiverSocket({
-  socket,
-  dispatch,
-  roundList,
-  teamA,
-  teamB,
-  currRound,
-  matchId,
-  currNetNum,
-  netByNum,
-  serverReceiversOnNet,
-  serverReceiverPlays,
-  currServerReceiver,
-  setSelectedServer,
-  setSelectedReceiver,
-  setActionPreview,
-  currRoundNets,
-  allNets,
-  currMatch,
-}: IServerReceiverSocketProps) {
+
+
+export default function useServerReceiverSocket(props: IServerReceiverSocketProps) {
+  const {
+    socket, dispatch, roundList, teamA, teamB, currRound, matchId,
+    currNetNum, netByNum, serverReceiversOnNet, serverReceiverPlays,
+    currServerReceiver, setActionPreview,
+  } = props;
+
+
   useEffect(() => {
     if (!socket || !roundList.length) return;
 
     const emit = new EmitEvents(socket, dispatch);
-    emit.joinRoom({
-      user: getUserFromCookie(),
-      teamA,
-      teamB,
-      currRound,
-      matchId,
-    });
-
     const listener = new SocketEventListener(socket, dispatch);
-    // {serverReceiverOnNet: net, singlePlay: currNetObj}
+
+    // join room only once
+    emit.joinRoom({ user: getUserFromCookie(), teamA, teamB, currRound, matchId });
+
     const handlers = {
-      // Round change handler
-      "submit-lineup-response-all": (data: IRoomNets) => {
-        /*
-        listener.handleLineupResponse({
-                  data,
-                  dispatch,
-                  currRoundNets,
-                  allNets,
-                  roundList,
-                  currentRound: currRound,
-                  currMatch,
-                })
+      "submit-lineup-response-all": () => window?.location?.reload(),
+      "service-fault-from-server": (data: any) => listener.handleServiceFaultResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "ace-no-touch-from-server": (data: any) => listener.handleAceNoTouchResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "ace-no-third-touch-from-server": (data: any) => listener.handleAceNoThirdTouchResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "one-two-three-put-away-from-server": (data: any) => listener.handleOneTwoThreePutAwayResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "rally-conversion-from-server": (data: any) => listener.handleRalleyConversionResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "defensive-conversion-from-server": (data: any) => listener.handleDefensiveConversionResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "receiving-hitting-error-from-server": (data: any) => listener.handleHittingErrorResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "server-do-not-know-from-server": (data: any) => listener.handleServerDoNotKnowResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
+      "receiver-do-not-know-from-server": (data: any) => listener.handleReceiverDoNotKnowResponse({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver }),
 
-        */
+      "reset-score-from-server": (data: any) =>
+        listener.handleResetServerReceiver({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver, setActionPreview }),
 
-        if(window)window?.location?.reload();
-      },
-      // Server receiver actions
-      "service-fault-from-server": (data: IActionResponse) =>
-        listener.handleServiceFaultResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "ace-no-touch-from-server": (data: IActionResponse) =>
-        listener.handleAceNoTouchResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "ace-no-third-touch-from-server": (data: IActionResponse) =>
-        listener.handleAceNoThirdTouchResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "one-two-three-put-away-from-server": (data: IActionResponse) =>
-        listener.handleOneTwoThreePutAwayResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "rally-conversion-from-server": (data: IActionResponse) =>
-        listener.handleRalleyConversionResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "defensive-conversion-from-server": (data: IActionResponse) =>
-        listener.handleDefensiveConversionResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "receiving-hitting-error-from-server": (data: IActionResponse) =>
-        listener.handleHittingErrorResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "server-do-not-know-from-server": (data: IActionResponse) =>
-        listener.handleServerDoNotKnowResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
-      "receiver-do-not-know-from-server": (data: IActionResponse) =>
-        listener.handleReceiverDoNotKnowResponse({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-        }),
+      "set-players-from-server": (data: any) =>
+        listener.handleSetPlayers({ data, dispatch, serverReceiversOnNet, setActionPreview, currNetNum, netByNum, currRound, currServerReceiver }),
 
-      "reset-score-from-server": (data: { net: string }) =>
-        listener.handleResetServerReceiver({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-          setSelectedServer,
-          setSelectedReceiver,
-          setActionPreview,
-        }),
-      "set-players-from-server": (data: IServerReceiverOnNetMixed) =>
-        listener.handleSetPlayers({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          setActionPreview,
-          currNetNum,
-          netByNum,
-          currRound,
-          currServerReceiver,
-        }),
-      "revert-play-from-server": (data: IServerReceiverOnNetMixed) =>
-        listener.handleRevertPlay({
-          data,
-          dispatch,
-          serverReceiversOnNet,
-          serverReceiverPlays,
-          currServerReceiver,
-          netByNum,
-          currNetNum,
-        }),
+      "revert-play-from-server": (data: any) =>
+        listener.handleRevertPlay({ data, dispatch, serverReceiversOnNet, serverReceiverPlays, currServerReceiver, netByNum, currNetNum }),
+
       "error-from-server": (err: string) => listener.handleError(err, dispatch),
     } as const;
 
     Object.entries(handlers).forEach(([evt, fn]) => socket.on(evt, fn));
-
     return () => Object.keys(handlers).forEach((evt) => socket.off(evt));
   }, [
-    socket,
-    dispatch,
-    roundList,
-    teamA,
-    teamB,
-    currRound,
-    matchId,
-    currNetNum,
-    netByNum,
-    serverReceiversOnNet,
-    serverReceiverPlays,
-    currServerReceiver,
-    setSelectedServer,
-    setSelectedReceiver,
-    setActionPreview,
+    socket, dispatch, roundList, teamA, teamB, currRound, matchId,
+    currNetNum, netByNum, serverReceiversOnNet, serverReceiverPlays,
+    currServerReceiver, setActionPreview
   ]);
 }

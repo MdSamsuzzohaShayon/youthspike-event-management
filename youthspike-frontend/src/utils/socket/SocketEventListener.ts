@@ -649,8 +649,6 @@ class SocketEventListener {
     serverReceiversOnNet,
     serverReceiverPlays,
     currServerReceiver,
-    setSelectedServer,
-    setSelectedReceiver,
     setActionPreview,
   }: IResetServerReceiverResponse) {
     this.dispatch = dispatch;
@@ -668,8 +666,6 @@ class SocketEventListener {
     );
     if (currServerReceiver?.net === data.net) {
       dispatch(setCurrentServerReceiver(null));
-      if (setSelectedServer) setSelectedServer(null);
-      if (setSelectedReceiver) setSelectedReceiver(null);
       if (setActionPreview) setActionPreview(false);
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { IAccessCode, IMatchExpRel } from "@/types";
 import AccessCodeForm from "@/components/ScoreKeeping/AccessCodeForm";
 import ServerReceiver from "@/components/ScoreKeeping/ServerReceiver";
@@ -13,74 +14,125 @@ interface IScoreKeepingMainProps {
   accessCodeList: IAccessCode[];
   accessCode: IAccessCode | null;
 }
+
 function ScoreKeepingMain({
   queryRef,
   accessCode,
   accessCodeList,
 }: IScoreKeepingMainProps) {
   const { data, error } = useReadQuery(queryRef);
-  
-
   const user = useUser();
-
   const { token, info } = user;
-
   const matchData = data?.getMatch?.data;
 
-  // Get round list, match, room, nets
+  // Animation variants for consistent animations
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.2 }
+    }
+  };
+
   const renderHeadings = () => {
     return (
-      <>
-        <h1 className="text-4xl font-extrabold text-yellow-400 text-center uppercase tracking-wide mb-6">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h1 
+          variants={itemVariants}
+          className="text-4xl font-extrabold text-yellow-400 text-center uppercase tracking-wide mb-6"
+        >
           Scorekeeper Settings
-        </h1>
+        </motion.h1>
 
-        <div className="text-center mb-6">
+        <motion.div variants={itemVariants} className="text-center mb-6">
           <Link
             href={`/matches/${matchData._id}`}
             className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
           >
             ← Go back to match
           </Link>
-        </div>
-      </>
+        </motion.div>
+      </motion.div>
     );
   };
 
   if (!accessCode && !token) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-xl bg-gray-950/80 rounded-2xl shadow-2xl p-8 backdrop-blur-md border border-gray-800">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full min-h-screen flex items-center justify-center py-12 px-4"
+      >
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="w-full max-w-xl bg-gray-950/80 rounded-2xl shadow-2xl p-8 backdrop-blur-md border border-gray-800"
+        >
           {renderHeadings()}
 
-          <div className="access-code">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.2 }}
+            className="access-code"
+          >
             <AccessCodeForm
               matchId={matchData._id}
               accessCodes={accessCodeList}
             />
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
     );
   }
 
-
   return (
-    <React.Fragment>
-      {renderHeadings()}
-      <div className="server-receiver-wrapper">
-        {/* Whatever height you need */}
-        {matchData && (
-          <ServerReceiver
-            matchId={matchData._id}
-            matchData={matchData}
-            accessCode={accessCode}
-            token={token || null}
-            userInfo={info}
-          />
-        )}
-      </div>
-    </React.Fragment>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="scorekeeping-main"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {renderHeadings()}
+        <motion.div 
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+          className="server-receiver-wrapper"
+        >
+          {matchData && (
+            <ServerReceiver
+              matchId={matchData._id}
+              matchData={matchData}
+              accessCode={accessCode}
+              token={token || null}
+              userInfo={info}
+            />
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

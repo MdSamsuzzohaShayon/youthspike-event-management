@@ -568,10 +568,11 @@ class EmitEvents {
     currMatch,
     currRoundNets,
     currNetNum,
-    server,
-    receiver,
     accessCode,
+    currServerReceiver
   }: ISetServerReceiverChange) {
+    console.log({currServerReceiver});
+    
     if (!currNetNum) {
       return dispatch(
         setMessage({
@@ -591,7 +592,7 @@ class EmitEvents {
       );
     }
 
-    if (!server || !receiver) {
+    if (!currServerReceiver || !currServerReceiver.server || !currServerReceiver.receiver) {
       return dispatch(
         setMessage({
           type: EMessage.ERROR,
@@ -625,8 +626,8 @@ class EmitEvents {
     const actionData: ISetServerReceiverDataInput = {
       match: currMatch._id,
       room: currRoom._id,
-      server,
-      receiver,
+      server: String(currServerReceiver.server),
+      receiver: String(currServerReceiver.receiver),
       round: currRound._id,
       net: currNet._id,
       accessCode: accessCode,

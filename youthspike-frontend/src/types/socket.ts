@@ -17,7 +17,7 @@ import { ETeam, ITeam } from "./team";
 import type { IAccessCode, IUserContext, UserRole } from "./user";
 import { IMatchExpRel, IMatchRelatives } from "./match";
 import { IPlayer } from "./player";
-import { EServerPositionPair } from "./serverReceiverOnNet";
+import { EServerPositionPair, IServerReceiverOnNetMixed } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
 import { ApolloClient } from "@apollo/client";
 import { AppDispatch } from "@/redux/store";
@@ -61,9 +61,8 @@ export interface ISetServerReceiverChange {
   currRound: IRoundRelatives | null;
   currRoundNets: INetRelatives[];
   currNetNum: number;
-  server: string | null;
-  receiver: string | null;
   accessCode: string | null;
+  currServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
 

@@ -34,6 +34,7 @@ import {
   IRoundRelatives,
   IUser,
   ITeam,
+  EServerPositionPair,
 } from "@/types";
 import LocalStorageService from "../LocalStorageService";
 // import { EActionProcess } from '@/types/room';
@@ -239,22 +240,26 @@ const organizeFetchedData = async ({
       net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
       receiver:
         sr.receiverId ||
-        (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
+        (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id) ||
+        null,
       receivingPartner:
         sr.receivingPartnerId ||
         (typeof sr.receivingPartner === "string"
           ? sr.receivingPartner
-          : sr.receivingPartner?._id),
+          : sr.receivingPartner?._id) ||
+        null,
       round:
         sr.roundId || (typeof sr.round === "string" ? sr.round : sr.round?._id),
       server:
         sr.serverId ||
-        (typeof sr.server === "string" ? sr.server : sr.server?._id),
+        (typeof sr.server === "string" ? sr.server : sr.server?._id) ||
+        null,
       servingPartner:
         sr.servingPartnerId ||
         (typeof sr.servingPartner === "string"
           ? sr.servingPartner
-          : sr.servingPartner?._id),
+          : sr.servingPartner?._id) ||
+        null,
     }));
 
     const formattedServerReceiverSinglePlays = serverReceiverSinglePlay?.map(
@@ -266,25 +271,28 @@ const organizeFetchedData = async ({
         net: sr.netId || (typeof sr.net === "string" ? sr.net : sr.net?._id),
         receiver:
           sr.receiverId ||
-          (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id),
+          (typeof sr.receiver === "string" ? sr.receiver : sr.receiver?._id) ||
+          null,
         receivingPartner:
           sr.receivingPartnerId ||
           (typeof sr.receivingPartner === "string"
             ? sr.receivingPartner
-            : sr.receivingPartner?._id),
+            : sr.receivingPartner?._id) ||
+          null,
         server:
           sr.serverId ||
-          (typeof sr.server === "string" ? sr.server : sr.server?._id),
+          (typeof sr.server === "string" ? sr.server : sr.server?._id) ||
+          null,
         servingPartner:
           sr.servingPartnerId ||
           (typeof sr.servingPartner === "string"
             ? sr.servingPartner
-            : sr.servingPartner?._id),
+            : sr.servingPartner?._id) ||
+          null,
       })
     );
 
-    if (formattedNetsServerReceiver)
-      dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
+    if (formattedNetsServerReceiver) dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
 
     if (formattedServerReceiverSinglePlays)
       dispatch(setServerReceiverPlays(formattedServerReceiverSinglePlays));
@@ -294,8 +302,33 @@ const organizeFetchedData = async ({
       const currServerReceiver = formattedNetsServerReceiver?.find(
         (sr) => sr.netId === selectedNet._id || sr.net === selectedNet._id
       );
-      if (currServerReceiver)
+      if (currServerReceiver) {
+        
         dispatch(setCurrentServerReceiver(currServerReceiver));
+      } else {
+        dispatch(setCurrentServerReceiver({
+          match: matchData._id,
+          matchId: matchData._id,
+          mutate: 0,
+          play: 0,
+          net: selectedNet._id,
+          netId: selectedNet._id,
+          server: null,
+          receiver: null,
+          receivingPartner: null,
+          servingPartner: null,
+          serverId: null,
+          receiverId: null,
+          receivingPartnerId: null,
+          servingPartnerId: null,
+          room: room._id,
+          round: selectedRound._id,
+          roundId: selectedRound._id,
+          serverPositionPair: EServerPositionPair.PAIR_A_LEFT,
+          teamAScore: 0,
+          teamBScore: 0,
+        }));
+      }
     }
   }
 

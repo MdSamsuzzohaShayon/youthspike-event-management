@@ -4,35 +4,63 @@ import React, { useMemo } from "react";
 import TextImg from "../elements/TextImg";
 
 interface INetInputItemProps {
-  net: INetRelatives;
+  net: INetRelatives | null;
   playerMap: Map<string, IPlayer>;
   teamA: ITeam;
   teamB: ITeam;
-  onNetChange: (e: React.SyntheticEvent, netNum: number) => void;
+  onNetChange?: (e: React.SyntheticEvent, netNum: number) => void;
   isCurrentNet?: boolean;
 }
 
-function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet = false }: INetInputItemProps) {
-  const teamAPlayerA = useMemo(() => net?.teamAPlayerA ? playerMap.get(net?.teamAPlayerA) : null, [net, playerMap]);
-  const teamAPlayerB = useMemo(() => net?.teamAPlayerB ? playerMap.get(net?.teamAPlayerB) : null, [net, playerMap]);
-  const teamBPlayerA = useMemo(() => net?.teamBPlayerA ? playerMap.get(net?.teamBPlayerA) : null, [net, playerMap]);
-  const teamBPlayerB = useMemo(() => net?.teamBPlayerB ? playerMap.get(net?.teamBPlayerB) : null, [net, playerMap]);
+function NetInputItem({
+  net,
+  playerMap,
+  teamA,
+  teamB,
+  onNetChange,
+  isCurrentNet = false,
+}: INetInputItemProps) {
+  const teamAPlayerA = useMemo(
+    () => (net?.teamAPlayerA ? playerMap.get(net?.teamAPlayerA) : null),
+    [net, playerMap]
+  );
+  const teamAPlayerB = useMemo(
+    () => (net?.teamAPlayerB ? playerMap.get(net?.teamAPlayerB) : null),
+    [net, playerMap]
+  );
+  const teamBPlayerA = useMemo(
+    () => (net?.teamBPlayerA ? playerMap.get(net?.teamBPlayerA) : null),
+    [net, playerMap]
+  );
+  const teamBPlayerB = useMemo(
+    () => (net?.teamBPlayerB ? playerMap.get(net?.teamBPlayerB) : null),
+    [net, playerMap]
+  );
+
+  if (!net) {
+    return <li>Select A Net</li>;
+  }
 
   // Mobile version - compact with full names
   const MobileNetItem = () => (
-    <li 
+    <li
       className={`
         border-2 rounded-lg p-2 transition-all duration-200 cursor-pointer
-        ${isCurrentNet 
-          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg' 
-          : 'border-gray-600 hover:border-gray-400 hover:bg-gray-800'
+        ${
+          isCurrentNet
+            ? "border-yellow-400 bg-yellow-400/10 shadow-lg"
+            : "border-gray-600 hover:border-gray-400 hover:bg-gray-800"
         }
       `}
-      onClick={(e) => onNetChange(e, net.num)}
+      onClick={(e) => onNetChange && onNetChange(e, net.num)}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <span className={`font-bold text-sm ${isCurrentNet ? 'text-yellow-400' : 'text-white'}`}>
+        <span
+          className={`font-bold text-sm ${
+            isCurrentNet ? "text-yellow-400" : "text-white"
+          }`}
+        >
           Net {net.num}
         </span>
         {isCurrentNet && (
@@ -62,8 +90,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamAPlayerA.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamAPlayerA.firstName} 
+                    <TextImg
+                      fullText={teamAPlayerA.firstName}
                       className="w-5 h-5 text-[9px]"
                     />
                   )}
@@ -90,8 +118,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamAPlayerB.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamAPlayerB.firstName} 
+                    <TextImg
+                      fullText={teamAPlayerB.firstName}
                       className="w-5 h-5 text-[9px]"
                     />
                   )}
@@ -127,8 +155,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamBPlayerA.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamBPlayerA.firstName} 
+                    <TextImg
+                      fullText={teamBPlayerA.firstName}
                       className="w-5 h-5 text-[9px]"
                     />
                   )}
@@ -155,8 +183,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamBPlayerB.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamBPlayerB.firstName} 
+                    <TextImg
+                      fullText={teamBPlayerB.firstName}
                       className="w-5 h-5 text-[9px]"
                     />
                   )}
@@ -179,19 +207,24 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
 
   // Desktop version - more detailed but still compact
   const DesktopNetItem = () => (
-    <li 
+    <li
       className={`
         border-2 rounded-lg p-3 transition-all duration-200 cursor-pointer
-        ${isCurrentNet 
-          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg scale-105' 
-          : 'border-gray-600 hover:border-gray-400 hover:bg-gray-800 hover:scale-102'
+        ${
+          isCurrentNet
+            ? "border-yellow-400 bg-yellow-400/10 shadow-lg scale-105"
+            : "border-gray-600 hover:border-gray-400 hover:bg-gray-800 hover:scale-102"
         }
       `}
-      onClick={(e) => onNetChange(e, net.num)}
+      onClick={(e) => onNetChange && onNetChange(e, net.num)}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className={`font-bold text-lg ${isCurrentNet ? 'text-yellow-400' : 'text-white'}`}>
+        <span
+          className={`font-bold text-lg ${
+            isCurrentNet ? "text-yellow-400" : "text-white"
+          }`}
+        >
           Net {net.num}
         </span>
         {isCurrentNet && (
@@ -205,7 +238,9 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
       <div className="grid grid-cols-2 gap-4">
         {/* Team A */}
         <div className="space-y-2">
-          <div className="font-semibold text-white text-sm truncate">{teamA?.name}</div>
+          <div className="font-semibold text-white text-sm truncate">
+            {teamA?.name}
+          </div>
           <div className="space-y-2">
             {teamAPlayerA && (
               <div className="flex items-center gap-2">
@@ -219,8 +254,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamAPlayerA.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamAPlayerA.firstName} 
+                    <TextImg
+                      fullText={teamAPlayerA.firstName}
                       className="w-8 h-8 text-xs"
                     />
                   )}
@@ -244,8 +279,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamAPlayerB.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamAPlayerB.firstName} 
+                    <TextImg
+                      fullText={teamAPlayerB.firstName}
                       className="w-8 h-8 text-xs"
                     />
                   )}
@@ -262,7 +297,9 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
 
         {/* Team B */}
         <div className="space-y-2">
-          <div className="font-semibold text-white text-sm truncate">{teamB?.name}</div>
+          <div className="font-semibold text-white text-sm truncate">
+            {teamB?.name}
+          </div>
           <div className="space-y-2">
             {teamBPlayerA && (
               <div className="flex items-center gap-2">
@@ -276,8 +313,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamBPlayerA.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamBPlayerA.firstName} 
+                    <TextImg
+                      fullText={teamBPlayerA.firstName}
                       className="w-8 h-8 text-xs"
                     />
                   )}
@@ -301,8 +338,8 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
                       alt={teamBPlayerB.firstName}
                     />
                   ) : (
-                    <TextImg 
-                      fullText={teamBPlayerB.firstName} 
+                    <TextImg
+                      fullText={teamBPlayerB.firstName}
                       className="w-8 h-8 text-xs"
                     />
                   )}
@@ -321,17 +358,17 @@ function NetInputItem({ net, playerMap, teamA, teamB, onNetChange, isCurrentNet 
   );
 
   return (
-    <>
+    <React.Fragment>
       {/* Mobile - hidden on md and above */}
       <div className="md:hidden">
         <MobileNetItem />
       </div>
-      
+
       {/* Desktop - hidden on mobile */}
       <div className="hidden md:block">
         <DesktopNetItem />
       </div>
-    </>
+    </React.Fragment>
   );
 }
 

@@ -1,9 +1,1067 @@
-TeamB: Idaho Falls Freeze Minor B            ID: 68c4e90461f0ff77d53f546b
-TeamA: Idaho Falls Freeze Minor A            ID: 68c4e8e961f0ff77d53f4ffa
+Here is my server receiver component:
+
+```
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { setCurrNetNum } from "@/redux/slices/netSlice";
+import { EActionProcess, EMessage, ETeam, ETieBreaker, ETieBreakingStrategy, IServerReceiverProps } from "@/types";
+import organizeFetchedData from "@/utils/match/organizeFetchedData";
+import ServerReceiverDisplay from "./ServerReceiverDisplay";
+import PlayerSelection from "./PlayerSelection";
+import ActionHandler from "./ActionHandler";
+import EmitEvents from "@/utils/socket/EmitEvents";
+import { useSocket } from "@/lib/SocketProvider";
+import useNetMaps from "@/hooks/score-keeping/useNetMaps";
+import usePlayerMaps from "@/hooks/score-keeping/usePlayerMaps";
+import useMakeTeam from "@/hooks/score-keeping/useMakeTeam";
+import useInitialSelection from "@/hooks/score-keeping/useInitialSelection";
+import useServerReceiverSocket from "@/hooks/score-keeping/useServerReceiverSocket";
+import ScoreBoard from "./ScoreBoard";
+import { setMessage } from "@/redux/slices/elementSlice";
+import LocalStorageService from "@/utils/LocalStorageService";
+import RoundInputBox from "../elements/RoundInputBox";
+import ChangePlayDialog from "../elements/Dialog/ChangePlayDialog";
+import ResetPlayDialog from "../elements/Dialog/ResetPlayDialog";
+import RevertPreviousDialog from "../elements/Dialog/RevertPreviousDialog";
+import ServerReceiverFlow from "./ServerReceiverFlow";
+import CacheActionButtons from "./CacheActionButton";
+import NetSelectionPanel from "./NetSelectionPanel";
+
+export default function ServerReceiver({
+  matchId,
+  matchData,
+  accessCode,
+  token,
+  userInfo,
+}: IServerReceiverProps) {
+  const dispatch = useAppDispatch();
+  const socket = useSocket();
+
+  // Single selector call to reduce multiple useSelector calls
+  const {
+    rounds: { roundList, current: currRound },
+    nets: { currNetNum, currentRoundNets: currRoundNets, nets: allNets },
+    serverReceiverOnNets: { serverReceiversOnNet, currentServerReceiver: currServerReceiver, serverReceiverPlays },
+    players: { teamAPlayers, teamBPlayers },
+    matches: { match: currMatch, myTeamE, teamATotalScore, teamBTotalScore },
+    rooms: { current: currRoom },
+    teams: { teamA, teamB },
+  } = useAppSelector((state) => ({
+    rounds: state.rounds,
+    nets: state.nets,
+    serverReceiverOnNets: state.serverReceiverOnNets,
+    players: state.players,
+    matches: state.matches,
+    rooms: state.rooms,
+    teams: state.teams,
+  }));
+
+  // UI state
+  const [actionPreview, setActionPreview] = useState(false);
+  const [serverPlaceholder, setServerPlaceholder] = useState(false);
+  const [receiverPlaceholder, setReceiverPlaceholder] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<string | null>(null);
+  const [selectedReceiver, setSelectedReceiver] = useState<string | null>(null);
+  const [toBeSelectedPlay, setToBeSelectedPlay] = useState<number | null>(null);
+  const [awardTo, setAwardTo] = useState<ETeam | null>(null);
+
+  const confirmBoxEl = useRef<HTMLDialogElement>(null);
+  const changePlayEl = useRef<HTMLDialogElement>(null);
+  const revertPlayEl = useRef<HTMLDialogElement>(null);
+
+  // Derived data - removed unnecessary useMemos
+  const netByNum = useNetMaps(currRoundNets);
+  const { teamAById, teamBById } = usePlayerMaps(teamAPlayers, teamBPlayers);
+  const makeTeam = useMakeTeam(netByNum, teamAById, teamBById);
+
+  const currNet = netByNum.get(currNetNum);
+  const isFinalRound = currRound?.num === roundList.length;
+  
+  // Simple derived values without useMemo
+  const serverTeam = makeTeam(selectedServer, currNetNum, true);
+  const receiverTeam = makeTeam(selectedReceiver, currNetNum, false);
+  
+  const serverTeamE = selectedServer 
+    ? teamAPlayers.some(p => p._id === selectedServer) ? ETeam.teamA 
+      : teamBPlayers.some(p => p._id === selectedServer) ? ETeam.teamB 
+      : null 
+    : null;
+
+  const currPlays = serverReceiverPlays.filter(sr => sr.net === currNet?._id);
+
+  // Player map as simple object creation
+  const playerMap = new Map<string, any>();
+  teamAPlayers.forEach(p => playerMap.set(p._id, p));
+  teamBPlayers.forEach(p => playerMap.set(p._id, p));
+
+  // Initial data setup - run once
+  useEffect(() => {
+    organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
+  }, [matchData, token, userInfo, matchId, dispatch]);
+
+  // Socket hooks
+  useInitialSelection(
+    currNetNum,
+    netByNum,
+    new Map(serverReceiversOnNet?.map(sr => [typeof sr.net === "string" ? sr.net : sr.net?._id, sr]) || []),
+    setSelectedServer,
+    setSelectedReceiver,
+    setActionPreview
+  );
+
+  useServerReceiverSocket({
+    socket,
+    dispatch,
+    roundList,
+    teamA,
+    teamB,
+    currRound,
+    matchId,
+    currNetNum,
+    netByNum,
+    serverReceiversOnNet,
+    serverReceiverPlays,
+    currServerReceiver,
+    setActionPreview,
+    setSelectedServer,
+    setSelectedReceiver,
+    currRoundNets,
+    allNets,
+    currMatch,
+  });
+
+  // Handlers - simplified without useCallback
+  const handleNetChange = (e: React.SyntheticEvent, netNum: number) => {
+    e.preventDefault();
+    const net = netByNum.get(netNum);
+    LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
+    window.location.reload();
+  };
+
+  const handleSetPlayers = () => {
+    new EmitEvents(socket, dispatch).setServerReceiver({
+      dispatch,
+      currRoom,
+      currRound,
+      currMatch,
+      currRoundNets,
+      currNetNum,
+      server: selectedServer,
+      receiver: selectedReceiver,
+      accessCode: token || accessCode?.code || null,
+    });
+  };
+
+  const handleConfirmReset = () => {
+    const net = netByNum.get(currNetNum);
+    new EmitEvents(socket, dispatch).resetScores({
+      match: currMatch._id,
+      net: net?._id || null,
+      room: currRoom?._id || null,
+      accessCode: accessCode?.code.toString() || token || null,
+    });
+    confirmBoxEl.current?.close();
+  };
+
+  const handleUpdateScore = () => {
+    const net = netByNum.get(currNetNum);
+    if (!socket || !currMatch._id || !net?._id || !currRoom?._id) {
+      console.log("Match, net, receiver, or room does not exist!");
+      return;
+    }
+
+    if (!serverReceiverPlays || serverReceiverPlays.length === 0) {
+      console.log("This is the first play, you do not need to update anything here");
+      return;
+    }
+
+    if (!token && !accessCode?.code) {
+      dispatch(setMessage({
+        type: EMessage.ERROR,
+        message: "You do not have permission to do this operation!",
+      }));
+      return;
+    }
+
+    const emit = new EmitEvents(socket, dispatch);
+    emit.updateCachePoints({
+      dispatch,
+      match: currMatch._id,
+      net: net?._id,
+      room: currRoom?._id,
+      accessCode: token || (accessCode && accessCode.code) || null,
+      currRoundNets,
+      roundList,
+      currRound,
+    });
+    
+    dispatch(setMessage({
+      type: EMessage.SUCCESS,
+      message: "You have updated the score successfully!",
+    }));
+  };
+
+  // Early returns for invalid states
+  if (!currRound || !teamA || !teamB) {
+    return <div>Loading...</div>;
+  }
+
+  if (currRound.teamAProcess !== EActionProcess.LINEUP || currRound.teamBProcess !== EActionProcess.LINEUP) {
+    return <LineupIncomplete allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />;
+  }
+
+  const finalRoundIncomplete = isFinalRound && currRoundNets.length > 0 && 
+    currRoundNets.filter(n => n.netType === ETieBreaker.FINAL_ROUND_NET_LOCKED).length < 2;
+
+  if (finalRoundIncomplete && currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND) {
+    return <FinalRoundIncomplete allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />;
+  }
+
+  if (!currMatch.completed && isFinalRound && currRound?.completed && 
+      currMatch.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && teamATotalScore === teamBTotalScore) {
+    return <MatchTied allNets={allNets} currMatch={currMatch} currRound={currRound} dispatch={dispatch} myTeamE={myTeamE} roundList={roundList} />;
+  }
+
+  return (
+    <div className="ServerReceiver">
+      <RoundInputBox
+        allNets={allNets}
+        currMatch={currMatch}
+        currRound={currRound}
+        dispatch={dispatch}
+        myTeamE={myTeamE}
+        roundList={roundList}
+      />
+
+      <NetSelectionPanel
+        currRoundNets={currRoundNets}
+        currNetNum={currNetNum}
+        playerMap={playerMap}
+        teamA={teamA}
+        teamB={teamB}
+        onNetChange={handleNetChange}
+      />
+
+      {actionPreview ? (
+        <ActionPreviewView
+          serverTeam={serverTeam}
+          receiverTeam={receiverTeam}
+          teamA={teamA}
+          teamB={teamB}
+          currServerReceiver={currServerReceiver}
+          currNet={currNet}
+          currPlays={currPlays}
+          awardTo={awardTo}
+          setAwardTo={setAwardTo}
+          serverTeamE={serverTeamE}
+          matchId={matchId}
+          currRoom={currRoom}
+          selectedReceiver={selectedReceiver}
+          dispatch={dispatch}
+          socket={socket}
+          changePlayEl={changePlayEl}
+          revertPlayEl={revertPlayEl}
+          onTogglePreview={() => setActionPreview(false)}
+          onUpdateScore={handleUpdateScore}
+          onReset={() => confirmBoxEl.current?.showModal()}
+        />
+      ) : (
+        <ServerReceiverFlow
+          serverTeam={serverTeam}
+          receiverTeam={receiverTeam}
+          teamA={teamA}
+          teamB={teamB}
+          selectedServer={selectedServer}
+          selectedReceiver={selectedReceiver}
+          serverPlaceholder={serverPlaceholder}
+          receiverPlaceholder={receiverPlaceholder}
+          currServerReceiver={currServerReceiver}
+          playersOfcurrNet={{
+            _id: currNet?._id,
+            teamAPlayerA: currNet?.teamAPlayerA ?? null,
+            teamAPlayerB: currNet?.teamAPlayerB ?? null,
+            teamBPlayerA: currNet?.teamBPlayerA ?? null,
+            teamBPlayerB: currNet?.teamBPlayerB ?? null,
+          }}
+          teamAPlayers={teamAPlayers}
+          teamBPlayers={teamBPlayers}
+          onAddServer={() => setServerPlaceholder(true)}
+          onAddReceiver={() => setReceiverPlaceholder(true)}
+          onServerSelect={(e, playerId) => {
+            setSelectedServer(playerId);
+            setServerPlaceholder(false);
+          }}
+          onReceiverSelect={(e, playerId) => {
+            setSelectedReceiver(playerId);
+            setReceiverPlaceholder(false);
+          }}
+          onClosePlayers={() => {
+            setServerPlaceholder(false);
+            setReceiverPlaceholder(false);
+          }}
+          onSetPlayers={handleSetPlayers}
+          onTogglePreview={() => setActionPreview(true)}
+          onReset={() => confirmBoxEl.current?.showModal()}
+        />
+      )}
+
+      <DialogComponents
+        changePlayEl={changePlayEl}
+        revertPlayEl={revertPlayEl}
+        confirmBoxEl={confirmBoxEl}
+        currPlays={currPlays}
+        toBeSelectedPlay={toBeSelectedPlay}
+        setToBeSelectedPlay={setToBeSelectedPlay}
+        teamAPlayers={teamAPlayers}
+        playerMap={playerMap}
+        accessCode={accessCode}
+        currMatch={currMatch}
+        currNetNum={currNetNum}
+        currRoom={currRoom}
+        dispatch={dispatch}
+        socket={socket}
+        netByNum={netByNum}
+        teamBPlayers={teamBPlayers}
+        token={token}
+        onPlayChange={() => {
+          const net = netByNum.get(currNetNum);
+          new EmitEvents(socket, dispatch).revertPlay({
+            match: currMatch._id,
+            net: net?._id || null,
+            room: currRoom?._id || null,
+            accessCode: token || accessCode?.code.toString() || null,
+            play: toBeSelectedPlay,
+          });
+          changePlayEl.current?.close();
+        }}
+        onConfirmReset={handleConfirmReset}
+      />
+    </div>
+  );
+}
+
+// Extracted component for Action Preview View
+function ActionPreviewView({ 
+  serverTeam, receiverTeam, teamA, teamB, currServerReceiver, currNet, currPlays, 
+  awardTo, setAwardTo, serverTeamE, matchId, currRoom, selectedReceiver, dispatch, 
+  socket, changePlayEl, revertPlayEl, onTogglePreview, onUpdateScore, onReset 
+}: any) {
+  return (
+    <div className="server-receiver-with-actions w-full">
+      <div className="top-side w-full flex flex-col md:flex-row justify-between items-center">
+        <div className="w-full md:w-3/6">
+          <ServerReceiverDisplay
+            serverTeam={serverTeam}
+            receiverTeam={receiverTeam}
+            teamA={teamA}
+            teamB={teamB}
+            currServerReceiver={currServerReceiver}
+          />
+        </div>
+
+        <div className="3/6 hidden md:flex justify-center items-center flex-col">
+          {currServerReceiver?.net === currNet?._id && (
+            <div className="w-5/6">
+              <ScoreBoard
+                currServerReceiver={currServerReceiver}
+                handleOpenPlays={() => changePlayEl.current?.showModal()}
+                teamA={teamA}
+                teamB={teamB}
+                awardTo={awardTo}
+                setAwardTo={setAwardTo}
+                currPlays={currPlays}
+                revertPlayEl={revertPlayEl}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="scrollable-action-handler w-full relative">
+        <div className="w-full sticky top-0 md:hidden bg-black py-2">
+          {currServerReceiver?.net === currNet?._id && (
+            <ScoreBoard
+              currServerReceiver={currServerReceiver}
+              handleOpenPlays={() => changePlayEl.current?.showModal()}
+              teamA={teamA}
+              teamB={teamB}
+              awardTo={awardTo}
+              setAwardTo={setAwardTo}
+              currPlays={currPlays}
+              revertPlayEl={revertPlayEl}
+            />
+          )}
+        </div>
+        <ActionHandler
+          teamA={teamA}
+          teamB={teamB}
+          serverTeamE={serverTeamE}
+          awardTo={awardTo}
+          dispatch={dispatch}
+          socket={socket}
+          match={matchId}
+          net={currNet?._id || null}
+          receiver={selectedReceiver}
+          room={currRoom?._id || null}
+          setAwardTo={setAwardTo}
+        />
+      </div>
+
+      <CacheActionButtons
+        onTogglePreview={onTogglePreview}
+        onUpdateScore={onUpdateScore}
+        onReset={onReset}
+        showActionPreview={true}
+      />
+    </div>
+  );
+}
+
+// Extracted components for early return states
+function LineupIncomplete(props: any) {
+  return (
+    <div className="w-full">
+      <RoundInputBox {...props} />
+      <div className="w-full flex justify-center mt-10">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+          <h2 className="text-lg font-semibold mb-2">Lineup Incomplete</h2>
+          <p>Both teams must complete their player lineup before selecting a server or receiver.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FinalRoundIncomplete(props: any) {
+  return (
+    <div className="w-full">
+      <RoundInputBox {...props} />
+      <div className="w-full flex justify-center mt-10">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+          <h2 className="text-lg font-semibold mb-2">Final Round Nets Not Banned Yet</h2>
+          <p>Please ban the nets for the final round before proceeding with server/receiver selection.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchTied(props: any) {
+  return (
+    <div className="w-full">
+      <RoundInputBox {...props} />
+      <div className="w-full flex justify-center mt-10">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md max-w-xl w-full text-center">
+          <h2 className="text-lg font-semibold mb-2">Match Tied</h2>
+          <p>Score of both teams are same, the match is tied! Either you play overtime round or you finish the match!</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Extracted dialog components
+function DialogComponents(props: any) {
+  return (
+    <>
+      <ChangePlayDialog
+        changePlayEl={props.changePlayEl}
+        currPlays={props.currPlays}
+        handlePlayChange={props.onPlayChange}
+        setToBeSelectedPlay={props.setToBeSelectedPlay}
+        toBeSelectedPlay={props.toBeSelectedPlay}
+        teamAPlayers={props.teamAPlayers}
+        teamBPlayers={props.teamAPlayers}
+        playerMap={props.playerMap}
+      />
+
+      <ResetPlayDialog
+        closeResetConfirm={() => props.confirmBoxEl.current?.close()}
+        confirmBoxEl={props.confirmBoxEl}
+        handleConfirmReset={props.onConfirmReset}
+      />
+
+      <RevertPreviousDialog
+        accessCode={props.accessCode}
+        currMatch={props.currMatch}
+        currNetNum={props.currNetNum}
+        currPlays={props.currPlays}
+        currRoom={props.currRoom}
+        dispatch={props.dispatch}
+        socket={props.socket}
+        netByNum={props.netByNum}
+        playerMap={props.playerMap}
+        revertPlayEl={props.revertPlayEl}
+        teamAPlayers={props.teamAPlayers}
+        teamBPlayers={props.teamBPlayers}
+        token={props.token}
+      />
+    </>
+  );
+}
+```
+
+
+Error:
+
+```
+useInitialSelection.ts:24 Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:57
+getRootForUpdatedFiber @ react-dom-client.development.js:3900
+enqueueConcurrentHookUpdate @ react-dom-client.development.js:3853
+dispatchSetStateInternal @ react-dom-client.development.js:8220
+dispatchSetState @ react-dom-client.development.js:8180
+useInitialSelection.useEffect @ useInitialSelection.ts:24
+react_stack_bottom_frame @ react-dom-client.development.js:23638
+runWithFiberInDEV @ react-dom-client.development.js:873
+commitHookEffectListMount @ react-dom-client.development.js:12296
+commitHookPassiveMountEffects @ react-dom-client.development.js:12417
+commitPassiveMountOnFiber @ react-dom-client.development.js:14338
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14311
+commitPassiveMountOnFiber @ react-dom-client.development.js:14341
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14311
+commitPassiveMountOnFiber @ react-dom-client.development.js:14331Understand this error
+EmitEvents.ts:88 Joined to the room: Sat Sep 27 2025 04:14:24 GMT+0600 (Bangladesh Standard Time)
+6useInitialSelection.ts:24 Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+```
+
+Continuous console log Console:
+
+```
+Rendering ServerReceiverDisplay
+ServerReceiverDisplay.tsx:37 Rendering ServerReceiverDisplay
+SRPlayerCard.tsx:31 Rendering SRPlayerCard
+```
+
+
+Problem with infinite loop.
+
+ServerReceiverDisplay component:
+
+```
+
+import React, { useCallback, useMemo } from "react";
+import Image from "next/image";
+import {
+  EServerPositionPair,
+  ESRRole,
+  IPlayer,
+  IReceiverTeam,
+  IServerReceiverOnNetMixed,
+  IServerTeam,
+  ITeam,
+} from "@/types";
+import SRPlayerCard from "./SRPlayerCard";
+
+interface IPlayerRole {
+  player: IPlayer | null;
+  role: ESRRole;
+}
+
+const ServerReceiverDisplay: React.FC<{
+  currServerReceiver: IServerReceiverOnNetMixed | null;
+  serverTeam: IServerTeam | null;
+  receiverTeam: IReceiverTeam | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
+  handleAddReceiver?: (e: React.SyntheticEvent) => void;
+  handleAddServer?: (e: React.SyntheticEvent) => void;
+}> = ({
+  currServerReceiver,
+  serverTeam,
+  receiverTeam,
+  teamA,
+  teamB,
+  handleAddReceiver,
+  handleAddServer,
+}) => {
+
+  console.log("Rendering ServerReceiverDisplay");
+  
+  const positions = useMemo(() => {
+    const posMap = new Map<EServerPositionPair, IPlayerRole>();
+    // Initially set server to pari A top
+    if (!currServerReceiver) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+
+      // Return the initial position
+      return posMap;
+    }
+
+    if (
+      currServerReceiver?.serverPositionPair === EServerPositionPair.PAIR_A_TOP
+    ) {
+      // SWING will be PAIR A, LEFT
+      // receiver will be in pair B bottom,
+      // receiving partner will be in pair B right
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    } else if (
+      currServerReceiver?.serverPositionPair === EServerPositionPair.PAIR_A_LEFT
+    ) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    } else if (
+      currServerReceiver?.serverPositionPair ===
+      EServerPositionPair.PAIR_B_BOTTOM
+    ) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    } else if (
+      currServerReceiver?.serverPositionPair ===
+      EServerPositionPair.PAIR_B_RIGHT
+    ) {
+      if (serverTeam?.server) {
+        posMap.set(EServerPositionPair.PAIR_B_RIGHT, {
+          player: serverTeam.server,
+          role: ESRRole.SERVER,
+        });
+      }
+      if (serverTeam?.servingPartner) {
+        posMap.set(EServerPositionPair.PAIR_B_BOTTOM, {
+          player: serverTeam?.servingPartner,
+          role: ESRRole.SWING,
+        });
+      }
+      if (receiverTeam?.receiver) {
+        posMap.set(EServerPositionPair.PAIR_A_LEFT, {
+          player: receiverTeam?.receiver,
+          role: ESRRole.RECEIVER,
+        });
+      }
+      if (receiverTeam?.receivingPartner) {
+        posMap.set(EServerPositionPair.PAIR_A_TOP, {
+          player: receiverTeam?.receivingPartner,
+          role: ESRRole.SETTER,
+        });
+      }
+    }
+
+    return posMap;
+  }, [currServerReceiver, serverTeam, receiverTeam]);
+
+  // pa-left
+  const renderPlayerCard = useCallback(
+    (positionPairE: EServerPositionPair) => {
+      const playerPosition = positions.get(positionPairE);
+      let role = null;
+      if (positionPairE === EServerPositionPair.PAIR_A_LEFT) {
+        role = ESRRole.SERVER;
+      } else if (positionPairE === EServerPositionPair.PAIR_B_RIGHT) {
+        role = ESRRole.RECEIVER;
+      }
+
+      const handlePlayerSelection = (e: React.SyntheticEvent) => {
+        if (role === ESRRole.SERVER) {
+          if (handleAddServer) handleAddServer(e);
+        } else if (role === ESRRole.RECEIVER) {
+          if (handleAddReceiver) handleAddReceiver(e);
+        }
+      };
+      if (!playerPosition) {
+        return (
+          <SRPlayerCard
+            key={positionPairE}
+            player={null}
+            role={role}
+            selected={null}
+            teamA={teamA}
+            teamB={teamB}
+            handlePlayerSelection={handlePlayerSelection}
+            positionPairE={positionPairE}
+          />
+        );
+      }
+      return (
+        <SRPlayerCard
+          key={positionPairE}
+          player={playerPosition.player}
+          role={playerPosition.role}
+          teamA={teamA}
+          teamB={teamB}
+          selected={playerPosition.player?._id || null}
+          handlePlayerSelection={handlePlayerSelection}
+          positionPairE={positionPairE}
+        />
+      );
+    },
+    [positions, currServerReceiver, handleAddServer, handleAddReceiver]
+  );
+
+  return (
+    <div className="display-server-receiver w-full flex justify-center items-center flex-col">
+      <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400 mt-6">
+        Selected Server/Receiver
+      </h3>
+      <div className="w-full flex justify-center items-center gap-x-2 md:gap-x-6">
+        {renderPlayerCard(EServerPositionPair.PAIR_A_LEFT)}
+
+        <div className="w-1/3 flex justify-center items-center">
+          <div className="w-full flex flex-col items-center gap-6 p-6">
+            {renderPlayerCard(EServerPositionPair.PAIR_A_TOP)}
+
+            <div className="flex justify-center items-center py-2">
+              <Image
+                alt="Net"
+                src="/imgs/spikeball-net.png"
+                width={80}
+                height={80}
+              />
+            </div>
+
+            {renderPlayerCard(EServerPositionPair.PAIR_B_BOTTOM)}
+          </div>
+        </div>
+        {renderPlayerCard(EServerPositionPair.PAIR_B_RIGHT)}
+      </div>
+    </div>
+  );
+};
+
+export default ServerReceiverDisplay;
+```
+
+
+
+SRPlayerCard:
+
+```
+import TextImg from "@/components/elements/TextImg";
+import { useAppSelector } from "@/redux/hooks";
+import { EServerPositionPair, ESRRole, IPlayer, ITeam } from "@/types";
+import { CldImage } from "next-cloudinary";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useMemo } from "react";
+
+interface ISPPlayerCardProps {
+  selected: string | null;
+  player: IPlayer | null;
+  role: ESRRole | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
+  dark?: boolean;
+  handlePlayerSelection?: (e: React.SyntheticEvent) => void;
+  positionPairE: EServerPositionPair; // This is not server position pair
+}
+
+const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
+  selected,
+  player,
+  role,
+  dark,
+  teamA,
+  teamB,
+  handlePlayerSelection,
+  positionPairE,
+}) => {
+
+  console.log("Rendering SRPlayerCard");
+  
+
+  // Memoization
+  const teamOfPlayer = useMemo(() => {
+    if (!player) return null;
+    if (
+      teamA?._id &&
+      player.teams?.some((team) =>
+        typeof team === "string" ? team === teamA._id : team._id === teamA._id
+      )
+    )
+      return teamA;
+    if (
+      teamB?._id &&
+      player.teams?.some((team) =>
+        typeof team === "string" ? team === teamB._id : team._id === teamB._id
+      )
+    )
+      return teamB;
+    return null;
+  }, [player, teamA, teamB]);
+
+  const isServingTeam = useMemo(() => {
+    return role === ESRRole.SERVER || role === ESRRole.SWING;
+  }, [role]);
+
+  const selectable = useMemo(() => {
+    if (player) return false;
+    return (
+      positionPairE === EServerPositionPair.PAIR_A_LEFT ||
+      positionPairE === EServerPositionPair.PAIR_B_RIGHT
+    );
+  }, [positionPairE, player]);
+
+  const bgColor = isServingTeam ? "bg-yellow-400/90" : "bg-gray-900/90";
+  const borderColor = isServingTeam ? "border-yellow-400" : "border-gray-700";
+  const roleTextColor = isServingTeam ? "text-black" : "text-yellow-400";
+  const roleBgColor = isServingTeam ? "bg-yellow-400" : "bg-gray-700 ";
+  const nameTextColor = isServingTeam ? "text-black" : "text-yellow-logo";
+  const teamTextColor = isServingTeam ? "text-gray-800" : "text-gray-400";
+
+  const selectInitialRole = useMemo(() => {
+    // Show all placeholder initially if there is no role selected
+    let initialRole = null;
+    if (positionPairE === EServerPositionPair.PAIR_A_TOP) {
+      initialRole = ESRRole.SWING;
+    } else if (positionPairE === EServerPositionPair.PAIR_A_LEFT) {
+      initialRole = ESRRole.SERVER;
+    } else if (positionPairE === EServerPositionPair.PAIR_B_RIGHT) {
+      initialRole = ESRRole.RECEIVER;
+    } else if (positionPairE === EServerPositionPair.PAIR_B_BOTTOM) {
+      initialRole = ESRRole.SETTER;
+    }
+
+    return (
+      <span
+        className={`absolute -top-2 right-2 px-2 py-0.5 text-xl font-bold tracking-wide uppercase
+              rounded-full ${roleBgColor} shadow-sm ${roleTextColor}`}
+      >
+        {initialRole}
+      </span>
+    );
+  }, [positionPairE]);
+
+  return (
+    <div
+      className={`relative flex flex-col items-center w-28 lg:w-36 p-4 rounded-3xl transition-all
+                  border shadow-lg hover:shadow-2xl backdrop-blur-sm 
+                  ${bgColor} ${borderColor}`}
+    >
+      {/* Role badge */}
+      {role ? (
+        <span
+          className={`absolute -top-2 right-2 px-2 py-0.5 text-xl font-bold tracking-wide uppercase
+                    rounded-full ${roleBgColor} shadow-sm ${roleTextColor}`}
+        >
+          {role}
+        </span>
+      ) : (
+        selectInitialRole
+      )}
+
+      {/* Avatar button */}
+      <button
+        type="button"
+        onClick={selectable ? handlePlayerSelection : () => {}}
+        aria-label="Select player"
+        className={`group w-24 h-24 lg:w-32 lg:h-32 rounded-2xl border-4 overflow-hidden
+                    flex items-center justify-center transition-transform hover:scale-105 
+                    focus:outline-none focus:ring-2 focus:ring-yellow-300
+                    ${
+                      selected
+                        ? "border-yellow-400 bg-gray-800 shadow-inner"
+                        : dark
+                        ? "border-gray-700 bg-gray-700"
+                        : "border-yellow-400 bg-gray-800"
+                    }`}
+      >
+        {selected ? (
+          player?.profile ? (
+            <CldImage
+              alt={`${player.firstName} ${player.lastName}`}
+              width="200"
+              height="200"
+              className="object-cover w-full h-full"
+              src={player.profile}
+            />
+          ) : (
+            <TextImg
+              className="w-full h-full"
+              fText={player?.firstName}
+              lText={player?.lastName}
+            />
+          )
+        ) : dark ? (
+          <div className="w-full h-full animate-pulse" />
+        ) : selectable ? (
+          <Image
+            alt="Add player"
+            src="/icons/plus.svg"
+            width={32}
+            height={32}
+            className="svg-white"
+          />
+        ) : (
+          <Image
+            alt="Empty Image"
+            src="/empty-img.jpg"
+            width={100}
+            height={100}
+            className="w-full h-full"
+          />
+        )}
+      </button>
+
+      {/* Player info */}
+      {selected && (
+        <div className="mt-3 text-center">
+          <h4
+            className={`text-sm font-semibold leading-tight text-center break-words max-w-full 
+              ${nameTextColor} max-h-[2.75rem] overflow-hidden`}
+            title={`${player?.firstName ?? ""} ${player?.lastName ?? ""}`}
+          >
+            {player?.firstName} {player?.lastName}
+          </h4>
+          <p
+            className={`text-xs sm:text-sm md:text-base font-medium break-words max-w-[100px] sm:max-w-[150px] md:max-w-[200px] w-full ${teamTextColor}`}
+            title={teamOfPlayer?.name ?? ""}
+          >
+            {teamOfPlayer?.name}
+          </p>
+          <Link
+            href={`/players/${player?._id}`}
+            className="w-full mt-3 flex items-center justify-center w-6 h-6 rounded-full bg-yellow-logo hover:bg-yellow-500 transition-colors"
+            title="View Stats"
+          >
+            <Image
+              src="/icons/stats.svg"
+              width={20}
+              height={20}
+              alt="Stats-logo"
+              className="w-5 h-5 svg-black"
+            />
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SRPlayerCard;
+```
+
+I guess the problem is with ServerReceiver component.
+Here is initial selection hook:
+
+```
+import { useEffect } from "react";
+import { INetRelatives, IServerReceiverOnNetMixed } from "@/types";
+
+export default function useInitialSelection(
+  currNetNum: number | null,
+  netByNum: Map<number, INetRelatives>,
+  serverReceiverByNetId: Map<string, IServerReceiverOnNetMixed>,
+  setSelectedServer: React.Dispatch<React.SetStateAction<string | null>>,
+  setSelectedReceiver: React.Dispatch<React.SetStateAction<string | null>>,
+  setActionPreview: React.Dispatch<React.SetStateAction<boolean>>
+) {
+  useEffect(() => {
+    if (!currNetNum) return;
+
+    const net = netByNum.get(currNetNum);
+    if (!net) return;
+
+    const pre = serverReceiverByNetId.get(net._id);
+    if (!pre) return;
+
+    const serverId = typeof pre.server === "string" ? pre.server : pre.server?._id ?? null;
+    const receiverId = typeof pre.receiver === "string" ? pre.receiver : pre.receiver?._id ?? null;
+
+    setSelectedServer(serverId);
+    setSelectedReceiver(receiverId);
+    setActionPreview(true);
+  }, [currNetNum, netByNum, serverReceiverByNetId]);
+}
+
+```
 
 
 
 
 
-Idaho Falls minor A -> 68c4e8e961f0ff77d53f4ffa
-Idaho Falls minor B -> 68c4e90461f0ff77d53f546b
+
+
+
+http://localhost:3001/score-keeping/68d6d9bd46540d7ac585d4c6
