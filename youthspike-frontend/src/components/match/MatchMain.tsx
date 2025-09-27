@@ -90,7 +90,9 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   const audioPlayEl = useRef<HTMLButtonElement>(null);
 
   // Memoize the match data to prevent unnecessary re-renders
-  const match = useMemo(() => data?.getMatch?.data, [data]);
+  const match = data?.getMatch?.data;
+  console.log(data?.getMatch?.data);
+  
   const myTeam = useMemo(
     () => (myTeamE === ETeam.teamA ? teamA : teamB),
     [myTeamE, teamA, teamB]
@@ -180,6 +182,8 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   if (!match) {
     return <Loader />;
   }
+
+  
 
   return (
     <MatchAuthenticatedView

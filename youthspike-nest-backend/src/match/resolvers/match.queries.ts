@@ -91,6 +91,7 @@ export class MatchQueries {
       if (!matchExist) return AppResponse.notFound('Match');
 
       // Auto-complete match if all nets have scores (even 0 is valid)
+      /*
       if (!matchExist.completed) {
         // Find nets that are missing scores
         const incompleteNets = await this.netService.find({
@@ -111,6 +112,7 @@ export class MatchQueries {
           }
         }
       }
+        */
 
       return {
         code: HttpStatus.OK,

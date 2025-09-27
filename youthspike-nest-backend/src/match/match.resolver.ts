@@ -41,7 +41,7 @@ export class MatchResolver {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain)
   @Mutation((_returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
     return this.matchMutations.updateMatch(input, matchId);

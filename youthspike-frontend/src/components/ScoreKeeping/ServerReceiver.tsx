@@ -672,13 +672,13 @@ export default function ServerReceiver({
           </div>
 
           {actionPreview && (
-            <div className="mt-6 flex justify-center items-center gap-x-2">
+            <div className="mt-6 flex flex-wrap justify-center items-center gap-x-2">
               <button
                 onClick={handleUpdateScore}
                 type="button"
                 className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
               >
-                Update score
+                Update score, only at the end of game
               </button>
               <button
                 onClick={openResetConfirm}
