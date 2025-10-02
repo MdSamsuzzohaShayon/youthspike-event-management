@@ -1,3 +1,6 @@
+'use client'
+
+import { useLdoId } from "@/lib/LdoProvider";
 import { IEvent } from "@/types";
 import { itemVariants } from "@/utils/animation";
 import { motion } from "motion/react";
@@ -6,11 +9,12 @@ import Link from "next/link";
 
 const EventHeader = ({
   event,
-  ldoIdUrl,
 }: {
   event: IEvent;
-  ldoIdUrl: string;
-}) => (
+}) => {
+
+  const {ldoIdUrl} = useLdoId();
+  return (
   <motion.div
     className="text-center w-full flex flex-col items-center mb-6"
     variants={itemVariants}
@@ -26,6 +30,7 @@ const EventHeader = ({
     </Link>
     <h1 className="text-xl md:text-2xl font-bold mt-2">{event.name}</h1>
   </motion.div>
-);
+  );
+};
 
 export default EventHeader;

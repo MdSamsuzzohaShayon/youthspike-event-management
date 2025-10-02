@@ -101,6 +101,8 @@ export enum EEventPeriod {
   UPCOMING = "UPCOMING",
   CURRENT = "CURRENT",
   PAST = "PAST",
+  IN_PROGRESS = "IN_PROGRESS",
+  NOT_STARTED = "NOT_STARTED"
 }
 
 // eslint-disable-next-line no-shadow

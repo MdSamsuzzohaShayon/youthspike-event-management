@@ -1,4 +1,5 @@
 import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
+import { EMatchStatus } from '../match.schema';
 
 @InputType()
 export class CreateMatchInput {
@@ -121,6 +122,27 @@ export class FilterQueryInput {
 
   @Field({ nullable: true })
   location?: string;
+}
+
+@InputType()
+export class SearchFilterInput {
+  @Field({ nullable: true })
+  search?: string; // team, description, location
+
+  @Field({ nullable: true })
+  division?: string; // 
+
+  @Field({ nullable: true })
+  group?: string;
+
+  @Field({ nullable: true })
+  status?: EMatchStatus;
+
+  @Field(() => Int, { nullable: true, defaultValue: 30 })
+  limit?: number;
+
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  offset?: number;
 }
 
 @InputType()

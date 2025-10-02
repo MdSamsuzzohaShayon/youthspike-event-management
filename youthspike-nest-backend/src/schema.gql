@@ -1125,6 +1125,7 @@ type Query {
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
   getTeamStandings(eventId: String!): GetTeamstandingsResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
+  searchMatches(eventId: String!, filter: SearchFilterInput): GetEventWithMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!
@@ -1175,6 +1176,15 @@ input FilterQueryInput {
   timeout: Int
   description: String
   location: String
+}
+
+input SearchFilterInput {
+  search: String
+  division: String
+  group: String
+  status: String
+  limit: Int = 30
+  offset: Int = 0
 }
 
 type Mutation {

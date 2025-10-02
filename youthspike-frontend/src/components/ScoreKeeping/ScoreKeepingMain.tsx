@@ -2,12 +2,14 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { IAccessCode, IMatchExpRel } from "@/types";
+import { IAccessCode, IMatchExpRel, UserRole } from "@/types";
 import AccessCodeForm from "@/components/ScoreKeeping/AccessCodeForm";
 import ServerReceiver from "@/components/ScoreKeeping/ServerReceiver";
 import Link from "next/link";
 import { QueryRef, useReadQuery } from "@apollo/client";
 import { useUser } from "@/lib/UserProvider";
+import LocalStorageService from "@/utils/LocalStorageService";
+import { useRouter } from "next/navigation";
 
 interface IScoreKeepingMainProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -22,8 +24,18 @@ function ScoreKeepingMain({
 }: IScoreKeepingMainProps) {
   const { data, error } = useReadQuery(queryRef);
   const user = useUser();
+  const router = useRouter();
   const { token, info } = user;
   const matchData = data?.getMatch?.data;
+
+  const redirectFullScoreboard = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const prevMatch = LocalStorageService.getMatch(matchData._id);
+    if (prevMatch) {
+      LocalStorageService.setMatch(matchData._id, prevMatch.roundId);
+    }
+    router.push(`/matches/${matchData?._id}/scoreboard`);
+  };
 
   // Animation variants for consistent animations
   const containerVariants = {
@@ -33,9 +45,9 @@ function ScoreKeepingMain({
       transition: {
         duration: 0.3,
         when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
@@ -43,8 +55,8 @@ function ScoreKeepingMain({
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.2 }
-    }
+      transition: { duration: 0.2 },
+    },
   };
 
   const renderHeadings = () => {
@@ -54,20 +66,35 @@ function ScoreKeepingMain({
         initial="hidden"
         animate="visible"
       >
-        <motion.h1 
+        <motion.h1
           variants={itemVariants}
           className="text-4xl font-extrabold text-yellow-400 text-center uppercase tracking-wide mb-6"
         >
           Scorekeeper Settings
         </motion.h1>
 
-        <motion.div variants={itemVariants} className="text-center mb-6">
-          <Link
-            href={`/matches/${matchData._id}`}
+        <motion.div
+          variants={itemVariants}
+          className="text-center mb-6 flex flex-wrap justify-center items-center gap-2"
+        >
+          {info &&
+            (info.role === UserRole.admin ||
+              info.role === UserRole.director ||
+              info.role === UserRole.captain ||
+              info.role === UserRole.co_captain) && (
+              <Link
+                href={`/matches/${matchData._id}`}
+                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+              >
+                ← Go back to captain
+              </Link>
+            )}
+          <button
+            onClick={redirectFullScoreboard}
             className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
           >
-            ← Go back to match
-          </Link>
+            ← Go to full scoreboard
+          </button>
         </motion.div>
       </motion.div>
     );
@@ -75,13 +102,13 @@ function ScoreKeepingMain({
 
   if (!accessCode && !token) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
         className="w-full min-h-screen flex items-center justify-center py-12 px-4"
       >
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.2 }}
@@ -89,7 +116,7 @@ function ScoreKeepingMain({
         >
           {renderHeadings()}
 
-          <motion.div 
+          <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.2 }}
@@ -115,7 +142,7 @@ function ScoreKeepingMain({
         transition={{ duration: 0.2 }}
       >
         {renderHeadings()}
-        <motion.div 
+        <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}

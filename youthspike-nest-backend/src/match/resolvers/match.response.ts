@@ -90,8 +90,11 @@ export class EventMatches {
   rounds: CustomRound[];
 }
 
+
 @ObjectType()
 export class GetEventWithMatchesResponse extends AppResponse<EventMatches> {
   @Field((_type) => EventMatches, { nullable: true })
   data?: EventMatches | null;
 }
+
+

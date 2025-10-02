@@ -16,3 +16,8 @@ npm i cloudinary connect-redis cookie-parser express express-session express-soc
 npm i graphql-upload handlebars html-to-text i ioredis mongoose nodemailer npm papaparse passport passport-jwt
 npm i reflect-metadata rxjs socket.io socket.io-redis @nestjs/config apollo-server-core
 npm i @types/bcrypt @types/passport-jwt concurrently cross-env eslint-config-nestjs http-proxy nodemon pm2 --save-dev
+
+
+
+# Restore mongodb database
+mongorestore --gzip --db spikeball_temp ./spikeball-matches

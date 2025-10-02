@@ -15,7 +15,7 @@ import {
 import { MatchFields } from './resolvers/match.fields';
 import { MatchQueries } from './resolvers/match.queries';
 import { GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './resolvers/match.response';
-import { AccessCodeInput, CreateMatchInput, FilterQueryInput, UpdateMatchInput } from './resolvers/match.input';
+import { AccessCodeInput, CreateMatchInput, FilterQueryInput, SearchFilterInput, UpdateMatchInput } from './resolvers/match.input';
 import { MatchMutations } from './resolvers/match.mutations';
 
 @Resolver((_of) => Match)
@@ -73,6 +73,11 @@ export class MatchResolver {
   @Query((_returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     return this.matchQueries.getMatches(filter)
+  }
+
+  @Query((_returns) => GetEventWithMatchesResponse)
+  async searchMatches(@Args('eventId') eventId: string, @Args('filter', { nullable: true }) filter: SearchFilterInput) {
+    return this.matchQueries.searchMatches( eventId, filter)
   }
 
   @Query((_returns) => GetEventWithMatchesResponse)

@@ -22,11 +22,9 @@ interface MatchCardProps {
 }
 
 function MatchCard({ match, roundList, allNets }: MatchCardProps) {
-  const params = useParams();
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
   const router = useRouter();
-  const loginEl = useRef<HTMLDialogElement | null>(null);
 
   const handleCaptainView = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -52,7 +50,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
   /** ✅ Precompute nets by round */
   const netsByRoundId = useMemo(() => {
-    return allNets.reduce((map, net) => {
+    return (allNets || []).reduce((map, net) => {
       if (!net?.round) return map;
       if (!map.has(net.round)) map.set(net.round, []);
       map.get(net.round)!.push(net);
@@ -62,7 +60,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
   /** ✅ Precompute team scores */
   const teamScores = useMemo(() => {
-    return roundList.reduce(
+    return (roundList || []).reduce(
       (scores, round) => {
         if (!round?._id) return scores;
         const roundNets = netsByRoundId.get(round._id) || [];

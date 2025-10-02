@@ -170,6 +170,79 @@ query GetMatch($matchId: String!) {
 `;
 const GET_MATCH_DETAIL = gql`${GET_MATCH_DETAIL_RAW}`;
 
+const SEARCH_MATCHES = gql`
+query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
+  searchMatches(eventId: $eventId, filter: $filter) {
+    code
+    data {
+      event {
+        _id
+        name
+        divisions
+      }
+      groups {
+        _id
+        name
+        division
+      }
+      ldo {
+        _id
+        name
+      }
+      matches {
+        _id
+        teamB
+        teamA
+        date
+        location
+        group
+        division
+        description
+        completed
+      }
+      nets {
+        _id
+        num
+        match
+        round
+        teamAScore
+        teamBPlayerA
+        teamBPlayerB
+        teamAPlayerA
+        teamBScore
+        teamAPlayerB
+        points
+      }
+      rounds {
+        _id
+        completed
+        firstPlacing
+        match
+        num
+        teamAScore
+        teamBScore
+        teamAProcess
+        teamBProcess
+      }
+      teams {
+        _id
+        name
+        num
+        division
+        matches
+        logo
+        group
+        active
+      }
+    }
+    message
+    success
+  }
+}
+`;
+
+
+
 
 const ACCESS_CODE_VALIDATION_RAW = `
 mutation AccessCodeValidation($input: AccessCodeInput!) {
@@ -201,4 +274,4 @@ mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
 
 
 // eslint-disable-next-line import/prefer-default-export
-export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION, GET_MATCH_DETAIL_RAW, UPDATE_MATCH };
+export { GET_MATCH_DETAIL, ACCESS_CODE_VALIDATION_RAW, ACCESS_CODE_VALIDATION, GET_MATCH_DETAIL_RAW, UPDATE_MATCH, SEARCH_MATCHES };

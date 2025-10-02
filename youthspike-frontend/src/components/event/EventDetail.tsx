@@ -58,6 +58,7 @@ const fadeIn = {
 
 function EventDetail({ queryRef, eventId }: IEventDetailProps) {
   // Hooks
+  const { data: lightData, error: lightError } = useReadQuery(queryRef);
   const { ldoIdUrl } = useLdoId();
   const dispatch = useAppDispatch();
   const user = useUser();
@@ -71,10 +72,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     fetchPolicy: "network-only", // always refetch fresh
   });
 
-
   // Memoize search params access
   const searchParamsString = searchParams.toString();
-
 
   // Memoization
   const initialSelectedItem = useMemo(() => {
@@ -147,13 +146,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     updateQueryParams,
   ]);
 
-  const { data: lightData, error } = useReadQuery(queryRef);
-
-  const eventData: IEventDetailData = heavyData?.getEventDetails?.data || lightData?.getEventDetails?.data;
-
-  if (!eventData) {
-    return <Loader />;
-  }
+  const eventData: IEventDetailData =
+    heavyData?.getEventDetails?.data || lightData?.getEventDetails?.data;
 
   const {
     event,
@@ -165,7 +159,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     rounds,
     groups,
     sponsors,
-    statsOfPlayer
+    statsOfPlayer,
   } = eventData;
 
   // Precompute teamMap once
@@ -307,8 +301,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     search,
   ]);
 
-  console.log({unfilteredMatches: matches, unfilteredMatchesLength: matches.length, filteredMatches: filteredData.matches, filteredMatchesLength: filteredData.matches.length});
-  
+  // console.log({unfilteredMatches: matches, unfilteredMatchesLength: matches.length, filteredMatches: filteredData.matches, filteredMatchesLength: filteredData.matches.length});
 
   // Initialize rankings with optimized data structures
   const initializeLists = useCallback(() => {
@@ -409,6 +402,15 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     }
   }, [filteredData, selectedGroup, selectedItem, playerStatsMap, nets, rounds]);
 
+  // Memoize navigation items
+  const navItems = useMemo(
+    () => [EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH],
+    []
+  );
+
+  if (!eventData) {
+    return <Loader />;
+  }
   // Early return for empty data
   if (players.length === 0 && teams.length === 0 && matches.length === 0) {
     return (
@@ -420,12 +422,6 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     );
   }
 
-  // Memoize navigation items
-  const navItems = useMemo(
-    () => [EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH],
-    []
-  );
-
   return (
     <motion.div
       className="container mx-auto px-2 md:px-4 mb-6 md:mb-8"
@@ -433,7 +429,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
       initial="hidden"
       animate="visible"
     >
-      <EventHeader event={event} ldoIdUrl={ldoIdUrl} />
+      <EventHeader event={event} />
 
       <EventSponsors sponsors={sponsors} userToken={user.token} />
 

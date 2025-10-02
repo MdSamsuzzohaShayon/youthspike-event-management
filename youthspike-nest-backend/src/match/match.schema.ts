@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { ERosterLock, ETieBreakingStrategy, Event } from 'src/event/event.schema';
@@ -11,6 +11,18 @@ import { Round } from 'src/round/round.schema';
 import { ServerReceiverOnNet, ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
+
+export enum EMatchStatus {
+  COMPLETED = "COMPLETED",
+  CURRENT = "CURRENT",
+  PAST = "PAST",
+  IN_PROGRESS = "IN_PROGRESS",
+  NOT_STARTED = "NOT_STARTED"
+}
+
+registerEnumType(EMatchStatus, {
+  name: 'EMatchStatus',
+});
 
 /**
  * Matchs
