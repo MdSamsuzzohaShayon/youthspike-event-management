@@ -26,15 +26,15 @@ export class MatchService {
   }
 
   async find(filter: FilterQuery<Match>, limit?: number, offset?: number) {
-    const matches = await this.matchModel.find(filter)
-      .skip(offset || 0)
-      .limit(limit ?? 30)         // default 30
-      .sort({ createdAt: -1 });   // optional consistent sort
-  
-    return matches;
+    // const matches = await this.matchModel.find(filter)
+    //   .skip(offset || 0)
+    //   .limit(limit ?? 30)         // default 30
+    //   .sort({ createdAt: -1 });   // optional consistent sort
+
+    // return matches;
+    if (!limit) return this.matchModel.find(filter);
+    return this.matchModel.find(filter).limit(limit);
   }
-  
-  
 
   async findOne(filter: FilterQuery<Match>) {
     return this.matchModel.findOne(filter);

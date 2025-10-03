@@ -1,4 +1,4 @@
-import { Field, InputType, PartialType } from '@nestjs/graphql';
+import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
 
 @InputType()
 export class CreatePlayerRankingInput {
@@ -11,3 +11,21 @@ export class CreatePlayerRankingInput {
 
 @InputType()
 export class UpdatePlayerRankingInput extends PartialType(CreatePlayerRankingInput) {}
+
+@InputType()
+export class CreateTeamPlayerRankingInput {
+  @Field((_type) => Boolean)
+  rankLock: boolean;
+}
+
+@InputType()
+export class UpdateTeamPlayerRankingInput {
+  @Field((_type) => Boolean, { nullable: true })
+  rankLock?: boolean;
+
+  @Field((_type) => String, { nullable: true })
+  team?: string;
+
+  @Field((_type) => String, { nullable: true })
+  match?: string;
+}

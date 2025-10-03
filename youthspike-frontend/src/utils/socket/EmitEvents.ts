@@ -148,7 +148,7 @@ class EmitEvents {
     this.socket.emit("join-player-room-from-client", { playerId });
   }
 
-  //
+
   async leavePlayerRoom({ playerId }: { playerId: string }) {
     if (!this.socket) {
       console.warn("No socket available");
@@ -179,6 +179,29 @@ class EmitEvents {
 
     this.updateRoundList(currRound, roundList, actionData);
     this.socket?.emit("check-in-from-client", actionData);
+  }
+
+  undoCheckIn({ user, currRoom, currRound, roundList, myTeamE }: IStatusChange) {
+    if (!currRoom || !currRound || !user?.info) return;
+
+    const actionData: ICheckInData = {
+      room: currRoom._id,
+      round: currRound._id,
+      teamAProcess:
+        myTeamE === ETeam.teamA
+          ? EActionProcess.INITIATE
+          : currRound.teamAProcess,
+      teamBProcess:
+        myTeamE === ETeam.teamB
+          ? EActionProcess.CHECKIN
+          : currRound.teamBProcess,
+      userId: user.info._id,
+      userRole: user.info.role,
+      teamE: myTeamE,
+    };
+
+    this.updateRoundList(currRound, roundList, actionData);
+    this.socket?.emit("undo-check-in-from-client", actionData);
   }
 
   submitLineup({

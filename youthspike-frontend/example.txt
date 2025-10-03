@@ -1065,3 +1065,30 @@ export default function useInitialSelection(
 
 
 http://localhost:3001/score-keeping/68d6d9bd46540d7ac585d4c6
+
+
+Let me explain this, why it is not being fast. 
+
+Method-1:
+Previously we were getting data from the database in 2 steps. 
+Initially, we get 30 matches and all associated teams and players,
+but in the backgroud, we were getting all data (like 30*13=390 matches in total, all matches of the event, then all players of the event and all teams of the event) from the database, this is very heavy data and is making things slow.
+in the pagination, you can notice that.
+
+
+Methed-2:
+What I did currently, everytime I will get 30 matches
+Whenever you search or filter, it will search the data from database.
+It will not load all data at once. 
+There is a button "load more" at the bottom,
+each time you click on that button you will get data of next 30 matches and it will combine with initial fetched data
+
+
+g 
+f 
+m 
+a 
+k 
+a 
+p 
+b

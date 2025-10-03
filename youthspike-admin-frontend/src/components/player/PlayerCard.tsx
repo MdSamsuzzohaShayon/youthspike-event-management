@@ -22,6 +22,7 @@ import TextImg from '../elements/TextImg';
 import InputField from '../elements/forms/InputField';
 import AddEmailDialog from './AddEmailDialog';
 import { FRONTEND_URL } from '@/utils/keys';
+import DeletePlayerDialog from './DeletePlayerDialog';
 
 interface IPlayerCardProps {
   player: IPlayerRank;
@@ -220,6 +221,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     () => (
       <div className="username flex flex-col justify-between items-center">
         <p className="text-gray-400 text-sm">{player.username}</p>
+        {player?.email && <p className="text-gray-400 text-sm word-breaks">{player.email}</p>}
         {isCaptain && <p className="text-yellow-logo uppercase">Captain</p>}
         {isCoCaptain && <p className="text-yellow-logo uppercase">Co-Captain</p>}
       </div>
@@ -233,7 +235,6 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h3 className="break-words text-lg font-semibold capitalize">{name}</h3>
         </div>
-        {player.email && <p className="text-gray-300 text-sm break-words max-w-xs">{player.email}</p>}
         {team && (
           <div className="w-full flex justify-between items-center">
             <p className="text-yellow-400 uppercase font-bold tracking-wide">{team.name}</p>
@@ -330,11 +331,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
           )}
         </AnimatePresence>
 
-        <button
-          onClick={() => setActionOpen((prev) => !prev)}
-          className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
-          aria-label="Options"
-        >
+        <button onClick={() => setActionOpen((prev) => !prev)} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
         </button>
       </div>
@@ -369,7 +366,10 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         <div className="player-role mr-4">{PlayerRole}</div>
 
         {rank && (
-          <button className="mr-4 flex w-10 h-10 items-center justify-center bg-yellow-logo text-black dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" aria-label="Options">
+          <button
+            className="mr-4 flex w-10 h-10 items-center justify-center bg-yellow-logo text-black dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Options"
+          >
             <p className="uppercase font-bold tracking-wide">{rank}</p>
           </button>
         )}
@@ -381,7 +381,9 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       <div className="w-full flex flex-col items-center gap-3 md:hidden">
         <div className="w-full flex justify-between items-center">
           {PlayerImage}
-          {PlayerRole}
+          <div>
+            {PlayerRole}
+          </div>
           {OptionsButton}
         </div>
         {PlayerInfo}
@@ -407,23 +409,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       />
 
       {/* Actions items end */}
-      <dialog ref={deleteEl} className="modal-dialog p-4">
-        <div className="flex flex-col gap-y-2">
-          <h2>Delete player</h2>
-          <p className="text-yellow-100/90">Are your sure you want to delete the player?</p>
-          <p>
-            Name: {player?.firstName} {player?.lastName}
-          </p>
-          <div className="buttons flex w-full justify-between items-center">
-            <div className="btn-info" onClick={(e) => handleDelete(e, player._id)}>
-              Confirm
-            </div>
-            <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>
-              Cancel
-            </div>
-          </div>
-        </div>
-      </dialog>
+      <DeletePlayerDialog deleteEl={deleteEl} handleDelete={handleDelete} player={player} />
     </>
   );
 }

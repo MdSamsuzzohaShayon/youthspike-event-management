@@ -1,17 +1,11 @@
 import React, { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { setCurrentRoundNets } from "@/redux/slices/netSlice";
 import { EXTRA_HEIGHT, screen } from "@/utils/constant";
 import { border } from "@/utils/styles";
 import { ETeam } from "@/types/team";
-import { EActionProcess } from "@/types/room";
-import LocalStorageService from "@/utils/LocalStorageService";
-import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import {
-  setDisabledPlayerIds,
   setOutOfRange,
-  setPrevPartner,
   setShowTeamPlayers,
 } from "@/redux/slices/matchesSlice";
 import MatchSetting from "./MatchSetting";
@@ -19,7 +13,6 @@ import LogoMatchScore from "./LogoMatchScore";
 import PointsByRound from "./PointsByRound";
 import NetCard from "./NetCard";
 import AvailablePlayers from "../player/AvailablePlayers";
-import SubbedPlayers from "../player/SubbedPlayers";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { EMessage, INetRelatives } from "@/types";
 import { useRoundNavigation } from "@/hooks/useRoundNavigation";
@@ -295,6 +288,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
         opTeam={opTeam}
         currRoom={currRoom}
         currRound={currentRound}
+        myTeamE={myTeamE}
       />
       {rightSideContent}
     </div>

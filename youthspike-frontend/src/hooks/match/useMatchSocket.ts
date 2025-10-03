@@ -111,6 +111,14 @@ export default function useMatchSocket({
           roundList,
           currentRound: currRound,
         }),
+      "undo-check-in-response-to-all": (data: IRoom) =>
+        listener.handleUndoCheckInResponse({
+          data,
+          dispatch,
+          roundList,
+          currentRound: currRound,
+        }),
+
       "submit-lineup-response-all": (data: IRoomNets) =>
         listener.handleLineupResponse({
           data,

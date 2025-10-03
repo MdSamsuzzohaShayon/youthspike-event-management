@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { AppResponse } from 'src/shared/response';
-import { UpdatePlayerRankingInput } from './player-ranking.input';
+import { UpdatePlayerRankingInput, UpdateTeamPlayerRankingInput } from './player-ranking.input';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
 import { ConfigService } from '@nestjs/config';
@@ -15,11 +15,18 @@ import { isISODateString, tokenToUser } from 'src/util/helper';
 import { UserService } from 'src/user/user.service';
 import { EventService } from 'src/event/event.service';
 import { NetService } from 'src/net/net.service';
+import { FilterQuery } from 'mongoose';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
   @Field((_type) => [PlayerRanking], { nullable: true })
-  data?: PlayerRanking;
+  data?: PlayerRanking[];
+}
+
+@ObjectType()
+class PlayerTeamRankingResponse extends AppResponse<PlayerRanking[]> {
+  @Field((_type) => [PlayerRanking], { nullable: true })
+  data?: PlayerRanking[];
 }
 
 @Resolver((_of) => PlayerRanking)
@@ -85,6 +92,7 @@ export class PlayerRankingResolver {
 
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
 
+      // Get all players from the first ranking
       const firstRankings = playerRankings[0];
       const findRankingItems = await this.playerRankingService.findItems({ playerRanking: firstRankings._id });
       const playerIds = new Set();
@@ -146,9 +154,18 @@ export class PlayerRankingResolver {
       const updatePlayerRankings: PlayerRanking[] = [];
 
       for (const pr of playerRankings) {
-        if (pr.rankLock && loggedUser.role !== UserRole.director && loggedUser.role !== UserRole.admin) continue;
+        if (pr.rankLock) continue;
+        if (
+          loggedUser.role !== UserRole.director &&
+          loggedUser.role !== UserRole.admin &&
+          loggedUser.role !== UserRole.captain &&
+          loggedUser.role !== UserRole.co_captain
+        )
+          continue;
+
+        /*
         if (pr.match) {
-          // Find the match, nets of that match, nets of that match
+          // Find the match, nets of that match
           const firstNet = await this.netService.findOne({ match: pr.match, num: 1 });
           if (firstNet) {
             if (!firstNet.teamAPlayerA && !firstNet.teamAPlayerB && !firstNet.teamBPlayerA && !firstNet.teamBPlayerB) {
@@ -158,6 +175,9 @@ export class PlayerRankingResolver {
         } else {
           updatePlayerRankings.push(pr);
         }
+        */
+
+        updatePlayerRankings.push(pr);
       }
       // console.log({ input, playerRankings, updatePlayerRankings });
 
@@ -180,6 +200,37 @@ export class PlayerRankingResolver {
         message: 'Multiple Players ranking have been created successfully!',
         success: true,
         data: null,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
+  @Mutation((_returns) => PlayerTeamRankingResponse)
+  async updateTeamPlayerRanking(
+    @Args('input', { type: () => UpdateTeamPlayerRankingInput }) input: UpdateTeamPlayerRankingInput,
+  ) {
+    try {
+      let pr = null;
+      if (input?.rankLock === true || input?.rankLock === false) {
+        const rankingFilter: FilterQuery<PlayerRanking> = {};
+        if (input?.team) {
+          rankingFilter.team = input.team;
+        }
+        if (input?.match) {
+          rankingFilter.match = input.match;
+        }
+        await this.playerRankingService.updateMany(rankingFilter, { $set: { rankLock: input.rankLock } });
+        pr = await this.playerRankingService.find(rankingFilter);
+      }
+      // const teamPlayerRanking
+      return {
+        code: HttpStatus.ACCEPTED,
+        message: 'Team player ranking has been updated successfully!',
+        success: true,
+        data: pr,
       };
     } catch (error) {
       return AppResponse.handleError(error);

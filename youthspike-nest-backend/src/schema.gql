@@ -991,6 +991,13 @@ type PlayerRankingResponse {
   data: [PlayerRanking!]
 }
 
+type PlayerTeamRankingResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [PlayerRanking!]
+}
+
 type GetGroupsResponse {
   code: Int!
   success: Boolean!
@@ -1217,6 +1224,7 @@ type Mutation {
   deletePlayer(playerId: String!): PlayersResponse!
   sendCredentials(eventId: String!, teamIds: [String!], captain: String, co_captain: String): AppResponse!
   updatePlayerRanking(teamId: [String!]!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
+  updateTeamPlayerRanking(input: UpdateTeamPlayerRankingInput!): PlayerTeamRankingResponse!
   resetAllPlayerRankings: PlayerRankingResponse!
   createGroup(input: CreateGroupInput!): GetGroupResponse!
   updateGroup(updateInput: UpdateGroupInput!, eventId: String): GetGroupResponse!
@@ -1367,6 +1375,12 @@ input UpdatePlayersInput {
 input UpdatePlayerRankingInput {
   player: String
   rank: Float
+}
+
+input UpdateTeamPlayerRankingInput {
+  rankLock: Boolean
+  team: String
+  match: String
 }
 
 input CreateGroupInput {

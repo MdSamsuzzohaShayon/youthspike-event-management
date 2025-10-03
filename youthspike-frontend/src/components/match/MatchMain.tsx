@@ -28,7 +28,7 @@ interface IMatchMainProps {
 export function MatchMain({ queryRef }: IMatchMainProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
-  console.log({error});
+
 
 
   if (!data?.getMatch?.data) {

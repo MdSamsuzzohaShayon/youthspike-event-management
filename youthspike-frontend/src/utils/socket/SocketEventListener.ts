@@ -118,6 +118,43 @@ class SocketEventListener {
     }
   }
 
+  handleUndoCheckInResponse({
+    data,
+    dispatch,
+    roundList,
+    currentRound,
+  }: ICheckInResponse) {
+    this.restartAudio();
+
+    // Set current round and round list
+    const updatedRoundList: IRoundRelatives[] = [];
+    let currRoundObj: null | IRoundRelatives = null;
+    const roomRounds: IRoomRoundProcess[] = [...data.rounds];
+    if (roomRounds.length > 0) {
+      for (let i = 0; i < roomRounds.length; i += 1) {
+        if (roomRounds[i].teamAProcess && roomRounds[i].teamBProcess) {
+          const teamProcessObj = {
+            teamAProcess: roomRounds[i].teamAProcess,
+            teamBProcess: roomRounds[i].teamBProcess,
+          };
+          const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
+          if (roundObj) {
+            // @ts-ignore
+            updatedRoundList.push({ ...roundObj, ...teamProcessObj });
+            if (roomRounds[i]._id === currentRound?._id) {
+              // @ts-ignore
+              currRoundObj = { ...roundObj, ...teamProcessObj };
+            }
+          }
+        }
+      }
+
+      // Temp - Creating an issue running this again and again
+      dispatch(setRoundList(updatedRoundList));
+      if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
+    }
+  }
+
 
 
 

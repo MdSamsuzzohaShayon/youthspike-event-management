@@ -61,6 +61,7 @@ import { RevertPlayHandler } from './gateway.handlers/revert-play';
 import { JoinPlayerRoomHandler } from './gateway.handlers/join-player-room.handler';
 import { LeavePlayerRoomHandler } from './gateway.handlers/leave-player-room.handler';
 import { RevertPlayHelper } from './gateway.helpers/revert-play.helper';
+import { UndoCheckInHandler } from './gateway.handlers/undo-check-in.handler';
 
 @WebSocketGateway({
   cors: true,
@@ -82,6 +83,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private joinPlayerRoomHandler: JoinPlayerRoomHandler;
   private LeavePlayerRoomHandler: LeavePlayerRoomHandler;
   private checkInHandler: CheckInHandler;
+  private undoCheckInHandler: UndoCheckInHandler;
   private submitLineupHandler: SubmitLineupHandler;
   private updatePointsHandler: UpdatePointsHandler;
   private tieBreakerHandler: TieBreakerHandler;
@@ -115,6 +117,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.LeavePlayerRoomHandler = new LeavePlayerRoomHandler();
     // Initialize handlers for a prticular match
     this.checkInHandler = new CheckInHandler(gatewayService, gatewayRedisService, validationHelper);
+    this.undoCheckInHandler = new UndoCheckInHandler(gatewayService, gatewayRedisService, validationHelper);
     this.submitLineupHandler = new SubmitLineupHandler(gatewayService, gatewayRedisService, roomHelper);
     this.updatePointsHandler = new UpdatePointsHandler(gatewayRedisService, pointsUpdateHelper);
     this.tieBreakerHandler = new TieBreakerHandler(gatewayService, gatewayRedisService);
@@ -214,6 +217,11 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('check-in-from-client')
   async onCheckIn(@ConnectedSocket() client: Socket, @MessageBody() checkIn: CheckInInput) {
     return this.checkInHandler.handle(client, checkIn, this.roomsLocal);
+  }
+
+  @SubscribeMessage('undo-check-in-from-client')
+  async onUndoCheckIn(@ConnectedSocket() client: Socket, @MessageBody() checkIn: CheckInInput) {
+    return this.undoCheckInHandler.handle(client, checkIn, this.roomsLocal);
   }
 
   @SubscribeMessage('submit-lineup-from-client')
