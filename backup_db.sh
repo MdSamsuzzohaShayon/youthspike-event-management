@@ -22,12 +22,6 @@ TAR_FILE="spikeball_backup_$(date +"%Y%m%d_%H%M%S").tar.gz"  # Tarball filename
 FOLDER_ID="1oFkxjoRQ4V1FLJauAM82h_piKCDpayEY"                # Google Drive folder ID
 FOLDER_NAME="$BACKUP_DIR"      # Reuse BACKUP_DIR for clarity
 
-# To get access token for Google Drive API:
-# 1. Go to https://developers.google.com/oauthplayground/
-# 2. Use this scope: https://www.googleapis.com/auth/drive.file
-# 3. Authorize APIs and generate access token
-ACCESS_TOKEN="ya29.a0AXeO80QsDgjTcOOcKkvi00OhlhvnN3utXhmC2j-AQ2SDVqDjaVJ5MrDIoC-rbWXXxnhF8waQLrlRQns-bhmXyRM49hXLlZtJH9giJWDhzZ4FZfczVkJmyVfu5p7fFRHbrrbh0l92QVV4aMY9v98d2cdc5lvGUjzzykkcIs2saCgYKAdESARASFQHGX2MiSZ_q_kS3alFe9HQ9Ub96Lg0175"
-
 # ================================================================
 #  Step 1: Cleanup old backups (optional)
 # ================================================================
@@ -46,10 +40,24 @@ echo -e "${GREEN}Database backup completed.${NC}"
 # ================================================================
 #  Step 3: Ask if user wants to upload to Google Drive
 # ================================================================
-read -p "Do you want to save the database backup to Google Drive? (Y/N): " SAVE_TO_GDRIVE
-SAVE_TO_GDRIVE=${SAVE_TO_GDRIVE^^}  # Convert to uppercase (y → Y)
+read -p "Do you want to upload the backup to Google Drive? (Y/N): " SAVE_TO_GDRIVE
+SAVE_TO_GDRIVE=${SAVE_TO_GDRIVE^^}  # Convert to uppercase
 
 if [[ "$SAVE_TO_GDRIVE" == "Y" ]]; then
+  echo -e "\n${CYAN}================ Google Drive Upload Instructions ================${NC}"
+  echo -e "# 1. Go to: ${YELLOW}https://developers.google.com/oauthplayground/${NC}"
+  echo -e "# 2. Under 'Select & authorize APIs', choose: ${YELLOW}https://www.googleapis.com/auth/drive.file${NC}"
+  echo -e "# 3. Click 'Authorize APIs' → 'Exchange authorization code for tokens'."
+  echo -e "# 4. Copy the 'Access Token' value (starts with ya29...)."
+  echo -e "${CYAN}=================================================================${NC}\n"
+
+  read -p "Paste your Google Drive Access Token here: " ACCESS_TOKEN
+
+  if [[ -z "$ACCESS_TOKEN" ]]; then
+    echo -e "${RED}Error: No access token provided. Skipping upload.${NC}"
+    exit 1
+  fi
+
   echo -e "${CYAN}Creating tarball of the backup folder...${NC}"
   tar -czf "$TAR_FILE" "$BACKUP_DIR"
   if [ $? -ne 0 ]; then
@@ -59,38 +67,36 @@ if [[ "$SAVE_TO_GDRIVE" == "Y" ]]; then
 
   echo -e "${CYAN}Uploading to Google Drive...${NC}"
 
-  # -------------------------------
-  #  Prepare metadata JSON
-  # -------------------------------
+  # Prepare metadata JSON
   if [[ -n "$FOLDER_ID" ]]; then
       METADATA="{\"name\": \"$(basename $TAR_FILE)\", \"parents\": [\"$FOLDER_ID\"]}"
   else
       METADATA="{\"name\": \"$(basename $TAR_FILE)\"}"
   fi
 
-  # -------------------------------
-  #  Upload file using curl
-  # -------------------------------
+  # Upload file using curl
   UPLOAD_RESPONSE=$(curl -s -X POST -L \
     -H "Authorization: Bearer $ACCESS_TOKEN" \
     -F "metadata=$METADATA;type=application/json" \
     -F "file=@$TAR_FILE;type=application/gzip" \
     "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart")
 
-  echo "Upload Response: $UPLOAD_RESPONSE"
-  echo -e "${GREEN}Database backup saved to Google Drive.${NC}"
+  if echo "$UPLOAD_RESPONSE" | grep -q '"id"'; then
+    echo -e "${GREEN}✅ Database backup successfully uploaded to Google Drive.${NC}"
+  else
+    echo -e "${RED}❌ Upload failed. Response:${NC}"
+    echo "$UPLOAD_RESPONSE"
+  fi
 
-  # -------------------------------
-  #  Step 4: Cleanup local files
-  # -------------------------------
+  # Step 4: Cleanup local files
   echo -e "${CYAN}Cleaning up local backup files...${NC}"
   rm -rf "$BACKUP_DIR" "$TAR_FILE"
 
 else
-  echo -e "${YELLOW}Skipping Google Drive backup.${NC}"
+  echo -e "${YELLOW}Skipping Google Drive upload.${NC}"
 fi
 
 # ================================================================
 #  End of script
 # ================================================================
-echo -e "${GREEN}Backup process completed!${NC}"
+echo -e "${GREEN}🎉 Backup process completed!${NC}"

@@ -16,7 +16,7 @@ import { AccessCodeInput, CreateMatchInput, UpdateMatchInput } from './match.inp
 import { GetMatchResponse } from './match.response';
 import { AppResponse } from 'src/shared/response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { EActionProcess, ETeam } from 'src/round/round.schema';
+import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
 import { ETieBreaker } from 'src/net/net.schema';
 
 @Injectable()
@@ -128,7 +128,6 @@ export class MatchMutations {
       console.error('Error deleting match:', err);
     }
   }
-
 
   async createMatch(input: CreateMatchInput): Promise<GetMatchResponse> {
     try {
@@ -302,9 +301,105 @@ export class MatchMutations {
     }
   }
 
-
   async updateMatch(input: UpdateMatchInput, matchId: string) {
     try {
+      const matchExist = await this.matchService.findOne({ _id: matchId });
+      if (!matchExist) return AppResponse.notFound('Match');
+
+      const currRoundId = input?.currRound;
+      delete input?.currRound;
+
+      // Update incompleted rounds
+      if (!matchExist.completed && input.completed) {
+        const [roundListDocs, allNetsDocs] = await Promise.all([
+          this.roundService.find({ match: matchId }),
+          this.netService.find({ match: matchId }),
+        ]);
+
+        // Convert to plain JS objects
+        const roundList = roundListDocs.map((r) => r.toObject());
+        const allNets = allNetsDocs.map((n) => n.toObject());
+        const sortedRounds: Round[] = [...roundList].sort((a, b) => a.num - b.num);
+        // Get all rounds that is been played
+        const completedRounds: Round[] = [];
+        const incompleteRounds: Round[] = [];
+        const netsSum = new Map<string, { teamAScore: number; teamBScore: number }>();
+        for (const round of sortedRounds) {
+          const nets = [...allNets].filter((n) => String(n.round) === String(round._id));
+          const roundObj = { ...round, nets };
+          if (round.completed) {
+            for (let i = 0; i < nets.length; i++) {
+              const netNum = netsSum.get(`${i + 1}`);
+              netsSum.set(`${i + 1}`, {
+                teamAScore: netNum ? (netNum.teamAScore += nets[i].teamAScore) : nets[i].teamAScore,
+                teamBScore: netNum ? (netNum.teamBScore += nets[i].teamBScore) : nets[i].teamBScore,
+              });
+            }
+            completedRounds.push(roundObj);
+          } else {
+            incompleteRounds.push(roundObj);
+          }
+        }
+        const avgNets = new Map();
+        const completedRoundsNum = completedRounds.length;
+        for (const [k, v] of netsSum) {
+          avgNets.set(k, {
+            teamAScore: Math.floor(v.teamAScore / completedRoundsNum),
+            teamBScore: Math.floor(v.teamBScore / completedRoundsNum),
+          });
+        }
+        // Ang update all rounds that about to complete
+        const roundUpdatePromises = [];
+        for (const inround of incompleteRounds) {
+          const nets = [...allNets].filter((n) => String(n.round) === String(inround._id));
+          let teamAScore = 0,
+            teamBScore = 0;
+          for (let i = 0; i < nets.length; i++) {
+            const avgPoints = avgNets.get(String(i + 1));
+            if (avgPoints) {
+              teamAScore += avgPoints.teamAScore;
+              teamBScore += avgPoints.teamBScore;
+              roundUpdatePromises.push(
+                this.netService.updateOne(
+                  { _id: nets[i]._id },
+                  { $set: { teamAScore: avgPoints.teamAScore, teamBScore: avgPoints.teamBScore } },
+                ),
+              );
+            }
+          }
+          roundUpdatePromises.push(
+            this.roundService.updateOne({ _id: inround._id }, { $set: { teamAScore, teamBScore, completed: true } }),
+          );
+        }
+        await Promise.all(roundUpdatePromises);
+      } else if (matchExist.completed && !input.completed) {
+        // Set score null for all rounds and nets
+        const [roundListDocs, allNetsDocs] = await Promise.all([
+          this.roundService.find({ match: matchId }),
+          this.netService.find({ match: matchId }),
+        ]);
+
+        // Convert to plain JS objects
+        const roundList = roundListDocs.map((r) => r.toObject());
+        const allNets = allNetsDocs.map((n) => n.toObject());
+        const currRound = roundList.find((r) => String(r._id) === currRoundId);
+
+        const roundUpdatePromises = [];
+        for (const round of roundList) {
+          if (currRound.num > round.num) continue;
+          const nets = [...allNets].filter((n) => String(n.round) === String(round._id));
+          for (const n of nets) {
+            roundUpdatePromises.push(this.netService.updateOne({ _id: n._id }, { teamAScore: null, teamBScore: null }));
+          }
+          roundUpdatePromises.push(
+            this.roundService.updateOne(
+              { _id: round._id },
+              { $set: { teamAScore: null, teamBScore: null, completed: false } },
+            ),
+          );
+        }
+        await Promise.all(roundUpdatePromises);
+      }
       const updatedMatch = await this.matchService.updateOne({ _id: matchId }, input);
       return {
         data: updatedMatch ?? null,
@@ -333,7 +428,6 @@ export class MatchMutations {
       return AppResponse.handleError(err);
     }
   }
-
 
   async accessCodeValidation(input: AccessCodeInput) {
     try {

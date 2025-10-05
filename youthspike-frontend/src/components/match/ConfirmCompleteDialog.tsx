@@ -9,12 +9,14 @@ import { useRouter } from "next/navigation";
 interface IConfirmCompleteDialogProps {
   completeDialogEl: React.RefObject<HTMLDialogElement | null>;
   matchId: string;
+  currRoundId: string | null;
   match: IMatchRelatives;
 }
 
 function ConfirmCompleteDialog({
   completeDialogEl,
   matchId,
+  currRoundId,
   match,
 }: IConfirmCompleteDialogProps) {
   const dispatch = useAppDispatch();
@@ -29,8 +31,12 @@ function ConfirmCompleteDialog({
       }
 
       const completed = match?.completed ? false : true; // Match is compled make it incomplete, if it is completed then make it completed
+      const input: Record<string, any> = { completed };
+      if(!completed){
+        input.currRound = currRoundId;
+      }
       const { data } = await mutateMatch({
-        variables: { input: { completed }, matchId },
+        variables: { input, matchId },
       });
 
       // ✅ Handle GraphQL response success/failure
