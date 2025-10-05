@@ -1,6 +1,6 @@
 // NetTeamSelect.tsx
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IPlayer } from "@/types";
+import { EPlayerStatus, IPlayer } from "@/types";
 import { ETeam } from "@/types/team";
 import { calcPairScore } from "@/utils/scoreCalc";
 import { ETeamPlayer, INetRelatives, INetUpdate } from "@/types/net";
@@ -56,6 +56,16 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
   const [playerARank, setPlayerARank] = useState<null | number>(null);
   const [playerBRank, setPlayerBRank] = useState<null | number>(null);
   const [pairScore, setPairScore] = useState<number | null>(null);
+
+  const myActivePlayers = useMemo(
+    () => myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
+    [myPlayers]
+  );
+
+  const opActivePlayers = useMemo(
+    () => opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
+    [opPlayers]
+  );
 
   const handleEvacuatePlayer = (playerSpot: ETeamPlayer) => {
     if (!user.token || !user.info) return;
@@ -209,9 +219,9 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
     const inavalidPlayerIds = findOutOfRange({
       currMatch,
       net,
-      myPlayers,
+      myPlayers: myActivePlayers,
       myTeamE,
-      opPlayers,
+      opPlayers: opActivePlayers,
       playerSpot,
       teamAPlayerRanking,
       teamBPlayerRanking,
@@ -243,14 +253,14 @@ function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
         [ETeamPlayer.PLAYER_B]: isMyTeam ? myPlayerB : opPlayerB,
       };
 
-      const playerList = isMyTeam ? myPlayers : opPlayers;
+      const playerList = isMyTeam ? myActivePlayers : opActivePlayers;
       const expectedPlayer = playerMap[teamPlayer]
         ? playerList.find((p) => p._id === playerMap[teamPlayer])
         : null;
 
       return expectedPlayer || null;
     },
-    [myPlayers, net, opPlayers, teamE]
+    [myActivePlayers, net, opActivePlayers, teamE]
   );
 
   const showPlayer = useCallback(() => {

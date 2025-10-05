@@ -171,6 +171,8 @@ export class EventQueries implements IEventQueries {
         this.sponsorService.find({ event: eventId }),
       ]);
 
+      if(!event) return AppResponse.notFound("Event");
+
       const mIds = matches.map((m) => String(m._id));
       const [rounds, nets] = await Promise.all([
         this.roundService.find({ match: { $in: mIds } }),

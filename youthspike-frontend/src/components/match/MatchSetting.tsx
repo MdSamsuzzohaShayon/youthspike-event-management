@@ -117,7 +117,6 @@ function MatchSetting({
     [mutateTeamPlayerRanking, match._id, myTeam?._id]
   );
 
-  console.log({teamAPlayerRanking, teamBPlayerRanking});
   
 
   // ====== Derived State ======

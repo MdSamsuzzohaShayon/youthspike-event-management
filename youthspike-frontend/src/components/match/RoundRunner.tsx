@@ -55,6 +55,14 @@ function RoundRunner({ currentRound, roundList, currentRoom, teamA, teamB, myTea
       return <FinalRoundBox myTeamE={myTeamE} />;
     }
 
+    
+    
+    console.log({
+      "match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND": match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND, 
+      "teamATotalScore === teamBTotalScore": teamATotalScore === teamBTotalScore,
+      "isFinalRound && currentRound?.completed": isFinalRound && currentRound?.completed,
+      completed: match.completed
+    });
     // Check both teams points are same
     if ( !match.completed && isFinalRound && currentRound?.completed && match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && teamATotalScore === teamBTotalScore) {
       return <AskOvertimeScore completeDialogEl={completeDialogEl} currRoom={currentRoom} currRound={currentRound} />;

@@ -17,6 +17,9 @@ import { ETieBreakingStrategy } from 'src/event/event.schema';
 import { FilterQuery } from 'mongoose';
 import { EMatchStatus, Match } from '../match.schema';
 import { GetEventWithMatchesResponse } from './match.response';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { PlayerService } from 'src/player/player.service';
+import { EPlayerStatus } from 'src/player/player.schema';
 
 // IMatchQueries
 
@@ -32,7 +35,30 @@ export class MatchQueries {
     private roundService: RoundService,
     private netService: NetService,
     private groupService: GroupService,
+    private playerRankingService: PlayerRankingService,
+    private playerService: PlayerService,
   ) {}
+
+  // Helper functions
+  async updateTeamRanking(teamId: string, matchId: string) {
+    const teamRanking = await this.playerRankingService.findOne({ match: matchId, team: teamId });
+    if (!teamRanking) return;
+
+    // Get active players for the team
+    const players = await this.playerService.find({ teams: teamId });
+    const validPlayerIds = new Set(players.filter((p) => p.status === EPlayerStatus.ACTIVE).map((p) => String(p._id)));
+
+    // Get rankings for the team
+    const rankings = await this.playerRankingService.findItems({ playerRanking: teamRanking._id });
+
+    // Keep only valid players and sort
+    const sorted = rankings.filter((r) => validPlayerIds.has(String(r.player))).sort((a, b) => a.rank - b.rank);
+
+    // Update ranks in parallel
+    await Promise.all(
+      sorted.map((r, idx) => this.playerRankingService.updateOneItem({ _id: r._id }, { rank: idx + 1 })),
+    );
+  }
 
   async getMatches(filter?: FilterQueryInput) {
     try {
@@ -72,27 +98,30 @@ export class MatchQueries {
         const team = await this.teamService.findOne({
           name: { $regex: new RegExp(filter.search, 'i') }, // partial + case-insensitive
         });
-        if(team){
+        if (team) {
           searchFound = true;
           matchFilter.$or = [{ teamA: team._id }, { teamB: team._id }];
         }
-      } 
+      }
 
       // Flexible string filters (partial matches, case-insensitive)
       if (filter?.search && !searchFound) {
-        matchFilter.$or = [{ description: { $regex: filter.search, $options: 'i' }}, { location: { $regex: filter.search, $options: 'i' }}];
+        matchFilter.$or = [
+          { description: { $regex: filter.search, $options: 'i' } },
+          { location: { $regex: filter.search, $options: 'i' } },
+        ];
       }
 
-      if(filter?.division){
+      if (filter?.division) {
         matchFilter.division = { $regex: new RegExp(filter.division.trim(), 'i') };
       }
 
-      if(filter?.group){
+      if (filter?.group) {
         matchFilter.group = filter.group;
       }
 
-      if(filter?.status){
-        if(filter.status === EMatchStatus.COMPLETED){
+      if (filter?.status) {
+        if (filter.status === EMatchStatus.COMPLETED) {
           matchFilter.completed = true;
         }
         // else if(filter.status)
@@ -124,7 +153,6 @@ export class MatchQueries {
   }, [matchList, filter]);
 
       */
-
 
       // Fetch matches (paginated)
       const matches = await this.matchService.find(matchFilter, filter?.limit || 30, filter?.offset || 0);
@@ -224,8 +252,13 @@ export class MatchQueries {
           }
         }
       }
-        */
+      */
 
+      // Re-rank players for both teams (only if teams exist)
+      await Promise.all([
+        matchExist.teamA ? this.updateTeamRanking(String(matchExist.teamA), matchId) : Promise.resolve(),
+        matchExist.teamB ? this.updateTeamRanking(String(matchExist.teamB), matchId) : Promise.resolve(),
+      ]);
       return {
         code: HttpStatus.OK,
         success: true,

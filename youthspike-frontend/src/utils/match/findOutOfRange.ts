@@ -1,6 +1,7 @@
 import { IMatchRelatives, INetRelatives, IPlayer, IPlayerRankingExpRel, IPlayerRankingItemExpRel } from '@/types';
 import { ETeamPlayer } from '@/types/net';
 import { ETeam } from '@/types/team';
+import { sortPlayerRanking } from '../helper';
 
 interface IOutRange {
   currMatch: IMatchRelatives;
@@ -18,12 +19,31 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
   const netVariance = currMatch.netVariance ? currMatch.netVariance : 0;
   const oponentNetPlayers: IPlayer[] = [];
 
-  const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+  // const rankings = teamBPlayerRanking && teamAPlayerRanking ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings] : [];
+  const rankings = myTeamE === ETeam.teamA ? (teamAPlayerRanking?.rankings || []) : (teamBPlayerRanking?.rankings || []);
+
   const rankingMap = new Map<string, IPlayerRankingItemExpRel>();
   // eslint-disable-next-line no-restricted-syntax
   for (const ranking of rankings) {
-    rankingMap.set(ranking.player._id, ranking);
+    const findPlayer = myPlayers.find((p)=> p._id === ranking.player?._id);
+    if(findPlayer){
+      rankingMap.set(ranking.player._id, ranking);
+    }
   }
+
+
+  const opRankings = myTeamE === ETeam.teamA ? (teamBPlayerRanking?.rankings || []) : (teamAPlayerRanking?.rankings || []);
+  const opRankingMap = new Map<string, IPlayerRankingItemExpRel>();
+  // eslint-disable-next-line no-restricted-syntax
+  for (const ranking of opRankings) {
+    const findPlayer = opPlayers.find((p)=> p._id === ranking.player?._id);
+    if(findPlayer){
+      opRankingMap.set(ranking.player._id, ranking);
+    }
+  }
+
+  console.log({rankingMap, opRankingMap});
+  
 
   // Find pair score
   let oponentPairScore = 0;
@@ -71,7 +91,7 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
     // Find oponent pair score
     for (let i = 0; i < oponentNetPlayers.length; i += 1) {
       // const opr: number | null = rankings.find((p) => p.player._id === oponentNetPlayers[i]?._id)?.rank || null; // opr = oponent player rank
-      const opr: number | null = rankingMap.get(oponentNetPlayers[i]?._id)?.rank || null;
+      const opr: number | null = opRankingMap.get(oponentNetPlayers[i]?._id)?.rank || null;
       if (opr) oponentPairScore += opr;
     }
 

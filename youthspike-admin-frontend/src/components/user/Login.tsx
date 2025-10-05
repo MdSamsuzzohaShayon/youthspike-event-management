@@ -263,7 +263,7 @@ function Login() {
                     name="email" 
                     label="Email or Username" 
                     handleInputChange={handleInputChange}
-                    className="bg-gray-800/50 border-gray-700 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                    className="border-gray-700 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
                   />
                 </motion.div>
                 
@@ -273,7 +273,7 @@ function Login() {
                     type="password" 
                     name="password" 
                     handleInputChange={handleInputChange}
-                    className="bg-gray-800/50 border-gray-700 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                    className="border-gray-700 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
                   />
                 </motion.div>
                 
@@ -289,7 +289,7 @@ function Login() {
                       type="password" 
                       name="passcode" 
                       handleInputChange={handleInputChange}
-                      className="bg-gray-800/50 border-gray-700 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
+                      className="border-gray-700 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400"
                     />
                   </motion.div>
                 )}

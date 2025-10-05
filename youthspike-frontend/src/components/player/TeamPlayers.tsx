@@ -29,6 +29,8 @@ function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop, teamE }: ITea
 
     const { sortedPlayers: sortedPlayerList } = sortPlayerRanking(teamPlayers, rankings);
 
+    
+
     const seen = new Set<string>();
     return sortedPlayerList.filter((p) => {
       if (seen.has(p._id)) return false;

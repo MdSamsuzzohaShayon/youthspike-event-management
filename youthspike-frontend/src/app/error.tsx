@@ -16,7 +16,7 @@ export default function Error({
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-6">
       <div className="bg-[#1a1a1a] border border-red-600 shadow-lg rounded-2xl p-8 max-w-lg w-full text-center text-white">
-        <h1 className="text-3xl font-extrabold text-red-500 mb-4">⚠️ Something went wrong!</h1>
+        <h1 className="text-3xl font-extrabold text-red-500 mb-4">{error.name || "⚠️ Something went wrong!"}</h1>
         
         <p className="text-gray-200 mb-4">
           {error.message || 'An unexpected error occurred. Please try again later.'}

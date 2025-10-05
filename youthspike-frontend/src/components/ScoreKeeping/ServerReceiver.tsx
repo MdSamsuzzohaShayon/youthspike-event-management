@@ -582,7 +582,13 @@ export default function ServerReceiver({
 
             {/* Desktop grid - responsive columns */}
             <div className="hidden md:block">
-              <ul className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 list-none">
+              <ul
+                className={`grid gap-3 list-none ${
+                  currRoundNets.length <= 2
+                    ? "flex items-center justify-center place-items-center"
+                    : "grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
+                }`}
+              >
                 {currRoundNets.map((n) => (
                   <NetInputItem
                     key={n._id}

@@ -146,8 +146,17 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     updateQueryParams,
   ]);
 
-  const eventData: IEventDetailData =
-    heavyData?.getEventDetails?.data || lightData?.getEventDetails?.data;
+  // ✅ Safely extract data
+  const eventData: IEventDetailData | null =
+    heavyData?.getEventDetails?.data ||
+    lightData?.getEventDetails?.data ||
+    null;
+
+  if (!eventData) {
+    const error = new Error("The requested event might not exist or has been removed.");
+    error.name = "No event data found";
+    throw error;
+  }
 
   const {
     event,

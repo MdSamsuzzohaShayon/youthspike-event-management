@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RoundUpdatedResponse, MatchRoundNet, NetScore } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from './score-keeper.helper';
+import { ETieBreakingStrategy } from 'src/event/event.schema';
 
 @Injectable()
 export class PointsUpdateHelper {
@@ -39,23 +40,53 @@ export class PointsUpdateHelper {
     const { roundService, matchService, netService } = this.gatewayService.getServices();
     const roundExist = await roundService.findById(roundId);
 
+    const roundList = await roundService.find({ match: matchId });
+    const matchExist = await matchService.findOne({ _id: matchId });
     let matchCompleted = false;
-    if (completed && roundExist.num === roundListLength) {
-      await matchService.updateOne({ _id: matchId }, { completed });
-      matchCompleted = true;
+    if (matchExist.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND) {
+      if (matchExist.extendedOvertime) {
+        if (roundExist.num === roundListLength) {
+          // Check teamA score and teamB score
+          // if both do no match then match will be completed
+          let teamARoundScore = 0,
+            teamBRoundScore = 0;
+          let bothScores = true;
+          for (const r of roundList) {
+            const roundNets = await netService.find({ round: r._id });
+            for (const n of roundNets) {
+              if (!n.teamAScore || !n.teamBScore) {
+                bothScores = false;
+                break;
+              } else if (n.teamAScore > n.teamBScore) {
+                teamARoundScore += n.points;
+              } else if (n.teamAScore < n.teamBScore) {
+                teamBRoundScore += n.points;
+              }
+            }
+          }
+          if (bothScores && teamARoundScore !== teamBRoundScore) {
+            matchCompleted = true;
+            await matchService.updateOne({ _id: matchId }, { $set: { completed: matchCompleted } });
+          }
+        }
+      }
+    } else {
+      if (completed && roundExist.num === roundListLength) {
+        await matchService.updateOne({ _id: matchId }, { completed });
+        matchCompleted = true;
+      }
     }
 
-    if(matchCompleted){
+    if (matchCompleted) {
       // Update cache to database
       // Update player stats
       // Update single play stats
-      // Update server receiver 
+      // Update server receiver
       // const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
       // const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
       // const netsOfMatch = await netService.find({match: matchId});
       // const players = new Set();
       // for (const element of netsOfMatch) {
-        
       // }
     }
 
@@ -140,11 +171,11 @@ export class PointsUpdateHelper {
         settingOpportunity: 1,
         defensiveOpportunity: 1,
         broken: -0.5,
-      }
+      },
     };
   }
 
-  statsAceNoThird(){
+  statsAceNoThird() {
     return {
       server: {
         serveOpportunity: 1,
@@ -152,7 +183,7 @@ export class PointsUpdateHelper {
         break: 0.5,
       },
       servingPartner: {
-        broken: -0.5
+        broken: -0.5,
       },
       receiver: {
         receiverOpportunity: 1,
@@ -160,17 +191,17 @@ export class PointsUpdateHelper {
         broken: -0.5,
       },
       receivingPartner: {
-        broken: -0.5
-      }
-    }
+        broken: -0.5,
+      },
+    };
   }
 
-  statsReceivingHittingError(){
+  statsReceivingHittingError() {
     return {
-      server:  {
+      server: {
         serveOpportunity: 1,
         serveCompletionCount: 1,
-        break: 0.5
+        break: 0.5,
       },
       receiver: {
         receiverOpportunity: 1,
@@ -181,11 +212,11 @@ export class PointsUpdateHelper {
       receivingPartner: {
         settingOpportunity: 1,
         broken: -0.5,
-      }
-    }
+      },
+    };
   }
 
-  statsOneTwoThreePutAway(){
+  statsOneTwoThreePutAway() {
     return {
       server: {
         serveOpportunity: 1,
@@ -204,34 +235,34 @@ export class PointsUpdateHelper {
       receivingPartner: {
         settingOpportunity: 1,
         cleanSets: 1,
-      }
-    }
+      },
+    };
   }
 
-  statsRallyConversion(){
+  statsRallyConversion() {
     return {
       server: {
         serveOpportunity: 1,
         serveCompletionCount: 1,
         defensiveOpportunity: 2,
-        defensiveConversion: 1
-      }, 
+        defensiveConversion: 1,
+      },
       servingPartner: {
         defensiveOpportunity: 2,
-        defensiveConversion: 1
+        defensiveConversion: 1,
       },
       receiver: {
         receiverOpportunity: 1,
         receivedCount: 1,
         hittingOpportunity: 1,
         defensiveOpportunity: 1,
-        defensiveConversion: 1
+        defensiveConversion: 1,
       },
       receivingPartner: {
         settingOpportunity: 1,
         defensiveOpportunity: 1,
-        defensiveConversion: 1
-      }
-    }
+        defensiveConversion: 1,
+      },
+    };
   }
 }
