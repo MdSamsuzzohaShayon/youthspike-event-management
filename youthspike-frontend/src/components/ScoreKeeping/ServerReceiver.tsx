@@ -41,6 +41,7 @@ import NetInputItem from "./NetInputItem";
 import Image from "next/image";
 import { shallowEqual } from "react-redux";
 import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
+import { toOrdinal } from "@/utils/helper";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -122,6 +123,7 @@ export default function ServerReceiver({
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
   const revertPlayEl = useRef<HTMLDialogElement | null>(null);
   const netInputEl = useRef<HTMLDialogElement | null>(null);
+  const stickyScoreBoardRef = useRef<HTMLDivElement | null>(null);
 
   /* Derived maps / helpers */
   const netByNum = useNetMaps(currRoundNets);
@@ -525,75 +527,27 @@ export default function ServerReceiver({
         roundList={roundList}
       />
       {/* // In your ServerReceiver component, update the net input section: */}
+      {/* Mobile-optimized net input section */}
       <div className="input-wrapper relative">
         {teamA && teamB && (
-          <div className="space-y-2 md:space-y-3">
-            {/* Mobile grid - 2 columns */}
-            <div className="md:hidden">
-              <ul onClick={() => netInputEl.current?.showModal()}>
-                <NetInputItem
-                  net={currNet || null}
-                  playerMap={playerMap}
-                  teamA={teamA}
-                  teamB={teamB}
-                  isCurrentNet
-                />
-              </ul>
-              <dialog className="modal-dialog" ref={netInputEl}>
-                <div className="p-4">
-                  <div className="w-full flex justify-end items-center py-2">
-                    <Image
-                      src="/icons/close.svg"
-                      className="w-8 svg-white"
-                      height={20}
-                      width={20}
-                      alt="close-icon"
-                      role="presentation"
-                      onClick={() => netInputEl.current?.close()}
+          <div className="space-y-2">
+            {/* Mobile horizontal scrollable nets */}
+            <div className="net-items overflow-x-auto pb-2 -mx-4 px-4">
+              <div className="flex gap-2 min-w-max">
+                {currRoundNets.map((n) => (
+                  <div key={n._id} className="w-40 md:w-4/12 flex-shrink-0">
+                    {/* Fixed width for consistent sizing */}
+                    <NetInputItem
+                      onNetChange={handleNetChange}
+                      net={n}
+                      playerMap={playerMap}
+                      teamA={teamA}
+                      teamB={teamB}
+                      isCurrentNet={n.num === currNetNum}
                     />
                   </div>
-                  <ul
-                    className="grid grid-cols-1 gap-2 list-none"
-                    role="presentation"
-                    onClick={() => netInputEl.current?.close()}
-                  >
-                    {currRoundNets.map((n) => (
-                      <NetInputItem
-                        key={n._id}
-                        onNetChange={handleNetChange}
-                        net={n}
-                        playerMap={playerMap}
-                        teamA={teamA}
-                        teamB={teamB}
-                        isCurrentNet={n.num === currNetNum}
-                      />
-                    ))}
-                  </ul>
-                </div>
-              </dialog>
-            </div>
-
-            {/* Desktop grid - responsive columns */}
-            <div className="hidden md:block">
-              <ul
-                className={`grid gap-3 list-none ${
-                  currRoundNets.length <= 2
-                    ? "flex items-center justify-center place-items-center"
-                    : "grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
-                }`}
-              >
-                {currRoundNets.map((n) => (
-                  <NetInputItem
-                    key={n._id}
-                    onNetChange={handleNetChange}
-                    net={n}
-                    playerMap={playerMap}
-                    teamA={teamA}
-                    teamB={teamB}
-                    isCurrentNet={n.num === currNetNum}
-                  />
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         )}
@@ -628,6 +582,9 @@ export default function ServerReceiver({
                     setAwardTo={setAwardTo}
                     currPlays={currPlays}
                     revertPlayEl={revertPlayEl}
+                    stickyScoreBoardRef={stickyScoreBoardRef}
+                    teamAPlayers={teamAPlayers}
+                    teamBPlayers={teamBPlayers}
                     key="sb-1"
                   />
                 </div>
@@ -638,7 +595,18 @@ export default function ServerReceiver({
 
           {/* Handle action for each button pressed  */}
           <div className="scrollable-action-handler w-full relative">
-            <div className="w-full sticky top-0 md:hidden bg-black py-2">
+            <div
+              onClick={(e) => {
+                changePlayEl?.current?.showModal();
+              }}
+              className="hidden md:block bg-yellow-logo text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2"
+            >
+              {`${toOrdinal(currServerReceiver?.mutate || 1)} play`}
+            </div>
+            <div
+              ref={stickyScoreBoardRef}
+              className="w-full sticky top-0 md:hidden bg-black py-2"
+            >
               {currServerReceiver?.net === selectedNet?._id && (
                 <ScoreBoard
                   currServerReceiver={currServerReceiver}
@@ -650,7 +618,10 @@ export default function ServerReceiver({
                   awardTo={awardTo}
                   setAwardTo={setAwardTo}
                   currPlays={currPlays}
+                  stickyScoreBoardRef={stickyScoreBoardRef}
                   revertPlayEl={revertPlayEl}
+                  teamAPlayers={teamAPlayers}
+                  teamBPlayers={teamBPlayers}
                   key="sb-2"
                 />
               )}
@@ -671,7 +642,7 @@ export default function ServerReceiver({
           </div>
 
           {actionPreview && (
-            <div className="mt-6 flex flex-wrap justify-center items-center gap-x-2">
+            <div className="mt-6 flex flex-wrap justify-center items-center gap-2">
               <button
                 onClick={handleUpdateScore}
                 type="button"

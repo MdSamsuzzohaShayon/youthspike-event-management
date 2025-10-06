@@ -1,6 +1,6 @@
 import { INetRelatives, IPlayer, ITeam } from "@/types";
 import { CldImage } from "next-cloudinary";
-import React, { useMemo } from "react";
+import React from "react";
 import TextImg from "../elements/TextImg";
 
 interface INetInputItemProps {
@@ -20,32 +20,73 @@ function NetInputItem({
   onNetChange,
   isCurrentNet = false,
 }: INetInputItemProps) {
-  const teamAPlayerA = useMemo(
-    () => (net?.teamAPlayerA ? playerMap.get(net?.teamAPlayerA) : null),
-    [net, playerMap]
-  );
-  const teamAPlayerB = useMemo(
-    () => (net?.teamAPlayerB ? playerMap.get(net?.teamAPlayerB) : null),
-    [net, playerMap]
-  );
-  const teamBPlayerA = useMemo(
-    () => (net?.teamBPlayerA ? playerMap.get(net?.teamBPlayerA) : null),
-    [net, playerMap]
-  );
-  const teamBPlayerB = useMemo(
-    () => (net?.teamBPlayerB ? playerMap.get(net?.teamBPlayerB) : null),
-    [net, playerMap]
-  );
-
   if (!net) {
-    return <li>Select A Net</li>;
+    return (
+      <div className="p-3 bg-gray-800 rounded-lg text-center text-gray-400">
+        Select A Net
+      </div>
+    );
   }
 
-  // Mobile version - compact with full names
-  const MobileNetItem = () => (
-    <li
+  // Get players with memoization removed for simplicity, can add back if needed
+  const teamAPlayerA = net?.teamAPlayerA
+    ? playerMap.get(net.teamAPlayerA)
+    : null;
+  const teamAPlayerB = net?.teamAPlayerB
+    ? playerMap.get(net.teamAPlayerB)
+    : null;
+  const teamBPlayerA = net?.teamBPlayerA
+    ? playerMap.get(net.teamBPlayerA)
+    : null;
+  const teamBPlayerB = net?.teamBPlayerB
+    ? playerMap.get(net.teamBPlayerB)
+    : null;
+
+  const PlayerAvatar = ({
+    player,
+    size = 6,
+  }: {
+    player: IPlayer | null;
+    size?: number;
+  }) => {
+    if (!player) return null;
+
+    return (
+      <div
+        className={`w-${size} h-${size} rounded-full bg-gray-600 flex-shrink-0 overflow-hidden`}
+      >
+        {player?.profile ? (
+          <CldImage
+            src={player.profile}
+            height={size * 4}
+            width={size * 4}
+            className={`w-${size} h-${size} object-cover`}
+            alt={player.firstName}
+          />
+        ) : (
+          <TextImg
+            fullText={player.firstName}
+            className={`w-${size} h-${size} text-xs`}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const PlayerName = ({ player }: { player: IPlayer | null }) => {
+    if (!player) return null;
+
+    return (
+      <div className="text-white text-xs font-medium truncate">
+        {player.firstName.charAt(0)}. {player.lastName}
+      </div>
+    );
+  };
+
+  return (
+    <div
       className={`
-        border-2 rounded-lg p-2 transition-all duration-200 cursor-pointer
+        border-2 rounded-lg p-2 transition-all duration-200 cursor-pointer min-w-0
         ${
           isCurrentNet
             ? "border-yellow-400 bg-yellow-400/10 shadow-lg"
@@ -54,321 +95,109 @@ function NetInputItem({
       `}
       onClick={(e) => onNetChange && onNetChange(e, net.num)}
     >
-      {/* Header */}
+      {/* Header - Compact */}
       <div className="flex items-center justify-between mb-2">
-        <span
-          className={`font-bold text-sm ${
-            isCurrentNet ? "text-yellow-400" : "text-white"
-          }`}
-        >
-          Net {net.num}
-        </span>
-        {isCurrentNet && (
-          <span className="text-xs bg-yellow-400 text-black px-2 py-1 rounded-full font-semibold">
-            Current
+        <div className="flex items-center gap-2">
+          <span
+            className={`font-bold text-sm ${
+              isCurrentNet ? "text-yellow-400" : "text-white"
+            }`}
+          >
+            Net {net.num}
           </span>
-        )}
+          {isCurrentNet && (
+            <span className="text-xs bg-yellow-400 text-black px-2 py-0.5 rounded-full font-semibold">
+              Active
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Teams compact view with full names */}
-      <div className="grid grid-cols-2 gap-3 text-xs">
+      {/* Teams - Horizontal Layout for Mobile */}
+      <div className="space-y-2">
         {/* Team A */}
-        <div className="space-y-1">
-          <div className="font-semibold text-white truncate text-[10px] uppercase tracking-wide">
-            {teamA?.name}
-          </div>
-          <div className="space-y-1">
-            {teamAPlayerA && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamAPlayerA?.profile ? (
-                    <CldImage
-                      src={teamAPlayerA.profile}
-                      height={20}
-                      width={20}
-                      className="w-5 h-5 object-cover"
-                      alt={teamAPlayerA.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamAPlayerA.firstName}
-                      className="w-5 h-5 text-[9px]"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-white font-medium truncate text-[11px] leading-tight">
-                    {teamAPlayerA.firstName}
-                  </div>
-                  <div className="text-gray-300 truncate text-[10px] leading-tight">
-                    {teamAPlayerA.lastName}
-                  </div>
-                </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex items-center gap-1 min-w-0 flex-1">
+              {teamAPlayerA && <PlayerAvatar player={teamAPlayerA} size={6} />}
+              {teamAPlayerB && <PlayerAvatar player={teamAPlayerB} size={6} />}
+            </div>
+            <div className="min-w-0 flex-1">
+              {teamA.logo ? (
+                <CldImage
+                  src={teamA.logo}
+                  height={50}
+                  width={50}
+                  alt={teamA.name}
+                  className="w-6 h-6 rounded-full"
+                />
+              ) : (
+                <TextImg
+                  className="w-6 h-6 rounded-full"
+                  fullText={teamA.name}
+                />
+              )}
+              <div className="flex flex-col gap-0.5">
+                {teamAPlayerA && <PlayerName player={teamAPlayerA} />}
+                {teamAPlayerB && <PlayerName player={teamAPlayerB} />}
               </div>
-            )}
-            {teamAPlayerB && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamAPlayerB?.profile ? (
-                    <CldImage
-                      src={teamAPlayerB.profile}
-                      height={20}
-                      width={20}
-                      className="w-5 h-5 object-cover"
-                      alt={teamAPlayerB.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamAPlayerB.firstName}
-                      className="w-5 h-5 text-[9px]"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-white font-medium truncate text-[11px] leading-tight">
-                    {teamAPlayerB.firstName}
-                  </div>
-                  <div className="text-gray-300 truncate text-[10px] leading-tight">
-                    {teamAPlayerB.lastName}
-                  </div>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
+        </div>
+
+        {/* VS Separator */}
+        <div className="flex items-center justify-center">
+          <div className="h-px bg-gray-600 flex-1" />
+          <span className="px-2 text-gray-400 text-xs font-bold">VS</span>
+          <div className="h-px bg-gray-600 flex-1" />
         </div>
 
         {/* Team B */}
-        <div className="space-y-1">
-          <div className="font-semibold text-white truncate text-[10px] uppercase tracking-wide">
-            {teamB?.name}
-          </div>
-          <div className="space-y-1">
-            {teamBPlayerA && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamBPlayerA?.profile ? (
-                    <CldImage
-                      src={teamBPlayerA.profile}
-                      height={20}
-                      width={20}
-                      className="w-5 h-5 object-cover"
-                      alt={teamBPlayerA.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamBPlayerA.firstName}
-                      className="w-5 h-5 text-[9px]"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-white font-medium truncate text-[11px] leading-tight">
-                    {teamBPlayerA.firstName}
-                  </div>
-                  <div className="text-gray-300 truncate text-[10px] leading-tight">
-                    {teamBPlayerA.lastName}
-                  </div>
-                </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="min-w-0 flex-1 text-right">
+              <div className="text-white text-xs font-semibold truncate">
+                {teamB.logo ? (
+                  <CldImage
+                    src={teamB.logo}
+                    height={50}
+                    width={50}
+                    alt={teamB.name}
+                    className="w-6 h-6 rounded-full"
+                  />
+                ) : (
+                  <TextImg
+                    className="w-6 h-6 rounded-full"
+                    fullText={teamB.name}
+                  />
+                )}
               </div>
-            )}
-            {teamBPlayerB && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamBPlayerB?.profile ? (
-                    <CldImage
-                      src={teamBPlayerB.profile}
-                      height={20}
-                      width={20}
-                      className="w-5 h-5 object-cover"
-                      alt={teamBPlayerB.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamBPlayerB.firstName}
-                      className="w-5 h-5 text-[9px]"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-white font-medium truncate text-[11px] leading-tight">
-                    {teamBPlayerB.firstName}
-                  </div>
-                  <div className="text-gray-300 truncate text-[10px] leading-tight">
-                    {teamBPlayerB.lastName}
-                  </div>
-                </div>
+              <div className="flex flex-col gap-0.5 items-end">
+                {teamBPlayerA && <PlayerName player={teamBPlayerA} />}
+                {teamBPlayerB && <PlayerName player={teamBPlayerB} />}
               </div>
-            )}
+            </div>
+            <div className="flex items-center gap-1 min-w-0 flex-1 justify-end">
+              {teamBPlayerA && <PlayerAvatar player={teamBPlayerA} size={6} />}
+              {teamBPlayerB && <PlayerAvatar player={teamBPlayerB} size={6} />}
+            </div>
           </div>
         </div>
       </div>
-    </li>
-  );
 
-  // Desktop version - more detailed but still compact
-  const DesktopNetItem = () => (
-    <li
-      className={`
-        border-2 rounded-lg p-3 transition-all duration-200 cursor-pointer
-        ${
-          isCurrentNet
-            ? "border-yellow-400 bg-yellow-400/10 shadow-lg scale-105"
-            : "border-gray-600 hover:border-gray-400 hover:bg-gray-800 hover:scale-102"
-        }
-      `}
-      onClick={(e) => onNetChange && onNetChange(e, net.num)}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <span
-          className={`font-bold text-lg ${
-            isCurrentNet ? "text-yellow-400" : "text-white"
-          }`}
-        >
-          Net {net.num}
-        </span>
-        {isCurrentNet && (
-          <span className="text-sm bg-yellow-400 text-black px-3 py-1 rounded-full font-semibold">
-            Active
+      {/* Score if available - Compact */}
+      {(net.teamAScore !== null || net.teamBScore !== null) && (
+        <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-gray-600">
+          <span className="text-white text-sm font-bold">
+            {net.teamAScore || 0}
           </span>
-        )}
-      </div>
-
-      {/* Teams grid */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Team A */}
-        <div className="space-y-2">
-          <div className="font-semibold text-white text-sm truncate">
-            {teamA?.name}
-          </div>
-          <div className="space-y-2">
-            {teamAPlayerA && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamAPlayerA?.profile ? (
-                    <CldImage
-                      src={teamAPlayerA.profile}
-                      height={32}
-                      width={32}
-                      className="w-8 h-8 object-cover"
-                      alt={teamAPlayerA.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamAPlayerA.firstName}
-                      className="w-8 h-8 text-xs"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-white text-sm font-medium truncate">
-                    {teamAPlayerA.firstName} {teamAPlayerA.lastName}
-                  </div>
-                </div>
-              </div>
-            )}
-            {teamAPlayerB && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamAPlayerB?.profile ? (
-                    <CldImage
-                      src={teamAPlayerB.profile}
-                      height={32}
-                      width={32}
-                      className="w-8 h-8 object-cover"
-                      alt={teamAPlayerB.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamAPlayerB.firstName}
-                      className="w-8 h-8 text-xs"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-white text-sm font-medium truncate">
-                    {teamAPlayerB.firstName} {teamAPlayerB.lastName}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <span className="text-gray-400 text-xs">-</span>
+          <span className="text-white text-sm font-bold">
+            {net.teamBScore || 0}
+          </span>
         </div>
-
-        {/* Team B */}
-        <div className="space-y-2">
-          <div className="font-semibold text-white text-sm truncate">
-            {teamB?.name}
-          </div>
-          <div className="space-y-2">
-            {teamBPlayerA && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamBPlayerA?.profile ? (
-                    <CldImage
-                      src={teamBPlayerA.profile}
-                      height={32}
-                      width={32}
-                      className="w-8 h-8 object-cover"
-                      alt={teamBPlayerA.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamBPlayerA.firstName}
-                      className="w-8 h-8 text-xs"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-white text-sm font-medium truncate">
-                    {teamBPlayerA.firstName} {teamBPlayerA.lastName}
-                  </div>
-                </div>
-              </div>
-            )}
-            {teamBPlayerB && (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gray-600 flex-shrink-0 overflow-hidden">
-                  {teamBPlayerB?.profile ? (
-                    <CldImage
-                      src={teamBPlayerB.profile}
-                      height={32}
-                      width={32}
-                      className="w-8 h-8 object-cover"
-                      alt={teamBPlayerB.firstName}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={teamBPlayerB.firstName}
-                      className="w-8 h-8 text-xs"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-white text-sm font-medium truncate">
-                    {teamBPlayerB.firstName} {teamBPlayerB.lastName}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </li>
-  );
-
-  return (
-    <React.Fragment>
-      {/* Mobile - hidden on md and above */}
-      <div className="md:hidden">
-        <MobileNetItem />
-      </div>
-
-      {/* Desktop - hidden on mobile */}
-      <div className="hidden md:block">
-        <DesktopNetItem />
-      </div>
-    </React.Fragment>
+      )}
+    </div>
   );
 }
 
