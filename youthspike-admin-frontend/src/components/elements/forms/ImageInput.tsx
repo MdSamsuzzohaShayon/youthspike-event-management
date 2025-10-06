@@ -52,27 +52,27 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     async (e: React.SyntheticEvent) => {
       const inputEl = e.target as HTMLInputElement;
       if (!inputEl.files?.[0]) return;
-
+  
       const file = inputEl.files[0];
-
-      // Validate file type
+  
+      // Validate file type - include PNG which supports transparency
       const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
       if (!validImageTypes.includes(file.type)) {
         alert('Please upload a valid image file (JPEG, PNG, GIF, WEBP, or SVG)');
         return;
       }
-
+  
       // Validate file size if needed (example: 5MB limit)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         alert('Image size must be less than 5MB');
         return;
       }
-
+  
       setOriginalImg(file);
       setFilename(file.name);
-      handleFileChange?.(file);
-
+      
+      // Store the original file type for later use
       const uploadedImgUrl = await fileToImgSrc(file);
       if (uploadedImgUrl) {
         setSrcUncropped(uploadedImgUrl);

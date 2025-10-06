@@ -1,5 +1,7 @@
+import { MutationFunction } from '@apollo/client';
 import {
   ICommonQuery,
+  IError,
   IEvent,
   IGroupRelatives,
   IMatchExpRel,
@@ -69,6 +71,18 @@ export interface IGetTeamDetailQuery extends ICommonQuery {
     teams: ITeam[];
     statsOfPlayer: IPlayerStats[];
   };
+}
+
+export interface IBaseTeamAction {
+  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  uploadedLogo: React.RefObject<null | Blob | MediaSource>;
+  playerIdList: string[];
+  mutateTeam: MutationFunction;
+  addTeam: MutationFunction;
+  setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
+  setPlayerIdList: React.Dispatch<React.SetStateAction<string[]>>;
+  teamAddCB?: (teamData: ITeam) => void;
 }
 
 export enum ETeam {

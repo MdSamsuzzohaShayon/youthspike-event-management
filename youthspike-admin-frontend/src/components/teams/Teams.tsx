@@ -10,11 +10,17 @@ interface ITeamProps{
   params: TParams;
 }
 export default async function Teams({params}: ITeamProps) {
-  const pathParams = await params;
-  const eventDetail = await getEventWithTeams(pathParams.eventId);
-
+  const {eventId} = await params;
+  const eventDetail = await getEventWithTeams(eventId);
+  
   if (!eventDetail) {
     notFound();
+  }
+
+  if(!eventDetail?.event){
+    const err =  new Error(`There is not event found with this ID !{eventId}`)
+    err.name = "Event not found!";
+    throw err;
   }
 
   return (

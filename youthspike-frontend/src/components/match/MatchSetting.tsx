@@ -228,12 +228,6 @@ function MatchSetting({
   const unlockRankingButton = useMemo(() => {
     if (!user?.token) return null;
     const rankLock = myTeamE === ETeam.teamA ? teamAPlayerRanking?.rankLock: teamBPlayerRanking?.rankLock;
-    // if (myTeamE === ETeam.teamA && teamAPlayerRanking?.rankLock) {
-    //   return <button className="btn-success" onClick={handleUnlockRank}>Unlock Ranking</button>;
-    // }
-    // if (myTeamE === ETeam.teamB && teamBPlayerRanking?.rankLock) {
-    //   return <button className="btn-success" onClick={handleUnlockRank}>Unlock Ranking</button>;
-    // }
     return <button className="btn-success" onClick={(e)=> handleUnlockRank(e, !rankLock)}>{rankLock ? "Unlock" : "Lock"} Ranking</button>;
   }, [user?.token, myTeamE, teamAPlayerRanking?.rankLock, teamBPlayerRanking?.rankLock, handleUnlockRank]);
 

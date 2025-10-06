@@ -89,7 +89,7 @@ export class PlayerRankingService {
     return newPlayerRankingItem;
   }
 
-  async findItems(filter: FilterQuery<PlayerRankingItem>): Promise<PlayerRankingItem[]> {
+  async findItems(filter: FilterQuery<PlayerRankingItem>) {
     const rankingItemList = await this.playerRankingItem.find(filter);
     return rankingItemList;
   }

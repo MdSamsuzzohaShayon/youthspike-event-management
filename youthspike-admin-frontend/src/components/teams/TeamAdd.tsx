@@ -13,6 +13,8 @@ import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 import ImageInput from '../elements/forms/ImageInput';
 import { divisionsToOptionList } from '@/utils/helper';
+import updateTeam from '@/utils/requestHandlers/updateTeam';
+import createTeam from '@/utils/requestHandlers/createTeam';
 
 interface IPrevTeam extends ITeamAdd {
   _id: string;
@@ -67,22 +69,36 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   // Handle events
   const handleTeamAdd = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const success = await addOrUpdateTeam({
-      setActErr,
-      eventId,
-      teamState,
-      setIsLoading,
-      update,
-      uploadedLogo,
-      prevTeam,
-      updateTeamState,
-      playerIdList,
-      mutateTeam,
-      addTeam,
-      setAvailablePlayers,
-      setPlayerIdList,
-      currDivision,
-    });
+    let success = null;
+    if (update) {
+      success = await updateTeam({
+        eventId,
+        prevTeam: prevTeam || null,
+        updateTeamState,
+        setActErr,
+        setIsLoading,
+        uploadedLogo,
+        playerIdList,
+        mutateTeam,
+        addTeam,
+        setAvailablePlayers,
+        setPlayerIdList,
+      });
+    } else {
+      success = await createTeam({
+        eventId,
+        teamState,
+        currDivision: currDivision || null,
+        setActErr,
+        setIsLoading,
+        uploadedLogo,
+        playerIdList,
+        addTeam,
+        mutateTeam,
+        setAvailablePlayers,
+        setPlayerIdList,
+      });
+    }
 
     if (success) {
       const formEl = e.target as HTMLFormElement;
@@ -95,22 +111,36 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
 
   const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await addOrUpdateTeam({
-      setActErr,
-      eventId,
-      teamState,
-      setIsLoading,
-      update,
-      uploadedLogo,
-      prevTeam,
-      updateTeamState,
-      playerIdList,
-      mutateTeam,
-      addTeam,
-      setAvailablePlayers,
-      setPlayerIdList,
-      currDivision,
-    });
+    let success = null;
+    if (update) {
+      success = await updateTeam({
+        eventId,
+        prevTeam: prevTeam || null,
+        updateTeamState,
+        setActErr,
+        setIsLoading,
+        uploadedLogo,
+        playerIdList,
+        mutateTeam,
+        addTeam,
+        setAvailablePlayers,
+        setPlayerIdList,
+      });
+    } else {
+      success = await createTeam({
+        eventId,
+        teamState,
+        currDivision: currDivision || null,
+        setActErr,
+        setIsLoading,
+        uploadedLogo,
+        playerIdList,
+        addTeam,
+        mutateTeam,
+        setAvailablePlayers,
+        setPlayerIdList,
+      });
+    }
     // refetch(`/${eventId}/teams/new/${ldoIdUrl}`);
     window.location.reload();
   };
@@ -154,22 +184,21 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     return <SelectInput name="captain" optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />;
   }, [availablePlayers, playerIdList]);
 
-  const divisionList = useMemo(()=>{
-    if(!divisions) return [];
+  const divisionList = useMemo(() => {
+    if (!divisions) return [];
     return divisionsToOptionList(divisions);
   }, [divisions]);
 
-  
   useEffect(() => {
     setAvailablePlayers(players || []);
   }, [players]);
-  
 
   return (
     <form onSubmit={handleTeamAdd} className="flex flex-col gap-2">
       <InputField type="text" name="name" required={!update} defaultValue={teamState.name} className="mt-6" handleInputChange={handleInputChange} />
-      {divisionList.length > 0 && <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" className="mt-6" optionList={divisionList} />}
-      
+      {divisionList.length > 0 && (
+        <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" className="mt-6" optionList={divisionList} />
+      )}
 
       <SelectInput
         key="g-t-d"
@@ -188,7 +217,6 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         Create new group!
       </Link>
 
-      
       <div className="w-full md:w-2/6">
         <ImageInput name="logo" defaultValue={teamState.logo} handleFileChange={handleFileChange} />
       </div>

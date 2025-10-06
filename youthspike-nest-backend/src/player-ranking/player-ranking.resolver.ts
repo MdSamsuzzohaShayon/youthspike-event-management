@@ -214,18 +214,58 @@ export class PlayerRankingResolver {
   ) {
     try {
       let pr = null;
+  
+      // Only proceed if rankLock is explicitly true or false
       if (input?.rankLock === true || input?.rankLock === false) {
         const rankingFilter: FilterQuery<PlayerRanking> = {};
-        if (input?.team) {
-          rankingFilter.team = input.team;
+        if (input?.team) rankingFilter.team = input.team;
+        if (input?.match) rankingFilter.match = input.match;
+  
+        // Case when rankLock is being unlocked (false) and match exists
+        if (input?.match && input.rankLock === false) {
+          // Fetch team ranking with rankLock false
+          const teamRankingDoc = await this.playerRankingService.findOne({
+            team: input.team,
+            rankLock: false,
+            $or: [{ match: { $exists: false } }, { match: null }],
+          });
+  
+          if (!teamRankingDoc) return AppResponse.notFound('Player Ranking');
+  
+          const teamRanking = teamRankingDoc.toObject();
+  
+          // Fetch all ranking items for the team ranking
+          const rankingsDocs = await this.playerRankingService.findItems({ playerRanking: teamRanking._id });
+          const teamRankingMap = new Map(rankingsDocs.map((r) => [String(r.player), r.rank]));
+  
+          // Fetch match ranking and its items
+          const matchRankingDoc = await this.playerRankingService.findOne({
+            team: input.team,
+            match: input.match,
+          });
+  
+          if (!matchRankingDoc) return AppResponse.notFound('Match Ranking');
+  
+          const matchRanking = matchRankingDoc.toObject();
+          const mrankingsDocs = await this.playerRankingService.findItems({ playerRanking: matchRanking._id });
+  
+          // Prepare bulk update operations
+          const bulkUpdates = mrankingsDocs.map((r, index) => {
+            const newRank = teamRankingMap.get(String(r.player)) ?? index + 1;
+            return this.playerRankingService.updateOneItem({ _id: r._id }, { $set: { rank: newRank } });
+          });
+  
+          // Execute all updates concurrently
+          await Promise.all(bulkUpdates);
         }
-        if (input?.match) {
-          rankingFilter.match = input.match;
-        }
+  
+        // Update rankLock for filtered rankings
         await this.playerRankingService.updateMany(rankingFilter, { $set: { rankLock: input.rankLock } });
+  
+        // Fetch updated documents
         pr = await this.playerRankingService.find(rankingFilter);
       }
-      // const teamPlayerRanking
+  
       return {
         code: HttpStatus.ACCEPTED,
         message: 'Team player ranking has been updated successfully!',
@@ -236,6 +276,7 @@ export class PlayerRankingResolver {
       return AppResponse.handleError(error);
     }
   }
+  
 
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles(UserRole.admin, UserRole.director)

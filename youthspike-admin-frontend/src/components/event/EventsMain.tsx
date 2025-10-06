@@ -149,7 +149,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
             <CldImage width={100} height={100}  alt="LDO logo" className="w-24" src={ldo?.logo} />
           </div>
         ) : (
-          <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 rounded-full object-cover object-fill" />
+          <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 object-cover object-fill" />
         )}
 
         <h1>{ldo ? ldo.firstName : ''}</h1>

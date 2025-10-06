@@ -299,7 +299,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
       </div>
 
       {/* Bulk Actions */}
-      {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+      {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && paginatedMatches.length > 0 && (
         <div className="bulk-selection relative w-full flex justify-between">
           <div className="input-group flex items-center gap-2 justify-between">
             <input onClick={toggleSelectAll} type="checkbox" name="bulkaction" id="bulk-action" />

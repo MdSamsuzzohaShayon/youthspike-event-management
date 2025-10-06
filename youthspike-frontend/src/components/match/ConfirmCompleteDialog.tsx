@@ -26,7 +26,6 @@ function ConfirmCompleteDialog({
     e.preventDefault();
     try {
       if (loading) {
-        console.log("Still loading");
         return;
       }
 

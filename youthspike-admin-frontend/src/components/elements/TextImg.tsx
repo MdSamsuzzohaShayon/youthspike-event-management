@@ -11,7 +11,7 @@ interface ITextImg{
 function TextImg({className, fullText, fText, lText, txtCls}: ITextImg) {
 
   return (
-    <div className={`text-black bg-yellow-logo flex justify-center items-center rounded-full ${className}`} >
+    <div className={`text-black bg-yellow-logo flex justify-center items-center ${className}`} >
         <p className={`uppercase ${txtCls ? txtCls : ''}`}>
             {fullText 
             ? `${fullText[0]}${fullText[fullText.length - 1]}`

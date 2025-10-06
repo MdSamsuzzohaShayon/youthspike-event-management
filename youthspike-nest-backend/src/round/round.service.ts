@@ -36,10 +36,9 @@ export class RoundService {
     });
   }
 
-  async find(filter: FilterQuery<Round> = {}) {
-    return this.roundModel.find(filter).sort({
-      num: 1,
-    });
+  async find(filter: FilterQuery<Round> = {}, options: { lean?: boolean } = {}) {
+    const query = this.roundModel.find(filter).sort({ num: 1 });
+    return options.lean ? query.lean() : query;
   }
 
   async findOne(query: FilterQuery<Round>) {

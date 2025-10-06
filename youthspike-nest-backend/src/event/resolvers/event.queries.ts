@@ -175,8 +175,8 @@ export class EventQueries implements IEventQueries {
 
       const mIds = matches.map((m) => String(m._id));
       const [rounds, nets] = await Promise.all([
-        this.roundService.find({ match: { $in: mIds } }),
-        this.netService.find({ match: { $in: mIds } }),
+        this.roundService.find({ match: { $in: mIds } }, {lean: true}),
+        this.netService.find({ match: { $in: mIds } }, {lean: true}),
       ]);
 
       // --- Optimize player stats ---
@@ -289,12 +289,26 @@ export class EventQueries implements IEventQueries {
             teams: g.teams?.map((t) => String(typeof t === 'object' ? (t as any)._id : t)) || [],
           })),
           rounds: rounds.map((r) => ({
-            ...r.toObject(),
+            ...r,
             match: String(typeof r.match === 'object' ? (r.match as any)._id : r.match),
+            nets: (r as any).nets?.map((n: any) => String(typeof n === 'object' ? n._id : n)) || [],
+            serverReceiverOnNet:
+              (r as any).serverReceiverOnNet?.map((s: any) => String(typeof s === 'object' ? s._id : s)) || [],
+            players: (r as any).players?.map((p: any) => String(typeof p === 'object' ? p._id : p)) || [],
+            subs: (r as any).subs?.map((s: any) => String(typeof s === 'object' ? s._id : s)) || [],
           })),
           nets: nets.map((n) => ({
-            ...n.toObject(),
+            ...n,
             match: String(typeof n.match === 'object' ? (n.match as any)._id : n.match),
+            round: String(typeof (n as any).round === 'object' ? ((n as any).round as any)._id : (n as any).round),
+            teamA: String(typeof (n as any).teamA === 'object' ? ((n as any).teamA as any)._id : (n as any).teamA),
+            teamB: String(typeof (n as any).teamB === 'object' ? ((n as any).teamB as any)._id : (n as any).teamB),
+            serverReceiverOnNet: (n as any).serverReceiverOnNet
+              ? String(typeof (n as any).serverReceiverOnNet === 'object' ? (n as any).serverReceiverOnNet._id : (n as any).serverReceiverOnNet)
+              : undefined,
+            serverReceiverSinglePlay:
+              (n as any).serverReceiverSinglePlay?.map((s: any) => String(typeof s === 'object' ? s._id : s)) || [],
+            playerstats: (n as any).playerstats?.map((p: any) => String(typeof p === 'object' ? p._id : p)) || [],
           })),
           sponsors,
           statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({

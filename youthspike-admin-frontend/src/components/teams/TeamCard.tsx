@@ -16,6 +16,8 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
+import DeleteConfirmDialog from './DeleteConfirmDialog';
+import TextImg from '../elements/TextImg';
 
 interface ITeamCardProps {
   eventId: string;
@@ -158,158 +160,288 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   }, [openMoveTeam]);
 
   return (
-    <div className="team-card w-full bg-gray-800 rounded-lg shadow-lg p-5 transition duration-300 hover:shadow-xl">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 relative">
-        {/* Action Menu */}
-        {actionOpen && (
-          <AnimatePresence>
-            <motion.ul
-              className="absolute z-10 right-16 top-48 md:right-6 md:top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
-              variants={menuVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={{ duration: 0.2 }}
-            >
-              <li onClick={(e) => handleEditTeam(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={16} height={16} /> Edit
-              </li>
-              <li onClick={(e) => handleOpenMoveTeam(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} /> Move Team
-              </li>
-              <li onClick={(e) => handleSendCredential(e, team._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={16} height={16} /> {team.sendCredentials ? 'Resend' : 'Send'}{' '}
-                Credential
-              </li>
-              <li onClick={(e) => deleteEl.current?.showModal()} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400">
-                <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} /> Delete
-              </li>
-            </motion.ul>
-          </AnimatePresence>
-        )}
+    <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700 overflow-hidden">
+      {/* Mobile Layout */}
+      <div className="lg:hidden">
+        <div className="p-4">
+          {/* Header Section */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+              <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs min-w-[2rem] text-center">{team.num}</span>
+            </div>
 
-        {/* Team Selection and Number */}
-        <div className="flex flex-col items-center gap-2">
-          <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-          <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs">{team.num}</span>
-        </div>
+            {/* Action Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setActionOpen((prev) => !prev)}
+                className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+                aria-label="Options"
+              >
+                <Image width={16} height={16} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
+              </button>
 
-        {/* Team Name and Logo */}
-        <div className="flex justify-between items-center gap-4 w-full lg:w-2/3">
-          <div></div>
-          <div className="flex items-center gap-4">
-            {team.logo ? (
-              <div className="rounded-full overflow-hidden w-14 h-14 border border-yellow-400">
-                <CldImage width={100} height={100} src={team.logo} alt={team.name} />
-              </div>
-            ) : (
-              <Image src="/icons/sports-man.svg" width={56} height={56} alt="sports-man-logo" className="rounded-full border border-yellow-400" />
-            )}
-            <div className="flex flex-col text-center lg:text-left">
-              <h3 className="text-lg font-semibold">{team.name}</h3>
-              <SelectInput
-                name="group"
-                optionList={groupList
-                  .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase())
-                  .map((g, gI) => ({
-                    id: gI + 1,
-                    value: g._id,
-                    text: g.name,
-                  }))}
-                handleSelect={handleGroupChange}
-                defaultValue={team.group ? team.group.toString() : ''}
-              />
+              <AnimatePresence>
+                {actionOpen && (
+                  <motion.ul
+                    ref={actionEl}
+                    className="absolute z-20 right-0 top-10 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden border border-gray-300 dark:border-gray-700"
+                    variants={menuVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    transition={{ duration: 0.2 }}
+                  >
+                    <li onClick={(e) => handleEditTeam(e, team._id)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                      <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={16} height={16} />
+                      <span className="text-sm">Edit</span>
+                    </li>
+                    <li onClick={(e) => handleOpenMoveTeam(e, team._id)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                      <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
+                      <span className="text-sm">Move Team</span>
+                    </li>
+                    <li onClick={(e) => handleSendCredential(e, team._id)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                      <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={16} height={16} />
+                      <span className="text-sm">{team.sendCredentials ? 'Resend' : 'Send'} Credential</span>
+                    </li>
+                    <li
+                      onClick={(e) => deleteEl.current?.showModal()}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+                    >
+                      <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} />
+                      <span className="text-sm">Delete</span>
+                    </li>
+                  </motion.ul>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-        </div>
 
-        {/* Captain Info and Active Players */}
-        <div className="flex flex-col lg:flex-row items-center gap-4 w-full">
-          {team.captain && (
-            <div className="flex flex-col lg:flex-row items-center gap-3">
-              {team.captain.profile ? (
-                <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden">
-                  <CldImage width={100} height={100} src={team.captain.profile} alt={team.captain.firstName} />
+          {/* Team Info Section */}
+          <div className="flex items-center gap-4 mb-4">
+            {team.logo ? (
+              <CldImage width={64} height={64} src={team.logo} alt={team.name} className="w-16 object-fit" />
+            ) : (
+              <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-white truncate">{team.name}</h3>
+              <div className="mt-1">
+                <SelectInput
+                  name="group"
+                  optionList={groupList
+                    .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase())
+                    .map((g, gI) => ({
+                      id: gI + 1,
+                      value: g._id,
+                      text: g.name,
+                    }))}
+                  handleSelect={handleGroupChange}
+                  defaultValue={team.group ? team.group.toString() : ''}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Captain Section */}
+          {team?.captain && (
+            <div className="mb-4 p-3 bg-gray-700 rounded-lg">
+              <p className="text-xs text-gray-400 uppercase mb-2">Captain</p>
+              <div className="flex items-center gap-3">
+                {team?.captain?.profile ? (
+                  <CldImage width={40} height={40} src={team.captain.profile} alt={team.captain.firstName} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <TextImg className="w-10 h-10 rounded-full bg-gray-600" fullText={team?.captain.firstName + team?.captain.lastName} />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold text-white truncate">
+                    {team.captain.firstName} {team.captain.lastName}
+                  </h4>
+                  <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
                 </div>
-              ) : (
-                <Image src="/icons/sports-man.svg" width={48} height={48} alt="Captain" className="rounded-full border border-yellow-400" />
-              )}
-              <div className="text-center lg:text-left">
-                <p className="text-xs text-gray-400 uppercase">Captain</p>
-                <h4 className="text-md font-semibold">
-                  {team.captain.firstName} {team.captain.lastName}
-                </h4>
-                <p className="text-xs text-gray-400 capitalize">username</p>
-                <h4 className="text-md font-semibold">{team.captain.username}</h4>
               </div>
             </div>
           )}
 
-          <div className="w-full">
-            {/* Preview Link */}
-            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-              <button className="text-yellow-400 hover:underline text-sm mt-1">Preview</button>
-            </Link>
-
-            <p className="flex items-center text-sm mt-2 lg:mt-0">
-              Active Players: <span className="bg-gray-700 px-2 py-1 rounded-lg ml-1">{team?.players?.length || 0}</span>
-            </p>
+          {/* Footer Section */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+                <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview</button>
+              </Link>
+              <div className="flex items-center text-sm text-gray-300">
+                <span className="mr-2">Players:</span>
+                <span className="bg-gray-700 px-2 py-1 rounded-lg font-medium">{team?.players?.length || 0}</span>
+              </div>
+            </div>
+            <Image
+              onClick={(e) => handleSendCredential(e, team._id)}
+              src="/icons/send-email.svg"
+              alt="Send Email"
+              width={20}
+              height={20}
+              className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
+            />
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-4 lg:mt-0 lg:pr-2">
-          <button
-            onClick={() => setActionOpen((prev) => !prev)}
-            className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            aria-label="Options"
-          >
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
-          </button>
-          <Image
-            onClick={(e) => handleSendCredential(e, team._id)}
-            src="/icons/send-email.svg"
-            alt="Send Email"
-            width={20}
-            height={20}
-            className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100`}
-          />
         </div>
       </div>
 
-      {/* Level-2: Moving component start */}
-      {openMoveTeam && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-        <div className="move-team w-full p-4 bg-gray-800 rounded-lg mt-4 flex flex-col items-start relative">
-          <button type="button" className="absolute top-2 right-2 text-white" onClick={() => setOpenMoveTeam(false)}>
-            <Image width={24} height={24} src="/icons/close.svg" alt="close-button" className="svg-white" />
-          </button>
-          <form className="w-full" onSubmit={handleMoveTeam}>
-            <SelectInput handleSelect={selectEventInputChange} name="event" optionList={eventOptions} />
-            <SelectInput handleSelect={selectInputChange} name="division" optionList={divisionOptions} />
-            <button className="btn-info mt-4 w-full lg:w-auto" type="submit">
-              Move
-            </button>
-          </form>
-        </div>
-      )}
-      {/* Level-2: Moving component end */}
-
-      {/* Actions items end */}
-      <dialog ref={deleteEl} className="modal-dialog p-4 ">
-        <div className="flex flex-col gap-y-2">
-          <h2>Delete Team</h2>
-          <p className="text-yellow-100/90">Are your sure you want to delete the team?</p>
-          <p>Name: {team?.name}</p>
-          <div className="buttons flex w-full justify-between items-center">
-            <div className="btn-info" onClick={(e) => handleDeleteTeam(e, team._id)}>
-              Confirm
+      {/* Desktop Layout */}
+      <div className="hidden lg:block p-6">
+        <div className="flex items-center justify-between">
+          {/* Left Section - Checkbox, Number, Team Info */}
+          <div className="flex items-center gap-6 flex-1">
+            <div className="flex items-center gap-4">
+              <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+              <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-sm min-w-[2.5rem] text-center">{team.num}</span>
             </div>
-            <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>
-              Cancel
+
+            {/* Team Logo and Name */}
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              {team.logo ? <CldImage width={64} height={64} src={team.logo} alt={team.name} className="h-16" /> : <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />}
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
+                <div className="w-48">
+                  <SelectInput
+                    name="group"
+                    optionList={groupList
+                      .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase())
+                      .map((g, gI) => ({
+                        id: gI + 1,
+                        value: g._id,
+                        text: g.name,
+                      }))}
+                    handleSelect={handleGroupChange}
+                    defaultValue={team.group ? team.group.toString() : ''}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Middle Section - Captain Info */}
+          {team.captain && (
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex items-center gap-3">
+                {team.captain.profile ? (
+                  <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
+                    <CldImage width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full border border-yellow-400 flex items-center justify-center bg-gray-600 flex-shrink-0">
+                    <Image src="/icons/sports-man.svg" width={28} height={28} alt="Captain" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400 uppercase">Captain</p>
+                  <h4 className="text-sm font-semibold text-white truncate">
+                    {team.captain.firstName} {team.captain.lastName}
+                  </h4>
+                  <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Right Section - Actions and Stats */}
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col items-end gap-2">
+              <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+                <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview Team</button>
+              </Link>
+              <div className="flex items-center text-sm text-gray-300">
+                <span className="mr-2">Active Players:</span>
+                <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{team?.players?.length || 0}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <Image
+                onClick={(e) => handleSendCredential(e, team._id)}
+                src="/icons/send-email.svg"
+                alt="Send Email"
+                width={24}
+                height={24}
+                className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
+              />
+
+              <div className="relative">
+                <button
+                  onClick={() => setActionOpen((prev) => !prev)}
+                  className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
+                  aria-label="Options"
+                >
+                  <Image width={20} height={20} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
+                </button>
+
+                <AnimatePresence>
+                  {actionOpen && (
+                    <motion.ul
+                      ref={actionEl}
+                      className="absolute z-20 right-0 top-12 w-56 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden border border-gray-300 dark:border-gray-700"
+                      variants={menuVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      transition={{ duration: 0.2 }}
+                    >
+                      <li onClick={(e) => handleEditTeam(e, team._id)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                        <Image className="svg-white" src="/icons/edit.svg" alt="Edit" width={18} height={18} />
+                        <span>Edit</span>
+                      </li>
+                      <li onClick={(e) => handleOpenMoveTeam(e, team._id)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                        <Image className="svg-white" src="/icons/move.svg" alt="Move" width={18} height={18} />
+                        <span>Move Team</span>
+                      </li>
+                      <li onClick={(e) => handleSendCredential(e, team._id)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                        <Image src="/icons/send-email.svg" alt="Send" className={`${team.sendCredentials ? 'svg-green' : 'svg-white'}`} width={18} height={18} />
+                        <span>{team.sendCredentials ? 'Resend' : 'Send'} Credential</span>
+                      </li>
+                      <li
+                        onClick={(e) => deleteEl.current?.showModal()}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+                      >
+                        <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={18} height={18} />
+                        <span>Delete Team</span>
+                      </li>
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
-      </dialog>
+      </div>
+
+      {/* Move Team Section */}
+      {openMoveTeam && user && user.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+        <div className="border-t border-gray-700 bg-gray-750 p-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-white">Move Team to Another Event</h4>
+              <button type="button" className="text-gray-400 hover:text-white transition-colors" onClick={() => setOpenMoveTeam(false)}>
+                <Image width={20} height={20} src="/icons/close.svg" alt="close-button" className="svg-white" />
+              </button>
+            </div>
+            <form className="grid grid-cols-1 md:grid-cols-3 gap-4" onSubmit={handleMoveTeam}>
+              <div className="md:col-span-1">
+                <SelectInput handleSelect={selectEventInputChange} name="event" optionList={eventOptions} />
+              </div>
+              <div className="md:col-span-1">
+                <SelectInput handleSelect={selectInputChange} name="division" optionList={divisionOptions} />
+              </div>
+              <div className="md:col-span-1">
+                <button className="btn-info w-full md:w-auto px-6 py-2" type="submit">
+                  Move Team
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <DeleteConfirmDialog deleteEl={deleteEl} handleDeleteTeam={handleDeleteTeam} team={team} />
     </div>
   );
 }

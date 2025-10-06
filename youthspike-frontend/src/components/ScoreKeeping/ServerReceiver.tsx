@@ -259,10 +259,7 @@ export default function ServerReceiver({
     } else if (currNet?.teamBPlayerB === playerId) {
       servingPartner = currNet?.teamBPlayerA || null;
     }
-    if (!servingPartner) {
-      console.log(`Serving partner now found ${servingPartner} -> `);
-      console.log(currNet);
-    }
+
     if (playerId && currServerReceiver)
       dispatch(
         setCurrentServerReceiver({
@@ -287,10 +284,6 @@ export default function ServerReceiver({
       receivingPartner = currNet?.teamBPlayerB || null;
     } else if (currNet?.teamBPlayerB === playerId) {
       receivingPartner = currNet?.teamBPlayerA || null;
-    }
-    if (!receivingPartner) {
-      console.log(`Receiving partner now found ${receivingPartner} -> `);
-      console.log(currNet);
     }
     if (playerId && currServerReceiver)
       dispatch(

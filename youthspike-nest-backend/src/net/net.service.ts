@@ -6,7 +6,7 @@ import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-
 
 @Injectable()
 export class NetService {
-  constructor(@InjectModel(Net.name) private netModel: Model<Net>) { }
+  constructor(@InjectModel(Net.name) private netModel: Model<Net>) {}
 
   async create(net: Net): Promise<Net> {
     const savedNet = await this.netModel.create(net);
@@ -23,14 +23,15 @@ export class NetService {
     return updatedNets;
   }
 
-  async updateMany(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>){
+  async updateMany(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>) {
     // db.collection.updateMany(filter, update, options)
     const updatedNets = await this.netModel.updateMany(filter, updateObj);
     return updatedNets;
   }
 
-  async find(filter: FilterQuery<Net>) {
-    return this.netModel.find(filter);
+  async find(filter: FilterQuery<Net> = {}, options: { lean?: boolean } = {}) {
+    const query = this.netModel.find(filter);
+    return options.lean ? query.lean() : query;
   }
 
   async countDocuments(filter: FilterQuery<Net>) {
@@ -45,15 +46,11 @@ export class NetService {
     return this.netModel.findById(id);
   }
 
-  async findNetsWithMatches(netIds: string[]){
-    return this.netModel.find({_id: {$in: netIds}}).populate('match');
+  async findNetsWithMatches(netIds: string[]) {
+    return this.netModel.find({ _id: { $in: netIds } }).populate('match');
   }
-
 
   async deleteMany(filter: FilterQuery<Net>) {
     return this.netModel.deleteMany(filter);
   }
 }
-
-
-
