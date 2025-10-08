@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { IGetTeamDetailQuery, IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam } from '@/types';
+import { IGetTeamDetailQuery, IMatchExpRel, INetRelatives, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IRoundRelatives, ITeam } from '@/types';
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import sessionStorageService from '@/utils/SessionStorageService';
 import { CldImage } from 'next-cloudinary';
-import { EPlayerStatus } from '@/types/player';
+import { EPlayerStatus, IPlayer } from '@/types/player';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
 import { useError } from '@/lib/ErrorProvider';
@@ -17,6 +17,7 @@ import TextImg from '../elements/TextImg';
 import { useLdoId } from '@/lib/LdoProvider';
 import { divisionsToOptionList } from '@/utils/helper';
 import { DIVISION, TEAM } from '@/utils/constant';
+import { FRONTEND_URL } from '@/utils/keys';
 
 interface ITeamDetailMainProps {
   eventId: string;
@@ -33,156 +34,143 @@ const ITEMS_PER_PAGE = 20;
 function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   const { setActErr } = useError();
   const { ldoIdUrl } = useLdoId();
+  const { data } = useReadQuery(queryRef);
 
-  const { data, error } = useReadQuery(queryRef);
-
-  // Check error here
-
-  const { team, playerRanking, players, captain, cocaptain, group, event, matches, rankings, rounds, nets, teams } = data?.getTeamDetails?.data ?? {};
-
-  // Local state
+  // State
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // ===== GraphQL =====
+  // GraphQL
   const [mutateTeam] = useMutation(UPDATE_TEAM);
 
-  // ===== Memoized Values =====
-  const divisionList = useMemo(() => {
-    return event?.divisions ? divisionsToOptionList(event.divisions) : [];
-  }, [event, event?.divisions]);
+  // Data extraction
+  const { team, playerRanking, players, captain, cocaptain, event, matches, rankings, rounds, nets, teams } = data?.getTeamDetails?.data ?? {};
 
-  const teamData = useMemo(() => {
-    return {
-      ...team,
-      captain: captain,
-      cocaptain: cocaptain,
-    };
-  }, [team, captain, cocaptain]);
+  // Memoized data processing
+  const divisionList = useMemo(() => 
+    event?.divisions ? divisionsToOptionList(event.divisions) : [], 
+    [event?.divisions]
+  );
 
-  const playerRankingData = useMemo(() => {
-    return {
-      ...playerRanking,
-      rankings: rankings,
-    };
-  }, [playerRanking, rankings]);
+  const teamData = useMemo(() => ({
+    ...team,
+    captain,
+    cocaptain,
+  }), [team, captain, cocaptain]);
 
-  // --- Build lookup maps in O(n) ---
-  const roundMap: Map<string, IRoundRelatives> = useMemo(() => {
+  const playerRankingData = useMemo(() => ({
+    ...playerRanking,
+    rankings,
+  }), [playerRanking, rankings]);
 
-    if (!rounds) new Map<string, IRoundRelatives>();
-    return new Map<string, IRoundRelatives>(rounds.map((r: IRoundRelatives) => [r._id, r]));
-  }, [rounds]);
-  const netMap: Map<string, INetRelatives> = useMemo(() => {
-    return new Map<string, INetRelatives>(nets.map((n: INetRelatives) => [n._id, n]));
-  }, [nets]);
-  const oponentTeamMap: Map<string, ITeam> = useMemo(() => {
-    return new Map<string, ITeam>(teams.map((t: ITeam) => [t._id, t]));
-  }, [teams]);
+  // Lookup maps
+  const roundMap = useMemo(() => 
+    new Map(rounds?.map((r: IRoundRelatives) => [r._id, r]) || []), 
+    [rounds]
+  );
 
-  // --- Process Matches Efficiently ---
+  const netMap = useMemo(() => 
+    new Map(nets?.map((n: INetRelatives) => [n._id, n]) || []), 
+    [nets]
+  );
+
+  const opponentTeamMap = useMemo(() => 
+    new Map(teams?.map((t: ITeam) => [t._id, t]) || []), 
+    [teams]
+  );
+
+  // Process matches
   const matchList = useMemo(() => {
     if (!matches) return [];
+    
     return matches
       .map((m: IMatchExpRel) => {
         const enrichedMatch: IMatchExpRel = {
           ...m,
-          // @ts-ignore
-          rounds: m.rounds.map((id: string) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[],
-          // @ts-ignore
-          nets: m.nets.map((id: string) => netMap.get(id)).filter(Boolean) as INetRelatives[],
+          rounds: (m.rounds as (string | IRoundRelatives)[])
+            .map((r) => (typeof r === 'string' ? roundMap.get(r) : r))
+            .filter(Boolean) as IRoundRelatives[],
+          nets: (m.nets as (string | INetRelatives)[])
+            .map((n) => (typeof n === 'string' ? netMap.get(n) : n))
+            .filter(Boolean) as INetRelatives[],
         };
 
-        // Determine opponent team
-        let opponentTeam: ITeam | undefined;
-
-        if (String(m.teamA) !== team._id && oponentTeamMap.has(String(m.teamA))) {
-          opponentTeam = oponentTeamMap.get(String(m.teamA))!;
-          enrichedMatch.teamA = opponentTeam;
-          enrichedMatch.teamB = team;
-        } else if (String(m.teamB) !== team._id && oponentTeamMap.has(String(m.teamB))) {
-          opponentTeam = oponentTeamMap.get(String(m.teamB))!;
-          enrichedMatch.teamB = opponentTeam;
-          enrichedMatch.teamA = team;
-        }
-
-        // If no valid opponent found, skip this match
+        const opponentTeam = String(m.teamA) !== team._id ? opponentTeamMap.get(String(m.teamA)) : opponentTeamMap.get(String(m.teamB));
+        
         if (!opponentTeam) {
           console.warn(`Match ${m._id} has no valid opponent team`);
           return null;
         }
 
+        // Set teams based on opponent
+        if (String(m.teamA) !== team._id) {
+          enrichedMatch.teamA = opponentTeam;
+          enrichedMatch.teamB = team;
+        } else {
+          enrichedMatch.teamB = opponentTeam;
+          enrichedMatch.teamA = team;
+        }
+
         return enrichedMatch;
       })
       .filter(Boolean) as IMatchExpRel[];
-  }, [matches, roundMap, netMap, team]);
+  }, [matches, roundMap, netMap, opponentTeamMap, team]);
 
-  // --- Separate Players into assigned/unassigned ---
+  // Process players
   const { teamPlayers, unassignedPlayers } = useMemo(() => {
     const teamPlayers: IPlayerExpRel[] = [];
     const unassignedPlayers: IPlayerExpRel[] = [];
 
-    for (const p of players) {
+    players?.forEach((p) => {
       const playerObj = structuredClone(p);
-
-      if (p.teams?.length && p.teams?.length > 0) {
-        if (playerObj.teams?.includes(teamData._id)) {
-          if (teamData._id) playerObj.teams = [teamData._id];
-
-          if (playerObj.captainofteams?.length) {
-            // @ts-ignore
-            playerObj.captainofteams = [teamData._id];
-          }
-
-          if (playerObj.cocaptainofteams?.length) {
-            // @ts-ignore
-            playerObj.cocaptainofteams = [teamData._id];
-          }
-
-          teamPlayers.push(playerObj as IPlayerExpRel);
-        }
+      
+      if (p.teams?.includes(teamData._id)) {
+        // Simplify team assignments
+        playerObj.teams = teamData._id ? [teamData._id] : [];
+        // @ts-ignore
+        playerObj.captainofteams = playerObj.captainofteams?.length ? [teamData._id] : [];
+        // @ts-ignore
+        playerObj.cocaptainofteams = playerObj.cocaptainofteams?.length ? [teamData._id] : [];
+        
+        teamPlayers.push(playerObj as IPlayerExpRel);
       } else {
         playerObj.teams = [];
         unassignedPlayers.push(playerObj as IPlayerExpRel);
       }
-    }
+    });
 
     return { teamPlayers, unassignedPlayers };
-  }, [players, teamData]);
+  }, [players, teamData, teamData._id]);
 
-  const activePlayers = useMemo(() => {
-    if (!teamPlayers) return [];
-    return teamPlayers.filter((p) => p.status === EPlayerStatus.ACTIVE) as IPlayerExpRel[];
-  }, [teamPlayers]);
+  // Filter and sort players
+  const activePlayers = useMemo(() => 
+    teamPlayers?.filter((p) => p.status === EPlayerStatus.ACTIVE) || [], 
+    [teamPlayers]
+  );
 
-  const inactivePlayers = useMemo(() => {
-    if (!teamPlayers) return [];
-    return teamPlayers.filter((p) => p.status !== EPlayerStatus.ACTIVE) as IPlayerExpRel[];
-  }, [teamPlayers]);
+  const inactivePlayers = useMemo(() => 
+    teamPlayers?.filter((p) => p.status !== EPlayerStatus.ACTIVE) || [], 
+    [teamPlayers]
+  );
 
   const teamDivisionLower = useMemo(() => {
-    const d = teamData.division.trim().toLowerCase();
-    sessionStorageService.setItem(DIVISION, d);
-    return d;
-  }, [teamData, teamData.division]);
+    const division = teamData.division?.trim().toLowerCase() || '';
+    sessionStorageService.setItem(DIVISION, division);
+    return division;
+  }, [teamData.division]);
 
-  const divisionalPlayers = useMemo(() => {
-    if (!unassignedPlayers) return [];
-
-    return unassignedPlayers
-      .filter((p) => p.division && p.division.trim().toLowerCase() === teamDivisionLower)
+  const divisionalPlayers = useMemo(() => 
+    unassignedPlayers
+      ?.filter((p) => p.division?.trim().toLowerCase() === teamDivisionLower)
       .sort((a, b) => {
-        // Compare by last name first
         const lastNameCompare = (a.lastName || '').localeCompare(b.lastName || '');
-        if (lastNameCompare !== 0) return lastNameCompare;
-
-        // If last names are the same, compare by first name
-        return (a.firstName || '').localeCompare(b.firstName || '');
-      });
-  }, [unassignedPlayers, teamDivisionLower]);
+        return lastNameCompare !== 0 ? lastNameCompare : (a.firstName || '').localeCompare(b.firstName || '');
+      }) || [], 
+    [unassignedPlayers, teamDivisionLower]
+  );
 
   const paginatedMatchList = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -192,203 +180,252 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   // Event handlers
   const handleSelectGroup = useCallback((e: React.SyntheticEvent, tab: ETab) => {
     e.preventDefault();
-    if (tab === ETab.ROSTER) {
-      window.location.reload();
-    }
+    if (tab === ETab.ROSTER) window.location.reload();
     setSelectedItem(tab);
   }, []);
 
-  const handleAddPlayersToTeam = useCallback(
-    async (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      try {
-        await mutateTeam({
-          variables: {
-            input: { players: Array.from(playerIdsToAdd) },
-            teamId: team._id,
-            eventId: event._id,
-          },
-        });
-        window.location.reload();
-      } catch (error) {
-        console.error(error);
-        setActErr({ message: (error as Error)?.message || '', success: false });
-      }
-    },
-    [playerIdsToAdd, team._id, event._id, mutateTeam, setActErr],
-  );
+  const handleAddPlayersToTeam = useCallback(async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    try {
+      await mutateTeam({
+        variables: {
+          input: { players: Array.from(playerIdsToAdd) },
+          teamId: team._id,
+          eventId: event._id,
+        },
+      });
+      window.location.reload();
+    } catch (error) {
+      setActErr({ message: (error as Error)?.message || '', success: false });
+    }
+  }, [playerIdsToAdd, team._id, event._id, mutateTeam, setActErr]);
 
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
-    setPlayerIdsToAdd((prev) => {
+    setPlayerIdsToAdd(prev => {
       const newSet = new Set(prev);
-      if (isChecked) {
-        newSet.add(pId);
-      } else {
-        newSet.delete(pId);
-      }
+      isChecked ? newSet.add(pId) : newSet.delete(pId);
       return newSet;
     });
   }, []);
 
-  const refetchFunc = useCallback(() => {
-    window.location.reload();
-  }, []);
-
-  const handleSelectMatch = useCallback((e: React.SyntheticEvent, matchId: string) => {
-    // Match selection logic
-  }, []);
+  const refetchFunc = useCallback(() => window.location.reload(), []);
+  const handleSelectMatch = useCallback(() => {}, []);
 
   useEffect(() => {
-    // Set team to session storage
-    if (team && team._id) {
-      sessionStorageService.setItem(TEAM, team._id);
-    }
-  }, [team]);
+    if (team?._id) sessionStorageService.setItem(TEAM, team._id);
+  }, [team?._id]);
 
-  return (
-    <React.Fragment>
-      <div className="flex flex-col items-center">
-        {/* Header Section */}
-        <div className="team-detail relative w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
-          {/* Team Logo */}
-          {team.logo ? (
-            <CldImage
-              width={100}
-              height={100}
-              src={team.logo}
-              alt="Team logo"
-              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
-            />
-          ) : (
-            <TextImg
-              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
-              fullText={team.name}
-              txtCls="text-2xl"
-            />
-          )}
+  // Reusable components
+  const TeamLogo = () => 
+    team?.logo ? (
+      <CldImage crop="scale" width={32} height={32} src={team.logo} alt="Team logo" 
+        className="w-8 h-8 object-cover flex-shrink-0" />
+    ) : (
+      <TextImg className="w-8 h-8 flex-shrink-0" 
+        fullText={team?.name || ''} txtCls="text-sm font-bold" />
+    );
 
-          {/* Team Name */}
-          <h3 className="text-2xl font-semibold mt-5 relative z-10">{team.name}</h3>
+  const StatItem = ({ label, value }: { label: string; value: number }) => (
+    <div className="text-right">
+      <div className="text-xs text-gray-400">{label}</div>
+      <div className="text-white font-bold text-sm">{value}</div>
+    </div>
+  );
 
-          {/* Event Title */}
-          <div className="text-center mb-6 relative z-10">
-            <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">Teams / Roster</h1>
-            <h2 className="text-sm text-gray-300 uppercase mt-1">{event?.name}</h2>
+  const TabButton = ({ tab, label }: { tab: ETab; label: string }) => (
+    <button
+      onClick={(e) => handleSelectGroup(e, tab)}
+      className={`flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all ${
+        selectedItem === tab 
+          ? 'bg-yellow-400 text-gray-900 shadow-sm' 
+          : 'text-gray-300 hover:text-white'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  const ActionLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <Link href={href} className="flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all text-yellow-logo underline text-center uppercase">
+      {children}
+    </Link>
+  );
+
+  const SectionHeader = ({ title, subtitle, action }: { 
+    title: string; 
+    subtitle: string; 
+    action?: React.ReactNode;
+  }) => (
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="text-lg font-bold text-white">{title}</h2>
+        <p className="text-xs text-gray-400">{subtitle}</p>
+      </div>
+      {action}
+    </div>
+  );
+
+  // Main render sections
+  const HeaderSection = () => (
+    <div className="header bg-gray-800 rounded-xl">
+      <div className="border-b border-yellow-500/30 px-3 py-2 sticky top-0 z-20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <TeamLogo />
+            <div className="min-w-0">
+              <h1 className="text-sm font-bold text-white truncate leading-tight">{team?.name}</h1>
+              <p className="text-xs text-gray-400 truncate leading-tight">{event?.name}</p>
+            </div>
           </div>
-
-          {/* Standings Button */}
-          <Link href={`/${eventId}/${ldoIdUrl}`} className="mt-5 btn-info">
-            View Standings
-          </Link>
-
-          {/* Tab Menu */}
-          <div className="tab-menu w-full mt-6 relative z-10">
-            <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
-              <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.ROSTER ? 'bg-yellow-logo text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                }`}
-                role="presentation"
-                onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
-              >
-                Rosters
-              </li>
-              <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.MATCHES ? 'bg-yellow-logo text-gray-900 font-bold tracking-wide' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                }`}
-                role="presentation"
-                onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
-              >
-                Matches
-              </li>
-            </ul>
+          <div className="flex items-center gap-3">
+            <StatItem label="Players" value={activePlayers.length} />
+            <StatItem label="Matches" value={matchList.length} />
           </div>
         </div>
       </div>
 
-      {selectedItem === ETab.ROSTER &&
-        (addPlayer ? (
-          <>
-            <div className="flex w-full justify-between items-center mb-4">
-              <h3>Add Player to Team</h3>
-              <button className="btn-info mt-4" type="button" onClick={() => setAddPlayer(false)}>
-                Player List
+      <div className="border-b border-yellow-500/30 px-3 py-1">
+        <div className="flex rounded-lg p-1">
+          <ActionLink href={`/${eventId}/${ldoIdUrl}`}>Standings</ActionLink>
+          <ActionLink href={`${FRONTEND_URL}/events/${eventId}/?event_item=TEAM`}>Stats</ActionLink>
+        </div>
+      </div>
+
+      <div className="px-3 py-1">
+        <div className="flex bg-gray-700 rounded-lg p-1">
+          <TabButton tab={ETab.ROSTER} label="ROSTER" />
+          <TabButton tab={ETab.MATCHES} label="MATCHES" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const RosterSection = () => {
+    if (addPlayer) {
+      return (
+        <div className="space-y-3">
+          <SectionHeader 
+            title="Add Players" 
+            subtitle={`${divisionalPlayers.length} available players`}
+            action={
+              <button onClick={() => setAddPlayer(false)}
+                className="text-gray-400 hover:text-white text-sm font-medium px-3 py-1 rounded-lg border border-gray-600 hover:border-gray-500 transition-colors">
+                Back
               </button>
+            }
+          />
+          
+          <form onSubmit={handleAddPlayersToTeam} className="space-y-3">
+            <PlayerSelectInput
+              availablePlayers={divisionalPlayers as IPlayer[]}
+              eventId={eventId}
+              handleCheckboxChange={handleCheckboxChange}
+              name="add-player-to-team"
+            />
+            <button type="submit" className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-colors shadow-lg">
+              ADD SELECTED PLAYERS
+            </button>
+          </form>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        <SectionHeader 
+          title="Team Roster" 
+          subtitle={`${activePlayers.length} active players`}
+          action={
+            <button onClick={() => setAddPlayer(true)} 
+              className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-yellow-300 transition-colors shadow-lg">
+              + ADD PLAYER
+            </button>
+          }
+        />
+
+        <div className="space-y-2">
+          <PlayerList
+            playerList={activePlayers}
+            eventId={eventId}
+            setIsLoading={setIsLoading}
+            rankControls
+            refetchFunc={refetchFunc}
+            teamList={teams}
+            divisionList={divisionList}
+            teamId={team?._id}
+            showRank
+            // @ts-ignore 
+            playerRanking={playerRankingData}
+            currEvent={event}
+          />
+        </div>
+
+        {inactivePlayers.length > 0 && (
+          <div className="space-y-2 mt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-400">Inactive Players</h3>
+              <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded-full">{inactivePlayers.length}</span>
             </div>
-            <form onSubmit={handleAddPlayersToTeam} className="mb-4">
-              {/*  @ts-ignore */}
-              <PlayerSelectInput availablePlayers={divisionalPlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
-              <button type="submit" className="btn-info mt-4">
-                Add
-              </button>
-            </form>
-          </>
-        ) : (
-          <div className="bulk-operations-players mt-6 mx-auto">
-            {/* Header Section */}
-
-            <div className="flex flex-col md:flex-row w-full justify-between items-center bg-gray-800 rounded-xl p-4 gap-4">
-              <h3 className="text-xl text-white font-semibold text-center md:text-left">Player List</h3>
-              <button className="bg-yellow-logo text-black px-4 py-2 rounded-md font-semibold hover:bg-yellow-600 transition duration-300 w-full md:w-auto" onClick={() => setAddPlayer(true)}>
-                Add Player to Team
-              </button>
-            </div>
-
-            {/* Player List */}
-            <div className="sortable-active-player-list mt-4">
-              <PlayerList
-                playerList={activePlayers}
-                eventId={eventId}
-                setIsLoading={setIsLoading}
-                rankControls
-                refetchFunc={refetchFunc}
-                teamList={teams}
-                divisionList={divisionList}
-                teamId={team._id}
-                showRank
-                // @ts-ignore
-                playerRanking={playerRankingData}
-                currEvent={event}
-              />
-            </div>
-
-            {inactivePlayers.length > 0 && (
-              <div className="sortable-inactive-player-list mt-4">
-                <h3 className="my-4">Inactive Player List</h3>
-                <PlayerList
-                  playerList={inactivePlayers}
-                  eventId={eventId}
-                  setIsLoading={setIsLoading}
-                  refetchFunc={refetchFunc}
-                  teamList={teams}
-                  divisionList={divisionList}
-                  teamId={team._id}
-                  currEvent={event}
-                  inactive
-                />
-              </div>
-            )}
+            <PlayerList
+              playerList={inactivePlayers}
+              eventId={eventId}
+              setIsLoading={setIsLoading}
+              refetchFunc={refetchFunc}
+              teamList={teams}
+              divisionList={divisionList}
+              teamId={team?._id}
+              currEvent={event}
+              inactive
+            />
           </div>
-        ))}
+        )}
+      </div>
+    );
+  };
 
-      {selectedItem === ETab.MATCHES && (
-        <>
-          <div className="w-full">
-            {paginatedMatchList.length > 0 ? (
-              paginatedMatchList.map((match, i) => (
-                <MatchCard key={match._id} setActErr={setActErr} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
-              ))
-            ) : (
-              <p>No match found of this team!</p>
-            )}
-          </div>
-          <div className="w-full">
-            <Pagination currentPage={currentPage} itemList={matchList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
-          </div>
-        </>
+  const MatchesSection = () => (
+    <div className="space-y-3">
+      <SectionHeader 
+        title="Team Matches" 
+        subtitle={`${matchList.length} total matches`}
+        action={
+          matchList.length > ITEMS_PER_PAGE && 
+          <span className="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded-full">Page {currentPage}</span>
+        }
+      />
+
+      {paginatedMatchList.length > 0 ? (
+        <div className="space-y-2">
+          {paginatedMatchList.map((match, i) => (
+            <MatchCard key={match._id} setActErr={setActErr} eventId={eventId} 
+              handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <div className="text-gray-400 text-sm mb-1">No matches found</div>
+          <p className="text-gray-500 text-xs">This team hasn't played any matches yet</p>
+        </div>
       )}
-    </React.Fragment>
+
+      {matchList.length > ITEMS_PER_PAGE && (
+        <div className="pt-2">
+          <Pagination currentPage={currentPage} itemList={matchList} 
+            setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-900 pb-4">
+      <HeaderSection />
+      
+      <div className="pt-3">
+        {selectedItem === ETab.ROSTER && <RosterSection />}
+        {selectedItem === ETab.MATCHES && <MatchesSection />}
+      </div>
+    </div>
   );
 }
 

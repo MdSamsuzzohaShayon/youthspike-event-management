@@ -63,7 +63,7 @@ const ShowSponsors: React.FC<IShowSponsors> = ({ fileList, handleImgRemove, defa
         <li className="relative" key={index}>
           <div className="w-20 static">
             {isCloudinary ? (
-              <CldImage width={100} height={100} src={src} alt={`Sponsor ${index + 1}`} className="w-full" />
+              <CldImage crop="scale" width={100} height={100} src={src} alt={`Sponsor ${index + 1}`} className="w-full" />
             ) : (
               <Image width={100} height={100} src={src} alt={`Sponsor ${index + 1}`} className="w-full" />
             )}

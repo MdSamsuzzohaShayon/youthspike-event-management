@@ -106,7 +106,7 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
       </div>
       <Link href={`/${event._id}/${ldoIdUrl}`}>
         <div className="img-wrapper w-full flex justify-center items-center">
-          {event.logo ? <CldImage width={100} height={100}   src={event.logo} alt="logo" 
+          {event.logo ? <CldImage crop="scale" width={100} height={100}   src={event.logo} alt="logo" 
 
  className="w-12" /> : <Image src="/free-logo.png" width={20} height={20} alt='free-logo' className="w-12 h-12" />}
         </div>

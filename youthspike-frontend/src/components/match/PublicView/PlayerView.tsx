@@ -28,6 +28,7 @@ const PlayerView = ({ player, role, compact = false }: IPlayerViewProps) => (
               }`}
               src={player.profile}
               alt={player.firstName}
+              crop="scale"
             />
           ) : (
             <TextImg

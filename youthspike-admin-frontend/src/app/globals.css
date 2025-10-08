@@ -9,36 +9,37 @@ h5,
 h6 {}
 
 h1 {
-  @apply text-3xl font-bold;
+  @apply text-2xl sm:text-3xl font-bold;
 }
 
 h2 {
-  @apply text-2xl font-bold;
+  @apply text-xl sm:text-2xl font-bold;
 }
 
 h3 {
-  @apply text-xl font-semibold;
+  @apply text-lg sm:text-xl font-semibold;
 }
 
 h4 {
-  @apply text-lg font-medium;
+  @apply text-base sm:text-lg font-medium;
 }
 
 h5 {
-  @apply text-base font-light;
+  @apply text-sm sm:text-base font-light;
 }
 
 h6 {
-  @apply text-sm font-light;
+  @apply text-xs sm:text-sm font-light;
 }
 
 p {
-  @apply text-sm;
+  @apply text-xs sm:text-sm;
 }
 
 label {
-  @apply text-lg font-normal;
+  @apply text-base sm:text-lg font-normal;
 }
+
 
 /* Chrome, Safari, and newer Opera */
 /* input:-webkit-autofill,

@@ -28,11 +28,8 @@ interface ITeamDetailProps {
   statsOfPlayer: IAllStats[];
 }
 
-// eslint-disable-next-line no-unused-vars, no-shadow
 enum ETab {
-  // eslint-disable-next-line no-unused-vars
   ROSTER = "ROSTER",
-  // eslint-disable-next-line no-unused-vars
   MATCHES = "MATCHES",
 }
 
@@ -46,20 +43,22 @@ function TeamDetail({
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
   const [redirectSymbol, setRedirectSymbol] = useState<string>("?");
-
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
 
-  const handleSelectGroup = (e: React.SyntheticEvent, tab: ETab) => {
-    e.preventDefault();
-    setSelectedItem(tab);
-  };
+  // Memoized data
+  const playerStatsMap = useMemo(() => 
+    new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats])),
+    [statsOfPlayer]
+  );
 
-  const playerStatsMap = useMemo(() => {
-    return new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats]));
-  }, [statsOfPlayer]);
+  const sortedMatches = useMemo(() => 
+    [...(team.matches as IMatch[])].sort((a, b) => Number(a.completed) - Number(b.completed)),
+    [team.matches]
+  );
 
+  // Effects
   useEffect(() => {
-    if (team && team.playerRanking) {
+    if (team?.playerRanking) {
       const rankingMap = new Map();
       // @ts-ignore
       team.playerRanking.rankings.forEach(({ player, rank }) =>
@@ -75,19 +74,16 @@ function TeamDetail({
     }
   }, [ldoIdUrl]);
 
-  /*
-<PlayerStandings
-          playerList={filteredData.players}
-          matchList={filteredData.matches as IMatch[]}
-          playerStatsMap={playerStatsMap}
-        />
+  // Event handlers
+  const handleSelectGroup = useCallback((e: React.SyntheticEvent, tab: ETab) => {
+    e.preventDefault();
+    setSelectedItem(tab);
+  }, []);
 
-  */
-
+  // Content renderer
   const showContent = useCallback(() => {
     switch (selectedItem) {
       case ETab.ROSTER:
-        // Players should be shown with their records. Win / losses for games
         return (
           <PlayerStandings
             playerStatsMap={playerStatsMap}
@@ -99,7 +95,7 @@ function TeamDetail({
       case ETab.MATCHES:
         return (
           // @ts-ignore
-          <MatchList matchList={team.matches} nets={nets} rounds={rounds} />
+          <MatchList matchList={sortedMatches} nets={nets} rounds={rounds} />
         );
       default:
         return (
@@ -111,87 +107,116 @@ function TeamDetail({
           />
         );
     }
-  }, [selectedItem, team.division, team.matches, team.players]);
+  }, [selectedItem, playerStatsMap, team.matches, team.players, sortedMatches, nets, rounds]);
 
-  return (
-    <React.Fragment>
-      <div className="flex flex-col items-center">
-        {/* Header Section */}
-        <div className="team-detail w-full max-w-lg mx-auto bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700 flex flex-col items-center relative overflow-hidden">
-          {/* Decorative Glow */}
-          <div className="absolute inset-0 bg-yellow-400 opacity-10 rounded-2xl blur-lg" />
+  // Reusable components
+  const TeamLogo = () => 
+    team?.logo ? (
+      <CldImage
+        alt={team.name}
+        width={32}
+        height={32}
+        src={team.logo}
+        className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover flex-shrink-0"
+        crop="scale"
+      />
+    ) : (
+      <TextImg
+        className="w-8 h-8 rounded-lg border border-yellow-500/30 flex-shrink-0"
+        fullText={team?.name || ''}
+        txtCls="text-sm font-bold"
+      />
+    );
 
-          {/* Team Logo */}
-          {team.logo ? (
-            <CldImage
-              alt={team.name}
-              width="200"
-              height="200"
-              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
-              src={team.logo}
-            />
-          ) : (
-            <TextImg
-              className="flex justify-center items-center w-24 h-24 bg-yellow-400 text-gray-900 text-3xl font-bold rounded-full shadow-lg border-4 border-yellow-500 relative z-10"
-              fullText={team.name}
-              txtCls="text-2xl"
-            />
-          )}
+  const StatItem = ({ label, value }: { label: string; value: number }) => (
+    <div className="text-right">
+      <div className="text-xs text-gray-400">{label}</div>
+      <div className="text-white font-bold text-sm">{value}</div>
+    </div>
+  );
 
-          {/* Team Name */}
-          <h3 className="text-2xl font-semibold mt-5 relative z-10">
-            {team.name}
-          </h3>
+  const TabButton = ({ tab, label }: { tab: ETab; label: string }) => (
+    <button
+      onClick={(e) => handleSelectGroup(e, tab)}
+      className={`flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all ${
+        selectedItem === tab 
+          ? 'bg-yellow-400 text-gray-900 shadow-sm' 
+          : 'text-gray-300 hover:text-white'
+      }`}
+    >
+      {label}
+    </button>
+  );
 
-          {/* Event Title */}
-          <div className="text-center mb-6 relative z-10">
-            <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">
-              Teams / Roster
-            </h1>
-            <h2 className="text-sm text-gray-300 uppercase mt-1">
-              {event.name}
-            </h2>
+  const ActionLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <Link 
+      href={href}
+      className="flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all text-yellow-logo underline text-center uppercase"
+    >
+      {children}
+    </Link>
+  );
+
+  const SectionHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
+    <div className="text-center mb-6 relative z-10">
+      <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">
+        {title}
+      </h1>
+      <h2 className="text-sm text-gray-300 uppercase mt-1">
+        {subtitle}
+      </h2>
+    </div>
+  );
+
+  // Main header section - matches TeamDetailMain styling
+  const HeaderSection = () => (
+    <div className="header bg-gray-800 rounded-xl">
+      {/* Compact Header */}
+      <div className="border-b border-yellow-500/30 px-3 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <TeamLogo />
+            <div className="min-w-0">
+              <h1 className="text-sm font-bold text-white truncate leading-tight">{team?.name}</h1>
+              <p className="text-xs text-gray-400 truncate leading-tight">{event?.name}</p>
+            </div>
           </div>
-
-          {/* Standings Button */}
-          <Link
-            href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
-            className="mt-5 bg-yellow-500 hover:bg-yellow-400 text-gray-900 transition py-3 px-6 rounded-lg text-md font-medium shadow-lg relative z-10"
-          >
-            View Standings
-          </Link>
-
-          {/* Tab Menu */}
-          <div className="tab-menu w-full mt-6 relative z-10">
-            <ul className="flex bg-gray-700 rounded-xl overflow-hidden border border-gray-600 text-md shadow-lg">
-              <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.ROSTER
-                    ? "bg-yellow-500 text-gray-900 font-bold tracking-wide"
-                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                }`}
-                role="presentation"
-                onClick={(e) => handleSelectGroup(e, ETab.ROSTER)}
-              >
-                Rosters
-              </li>
-              <li
-                className={`w-1/2 text-center py-4 cursor-pointer ${
-                  selectedItem === ETab.MATCHES
-                    ? "bg-yellow-500 text-gray-900 font-bold tracking-wide"
-                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                }`}
-                role="presentation"
-                onClick={(e) => handleSelectGroup(e, ETab.MATCHES)}
-              >
-                Matches
-              </li>
-            </ul>
+          <div className="flex items-center gap-3">
+            <StatItem label="Players" value={team?.players?.length || 0} />
+            <StatItem label="Matches" value={team?.matches?.length || 0} />
           </div>
         </div>
       </div>
-      <div className="content mt-6">{showContent()}</div>
-    </React.Fragment>
+
+      {/* Action Links */}
+      <div className="border-b border-yellow-500/30 px-3 py-1">
+        <div className="flex rounded-lg p-1">
+          <ActionLink 
+            href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+          >
+            Standings
+          </ActionLink>
+        </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="px-3 py-1">
+        <div className="flex bg-gray-700 rounded-lg p-1">
+          <TabButton tab={ETab.ROSTER} label="ROSTER" />
+          <TabButton tab={ETab.MATCHES} label="MATCHES" />
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-900 pb-4">
+      <HeaderSection />
+      
+      <div className="pt-3">
+        {showContent()}
+      </div>
+    </div>
   );
 }
 

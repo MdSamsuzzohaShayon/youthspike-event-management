@@ -83,7 +83,7 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
           <div className="brand flex gap-1 items-center">
             {team.logo ? (
               <div className="advanced-img w-12">
-                <CldImage alt={team.name} width="200" height="200" className="w-full" src={team.logo} />
+                <CldImage alt={team.name} width="200" height="200" className="w-full" src={team.logo} crop="scale" />
               </div>
             ) : (
               <TextImg className="w-12 h-12" fullText={team.name} />
@@ -101,7 +101,7 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
         <div className="w-6/12 brand flex gap-2">
           {team.captain?.profile && (
             <div className="advanced-img w-12 h-12 rounded-full border-2 border-yellow-logo">
-              <CldImage alt={team.captain.firstName} width="200" height="200" className="w-full" src={team.captain.profile} />
+              <CldImage alt={team.captain.firstName} width="200" height="200" className="w-full" src={team.captain.profile} crop="scale" />
             </div>
           )}
           {team.captain?.firstName && (

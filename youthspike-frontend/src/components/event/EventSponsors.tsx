@@ -27,6 +27,7 @@ const EventSponsors = ({ sponsors, userToken }: { sponsors: any[]; userToken: st
               alt={sponsor.company}
               width="200"
               height="200"
+              crop="scale"
               className="w-12 md:w-20"
               src={sponsor.logo.toString()}
             />

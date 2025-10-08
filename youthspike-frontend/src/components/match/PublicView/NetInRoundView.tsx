@@ -94,6 +94,7 @@ function NetInRoundView({
               width={30}
               height={30}
               className="w-6 h-6 mr-2 rounded-full object-cover"
+              crop="scale"
             />
           ) : (
             <TextImg
@@ -139,6 +140,7 @@ function NetInRoundView({
               width={30}
               height={30}
               className="w-6 h-6 mr-2 rounded-full object-cover"
+              crop="scale"
             />
           ) : (
             <TextImg

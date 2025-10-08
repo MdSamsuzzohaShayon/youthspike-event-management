@@ -174,7 +174,7 @@ function MatchSetting({
   const eventLogo = useMemo(
     () =>
       ldo?.logo ? (
-        <CldImage alt={ldo.name} width="200" height="200" className="w-16" src={ldo.logo} />
+        <CldImage alt={ldo.name} width="200" height="200" className="w-16" src={ldo.logo} crop="scale" />
       ) : (
         <Image width={64} height={64} src="/free-logo.png" className="w-16" alt="free-logo" />
       ),

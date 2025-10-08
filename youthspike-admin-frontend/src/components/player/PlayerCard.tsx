@@ -233,10 +233,11 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     () => (
       <div className="player-name flex flex-col w-full text-white">
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
-          <h3 className="break-words text-lg font-semibold capitalize">{name}</h3>
+          <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
+          {team && <p className="md:hidden text-yellow-400 uppercase font-bold tracking-wide">{team.name.slice(0, 3)}</p>}
         </div>
         {team && (
-          <div className="w-full flex justify-between items-center">
+          <div className="w-full hidden md:flex justify-between items-center">
             <p className="text-yellow-400 uppercase font-bold tracking-wide">{team.name}</p>
             {rank && (
               <button
@@ -255,11 +256,11 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
 
   const PlayerImage = useMemo(
     () => (
-      <div className="advanced-img w-12 md:w-24 h-12 md:h-24 border border-yellow rounded-xl overflow-hidden bg-gray-900 flex items-center justify-center">
+      <div className="advanced-img w-8 md:w-16 h-8 md:h-16 overflow-hidden flex items-center justify-center">
         {player.profile ? (
-          <CldImage width={100} height={100} alt={name} src={player.profile} className="w-full h-full object-cover object-fit" />
+          <CldImage crop="scale" width={100} height={100} alt={name} src={player.profile} className="w-full h-full object-cover object-fit" />
         ) : (
-          <TextImg fullText={name} className="w-full h-full object-cover object-fit" />
+          <TextImg fullText={name} className="w-full h-full rounded-full object-cover object-fit" />
         )}
       </div>
     ),
@@ -269,7 +270,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
   const OptionsButton = useMemo(
     () => (
       <div
-        className="w-10 h-10 relative flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        className="w-8 md:w-10 h-8 md:h-10 relative flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
         aria-label="Options"
         role="presentation"
         onClick={() => setIsOptionsOpen(true)}
@@ -331,7 +332,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
           )}
         </AnimatePresence>
 
-        <button onClick={() => setActionOpen((prev) => !prev)} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
+        <button onClick={() => setActionOpen((prev) => !prev)} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
         </button>
       </div>
@@ -378,7 +379,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       </div>
 
       {/* ✅ Mobile Layout */}
-      <div className="w-full flex flex-col items-center gap-3 md:hidden">
+      <div className="w-full flex flex-col items-center gap-y-1 md:hidden">
         <div className="w-full flex justify-between items-center">
           {PlayerImage}
           <div>

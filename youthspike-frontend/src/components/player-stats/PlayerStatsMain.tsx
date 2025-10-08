@@ -233,6 +233,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
               src={player.profile}
               height={100}
               width={100}
+              crop="scale"
               className="w-32 h-32 rounded-full"
             />
           ) : (

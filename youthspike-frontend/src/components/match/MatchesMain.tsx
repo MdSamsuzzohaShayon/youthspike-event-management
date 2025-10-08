@@ -7,7 +7,6 @@ import { SEARCH_MATCHES } from "@/graphql/matches";
 import { QueryRef } from "@apollo/client/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDebounce } from "use-debounce";
-import MatchList from "./MatchList";
 import SearchMatchList from "./SearchMatchList";
 import { EEventPeriod, INetRelatives, IRoundRelatives, ITeam } from "@/types";
 

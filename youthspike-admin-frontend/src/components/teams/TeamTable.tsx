@@ -38,6 +38,7 @@ export default function TeamTable({ teams }: ITeamTableProps) {
                       height={100}
                       className="w-8 h-8 object-cover rounded-full"
                       sizes="100vw"
+                      crop="scale"
                       alt={`${team.name} logo`}
                       src={team.logo}
                     />
@@ -74,6 +75,7 @@ export default function TeamTable({ teams }: ITeamTableProps) {
                 <CldImage
                   width={50}
                   height={50}
+                  crop="scale"
                   className="w-10 h-10 object-cover rounded-full"
                   sizes="100vw"
                   alt={`${team.name} logo`}

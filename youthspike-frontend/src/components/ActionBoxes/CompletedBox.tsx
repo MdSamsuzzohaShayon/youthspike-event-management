@@ -171,6 +171,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
               width="200"
               height="200"
               className="w-full"
+              crop="scale"
               src={team.logo}
             />
           </div>

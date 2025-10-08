@@ -16,7 +16,7 @@ function EventCard({ event }: IEventCardProps) {
   return (
     <div className="box p-6 bg-gray-800 hover:shadow-2xl transition-shadow duration-300">
       <div className="img-wrapper flex justify-center items-center mb-4">
-        {event.logo ? <CldImage alt={event.name} width="200" height="200" className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg"  src={event.logo} /> 
+        {event.logo ? <CldImage crop="scale" alt={event.name} width="200" height="200" className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg"  src={event.logo} /> 
         : <TextImg className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg" fullText={event.name} />}
       </div>
       <div className="text-box text-center">

@@ -278,15 +278,16 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
 
     // Filter matches with team resolution
     const filteredMatches = matches
-      .filter(filterByDivision)
-      .map((match) => ({
-        ...match,
-        teamA: match.teamA ? teamMap.get(String(match.teamA)) : null,
-        teamB: match.teamB ? teamMap.get(String(match.teamB)) : null,
-      }))
-      .filter(filterByGroupMatch as any)
-      .filter(filterBySearchMatch as any);
-
+  .filter(filterByDivision)
+  .map((match) => ({
+    ...match,
+    teamA: match.teamA ? teamMap.get(String(match.teamA)) : null,
+    teamB: match.teamB ? teamMap.get(String(match.teamB)) : null,
+  }))
+  .filter(filterByGroupMatch as any)
+  .filter(filterBySearchMatch as any)
+  // Sort: incomplete first, then completed
+  .sort((a, b) => Number(a.completed) - Number(b.completed));
     // Filter players
     const filteredPlayers = sortedPlayers.filter(
       (player) =>

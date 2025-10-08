@@ -146,7 +146,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {ldo?.logo ? (
           <div className="w-28 h-28 advanced-img rounded-full">
-            <CldImage width={100} height={100}  alt="LDO logo" className="w-24" src={ldo?.logo} />
+            <CldImage crop="scale" width={100} height={100}  alt="LDO logo" className="w-24" src={ldo?.logo} />
           </div>
         ) : (
           <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 object-cover object-fill" />

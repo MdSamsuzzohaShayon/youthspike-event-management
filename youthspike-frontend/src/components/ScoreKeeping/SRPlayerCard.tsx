@@ -135,6 +135,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
               height="200"
               className="object-cover w-full h-full"
               src={player.profile}
+              crop="scale"
             />
           ) : (
             <TextImg

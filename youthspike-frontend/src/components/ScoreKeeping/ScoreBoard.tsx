@@ -93,6 +93,7 @@ function ScoreBoard({
                 width={64}
                 height={64}
                 className="object-cover w-full h-full"
+                crop="scale"
               />
             ) : (
               <TextImg className="w-full rounded-lg" fullText={`${player.firstName}${player.lastName}`} />
@@ -144,6 +145,7 @@ function ScoreBoard({
                   alt={team.name}
                   src={team.logo}
                   className="h-12 w-12 md:h-16 md:w-16 object-cover rounded-lg"
+                  crop="scale"
                 />
               ) : (
                 <TextImg className="h-12 w-12 md:h-16 md:w-16" fullText={team?.name} />

@@ -26,7 +26,7 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
         <Link href={`/teams/${team._id}`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
           <span>
             {team?.logo ? (
-              <CldImage alt={team.name} width="200" height="200" className="w-14 h-14 object-fit object-cover" src={team.logo} />
+              <CldImage alt={team.name} width="200" height="200" className="w-14 h-14 object-fit object-cover" src={team.logo} crop="scale" />
             ) : (
               <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
             )}

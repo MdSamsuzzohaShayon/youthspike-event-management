@@ -303,6 +303,7 @@ function MatchAuthenticatedView({
                     width="100"
                     height="100"
                     className="w-20"
+                    crop="scale"
                     src={spon.logo}
                   />
                 )

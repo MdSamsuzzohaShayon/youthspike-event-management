@@ -21,7 +21,7 @@ export default function PlayerTable({ players }: IPlayerTableProps) {
             {/* Header */}
             <div className="flex items-center gap-3">
               {p.profile ? (
-                <CldImage src={p.profile} alt={`${p.firstName} ${p.lastName} avatar`} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
+                <CldImage crop="scale" src={p.profile} alt={`${p.firstName} ${p.lastName} avatar`} width={48} height={48} className="w-12 h-12 rounded-full object-cover" />
               ) : (
                 <TextImg className="w-12 h-12 rounded-full" fullText={`${p.firstName} ${p.lastName}`} />
               )}
@@ -41,7 +41,7 @@ export default function PlayerTable({ players }: IPlayerTableProps) {
                   {p.teams.map((t) => (
                     <li key={t._id} className="flex items-center gap-1 text-xs bg-gray-800 px-2 py-1 rounded-md">
                       {t.logo ? (
-                        <CldImage src={t.logo} alt={`${t.name} logo`} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+                        <CldImage crop="scale" src={t.logo} alt={`${t.name} logo`} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
                       ) : (
                         <TextImg className="w-5 h-5 rounded-full" fullText={t.name} />
                       )}
@@ -60,7 +60,7 @@ export default function PlayerTable({ players }: IPlayerTableProps) {
                   {p.events.map((e) => (
                     <li key={e._id} className="flex items-center gap-1 text-xs bg-gray-800 px-2 py-1 rounded-md">
                       {e.logo ? (
-                        <CldImage src={e.logo} alt={`${e.name} logo`} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+                        <CldImage crop="scale" src={e.logo} alt={`${e.name} logo`} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
                       ) : (
                         <TextImg className="w-5 h-5 rounded-full" fullText={e.name} />
                       )}

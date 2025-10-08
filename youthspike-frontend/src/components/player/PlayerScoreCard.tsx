@@ -83,7 +83,7 @@ function PlayerScoreCard({
 
   const renderPlayerImage = (): React.ReactNode => {
     if (player && player.profile) {
-      return <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-top object-cover" src={player.profile} onClick={handleDropDown} />
+      return <CldImage crop="scale" alt={player.firstName} width="200" height="200" className="w-full h-full object-top object-cover" src={player.profile} onClick={handleDropDown} />
     }
     if (!player && shouldShowAddPlayer) {
       return (

@@ -144,7 +144,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
     let imgEl: null | HTMLImageElement | React.ReactNode = null;
     if (!filename || filename === '') {
       if (defaultValue && typeof defaultValue === 'string') {
-        imgEl = <CldImage width={100} height={100} role="presentation" onClick={handleOpenImg} className="w-full object-cover object-center" sizes="100vw" alt="Description of my image" src={defaultValue} />;
+        imgEl = <CldImage width={100} height={100} crop="scale" role="presentation" onClick={handleOpenImg} className="w-full object-cover object-center" sizes="100vw" alt="Description of my image" src={defaultValue} />;
       }
     } else {
       if (croppedImageUrl && croppedImageUrl !== '') {

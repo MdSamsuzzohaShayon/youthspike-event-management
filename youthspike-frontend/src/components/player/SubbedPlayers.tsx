@@ -41,7 +41,7 @@ function SubbedPlayers({ myPlayers, currentRound, availablePlayerIds, roundList 
         <div key={player._id} className="border-b border-gray-300 flex justify-between items-center w-full cursor-pointer bg-transparent">
           <div className="advanced-img w-10 h-10 rounded-full border-2 border-black-logo overflow-hidden">
             {player.profile ? (
-              <CldImage alt={player.firstName} width="200" height="200" className="w-full overflow-hidden" src={player.profile} />
+              <CldImage crop="scale" alt={player.firstName} width="200" height="200" className="w-full overflow-hidden" src={player.profile} />
             ) : (
               <Image width={24} height={24} src="/icons/sports-man.svg" alt="sports-man" className="svg-black w-full" />
             )}

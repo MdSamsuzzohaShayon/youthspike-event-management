@@ -124,11 +124,9 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     e.preventDefault(); // Prevent the default context menu from showing
   };
 
-
-  const teamMap = useMemo(()=> {
-    return new Map<string, ITeam>(teamList?.map((t)=> [t._id, t]));
+  const teamMap = useMemo(() => {
+    return new Map<string, ITeam>(teamList?.map((t) => [t._id, t]));
   }, [teamList]);
-
 
   useEffect(() => {
     if (playerList.length > 0) {
@@ -215,7 +213,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   return (
     <>
       <ul ref={listRef} className="sortable-list" onContextMenu={handleContextMenu}>
-        {sortedPlayerList.map((player) => (
+        {sortedPlayerList.map((player, pi) => (
           <motion.li
             key={player._id}
             className="sortable-item mb-2 flex items-center bg-gray-800 rounded-xl p-2"
@@ -225,10 +223,16 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
             exit="exit"
             transition={{ duration: 0.2 }}
           >
-            {/* Drag Handle */}
-            {canRank && (
-              <div className="drag-handle cursor-grab flex items-center justify-center">
-                <Image height={20} width={20} src="/icons/sort.svg" alt="sort-icon" className="svg-white w-8" />
+            {showRank && (
+              <div className="flex flex-col items-center justify-center pr-1 gap-y-1">
+                <button
+                  className="flex md:hidden w-6 h-6 items-center justify-center bg-yellow-logo text-black dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  aria-label="Options"
+                >
+                  <p className="uppercase font-bold tracking-wide">{pi + 1}</p>
+                </button>
+                {/* Drag Handle */}
+                {canRank && <Image height={20} width={20} src="/icons/sort.svg" alt="sort-icon" className="svg-white w-8" />}
               </div>
             )}
 
@@ -240,7 +244,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
               player={player}
               setIsLoading={setIsLoading}
               showRank={showRank}
-              team={teamId ? (teamMap.get(teamId) || null) : null}
+              team={teamId ? teamMap.get(teamId) || null : null}
               teamList={teamList || []}
               divisionList={divisionList}
               refetchFunc={refetchFunc}
@@ -248,7 +252,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
               rank={player.rank}
             />
           </motion.li>
-        
         ))}
       </ul>
       {/* {totalPages > 1 && (

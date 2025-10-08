@@ -142,10 +142,11 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             {team?.logo ? (
               <CldImage
                 alt={team?.name || "Team logo"}
-                width={24}
-                height={24}
+                width={70}
+                height={70}
                 className="w-12 h-12 object-contain"
                 src={team.logo}
+                crop="scale"
               />
             ) : (
               <TextImg

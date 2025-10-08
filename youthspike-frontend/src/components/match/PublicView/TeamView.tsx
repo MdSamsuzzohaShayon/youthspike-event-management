@@ -24,6 +24,7 @@ const TeamView = ({ team, players, teamScore, orientation = "left", roleMap }: I
             src={team.logo} 
             alt={team.name} 
             className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-yellow-400 group-hover:scale-105 transition-transform duration-200" 
+            crop="scale"
           />
         ) : (
           <TextImg 

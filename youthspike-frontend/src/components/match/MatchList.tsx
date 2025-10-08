@@ -90,6 +90,9 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
     return filteredMatchList.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredMatchList, currentPage]);
 
+
+  
+
   // ✅ Stable event listener (doesn't reset on every list change)
   useEffect(() => {
     if (!socket) return;
