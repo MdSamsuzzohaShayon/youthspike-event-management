@@ -1,10 +1,17 @@
 import { UPDATE_MATCH } from "@/graphql/matches";
-import { useMutation, ApolloError } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import React from "react";
 import { useAppDispatch } from "@/redux/hooks";
 import { EMessage, IMatchExpRel, IMatchRelatives } from "@/types";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useRouter } from "next/navigation";
+
+interface UpdateMatchResponse {
+  updateMatch: {
+    success: boolean;
+    message: string;
+  };
+}
 
 interface IConfirmCompleteDialogProps {
   completeDialogEl: React.RefObject<HTMLDialogElement | null>;
@@ -20,7 +27,7 @@ function ConfirmCompleteDialog({
   match,
 }: IConfirmCompleteDialogProps) {
   const dispatch = useAppDispatch();
-  const [mutateMatch, { loading }] = useMutation(UPDATE_MATCH);
+  const [mutateMatch, { loading }] = useMutation<UpdateMatchResponse>(UPDATE_MATCH);
 
   const handleConfirmComplete = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -47,9 +54,8 @@ function ConfirmCompleteDialog({
         alert(data?.updateMatch?.message || "Failed to complete match.");
       }
     } catch (err) {
-      const error = err as ApolloError;
-      console.error("Error completing match:", error);
-      dispatch(setMessage({ type: EMessage.ERROR, message: String(error) }));
+      console.error("Error completing match:", err);
+      dispatch(setMessage({ type: EMessage.ERROR, message: String(err) }));
     }
   };
 

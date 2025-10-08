@@ -1,7 +1,7 @@
 import React from 'react';
 import { IPlayer, IRoundRelatives } from '@/types';
 import Image from 'next/image';
-import { useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { UPDATE_ROUND } from '@/graphql/round';
 import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
 import { useAppDispatch } from '@/redux/hooks';

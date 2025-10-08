@@ -3,7 +3,7 @@ import { UPDATE_ROUND } from '@/graphql/round';
 import { useAppDispatch } from '@/redux/hooks';
 import { IPlayer, IPlayerRankingExpRel, IRoundRelatives } from '@/types';
 import updateSubbedPlayer from '@/utils/requestHandlers/updateSubbedPlayer';
-import { useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import Image from 'next/image';
 import React, { useState } from 'react';
 

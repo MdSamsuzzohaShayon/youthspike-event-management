@@ -15,7 +15,7 @@ import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
 import EmitEvents from "@/utils/socket/EmitEvents";
 import { useSocket } from "@/lib/SocketProvider";
-import { useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import { UPDATE_TEAM_PLAYER_RANKING } from "@/graphql/player-ranking";
 
 interface IMatchSettingProps {
