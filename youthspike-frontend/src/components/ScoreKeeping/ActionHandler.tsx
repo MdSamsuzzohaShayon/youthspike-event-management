@@ -113,39 +113,31 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
       value: EServerReceiverAction.SERVER_ACE_NO_TOUCH,
       subLabel: "NO 2ND TOUCH",
       color: "bg-green-500 hover:bg-green-600 border-green-600 text-white shadow-lg",
-      icon: "🎯",
       mobileColor: "bg-green-500 hover:bg-green-600"
     },
     {
-      label: "SETTER ERROR",
+      label: "SET ERROR",
       value: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
       subLabel: "NO 3RD TOUCH",
       color: "bg-blue-500 hover:bg-blue-600 border-blue-600 text-white shadow-lg",
-      icon: "⚡",
       mobileColor: "bg-blue-500 hover:bg-blue-600"
     },
     {
-      label: "SPIKER ERROR",
+      label: "SPIKE ERROR",
       value: EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
-      subLabel: "HITTING ERROR",
       color: "bg-red-500 hover:bg-red-600 border-red-600 text-white shadow-lg",
-      icon: "💥",
       mobileColor: "bg-red-500 hover:bg-red-600"
     },
     {
       label: "RALLY POINT",
       value: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
-      subLabel: "DEFENSIVE RP",
       color: "bg-purple-500 hover:bg-purple-600 border-purple-600 text-white shadow-lg",
-      icon: "🔄",
       mobileColor: "bg-purple-500 hover:bg-purple-600"
     },
     {
       label: "Don't know",
       value: EServerReceiverAction.SERVER_DO_NOT_KNOW,
-      subLabel: "UNKNOWN PLAY",
       color: "bg-gray-500 hover:bg-gray-600 border-gray-600 text-white shadow-lg",
-      icon: "❓",
       mobileColor: "bg-gray-500 hover:bg-gray-600"
     },
   ];
@@ -154,33 +146,25 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     {
       label: "DOUBLE FAULT",
       value: EServerReceiverAction.RECEIVER_SERVICE_FAULT,
-      subLabel: "SERVICE ERROR",
       color: "bg-orange-500 hover:bg-orange-600 border-orange-600 text-white shadow-lg",
-      icon: "❌",
       mobileColor: "bg-orange-500 hover:bg-orange-600"
     },
     {
       label: "SPIKER PUT AWAY",
       value: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
-      subLabel: "ATTACK POINT",
       color: "bg-teal-500 hover:bg-teal-600 border-teal-600 text-white shadow-lg",
-      icon: "🔥",
       mobileColor: "bg-teal-500 hover:bg-teal-600"
     },
     {
       label: "RALLY POINT",
       value: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
-      subLabel: "OFFENSIVE RP",
       color: "bg-indigo-500 hover:bg-indigo-600 border-indigo-600 text-white shadow-lg",
-      icon: "⚔️",
       mobileColor: "bg-indigo-500 hover:bg-indigo-600"
     },
     {
       label: "Don't know",
       value: EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
-      subLabel: "UNKNOWN PLAY",
       color: "bg-gray-500 hover:bg-gray-600 border-gray-600 text-white shadow-lg",
-      icon: "❓",
       mobileColor: "bg-gray-500 hover:bg-gray-600"
     },
   ];
@@ -223,14 +207,12 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     subLabel, 
     color, 
     mobileColor, 
-    icon 
   }: { 
     label: string; 
     value: EServerReceiverAction; 
-    subLabel: string | null; 
+    subLabel?: string | null; 
     color: string; 
     mobileColor: string; 
-    icon: string;
   }) => (
     <button
       key={value}
@@ -244,8 +226,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
       onClick={handleAction(value)}
     >
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-lg">{icon}</span>
-        <span className="text-sm md:text-base font-bold truncate">{label}</span>
+        <span className="text-2xl md:text-base font-bold">{label}</span>
       </div>
       {subLabel && (
         <span className="text-xs opacity-90 text-center leading-tight">

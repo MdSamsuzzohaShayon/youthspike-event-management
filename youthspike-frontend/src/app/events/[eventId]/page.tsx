@@ -4,7 +4,7 @@ import { EEventItem, IEventDetailData, IEventFilter, TParams } from "@/types";
 import Loader from "@/components/elements/Loader";
 import EventDetail from "@/components/event/EventDetail";
 import { PreloadQuery } from "@/lib/client";
-import { QueryRef } from "@apollo/client";
+import { QueryRef } from "@apollo/client/react";
 
 interface IEventPageProps {
   params: TParams;

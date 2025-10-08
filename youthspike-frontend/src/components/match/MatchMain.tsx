@@ -1,7 +1,6 @@
 "use client";
 
-import { useReadQuery } from "@apollo/client";
-import type { QueryRef } from "@apollo/client";
+import { useReadQuery, QueryRef } from "@apollo/client/react";
 import {
   EMessage,
   ETeam,

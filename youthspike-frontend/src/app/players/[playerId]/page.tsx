@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { QueryRef } from "@apollo/client";
+import { QueryRef } from "@apollo/client/react";
 import PlayerStatsMain from "@/components/player-stats/PlayerStatsMain";
 import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";

@@ -594,7 +594,7 @@ export default function ServerReceiver({
           </div>
 
           {/* Handle action for each button pressed  */}
-          <div className="scrollable-action-handler w-full relative">
+          <div className="scrollable-action-handler w-full">
             <div
               onClick={(e) => {
                 changePlayEl?.current?.showModal();
@@ -605,7 +605,7 @@ export default function ServerReceiver({
             </div>
             <div
               ref={stickyScoreBoardRef}
-              className="w-full sticky top-0 md:hidden bg-black py-2"
+              className="w-full md:hidden bg-black py-2"
             >
               {currServerReceiver?.net === selectedNet?._id && (
                 <ScoreBoard

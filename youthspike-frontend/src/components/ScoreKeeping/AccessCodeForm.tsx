@@ -2,11 +2,20 @@
 
 import React from 'react';
 import InputField from '@/components/elements/InputField';
-import { useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import { ACCESS_CODE_VALIDATION } from '@/graphql/matches';
 import { getCookie, getUserFromCookie, setAccessCode, setCookie } from '@/utils/cookie';
 import { IAccessCode, IUser } from '@/types';
 import { ACCESS_CODE } from '@/utils/constant';
+
+interface AccessCodeValidationResponse {
+  accessCodeValidation: {
+    data: {
+      accessCode: string;
+      match: string;
+    };
+  };
+}
 
 interface IAccessCodeFormProps {
   matchId: string;
@@ -14,7 +23,7 @@ interface IAccessCodeFormProps {
 }
 
 function AccessCodeForm({ matchId, accessCodes }: IAccessCodeFormProps) {
-  const [mutateAccessCode] = useMutation(ACCESS_CODE_VALIDATION);
+  const [mutateAccessCode] = useMutation<AccessCodeValidationResponse>(ACCESS_CODE_VALIDATION);
 
   const handleInputChange = (E: React.SyntheticEvent) => {};
 

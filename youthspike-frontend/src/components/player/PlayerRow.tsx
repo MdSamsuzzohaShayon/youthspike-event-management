@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { CldImage } from "next-cloudinary";
 import { aggregatePlayerStats } from "@/utils/helper";
+import TextImg from "../elements/TextImg";
 
 interface IPlayerRowProps {
   player: IPlayerRecord;
@@ -54,12 +55,9 @@ function PlayerRow({
                       src={player.profile}
                     />
                   ) : (
-                    <Image
-                      width={32}
-                      height={32}
-                      src="/icons/sports-man.svg"
-                      alt="Player Avatar"
-                      className="svg-white w-8 h-8 rounded-lg object-contain bg-gray-600 p-1"
+                    <TextImg
+                      fullText={player.firstName + player.lastName}
+                      className="w-8 h-8 rounded-lg"
                     />
                   )}
                 </div>

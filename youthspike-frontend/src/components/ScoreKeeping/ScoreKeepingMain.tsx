@@ -6,7 +6,7 @@ import { IAccessCode, IMatchExpRel, UserRole } from "@/types";
 import AccessCodeForm from "@/components/ScoreKeeping/AccessCodeForm";
 import ServerReceiver from "@/components/ScoreKeeping/ServerReceiver";
 import Link from "next/link";
-import { QueryRef, useReadQuery } from "@apollo/client";
+import { QueryRef, useReadQuery } from "@apollo/client/react";
 import { useUser } from "@/lib/UserProvider";
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useRouter } from "next/navigation";

@@ -30,7 +30,6 @@ const ServerReceiverDisplay: React.FC<{
   handleAddServer,
 }) => {
 
-  console.log("Rendering ServerReceiverDisplay");
   
   const positions = useMemo(() => {
     const posMap = new Map<EServerPositionPair, IPlayerRole>();

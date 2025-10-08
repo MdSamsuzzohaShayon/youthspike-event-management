@@ -3,7 +3,7 @@ import { IMatchExpRel, TParams } from "@/types";
 import { PreloadQuery } from "@/lib/client";
 import { GET_MATCH_DETAIL } from "@/graphql/matches";
 import Loader from "@/components/elements/Loader";
-import { QueryRef } from "@apollo/client";
+import { QueryRef } from "@apollo/client/react";
 import MatchScoreBoard from "@/components/scoreboard/MatchScoreboard";
 
 interface IMatchPageProps {

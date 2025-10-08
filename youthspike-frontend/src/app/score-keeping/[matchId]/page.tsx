@@ -4,7 +4,7 @@ import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";
 import ScoreKeepingMain from "@/components/ScoreKeeping/ScoreKeepingMain";
 import { GET_MATCH_DETAIL } from "@/graphql/matches";
-import { QueryRef } from "@apollo/client";
+import { QueryRef } from "@apollo/client/react";
 import { cookies } from "next/headers";
 import { ACCESS_CODE } from "@/utils/constant";
 

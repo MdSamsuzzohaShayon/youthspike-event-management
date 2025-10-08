@@ -2,8 +2,8 @@
 
 // Reference - https://github.com/MdSamsuzzohaShayon/youthspike-event-management/blob/f612e8d69aba785095e59bc97dc6dacb6de6a004/youthspike-frontend/src/app/matches/%5BmatchId%5D/page.tsx
 
-import { useReadQuery } from "@apollo/client";
-import type { QueryRef } from "@apollo/client";
+import { useReadQuery, QueryRef } from "@apollo/client/react";
+
 import {
   EMessage,
   EPlayerStatus,
@@ -32,7 +32,6 @@ interface IMatchScoreBoardProps {
 export function MatchScoreBoard({ queryRef }: IMatchScoreBoardProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
-  console.log("Apollo Error:", error?.message, error?.networkError, error?.graphQLErrors);
 
   
   const dispatch = useAppDispatch();

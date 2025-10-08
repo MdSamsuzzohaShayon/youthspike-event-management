@@ -28,7 +28,7 @@ import EventSponsors from "./EventSponsors";
 import EventHeader from "./EventHeader";
 import EventFilter from "./EventFilter";
 import EventNavigationTabs from "./EventNavigationTabs";
-import { QueryRef, useQuery, useReadQuery } from "@apollo/client";
+import { QueryRef, useQuery, useReadQuery } from "@apollo/client/react";
 import { GET_AN_EVENT } from "@/graphql/event";
 import Loader from "../elements/Loader";
 
@@ -148,8 +148,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
 
   // ✅ Safely extract data
   const eventData: IEventDetailData | null =
-    heavyData?.getEventDetails?.data ||
-    lightData?.getEventDetails?.data ||
+    (heavyData as any)?.getEventDetails?.data ||
+    (lightData as any)?.getEventDetails?.data ||
     null;
 
   if (!eventData) {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client";
+import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client/react";
 import StatBox from "./StatBox";
 import SelectInput from "../elements/SelectInput";
 import DateInput from "../elements/DateInput";
