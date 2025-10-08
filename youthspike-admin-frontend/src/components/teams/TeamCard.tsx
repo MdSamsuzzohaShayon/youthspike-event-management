@@ -172,17 +172,18 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   }));
 
   const playerCount = team?.players?.length || 0;
+  
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
 
   // Reusable components
   const TeamLogo = () => 
     team.logo ? 
-      <CldImage crop="scale" width={64} height={64} src={team.logo} alt={team.name} className="w-8 h-8 object-cover rounded-lg" /> :
+      <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="w-8 h-8 object-cover rounded-lg" /> :
       <TextImg className="w-8 h-8 rounded-lg bg-yellow-logo" fullText={team.name} />;
 
   const CaptainAvatar = () => 
     team.captain?.profile ? 
-      <CldImage crop="scale" width={40} height={40} src={team.captain.profile} alt={team.captain.firstName} className="w-8 h-8 rounded-full object-cover" /> :
+      <CldImage crop="fit" width={40} height={40} src={team.captain.profile} alt={team.captain.firstName} className="w-8 h-8 rounded-full object-cover" /> :
       (team.captain && <TextImg className="w-8 h-8 rounded-full bg-gray-600" fullText={team.captain.firstName + team.captain.lastName} />);
 
   const ActionMenu = () => (
@@ -344,7 +345,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         <div className="flex items-center justify-between">
           {/* Left Section */}
           <div className="flex items-center gap-6 flex-1">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col  items-center gap-2">
               <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
               <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-sm min-w-[2.5rem] text-center">
                 {team.num}
@@ -353,7 +354,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
 
             <div className="flex items-center gap-4 flex-1 min-w-0">
               {team.logo ? 
-                <CldImage crop="scale" width={64} height={64} src={team.logo} alt={team.name} className="h-16" /> : 
+                <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="h-16" /> : 
                 <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />
               }
               <div className="flex-1 min-w-0">
@@ -376,7 +377,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
               <div className="flex items-center gap-3">
                 {team.captain.profile ? (
                   <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
-                    <CldImage crop="scale" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
+                    <CldImage crop="fit" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <div className="w-12 h-12 rounded-full border border-yellow-400 flex items-center justify-center bg-gray-600 flex-shrink-0">
@@ -403,12 +404,12 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
                 </button>
               </Link>
               <div className="flex items-center text-sm text-gray-300">
-                <span className="mr-2">Active Players:</span>
+                <span className="mr-2">Players:</span>
                 <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{playerCount}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-2">
               <Image
                 onClick={(e) => handleSendCredential(e, team._id)}
                 src="/icons/send-email.svg"

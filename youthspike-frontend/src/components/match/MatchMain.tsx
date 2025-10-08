@@ -92,7 +92,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
 
   // Memoize the match data to prevent unnecessary re-renders
   const match = data?.getMatch?.data;
-  console.log(data?.getMatch?.data);
   
   const myTeam = useMemo(
     () => (myTeamE === ETeam.teamA ? teamA : teamB),

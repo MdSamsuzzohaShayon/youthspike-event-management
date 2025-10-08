@@ -16,6 +16,8 @@ import TeamSelector from './TeamSelector';
 import InputField from '../elements/forms/InputField';
 import TextareaInput from '../elements/forms/TextareaInput';
 import { getLocalDateTimeISO } from '@/utils/datetime';
+import { updateMatchHandler } from '@/utils/requestHandlers/updateMatchHandler';
+import addMatchHandler from '@/utils/requestHandlers/addMatchHandler';
 
 interface IMatchAddProps {
   eventId: string;
@@ -159,22 +161,31 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
 
   const handleAddMatch = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await addOrUpdateMatch({
-      setActErr,
-      setIsLoading,
-      eventId,
-      mutateMatch,
-      createMatch,
-      matchId,
-      addMatch,
-      ldoIdUrl,
-      currDivision,
-      updateMatch,
-      update,
-      showAddMatch,
-      router,
-      addMatchCB,
-    });
+    if (update && matchId) {
+      await updateMatchHandler({
+          setActErr,
+          setIsLoading,
+          eventId,
+          mutateMatch,
+          matchId,
+          updateMatch,
+          showAddMatch,
+          router,
+          ldoIdUrl,
+      });
+  } else {
+      await addMatchHandler({
+          setActErr,
+          setIsLoading,
+          eventId,
+          createMatch,
+          addMatch,
+          currDivision,
+          showAddMatch,
+          router,
+          addMatchCB,
+      });
+  }
   };
 
   // Initialize state

@@ -374,7 +374,7 @@ export class MatchMutations {
           roundUpdatePromises.push(
             this.roundService.updateOne(
               { _id: inRound._id },
-              { $set: { teamAScore: roundTeamAScore, teamBScore: roundTeamBScore, completed: true } },
+              { $set: { teamAScore: roundTeamAScore, teamBScore: roundTeamBScore, completed: true, teamAProcess: EActionProcess.LINEUP, teamBProcess: EActionProcess.LINEUP } },
             ),
           );
         }

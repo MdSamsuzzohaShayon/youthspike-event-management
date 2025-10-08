@@ -37,7 +37,7 @@ function PlayerCard({ player, showRank }: PlayerCardProps) {
       <div className="flex items-center w-full md:w-7/12">
         <div className="advanced-img w-20 h-20 md:w-24 md:h-24 border border-yellow-400 rounded-lg overflow-hidden">
           {player.profile ? (
-            <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-cover" crop="scale" src={player.profile} />
+            <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-cover object-center" crop="fit" src={player.profile} />
           ) : (
             <Image width={200} height={200} src="/icons/sports-man.svg" alt="Player Avatar" className="svg-white w-full h-full object-contain" />
           )}

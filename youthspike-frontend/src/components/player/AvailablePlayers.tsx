@@ -236,7 +236,7 @@ const filteredPlayers = useMemo(() => {
                   height="200"
                   className="w-full overflow-hidden"
                   src={player.profile}
-                  crop="scale"
+                  crop="fit"
                 />
               ) : (
                 <Image

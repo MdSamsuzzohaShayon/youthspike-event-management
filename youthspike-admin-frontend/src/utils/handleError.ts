@@ -33,7 +33,7 @@ export async function handleResponse({ response, setActErr }: IHandleResponsePro
   const message = response.message || 'Internal Server Error';
   if (setActErr) setActErr({ code: response.code, message, success: response.success });
 
-  if (response.code === 401) {
+  if (response.code >= 400) {
     if (typeof window !== 'undefined') {
       // Client-side handling
       await fetch('/api/logout', { method: 'GET' });

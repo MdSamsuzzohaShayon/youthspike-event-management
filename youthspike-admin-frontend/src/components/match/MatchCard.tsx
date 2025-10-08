@@ -166,7 +166,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
     <div className={`flex items-center ${teamE === ETeam.teamA ? 'flex-row' : 'flex-row-reverse'} gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
       <div className="flex-shrink-0">
         {team?.logo ? (
-          <CldImage crop="scale" alt={team.name} width={100} height={100} className="w-12 h-12 object-contain" src={team.logo} />
+          <CldImage crop="fit" alt={team.name} width={100} height={100} className="w-12 h-12 object-contain" src={team.logo} />
         ) : (
           <TextImg fullText={team.name} className="w-12 h-12 object-contain rounded-xl" />
         )}

@@ -196,10 +196,10 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     }
     return team.logo ? (
       <CldImage
-        className="w-10 h-10 md:w-14 md:h-14 rounded-full object-cover shadow-sm"
+        className="w-10 h-10 md:w-14 md:h-14 object-cover shadow-sm"
         height={56}
         width={56}
-        crop="scale"
+        crop="fit"
         src={team.logo}
         alt={team.name}
       />

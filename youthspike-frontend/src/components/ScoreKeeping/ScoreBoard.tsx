@@ -92,8 +92,8 @@ function ScoreBoard({
                 alt={`${player.firstName} ${player.lastName}`}
                 width={64}
                 height={64}
-                className="object-cover w-full h-full"
-                crop="scale"
+                className="object-cover object-center w-full h-full"
+                crop="fit"
               />
             ) : (
               <TextImg className="w-full rounded-lg" fullText={`${player.firstName}${player.lastName}`} />
@@ -144,8 +144,8 @@ function ScoreBoard({
                   height={48}
                   alt={team.name}
                   src={team.logo}
-                  className="h-12 w-12 md:h-16 md:w-16 object-cover rounded-lg"
-                  crop="scale"
+                  className="h-12 w-12 md:h-16 md:w-16 object-cover object-center rounded-lg"
+                  crop="fit"
                 />
               ) : (
                 <TextImg className="h-12 w-12 md:h-16 md:w-16" fullText={team?.name} />

@@ -56,6 +56,8 @@ export class MatchFields {
   ): Promise<PlayerRanking> {
     try {
       let playerRanking = await this.playerRankingService.findOne({ _id: rankingId });
+
+      // Create new ranking if not exist
       if (!playerRanking) {
         const teamExist = await this.teamService.findOne({ _id: teamId });
         const playerList = await this.playerService.find({ _id: { $in: teamExist.players } });
@@ -341,10 +343,10 @@ export class MatchFields {
   }
 
   async teamARanking(match: Match): Promise<PlayerRanking> {
-    return this.getTeamRanking(match, match.teamA.toString(), match.teamARanking.toString(), 'teamARanking');
+    return this.getTeamRanking(match, String(match.teamA), String(match.teamARanking), 'teamARanking');
   }
 
   async teamBRanking(match: Match): Promise<PlayerRanking> {
-    return this.getTeamRanking(match, match.teamB.toString(), match.teamBRanking.toString(), 'teamBRanking');
+    return this.getTeamRanking(match, String(match.teamB),String( match.teamBRanking), 'teamBRanking');
   }
 }

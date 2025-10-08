@@ -14,7 +14,7 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
         <tr className='hover:bg-gray-900 transition'  >
             <td className="py-4 px-6" >{ldo.name}</td>
             <td className="py-4 px-6" >
-                {ldo?.logo ? <CldImage crop="scale" width={100} height={100} alt="Ldo Logo" className="w-8" src={ldo?.logo} /> : ''}
+                {ldo?.logo ? <CldImage crop="fit" width={100} height={100} alt="Ldo Logo" className="w-8" src={ldo?.logo} /> : ''}
             </td>
             <td className="py-4 px-6 break-words" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
             <td className="py-4 px-6 lowercase" >{ldo.phone}</td>

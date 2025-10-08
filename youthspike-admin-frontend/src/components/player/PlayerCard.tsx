@@ -234,7 +234,15 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       <div className="player-name flex flex-col w-full text-white">
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
-          {team && <p className="md:hidden text-yellow-400 uppercase font-bold tracking-wide">{team.name.slice(0, 3)}</p>}
+           {team && <Link href={`/teams/${team._id}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">{team.name.slice(0, 3)}</Link>}
+          {rank && (
+              <button
+                className="md:hidden flex w-8 h-8 items-center justify-center bg-yellow-logo dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                aria-label="Options"
+              >
+                <p className="text-black uppercase font-bold tracking-wide">{rank}</p>
+              </button>
+            )}
         </div>
         {team && (
           <div className="w-full hidden md:flex justify-between items-center">
@@ -258,7 +266,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     () => (
       <div className="advanced-img w-8 md:w-16 h-8 md:h-16 overflow-hidden flex items-center justify-center">
         {player.profile ? (
-          <CldImage crop="scale" width={100} height={100} alt={name} src={player.profile} className="w-full h-full object-cover object-fit" />
+          <CldImage crop="fit" width={100} height={100} alt={name} src={player.profile} className="w-full h-full object-cover object-fit" />
         ) : (
           <TextImg fullText={name} className="w-full h-full rounded-full object-cover object-fit" />
         )}

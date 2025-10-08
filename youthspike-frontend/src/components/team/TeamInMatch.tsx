@@ -20,7 +20,7 @@ function TeamInMatch({ team, home }: ITeamInMatchProps) {
             height="200"
             className="w-12"
             src={team.captain?.profile}
-            crop="scale"
+            crop="fit"
           />
         ) : (
           <TextImg

@@ -1,22 +1,14 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import {
-  QueryRef,
-  useApolloClient,
-  useReadQuery,
-} from "@apollo/client";
+import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client";
 import StatBox from "./StatBox";
 import SelectInput from "../elements/SelectInput";
 import DateInput from "../elements/DateInput";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
-import {
-  IAggregatedStats,
-  IGetPlayerStats,
-  IProStats,
-} from "@/types";
+import { IAggregatedStats, IGetPlayerStats, IProStats } from "@/types";
 import StatAddBox from "./StatAddBox";
 import usePlayerSocket from "@/hooks/player/usePlayerScoket";
 import { useSocket } from "@/lib/SocketProvider";
@@ -56,7 +48,6 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     weight,
     stats,
   } = data.getPlayerWithStats.data;
-  
 
   const [filter, setFilter] = useState<Partial<IFilter>>({});
 
@@ -68,8 +59,57 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   });
 
   const safeNets = nets || [];
-  const safePlayerstats = playerstats || [];
+  
   const safeMatches = matches || [];
+  
+  const safePlayerstats = useMemo(() => {
+    // Defensive fallback
+    if (!playerstats || !Array.isArray(playerstats)) return [];
+  
+    const ps = playerstats;
+    const start = filter.startDate ? new Date(filter.startDate).getTime() : null;
+    const end = filter.endDate ? new Date(filter.endDate).getTime() : null;
+    const matchIdFilter = filter.match || null;
+    const gameIdFilter = filter.game || null;
+  
+    // ✅ Precompute valid matches efficiently
+    const validMatchIds = new Set<string>();
+    for (const match of safeMatches) {
+      if (!match || !match._id) continue;
+      const matchTime = match.date ? new Date(match.date).getTime() : null;
+  
+      // Skip out-of-range matches early
+      if (start && matchTime && matchTime < start) continue;
+      if (end && matchTime && matchTime > end) continue;
+  
+      validMatchIds.add(match._id);
+    }
+  
+    // ✅ Filter player stats (single pass)
+    const filtered = [];
+    for (const stat of ps) {
+      if (!stat) continue;
+  
+      // Normalize match/net IDs
+      const statMatchId = typeof stat.match === "string" ? stat.match : stat.match?._id;
+      const statGameId = typeof stat.net === "string" ? stat.net : stat.net?._id;
+  
+      // Skip invalid matches
+      if (!statMatchId || !validMatchIds.has(statMatchId)) continue;
+  
+      // Apply match filter if selected
+      if (matchIdFilter && statMatchId !== matchIdFilter) continue;
+  
+      // Apply game filter if selected
+      if (gameIdFilter && statGameId !== gameIdFilter) continue;
+  
+      filtered.push(stat);
+    }
+  
+    return filtered;
+  }, [playerstats, filter, safeMatches]);
+  
+
 
   const totalGames = safePlayerstats?.length || 0;
 
@@ -89,8 +129,6 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     totalServe += ps.serveOpportunity;
   }
 
-
-  
   // ✅ Single-pass aggregation with filtering
   // const aggregatedStats = useMemo(() => {
   //   const totals: IAggregatedStats = {
@@ -186,7 +224,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const { noOfGamesPlayed, noOfGamesWon } = useMemo(() => {
     const playerId = player._id;
     let noOfGamesWon = 0;
-    
+
     // Use safeNets instead of nets
     for (const n of safeNets) {
       if (n.teamAPlayerA === playerId || n.teamAPlayerB === playerId) {
@@ -233,16 +271,16 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
               src={player.profile}
               height={100}
               width={100}
-              crop="scale"
-              className="w-32 h-32 rounded-full"
+              crop="fit"
+              className="w-32 rounded-xl"
             />
           ) : (
             <TextImg
-              className="w-32 h-32 rounded-full"
+              className="w-32 h-32"
               fullText={`${player.firstName}${player.lastName}`}
             />
           )}
-          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-3 py-1 text-xs font-bold rounded-full shadow-md">
+          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-3 py-1 text-xs font-bold rounded-full shadow-md uppercase">
             {player.division}
           </div>
         </div>

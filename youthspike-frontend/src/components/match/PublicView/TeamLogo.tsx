@@ -21,8 +21,8 @@ const TeamLogo = ({
         alt={team.name}
         width={70}
         height={70}
-        className={`object-cover ${borderColor} ${className}`}
-        crop="scale"
+        className={`object-cover object-center rounded-sm ${borderColor} ${className}`}
+        crop="fit"
       />
     );
   }

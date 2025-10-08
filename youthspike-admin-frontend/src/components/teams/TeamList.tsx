@@ -285,10 +285,9 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
 
 
       </div>
-      <div className="team-list-card flex flex-col justify-between items-center gap-3">
+      <div className="team-list-card grid grid-cols-1 md:grid-cols-2 gap-2">
         {paginatedTeamList.map((team) => {
-          // @ts-ignore 
-          if (!filteredGroupId || team.group?._id === filteredGroupId || team.group === filteredGroupId) {
+          if (!filteredGroupId || team.group?._id === filteredGroupId || String(team.group) === filteredGroupId) {
             return (
               <TeamCard
                 key={team._id}

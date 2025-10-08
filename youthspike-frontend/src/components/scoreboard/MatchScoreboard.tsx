@@ -32,6 +32,9 @@ interface IMatchScoreBoardProps {
 export function MatchScoreBoard({ queryRef }: IMatchScoreBoardProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
+  console.log("Apollo Error:", error?.message, error?.networkError, error?.graphQLErrors);
+
+  
   const dispatch = useAppDispatch();
   const socket = useSocket();
 
@@ -82,13 +85,17 @@ export function MatchScoreBoard({ queryRef }: IMatchScoreBoardProps) {
 
     const userDetail = getUserFromCookie();
 
-    await organizeFetchedData({
-      matchData: match,
-      token: userDetail.token,
-      userInfo: userDetail.info,
-      matchId: match._id,
-      dispatch,
-    });
+    if (match?._id) {
+      await organizeFetchedData({
+        matchData: match,
+        token: userDetail.token,
+        userInfo: userDetail.info,
+        matchId: match._id,
+        dispatch,
+      });
+    } else {
+      console.warn("No match ID found, skipping data organization");
+    }
   }, [match, dispatch]);
 
   // Organize fetched data

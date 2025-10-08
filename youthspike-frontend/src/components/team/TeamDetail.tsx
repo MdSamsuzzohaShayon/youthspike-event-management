@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  IEvent,
-  IMatch,
-  INetRelatives,
-  IPlayerStats,
-  IRoundRelatives,
-  ITeam,
-} from "@/types";
+import { IEvent, IMatch, INetRelatives, IRoundRelatives, ITeam } from "@/types";
 import { useLdoId } from "@/lib/LdoProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import { setRankingMap } from "@/redux/slices/playerRankingSlice";
@@ -46,13 +39,16 @@ function TeamDetail({
   const [selectedItem, setSelectedItem] = useState<ETab>(ETab.ROSTER);
 
   // Memoized data
-  const playerStatsMap = useMemo(() => 
-    new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats])),
+  const playerStatsMap = useMemo(
+    () => new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats])),
     [statsOfPlayer]
   );
 
-  const sortedMatches = useMemo(() => 
-    [...(team.matches as IMatch[])].sort((a, b) => Number(a.completed) - Number(b.completed)),
+  const sortedMatches = useMemo(
+    () =>
+      [...(team.matches as IMatch[])].sort(
+        (a, b) => Number(a.completed) - Number(b.completed)
+      ),
     [team.matches]
   );
 
@@ -75,10 +71,13 @@ function TeamDetail({
   }, [ldoIdUrl]);
 
   // Event handlers
-  const handleSelectGroup = useCallback((e: React.SyntheticEvent, tab: ETab) => {
-    e.preventDefault();
-    setSelectedItem(tab);
-  }, []);
+  const handleSelectGroup = useCallback(
+    (e: React.SyntheticEvent, tab: ETab) => {
+      e.preventDefault();
+      setSelectedItem(tab);
+    },
+    []
+  );
 
   // Content renderer
   const showContent = useCallback(() => {
@@ -107,23 +106,31 @@ function TeamDetail({
           />
         );
     }
-  }, [selectedItem, playerStatsMap, team.matches, team.players, sortedMatches, nets, rounds]);
+  }, [
+    selectedItem,
+    playerStatsMap,
+    team.matches,
+    team.players,
+    sortedMatches,
+    nets,
+    rounds,
+  ]);
 
   // Reusable components
-  const TeamLogo = () => 
+  const TeamLogo = () =>
     team?.logo ? (
       <CldImage
         alt={team.name}
         width={32}
         height={32}
         src={team.logo}
-        className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover flex-shrink-0"
-        crop="scale"
+        className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover object-center flex-shrink-0"
+        crop="fit"
       />
     ) : (
       <TextImg
         className="w-8 h-8 rounded-lg border border-yellow-500/30 flex-shrink-0"
-        fullText={team?.name || ''}
+        fullText={team?.name || ""}
         txtCls="text-sm font-bold"
       />
     );
@@ -139,17 +146,23 @@ function TeamDetail({
     <button
       onClick={(e) => handleSelectGroup(e, tab)}
       className={`flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all ${
-        selectedItem === tab 
-          ? 'bg-yellow-400 text-gray-900 shadow-sm' 
-          : 'text-gray-300 hover:text-white'
+        selectedItem === tab
+          ? "bg-yellow-400 text-gray-900 shadow-sm"
+          : "text-gray-300 hover:text-white"
       }`}
     >
       {label}
     </button>
   );
 
-  const ActionLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <Link 
+  const ActionLink = ({
+    href,
+    children,
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <Link
       href={href}
       className="flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all text-yellow-logo underline text-center uppercase"
     >
@@ -157,14 +170,18 @@ function TeamDetail({
     </Link>
   );
 
-  const SectionHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
+  const SectionHeader = ({
+    title,
+    subtitle,
+  }: {
+    title: string;
+    subtitle: string;
+  }) => (
     <div className="text-center mb-6 relative z-10">
       <h1 className="text-4xl font-extrabold uppercase tracking-wide text-yellow-400">
         {title}
       </h1>
-      <h2 className="text-sm text-gray-300 uppercase mt-1">
-        {subtitle}
-      </h2>
+      <h2 className="text-sm text-gray-300 uppercase mt-1">{subtitle}</h2>
     </div>
   );
 
@@ -177,8 +194,12 @@ function TeamDetail({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <TeamLogo />
             <div className="min-w-0">
-              <h1 className="text-sm font-bold text-white truncate leading-tight">{team?.name}</h1>
-              <p className="text-xs text-gray-400 truncate leading-tight">{event?.name}</p>
+              <h1 className="text-sm font-bold text-white truncate leading-tight">
+                {team?.name}
+              </h1>
+              <p className="text-xs text-gray-400 truncate leading-tight">
+                {event?.name}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -191,10 +212,16 @@ function TeamDetail({
       {/* Action Links */}
       <div className="border-b border-yellow-500/30 px-3 py-1">
         <div className="flex rounded-lg p-1">
-          <ActionLink 
+          <ActionLink
             href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
           >
             Standings
+          </ActionLink>
+          {/* event_item=TEAM&search=College+Station+Aggies */}
+          <ActionLink
+            href={`/events/${event._id}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}&search=${team.name.split(' ').join("+")}`}
+          >
+            Stats
           </ActionLink>
         </div>
       </div>
@@ -212,10 +239,8 @@ function TeamDetail({
   return (
     <div className="min-h-screen bg-gray-900 pb-4">
       <HeaderSection />
-      
-      <div className="pt-3">
-        {showContent()}
-      </div>
+
+      <div className="pt-3">{showContent()}</div>
     </div>
   );
 }

@@ -49,8 +49,8 @@ function PlayerRow({
                       alt={player.firstName}
                       width="32"
                       height="32"
-                      className="w-8 h-8 rounded-full object-cover"
-                      crop="scale"
+                      className="w-8 h-8 rounded-lg object-cover"
+                      crop="fit"
                       src={player.profile}
                     />
                   ) : (
@@ -59,7 +59,7 @@ function PlayerRow({
                       height={32}
                       src="/icons/sports-man.svg"
                       alt="Player Avatar"
-                      className="svg-white w-8 h-8 rounded-full object-contain bg-gray-600 p-1"
+                      className="svg-white w-8 h-8 rounded-lg object-contain bg-gray-600 p-1"
                     />
                   )}
                 </div>

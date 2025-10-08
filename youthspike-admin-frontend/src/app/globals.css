@@ -36,6 +36,10 @@ p {
   @apply text-xs sm:text-sm;
 }
 
+a {
+  @apply text-xs sm:text-sm;
+}
+
 label {
   @apply text-base sm:text-lg font-normal;
 }

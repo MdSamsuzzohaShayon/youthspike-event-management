@@ -91,12 +91,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
 
       // Reset form and navigate
       setEventState(initialEvent);
-      if (!update && event) {
-        router.push(`/${event}/${ldoIdUrl}`);
-      }
-      if(update){
-        window.location.reload();
-      }
+      router.push(`/${event}/${ldoIdUrl}`);
     } catch (error) {
       setActErr({
         message: error instanceof Error ? error.message : String(error),

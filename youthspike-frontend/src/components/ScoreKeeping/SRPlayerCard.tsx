@@ -133,9 +133,9 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
               alt={`${player.firstName} ${player.lastName}`}
               width="200"
               height="200"
-              className="object-cover w-full h-full"
+              className="object-cover object-center w-full h-full"
               src={player.profile}
-              crop="scale"
+              crop="fit"
             />
           ) : (
             <TextImg

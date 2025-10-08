@@ -20,12 +20,10 @@ interface IEventCardProps {
 const monthNames: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCardProps) {
-
   const { ldoIdUrl } = useLdoId();
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const ulEl = useRef<HTMLElement | null>(null);
-
 
   useClickOutside(ulEl, () => {
     setActionOpen(false);
@@ -53,10 +51,6 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
     e.preventDefault();
     setActionOpen((prevState) => !prevState);
   };
-
-
-
-
 
   return (
     <div key={event._id} className="event-card mb-1 p-2 bg-gray-800 flex justify-around items-center flex-col gap-2 rounded-md relative">
@@ -96,7 +90,6 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
               </span>
               Delete
             </li> */}
-
           </motion.ul>
         </AnimatePresence>
       )}
@@ -106,9 +99,11 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials }: IEventCar
       </div>
       <Link href={`/${event._id}/${ldoIdUrl}`}>
         <div className="img-wrapper w-full flex justify-center items-center">
-          {event.logo ? <CldImage crop="scale" width={100} height={100}   src={event.logo} alt="logo" 
-
- className="w-12" /> : <Image src="/free-logo.png" width={20} height={20} alt='free-logo' className="w-12 h-12" />}
+          {event.logo ? (
+            <CldImage crop="fit" width={100} height={100} src={event.logo} alt="logo" className="w-12 h-12 object-cover object-center" />
+          ) : (
+            <Image src="/free-logo.png" width={20} height={20} alt="free-logo" className="w-12 h-12" />
+          )}
         </div>
         <div className="text-box text-center">
           <h3 className="text-lg font-bold mb-0">{event.name}</h3>

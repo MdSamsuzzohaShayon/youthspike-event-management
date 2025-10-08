@@ -84,7 +84,7 @@ const PlayerSelection: React.FC<PlayerSelectionProps> = ({
               >
                 <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                   {player.profile ? (
-                    <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-cover object-center" src={player.profile} crop="scale" />
+                    <CldImage alt={player.firstName} width="200" height="200" className="w-full h-full object-cover object-center" src={player.profile} crop="fit" />
                   ) : (
                     <TextImg className="w-full h-full" fullText={`${player.firstName} ${player.lastName}`} />
                   )}

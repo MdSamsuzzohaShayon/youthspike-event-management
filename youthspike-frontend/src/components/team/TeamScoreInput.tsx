@@ -6,7 +6,7 @@ import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
 import { fsToggle } from '@/utils/helper';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface ITeamScoreInputProps {
   net: INetRelatives | null;
@@ -24,7 +24,7 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
   const [defaultVal, setDefaultVal] = useState<string>('');
   const { match: currMatch } = useAppSelector((state) => state.matches);
 
-  const inputReadonly = useCallback((): boolean => {
+  const inputReadonly = useMemo((): boolean => {
     const isUserAuthorized = user && (user.info?.role === UserRole.admin || user.info?.role === UserRole.director || user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain);
     // ||
     // || (user.info?.captainplayer && user.info.captainplayer === teamAorB?.captain?._id)
@@ -49,6 +49,11 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
     return !isUserAuthorized || currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP || banningNet;
   }, [currMatch, currRound?.teamAProcess, currRound?.teamBProcess, currRoundNets, user]);
 
+  console.log({inputReadonly, "currRound?.teamBProcess !== EActionProcess.LINEUP": currRound?.teamBProcess !== EActionProcess.LINEUP,
+     "currRound?.teamAProcess !== EActionProcess.LINEUP": currRound?.teamAProcess !== EActionProcess.LINEUP});
+  
+
+
   useEffect(() => {
     const TBS = net?.teamBScore?.toString() || '';
     const TAS = net?.teamAScore?.toString() || '';
@@ -68,7 +73,7 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
         defaultValue={defaultVal}
         style={fsToggle(screenWidth)}
         className={`w-5/6 md:w-2/6 rounded-lg ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
-        readOnly={inputReadonly()}
+        readOnly={inputReadonly}
       />
     </div>
   );

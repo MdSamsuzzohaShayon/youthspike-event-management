@@ -153,7 +153,9 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     null;
 
   if (!eventData) {
-    const error = new Error("The requested event might not exist or has been removed.");
+    const error = new Error(
+      "The requested event might not exist or has been removed."
+    );
     error.name = "No event data found";
     throw error;
   }
@@ -277,17 +279,29 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     );
 
     // Filter matches with team resolution
-    const filteredMatches = matches
-  .filter(filterByDivision)
-  .map((match) => ({
-    ...match,
-    teamA: match.teamA ? teamMap.get(String(match.teamA)) : null,
-    teamB: match.teamB ? teamMap.get(String(match.teamB)) : null,
-  }))
-  .filter(filterByGroupMatch as any)
-  .filter(filterBySearchMatch as any)
-  // Sort: incomplete first, then completed
-  .sort((a, b) => Number(a.completed) - Number(b.completed));
+    const filteredMatches = [];
+
+    for (const match of matches) {
+      // Apply all filters in a single pass
+      if (!filterByDivision(match)) continue;
+      if (!filterByGroupMatch(match)) continue;
+      if (!filterBySearchMatch(match)) continue;
+
+      // Resolve teams once
+      const teamA = match.teamA ? teamMap.get(String(match.teamA)) : null;
+      const teamB = match.teamB ? teamMap.get(String(match.teamB)) : null;
+
+      filteredMatches.push({ ...match, teamA, teamB });
+    }
+
+    // Efficient sort: incomplete first, then by latest date
+    filteredMatches.sort((a, b) => {
+      const completionDiff = Number(a.completed) - Number(b.completed);
+      if (completionDiff !== 0) return completionDiff;
+
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
     // Filter players
     const filteredPlayers = sortedPlayers.filter(
       (player) =>

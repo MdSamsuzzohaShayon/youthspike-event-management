@@ -43,7 +43,7 @@ export default function MatchTable({ matches }: IMatchTableProps) {
                 {/* Team A */}
                 <td className="py-4 px-4 flex items-center gap-3">
                   {m.teamA.logo ? (
-                    <CldImage crop="scale" src={m.teamA.logo} alt={`${m.teamA.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
+                    <CldImage crop="fit" src={m.teamA.logo} alt={`${m.teamA.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <TextImg className="w-8 h-8 rounded-full" fullText={m.teamA.name} />
                   )}
@@ -53,7 +53,7 @@ export default function MatchTable({ matches }: IMatchTableProps) {
                 {/* Team B */}
                 <td className="py-4 px-4 flex items-center gap-3">
                   {m.teamB.logo ? (
-                    <CldImage crop="scale" src={m.teamB.logo} alt={`${m.teamB.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
+                    <CldImage crop="fit" src={m.teamB.logo} alt={`${m.teamB.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <TextImg className="w-8 h-8 rounded-full" fullText={m.teamB.name} />
                   )}
@@ -94,7 +94,7 @@ export default function MatchTable({ matches }: IMatchTableProps) {
               {/* Team A */}
               <div className="flex items-center gap-2">
                 {m.teamA.logo ? (
-                  <CldImage crop="scale" src={m.teamA.logo} alt={`${m.teamA.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
+                  <CldImage crop="fit" src={m.teamA.logo} alt={`${m.teamA.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <TextImg className="w-8 h-8 rounded-full" fullText={m.teamA.name} />
                 )}
@@ -107,7 +107,7 @@ export default function MatchTable({ matches }: IMatchTableProps) {
               {/* Team B */}
               <div className="flex items-center gap-2">
                 {m.teamB.logo ? (
-                  <CldImage crop="scale" src={m.teamB.logo} alt={`${m.teamB.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
+                  <CldImage crop="fit" src={m.teamB.logo} alt={`${m.teamB.name} logo`} width={40} height={40} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <TextImg className="w-8 h-8 rounded-full" fullText={m.teamB.name} />
                 )}

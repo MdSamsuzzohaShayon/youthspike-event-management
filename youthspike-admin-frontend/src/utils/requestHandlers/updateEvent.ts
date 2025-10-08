@@ -47,7 +47,6 @@ function processSponsorsForUpdate(sponsorImgList: IEventSponsorAdd[]) {
   const sponsorsInput: IEventSponsorAdd[] = [];
   const sponsorsStringInput: IEventSponsorAdd[] = [];
 
-  console.log({sponsorImgList});
   
   sponsorImgList.forEach((sponsor) => {
     // Ensure company is always just a string

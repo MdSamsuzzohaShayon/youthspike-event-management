@@ -144,14 +144,14 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
                 alt={team?.name || "Team logo"}
                 width={70}
                 height={70}
-                className="w-12 h-12 object-contain"
+                className="w-12 h-12 object-center object-cover"
                 src={team.logo}
-                crop="scale"
+                crop="fit"
               />
             ) : (
               <TextImg
                 fullText={team?.name || "Team"}
-                className="w-12 h-12 object-contain rounded-xl"
+                className="w-12 h-12 rounded-xl"
               />
             )}
           </div>

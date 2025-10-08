@@ -105,14 +105,12 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
    */
   const sortedMatches = useMemo(() => {
     if (!matchList) return [];
-    return [...matchList]
-      .filter(Boolean)
-      .sort((a, b) => {
-        if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed);
-        const numA = parseInt(a.description?.replace(/\D/g, '') ?? '0', 10);
-        const numB = parseInt(b.description?.replace(/\D/g, '') ?? '0', 10);
-        return numA - numB;
-      });
+    return [...matchList].filter(Boolean).sort((a, b) => {
+      if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed);
+      const numA = parseInt(a.description?.replace(/\D/g, '') ?? '0', 10);
+      const numB = parseInt(b.description?.replace(/\D/g, '') ?? '0', 10);
+      return numA - numB;
+    });
   }, [matchList]);
 
   /**
@@ -179,15 +177,12 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
    */
   const opponentOptions = useMemo(() => {
     const division = getDivisionFromStore();
-    const notSameCaptain = (t: ITeam) =>
-      t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
+    const notSameCaptain = (t: ITeam) => t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
 
     return teamList
       .filter((t) => {
         if (!t) return false;
-        const sameDivision = division
-          ? t.division?.toString().trim().toUpperCase() === division.toString().trim().toUpperCase()
-          : true;
+        const sameDivision = division ? t.division?.toString().trim().toUpperCase() === division.toString().trim().toUpperCase() : true;
         return notSameCaptain(t) && sameDivision;
       })
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' }));
@@ -207,14 +202,11 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   /**
    * Unified filter change handler
    */
-  const handleFilterChange = useCallback(
-    (e: React.SyntheticEvent, key: keyof MatchFilters) => {
-      const input = e.target as HTMLInputElement | HTMLSelectElement;
-      setFilters((prev) => ({ ...prev, [key]: input.value || undefined }));
-      setCurrentPage(1); // reset pagination on filter change
-    },
-    [],
-  );
+  const handleFilterChange = useCallback((e: React.SyntheticEvent, key: keyof MatchFilters) => {
+    const input = e.target as HTMLInputElement | HTMLSelectElement;
+    setFilters((prev) => ({ ...prev, [key]: input.value || undefined }));
+    setCurrentPage(1); // reset pagination on filter change
+  }, []);
 
   /**
    * Match selection (bulk or single)
@@ -278,22 +270,17 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   return (
     <div className="matchList w-full flex flex-col md:flex-row justify-between gap-4 flex-wrap">
       {/* Filters */}
-      <div className="search-filter w-full mb-8">
-        <SelectInput
-          name="period"
-          optionList={eventPeriods}
-          label="Date"
-          value={filters.date || EEventPeriod.CURRENT}
-          handleSelect={(e) => handleFilterChange(e, 'date')}
-        />
+      <div className="search-filter w-full mb-8 grid grid-cols-1 md:grid-cols-2 gap-2">
+        <SelectInput name="period" optionList={eventPeriods} label="Date" value={filters.date || EEventPeriod.CURRENT} handleSelect={(e) => handleFilterChange(e, 'date')} />
         <SelectInput
           name="opponent"
+          label="Oponent"
           optionList={opponentOptions.map((t, i) => ({ id: i + 1, text: t?.name || 'Unknown Team', value: t?._id || '' }))}
           value={filters.opponent || ''}
           handleSelect={(e) => handleFilterChange(e, 'opponent')}
         />
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
-          <SelectInput name="group" optionList={groupOptions} value={filters.group || ''} handleSelect={(e) => handleFilterChange(e, 'group')} />
+          <SelectInput name="group" label="group" optionList={groupOptions} value={filters.group || ''} handleSelect={(e) => handleFilterChange(e, 'group')} />
         )}
         <InputField type="text" name="description" required={false} value={filters.description || ''} handleInputChange={(e) => handleFilterChange(e, 'description')} />
       </div>

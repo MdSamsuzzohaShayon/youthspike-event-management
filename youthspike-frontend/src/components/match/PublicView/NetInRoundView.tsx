@@ -93,8 +93,8 @@ function NetInRoundView({
               alt={teamA.name}
               width={30}
               height={30}
-              className="w-6 h-6 mr-2 rounded-full object-cover"
-              crop="scale"
+              className="w-6 h-6 mr-2 object-cover object-center"
+              crop="fit"
             />
           ) : (
             <TextImg
@@ -139,8 +139,8 @@ function NetInRoundView({
               alt={teamB.name}
               width={30}
               height={30}
-              className="w-6 h-6 mr-2 rounded-full object-cover"
-              crop="scale"
+              className="w-6 h-6 mr-2 object-cover object-center"
+              crop="fit"
             />
           ) : (
             <TextImg

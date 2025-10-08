@@ -23,16 +23,16 @@ const PlayerView = ({ player, role, compact = false }: IPlayerViewProps) => (
             <CldImage
               width={compact ? 40 : 48}
               height={compact ? 40 : 48}
-              className={`rounded-full object-cover border-2 border-yellow-400 group-hover:scale-105 transition-transform duration-200 ${
+              className={`rounded-lg object-cover group-hover:scale-105 transition-transform duration-200 ${
                 compact ? "w-10 h-10" : "w-12 h-12"
               }`}
               src={player.profile}
               alt={player.firstName}
-              crop="scale"
+              crop="fit"
             />
           ) : (
             <TextImg
-              className={`rounded-full border-2 border-yellow-400 ${
+              className={`rounded-lg ${
                 compact ? "w-10 h-10" : "w-12 h-12"
               }`}
               fullText={`${player.firstName}${player.lastName}`}

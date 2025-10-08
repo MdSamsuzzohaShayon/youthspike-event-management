@@ -62,7 +62,7 @@ function NetInputItem({
             width={size * 4}
             className={`w-${size} h-${size} object-cover`}
             alt={player.firstName}
-            crop="scale"
+            crop="fit"
           />
         ) : (
           <TextImg
@@ -130,8 +130,8 @@ function NetInputItem({
                   height={50}
                   width={50}
                   alt={teamA.name}
-                  className="w-6 h-6 rounded-full"
-                  crop="scale"
+                  className="w-6 h-6 object-cover object-center"
+                  crop="fit"
                 />
               ) : (
                 <TextImg
@@ -165,8 +165,8 @@ function NetInputItem({
                     height={50}
                     width={50}
                     alt={teamB.name}
-                    className="w-6 h-6 rounded-full"
-                    crop="scale"
+                    className="w-6 h-6 object-cover object-center"
+                    crop="fit"
                   />
                 ) : (
                   <TextImg

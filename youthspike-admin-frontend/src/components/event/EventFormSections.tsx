@@ -54,7 +54,12 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6">
         <InputField name="name" type="text" label="Name" handleInputChange={onInputChange} defaultValue={eventState.name} required={!update} />
 
-        <ImageInput handleFileChange={onLogoChange} name="logo" defaultValue={eventState.logo || null} />
+        <div className="img-wrapper">
+          <div className="hidden md:block w-3/6" />
+          <div className="w-full md:w-3/6">
+            <ImageInput handleFileChange={onLogoChange} name="logo" defaultValue={eventState.logo || null} />
+          </div>
+        </div>
 
         <DateInput label="Start Date" name="startDate" handleDateChange={onDateChange} defaultValue={eventState.startDate} required={!update} />
 
