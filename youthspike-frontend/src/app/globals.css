@@ -89,7 +89,7 @@ input[type=number] {
 
 .btn-info { 
   background-color: #fce013;
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto text-black;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit text-black;
 }
 
 

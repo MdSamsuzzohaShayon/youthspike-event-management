@@ -1,4 +1,9 @@
-import { EServerReceiverAction, ETeam, IServerReceiverOnNetMixed, ITeam } from "@/types";
+import {
+  EServerReceiverAction,
+  ETeam,
+  IServerReceiverOnNetMixed,
+  ITeam,
+} from "@/types";
 import { CldImage } from "next-cloudinary";
 import React, { useCallback } from "react";
 import TextImg from "../elements/TextImg";
@@ -31,13 +36,13 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   net,
   room,
   match,
-  currServerReceiver
+  currServerReceiver,
 }) => {
   // Generic click handler
   const handleAction =
     (action: EServerReceiverAction) => (e: React.SyntheticEvent) => {
       e.preventDefault();
-      if(!currServerReceiver) {
+      if (!currServerReceiver) {
         console.log("No current server receiver found");
         return;
       }
@@ -112,33 +117,30 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
       label: "ACE",
       value: EServerReceiverAction.SERVER_ACE_NO_TOUCH,
       subLabel: "NO 2ND TOUCH",
-      color: "bg-green-500 hover:bg-green-600 border-green-600 text-white shadow-lg",
-      mobileColor: "bg-green-500 hover:bg-green-600"
+      color:
+        "bg-green-500 hover:bg-green-600 border-green-600 text-white shadow-lg",
+      mobileColor: "bg-green-500 hover:bg-green-600",
     },
     {
       label: "SET ERROR",
       value: EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH,
       subLabel: "NO 3RD TOUCH",
-      color: "bg-blue-500 hover:bg-blue-600 border-blue-600 text-white shadow-lg",
-      mobileColor: "bg-blue-500 hover:bg-blue-600"
+      color:
+        "bg-blue-500 hover:bg-blue-600 border-blue-600 text-white shadow-lg",
+      mobileColor: "bg-blue-500 hover:bg-blue-600",
     },
     {
       label: "SPIKE ERROR",
       value: EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR,
       color: "bg-red-500 hover:bg-red-600 border-red-600 text-white shadow-lg",
-      mobileColor: "bg-red-500 hover:bg-red-600"
+      mobileColor: "bg-red-500 hover:bg-red-600",
     },
     {
       label: "RALLY POINT",
       value: EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION,
-      color: "bg-purple-500 hover:bg-purple-600 border-purple-600 text-white shadow-lg",
-      mobileColor: "bg-purple-500 hover:bg-purple-600"
-    },
-    {
-      label: "Don't know",
-      value: EServerReceiverAction.SERVER_DO_NOT_KNOW,
-      color: "bg-gray-500 hover:bg-gray-600 border-gray-600 text-white shadow-lg",
-      mobileColor: "bg-gray-500 hover:bg-gray-600"
+      color:
+        "bg-purple-500 hover:bg-purple-600 border-purple-600 text-white shadow-lg",
+      mobileColor: "bg-purple-500 hover:bg-purple-600",
     },
   ];
 
@@ -146,26 +148,23 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     {
       label: "DOUBLE FAULT",
       value: EServerReceiverAction.RECEIVER_SERVICE_FAULT,
-      color: "bg-orange-500 hover:bg-orange-600 border-orange-600 text-white shadow-lg",
-      mobileColor: "bg-orange-500 hover:bg-orange-600"
+      color:
+        "bg-orange-500 hover:bg-orange-600 border-orange-600 text-white shadow-lg",
+      mobileColor: "bg-orange-500 hover:bg-orange-600",
     },
     {
       label: "SPIKER PUT AWAY",
       value: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY,
-      color: "bg-teal-500 hover:bg-teal-600 border-teal-600 text-white shadow-lg",
-      mobileColor: "bg-teal-500 hover:bg-teal-600"
+      color:
+        "bg-teal-500 hover:bg-teal-600 border-teal-600 text-white shadow-lg",
+      mobileColor: "bg-teal-500 hover:bg-teal-600",
     },
     {
       label: "RALLY POINT",
       value: EServerReceiverAction.RECEIVER_RALLEY_CONVERSION,
-      color: "bg-indigo-500 hover:bg-indigo-600 border-indigo-600 text-white shadow-lg",
-      mobileColor: "bg-indigo-500 hover:bg-indigo-600"
-    },
-    {
-      label: "Don't know",
-      value: EServerReceiverAction.RECEIVER_DO_NOT_KNOW,
-      color: "bg-gray-500 hover:bg-gray-600 border-gray-600 text-white shadow-lg",
-      mobileColor: "bg-gray-500 hover:bg-gray-600"
+      color:
+        "bg-indigo-500 hover:bg-indigo-600 border-indigo-600 text-white shadow-lg",
+      mobileColor: "bg-indigo-500 hover:bg-indigo-600",
     },
   ];
 
@@ -201,18 +200,18 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   if (!awardTo) return null;
 
   // Action Button Component
-  const ActionButton = ({ 
-    label, 
-    value, 
-    subLabel, 
-    color, 
-    mobileColor, 
-  }: { 
-    label: string; 
-    value: EServerReceiverAction; 
-    subLabel?: string | null; 
-    color: string; 
-    mobileColor: string; 
+  const ActionButton = ({
+    label,
+    value,
+    subLabel,
+    color,
+    mobileColor,
+  }: {
+    label: string;
+    value: EServerReceiverAction;
+    subLabel?: string | null;
+    color: string;
+    mobileColor: string;
   }) => (
     <button
       key={value}
@@ -237,10 +236,10 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   );
 
   return (
-    <div className="bottom-side border-t border-yellow-400/30 mt-6 w-full">
+    <div className="bottom-side border-t border-yellow-400/30 w-full">
       {awardTo === serverTeamE ? (
         // Serving Team Actions
-        <div className="w-full">
+        <div className="w-full flex flex-col items-center justify-center">
           {/* Team Header - Visible on all screens */}
           <div className="hidden md:flex items-center gap-3 mb-4 p-3 bg-gray-800/50 rounded-lg">
             <div>{renderTeamLogo(servingTeam)}</div>
@@ -258,15 +257,21 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
           </div>
 
           {/* Action Grid - 2 columns on mobile, 1 column on desktop */}
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-2">
+          <div className="grid grid-cols-2 gap-3 md:gap-2">
             {serverActions.map((action) => (
               <ActionButton key={action.value} {...action} />
             ))}
           </div>
+          <button
+            className="btn-light mt-3 md:mt-2"
+            onClick={handleAction(EServerReceiverAction.SERVER_DO_NOT_KNOW)}
+          >
+            Don't know
+          </button>
         </div>
       ) : (
         // Receiving Team Actions
-        <div className="w-full">
+        <div className="w-full flex flex-col items-center justify-center">
           {/* Team Header - Visible on all screens */}
           <div className="hidden md:flex items-center gap-3 mb-4 p-3 bg-gray-800/50 rounded-lg">
             <div>{renderTeamLogo(receivingTeam)}</div>
@@ -284,11 +289,17 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
           </div>
 
           {/* Action Grid - 2 columns on mobile, 1 column on desktop */}
-          <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-2">
+          <div className="grid grid-cols-2 gap-3 md:gap-2 place-items-center">
             {receiverActions.map((action) => (
               <ActionButton key={action.value} {...action} />
             ))}
           </div>
+          <button
+            className="btn-light mt-3 md:mt-2"
+            onClick={handleAction(EServerReceiverAction.RECEIVER_DO_NOT_KNOW)}
+          >
+            Don't know
+          </button>
         </div>
       )}
     </div>

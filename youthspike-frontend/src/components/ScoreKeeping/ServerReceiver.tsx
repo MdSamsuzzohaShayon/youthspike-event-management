@@ -573,7 +573,7 @@ export default function ServerReceiver({
                 <div className="w-5/6">
                   <ScoreBoard
                     currServerReceiver={currServerReceiver}
-                    handleOpenPlays={(e) => {
+                    handleOpenPlays={(_e) => {
                       changePlayEl?.current?.showModal();
                     }}
                     teamA={teamA || null}
@@ -595,13 +595,23 @@ export default function ServerReceiver({
 
           {/* Handle action for each button pressed  */}
           <div className="scrollable-action-handler w-full">
-            <div
-              onClick={(e) => {
-                changePlayEl?.current?.showModal();
-              }}
-              className="hidden md:block bg-yellow-logo text-black text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit mx-auto animate-pulse ring-2 ring-yellow-500 ring-offset-1 md:ring-offset-2"
-            >
-              {`${toOrdinal(currServerReceiver?.mutate || 1)} play`}
+            <div className="hidden md:flex w-full items-center justify-center gap-x-2">
+              <button
+                onClick={(_e) => {
+                  changePlayEl?.current?.showModal();
+                }}
+                className="btn-info"
+              >
+                {`${toOrdinal(currServerReceiver?.mutate || 1)} play`}
+              </button>
+              {currPlays.length > 0 && (
+                <button
+                  className="btn-info"
+                  onClick={() => revertPlayEl.current?.showModal()}
+                >
+                  Revert Play
+                </button>
+              )}
             </div>
             <div
               ref={stickyScoreBoardRef}
@@ -646,13 +656,13 @@ export default function ServerReceiver({
               <button
                 onClick={handleUpdateScore}
                 type="button"
-                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                className="btn-info"
               >
                 Update score, only at the end of game
               </button>
               <button
                 onClick={openResetConfirm}
-                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                className="btn-info"
               >
                 Reset
               </button>

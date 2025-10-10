@@ -60,39 +60,40 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   // Common handlers
   const handleSelectChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    setMoveTeam(prev => ({ ...prev, [inputEl.name]: inputEl.value }));
+    setMoveTeam((prev) => ({ ...prev, [inputEl.name]: inputEl.value }));
   };
 
   const handleEventChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    setMoveTeam(prev => ({ ...prev, [inputEl.name]: inputEl.value }));
-    
+    setMoveTeam((prev) => ({ ...prev, [inputEl.name]: inputEl.value }));
+
     if (!inputEl.value) {
       setDivisionOptions([]);
       return;
     }
 
-    const findEvent = eventList.find(evt => evt._id === inputEl.value);
+    const findEvent = eventList.find((evt) => evt._id === inputEl.value);
     if (findEvent) {
-      const divisions = findEvent.divisions.split(',')
-        .filter(div => div.trim().toLowerCase() !== '')
+      const divisions = findEvent.divisions
+        .split(',')
+        .filter((div) => div.trim().toLowerCase() !== '')
         .map((div, index) => ({
           id: index + 1,
           text: div.trim().toLowerCase(),
-          value: div.trim()
+          value: div.trim(),
         }));
       setDivisionOptions(divisions);
     }
   };
 
-  const toggleActionMenu = () => setActionOpen(prev => !prev);
-  const toggleMoveTeam = () => setOpenMoveTeam(prev => !prev);
+  const toggleActionMenu = () => setActionOpen((prev) => !prev);
+  const toggleMoveTeam = () => setOpenMoveTeam((prev) => !prev);
 
   const handleMenuAction = (e: React.SyntheticEvent, action: 'edit' | 'move' | 'send' | 'delete') => {
     e.preventDefault();
     setActionOpen(false);
-    
-    switch(action) {
+
+    switch (action) {
       case 'edit':
         router.push(`/${eventId}/teams/${team._id}/update/${ldoIdUrl}`);
         break;
@@ -128,8 +129,8 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     try {
       setIsLoading(true);
       if (moveTeam.event && moveTeam.division) {
-        await moveTeamMutation({ 
-          variables: { eventId, input: { division: moveTeam.division, event: moveTeam.event }, teamId: team._id } 
+        await moveTeamMutation({
+          variables: { eventId, input: { division: moveTeam.division, event: moveTeam.event }, teamId: team._id },
         });
         if (refetchFunc) await refetchFunc();
       }
@@ -163,28 +164,32 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   }, [openMoveTeam]);
 
   // Derived values
-  const filteredGroups = groupList.filter(g => 
-    g.division.trim().toUpperCase() === team.division.trim().toUpperCase()
-  ).map((g, index) => ({
-    id: index + 1,
-    value: g._id,
-    text: g.name,
-  }));
+  const filteredGroups = groupList
+    .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase())
+    .map((g, index) => ({
+      id: index + 1,
+      value: g._id,
+      text: g.name,
+    }));
 
   const playerCount = team?.players?.length || 0;
-  
+
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
 
   // Reusable components
-  const TeamLogo = () => 
-    team.logo ? 
-      <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="w-8 h-8 object-cover rounded-lg" /> :
-      <TextImg className="w-8 h-8 rounded-lg bg-yellow-logo" fullText={team.name} />;
+  const TeamLogo = () =>
+    team.logo ? (
+      <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="w-8 h-8 object-cover rounded-lg" />
+    ) : (
+      <TextImg className="w-8 h-8 rounded-lg bg-yellow-logo" fullText={team.name} />
+    );
 
-  const CaptainAvatar = () => 
-    team.captain?.profile ? 
-      <CldImage crop="fit" width={40} height={40} src={team.captain.profile} alt={team.captain.firstName} className="w-8 h-8 rounded-full object-cover" /> :
-      (team.captain && <TextImg className="w-8 h-8 rounded-full bg-gray-600" fullText={team.captain.firstName + team.captain.lastName} />);
+  const CaptainAvatar = () =>
+    team.captain?.profile ? (
+      <CldImage crop="fit" width={40} height={40} src={team.captain.profile} alt={team.captain.firstName} className="w-8 h-8 rounded-full object-cover" />
+    ) : (
+      team.captain && <TextImg className="w-8 h-8 rounded-full bg-gray-600" fullText={team.captain.firstName + team.captain.lastName} />
+    );
 
   const ActionMenu = () => (
     <AnimatePresence>
@@ -202,22 +207,14 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             { icon: 'edit', label: 'Edit', action: 'edit' },
             { icon: 'move', label: 'Move Team', action: 'move' },
             { icon: 'send-email', label: `${sendCredentialLabel} Credential`, action: 'send', className: team.sendCredentials ? 'svg-green' : 'svg-white' },
-            { icon: 'delete', label: 'Delete', action: 'delete', isDanger: true }
+            { icon: 'delete', label: 'Delete', action: 'delete', isDanger: true },
           ].map((item) => (
-            <li 
+            <li
               key={item.action}
               onClick={(e) => handleMenuAction(e, item.action as any)}
-              className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer ${
-                item.isDanger ? 'text-red-500 hover:text-red-400' : ''
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer ${item.isDanger ? 'text-red-500 hover:text-red-400' : ''}`}
             >
-              <Image 
-                src={`/icons/${item.icon}.svg`} 
-                alt={item.label} 
-                width={16} 
-                height={16} 
-                className={item.className || 'svg-white'} 
-              />
+              <Image src={`/icons/${item.icon}.svg`} alt={item.label} width={16} height={16} className={item.className || 'svg-white'} />
               <span className="text-sm">{item.label}</span>
             </li>
           ))}
@@ -231,9 +228,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       {/* Left: Checkbox and Team Number */}
       <div className="flex items-center gap-3 flex-1">
         <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-        <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs min-w-[2rem] text-center">
-          {team.num}
-        </span>
+        <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs min-w-[2rem] text-center">{team.num}</span>
       </div>
 
       {/* Center: Players Count */}
@@ -246,11 +241,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
 
       {/* Right: Actions and Preview */}
       <div className="flex items-center justify-end gap-3 flex-1">
-        <button
-          onClick={(e) => handleSendCredential(e, team._id)}
-          className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors"
-          aria-label={`${sendCredentialLabel} Credential`}
-        >
+        <button onClick={(e) => handleSendCredential(e, team._id)} className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors" aria-label={`${sendCredentialLabel} Credential`}>
           <Image
             src="/icons/send-email.svg"
             alt="Send Email"
@@ -261,17 +252,11 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         </button>
 
         <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-          <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-yellow-400/10 transition-colors border border-yellow-400/30">
-            Preview
-          </button>
+          <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-yellow-400/10 transition-colors border border-yellow-400/30">Preview</button>
         </Link>
 
         <div className="relative">
-          <button
-            onClick={toggleActionMenu}
-            className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
-            aria-label="Team options"
-          >
+          <button onClick={toggleActionMenu} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" aria-label="Team options">
             <Image width={16} height={16} src="/icons/dots-vertical.svg" alt="Options" className="svg-white" />
           </button>
           <ActionMenu />
@@ -286,18 +271,13 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       <div className="flex-1 min-w-0">
         <h3 className="text-xs font-semibold text-white truncate">{team.name}</h3>
         <div className="mt-1">
-          <SelectInput
-            name="group"
-            optionList={filteredGroups}
-            handleSelect={handleGroupChange}
-            defaultValue={team.group?.toString() || ''}
-          />
+          <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
         </div>
       </div>
     </div>
   );
 
-  const CaptainSection = () => 
+  const CaptainSection = () =>
     team.captain && (
       <div className="flex items-center gap-3">
         <CaptainAvatar />
@@ -310,8 +290,10 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       </div>
     );
 
-  const MoveTeamSection = () => 
-    openMoveTeam && user?.info && (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
+  const MoveTeamSection = () =>
+    openMoveTeam &&
+    user?.info &&
+    (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
       <div className="border-t border-gray-700 bg-gray-750 p-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-4">
@@ -341,94 +323,76 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:block p-6">
-        <div className="flex items-center justify-between">
-          {/* Left Section */}
-          <div className="flex items-center gap-6 flex-1">
-            <div className="flex flex-col  items-center gap-2">
-              <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-              <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-sm min-w-[2.5rem] text-center">
-                {team.num}
-              </span>
-            </div>
+      <div className="w-full hidden md:flex p-2 items-center justify-between">
+        {/* Left Section */}
+        <div className="flex items-center gap-x-2">
+          <div className="flex flex-col  items-center gap-y-2">
+            <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+            <span className="bg-yellow-logo text-black font-bold rounded-full text-sm h-6 w-6 text-center flex justify-center items-center">{team.num}</span>
+          </div>
 
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              {team.logo ? 
-                <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="h-16" /> : 
-                <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />
-              }
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
-                <div className="w-48">
-                  <SelectInput
-                    name="group"
-                    optionList={filteredGroups}
-                    handleSelect={handleGroupChange}
-                    defaultValue={team.group?.toString() || ''}
-                  />
-                </div>
+          <div className="flex gap-x-2 items-center">
+            {team.logo ? (
+              <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="h-16" />
+            ) : (
+              <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />
+            )}
+            <div className="">
+              <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
+              <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Section */}
+        {team.captain && (
+          <div className="flex items-center">
+            {team.captain.profile ? (
+              <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
+                <CldImage crop="fit" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
               </div>
+            ) : (
+              <div className="w-12 h-12 rounded-full border border-yellow-400 flex items-center justify-center bg-gray-600 flex-shrink-0">
+                <Image src="/icons/sports-man.svg" width={28} height={28} alt="Captain" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs text-gray-400 uppercase">Captain</p>
+              <h4 className="text-sm font-semibold text-white truncate">
+                {team.captain.firstName} {team.captain.lastName}
+              </h4>
+              <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Right Section */}
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end gap-2">
+            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+              <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview Team</button>
+            </Link>
+            <div className="flex items-center text-sm text-gray-300">
+              <span className="mr-2">Players:</span>
+              <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{playerCount}</span>
             </div>
           </div>
 
-          {/* Middle Section */}
-          {team.captain && (
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="flex items-center gap-3">
-                {team.captain.profile ? (
-                  <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
-                    <CldImage crop="fit" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 rounded-full border border-yellow-400 flex items-center justify-center bg-gray-600 flex-shrink-0">
-                    <Image src="/icons/sports-man.svg" width={28} height={28} alt="Captain" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400 uppercase">Captain</p>
-                  <h4 className="text-sm font-semibold text-white truncate">
-                    {team.captain.firstName} {team.captain.lastName}
-                  </h4>
-                  <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="flex flex-col items-center gap-2">
+            <Image
+              onClick={(e) => handleSendCredential(e, team._id)}
+              src="/icons/send-email.svg"
+              alt="Send Email"
+              width={24}
+              height={24}
+              className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
+            />
 
-          {/* Right Section */}
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col items-end gap-2">
-              <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-                <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">
-                  Preview Team
-                </button>
-              </Link>
-              <div className="flex items-center text-sm text-gray-300">
-                <span className="mr-2">Players:</span>
-                <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{playerCount}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <Image
-                onClick={(e) => handleSendCredential(e, team._id)}
-                src="/icons/send-email.svg"
-                alt="Send Email"
-                width={24}
-                height={24}
-                className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
-              />
-
-              <div className="relative">
-                <button
-                  onClick={toggleActionMenu}
-                  className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors"
-                  aria-label="Options"
-                >
-                  <Image width={20} height={20} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
-                </button>
-                <ActionMenu />
-              </div>
+            <div className="relative">
+              <button onClick={toggleActionMenu} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
+                <Image width={20} height={20} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
+              </button>
+              <ActionMenu />
             </div>
           </div>
         </div>

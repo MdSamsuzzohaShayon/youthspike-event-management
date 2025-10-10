@@ -1084,11 +1084,4 @@ There is a button "load more" at the bottom,
 each time you click on that button you will get data of next 30 matches and it will combine with initial fetched data
 
 
-g 
-f 
-m 
-a 
-k 
-a 
-p 
-b
+Northeast Conference Minor

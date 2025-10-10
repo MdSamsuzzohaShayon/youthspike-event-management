@@ -167,6 +167,7 @@ function TeamListMain({ eventDetail }: ITeamsOfEventPage) {
       <div className="mt-8 w-full grid grid-cols-1 md:grid-cols-2 gap-x-4">
         <SelectInput
           name="division"
+          label="division"
           optionList={divisionList}
           value={filter.division}
           handleSelect={handleDivisionChange}

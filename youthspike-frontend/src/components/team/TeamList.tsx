@@ -27,6 +27,9 @@ const ITEMS_PER_PAGE = 20;
 function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamListProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  console.log({matchList});
+  
+
   /**
    * Precompute lookups for rounds and nets
    * O(1) access instead of filtering repeatedly

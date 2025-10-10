@@ -33,7 +33,6 @@ import { GET_AN_EVENT } from "@/graphql/event";
 import Loader from "../elements/Loader";
 
 interface IEventDetailProps {
-  // eventData: IEventDetailData;
   queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
   eventId: string;
 }
@@ -279,19 +278,43 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     );
 
     // Filter matches with team resolution
+    // const filteredMatches = [];
+
+    // for (const match of matches) {
+    //   // Apply all filters in a single pass
+    //   if (!filterByDivision(match)) continue;
+    //   if (!filterByGroupMatch(match)) continue;
+    //   if (!filterBySearchMatch(match)) continue;
+
+    //   // Resolve teams once
+    //   const teamA = match.teamA ? teamMap.get(String(match.teamA)) : null;
+    //   const teamB = match.teamB ? teamMap.get(String(match.teamB)) : null;
+
+    //   filteredMatches.push({ ...match, teamA, teamB });
+    // }
+
     const filteredMatches = [];
+    const filteredWithoutGroup = [];
 
     for (const match of matches) {
-      // Apply all filters in a single pass
-      if (!filterByDivision(match)) continue;
-      if (!filterByGroupMatch(match)) continue;
-      if (!filterBySearchMatch(match)) continue;
-
-      // Resolve teams once
+      // Resolve teams once for efficiency
       const teamA = match.teamA ? teamMap.get(String(match.teamA)) : null;
       const teamB = match.teamB ? teamMap.get(String(match.teamB)) : null;
 
-      filteredMatches.push({ ...match, teamA, teamB });
+      // Apply all filters
+      const passesDivision = filterByDivision(match);
+      const passesGroup = filterByGroupMatch(match);
+      const passesSearch = filterBySearchMatch(match);
+
+      // For the main filtered list (includes group filter)
+      if (passesDivision && passesGroup && passesSearch) {
+        filteredMatches.push({ ...match, teamA, teamB });
+      }
+
+      // For the second list (skips group filter)
+      if (passesDivision && passesSearch) {
+        filteredWithoutGroup.push({ ...match, teamA, teamB });
+      }
     }
 
     // Efficient sort: incomplete first, then by latest date
@@ -314,6 +337,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
       teams: filteredTeams,
       matches: filteredMatches,
       players: filteredPlayers,
+      matchesNoGroupFilter: filteredWithoutGroup
     };
   }, [
     teams,
@@ -408,7 +432,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
           <TeamList
             teamList={filteredData.teams as ITeamCaptain[]}
             selectedGroup={selectedGroup}
-            matchList={filteredData.matches as IMatch[]}
+            matchList={filteredData.matchesNoGroupFilter as IMatch[]}
             nets={nets}
             rounds={rounds}
           />
@@ -425,12 +449,6 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
         return null;
     }
   }, [filteredData, selectedGroup, selectedItem, playerStatsMap, nets, rounds]);
-
-  // Memoize navigation items
-  const navItems = useMemo(
-    () => [EEventItem.PLAYER, EEventItem.TEAM, EEventItem.MATCH],
-    []
-  );
 
   if (!eventData) {
     return <Loader />;
@@ -460,7 +478,6 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
       <EventNavigationTabs
         selectedItem={selectedItem}
         handleItemSelect={handleItemSelect}
-        navItems={navItems}
         isMobile
       />
 
@@ -480,7 +497,6 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
         <EventNavigationTabs
           selectedItem={selectedItem}
           handleItemSelect={handleItemSelect}
-          navItems={navItems}
         />
 
         <div className="block md:hidden">
