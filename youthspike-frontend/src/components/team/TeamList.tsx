@@ -26,8 +26,6 @@ const ITEMS_PER_PAGE = 20;
 
 function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamListProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
-
-  console.log({matchList});
   
 
   /**
@@ -111,10 +109,10 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
 
         if (teamScore > oponentScore) {
           teamRecord.overallWins++;
-          if (match?.group?._id || match?.group) teamRecord.groupWins++;
+          if (match.group && String(match.group) !== "" && String(match.group) !== "undefined" && (match?.group?._id || match?.group)) teamRecord.groupWins++;
         } else if (oponentScore > teamScore) {
           teamRecord.overallLoses++;
-          if (match?.group?._id || match?.group) teamRecord.groupLoses++;
+          if (match.group && String(match.group) !== "" && String(match.group) !== "undefined" && String(match.group) !== undefined && (match?.group?._id || match?.group)) teamRecord.groupLoses++;
         }
 
         totalNets += match.nets.length;

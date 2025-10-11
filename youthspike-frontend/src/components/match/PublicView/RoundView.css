@@ -1,0 +1,24 @@
+/* Breakpoints */
+/* 740px mobile landscape  */
+/* 360px mobile poietrat  */
+
+
+.net-in-round{
+    width: 48%;
+}
+
+.team-score-poietrat{
+    display: none;
+}
+
+@media (max-width: 360px){
+    .net-in-round{
+        width: 100%;
+    }
+    .team-score{
+        display: none;
+    }
+    .team-score-poietrat{
+        display: flex;
+    }
+}
