@@ -111,6 +111,7 @@ const organizeFetchedData = async ({
     serverReceiverOnNet, // Bound to net
     serverReceiverSinglePlay,
   } = matchData;
+  
 
   const CURRENT_NET_NUM = 1;
 

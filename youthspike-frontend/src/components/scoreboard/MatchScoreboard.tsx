@@ -163,6 +163,7 @@ export function MatchScoreBoard({ queryRef }: IMatchScoreBoardProps) {
       serverReceiversOnNet={serverReceiversOnNet}
       currServerReceiver={currServerReceiver}
       matchId={match._id}
+      serverReceiverPlays={serverReceiverPlays}
     />
   );
 }
