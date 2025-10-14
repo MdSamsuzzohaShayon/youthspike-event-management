@@ -247,7 +247,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
             {/* Filter Controls */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
               {(user?.info?.role === undefined || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(user.info.role)) && (
-                <SelectInput key="players-pg-2" handleSelect={handleDivisionChange} value={filter.division} name="division" optionList={divisionList} />
+                <SelectInput key="players-pg-2" handleSelect={handleDivisionChange} value={filter.division} name="division" label="division" optionList={divisionList} />
               )}
               <InputField name="search" type="text" value={filter.search} placeholder="Search by name..." handleInputChange={handleSearchChange} />
             </div>

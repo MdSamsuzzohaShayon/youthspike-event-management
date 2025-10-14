@@ -1,34 +1,50 @@
-/* Breakpoints */
-/* 740px mobile landscape  */
-/* 360px mobile poietrat  */
+/* Define the container */
+.round-view {
+  container-type: inline-size;
+  container-name: round-view;
+}
 
 /* Default (Desktop) */
 .net-in-round {
-  margin-top: 20px;
+  margin-top: 10px;
   width: 48%;
 }
 
-
-/* Not working  */
 .net-in-round .top-side {
-  min-height: 50%;
+  /* min-height: 50%; */
 }
 
 .net-in-round .bottom-side{
-  min-height: 200px;
+  /* min-height: 200px; */
 }
 
- /* Not working */
-.vertical-separator {
-  min-height: 165px;
-}
+
 
 .team-score-poietrat {
   display: none;
 }
 
+.two-nets-row{
+  margin-top: 10px;
+}
+
 .one-nets-row {
   margin-top: 10px;
+}
+
+.net-team-score{
+  font-family: "Anton", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  font-size: 4rem;
+  line-height: 1;
+}
+
+.image-container{
+  height: 50px;
+}
+.action-player-img{
+  height: 60px;
 }
 
 .player-name {
@@ -42,13 +58,18 @@
   display: block; */
 }
 
+.server-receiver-text{
+  font-size: 1rem;
+  font-family: "Vujahday Script", cursive;
+}
+
 .team-in-net {
 }
 
 /* =============================== */
 /* 📱 Mobile Landscape (≤740px)    */
 /* =============================== */
-@media (max-width: 740px) and (orientation: landscape) {
+@container round-view (max-width: 740px) {
   .player-name {
     /* font-size: 0.5rem !important;
     line-height: 1;
@@ -63,26 +84,32 @@
     width: 48%;
   }
   .net-in-round .top-side {
-    min-height: 80%;
+    /* min-height: 80%; */
   }
 
-  .vertical-separator {
-    min-height: 100px;
-  }
 
   .team-score {
     width: 30%;
   }
 
-  .image-container {
-    max-width: 30px !important;
+  .net-team-score{
+    font-size: 4.5rem;
   }
+
+  .image-container{
+    height: 60px;
+  }
+  .action-pt-img{
+    height: 40px;
+  }
+  
+
 }
 
 /* =============================== */
 /* 📱 Mobile Portrait (≤480px)     */
 /* =============================== */
-@media (max-width: 480px) {
+@container round-view (max-width: 480px) {
   .team-score {
     display: none;
   }
@@ -90,6 +117,9 @@
     /* font-size: 0.65rem; */
     /* line-height: 1.1;
     padding: 0 2px; */
+  }
+  .server-receiver-text{
+    font-size: 1.5rem;
   }
 
   .team-in-net {
@@ -100,7 +130,7 @@
   }
 
   .net-in-round .top-side {
-    min-height: 50%;
+    /* min-height: 50%; */
   }
 
   .vertical-separator {
@@ -110,14 +140,18 @@
   .team-score-poietrat {
     display: flex;
   }
-
-  .image-container {
-    max-width: 40px;
+  .net-team-score{
+    font-size: 6rem;
   }
+
+  .image-container{
+    height: 70px;
+  }
+
 }
 
-/* Additional breakpoint for very small landscape */
-@media (max-width: 740px) and (orientation: landscape) and (max-height: 400px) {
+/* Additional breakpoint for very small containers (equivalent to very small landscape) */
+@container round-view (max-width: 400px) {
   .player-name {
     /* font-size: 0.4rem !important;
     line-height: 1;
@@ -127,13 +161,17 @@
   .team-in-net {
   }
 
-  .image-container {
-    max-width: 25px !important;
+  .net-team-score{
+    font-size: 6rem;
+  }
+
+  .image-container{
+    height: 70px;
   }
 }
 
 /* Medium screens */
-@media (min-width: 481px) and (max-width: 1024px) {
+@container round-view (min-width: 481px) and (max-width: 1024px) {
   .player-name {
     font-size: 0.5rem;
   }
@@ -142,19 +180,36 @@
   }
 
   .net-in-round .top-side {
-    min-height: 80%;
+    /* min-height: 80%; */
   }
-  .vertical-separator {
-    min-height: 100px;
+  .net-team-score{
+    font-size: 4.5rem;
+  }
+  .image-container{
+    height: 60px;
+  }
+  .action-pt-img{
+    height: 40px;
   }
 }
 
 /* Large screens */
-@media (min-width: 1025px) {
+@container round-view (min-width: 1025px) {
   .player-name {
     font-size: 0.8rem;
   }
 
   .team-in-net {
+  }
+
+  .image-container {
+    height: 150px;
+  }
+
+  .net-team-score{
+    font-size: 10rem;
+  }
+  .server-receiver-text{
+    font-size: 2rem;
   }
 }

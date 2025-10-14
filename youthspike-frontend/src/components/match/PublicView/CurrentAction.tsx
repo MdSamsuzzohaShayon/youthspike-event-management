@@ -3,7 +3,6 @@ import {
   EServerReceiverAction,
   INetRelatives,
   IPlayer,
-  IServerReceiverOnNetMixed,
   IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
@@ -11,12 +10,11 @@ import { CldImage } from "next-cloudinary";
 import React, { useMemo } from "react";
 
 interface ICurrentActionProps {
-  srOnNet: IServerReceiverOnNetMixed | null;
-  serverReceiverPlays: IServerReceiverSinglePlay[];
   playerMap: Map<string, IPlayer>;
   net: INetRelatives;
   teamA: ITeam | null;
   teamB: ITeam | null;
+  lastPlay: IServerReceiverSinglePlay | null;
 }
 
 /**
@@ -36,24 +34,18 @@ const findTeamByPlayer = (
 };
 
 const CurrentAction: React.FC<ICurrentActionProps> = ({
-  srOnNet,
-  serverReceiverPlays,
   playerMap,
   teamA,
   teamB,
   net,
+  lastPlay,
 }) => {
-  if (!srOnNet || !serverReceiverPlays.length) return null;
+  
+  // if (!srOnNet || !serverReceiverPlays.length) return null;
 
   /**
    * ✅ Sort once (not mutating original array)
    */
-  const sortedPlays = useMemo(
-    () => [...serverReceiverPlays].sort((a, b) => a.play - b.play),
-    [serverReceiverPlays]
-  );
-
-  const lastPlay = sortedPlays.at(-1);
   if (!lastPlay) return null;
 
   /**
@@ -91,7 +83,6 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
       case EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION:
         actionText = "RALLY POINT";
         team = servingTeam;
-        player = playerMap.get(serverId) || null;
         break;
 
       case EServerReceiverAction.SERVER_DO_NOT_KNOW:
@@ -132,44 +123,44 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
    * ✅ Simple rendering section
    */
   return (
-    <div className="w-full flex flex-col items-center space-y-1">
+    <div className="w-full flex flex-col items-center">
       {info.actionText && (
-        <h4
-          className="text-xs md:text-sm font-bold text-center bg-yellow-300 text-black rounded px-2 py-0.5
-          animate-pulse shadow-[0_0_10px_rgba(253,224,71,0.9)] drop-shadow-[0_0_6px_rgba(253,224,71,0.8)]"
-        >
+        <span className="text-xs md:text-sm font-bold text-center text-yellow-400 leading-none animate-pulse [text-shadow:0_0_8px_#facc15]">
           {info.actionText}
-        </h4>
+        </span>
       )}
 
-      <div className="w-18 h-18 flex justify-between items-center gap-x-1">
-        {info.player && (
-          info.player.profile ? (
+      <div className="player-in-action flex justify-center items-center gap-x-1">
+        {info.player &&
+          (info.player.profile ? (
             <CldImage
               src={info.player.profile}
               alt={info.player.firstName}
               height={100}
               width={100}
-              className="w-3/6"
+              className={`action-pt-img ${
+                info?.team ? "w-3/6" : "w-full"
+              } action-pt-img rounded-lg border border-white`}
             />
           ) : (
-            <TextImg className="w-3/6" fullText={info.player.firstName} />
-          )
-        )}
+            <TextImg
+              className={`${info?.team ? "w-3/6" : "w-full"}`}
+              fullText={info.player.firstName}
+            />
+          ))}
 
-        {info.team && (
-          info.team.logo ? (
+        {info.team &&
+          (info.team.logo ? (
             <CldImage
               src={info.team.logo}
               alt={info.team.name}
               height={100}
               width={100}
-              className="w-3/6"
+              className={`${info?.player ? "w-3/6" : "w-full"} action-pt-img`}
             />
           ) : (
-            <TextImg className="w-3/6" fullText={info.team.name} />
-          )
-        )}
+            <TextImg className={info?.player ? "w-3/6" : "w-full"} fullText={info.team.name} />
+          ))}
       </div>
 
       {info.player && (

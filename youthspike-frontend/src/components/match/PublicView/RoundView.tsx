@@ -132,7 +132,7 @@ const RoundView = ({
         />
       </div>
       {/* Show team score here only for portrait  */}
-      <div className="team-score-poietrat flex justify-center items-center gap-4 mb-4">
+      <div className="team-score-poietrat flex justify-center items-center gap-4">
         <ScoreBox
           name={teamA?.name || ""}
           teamLogo={teamA?.logo || null}

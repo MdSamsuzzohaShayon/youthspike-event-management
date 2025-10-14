@@ -16,11 +16,11 @@ const RoundSelector: FC<IRoundSelectorProps> = ({
   if (!currRound) return null;
 
   return (
-    <div className="round-selector flex items-center justify-center gap-4 bg-yellow-logo px-4 py-2 rounded-lg w-max mx-auto">
+    <div className="round-selector flex items-center justify-center gap-4 bg-yellow-logo rounded-lg">
       {/* Left arrow (rotated) */}
       <button
         onClick={handleRoundChange(ENDirection.PREV)}
-        className="p-2 hover:bg-yellow-700 rounded-full transition"
+        className="hover:bg-yellow-700 rounded-full transition"
       >
         <Image
           src="/icons/right-arrow.svg"
@@ -39,7 +39,7 @@ const RoundSelector: FC<IRoundSelectorProps> = ({
       {/* Right arrow */}
       <button
         onClick={handleRoundChange(ENDirection.NEXT)}
-        className="p-2 hover:bg-yellow-700 rounded-full transition"
+        className="hover:bg-yellow-700 rounded-full transition"
       >
         <Image
           src="/icons/right-arrow.svg"
