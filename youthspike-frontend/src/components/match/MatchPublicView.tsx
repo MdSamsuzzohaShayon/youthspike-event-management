@@ -192,36 +192,38 @@ function MatchPublicView({
         </div>
       </div>
 
-      {/* Views */}
-      {view === EView.ROUND && (
-        <RoundView
-          currRound={currRound}
-          currRoundNets={currRoundNets}
-          teamA={teamA}
-          teamB={teamB}
-          setView={setView}
-          allNets={nets}
-          roundList={roundList}
-          srMap={srMap}
-          matchId={matchId}
-          view={view}
-          playerMap={playerMap}
-          playMapByNet={playMapByNet}
-        />
-      )}
-      {view === EView.NET && selectedNet && (
-        <NetInRound
-          net={selectedNet || null}
-          teamA={teamA}
-          teamB={teamB}
-          playerMap={playerMap}
-          srMap={srMap}
-          playMapByNet={playMapByNet}
-          view={view}
-          matchId={matchId}
-          setView={setView}
-        />
-      )}
+      <div className="round-net-view w-full">
+        {/* Views */}
+        {view === EView.ROUND && (
+          <RoundView
+            currRound={currRound}
+            currRoundNets={currRoundNets}
+            teamA={teamA}
+            teamB={teamB}
+            setView={setView}
+            allNets={nets}
+            roundList={roundList}
+            srMap={srMap}
+            matchId={matchId}
+            view={view}
+            playerMap={playerMap}
+            playMapByNet={playMapByNet}
+          />
+        )}
+        {view === EView.NET && selectedNet && (
+          <NetInRound
+            net={selectedNet || null}
+            teamA={teamA}
+            teamB={teamB}
+            playerMap={playerMap}
+            srMap={srMap}
+            playMapByNet={playMapByNet}
+            view={view}
+            matchId={matchId}
+            setView={setView}
+          />
+        )}
+      </div>
     </div>
   );
 }

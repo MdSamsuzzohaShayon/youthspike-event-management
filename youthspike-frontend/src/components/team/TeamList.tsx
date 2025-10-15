@@ -18,7 +18,7 @@ interface ITeamListProps {
   rounds: IRoundRelatives[];
   nets: INetRelatives[];
   teamList: ITeamCaptain[];
-  matchList?: IMatch[];
+  matchList?: IMatch[]; // Matches without group filter
   selectedGroup?: string | null;
 }
 

@@ -20,7 +20,7 @@ const ScoreBox: React.FC<IScoreBoxProps> = ({ name, teamLogo, score, roundScore 
     ) : (
       <TextImg fullText={name} className="w-20 h-20" />
     )}
-    <div className={`score ${roundScore ? "text-8xl" : "text-6xl"} text-center`}>{score}</div>
+    <div className={`team-score-point ${roundScore ? "text-8xl" : "text-6xl"} text-center`}>{score}</div>
   </div>
 );
 

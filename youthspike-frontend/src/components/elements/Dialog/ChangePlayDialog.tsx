@@ -5,12 +5,12 @@ import React, { useMemo } from "react";
 interface IChangePlayDialogProps {
   changePlayEl: React.RefObject<HTMLDialogElement | null>;
   currPlays: IServerReceiverSinglePlay[];
-  toBeSelectedPlay: null | number;
   playerMap: Map<string, IPlayer>;
-  setToBeSelectedPlay: React.Dispatch<React.SetStateAction<number | null>>;
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
-  handlePlayChange: () => void;
+  toBeSelectedPlay?: null | number;
+  setToBeSelectedPlay?: React.Dispatch<React.SetStateAction<number | null>>;
+  handlePlayChange?: () => void;
 }
 
 function ChangePlayDialog({
@@ -23,13 +23,11 @@ function ChangePlayDialog({
   playerMap,
   handlePlayChange,
 }: IChangePlayDialogProps) {
-
-  
   return (
     <dialog ref={changePlayEl} className="modal-dialog">
       <div className="p-6 space-y-4 max-h-[90vh] overflow-hidden flex flex-col">
         <h2 className="text-xl font-semibold text-yellow-400">
-          Select specific play
+          {setToBeSelectedPlay ? "Select specific play" : "All plays of the net"}
         </h2>
 
         {/* Scrollable content body */}
@@ -64,24 +62,26 @@ function ChangePlayDialog({
 
         {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-4">
-          <button
-            className={`${
-              toBeSelectedPlay
-                ? "bg-yellow-logo hover:bg-yellow-400 text-black"
-                : "bg-gray-700 hover:bg-gray-800 text-white"
-            }   px-4 py-2 rounded-md font-medium transition duration-200"`}
-            onClick={toBeSelectedPlay ? handlePlayChange : () => {}}
-          >
-            Confirm
-          </button>
+          {setToBeSelectedPlay && (
+            <button
+              className={`${
+                toBeSelectedPlay
+                  ? "bg-yellow-logo hover:bg-yellow-400 text-black"
+                  : "bg-gray-700 hover:bg-gray-800 text-white"
+              }   px-4 py-2 rounded-md font-medium transition duration-200"`}
+              onClick={toBeSelectedPlay ? handlePlayChange : () => {}}
+            >
+              Confirm
+            </button>
+          )}
           <button
             className="bg-transparent border border-yellow-logo text-yellow-400 hover:bg-yellow-600 hover:text-white px-4 py-2 rounded-md transition duration-200"
             onClick={() => {
               changePlayEl.current?.close();
-              setToBeSelectedPlay(null);
+              if (setToBeSelectedPlay) setToBeSelectedPlay(null);
             }}
           >
-            Cancel
+            {setToBeSelectedPlay ? "Cancel" : "Exit"}
           </button>
         </div>
       </div>

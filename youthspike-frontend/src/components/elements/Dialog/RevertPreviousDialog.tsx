@@ -14,17 +14,17 @@ import { Socket } from "socket.io-client";
 interface IRevertPreviousDialogProps {
   revertPlayEl: React.RefObject<HTMLDialogElement | null>;
   currPlays: IServerReceiverSinglePlay[];
-  socket: Socket | null;
   dispatch: React.Dispatch<React.SetStateAction<any>>;
   currMatch: IMatchRelatives;
-  netByNum: Map<number, INetRelatives>;
   currNetNum: number;
-  token: string | null;
-  accessCode: IAccessCode | null;
   currRoom: IRoom | null;
   playerMap: Map<string, IPlayer>;
   teamAPlayers: IPlayer[];
   teamBPlayers: IPlayer[];
+  netByNum?: Map<number, INetRelatives>;
+  socket?: Socket | null;
+  token?: string | null;
+  accessCode?: IAccessCode | null;
 }
 
 function RevertPreviousDialog({
@@ -42,8 +42,18 @@ function RevertPreviousDialog({
   teamAPlayers,
   teamBPlayers,
 }: IRevertPreviousDialogProps) {
+
+  
   const handleRevertPlay = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    if (!socket) {
+      console.log("No socket found");
+      return;
+    }
+    if(!netByNum){
+      console.log("No net number found");
+      return;
+    }
     const emit = new EmitEvents(socket, dispatch);
     if (currPlays.length === 1) {
       // Reset

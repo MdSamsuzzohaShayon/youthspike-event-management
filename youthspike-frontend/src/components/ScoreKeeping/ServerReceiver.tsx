@@ -751,7 +751,7 @@ export default function ServerReceiver({
         setToBeSelectedPlay={setToBeSelectedPlay}
         toBeSelectedPlay={toBeSelectedPlay}
         teamAPlayers={teamAPlayers}
-        teamBPlayers={teamAPlayers}
+        teamBPlayers={teamBPlayers}
         playerMap={playerMap}
       />
 

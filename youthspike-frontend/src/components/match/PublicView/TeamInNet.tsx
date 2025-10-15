@@ -2,13 +2,14 @@ import TextImg from "@/components/elements/TextImg";
 import {
   EServerReceiverAction,
   ETeam,
+  EView,
   IPlayer,
   IServerReceiverOnNetMixed,
   IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
 import { CldImage } from "next-cloudinary";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 interface ITeamInNetProps {
   team: ITeam;
@@ -17,6 +18,7 @@ interface ITeamInNetProps {
   teamE: ETeam;
   srOnNet: IServerReceiverOnNetMixed | null;
   lastPlay: IServerReceiverSinglePlay | null;
+  view: EView;
 }
 
 const TeamInNet: React.FC<ITeamInNetProps> = ({
@@ -26,6 +28,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
   teamE,
   srOnNet,
   lastPlay,
+  view,
 }) => {
   const teamScored = useMemo(() => {
     let scored = false;
@@ -63,13 +66,31 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
     }
     return scored;
   }, [lastPlay, playerA, playerB]);
+
+  const playerAName = useMemo(() => {
+    const first = playerA?.firstName?.trim() || "";
+    const last = playerA?.lastName?.trim() || "";
+    return { firstName: first, lastName: last };
+  }, [playerA?.firstName, playerA?.lastName]);
+
+  const playerBName = useMemo(() => {
+    const first = playerB?.firstName?.trim() || "";
+    const last = playerB?.lastName?.trim() || "";
+    return { firstName: first, lastName: last };
+  }, [playerB?.firstName, playerB?.lastName]);
   // Find last play of the net
   return (
-    <div className="team-in-net team-a w-3/6 flex items-start justify-between p-1">
+    <div className="team-in-net team-a w-3/6 flex items-center justify-between p-1">
       <div className="w-4/12 flex flex-col items-center space-y-1">
         {playerA && (
           <>
-            <div className="image-container w-full aspect-square flex justify-center items-center overflow-hidden">
+            <div
+              className={`${
+                view === EView.ROUND
+                  ? "image-container"
+                  : "image-container-single"
+              } w-full aspect-square flex justify-center items-center overflow-hidden`}
+            >
               {playerA?.profile ? (
                 <CldImage
                   className={`w-full h-full object-cover object-center border rounded-lg ${
@@ -100,45 +121,44 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                   R
                 </span>
               )}
-              <span>
-                {(() => {
-                  const words = `${playerA.firstName} ${playerA.lastName}`
-                    .trim()
-                    .split(" ");
-                  const first = words[0] || "";
-                  const second = words[1] || "";
-                  return (
-                    <>
-                      <span className="font-bold">{first}</span>
-                      {second && ` ${second}`}
-                    </>
-                  );
-                })()}
+              <span className="flex flex-col leading-tight items-start">
+                {playerAName.firstName && (
+                  <span className="font-bold">{playerAName.firstName}</span>
+                )}
+                {playerAName.lastName && <span>{playerAName.lastName}</span>}
               </span>
             </p>
           </>
         )}
       </div>
       <div className="w-4/12 flex justify-center">
-        <div className="image-container w-full aspect-square flex flex-col justify-center items-center overflow-hidden">
-          {team?.logo ? (
-            <CldImage
-              src={team.logo}
-              alt={team.name}
-              className="w-full"
-              height={120}
-              width={120}
-            />
-          ) : (
-            <TextImg className="w-full" fullText={team.name} />
-          )}
-          {teamScored && <span className="text-yellow-logo">+1</span>}
+        <div className="image-container w-full aspect-square flex flex-col justify-center items-center">
+          <div className={`${view === EView.ROUND ? "team-logo-wrapper" : "team-logo-wrapper-single"}`}>
+            {team?.logo ? (
+              <CldImage
+                src={team.logo}
+                alt={team.name}
+                className="w-full"
+                height={120}
+                width={120}
+              />
+            ) : (
+              <TextImg className="w-full" fullText={team.name} />
+            )}
+          </div>
+          {teamScored && <span className={`${ view === EView.ROUND ? "plus-one" : "plus-one-single" } text-yellow-logo font-bold text-center leading-none animate-pulse [text-shadow:0_0_8px_#facc15]`}>+1</span>}
         </div>
       </div>
       <div className="w-4/12 flex flex-col items-center space-y-1">
         {playerB && (
           <>
-            <div className="image-container w-full aspect-square flex justify-center items-center overflow-hidden">
+            <div
+              className={`${
+                view === EView.ROUND
+                  ? "image-container"
+                  : "image-container-single"
+              } w-full aspect-square flex justify-center items-center overflow-hidden`}
+            >
               {playerB?.profile ? (
                 <CldImage
                   className={`w-full h-full object-cover object-center border rounded-lg ${
@@ -169,20 +189,11 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                   R
                 </span>
               )}
-              <span>
-                {(() => {
-                  const words = `${playerB.firstName} ${playerB.lastName}`
-                    .trim()
-                    .split(" ");
-                  const first = words[0] || "";
-                  const second = words[1] || "";
-                  return (
-                    <>
-                      <span className="font-bold">{first}</span>
-                      {second && ` ${second}`}
-                    </>
-                  );
-                })()}
+              <span className="flex flex-col leading-tight items-start">
+                {playerBName.firstName && (
+                  <span className="font-bold">{playerBName.firstName}</span>
+                )}
+                {playerBName.lastName && <span>{playerBName.lastName}</span>}
               </span>
             </p>
           </>

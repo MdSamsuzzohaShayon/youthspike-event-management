@@ -1,6 +1,7 @@
 import TextImg from "@/components/elements/TextImg";
 import {
   EServerReceiverAction,
+  EView,
   INetRelatives,
   IPlayer,
   IServerReceiverSinglePlay,
@@ -15,6 +16,7 @@ interface ICurrentActionProps {
   teamA: ITeam | null;
   teamB: ITeam | null;
   lastPlay: IServerReceiverSinglePlay | null;
+  view: EView;
 }
 
 /**
@@ -39,8 +41,8 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
   teamB,
   net,
   lastPlay,
+  view,
 }) => {
-  
   // if (!srOnNet || !serverReceiverPlays.length) return null;
 
   /**
@@ -125,46 +127,61 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
   return (
     <div className="w-full flex flex-col items-center">
       {info.actionText && (
-        <span className="text-xs md:text-sm font-bold text-center text-yellow-400 leading-none animate-pulse [text-shadow:0_0_8px_#facc15]">
+        <span className="w-full text-xs md:text-sm font-bold text-center text-yellow-400 leading-none animate-pulse [text-shadow:0_0_8px_#facc15]">
           {info.actionText}
         </span>
       )}
 
-      <div className="player-in-action flex justify-center items-center gap-x-1">
+      <div className="w-full player-in-action flex justify-center items-center gap-x-1">
         {info.player &&
           (info.player.profile ? (
-            <CldImage
-              src={info.player.profile}
-              alt={info.player.firstName}
-              height={100}
-              width={100}
-              className={`action-pt-img ${
-                info?.team ? "w-3/6" : "w-full"
-              } action-pt-img rounded-lg border border-white`}
-            />
+            <div className={`${
+              view === EView.ROUND ? "action-pt-img" : "action-pt-img-single"
+            }`}>
+              <CldImage
+                src={info.player.profile}
+                alt={info.player.firstName}
+                height={100}
+                width={100}
+                className={`w-full rounded-lg border border-white`}
+              />
+            </div>
           ) : (
             <TextImg
-              className={`${info?.team ? "w-3/6" : "w-full"}`}
+              className={`${
+                view === EView.ROUND ? "action-pt-img" : "action-pt-img-single"
+              } rounded-lg`}
               fullText={info.player.firstName}
             />
           ))}
 
         {info.team &&
           (info.team.logo ? (
-            <CldImage
-              src={info.team.logo}
-              alt={info.team.name}
-              height={100}
-              width={100}
-              className={`${info?.player ? "w-3/6" : "w-full"} action-pt-img`}
-            />
+            <div
+              className={`${
+                view === EView.ROUND ? "action-pt-img" : "action-pt-img-single"
+              }`}
+            >
+              <CldImage
+                src={info.team.logo}
+                alt={info.team.name}
+                height={100}
+                width={100}
+                className="w-full"
+              />
+            </div>
           ) : (
-            <TextImg className={info?.player ? "w-3/6" : "w-full"} fullText={info.team.name} />
+            <TextImg
+              className={`${
+                view === EView.ROUND ? "action-pt-img" : "action-pt-img-single"
+              } rounded-lg`}
+              fullText={info.team.name}
+            />
           ))}
       </div>
 
       {info.player && (
-        <h4 className="player-name uppercase text-center">
+        <h4 className="w-full player-name uppercase text-center">
           {info.player.firstName} {info.player.lastName}
         </h4>
       )}

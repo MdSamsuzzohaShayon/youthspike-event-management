@@ -12,11 +12,14 @@ import {
 } from "@/types";
 import CurrentAction from "./CurrentAction";
 import LocalStorageService from "@/utils/LocalStorageService";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setCurrNetNum } from "@/redux/slices/netSlice";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import { useLdoId } from "@/lib/LdoProvider";
+import { toOrdinal } from "@/utils/helper";
+import RevertPreviousDialog from "@/components/elements/Dialog/RevertPreviousDialog";
+import ChangePlayDialog from "@/components/elements/Dialog/ChangePlayDialog";
 
 interface INetInRoundProps {
   net: INetRelatives;
@@ -43,6 +46,12 @@ const NetInRound: React.FC<INetInRoundProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
+  const changePlayEl = useRef<HTMLDialogElement | null>(null);
+
+  const { teamAPlayers, teamBPlayers } = useAppSelector((state) => ({
+    teamAPlayers: state.players.teamAPlayers,
+    teamBPlayers: state.players.teamBPlayers,
+  }));
 
   const srOnNet = useMemo(() => {
     return srMap.get(net._id) || null;
@@ -66,6 +75,7 @@ const NetInRound: React.FC<INetInRoundProps> = ({
       setView(EView.NET);
     }
   };
+
   return (
     <div className="relative w-full border border-white rounded-lg">
       <div className="net-bar bg-yellow-logo absolute -top-4 left-1/2 -translate-x-1/2 py-0 px-1 text-black rounded-lg flex justify-between items-center gap-x-2">
@@ -104,6 +114,16 @@ const NetInRound: React.FC<INetInRoundProps> = ({
           />
         )}
       </div>
+      {lastPlay && (
+        <button
+          onClick={() => {
+            changePlayEl.current?.showModal();
+          }}
+          className="net-play bg-yellow-logo absolute -bottom-3 left-1/2 -translate-x-1/2 left-0 py-0 px-1 text-black rounded-lg"
+        >
+          {`${toOrdinal(lastPlay.play)} play`}
+        </button>
+      )}
       {/* Top side  */}
       <div className="top-side flex justify-between items-start mt-2">
         {teamA && (
@@ -118,6 +138,7 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             teamE={ETeam.teamA}
             srOnNet={srOnNet}
             lastPlay={lastPlay}
+            view={view}
           />
         )}
 
@@ -133,17 +154,28 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             teamE={ETeam.teamB}
             srOnNet={srOnNet}
             lastPlay={lastPlay}
+            view={view}
           />
         )}
       </div>
 
       {/* Bottom side  */}
       <div className="bottom-side flex justify-between items-center p-1">
-        <span className="net-team-score bg-[#ffffff] text-black rounded-lg text-center drop-shadow-[1px_1px_2px_rgba(0,0,0,0.7)]">
-          {srOnNet?.net === net._id
-            ? srOnNet?.teamAScore || net?.teamAScore || 0
-            : net?.teamAScore || 0}
-        </span>
+        <div
+          className={`${
+            view === EView.ROUND ? "score-wrapper" : "score-wrapper-single"
+          } bg-[#ffffff] text-black rounded-lg text-center flex justify-center items-center`}
+        >
+          <span
+            className={`team-score-in-round ${
+              view === EView.ROUND ? "net-team-score" : "net-team-score-single"
+            }`}
+          >
+            {srOnNet?.net === net._id
+              ? srOnNet?.teamAScore || net?.teamAScore || 0
+              : net?.teamAScore || 0}
+          </span>
+        </div>
         {/* <span className="net-team-score bg-[#ffffff] text-black rounded text-center drop-shadow-[1px_1px_2px_rgba(0,0,0,0.7)] h-8 flex items-center justify-center px-3">12</span> */}
         <div className="w-4/12">
           <CurrentAction
@@ -152,15 +184,33 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             net={net}
             teamA={teamA}
             teamB={teamB}
+            view={view}
           />
         </div>
-        <div className="net-team-score bg-[#e43756] text-black rounded-lg text-center text-white drop-shadow-[1px_1px_2px_rgba(255,255,255,0.6)]">
-          {/* {net?.teamBScore || 0} */}
-          {srOnNet?.net === net._id
-            ? srOnNet?.teamBScore || net?.teamBScore || 0
-            : net?.teamBScore || 0}
+        <div
+          className={`${
+            view === EView.ROUND ? "score-wrapper" : "score-wrapper-single"
+          } bg-[#e43756] text-white rounded-lg text-center flex justify-center items-center`}
+        >
+          <span
+            className={`team-score-in-round ${
+              view === EView.ROUND ? "net-team-score" : "net-team-score-single"
+            }`}
+          >
+            {srOnNet?.net === net._id
+              ? srOnNet?.teamBScore || net?.teamBScore || 0
+              : net?.teamBScore || 0}
+          </span>
         </div>
       </div>
+
+      <ChangePlayDialog
+        changePlayEl={changePlayEl}
+        currPlays={sortedPlays}
+        teamAPlayers={teamAPlayers}
+        teamBPlayers={teamBPlayers}
+        playerMap={playerMap}
+      />
     </div>
   );
 };

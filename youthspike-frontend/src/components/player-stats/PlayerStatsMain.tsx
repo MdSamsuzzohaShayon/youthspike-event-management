@@ -243,15 +243,15 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   return (
     <div className="container mx-auto px-2">
       {/* <!-- Player Profile Header --> */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
-        <div className="order-2 md:order-1 flex-1">
+      <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8 mb-12">
+        <div className="w-full">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
             {player.firstName} {player.lastName}
           </h1>
-          <p className="text-yellow-logo font-medium mt-1">
+          <p className="text-yellow-logo font-medium mt-2">
             {player.status} | {player.division}
           </p>
-          <div className="mt-4 flex gap-4">
+          <div className="flex justify-between md:justify-start gap-x-2 items-center mt-2">
             <div className="bg-gray-800 px-4 py-2 rounded-lg">
               <p className="text-xs text-gray-400 uppercase">Team</p>
               <p className="font-medium">{team?.name || ""}</p>
@@ -264,7 +264,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             )}
           </div>
         </div>
-        <div className="order-1 md:order-2 relative">
+        <div className="relative">
           {player.profile ? (
             <CldImage
               alt=""

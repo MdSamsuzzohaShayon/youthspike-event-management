@@ -295,6 +295,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
 
     const filteredMatches = [];
     const filteredWithoutGroup = [];
+    const matchList = []; // not filter
 
     for (const match of matches) {
       // Resolve teams once for efficiency
@@ -305,6 +306,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
       const passesDivision = filterByDivision(match);
       const passesGroup = filterByGroupMatch(match);
       const passesSearch = filterBySearchMatch(match);
+
+      matchList.push({ ...match, teamA, teamB });
 
       // For the main filtered list (includes group filter)
       if (passesDivision && passesGroup && passesSearch) {
@@ -337,7 +340,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
       teams: filteredTeams,
       matches: filteredMatches,
       players: filteredPlayers,
-      matchesNoGroupFilter: filteredWithoutGroup
+      matchesNoGroupFilter: filteredWithoutGroup,
+      matchList
     };
   }, [
     teams,
@@ -431,8 +435,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
         return (
           <TeamList
             teamList={filteredData.teams as ITeamCaptain[]}
-            selectedGroup={selectedGroup}
-            matchList={filteredData.matchesNoGroupFilter as IMatch[]}
+            selectedGroup={selectedGroup }
+            matchList={filteredData.matchList as IMatch[]}
             nets={nets}
             rounds={rounds}
           />

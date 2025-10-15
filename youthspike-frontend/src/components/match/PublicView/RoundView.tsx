@@ -8,7 +8,7 @@ import {
   IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import "./RoundView.css";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -18,6 +18,7 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import ScoreBox from "./ScoreBox";
 import NetInRound from "./NetInRound";
 import RoundSelector from "./RoundSelector";
+import RevertPreviousDialog from "@/components/elements/Dialog/RevertPreviousDialog";
 
 interface IRoundViewProps {
   roundList: IRoundRelatives[];
@@ -51,7 +52,10 @@ const RoundView = ({
   const dispatch = useAppDispatch();
 
   const { teamATotalScore, teamBTotalScore } = useAppSelector(
-    (state) => state.matches
+    (state) => ({
+      teamATotalScore: state.matches.teamATotalScore,
+      teamBTotalScore: state.matches.teamATotalScore,
+    })
   );
 
   const roundIdToIndex = useMemo(() => {

@@ -1,7 +1,7 @@
 /* Define the container */
-.round-view {
+.round-net-view {
   container-type: inline-size;
-  container-name: round-view;
+  container-name: round-net-view;
 }
 
 /* Default (Desktop) */
@@ -10,12 +10,12 @@
   width: 48%;
 }
 
-.net-in-round .top-side {
-  /* min-height: 50%; */
+.plus-one{
+  font-size: 2rem;
 }
 
-.net-in-round .bottom-side{
-  /* min-height: 200px; */
+.plus-one-single{
+  font-size: 2rem;
 }
 
 
@@ -32,19 +32,71 @@
   margin-top: 10px;
 }
 
-.net-team-score{
+
+/* Wrapping round score  */
+.score-wrapper-single{
+  width: 140px;
+  height: 100px;
+}
+.score-wrapper{
+  width: 80px;
+  height: 72px;
+}
+
+/* // Base  */
+.team-score-in-round{
   font-family: "Anton", sans-serif;
   font-weight: 900;
   font-style: normal;
-  font-size: 4rem;
   line-height: 1;
+}
+/* For round view  */
+.net-team-score{
+  font-size: 4rem;
+}
+
+/* For new view  */
+.net-team-score-single{
+  font-size: 8rem;
 }
 
 .image-container{
   height: 50px;
 }
+.image-container-single{
+  height: 300px;
+}
 .action-player-img{
   height: 60px;
+}
+
+
+.action-pt-img{
+  height: 45px;
+  width: 45px;
+}
+
+.action-pt-img-single{
+  height: 80px;
+  width: 80px;
+}
+
+.team-logo-wrapper{
+  width: 45px;
+  height: 45px;
+}
+
+.team-logo-wrapper-single{
+  width: 45px;
+  height: 45px;
+}
+
+
+.team-score-point{
+  font-family: "Anton", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1;
 }
 
 .player-name {
@@ -69,7 +121,7 @@
 /* =============================== */
 /* 📱 Mobile Landscape (≤740px)    */
 /* =============================== */
-@container round-view (max-width: 740px) {
+@container round-net-view (max-width: 740px) {
   .player-name {
     /* font-size: 0.5rem !important;
     line-height: 1;
@@ -99,9 +151,33 @@
   .image-container{
     height: 60px;
   }
-  .action-pt-img{
-    height: 40px;
+  .image-container-single{
+    height: 120px;
   }
+  .action-pt-img{
+    height: 30px;
+    width: 30px;
+  }
+
+  
+
+  .team-logo-wrapper{
+    width: 35px;
+    height: 35px;
+  }
+
+  .team-logo-wrapper-single{
+    width: 70px;
+    height: 70px;
+  }
+
+  .plus-one{
+    font-size: 1rem;
+  }
+  .plus-one-single{
+    font-size: 1.5rem;
+  }
+  
   
 
 }
@@ -109,7 +185,7 @@
 /* =============================== */
 /* 📱 Mobile Portrait (≤480px)     */
 /* =============================== */
-@container round-view (max-width: 480px) {
+@container round-net-view (max-width: 480px) {
   .team-score {
     display: none;
   }
@@ -126,6 +202,7 @@
   }
 
   .net-in-round {
+    margin-top: 30px;
     width: 100%;
   }
 
@@ -143,15 +220,42 @@
   .net-team-score{
     font-size: 6rem;
   }
+  .net-team-score-single{
+    font-size: 4.5rem;
+  }
 
   .image-container{
     height: 70px;
   }
+  .image-container-single{
+    height: 70px;
+  }
+
+  .score-wrapper-single{
+    width: 90px;
+    height: 70px;
+  }
+
+  .team-logo-wrapper-single{
+    width: 45px;
+    height: 45px;
+  }
+
+
+  .action-pt-img-single{
+    height: 40px;
+    width: 40px;
+  }
+
+  .plus-one-single{
+    font-size: 1rem;
+  }
+  
 
 }
 
 /* Additional breakpoint for very small containers (equivalent to very small landscape) */
-@container round-view (max-width: 400px) {
+@container round-net-view (max-width: 400px) {
   .player-name {
     /* font-size: 0.4rem !important;
     line-height: 1;
@@ -164,14 +268,38 @@
   .net-team-score{
     font-size: 6rem;
   }
+  .net-team-score-single{
+    font-size: 4.5rem;
+  }
 
   .image-container{
     height: 70px;
   }
+  .image-container-single{
+    height: 70px;
+  }
+
+  .score-wrapper-single{
+    width: 90px;
+    height: 70px;
+  }
+
+  .team-logo-wrapper-single{
+    width: 45px;
+    height: 45px;
+  }
+
+  .action-pt-img-single{
+    height: 40px;
+    width: 40px;
+  }
+  .plus-one-single{
+    font-size: 1rem;
+  }
 }
 
 /* Medium screens */
-@container round-view (min-width: 481px) and (max-width: 1024px) {
+@container round-net-view (min-width: 481px) and (max-width: 1024px) {
   .player-name {
     font-size: 0.5rem;
   }
@@ -188,13 +316,33 @@
   .image-container{
     height: 60px;
   }
+  .image-container-single{
+    height: 120px;
+  }
   .action-pt-img{
-    height: 40px;
+    height: 30px;
+    width: 30px;
+  }
+  .team-logo-wrapper{
+    width: 35px;
+    height: 35px;
+  }
+
+  .team-logo-wrapper-single{
+    width: 70px;
+    height: 70px;
+  }
+
+  .plus-one{
+    font-size: 1rem;
+  }
+  .plus-one-single{
+    font-size: 1.5rem;
   }
 }
 
 /* Large screens */
-@container round-view (min-width: 1025px) {
+@container round-net-view (min-width: 1025px) {
   .player-name {
     font-size: 0.8rem;
   }
@@ -205,11 +353,42 @@
   .image-container {
     height: 150px;
   }
+  .image-container-single{
+    height: 300px;
+  }
 
   .net-team-score{
     font-size: 10rem;
   }
+  .net-team-score-single{
+    font-size: 12rem;
+  }
   .server-receiver-text{
     font-size: 2rem;
   }
+
+  .score-wrapper{
+    width: 170px;
+    height: 130px;
+  }
+  .score-wrapper-single{
+    width: 250px;
+    height: 220px;
+  }
+
+  .team-logo-wrapper{
+    width: 90px;
+    height: 90px;
+  }
+
+  .team-logo-wrapper-single{
+    width: 160px;
+    height: 160px;
+  }
+
+
+  .plus-one-single{
+    font-size: 3rem;
+  }
+  
 }
