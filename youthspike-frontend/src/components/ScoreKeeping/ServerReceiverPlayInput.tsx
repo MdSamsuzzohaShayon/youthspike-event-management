@@ -3,10 +3,12 @@ import {
   ESRRole,
   IServerReceiverSinglePlay,
   IPlayer,
-  IServerReceiverOnNetMixed,
   EServerReceiverAction,
   ETeam,
+  ITeam,
 } from "@/types";
+import { CldImage } from "next-cloudinary";
+import TextImg from "../elements/TextImg";
 
 interface IServerReceiverPlayInputProps {
   sr: IServerReceiverSinglePlay;
@@ -15,11 +17,13 @@ interface IServerReceiverPlayInputProps {
   teamBPlayers: IPlayer[];
   toBeSelectedPlay?: number | null;
   setToBeSelectedPlay?: React.Dispatch<React.SetStateAction<number | null>>;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
 }
 
 const getPlayerName = (
   _id: string | null,
-  playerMap: Map<string, IPlayer>,
+  playerMap: Map<string, IPlayer>
 ): string => {
   if (!_id || !playerMap) return "Unknown";
   const player = playerMap.get(_id) || null;
@@ -40,9 +44,9 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
   setToBeSelectedPlay,
   teamAPlayers,
   teamBPlayers,
+  teamA,
+  teamB,
 }) => {
-
-  
   const actionPlay = useMemo(() => {
     //  EServerReceiverAction.SERVER_DO_NOT_KNOW;
     switch (sr.action) {
@@ -91,6 +95,7 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
     }
     return null;
   }, [sr, serverTeamE]);
+
   const receiverTeamScore = useMemo(() => {
     if (serverTeamE === ETeam.teamA) {
       return sr.teamBScore;
@@ -100,6 +105,19 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
     }
     return null;
   }, [sr, serverTeamE]);
+
+  const { serverTeam, receiverTeam } = useMemo(() => {
+    if (serverTeamE === ETeam.teamA) {
+      return {
+        serverTeam: teamA,
+        receiverTeam: teamB,
+      };
+    }
+    return {
+      serverTeam: teamB,
+      receiverTeam: teamA,
+    };
+  }, [serverTeamE, teamA, teamB]);
 
   return (
     <li
@@ -114,15 +132,33 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
         {/* Serving Team */}
         <div className="space-y-2">
-          <h4
-            className={`uppercase text-xs font-bold tracking-widest pb-1 border-b ${
+          <div
+            className={`uppercase text-xs font-bold tracking-widest pb-1 border-b flex items-center gap-x-1 ${
               sr.play === toBeSelectedPlay
                 ? "text-yellow-300 border-yellow-300/40"
                 : "text-yellow-400 border-yellow-400/30"
             }`}
           >
-            Serving Team
-          </h4>
+            {/* Serving Team */}
+            {serverTeam?.logo ? (
+              <span className="block w-8">
+                <CldImage
+                  src={serverTeam?.logo}
+                  height={50}
+                  width={50}
+                  alt={serverTeam.name}
+                  className="w-full"
+                />
+              </span>
+            ) : (
+              <TextImg
+                className="w-8 h-8 rounded-lg"
+                fullText={serverTeam?.name}
+              />
+            )}
+
+            <span>{serverTeam?.name || "Server team"}</span>
+          </div>
           <div className="space-y-1">
             <RoleBlock
               role={ESRRole.SERVER}
@@ -140,19 +176,39 @@ const ServerReceiverPlayInput: React.FC<IServerReceiverPlayInputProps> = ({
 
         {/* Receiving Team */}
         <div className="space-y-2">
-          <h4
-            className={`uppercase text-xs font-bold tracking-widest pb-1 border-b ${
+          <div
+            className={`uppercase text-xs font-bold tracking-widest pb-1 border-b flex items-center gap-x-1 ${
               sr.play === toBeSelectedPlay
                 ? "text-yellow-300 border-yellow-300/40"
                 : "text-yellow-400 border-yellow-400/30"
             }`}
           >
-            Receiving Team
-          </h4>
+            {/* Receiving Team */}
+            {receiverTeam?.logo ? (
+              <span className="block w-8">
+                <CldImage
+                  src={receiverTeam?.logo}
+                  height={50}
+                  width={50}
+                  alt={receiverTeam.name}
+                  className="w-full"
+                />
+              </span>
+            ) : (
+              <TextImg
+                className="w-8 h-8 rounded-lg"
+                fullText={receiverTeam?.name}
+              />
+            )}
+            <span>{receiverTeam?.name || "Receiving team"}</span>
+          </div>
           <div className="space-y-1">
             <RoleBlock
               role={ESRRole.RECEIVER}
-              name={getPlayerName(sr.receiverId || String(sr.receiver), playerMap)}
+              name={getPlayerName(
+                sr.receiverId || String(sr.receiver),
+                playerMap
+              )}
             />
             <RoleBlock
               role={ESRRole.SETTER}

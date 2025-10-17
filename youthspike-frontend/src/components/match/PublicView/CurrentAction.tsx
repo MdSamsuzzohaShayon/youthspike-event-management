@@ -125,7 +125,7 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
    * ✅ Simple rendering section
    */
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center gap-y-1">
       {info.actionText && (
         <span className="w-full text-xs md:text-sm font-bold text-center text-yellow-400 leading-none animate-pulse [text-shadow:0_0_8px_#facc15]">
           {info.actionText}
@@ -137,13 +137,13 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
           (info.player.profile ? (
             <div className={`${
               view === EView.ROUND ? "action-pt-img" : "action-pt-img-single"
-            }`}>
+            } object-center overflow-hidden boject-center rounded-lg border border-white`}>
               <CldImage
                 src={info.player.profile}
                 alt={info.player.firstName}
                 height={100}
                 width={100}
-                className={`w-full rounded-lg border border-white`}
+                className={`w-full`}
               />
             </div>
           ) : (
@@ -160,7 +160,7 @@ const CurrentAction: React.FC<ICurrentActionProps> = ({
             <div
               className={`${
                 view === EView.ROUND ? "action-pt-img" : "action-pt-img-single"
-              }`}
+              } object-center overflow-hidden boject-center rounded-lg border border-white`}
             >
               <CldImage
                 src={info.team.logo}

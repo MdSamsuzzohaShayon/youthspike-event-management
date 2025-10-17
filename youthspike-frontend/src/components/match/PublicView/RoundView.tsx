@@ -8,9 +8,8 @@ import {
   IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo } from "react";
 import "./RoundView.css";
-import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setCurrentRoundNets } from "@/redux/slices/netSlice";
 import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
@@ -18,7 +17,6 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import ScoreBox from "./ScoreBox";
 import NetInRound from "./NetInRound";
 import RoundSelector from "./RoundSelector";
-import RevertPreviousDialog from "@/components/elements/Dialog/RevertPreviousDialog";
 
 interface IRoundViewProps {
   roundList: IRoundRelatives[];
@@ -186,13 +184,12 @@ const RoundView = ({
       </div>
 
       {/* Second row  */}
-      <div className="one-nets-row w-full flex justify-between items-center gap-3 md:gap-4">
+      <div className="one-nets-row w-full flex justify-around items-center gap-3 md:gap-4">
         <div className="team-score">
           <ScoreBox
             name={teamA?.name || ""}
             teamLogo={teamA?.logo || null}
             score={teamATotalScore}
-            roundScore
           />
         </div>
         {/* In this row there will be 1 net */}
@@ -216,7 +213,6 @@ const RoundView = ({
             name={teamB?.name || ""}
             teamLogo={teamB?.logo || null}
             score={teamBTotalScore}
-            roundScore
           />
         </div>
       </div>

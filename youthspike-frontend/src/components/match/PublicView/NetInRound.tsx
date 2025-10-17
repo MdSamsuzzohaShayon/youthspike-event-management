@@ -18,7 +18,6 @@ import { useMemo, useRef } from "react";
 import Link from "next/link";
 import { useLdoId } from "@/lib/LdoProvider";
 import { toOrdinal } from "@/utils/helper";
-import RevertPreviousDialog from "@/components/elements/Dialog/RevertPreviousDialog";
 import ChangePlayDialog from "@/components/elements/Dialog/ChangePlayDialog";
 
 interface INetInRoundProps {

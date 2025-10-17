@@ -1,6 +1,7 @@
 import ServerReceiverPlayInput from "@/components/ScoreKeeping/ServerReceiverPlayInput";
+import { useAppSelector } from "@/redux/hooks";
 import { IPlayer, IServerReceiverSinglePlay } from "@/types";
-import React, { useMemo } from "react";
+import React from "react";
 
 interface IChangePlayDialogProps {
   changePlayEl: React.RefObject<HTMLDialogElement | null>;
@@ -23,11 +24,17 @@ function ChangePlayDialog({
   playerMap,
   handlePlayChange,
 }: IChangePlayDialogProps) {
+  const { teamA, teamB } = useAppSelector((state) => ({
+    teamA: state.teams.teamA,
+    teamB: state.teams.teamB,
+  }));
   return (
     <dialog ref={changePlayEl} className="modal-dialog">
       <div className="p-6 space-y-4 max-h-[90vh] overflow-hidden flex flex-col">
         <h2 className="text-xl font-semibold text-yellow-400">
-          {setToBeSelectedPlay ? "Select specific play" : "All plays of the net"}
+          {setToBeSelectedPlay
+            ? "Select specific play"
+            : "All plays of the net"}
         </h2>
 
         {/* Scrollable content body */}
@@ -43,6 +50,8 @@ function ChangePlayDialog({
                   setToBeSelectedPlay={setToBeSelectedPlay}
                   teamAPlayers={teamAPlayers}
                   teamBPlayers={teamBPlayers}
+                  teamA={teamA || null} 
+                  teamB={teamB || null}
                 />
               ))}
             </ul>

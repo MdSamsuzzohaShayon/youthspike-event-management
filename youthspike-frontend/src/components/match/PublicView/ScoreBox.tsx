@@ -1,13 +1,13 @@
 import TextImg from "@/components/elements/TextImg";
+import { EView } from "@/types";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 interface IScoreBoxProps {
   name: string;
   teamLogo: string | null;
   score: number;
-  roundScore?: boolean;
 }
-const ScoreBox: React.FC<IScoreBoxProps> = ({ name, teamLogo, score, roundScore }) => (
+const ScoreBox: React.FC<IScoreBoxProps> = ({ name, teamLogo, score }) => (
   <div className="w-full flex flex-col justify-center items-center">
     {teamLogo ? (
       <CldImage
@@ -20,7 +20,7 @@ const ScoreBox: React.FC<IScoreBoxProps> = ({ name, teamLogo, score, roundScore 
     ) : (
       <TextImg fullText={name} className="w-20 h-20" />
     )}
-    <div className={`team-score-point ${roundScore ? "text-8xl" : "text-6xl"} text-center`}>{score}</div>
+    <div className={`team-score-point text-center`}>{score}</div>
   </div>
 );
 
