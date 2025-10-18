@@ -8,7 +8,7 @@ import { EMessage } from '@/types';
 const TEN_SECONDS = 10 * 1000;
 
 function Message() {
-  const { message } = useAppSelector((state) => state.elements);
+  const message = useAppSelector((state) => state.elements.message);
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -46,7 +46,7 @@ function Message() {
           text: 'text-red-900',
           border: 'border-red-500',
           icon: '/icons/error.svg',
-          title: 'Something went wrong',
+          title: message?.name || 'Something went wrong',
         };
     }
   }, [message?.type]);

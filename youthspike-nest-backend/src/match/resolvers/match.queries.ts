@@ -254,11 +254,14 @@ export class MatchQueries {
       }
       */
 
+
       // Re-rank players for both teams (only if teams exist)
-      await Promise.all([
-        matchExist.teamA ? this.updateTeamRanking(String(matchExist.teamA), matchId) : Promise.resolve(),
-        matchExist.teamB ? this.updateTeamRanking(String(matchExist.teamB), matchId) : Promise.resolve(),
-      ]);
+      // await Promise.all([
+      //   matchExist.teamA ? this.updateTeamRanking(String(matchExist.teamA), matchId) : Promise.resolve(),
+      //   matchExist.teamB ? this.updateTeamRanking(String(matchExist.teamB), matchId) : Promise.resolve(),
+      // ]);
+
+      await this.updateTeamRanking(String(matchExist.teamB), matchId)
       return {
         code: HttpStatus.OK,
         success: true,

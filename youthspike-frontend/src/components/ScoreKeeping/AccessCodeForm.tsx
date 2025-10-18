@@ -5,8 +5,10 @@ import InputField from '@/components/elements/InputField';
 import { useMutation } from '@apollo/client/react';
 import { ACCESS_CODE_VALIDATION } from '@/graphql/matches';
 import { getCookie, getUserFromCookie, setAccessCode, setCookie } from '@/utils/cookie';
-import { IAccessCode, IUser } from '@/types';
+import { EMessage, IAccessCode, IUser } from '@/types';
 import { ACCESS_CODE } from '@/utils/constant';
+import { useAppDispatch } from '@/redux/hooks';
+import { setMessage } from '@/redux/slices/elementSlice';
 
 interface AccessCodeValidationResponse {
   accessCodeValidation: {
@@ -14,6 +16,7 @@ interface AccessCodeValidationResponse {
       accessCode: string;
       match: string;
     };
+    code: number;
   };
 }
 
@@ -23,6 +26,7 @@ interface IAccessCodeFormProps {
 }
 
 function AccessCodeForm({ matchId, accessCodes }: IAccessCodeFormProps) {
+  const dispatch = useAppDispatch();
   const [mutateAccessCode] = useMutation<AccessCodeValidationResponse>(ACCESS_CODE_VALIDATION);
 
   const handleInputChange = (E: React.SyntheticEvent) => {};
@@ -40,6 +44,13 @@ function AccessCodeForm({ matchId, accessCodes }: IAccessCodeFormProps) {
     try {
       const response = await mutateAccessCode({ variables: { input: data } });
 
+      if(response?.data?.accessCodeValidation?.code === 404){
+        console.log(response?.data?.accessCodeValidation);
+        const error = new Error("Ask the director about access code for specific match, each match has different access code!");
+        error.name = "Invalid access code!";
+        throw error;
+      }
+
       if (response?.data?.accessCodeValidation?.data) {
 
         const accessCode: IAccessCode = {
@@ -50,8 +61,9 @@ function AccessCodeForm({ matchId, accessCodes }: IAccessCodeFormProps) {
         setAccessCode(accessCode);
         window.location.reload();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Mutation Error:', error);
+      dispatch(setMessage({name: error?.name, message: error?.message || error?.name || error, type: EMessage.ERROR}));
     }
   };
 

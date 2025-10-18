@@ -339,7 +339,9 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
             )}
             <div className="">
               <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
-              <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+              <div className="w-full md:w-4/6">
+                <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+              </div>
             </div>
           </div>
         </div>

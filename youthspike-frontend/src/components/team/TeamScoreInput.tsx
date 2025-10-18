@@ -49,8 +49,6 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
     return !isUserAuthorized || currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP || banningNet;
   }, [currMatch, currRound?.teamAProcess, currRound?.teamBProcess, currRoundNets, user]);
 
-  console.log({inputReadonly, "currRound?.teamBProcess !== EActionProcess.LINEUP": currRound?.teamBProcess !== EActionProcess.LINEUP,
-     "currRound?.teamAProcess !== EActionProcess.LINEUP": currRound?.teamAProcess !== EActionProcess.LINEUP});
   
 
 

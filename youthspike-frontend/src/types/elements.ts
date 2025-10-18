@@ -151,6 +151,7 @@ export enum EView{
   NET= "NET",
 }
 export interface IMessage {
+  name?: string;
   message?: string;
   type?: EMessage;
 }

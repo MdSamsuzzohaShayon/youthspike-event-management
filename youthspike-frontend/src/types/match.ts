@@ -17,6 +17,15 @@ export enum ETieBreakingStrategy {
   OVERTIME_ROUND = 'OVERTIME_ROUND',
 }
 
+export enum EMatchStatus{
+  UPCOMING = "UPCOMING",
+  COMPLETED = "COMPLETED",
+  SCHEDULED = "SCHEDULED",
+  ASSIGNING = "ASSIGNING",
+  LIVE = "LIVE",
+}
+
+
 export interface IDefaultMatch {
   division: string;
   netVariance: number;
@@ -83,4 +92,6 @@ export interface ITeamCaptain extends ITeam {
 export interface IMatch extends IMatchExpRel {
   teamA: ITeamCaptain;
   teamB: ITeamCaptain;
+  status: EMatchStatus;
 }
+

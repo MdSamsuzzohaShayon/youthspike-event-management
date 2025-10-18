@@ -1,9 +1,19 @@
-import { IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
-import React, { useEffect, useMemo, useState } from 'react';
-import { calcMatchScore } from '@/utils/scoreCalc';
-import { ETeam, ITeamScore } from '@/types/team';
-import TeamRow from './TeamRow';
-import Pagination from '../elements/Pagination';
+import {
+  IMatchExpRel,
+  INetRelatives,
+  IPlayer,
+  IRoundRelatives,
+  ITeam,
+} from "@/types";
+import React, { useEffect, useMemo, useState } from "react";
+import { calcMatchScore } from "@/utils/scoreCalc";
+import { ETeam, ITeamScore } from "@/types/team";
+import TeamRow from "./TeamRow";
+import Pagination from "../elements/Pagination";
+import {
+  createNetMapByMatch,
+  createRoundMapByMatch,
+} from "@/utils/match/mapByMatch";
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -24,9 +34,14 @@ interface ITeamListProps {
 
 const ITEMS_PER_PAGE = 20;
 
-function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamListProps) {
+function TeamList({
+  rounds,
+  nets,
+  teamList,
+  matchList,
+  selectedGroup,
+}: ITeamListProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  
 
   /**
    * Precompute lookups for rounds and nets
@@ -44,25 +59,39 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
     return map;
   }, [nets]);
 
+  const roundMapByMatch = useMemo(
+    () => createRoundMapByMatch(rounds),
+    [rounds]
+  );
+  const netMapByMatch = useMemo(() => createNetMapByMatch(nets), [nets]);
+
   /**
    * Map of matches by team for quick access
    */
   const matchesByTeam = useMemo(() => {
     const map = new Map<string, IMatch[]>();
-    if (!matchList) return map;
+    if (!matchList?.length) return map;
 
     for (const match of matchList) {
+      // Skip incomplete matches
       if (!match.completed) continue;
 
-      if (match.teamA?._id) {
-        if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
-        map.get(match.teamA._id)!.push(match);
-      }
-      if (match.teamB?._id) {
-        if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
-        map.get(match.teamB._id)!.push(match);
+      const teamIds = [
+        match.teamA?._id ?? String(match.teamA ?? ""),
+        match.teamB?._id ?? String(match.teamB ?? ""),
+      ].filter(Boolean); // remove empty/null/undefined IDs
+
+      // Avoid duplicates if both teams have same ID (edge case)
+      const uniqueTeamIds = Array.from(new Set(teamIds));
+
+      for (const teamId of uniqueTeamIds) {
+        if (!map.has(teamId)) {
+          map.set(teamId, []);
+        }
+        map.get(teamId)!.push(match);
       }
     }
+
     return map;
   }, [matchList]);
 
@@ -93,10 +122,8 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
         const isTeamA = match.teamA._id === team._id;
 
         // direct lookups instead of filter
-        // @ts-ignore
-        const roundList = match.rounds.map((id) => roundMap.get(id)).filter(Boolean) as IRoundRelatives[];
-        // @ts-ignore
-        const allNets = match.nets.map((id) => netMap.get(id)).filter(Boolean) as INetRelatives[];
+        const roundList = roundMapByMatch.get(match._id) || [];
+        const allNets = netMapByMatch.get(match._id) || [];
 
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(
           roundList,
@@ -109,17 +136,32 @@ function TeamList({ rounds, nets, teamList, matchList, selectedGroup }: ITeamLis
 
         if (teamScore > oponentScore) {
           teamRecord.overallWins++;
-          if (match.group && String(match.group) !== "" && String(match.group) !== "undefined" && (match?.group?._id || match?.group)) teamRecord.groupWins++;
+          if (
+            match.group &&
+            String(match.group) !== "" &&
+            String(match.group) !== "undefined" &&
+            (match?.group?._id || match?.group)
+          )
+            teamRecord.groupWins++;
         } else if (oponentScore > teamScore) {
           teamRecord.overallLoses++;
-          if (match.group && String(match.group) !== "" && String(match.group) !== "undefined" && String(match.group) !== undefined && (match?.group?._id || match?.group)) teamRecord.groupLoses++;
+          if (
+            match.group &&
+            String(match.group) !== "" &&
+            String(match.group) !== "undefined" &&
+            String(match.group) !== undefined &&
+            (match?.group?._id || match?.group)
+          )
+            teamRecord.groupLoses++;
         }
 
         totalNets += match.nets.length;
       }
 
       teamRecord.totalMatches = teamMatches.length;
-      teamRecord.matchAvgDiff = teamMatches.length ? totalMatchDiff / teamMatches.length : 0;
+      teamRecord.matchAvgDiff = teamMatches.length
+        ? totalMatchDiff / teamMatches.length
+        : 0;
       teamRecord.gameAvgDiff = totalNets ? totalGameDiff / totalNets : 0;
 
       scores.set(team._id, teamRecord);

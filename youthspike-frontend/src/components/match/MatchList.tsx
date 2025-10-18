@@ -9,6 +9,7 @@ import { EEventPeriod } from '@/types/event';
 import MatchCard from './MatchCard';
 import SelectInput from '../elements/SelectInput';
 import Pagination from '../elements/Pagination';
+import { createNetMapByMatch, createRoundMapByMatch } from '@/utils/match/mapByMatch';
 
 interface IMatchListProps {
   matchList?: IMatch[];
@@ -39,26 +40,12 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filter, setFilter] = useState<string | null>(null);
 
-  // ✅ Pre-index rounds by matchId for O(1) lookup
-  const roundsByMatch = useMemo(() => {
-    const map = new Map<string, IRoundRelatives[]>();
-    for (const r of rounds) {
-      if (!r?.match) continue;
-      if (!map.has(r.match)) map.set(r.match, []);
-      map.get(r.match)!.push(r);
-    }
-    return map;
-  }, [rounds]);
 
-  // ✅ Pre-map nets once instead of recalculating every render
-  const normalizedNets = useMemo(
-    () => (nets || []).map((n) => ({ 
-      ...n, 
-      // @ts-ignore
-      round: n?.round?._id || n?.round 
-    })),
-    [nets]
-  );
+  const roundMapByMatch = useMemo(() => createRoundMapByMatch(rounds), [rounds]);
+  const netMapByMatch = useMemo(() => createNetMapByMatch(nets), [nets]);
+
+
+  
 
   // ✅ Compute filtered matches on demand
   const filteredMatchList = useMemo(() => {
@@ -139,9 +126,8 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
         <MatchCard
           key={match?._id || Math.random()}
           match={match}
-          // @ts-ignore
-          roundList={roundsByMatch.get(match?._id || '') || []}
-          allNets={normalizedNets}
+          roundList={roundMapByMatch.get(match._id) || []}
+          allNets={netMapByMatch.get(match._id) || []}
         />
       ))}
 

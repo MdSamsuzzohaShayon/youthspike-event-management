@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import {
+  EMatchStatus,
   IEventDetailProps,
   IMatch,
   IPlayer,
@@ -19,21 +20,19 @@ import {
 } from "@/redux/slices/playerRankingSlice";
 import { divisionsToOptionList } from "@/utils/helper";
 import { EVENT_ITEM } from "@/utils/constant";
-import { useLdoId } from "@/lib/LdoProvider";
-import MatchList from "../match/MatchList";
-import TeamList from "../team/TeamList";
-import PlayerStandings from "../player/PlayerStandings";
 import { useDebounce } from "use-debounce";
 import { motion, AnimatePresence } from "framer-motion";
 import EventSponsors from "./EventSponsors";
 import EventHeader from "./EventHeader";
 import EventFilter from "./EventFilter";
 import EventNavigationTabs from "./EventNavigationTabs";
-import { QueryRef, useQuery, useReadQuery } from "@apollo/client/react";
+import { useQuery, useReadQuery } from "@apollo/client/react";
 import { GET_AN_EVENT } from "@/graphql/event";
 import Loader from "../elements/Loader";
 import { containerVariants, fadeIn, fadeInUp } from "@/utils/animation";
 import EventContent from "./EventContent";
+import { getMatchStatus } from "@/utils/match/getMatchStatus";
+import { createNetMapByMatch, createRoundMapByMatch } from "@/utils/match/mapByMatch";
 
 // Sub-components
 
@@ -153,6 +152,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     statsOfPlayer,
   } = eventData;
 
+  
+
   // Precompute teamMap once
   const teamMap = useMemo(
     () => new Map<string, ITeam>(teams.map((t) => [t._id, t])),
@@ -190,6 +191,10 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     () => new Map(statsOfPlayer.map((ps) => [ps.playerId, ps.stats])),
     [statsOfPlayer]
   );
+
+  // Map of matchId => IRoundRelatives[]
+  const roundMapByMatch = useMemo(() => createRoundMapByMatch(rounds), [rounds]);
+  const netMapByMatch = useMemo(() => createNetMapByMatch(nets), [nets]);
 
   // Optimize filtered data computation
   const filteredData: any = useMemo(() => {
@@ -231,23 +236,9 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     const filterBySearchTeam = (team: ITeam) =>
       !hasSearch || team.name.toLowerCase().includes(searchLower);
 
-    const filterBySearchMatch = (match: IMatch) =>
-      !hasSearch ||
-      match.teamA?.name?.toLowerCase().includes(searchLower) ||
-      match.teamB?.name?.toLowerCase().includes(searchLower) ||
-      match.description?.toLowerCase().includes(searchLower);
-
     const filterByGroupPlayer = (player: IPlayer) => {
       if (!hasGroup) return true;
       return player.teams?.some((teamId) => groupTeamIds?.has(String(teamId)));
-    };
-
-    const filterByGroupMatch = (match: IMatch) => {
-      if (!hasGroup) return true;
-      return (
-        groupTeamIds?.has(String(match.teamA?._id)) ||
-        groupTeamIds?.has(String(match.teamB?._id))
-      );
     };
 
     // Filter teams
@@ -261,7 +252,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     const filteredMatches: IMatch[] = [];
 
     for (let i = 0; i < matches.length; i++) {
-      const match = {...matches[i]};
+      const match: IMatch = { ...matches[i] } as IMatch;
 
       // 1. Check division
       const matchDivision = match.division?.trim().toLowerCase();
@@ -290,15 +281,34 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
 
       match.teamA = teamA as ITeamCaptain;
       match.teamB = teamB as ITeamCaptain;
-      // If all conditions pass, add to result
+      // Set status of the match
+      const roundsOfMatch = roundMapByMatch.get(match._id);
+      const netsOfMatch = netMapByMatch.get(match._id);
+      let status = getMatchStatus(
+        match as IMatch,
+        roundsOfMatch || [],
+        netsOfMatch || []
+      );
+      match.status = status;
+
       filteredMatches.push(match);
     }
 
-    // Efficient sort: incomplete first, then by latest date
     filteredMatches.sort((a, b) => {
-      const completionDiff = Number(a.completed) - Number(b.completed);
-      if (completionDiff !== 0) return completionDiff;
+      // Define the order priority
+      const statusOrder: Record<EMatchStatus, number> = {
+        [EMatchStatus.LIVE]: 1,
+        [EMatchStatus.ASSIGNING]: 2,
+        [EMatchStatus.SCHEDULED]: 3,
+        [EMatchStatus.UPCOMING]: 4,
+        [EMatchStatus.COMPLETED]: 5,
+      };
 
+      // First, compare by status priority
+      const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+      if (statusDiff !== 0) return statusDiff;
+
+      // If same status, sort by date (latest first)
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
@@ -325,9 +335,9 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     currDivision,
     selectedGroup,
     search,
+    netMapByMatch,
+    roundMapByMatch,
   ]);
-
-  // console.log({unfilteredMatches: matches, unfilteredMatchesLength: matches.length, filteredMatches: filteredData.matches, filteredMatchesLength: filteredData.matches.length});
 
   // Initialize rankings with optimized data structures
   const initializeLists = useCallback(() => {

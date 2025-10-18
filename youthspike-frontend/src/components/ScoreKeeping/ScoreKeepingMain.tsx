@@ -10,6 +10,7 @@ import { QueryRef, useReadQuery } from "@apollo/client/react";
 import { useUser } from "@/lib/UserProvider";
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useRouter } from "next/navigation";
+import { containerVariants, itemVariants } from "@/utils/animation";
 
 interface IScoreKeepingMainProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -37,27 +38,7 @@ function ScoreKeepingMain({
     router.push(`/matches/${matchData?._id}/scoreboard`);
   };
 
-  // Animation variants for consistent animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        when: "beforeChildren",
-        staggerChildren: 0.1,
-      },
-    },
-  };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.2 },
-    },
-  };
 
   const renderHeadings = () => {
     return (

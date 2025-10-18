@@ -18,6 +18,85 @@ import { useSocket } from "@/lib/SocketProvider";
 import { useMutation } from "@apollo/client/react";
 import { UPDATE_TEAM_PLAYER_RANKING } from "@/graphql/player-ranking";
 
+// Sub-component: Dialog Header
+const DialogHeader = ({
+  onClose,
+}: {
+  onClose: (e: React.SyntheticEvent) => void;
+}) => (
+  <div className="bg-black-logo w-full p-4 text-center relative">
+    <button
+      onClick={onClose}
+      className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 hover:bg-yellow-500/20 rounded-lg transition-colors"
+    >
+      <Image
+        width={16}
+        height={16}
+        src="/icons/close.svg"
+        alt="close"
+        className="w-4 h-4 svg-white"
+      />
+    </button>
+    <h3 className="text-white text-lg font-bold uppercase tracking-wide">
+      Match Details
+    </h3>
+  </div>
+);
+
+// Sub-component: Info Card
+const InfoCard = ({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div
+    className={`bg-gradient-to-br from-gray-900 to-black-logo border border-yellow-500/30 rounded-xl p-4 shadow-lg ${className}`}
+  >
+    {children}
+  </div>
+);
+
+// Sub-component: Detail Item
+const DetailItem = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) => (
+  <div className="flex justify-between items-center py-2 border-b border-yellow-500/10 last:border-b-0">
+    <span className="text-yellow-400 font-medium text-sm">{label}:</span>
+    <span className="text-white font-semibold">{value}</span>
+  </div>
+);
+
+// Sub-component: Action Button
+const ActionButton = ({
+  onClick,
+  children,
+  variant = "primary",
+}: {
+  onClick: (e: React.SyntheticEvent) => void;
+  children: React.ReactNode;
+  variant?: "primary" | "secondary";
+}) => (
+  <button
+    onClick={onClick}
+    className={`
+      px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 transform hover:scale-105 active:scale-95
+      ${
+        variant === "primary"
+          ? "bg-yellow-500 text-black-logo hover:bg-yellow-400 shadow-lg hover:shadow-yellow-500/25"
+          : "bg-gray-700 text-white hover:bg-gray-600 border border-yellow-500/30"
+      }
+    `}
+  >
+    {children}
+  </button>
+);
+
 interface IMatchSettingProps {
   match: IMatchRelatives;
   myTeam: ITeam | null;
@@ -45,7 +124,6 @@ function MatchSetting({
     UPDATE_TEAM_PLAYER_RANKING
   );
 
-  // ✅ Single useAppSelector
   const {
     ldo,
     colMenus,
@@ -117,8 +195,6 @@ function MatchSetting({
     [mutateTeamPlayerRanking, match._id, myTeam?._id]
   );
 
-  
-
   // ====== Derived State ======
   const canBeScoreKeeper = useMemo(() => {
     if (!currRoom || !currRound) return false;
@@ -150,33 +226,25 @@ function MatchSetting({
     [match]
   );
 
-  const dialogHeader = useMemo(
-    () => (
-      <div
-        className="bg-black-logo w-full h-8 text-center px-2 flex justify-between items-center"
-        onClick={handleSettingClose}
-        role="presentation"
-      >
-        <div />
-        <h3 className="text-white capitalize">Match Detail</h3>
-        <Image
-          width={12}
-          height={12}
-          src="/icons/close.svg"
-          alt="cross"
-          className="h-4 w-4 svg-white"
-        />
-      </div>
-    ),
-    [handleSettingClose]
-  );
-
   const eventLogo = useMemo(
     () =>
       ldo?.logo ? (
-        <CldImage alt={ldo.name} width="200" height="200" className="w-16" src={ldo.logo} crop="fit" />
+        <CldImage
+          alt={ldo.name}
+          width="80"
+          height="80"
+          className="w-20 h-20 rounded-xl border-2 border-yellow-500 object-cover"
+          src={ldo.logo}
+          crop="fit"
+        />
       ) : (
-        <Image width={64} height={64} src="/free-logo.png" className="w-16" alt="free-logo" />
+        <Image
+          width={80}
+          height={80}
+          src="/free-logo.png"
+          className="w-20 h-20 rounded-xl border-2 border-yellow-500 object-cover"
+          alt="free-logo"
+        />
       ),
     [ldo]
   );
@@ -184,32 +252,44 @@ function MatchSetting({
   const scoreKeepingLinks = useMemo(
     () =>
       canBeScoreKeeper && (
-        <div className="score-keeping-wrapper bg-black-logo w-full flex justify-center items-center rounded-lg mt-2 p-2 gap-x-2">
-          <Link className="btn-light" href={`/score-keeping/${match._id}/${ldoIdUrl}`}>
-            Start New
-          </Link>
-          <Link className="btn-light" href={`/score-keeping/${match._id}/${ldoIdUrl}`}>
-            Edit
-          </Link>
-        </div>
+        <InfoCard className="bg-gradient-to-r from-yellow-500/10 to-yellow-500/5">
+          <div className="text-center mb-3">
+            <h4 className="text-yellow-400 font-bold text-lg">Score Keeping</h4>
+            <p className="text-gray-300 text-sm">Manage match scoring</p>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <Link
+              className="bg-yellow-500 text-black-logo px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition-colors text-sm shadow-lg"
+              href={`/score-keeping/${match._id}/${ldoIdUrl}`}
+            >
+              Start New
+            </Link>
+            <Link
+              className="bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors text-sm border border-yellow-500/30"
+              href={`/score-keeping/${match._id}/${ldoIdUrl}`}
+            >
+              Edit
+            </Link>
+          </div>
+        </InfoCard>
       ),
     [canBeScoreKeeper, match._id, ldoIdUrl]
   );
 
   const teamComponents = useMemo(
     () => (
-      <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {myTeam && (
-          <div className="box-3 border border-black-logo rounded-lg mt-4">
+          <div className="transform hover:scale-[1.02] transition-transform duration-200">
             <TeamInMatch team={myTeam} home />
           </div>
         )}
         {opTeam && (
-          <div className="box-3 border border-black-logo rounded-lg mt-4">
+          <div className="transform hover:scale-[1.02] transition-transform duration-200">
             <TeamInMatch team={opTeam} home={false} />
           </div>
         )}
-      </>
+      </div>
     ),
     [myTeam, opTeam]
   );
@@ -217,19 +297,39 @@ function MatchSetting({
   const uncheckInButton = useMemo(() => {
     if (currRound?.num !== 1 || !user?.token) return null;
     if (
-      (myTeamE === ETeam.teamA && currRound.teamAProcess === EActionProcess.CHECKIN) ||
-      (myTeamE === ETeam.teamB && currRound.teamBProcess === EActionProcess.CHECKIN)
+      (myTeamE === ETeam.teamA &&
+        currRound.teamAProcess === EActionProcess.CHECKIN) ||
+      (myTeamE === ETeam.teamB &&
+        currRound.teamBProcess === EActionProcess.CHECKIN)
     ) {
-      return <button className="btn-success" onClick={handleUndoCheckIn}>Undo Check In</button>;
+      return (
+        <ActionButton onClick={handleUndoCheckIn}>Undo Check In</ActionButton>
+      );
     }
     return null;
   }, [currRound, myTeamE, user?.token, handleUndoCheckIn]);
 
   const unlockRankingButton = useMemo(() => {
     if (!user?.token) return null;
-    const rankLock = myTeamE === ETeam.teamA ? teamAPlayerRanking?.rankLock: teamBPlayerRanking?.rankLock;
-    return <button className="btn-success" onClick={(e)=> handleUnlockRank(e, !rankLock)}>{rankLock ? "Unlock" : "Lock"} Ranking</button>;
-  }, [user?.token, myTeamE, teamAPlayerRanking?.rankLock, teamBPlayerRanking?.rankLock, handleUnlockRank]);
+    const rankLock =
+      myTeamE === ETeam.teamA
+        ? teamAPlayerRanking?.rankLock
+        : teamBPlayerRanking?.rankLock;
+    return (
+      <ActionButton
+        onClick={(e) => handleUnlockRank(e, !rankLock)}
+        variant="secondary"
+      >
+        {rankLock ? "🔓 Unlock" : "🔒 Lock"} Ranking
+      </ActionButton>
+    );
+  }, [
+    user?.token,
+    myTeamE,
+    teamAPlayerRanking?.rankLock,
+    teamBPlayerRanking?.rankLock,
+    handleUnlockRank,
+  ]);
 
   const fwangoLink = useMemo(
     () =>
@@ -238,9 +338,18 @@ function MatchSetting({
           href={match.fwango}
           target="_blank"
           rel="noopener noreferrer"
-          className="item-link uppercase border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4"
+          className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-xl hover:from-yellow-500/20 hover:to-yellow-500/10 transition-all duration-200 group"
         >
-          Fwang Link
+          <span className="text-yellow-400 font-semibold group-hover:text-yellow-300">
+            Fwango Link
+          </span>
+          <Image
+            width={16}
+            height={16}
+            src="/icons/external-link.svg"
+            alt="external"
+            className="w-4 h-4 svg-yellow"
+          />
         </Link>
       ),
     [match.fwango]
@@ -255,28 +364,50 @@ function MatchSetting({
             key={cm.id}
             target="_blank"
             rel="noopener noreferrer"
-            className="item-link border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4"
+            className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-xl hover:from-yellow-500/20 hover:to-yellow-500/10 transition-all duration-200 group"
           >
-            {cm.title}
+            <span className="text-yellow-400 font-semibold group-hover:text-yellow-300 capitalize">
+              {cm.title}
+            </span>
+            <Image
+              width={16}
+              height={16}
+              src="/icons/external-link.svg"
+              alt="external"
+              className="w-4 h-4 svg-yellow"
+            />
           </Link>
         );
       }
       return (
-        <React.Fragment key={cm.id}>
+        <div
+          key={cm.id}
+          className="border border-yellow-500/30 rounded-xl overflow-hidden"
+        >
           <button
             type="button"
-            className="collapse-trigger border-b border-gray-400 flex justify-between items-center py-2 w-full mt-4"
+            className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
             onClick={(e) => handleMenuItem(e, cm.title)}
           >
-            <span className="capitalize">{cm.title}</span>
-            <Image width={12} height={12} src="/icons/right-arrow.svg" alt="arrow" />
+            <span className="text-white font-semibold capitalize">
+              {cm.title}
+            </span>
+            <Image
+              width={16}
+              height={16}
+              src="/icons/right-arrow.svg"
+              alt="arrow"
+              className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                selectedColItem === cm.title ? "rotate-90" : ""
+              }`}
+            />
           </button>
           {selectedColItem === cm.title && (
-            <div className="collapse-content mt-2">
+            <div className="bg-black-logo border-t border-yellow-500/30 p-4">
               <CollapseContent title={selectedColItem} />
             </div>
           )}
-        </React.Fragment>
+        </div>
       );
     },
     [selectedColItem, handleMenuItem, match.event, match._id, ldoIdUrl]
@@ -285,50 +416,89 @@ function MatchSetting({
   // ====== JSX ======
   return (
     <>
-      <dialog ref={dialogSettingEl} className="modal-dialog">
-        {dialogHeader}
-        <div className="content p-4 w-full">
-          {/* Box 1 - Event Logo and Details */}
-          <div className="box-1 bg-black-logo text-white rounded-lg flex justify-between items-center">
-            <div className="logo m-2">{eventLogo}</div>
-            <div className="detail m-2">
-              <h3>{ldo?.name}</h3>
-              <p>Date: {matchDetails.date}</p>
-              <p>Description: {matchDetails.description}</p>
-              <p>Location: {matchDetails.location}</p>
+      <dialog
+        ref={dialogSettingEl}
+        className="modal-dialog"
+      >
+        <div className="bg-gradient-to-br from-gray-900 to-black-logo border-2 border-yellow-500/20 overflow-hidden">
+          <DialogHeader onClose={handleSettingClose} />
+          <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+            {/* Event Header */}
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 rounded-xl border border-yellow-500/20">
+              {eventLogo}
+              <div className="flex-1">
+                <h2 className="text-yellow-400 font-bold text-xl">
+                  {ldo?.name}
+                </h2>
+                <p className="text-gray-300 text-sm">
+                  {matchDetails.description}
+                </p>
+                <div className="flex gap-4 mt-2 text-xs text-gray-400">
+                  <span>📅 {matchDetails.date}</span>
+                  <span>📍 {matchDetails.location}</span>
+                </div>
+              </div>
             </div>
+
+            {scoreKeepingLinks}
+
+            {/* Match Details */}
+            <InfoCard>
+              <h4 className="text-yellow-400 font-bold text-lg mb-4 text-center">
+                Match Configuration
+              </h4>
+              <div className="space-y-1">
+                <DetailItem
+                  label="Net Variance"
+                  value={matchDetails.netVariance as number}
+                />
+                <DetailItem
+                  label="Number of Nets"
+                  value={matchDetails.numberOfNets as number}
+                />
+                <DetailItem
+                  label="Number of Rounds"
+                  value={matchDetails.numberOfRounds as number}
+                />
+                <DetailItem
+                  label="Tie Breaking"
+                  value={matchDetails.tieBreaking as string}
+                />
+              </div>
+            </InfoCard>
+
+            {teamComponents}
+
+            {/* Action Buttons */}
+            {(uncheckInButton || unlockRankingButton) && (
+              <div className="flex gap-3 justify-center flex-wrap">
+                {uncheckInButton}
+                {unlockRankingButton}
+              </div>
+            )}
+
+            {fwangoLink}
+
+            {/* Menu Items */}
+            <div className="space-y-3">{colMenus.map(renderMenuItem)}</div>
           </div>
-          {scoreKeepingLinks}
-          {/* Box 2 - Match Details */}
-          <div className="box-2 border border-black-logo rounded-lg mt-4">
-            <div className="detail m-2">
-              <p>Net Variance: {matchDetails.netVariance}</p>
-              <p>Number of Nets: {matchDetails.numberOfNets}</p>
-              <p>Number of Rounds: {matchDetails.numberOfRounds}</p>
-              <p className="capitalize">Tie breaking strategy: {matchDetails.tieBreaking}</p>
-            </div>
-          </div>
-          {teamComponents}
-          <div className="flex justify-center items-center py-2 gap-x-2">
-            {uncheckInButton}
-            {unlockRankingButton}
-          </div>
-          {fwangoLink}
-          {colMenus.map(renderMenuItem)}
         </div>
       </dialog>
 
-      {/* Setting Icon */}
-      <div
-        className="img-holder p-2 w-8 absolute left-1 bg-white rounded-full cursor-pointer z-20"
-        style={{ top: "47%" }}
+      {/* Floating Setting Button */}
+      <button
         onClick={handleSettingOpen}
-        role="button"
-        tabIndex={0}
-        onKeyDown={handleSettingOpen}
+        className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-yellow-500 hover:bg-yellow-400 text-black-logo p-3 rounded-full shadow-2xl shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-200 hover:scale-110 z-50 group"
+        style={{ top: "47%" }}
       >
-        <Image width={12} height={12} src="/icons/setting.svg" alt="setting" className="w-full" />
-      </div>
+        <Image
+          width={20}
+          height={20}
+          src="/icons/setting.svg"
+          alt="settings"
+          className="w-5 h-5 group-hover:rotate-90 transition-transform duration-200"
+        />
+      </button>
     </>
   );
 }

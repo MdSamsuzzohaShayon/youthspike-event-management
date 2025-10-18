@@ -151,6 +151,7 @@ const organizeFetchedData = async ({
       profile: player.profile,
     }));
   };
+  
 
   const teamAPlayers = reformatPlayers(teamAF, teamAPlayersRanking);
   const teamBPlayers = reformatPlayers(teamBF, teamBPlayersRanking);

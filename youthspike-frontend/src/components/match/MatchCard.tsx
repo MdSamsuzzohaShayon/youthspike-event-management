@@ -1,4 +1,4 @@
-import { IMatchExpRel, INetRelatives, IRoundExpRel } from "@/types";
+import { IMatch, IMatchExpRel, INetRelatives, IRoundExpRel, IRoundRelatives } from "@/types";
 import { ETeam, ITeam } from "@/types/team";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import Link from "next/link";
@@ -14,10 +14,11 @@ import localStorageService from "@/utils/LocalStorageService";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import TextImg from "../elements/TextImg";
 import LocalStorageService from "@/utils/LocalStorageService";
+import { getMatchStatus } from "@/utils/match/getMatchStatus";
 
 interface MatchCardProps {
   match: IMatchExpRel;
-  roundList: IRoundExpRel[];
+  roundList: IRoundRelatives[];
   allNets: INetRelatives[];
 }
 
@@ -76,41 +77,10 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
   /** ✅ Determine match status */
   const statusMessage = useMemo(() => {
-    if (match?.completed) return "COMPLETED";
-
-    for (const currRound of roundList) {
-      if (!currRound?._id) continue;
-
-      const roundNets = netsByRoundId.get(currRound._id) || [];
-
-      if (
-        currRound.teamAProcess === EActionProcess.INITIATE ||
-        currRound.teamBProcess === EActionProcess.INITIATE
-      )
-        return "SCHEDULED";
-
-      const hasIncompleteNet = roundNets.some(
-        (net) => !net?.teamAScore || !net?.teamBScore
-      );
-
-      if (
-        [currRound.teamAProcess, currRound.teamBProcess].includes(
-          EActionProcess.CHECKIN
-        ) &&
-        hasIncompleteNet
-      )
-        return `R${currRound.num} ASSIGNING`;
-
-      if (
-        currRound.teamAProcess === EActionProcess.LINEUP &&
-        currRound.teamBProcess === EActionProcess.LINEUP &&
-        hasIncompleteNet
-      )
-        return `R${currRound.num} LIVE`;
-    }
-
-    return "UPCOMING";
+    return getMatchStatus(match as IMatch, roundList, []);
   }, [roundList, netsByRoundId, match?.completed]);
+
+  // LIVE, ASSIGNING, SCHEDULED, UPCOMING, COMPLETED
 
   /** ✅ Map status to color */
   const statusColor = useMemo(() => {

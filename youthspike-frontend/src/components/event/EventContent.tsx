@@ -2,7 +2,7 @@
 
 import React from "react";
 import { EEventItem } from "@/types/event";
-import { IMatch, IPlayer, ITeam, ITeamCaptain, IPlayerStats } from "@/types";
+import { IMatch, IPlayer, ITeam, ITeamCaptain, IPlayerStats, INetRelatives, IRoundRelatives } from "@/types";
 import PlayerStandings from "@/components/player/PlayerStandings";
 import TeamList from "@/components/team/TeamList";
 import MatchList from "@/components/match/MatchList";
@@ -19,8 +19,8 @@ interface EventContentProps {
   playerStatsMap: Map<string, IPlayerStats[]>;
   teamMap: Map<string, ITeam>;
   selectedGroup: string | null;
-  nets: any;
-  rounds: any;
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
 }
 
 const EventContent: React.FC<EventContentProps> = ({

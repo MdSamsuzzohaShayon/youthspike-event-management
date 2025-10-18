@@ -1,11 +1,7 @@
 "use client";
 
 import { useReadQuery, QueryRef } from "@apollo/client/react";
-import {
-  EMessage,
-  ETeam,
-  IMatchExpRel,
-} from "@/types"; // Your match type
+import { EMessage, ETeam, IMatchExpRel } from "@/types"; // Your match type
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { getUserFromCookie } from "@/utils/cookie";
@@ -28,18 +24,15 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
 
-  
-
-
   if (!data?.getMatch?.data) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div>No match data found</div>
-      </div>
+    const err = new Error(
+      "Invalid Match ID detected. No match data was found for the provided ID. " +
+        "Please return to the match list and select a valid match to continue."
     );
+    err.name = "MatchDataNotFoundError";
+    throw err;
   }
 
-  
   const dispatch = useAppDispatch();
   const socket = useSocket();
 
@@ -91,7 +84,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
 
   // Memoize the match data to prevent unnecessary re-renders
   const match = data?.getMatch?.data;
-  
+
   const myTeam = useMemo(
     () => (myTeamE === ETeam.teamA ? teamA : teamB),
     [myTeamE, teamA, teamB]
@@ -181,8 +174,6 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   if (!match) {
     return <Loader />;
   }
-
-  
 
   return (
     <MatchAuthenticatedView
