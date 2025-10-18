@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import {
+  IEventDetailProps,
   IMatch,
   IPlayer,
   IPlayerRankingExpRel,
@@ -31,34 +32,14 @@ import EventNavigationTabs from "./EventNavigationTabs";
 import { QueryRef, useQuery, useReadQuery } from "@apollo/client/react";
 import { GET_AN_EVENT } from "@/graphql/event";
 import Loader from "../elements/Loader";
-
-interface IEventDetailProps {
-  queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
-  eventId: string;
-}
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.4 } },
-};
+import { containerVariants, fadeIn, fadeInUp } from "@/utils/animation";
+import EventContent from "./EventContent";
 
 // Sub-components
 
 function EventDetail({ queryRef, eventId }: IEventDetailProps) {
   // Hooks
   const { data: lightData, error: lightError } = useReadQuery(queryRef);
-  const { ldoIdUrl } = useLdoId();
   const dispatch = useAppDispatch();
   const user = useUser();
   const router = useRouter();
@@ -211,7 +192,7 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
   );
 
   // Optimize filtered data computation
-  const filteredData = useMemo(() => {
+  const filteredData: any = useMemo(() => {
     const searchLower = search?.toLowerCase() || "";
     const divisionLower = currDivision?.trim().toLowerCase();
     const hasSearch = searchLower.length > 0;
@@ -277,47 +258,40 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
         filterBySearchTeam(team)
     );
 
-    // Filter matches with team resolution
-    // const filteredMatches = [];
+    const filteredMatches: IMatch[] = [];
 
-    // for (const match of matches) {
-    //   // Apply all filters in a single pass
-    //   if (!filterByDivision(match)) continue;
-    //   if (!filterByGroupMatch(match)) continue;
-    //   if (!filterBySearchMatch(match)) continue;
+    for (let i = 0; i < matches.length; i++) {
+      const match = {...matches[i]};
 
-    //   // Resolve teams once
-    //   const teamA = match.teamA ? teamMap.get(String(match.teamA)) : null;
-    //   const teamB = match.teamB ? teamMap.get(String(match.teamB)) : null;
+      // 1. Check division
+      const matchDivision = match.division?.trim().toLowerCase();
+      if (divisionLower && matchDivision !== divisionLower) continue;
 
-    //   filteredMatches.push({ ...match, teamA, teamB });
-    // }
+      // 2. Check group
+      const matchGroupId =
+        typeof match.group === "string" ? match.group : match.group?._id;
 
-    const filteredMatches = [];
-    const filteredWithoutGroup = [];
-    const matchList = []; // not filter
+      if (selectedGroup && matchGroupId !== selectedGroup) continue;
 
-    for (const match of matches) {
-      // Resolve teams once for efficiency
+      // 3. Search match (if search term is present)
       const teamA = match.teamA ? teamMap.get(String(match.teamA)) : null;
       const teamB = match.teamB ? teamMap.get(String(match.teamB)) : null;
+      if (searchLower) {
+        const descriptionMatch = match.description
+          ?.toLowerCase()
+          .includes(searchLower);
+        const teamAMatch = teamA?.name.toLowerCase().includes(searchLower);
+        const teamBMatch = teamB?.name.toLowerCase().includes(searchLower);
 
-      // Apply all filters
-      const passesDivision = filterByDivision(match);
-      const passesGroup = filterByGroupMatch(match);
-      const passesSearch = filterBySearchMatch(match);
-
-      matchList.push({ ...match, teamA, teamB });
-
-      // For the main filtered list (includes group filter)
-      if (passesDivision && passesGroup && passesSearch) {
-        filteredMatches.push({ ...match, teamA, teamB });
+        if (!descriptionMatch && !teamAMatch && !teamBMatch) {
+          continue;
+        }
       }
 
-      // For the second list (skips group filter)
-      if (passesDivision && passesSearch) {
-        filteredWithoutGroup.push({ ...match, teamA, teamB });
-      }
+      match.teamA = teamA as ITeamCaptain;
+      match.teamB = teamB as ITeamCaptain;
+      // If all conditions pass, add to result
+      filteredMatches.push(match);
     }
 
     // Efficient sort: incomplete first, then by latest date
@@ -340,8 +314,8 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
       teams: filteredTeams,
       matches: filteredMatches,
       players: filteredPlayers,
-      matchesNoGroupFilter: filteredWithoutGroup,
-      matchList
+      matchesNoGroupFilter: matches,
+      matchList: matches,
     };
   }, [
     teams,
@@ -419,41 +393,6 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     initializeLists();
   }, [initializeLists]);
 
-  // Memoize render content to avoid unnecessary re-renders
-  const renderContent = useMemo(() => {
-    switch (selectedItem) {
-      case EEventItem.PLAYER:
-        return (
-          <PlayerStandings
-            playerList={filteredData.players}
-            matchList={filteredData.matches as IMatch[]}
-            playerStatsMap={playerStatsMap}
-            teamMap={teamMap}
-          />
-        );
-      case EEventItem.TEAM:
-        return (
-          <TeamList
-            teamList={filteredData.teams as ITeamCaptain[]}
-            selectedGroup={selectedGroup }
-            matchList={filteredData.matchList as IMatch[]}
-            nets={nets}
-            rounds={rounds}
-          />
-        );
-      case EEventItem.MATCH:
-        return (
-          <MatchList
-            matchList={filteredData.matches as IMatch[]}
-            nets={nets}
-            rounds={rounds}
-          />
-        );
-      default:
-        return null;
-    }
-  }, [filteredData, selectedGroup, selectedItem, playerStatsMap, nets, rounds]);
-
   if (!eventData) {
     return <Loader />;
   }
@@ -524,12 +463,20 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedItem}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
-              {renderContent}
+              <EventContent
+                filteredData={filteredData}
+                nets={nets}
+                playerStatsMap={playerStatsMap}
+                rounds={rounds}
+                selectedGroup={selectedGroup}
+                selectedItem={selectedItem}
+                teamMap={teamMap}
+              />
             </motion.div>
           </AnimatePresence>
         </motion.div>

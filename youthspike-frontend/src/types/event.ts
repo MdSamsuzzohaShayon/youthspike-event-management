@@ -12,6 +12,7 @@ import { IRoundRelatives } from "./round";
 import { IMatch } from "./socket";
 import { IServerReceiverSinglePlay } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
+import { QueryRef } from "@apollo/client/react";
 
 export interface IDefaultEventMatch extends IDefaultMatch {
   nets: number;
@@ -86,6 +87,19 @@ export interface IEventDetailData {
   groups: IGroupRelatives[];
   sponsors: IEventSponsor[];
   statsOfPlayer: IAllStats[];
+}
+
+
+export interface IEventDetailProps {
+  queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
+  eventId: string;
+}
+
+export interface EventFilterState {
+  selectedItem: EEventItem;
+  currDivision: string | null;
+  search: string | null;
+  selectedGroup: string | null;
 }
 
 export interface IEventFilter{
