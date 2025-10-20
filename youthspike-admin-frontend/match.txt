@@ -49,928 +49,434 @@ Follow UI/UX design principles. Convert it properly to JSX code
 
 
 
+Here is my server component component:
 
-# Refactored Event Add/Update Component
-
-I'll break this down into smaller, more manageable pieces following SOLID principles and improving readability/maintainability.
-
-## 1. First, let's create separate files for mutations
-
-### `src/utils/requestHandlers/addEvent.ts`
-```typescript
-import { ADD_EVENT_RAW } from '@/graphql/event';
-import { IError, IEventAdd, IEventSponsorAdd, IProStatsAdd } from '@/types';
-import { APP_NAME, BACKEND_URL } from '../keys';
-import { getCookie } from '../clientCookie';
-import { handleResponse } from '../handleError';
-
-interface IAddEventVariables {
-  input: Partial<IEventAdd>;
-  sponsorsInput: IEventSponsorAdd[];
-  logo: string | null;
-  multiplayerInput: IProStatsAdd;
-  weightInput: IProStatsAdd;
-  statsInput: IProStatsAdd;
-}
-
-export async function addEventWithFiles({
-  eventState,
-  sponsorImgList,
-  eventLogo,
-  directorId,
-  multiplayer,
-  weight,
-  stats,
-  setActErr,
-}: {
-  eventState: IEventAdd;
-  sponsorImgList: IEventSponsorAdd[];
-  eventLogo: Blob | null;
-  directorId: string | null;
-  multiplayer: IProStatsAdd;
-  weight: IProStatsAdd;
-  stats: IProStatsAdd;
-  setActErr: (error: IError | null) => void;
-}) {
-  const inputData = { ...eventState };
-  inputData.ldo = directorId || 'auto_detect_from_server';
-  inputData.startDate = new Date(inputData.startDate).toISOString();
-  inputData.endDate = new Date(inputData.endDate).toISOString();
-
-  const { sponsorsInput, sponsorFileList } = processSponsors(sponsorImgList);
-  
-  const formData = new FormData();
-  const variables: IAddEventVariables = {
-    input: inputData,
-    sponsorsInput,
-    logo: null,
-    multiplayerInput: multiplayer,
-    weightInput: weight,
-    statsInput: stats,
-  };
-
-  formData.set('operations', JSON.stringify({
-    query: ADD_EVENT_RAW,
-    variables,
-  }));
-
-  const mapObj = createFileMap(sponsorFileList, !!eventLogo);
-  formData.set('map', JSON.stringify(mapObj));
-
-  addFilesToFormData(formData, sponsorFileList, eventLogo);
-
-  const token = getCookie('token');
-  const response = await fetch(BACKEND_URL, {
-    method: 'POST',
-    body: formData,
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-
-  const responseData = await response.json();
-  const eventRes = responseData?.data?.createEvent;
-  return handleResponse({ response: eventRes, setActErr });
-}
-
-function processSponsors(sponsorImgList: IEventSponsorAdd[]) {
-  const sponsorFileList: IEventSponsorAdd[] = [];
-  const sponsorsInput: IEventSponsorAdd[] = [];
-
-  sponsorImgList.forEach((sponsor) => {
-    if (typeof sponsor.logo === 'string') {
-      // Skip string logos (already uploaded)
-      return;
-    }
-    if (sponsor.company === APP_NAME) {
-      // Skip default sponsor
-      return;
-    }
-    sponsorFileList.push(sponsor);
-    sponsorsInput.push({ company: sponsor.company, logo: null });
-  });
-
-  return { sponsorsInput, sponsorFileList };
-}
-
-function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolean) {
-  const mapObj: Record<string, string[]> = {};
-  
-  sponsorFileList.forEach((_, index) => {
-    mapObj[index.toString()] = [`variables.sponsorsInput.${index}.logo`];
-  });
-
-  if (hasEventLogo) {
-    mapObj[sponsorFileList.length] = ['variables.logo'];
-  }
-
-  return mapObj;
-}
-
-function addFilesToFormData(
-  formData: FormData, 
-  sponsorFileList: IEventSponsorAdd[], 
-  eventLogo: Blob | null
-) {
-  sponsorFileList.forEach((sponsor, index) => {
-    if (sponsor.logo instanceof File && sponsor.company) {
-      formData.set(`${index}`, sponsor.logo);
-    }
-  });
-
-  if (eventLogo) {
-    formData.set(`${sponsorFileList.length}`, eventLogo);
-  }
-}
 ```
-
-### `src/utils/requestHandlers/updateEvent.ts`
-```typescript
-import { UPDATE_EVENT_RAW } from '@/graphql/event';
-import { IError, IEventAdd, IEventSponsorAdd } from '@/types';
-import { APP_NAME, BACKEND_URL } from '../keys';
-import { getCookie } from '../clientCookie';
-import { handleResponse } from '../handleError';
-
-interface IUpdateEventVariables {
-  eventId: string;
-  updateInput: Partial<IEventAdd>;
-  sponsorsInput: IEventSponsorAdd[];
-  sponsorsStringInput: IEventSponsorAdd[];
-  logo: string | null;
-}
-
-export async function updateEventWithFiles({
-  eventId,
-  updateEvent,
-  sponsorImgList,
-  eventLogo,
-  setActErr,
-}: {
-  eventId: string;
-  updateEvent: Partial<IEventAdd>;
-  sponsorImgList: IEventSponsorAdd[];
-  eventLogo: Blob | null;
-  setActErr: (error: IError | null) => void;
-}) {
-  const inputData = { ...updateEvent };
-  if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString();
-  if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString();
-
-  const { sponsorsInput, sponsorFileList, sponsorsStringInput } = processSponsorsForUpdate(sponsorImgList);
-  
-  const formData = new FormData();
-  const variables: IUpdateEventVariables = {
-    eventId,
-    updateInput: inputData,
-    sponsorsInput,
-    sponsorsStringInput,
-    logo: null,
-  };
-
-  formData.set('operations', JSON.stringify({
-    query: UPDATE_EVENT_RAW,
-    variables,
-  }));
-
-  const mapObj = createFileMap(sponsorFileList, !!eventLogo);
-  formData.set('map', JSON.stringify(mapObj));
-
-  addFilesToFormData(formData, sponsorFileList, eventLogo);
-
-  const token = getCookie('token');
-  const response = await fetch(BACKEND_URL, {
-    method: 'POST',
-    body: formData,
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-
-  const responseData = await response.json();
-  const eventRes = responseData?.data?.updateEvent;
-  return handleResponse({ response: eventRes, setActErr });
-}
-
-function processSponsorsForUpdate(sponsorImgList: IEventSponsorAdd[]) {
-  const sponsorFileList: IEventSponsorAdd[] = [];
-  const sponsorsInput: IEventSponsorAdd[] = [];
-  const sponsorsStringInput: IEventSponsorAdd[] = [];
-
-  sponsorImgList.forEach((sponsor) => {
-    if (typeof sponsor.logo === 'string') {
-      sponsorsStringInput.push({ company: sponsor.company, logo: sponsor.logo });
-    } else if (sponsor.company !== APP_NAME) {
-      sponsorFileList.push(sponsor);
-      sponsorsInput.push({ company: sponsor.company, logo: null });
-    }
-  });
-
-  return { sponsorsInput, sponsorFileList, sponsorsStringInput };
-}
-
-// Reuse these from addEvent.ts
-export { createFileMap, addFilesToFormData };
-```
-
-## 2. Create a custom hook for form state management
-
-### `src/hooks/useEventForm.ts`
-```typescript
-import { useState, useRef } from 'react';
-import { IEventAdd, IEventSponsorAdd, IProStatsAdd } from '@/types';
-import { getLocalDateTimeISO } from '@/utils/datetime';
-import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
-import { ERosterLock } from '@/types/event';
-
-const initialProStats: IProStatsAdd = {
-  servingPercentage: 0,
-  acePercentage: 0,
-  receivingPercentage: 0,
-  defensiveConversionPercentage: 0,
-  hittingPercentage: 0,
-  settingPercentage: 0,
-};
-
-const initialEvent: IEventAdd = {
-  name: 'Unnamed Event',
-  startDate: getLocalDateTimeISO(),
-  endDate: getLocalDateTimeISO(),
-  nets: 3,
-  rounds: 2,
-  netVariance: 3,
-  fwango: null,
-  timeout: 3,
-  divisions: '',
-  homeTeam: homeTeamStrategy[0].value,
-  autoAssign: false,
-  autoAssignLogic: assignStrategies[0].value,
-  rosterLock: lockTimes[0].value,
-  tieBreaking: tieBreakingRules[0].value,
-  coachPassword: '',
-  location: 'USA',
-  accessCode: '',
-  description: 'A New Event is Idho, USA.',
-  defaultSponsor: true,
-  playerLimit: 10,
-  active: true,
-};
-
-export function useEventForm(prevEvent?: IEventAdd) {
-  const eventLogo = useRef<Blob | null>(null);
-  const [eventState, setEventState] = useState<IEventAdd>(
-    prevEvent ? { ...prevEvent, coachPassword: initialEvent.coachPassword } : initialEvent
-  );
-  const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
-  const [multiplayer, setMultiplayer] = useState<IProStatsAdd>(initialProStats);
-  const [weight, setWeight] = useState<IProStatsAdd>(initialProStats);
-  const [stats, setStats] = useState<IProStatsAdd>(initialProStats);
-  const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(
-    prevEvent ? (Array.isArray(prevEvent.sponsors) ? 
-      prevEvent.sponsors.map(s => typeof s === 'string' ? { company: s, logo: null } : s) : []) : []
-  );
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    updateFormState(name, value);
-  };
-
-  const handleToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    updateFormState(name, checked ?? false);
-  };
-
-  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const intVal = parseInt(value, 10);
-    if (!isNaN(intVal)) {
-      updateFormState(name, intVal);
-    }
-  };
-
-  const handleDateChange = (name: string, value: string) => {
-    updateFormState(name, value);
-  };
-
-  const updateFormState = (name: string, value: any) => {
-    if (prevEvent) {
-      setUpdateEvent(prev => ({ ...prev, [name]: value }));
-    } else {
-      setEventState(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleProStatsChange = (prefix: 'multiplayer' | 'weight' | 'stats', field: string, value: number) => {
-    const setters = {
-      multiplayer: setMultiplayer,
-      weight: setWeight,
-      stats: setStats,
-    };
-    
-    setters[prefix](prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSponsorImgList = (sponsor: IEventSponsorAdd) => {
-    setSponsorImgList(prev => [...prev.filter(ps => ps.company !== sponsor.company), sponsor]);
-  };
-
-  const handleSponsorRemove = (companyName: string | null) => {
-    setSponsorImgList(prev => prev.filter(imgFile => 
-      typeof imgFile === 'string' ? imgFile !== companyName : imgFile.company !== companyName
-    ));
-  };
-
-  const handleDefaultSponsorToggle = (value: boolean) => {
-    updateFormState('defaultSponsor', value);
-  };
-
-  const handleLogoChange = (file: Blob) => {
-    eventLogo.current = file;
-  };
-
-  return {
-    eventState,
-    updateEvent,
-    multiplayer,
-    weight,
-    stats,
-    sponsorImgList,
-    eventLogo,
-    handleInputChange,
-    handleToggleChange,
-    handleNumberInputChange,
-    handleDateChange,
-    handleProStatsChange,
-    handleSponsorImgList,
-    handleSponsorRemove,
-    handleDefaultSponsorToggle,
-    handleLogoChange,
-    setEventState,
-    setUpdateEvent,
-  };
-}
-```
-
-## 3. Create a SponsorDialog component
-
-### `src/components/events/SponsorDialog.tsx`
-```typescript
-import React, { useRef, useState } from 'react';
-import { IEventSponsorAdd } from '@/types';
-import Image from 'next/image';
-import InputField from '../elements/forms/InputField';
-import FileInput from '../elements/forms/FileInput';
-
-interface SponsorDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (sponsor: IEventSponsorAdd) => void;
-}
-
-export default function SponsorDialog({ isOpen, onClose, onSave }: SponsorDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [currSponsor, setCurrSponsor] = useState<IEventSponsorAdd>({ logo: null, company: null });
-
-  const handleFileNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrSponsor(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    setCurrSponsor(prev => ({ ...prev, logo: e.target.files![0] }));
-  };
-
-  const handleOk = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currSponsor.company || !currSponsor.logo) {
-      return false;
-    }
-    onSave(currSponsor);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <dialog ref={dialogRef} className="w-5/6" open={isOpen}>
-      <div className="relative flex w-full flex-col rounded-2xl bg-gray-800 text-white">
-        <button 
-          type="button" 
-          aria-label="Close" 
-          className="absolute right-4 top-4 rounded-full p-1 transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          onClick={onClose}
-        >
-          <Image width={20} height={20} src="/icons/close.svg" alt="close-icon" className="h-6 w-6 svg-white opacity-60" role="presentation" />
-        </button>
-
-        <div className="space-y-6 px-8 py-10">
-          <InputField 
-            type="text" 
-            handleInputChange={handleFileNameChange} 
-            name="company" 
-            required 
-            placeholder="e. g. Microsoft" 
-          />
-
-          <FileInput 
-            handleFileChange={handleFileChange} 
-            name="sponsorLogo" 
-            vertical 
-            lblTxt="Sponsor Logo" 
-          />
-
-          <button type="submit" className="w-full btn-info" onClick={handleOk}>
-            Save Sponsor
-          </button>
-        </div>
-      </div>
-    </dialog>
-  );
-}
-```
-
-## 4. Refactored EventAddUpdate component
-
-### `src/components/events/EventAddUpdate.tsx`
-```typescript
+// React.js and Next.js
 import React from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useMutation } from '@apollo/client';
-import { ADD_EVENT, UPDATE_EVENT } from '@/graphql/event';
-import { useUser } from '@/lib/UserProvider';
-import { UserRole } from '@/types/user';
-import { useSocket } from '@/lib/SocketProvider';
-import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
-import { addEventWithFiles, updateEventWithFiles } from '@/utils/requestHandlers/eventMutations';
-import { useEventForm } from '@/hooks/useEventForm';
-import { IEventAddProps } from '@/types';
 
-import Loader from '../elements/Loader';
-import EventFormSections from './EventFormSections';
-import SponsorDialog from './SponsorDialog';
+// GraphQL, helpers, utils, types
+import { IGroupExpRel, IGroupRelatives, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam, TParams } from '@/types';
 
-const EventAddUpdate = ({ update, prevEvent }: IEventAddProps) => {
-  const router = useRouter();
-  const user = useUser();
-  const searchParams = useSearchParams();
-  const pName = usePathname();
-  const socket = useSocket();
-  const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
-  
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isSponsorDialogOpen, setIsSponsorDialogOpen] = React.useState(false);
-  const [eventId, setEventId] = React.useState<string | null>(null);
-  const [directorId, setDirectorId] = React.useState<string | null>(null);
+import { notFound } from 'next/navigation';
+import MatchesMain from '@/components/match/MatchesMain';
+import { getEventWithMatches } from '@/app/_requests/matches';
 
-  const {
-    eventState,
-    updateEvent,
-    multiplayer,
-    weight,
-    stats,
-    sponsorImgList,
-    eventLogo,
-    handleInputChange,
-    handleToggleChange,
-    handleNumberInputChange,
-    handleDateChange,
-    handleProStatsChange,
-    handleSponsorImgList,
-    handleSponsorRemove,
-    handleDefaultSponsorToggle,
-    handleLogoChange,
-    setEventState,
-  } = useEventForm(prevEvent);
+interface IMatchesPageProps {
+  params: TParams;
+}
 
-  const [eventAdd] = useMutation(ADD_EVENT);
-  const [eventUpdate] = useMutation(UPDATE_EVENT);
+async function MatchesPage({ params }: IMatchesPageProps) {
+  try {
+    const pathParams = await params;
+    const matchesData = await getEventWithMatches(pathParams.eventId);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+    if (!matchesData) {
+      notFound();
+    }
 
-    try {
-      if (update && eventId) {
-        await updateEventWithFiles({
-          eventId,
-          updateEvent,
-          sponsorImgList,
-          eventLogo: eventLogo.current,
-          setActErr,
+    const { event, matches, teams, ldo, nets, rounds, groups } = matchesData;
+    
+    // Create maps safely
+    const teamMap = new Map<string, ITeam>();
+    teams.forEach((t: ITeam) => {
+      if (t && t._id) {
+        teamMap.set(t._id, t);
+      }
+    });
+
+    const roundMap = new Map<string, IRoundRelatives>();
+    rounds.forEach((r: IRoundRelatives) => {
+      if (r && r._id) {
+        roundMap.set(r._id, r);
+      }
+    });
+
+    const netMap = new Map<string, INetRelatives>();
+    nets.forEach((n: INetRelatives) => {
+      if (n && n._id) {
+        netMap.set(n._id, n);
+      }
+    });
+
+    // Process matches safely
+    const matchList = matches.map((m: IMatchExpRel) => {
+      const matchObj = { ...m };
+
+      // Handle rounds
+      if (Array.isArray(m.rounds)) {
+        matchObj.rounds = m.rounds.flatMap((round) => {
+          if (typeof round === 'string' && roundMap.has(round)) {
+            return [roundMap.get(round)!];
+          } else if (typeof round === 'object' && round !== null) {
+            return [round as IRoundRelatives];
+          }
+          return [];
         });
       } else {
-        await addEventWithFiles({
-          eventState,
-          sponsorImgList,
-          eventLogo: eventLogo.current,
-          directorId,
-          multiplayer,
-          weight,
-          stats,
-          setActErr,
+        matchObj.rounds = [];
+      }
+
+      // Handle nets
+      if (Array.isArray(m.nets)) {
+        matchObj.nets = m.nets.flatMap((net) => {
+          if (typeof net === 'string' && netMap.has(net)) {
+            return [netMap.get(net)!];
+          } else if (typeof net === 'object' && net !== null) {
+            return [net as INetRelatives];
+          }
+          return [];
         });
+      } else {
+        matchObj.nets = [];
       }
 
-      // Reset form and navigate
-      setEventState(initialEvent);
-      if (!update && eventId) {
-        router.push(`/${eventId}/${ldoIdUrl}`);
+      // Handle teams safely
+      if (m.teamA) {
+        const teamAId = typeof m.teamA === 'string' ? m.teamA : m.teamA?._id;
+        if (teamAId && teamMap.has(teamAId)) {
+          matchObj.teamA = teamMap.get(teamAId)!;
+        } else {
+          matchObj.teamA = m.teamA
+        }
       }
-    } catch (error) {
-      setActErr({ 
-        message: error instanceof Error ? error.message : String(error), 
-        success: false 
-      });
-    } finally {
-      setIsLoading(false);
+
+      if (m.teamB) {
+        const teamBId = typeof m.teamB === 'string' ? m.teamB : m.teamB._id;
+        if (teamBId && teamMap.has(teamBId)) {
+          matchObj.teamB = teamMap.get(teamBId)!;
+        } else {
+          matchObj.teamB =  m.teamB 
+        }
+      } 
+
+      return matchObj;
+    });
+
+    // Process groups safely
+    const groupList: IGroupExpRel[] = groups.map((g: IGroupRelatives) => {
+      // @ts-ignore
+      const groupObj = { ...g } as IGroupExpRel;
+      
+      if (Array.isArray(groupObj.teams)) {
+        groupObj.teams = groupObj.teams.flatMap((gt) => {
+          if (typeof gt === 'string' && teamMap.has(gt)) {
+            const team = teamMap.get(gt);
+            return team ? [team] : [];
+          } else if (typeof gt === 'object' && gt !== null) {
+            return [gt as ITeam];
+          }
+          return [];
+        });
+      } else {
+        groupObj.teams = [];
+      }
+      
+      return groupObj;
+    });
+
+    return (
+      <div className="container mx-auto px-4 min-h-screen">
+        <h1 className="mb-8 text-center">Matches</h1>
+        <MatchesMain matches={matchList} teams={teams} groups={groupList} currEvent={event} />
+      </div>
+    );
+
+  } catch (error) {
+    console.error('Error in MatchesPage:', error);
+    notFound();
+  }
+}
+
+
+export default MatchesPage;
+
+```
+
+
+
+Here is my getEventWithMatches:
+
+```
+async function getEventWithMatches(eventId: string) {
+  try {
+    if (!isValidObjectId(eventId)) {
+      return null;
     }
-  };
 
-  React.useEffect(() => {
-    const pnList = pName.split('/');
-    if (pnList.includes('settings')) {
-      const newEventId = pnList.filter(pn => pn !== '')[0];
-      setEventId(newEventId);
+    const res = await fetch(`${BACKEND_URL}/graphql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: GET_EVENT_WITH_MATCHES_RAW,
+        variables: { eventId },
+      }),
+      cache: 'no-store',
+    });
+
+    const { data, errors } = await res.json();
+    return handleServerResponse(data, 'getEventWithMatches', errors);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+
+  //
+}
+
+
+```
+
+
+Use this format (PreloadQuery):
+
+```
+import { IGetEventDirectorQuery, IGetPlayerEventSettingsQuery, TParams } from '@/types';
+import SettingsMain from '@/components/event/SettingsMain';
+import { PreloadQuery } from '@/lib/client';
+import { GET_PLAYER_EVENT_SETTINGS } from '@/graphql/event';
+import { Suspense } from 'react';
+import Loader from '@/components/elements/Loader';
+import { QueryRef } from '@apollo/client';
+
+interface ISettingsPageProps {
+  params: TParams;
+}
+
+async function SettingsPage({ params }: ISettingsPageProps) {
+  const pathParams = await params;
+
+  return (
+    <div className="container mx-auto px-4 py-8 min-h-screen">
+      <PreloadQuery
+        query={GET_PLAYER_EVENT_SETTINGS}
+        variables={{
+          eventId: pathParams.eventId,
+        }}
+      >
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <SettingsMain queryRef={queryRef as QueryRef<{ getPlayerEventSetting: IGetPlayerEventSettingsQuery }>} eventId={pathParams.eventId} />
+          </Suspense>
+        )}
+      </PreloadQuery>
+    </div>
+  );
+}
+
+export default SettingsPage;
+
+
+```
+
+Here is child component MatchesMain:
+
+```
+'use client';
+
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+
+import Loader from '@/components/elements/Loader';
+import SelectInput from '@/components/elements/forms/SelectInput';
+import CurrentEvent from '@/components/event/CurrentEvent';
+import UserMenuList from '@/components/layout/UserMenuList';
+import MatchAdd from '@/components/match/MatchAdd';
+import MatchList from '@/components/match/MatchList';
+
+import { useUser } from '@/lib/UserProvider';
+import { IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IUserContext, UserRole } from '@/types/user';
+import { divisionsToOptionList } from '@/utils/helper';
+import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+
+import { getUserFromCookie } from '@/utils/clientCookie';
+
+interface IMatchesMainProps {
+  matches: IMatchExpRel[];
+  teams: ITeam[];
+  groups: IGroupExpRel[];
+  currEvent: IEventExpRel;
+}
+
+/**
+ * Returns matches that belong to the team of the current user (if captain/co-captain/player).
+ */
+function getUserScopedMatches(user: IUserContext, teams: ITeam[], matches: IMatchExpRel[]): IMatchExpRel[] {
+  if (!user?.info) return matches;
+
+  let userTeam: ITeam | undefined;
+
+  switch (user.info.role) {
+    case UserRole.captain:
+      userTeam = teams.find((t) => t.captain?._id === user.info?.captainplayer);
+      break;
+    case UserRole.co_captain:
+      userTeam = teams.find((t) => t.cocaptain?._id === user.info?.cocaptainplayer);
+      break;
+    case UserRole.player:
+      // @ts-ignore
+      userTeam = teams.find((t) => t.players?.includes(user.info?.player));
+      break;
+    default:
+      break;
+  }
+
+  if (!userTeam) return matches;
+
+  const teamId = userTeam._id;
+  return matches.filter((m) => m?.teamA?._id === teamId || m?.teamB?._id === teamId);
+}
+
+function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
+  if (!currEvent) return <div>Event not found</div>;
+
+  // Local state
+  const [isLoading, setIsLoading] = useState(false);
+  const [showMatchAddForm, setShowMatchAddForm] = useState(false);
+  const [selectedDivision, setSelectedDivision] = useState('');
+
+  // Hooks
+  const currentUser = useUser();
+  const cachedUserFromCookie = useMemo(() => getUserFromCookie(), []);
+
+  // Division list (memoized, only changes when event divisions change)
+  const divisionOptions: IOption[] = useMemo(() => divisionsToOptionList(currEvent?.divisions || ''), [currEvent?.divisions]);
+
+  // Apply division + user role filtering in one memoized block
+  const { divisionTeams, divisionMatches, divisionGroups } = useMemo(() => {
+    let divisionTeams = teams;
+    let divisionMatches = matches;
+    let divisionGroups = groups;
+
+    if (selectedDivision) {
+      const divisionKey = selectedDivision.trim().toLowerCase();
+      divisionTeams = divisionTeams.filter((t) => t?.division?.trim().toLowerCase() === divisionKey);
+      divisionMatches = divisionMatches.filter((m) => m?.division?.trim().toLowerCase() === divisionKey);
+      divisionGroups = divisionGroups.filter((g) => g?.division?.trim().toLowerCase() === divisionKey);
     }
 
-    if (user.info?.role === UserRole.admin) {
-      const newDirectorId = searchParams.get('ldoId');
-      if (!newDirectorId) {
-        router.push('/admin');
-        return;
-      }
-      setDirectorId(newDirectorId);
+    if (cachedUserFromCookie?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(cachedUserFromCookie.info.role)) {
+      divisionMatches = getUserScopedMatches(cachedUserFromCookie, divisionTeams, divisionMatches);
+    }
+
+    return { divisionTeams, divisionMatches, divisionGroups };
+  }, [selectedDivision, cachedUserFromCookie, teams, matches, groups]);
+
+  // Refetch function (reload page)
+  const refetchMatches = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  // On mount: initialize division filter from localStorage
+  useEffect(() => {
+    removeTeamFromStore();
+    const storedDivision = getDivisionFromStore();
+    if (storedDivision) setSelectedDivision(storedDivision);
+  }, []);
+
+  // Division dropdown handler
+  const handleDivisionChange = useCallback((e: React.SyntheticEvent) => {
+    const selectedValue = (e.target as HTMLSelectElement).value.trim();
+    setSelectedDivision(selectedValue);
+
+    if (selectedValue) {
+      setDivisionToStore(selectedValue);
     } else {
-      setDirectorId(user.info?._id || null);
+      removeDivisionFromStore();
     }
-  }, [user, pName, searchParams, router]);
+  }, []);
+
+  // Callback when a new match is added
+  const handleMatchAdded = useCallback(
+    (newMatch: IMatchExpRel) => {
+      // Mutating matches directly — keeps UI fast and avoids unnecessary refetch
+      matches.push(newMatch);
+    },
+    [matches],
+  );
 
   if (isLoading) return <Loader />;
 
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
-      <EventFormSections
-        update={update}
-        eventState={eventState}
-        updateEvent={updateEvent}
-        onInputChange={handleInputChange}
-        onToggleChange={handleToggleChange}
-        onNumberChange={handleNumberInputChange}
-        onDateChange={handleDateChange}
-        onProStatsChange={handleProStatsChange}
-        multiplayer={multiplayer}
-        weight={weight}
-        stats={stats}
-        onLogoChange={handleLogoChange}
-      />
-
-      <SponsorDialog
-        isOpen={isSponsorDialogOpen}
-        onClose={() => setIsSponsorDialogOpen(false)}
-        onSave={handleSponsorImgList}
-      />
-
-      <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
-        <h3 className="text-2xl capitalize">Sponsors</h3>
-        <button 
-          type="button" 
-          onClick={() => setIsSponsorDialogOpen(true)} 
-          className="btn-info"
-        >
-          Add New
-        </button>
-      </div>
-
-      <ShowSponsors 
-        onDefaultSponsorToggle={handleDefaultSponsorToggle}
-        defaultSponsor={eventState.defaultSponsor}
-        fileList={sponsorImgList}
-        onRemove={handleSponsorRemove}
-      />
-
-      <div className="mt-6 flex justify-center">
-        <button type="submit" className="w-full btn-info">
-          {update ? 'Update' : 'Submit'}
-        </button>
-      </div>
-    </form>
-  );
-};
-
-export default EventAddUpdate;
-```
-
-## 5. Create a separate component for form sections
-
-### `src/components/events/EventFormSections.tsx`
-```typescript
-import React from 'react';
-import { IEventAdd } from '@/types';
-import InputField from '../elements/forms/InputField';
-import ImageInput from '../elements/forms/ImageInput';
-import DateInput from '../elements/forms/DateInput';
-import SelectInput from '../elements/forms/SelectInput';
-import ToggleInput from '../elements/forms/ToggleInput';
-import DateTimeInput from '../elements/forms/DateTimeInput';
-import TextareaInput from '../elements/forms/TextareaInput';
-import ShowDivisions from './ShowDivisions';
-import ProStatsInput from './ProStatsInput';
-import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
-import { ERosterLock } from '@/types/event';
-
-interface EventFormSectionsProps {
-  update: boolean;
-  eventState: IEventAdd;
-  updateEvent: Partial<IEventAdd>;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onToggleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onNumberChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onDateChange: (name: string, value: string) => void;
-  onProStatsChange: (prefix: 'multiplayer' | 'weight' | 'stats', field: string, value: number) => void;
-  multiplayer: IProStatsAdd;
-  weight: IProStatsAdd;
-  stats: IProStatsAdd;
-  onLogoChange: (file: Blob) => void;
-}
-
-const EventFormSections: React.FC<EventFormSectionsProps> = ({
-  update,
-  eventState,
-  updateEvent,
-  onInputChange,
-  onToggleChange,
-  onNumberChange,
-  onDateChange,
-  onProStatsChange,
-  multiplayer,
-  weight,
-  stats,
-  onLogoChange,
-}) => {
-  return (
     <>
-      <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField 
-          name="name" 
-          type="text" 
-          label="Name" 
-          onChange={onInputChange} 
-          value={update ? updateEvent.name || eventState.name : eventState.name} 
-          required={!update} 
-        />
-        
-        <ImageInput 
-          onChange={onLogoChange} 
-          name="logo" 
-          defaultValue={eventState.logo || null} 
-        />
-
-        <DateInput 
-          label="Start Date" 
-          name="startDate" 
-          onChange={(value) => onDateChange('startDate', value)} 
-          value={update ? updateEvent.startDate || eventState.startDate : eventState.startDate} 
-          required={!update} 
-        />
-        
-        <DateInput 
-          label="End Date" 
-          name="endDate" 
-          onChange={(value) => onDateChange('endDate', value)} 
-          value={update ? updateEvent.endDate || eventState.endDate : eventState.endDate} 
-          required={!update} 
-        />
-
-        <InputField 
-          required={!update} 
-          name="nets" 
-          type="number" 
-          onChange={onNumberChange} 
-          label="Number of nets" 
-          value={update ? updateEvent.nets || eventState.nets : eventState.nets} 
-        />
-        
-        <InputField 
-          required={!update} 
-          name="rounds" 
-          type="number" 
-          onChange={onNumberChange} 
-          label="Number of rounds" 
-          value={update ? updateEvent.rounds || eventState.rounds : eventState.rounds} 
-        />
-        
-        <InputField 
-          required={!update} 
-          name="netVariance" 
-          type="number" 
-          onChange={onNumberChange} 
-          label="Net Variance" 
-          value={update ? updateEvent.netVariance || eventState.netVariance : eventState.netVariance} 
-        />
-        
-        <InputField 
-          name="fwango" 
-          type="text" 
-          label="Fwango Link" 
-          onChange={onInputChange} 
-          value={update ? updateEvent.fwango || eventState.fwango || '' : eventState.fwango || ''} 
-        />
+      {/* Event Header + Menu */}
+      <div className="event-and-menu">
+        <CurrentEvent currEvent={currEvent} />
+        <div className="navigator mt-4">
+          <UserMenuList eventId={currEvent?._id} />
+        </div>
       </div>
 
-      <div className="w-full mt-6">
-        {!update ? (
-          <InputField 
-            type="text" 
-            required 
-            value={eventState.divisions} 
-            onChange={onInputChange} 
-            label="Divisions" 
-            name="divisions" 
-          />
+      <div className="mt-4">
+        {showMatchAddForm ? (
+          <div className="match-add-wrapper w-full">
+            {currentUser?.info && (currentUser.info.role === UserRole.admin || currentUser.info.role === UserRole.director) && (
+              <>
+                <button type="button" className="btn-info mb-4" onClick={() => setShowMatchAddForm(false)}>
+                  Match List
+                </button>
+
+                {/* Only allow division selection if user is not a captain/co-captain/player */}
+                {!currentUser?.info?.role || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(currentUser.info.role) ? (
+                  <div className="division-selection w-full">
+                    <SelectInput key="division-selector-add" handleSelect={handleDivisionChange} defaultValue={selectedDivision} name="division" optionList={divisionOptions} />
+                  </div>
+                ) : null}
+
+                <MatchAdd
+                  eventData={currEvent}
+                  teamList={divisionTeams}
+                  eventId={currEvent?._id}
+                  addMatchCB={handleMatchAdded}
+                  setIsLoading={setIsLoading}
+                  showAddMatch={setShowMatchAddForm}
+                  groupList={divisionGroups}
+                  currDivision={selectedDivision}
+                />
+              </>
+            )}
+          </div>
         ) : (
-          <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
-        )}
-        
-        <ShowDivisions
-          update={update}
-          dStr={eventState.divisions}
-          prevDivisions={prevEvent?.divisions || ''}
-          setEventState={setEventState}
-          setUpdateEvent={setUpdateEvent}
-          eventId={eventId}
-          updateEvent={updateEvent}
-        />
-      </div>
+          <div className="match-list-wrapper w-full">
+            {currentUser?.info && (currentUser.info.role === UserRole.admin || currentUser.info.role === UserRole.director) && (
+              <button type="button" className="btn-info mb-4" onClick={() => setShowMatchAddForm(true)}>
+                Add Match
+              </button>
+            )}
+            <br />
 
-      <div className="part-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <SelectInput 
-          name="homeTeam" 
-          label="How is home team decided?" 
-          onChange={onInputChange} 
-          options={homeTeamStrategy} 
-          value={update ? updateEvent.homeTeam || eventState.homeTeam : eventState.homeTeam} 
-        />
-        
-        <SelectInput 
-          name="tieBreaking" 
-          options={tieBreakingRules} 
-          value={update ? updateEvent.tieBreaking || eventState.tieBreaking : eventState.tieBreaking} 
-          onChange={onInputChange} 
-          label="Tie breaking strategy" 
-        />
-        
-        <ToggleInput 
-          onChange={onToggleChange} 
-          name="autoAssign" 
-          label="Auto assign when clock runs out" 
-          checked={update ? updateEvent.autoAssign || eventState.autoAssign : eventState.autoAssign} 
-        />
+            {/* Only allow division selection if user is not a captain/co-captain/player */}
+            {!currentUser?.info?.role || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(currentUser.info.role) ? (
+              <div className="division-selection w-full">
+                <SelectInput key="division-selector-list" handleSelect={handleDivisionChange} defaultValue={selectedDivision} name="division" optionList={divisionOptions} />
+              </div>
+            ) : null}
 
-        <SelectInput
-          name="autoAssignLogic"
-          options={assignStrategies}
-          onChange={onInputChange}
-          label="Which auto assign logic when clock runs out?"
-          value={update ? updateEvent.autoAssignLogic || eventState.autoAssignLogic : eventState.autoAssignLogic}
-        />
-
-        <SelectInput 
-          name="rosterLock" 
-          options={lockTimes} 
-          onChange={onInputChange} 
-          value={update ? updateEvent.rosterLock || eventState.rosterLock : eventState.rosterLock} 
-          label="When does the roster lock setting?" 
-        />
-
-        {eventState.rosterLock && eventState.rosterLock !== '' && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-          <DateTimeInput 
-            name="rosterLockDate" 
-            label="Set a time for locking roster ranking!" 
-            required={!update} 
-            onChange={(value) => onDateChange('rosterLockDate', value)} 
-          />
+            {divisionMatches.length > 0 ? (
+              <MatchList eventId={currEvent?._id} setIsLoading={setIsLoading} matchList={divisionMatches} teamList={teams} refetchFunc={refetchMatches} groupList={divisionGroups} />
+            ) : (
+              <p>No match created yet!</p>
+            )}
+          </div>
         )}
       </div>
-
-      <div className="part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField 
-          name="timeout" 
-          type="number" 
-          onChange={onNumberChange} 
-          label="Sub Clock (in minutes)" 
-          value={update ? updateEvent.timeout || eventState.timeout : eventState.timeout} 
-        />
-        
-        <InputField 
-          name="coachPassword" 
-          type="password" 
-          label="Coach Password" 
-          required={!update} 
-          onChange={onInputChange} 
-          value={update ? updateEvent.coachPassword || eventState.coachPassword : eventState.coachPassword} 
-        />
-      </div>
-      
-      <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <TextareaInput 
-          name="description" 
-          label="Description" 
-          required={!update} 
-          onChange={onInputChange} 
-          value={update ? updateEvent.description || eventState.description : eventState.description} 
-        />
-      </div>
-      
-      <div className="part-4.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField 
-          type="text" 
-          name="location" 
-          label="Location" 
-          required={!update} 
-          onChange={onInputChange} 
-          value={update ? updateEvent.location || eventState.location : eventState.location} 
-        />
-        
-        <InputField
-          type="text"
-          tooltip="For scorekeeper, access code are needed to change the score!"
-          name="accessCode"
-          label="Access Code"
-          onChange={onInputChange}
-          value={update ? updateEvent.accessCode || eventState.accessCode : eventState.accessCode}
-        />
-      </div>
-
-      <div className="w-full pro-stats mt-4">
-        <ProStatsInput 
-          label="Multiplayer Stats" 
-          namePrefix="multiplayer" 
-          values={multiplayer} 
-          onChange={(field, value) => onProStatsChange('multiplayer', field, value)} 
-        />
-
-        <ProStatsInput 
-          label="Weight Stats" 
-          namePrefix="weight" 
-          values={weight} 
-          onChange={(field, value) => onProStatsChange('weight', field, value)} 
-        />
-
-        <ProStatsInput 
-          label="Stat Stats" 
-          namePrefix="stats" 
-          values={stats} 
-          onChange={(field, value) => onProStatsChange('stats', field, value)} 
-        />
-      </div>
+      <br />
     </>
   );
-};
+}
 
-export default EventFormSections;
+export default MatchesMain;
+
+
 ```
 
-## Key Improvements:
-
-1. **Separation of Concerns**:
-   - Split the large component into smaller, focused components
-   - Separated mutation logic into dedicated files
-   - Created a custom hook for form state management
-
-2. **Type Safety**:
-   - Improved TypeScript types and interfaces
-   - Better type definitions for props and state
-
-3. **Performance**:
-   - Reduced unnecessary re-renders by using proper state management
-   - Memoized expensive calculations where possible
-
-4. **Readability**:
-   - More descriptive variable and function names
-   - Consistent code style
-   - Better component organization
-
-5. **Maintainability**:
-   - Followed DRY (Don't Repeat Yourself) principle
-   - Used KISS (Keep It Simple, Stupid) principle
-   - Each component has a single responsibility
-
-6. **Error Handling**:
-   - Better error handling and validation
-   - More informative error messages
-
-7. **Testing Friendly**:
-   - Components are more isolated and easier to test
-   - Business logic is separated from UI
-
-This refactoring makes the codebase more maintainable, easier to understand, and more performant while keeping all the existing functionality intact.
 
 
-
+Make MatchesPage properly, use PrefetchQuery.
+ANd make sure properly type safety with typescript. 
+Handle error properly and throw that error with proper description.
+Apply KISS and DRY method. 
+Moreover, make the component better in terms of time and space complexty
 

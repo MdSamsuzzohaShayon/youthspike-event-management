@@ -131,6 +131,10 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     (lightData as any)?.getEventDetails?.data ||
     null;
 
+  console.log("Event data ==============");
+  console.log(eventData);
+  
+
   if (!eventData) {
     const error = new Error(
       "The requested event might not exist or has been removed."

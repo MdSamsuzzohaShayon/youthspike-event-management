@@ -236,7 +236,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   );
 
   /**
-   * Bulk delete
+   * Bulk delete (Do not remove this function)
    */
   const handleDeleteSelected = useCallback(
     async (e: React.SyntheticEvent) => {
@@ -271,7 +271,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     <div className="matchList w-full flex flex-col md:flex-row justify-between gap-4 flex-wrap">
       {/* Filters */}
       <div className="search-filter w-full mb-8 grid grid-cols-1 md:grid-cols-2 gap-2">
-        <SelectInput name="period" optionList={eventPeriods} label="Date" value={filters.date || EEventPeriod.CURRENT} handleSelect={(e) => handleFilterChange(e, 'date')} />
+        <SelectInput name="period" optionList={eventPeriods} label="Date" defaultValue={filters.date || EEventPeriod.CURRENT} handleSelect={(e) => handleFilterChange(e, 'date')} />
         <SelectInput
           name="opponent"
           label="Oponent"

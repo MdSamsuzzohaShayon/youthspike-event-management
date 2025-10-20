@@ -20,4 +20,5 @@ npm i @types/bcrypt @types/passport-jwt concurrently cross-env eslint-config-nes
 
 
 # Restore mongodb database
-mongorestore --gzip --db spikeball_temp ./spikeball-matches
+# mongorestore --gzip --db spikeball_temp ./spikeball-matches
+mongorestore   --drop   --numInsertionWorkersPerCollection 2   --db spikeball-latest   ~/Documents/web/youthspike-event-management/res/latest

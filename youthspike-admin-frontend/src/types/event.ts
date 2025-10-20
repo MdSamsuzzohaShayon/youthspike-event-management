@@ -1,12 +1,14 @@
 /* eslint-disable import/no-cycle */
 import React from 'react';
-import { ICommonMatchEvent, IMatch } from './match';
+import { ICommonMatchEvent, IMatch, IMatchExpRel } from './match';
 import { EAssignStrategies, IError } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
 import { ICommonQuery, ILDO, ILDOItem } from './ldo';
-import { IGroup } from './group';
+import { IGroup, IGroupExpRel } from './group';
 import { IProStats } from './playerStats';
+import { INetRelatives } from './net';
+import { IRoundRelatives } from './round';
 
 export enum EEventPeriod {
   UPCOMING = 'UPCOMING',
@@ -101,4 +103,24 @@ export interface IEventAddProps {
   prevEvent?: IEvent;
   prevWight?: IProStats;
   prevMultiplayer?: IProStats;
+}
+
+
+export interface IEventWithMatchesResponse {
+  getEventWithMatches: {
+    __typename: string;
+    code: number;
+    success: boolean;
+    message: string;
+    data: {
+      __typename: string;
+      event: IEventExpRel;
+      matches: IMatchExpRel[];
+      teams: ITeam[];
+      ldo: ILDO;
+      nets: INetRelatives[];
+      rounds: IRoundRelatives[];
+      groups: IGroupExpRel[];
+    };
+  };
 }

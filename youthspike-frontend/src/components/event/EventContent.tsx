@@ -32,6 +32,17 @@ const EventContent: React.FC<EventContentProps> = ({
   nets,
   rounds,
 }) => {
+
+  console.log("Event Content ========================");
+  console.log({selectedItem,
+    filteredData,
+    playerStatsMap,
+    teamMap,
+    selectedGroup,
+    nets,
+    rounds,});
+  
+  
   switch (selectedItem) {
     case EEventItem.PLAYER:
       return (
