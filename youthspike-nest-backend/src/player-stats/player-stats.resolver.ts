@@ -17,6 +17,12 @@ import { NetService } from 'src/net/net.service';
 import { playerKey } from 'src/util/helper';
 import { RedisService } from 'src/redis/redis.service';
 import { EventService } from 'src/event/event.service';
+import { Team } from 'src/team/team.schema';
+import { RoundService } from 'src/round/round.service';
+import { Net } from 'src/net/net.schema';
+import { Round } from 'src/round/round.schema';
+import { Match } from 'src/match/match.schema';
+import { Player } from 'src/player/player.schema';
 
 @Resolver((_of) => PlayerStats)
 export class PlayerStatsResolver {
@@ -28,6 +34,7 @@ export class PlayerStatsResolver {
     private playerStatsService: PlayerStatsService,
     private readonly redisService: RedisService,
     private eventService: EventService,
+    private roundService: RoundService,
   ) {}
 
   @Query((_returns) => PlayerStatsResponse)
@@ -60,89 +67,100 @@ export class PlayerStatsResolver {
   }
 
   @Query((_returns) => PlayerWithStatsResponse)
-  @Query((_returns) => PlayerWithStatsResponse)
   async getPlayerWithStats(@Args('playerId') playerId: string) {
     try {
-      // Get the player
+      // 1️⃣ Fetch player
       const player = await this.playerService.findById(playerId);
       if (!player) return AppResponse.notFound('Player');
 
-      let team = null,
-        matches = null,
-        nets = null,
-        playerstats = [];
+      // 2️⃣ Declare variables
+      let team: Team | null = null;
+      let matches: Match[] = [];
+      let nets: Net[] = [];
+      let rounds: Round[] = [];
+      let playerstats: CustomPlayerStats[] = [];
+      let players: Player[] = [];
+      let oponents: Team[] = [];
 
-      // Get the event the player is participating in
+      const oponentIds = new Set<string>();
+      const playerIds = new Set<string>();
+
+      // 3️⃣ Fetch event + pro stats concurrently
       const eventExist = await this.eventService.findOne({ _id: { $in: player.events } });
+      if (!eventExist) return AppResponse.notFound('Event');
 
       const [multiplayer, weight] = await Promise.all([
         this.playerStatsService.proStatFindOne({ _id: eventExist.multiplayer }),
         this.playerStatsService.proStatFindOne({ _id: eventExist.weight }),
       ]);
 
-      // Get team of the player
+      // 4️⃣ If player has teams → fetch team, matches, nets, rounds
       if (player.teams.length > 0) {
         team = await this.teamService.findOne({ players: playerId });
-
         if (team) {
-          // Get all matches of the player's team
+          // 4.1️⃣ Fetch matches once
           matches = await this.matchService.find({
             $or: [{ teamA: team._id }, { teamB: team._id }],
           });
 
           if (matches.length > 0) {
-            const matchIds = matches.map((m) => m._id.toString());
-
-            // Get all nets from the player's matches
-            nets = await this.netService.find({
-              match: { $in: matchIds },
-              $or: [
-                { teamAPlayerA: playerId },
-                { teamAPlayerB: playerId },
-                { teamBPlayerA: playerId },
-                { teamBPlayerB: playerId },
-              ],
+            // 4.2️⃣ Collect matchIds and opponent IDs efficiently
+            const matchIds = matches.map((m) => {
+              if (String(m.teamA) !== String(team._id)) oponentIds.add(String(m.teamA));
+              if (String(m.teamB) !== String(team._id)) oponentIds.add(String(m.teamB));
+              return m._id.toString();
             });
 
-            // Create player-to-nets mapping (similar to multiple players approach)
-            const playerToNets: Record<string, any[]> = {};
-            nets.forEach((net) => {
-              if (!playerToNets[playerId]) playerToNets[playerId] = [];
-              playerToNets[playerId].push(net);
-            });
+            // 4.3️⃣ Fetch nets & rounds in parallel
+            [nets, rounds] = await Promise.all([
+              this.netService.find({
+                match: { $in: matchIds },
+                $or: [
+                  { teamAPlayerA: playerId },
+                  { teamAPlayerB: playerId },
+                  { teamBPlayerA: playerId },
+                  { teamBPlayerB: playerId },
+                ],
+              }),
+              this.roundService.find({ match: { $in: matchIds } }),
+            ]);
 
-            const netsOfPlayer = playerToNets[playerId] || [];
+            // 4.4️⃣ Process nets once
+            const redisKeys: string[] = [];
+            for (const n of nets) {
+              redisKeys.push(playerKey(playerId, n._id));
+              [n.teamAPlayerA, n.teamAPlayerB, n.teamBPlayerA, n.teamBPlayerB]
+                .filter(Boolean)
+                .forEach((pid) => playerIds.add(pid as string));
+            }
 
-            // Batch Redis queries
-            const redisKeys = netsOfPlayer.map((net) => playerKey(playerId, net._id));
+            // 4.5️⃣ Fetch Redis + DB stats concurrently
             const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+            const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean);
 
-            const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
             const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+            const dbQuery =
+              redisNetIds.size > 0
+                ? { player: playerId, net: { $nin: Array.from(redisNetIds) } }
+                : { player: playerId };
 
-            // Query DB once, filter in DB if possible
-            const playerstatsDB = await this.playerStatsService.find({
-              player: playerId,
-              net: { $nin: Array.from(redisNetIds) }, // Filter out nets already in Redis
-            });
+            // Use separate awaits (readability + simplicity)
+            const playerstatsDB = await this.playerStatsService.find(dbQuery);
+            players = await this.playerService.find({ _id: { $in: [...playerIds] } });
 
-            // Convert Mongoose documents to plain objects
-            const playerstatsDBPlain = playerstatsDB.map((ps) => {
-              const plainObj = ps.toObject() as any;
-              return {
-                ...plainObj,
-                net: String(plainObj.net),
-                player: String(plainObj.player),
-                match: String(plainObj.match),
-              } as CustomPlayerStats;
-            });
+            // 4.6️⃣ Merge DB + Redis stats
+            const playerstatsDBPlain = playerstatsDB.map((ps) => ({
+              ...ps.toObject(),
+              net: String(ps.net),
+              player: String(ps.player),
+              match: String(ps.match),
+            }));
 
-            // Merge both sources
             playerstats = [...playerstatsRedis, ...playerstatsDBPlain];
 
-            // If no stats found, create empty records (optional)
+            // 4.7️⃣ If no stats, create empty placeholders
             if (playerstats.length === 0) {
-              playerstats = netsOfPlayer.map(
+              playerstats = nets.map(
                 (net) =>
                   ({
                     serveOpportunity: 0,
@@ -171,6 +189,12 @@ export class PlayerStatsResolver {
         }
       }
 
+      // 5️⃣ Fetch opponents if any
+      if (oponentIds.size > 0) {
+        oponents = await this.teamService.find({ _id: { $in: [...oponentIds] } });
+      }
+
+      // ✅ Final structured response
       return {
         code: HttpStatus.OK,
         success: true,
@@ -179,11 +203,15 @@ export class PlayerStatsResolver {
           team,
           playerstats,
           matches,
+          rounds,
           nets,
           multiplayer,
           weight,
+          oponents,
+          players,
         },
       };
+
     } catch (error) {
       return AppResponse.handleError(error);
     }

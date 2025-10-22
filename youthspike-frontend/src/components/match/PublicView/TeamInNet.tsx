@@ -110,7 +110,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 />
               )}
             </div>
-            <p className="player-name flex justify-center items-center text-center uppercase w-full">
+            <p className="player-name flex justify-around items-center text-center uppercase w-full">
               {srOnNet?.server && srOnNet.server === playerA._id && (
                 <span className="italic text-yellow-logo server-receiver-text">
                   S
@@ -178,7 +178,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 />
               )}
             </div>
-            <p className="player-name flex justify-center items-center text-center uppercase w-full">
+            <p className="player-name flex justify-around items-center text-center uppercase w-full">
               {srOnNet?.server && srOnNet.server === playerB._id && (
                 <span className="italic text-yellow-logo server-receiver-text">
                   S

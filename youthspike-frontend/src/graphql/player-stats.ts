@@ -20,7 +20,26 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         teams
         username
       }
+      players {
+        _id
+        division
+        email
+        firstName
+        lastName
+        profile
+        teams
+      }
       team {
+        _id
+        active
+        captain
+        cocaptain
+        division
+        logo
+        matches
+        name
+      }
+      oponents {
         _id
         active
         captain
@@ -45,6 +64,12 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         teamB
         tieBreaking
         timeout
+      }
+      rounds {
+        _id
+        match
+        num
+        nets
       }
       nets {
         _id

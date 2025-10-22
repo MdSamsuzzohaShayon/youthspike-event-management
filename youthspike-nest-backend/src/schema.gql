@@ -841,9 +841,12 @@ type CustomPlayerStats {
 
 type PlayerStatsDetails {
   player: CustomPlayer!
+  players: [CustomPlayer!]!
   team: CustomTeam
+  oponents: [CustomTeam!]
   playerstats: [CustomPlayerStats!]!
   matches: [CustomMatch!]
+  rounds: [CustomRound!]
   nets: [CustomNet!]
   multiplayer: ProStats
   weight: ProStats

@@ -33,14 +33,6 @@ const EventContent: React.FC<EventContentProps> = ({
   rounds,
 }) => {
 
-  console.log("Event Content ========================");
-  console.log({selectedItem,
-    filteredData,
-    playerStatsMap,
-    teamMap,
-    selectedGroup,
-    nets,
-    rounds,});
   
   
   switch (selectedItem) {

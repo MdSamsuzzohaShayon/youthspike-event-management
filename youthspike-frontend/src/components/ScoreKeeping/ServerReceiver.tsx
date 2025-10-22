@@ -652,7 +652,7 @@ export default function ServerReceiver({
           </div>
 
           {actionPreview && (
-            <div className="mt-6 flex flex-wrap justify-center items-center gap-2">
+            <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
               <button
                 onClick={handleUpdateScore}
                 type="button"
@@ -660,10 +660,7 @@ export default function ServerReceiver({
               >
                 Update score, only at the end of game
               </button>
-              <button
-                onClick={openResetConfirm}
-                className="btn-info"
-              >
+              <button onClick={openResetConfirm} className="btn-info">
                 Reset
               </button>
             </div>
@@ -743,6 +740,18 @@ export default function ServerReceiver({
           )}
         </div>
       )}
+
+      <div className="w-full mt-4 flex justify-center items-center">
+        <button
+          className="btn-info flex flex-col flex-wrap items-center justify-center"
+          onClick={() => window.location.reload()}
+        >
+          <span>If score doesn’t update, REFRESH before advancing.</span>
+          <span className="font-normal text-xs capitalize">
+            If you leave the screen you will need to refresh FIRST.
+          </span>
+        </button>
+      </div>
 
       <ChangePlayDialog
         changePlayEl={changePlayEl}

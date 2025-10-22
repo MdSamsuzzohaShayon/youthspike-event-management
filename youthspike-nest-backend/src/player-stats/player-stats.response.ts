@@ -2,8 +2,9 @@ import { Field, ObjectType } from "@nestjs/graphql";
 import { AppResponse } from "src/shared/response";
 import { PlayerStats, ProStats } from "./player-stats.schema";
 import { CustomPlayer } from "src/player/resolvers/player.response";
-import { CustomMatch, CustomNet } from "src/team/team.response";
+import { CustomMatch, CustomNet, CustomRound } from "src/team/team.response";
 import { CustomTeam } from "src/match/resolvers/match.response";
+import { Round } from "src/round/round.schema";
 
 @ObjectType()
 export class PlayerStatsResponse extends AppResponse<PlayerStats[]> {
@@ -36,14 +37,23 @@ export class PlayerStatsDetails {
   @Field((_type) => CustomPlayer, { nullable: false })
   player: CustomPlayer;
 
+  @Field((_type) => [CustomPlayer], { nullable: false })
+  players: CustomPlayer[];
+
   @Field((_type) => CustomTeam, { nullable: true })
   team?: CustomTeam;
+
+  @Field((_type) => [CustomTeam], { nullable: true })
+  oponents?: CustomTeam[];
 
   @Field((_type) => [CustomPlayerStats], { nullable: false })
   playerstats: CustomPlayerStats[];
 
   @Field((_type) => [CustomMatch], { nullable: true })
   matches: CustomMatch[];
+
+  @Field((_type) => [CustomRound], { nullable: true })
+  rounds: CustomRound[];
 
   @Field((_type) => [CustomNet], { nullable: true })
   nets: CustomNet[];

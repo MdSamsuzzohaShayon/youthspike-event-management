@@ -43,9 +43,6 @@ function TeamList({
 }: ITeamListProps) {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  console.log("Team List ========================");
-  console.log({ rounds, nets, teamList, matchList, selectedGroup });
-
   /**
    * Precompute lookups for rounds and nets
    * O(1) access instead of filtering repeatedly
@@ -102,20 +99,15 @@ function TeamList({
    * Compute scores per team
    */
   const teamScores = useMemo(() => {
-    console.log("=== STARTING teamScores calculation ===");
-    console.log("teamList:", teamList?.length, teamList);
-    console.log("matchesByTeam size:", matchesByTeam?.size);
-    console.log("roundMap size:", roundMap?.size);
-    console.log("netMap size:", netMap?.size);
-    console.log("selectedGroup:", selectedGroup);
+
 
     const scores = new Map<string, ITeamScore>();
 
     for (const team of teamList) {
-      console.log(`\n--- Processing team: ${team._id} (${team.name}) ---`);
+
 
       const teamMatches = matchesByTeam.get(team._id) || [];
-      console.log(`Team matches found: ${teamMatches.length}`, teamMatches);
+
 
       const teamRecord: ITeamScore = {
         rank: 0,
@@ -133,22 +125,16 @@ function TeamList({
       let totalNets = 0;
 
       for (const match of teamMatches) {
-        console.log(`\n  Processing match: ${match._id}`);
-        console.log("  Match details:", {
-          teamA: match.teamA?._id,
-          teamB: match.teamB?._id,
-          group: match.group,
-        });
+
 
         const isTeamA = match.teamA._id === team._id;
-        console.log(`  Is team A: ${isTeamA}`);
+
 
         // direct lookups instead of filter
         const roundList = roundMapByMatch.get(match._id) || [];
         const allNets = netMapByMatch.get(match._id) || [];
 
-        console.log(`  Rounds found: ${roundList.length}`);
-        console.log(`  Nets found: ${allNets.length}`);
+
 
         const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(
           roundList,
@@ -156,24 +142,14 @@ function TeamList({
           isTeamA ? ETeam.teamA : ETeam.teamB
         );
 
-        console.log("  calcMatchScore result:", {
-          teamScore,
-          oponentScore,
-          teamPlusMinus,
-        });
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
 
-        console.log("  Current totals:", {
-          totalMatchDiff,
-          totalGameDiff,
-          totalNets,
-        });
+  
 
         if (teamScore > oponentScore) {
           teamRecord.overallWins++;
-          console.log(`  WIN - overallWins: ${teamRecord.overallWins}`);
 
           if (
             match.group &&
@@ -182,11 +158,11 @@ function TeamList({
             (match?.group?._id || match?.group)
           ) {
             teamRecord.groupWins++;
-            console.log(`  GROUP WIN - groupWins: ${teamRecord.groupWins}`);
+
           }
         } else if (oponentScore > teamScore) {
           teamRecord.overallLoses++;
-          console.log(`  LOSS - overallLoses: ${teamRecord.overallLoses}`);
+
 
           if (
             match.group &&
@@ -196,16 +172,13 @@ function TeamList({
             (match?.group?._id || match?.group)
           ) {
             teamRecord.groupLoses++;
-            console.log(`  GROUP LOSS - groupLoses: ${teamRecord.groupLoses}`);
+
           }
         } else {
-          console.log("  TIE - no win/loss recorded");
+
         }
 
         totalNets += match.nets.length;
-        console.log(
-          `  Nets in match: ${match.nets.length}, totalNets: ${totalNets}`
-        );
       }
 
       teamRecord.totalMatches = teamMatches.length;
@@ -213,17 +186,11 @@ function TeamList({
         ? totalMatchDiff / teamMatches.length
         : 0;
       teamRecord.gameAvgDiff = totalNets ? totalGameDiff / totalNets : 0;
-
-      console.log(`\nFinal record for team ${team._id}:`, teamRecord);
       scores.set(team._id, teamRecord);
     }
 
-    console.log("=== COMPLETED teamScores calculation ===");
-    console.log("Final scores map:", Array.from(scores.entries()));
     return scores;
   }, [teamList, matchesByTeam, roundMap, netMap, selectedGroup]);
-  console.log("Team Scores ========================");
-  console.log(teamScores);
 
   /**
    * Sort by score (not alphabetically) and paginate

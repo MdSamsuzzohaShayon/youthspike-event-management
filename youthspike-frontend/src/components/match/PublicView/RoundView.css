@@ -354,12 +354,13 @@
 
 /* Large screens */
 @container round-net-view (min-width: 1025px) {
+  .two-nets-row{
+    margin-top: 20px;
+  }
   .player-name {
     font-size: 0.8rem;
   }
 
-  .team-in-net {
-  }
 
   .image-container {
     height: 150px;

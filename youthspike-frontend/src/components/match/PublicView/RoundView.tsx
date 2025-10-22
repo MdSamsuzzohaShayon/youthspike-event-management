@@ -49,11 +49,11 @@ const RoundView = ({
 }: IRoundViewProps) => {
   const dispatch = useAppDispatch();
 
-  const { teamATotalScore, teamBTotalScore } = useAppSelector(
-    (state) => ({
-      teamATotalScore: state.matches.teamATotalScore,
-      teamBTotalScore: state.matches.teamATotalScore,
-    })
+  const teamATotalScore = useAppSelector(
+    (state) => state.matches.teamATotalScore
+  );
+  const teamBTotalScore = useAppSelector(
+    (state) => state.matches.teamBTotalScore
   );
 
   const roundIdToIndex = useMemo(() => {

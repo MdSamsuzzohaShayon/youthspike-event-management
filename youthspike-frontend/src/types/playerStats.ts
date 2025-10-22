@@ -1,6 +1,7 @@
 import { IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
 import { IPlayer } from "./player";
+import { IRoundRelatives } from "./round";
 import { IMatch } from "./socket";
 import { ITeam } from "./team";
 
@@ -68,13 +69,27 @@ export interface IProStats extends IProStatsCommon {
 
 export interface IGetPlayerStats {
   player: IPlayer;
+  players: IPlayer[];
   team: ITeam;
+  oponents: ITeam[];
   playerstats: IPlayerStats[];
   matches: IMatch[];
+  rounds: IRoundRelatives[];
   nets: INetRelatives[];
   multiplayer: IProStats;
   weight: IProStats;
   stats: IProStats;
+}
+
+export interface IFilter {
+  startDate: string;
+  endDate: string;
+  match: string[];
+  game: string[];
+  conference?: string;
+  teammate?: string[];
+  club?: string[];
+  vsPlayer?: string[];
 }
 
 
@@ -89,4 +104,21 @@ export enum EPlayerStatType {
   DefensePercentage = "defensePercentage",
   WinPercentage = "winPercentage",
 }
+
+
+export interface IStatsFilterProps {
+  player: IPlayer;
+  players: IPlayer[];
+  filter: Partial<IFilter>;
+  /**
+   * Improved type for handler:
+   * key must be a key of IFilter and value must be the correct type for that key.
+   */
+  handleInputChange: <K extends keyof IFilter>(key: K, value: IFilter[K]) => void;
+  matches: IMatch[];
+  rounds: IRoundRelatives[];
+  nets: INetRelatives[];
+  teams: ITeam[];
+}
+
 

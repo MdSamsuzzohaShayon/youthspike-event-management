@@ -15,7 +15,7 @@ import type {
 import type { IRoundRelatives } from "./round";
 import { ETeam, ITeam } from "./team";
 import type { IAccessCode, IUserContext, UserRole } from "./user";
-import { IMatchExpRel, IMatchRelatives } from "./match";
+import { IMatchExpRel, IMatchRelatives, EMatchStatus } from "./match";
 import { IPlayer } from "./player";
 import { EServerPositionPair, IServerReceiverOnNetMixed } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
@@ -262,7 +262,7 @@ export interface IUpdateNetResponse {
 export interface IPlayerStatsResponse{
   playerId: string;
   data: Record<string, IPlayerStats>;
-  apolloClient: ApolloClient<any>;
+  apolloClient: ApolloClient;
 }
 
 /**
@@ -289,6 +289,7 @@ export interface ITeamCaptain extends ITeam {
 export interface IMatch extends IMatchExpRel {
   teamA: ITeamCaptain;
   teamB: ITeamCaptain;
+  status: EMatchStatus;
 }
 
 export interface IUpdateRound {

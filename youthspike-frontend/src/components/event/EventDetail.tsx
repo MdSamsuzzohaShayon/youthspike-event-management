@@ -131,8 +131,6 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
     (lightData as any)?.getEventDetails?.data ||
     null;
 
-  console.log("Event data ==============");
-  console.log(eventData);
   
 
   if (!eventData) {

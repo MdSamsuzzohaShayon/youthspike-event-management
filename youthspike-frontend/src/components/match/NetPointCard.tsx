@@ -150,7 +150,7 @@ function NetPointCard({
   );
 
   return (
-    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-between items-center">
+    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around items-center">
       <div className="w-4 md:w-8" />
       <div className="flex flex-col justify-around items-center p-1 rounded-lg ">
         <TeamScoreInput
@@ -212,14 +212,15 @@ function NetPointCard({
           currRoundNets={currRoundNets}
         />
       </div>
+
       <Image
-        src="/icons/edit.svg"
-        alt="Scorekeeper-view"
-        className="w-4 md:w-8"
-        height={50}
-        width={50}
+        width={30}
+        height={30}
         role="presentation"
         onClick={handleScorekeeperNavigation}
+        src="/icons/scorekeeper.png"
+        alt="Scorekeeper"
+        className="w-4 md:w-8 svg-black"
       />
     </div>
   );

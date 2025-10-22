@@ -105,3 +105,26 @@ Use or generate:
 * Make it proper type safety for typescript
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_____________________________________________________________________
+Ensure that all variable and function names are meaningful and self-explanatory.
+Follow the KISS (Keep It Simple, Stupid) and DRY (Don’t Repeat Yourself) principles to maintain clean and efficient code.
+Use proper TypeScript typings to ensure type safety and prevent runtime errors.
+Optimize the component for better time and space complexity, improving both performance and scalability.
+
+
+

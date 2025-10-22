@@ -3,30 +3,22 @@
 import React, { useMemo, useState } from "react";
 import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client/react";
 import StatBox from "./StatBox";
-import SelectInput from "../elements/SelectInput";
-import DateInput from "../elements/DateInput";
-import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
-import { IAggregatedStats, IGetPlayerStats, IProStats } from "@/types";
+import { IFilter, IGetPlayerStats, IProStats } from "@/types";
 import StatAddBox from "./StatAddBox";
 import usePlayerSocket from "@/hooks/player/usePlayerScoket";
 import { useSocket } from "@/lib/SocketProvider";
 import { useAppDispatch } from "@/redux/hooks";
-import { useUser } from "@/lib/UserProvider";
 import { aggregatePlayerStats } from "@/utils/helper";
+import StatsFilter from "./StatsFilter";
+import { useFilterState } from "@/hooks/player-stats/useFilterState";
+import { filterPlayerStats } from "@/utils/player-stats/playerStatsFilter";
 
 interface IPlayerStatsMainProps {
   queryRef: QueryRef<{
     getPlayerWithStats: { data: IGetPlayerStats };
   }>;
-}
-
-interface IFilter {
-  startDate: string;
-  endDate: string;
-  match: string;
-  game: string;
 }
 
 function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
@@ -40,16 +32,19 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
   const {
     player,
+    players,
     team,
+    oponents,
     playerstats,
     matches,
+    rounds,
     nets,
     multiplayer,
     weight,
     stats,
   } = data.getPlayerWithStats.data;
 
-  const [filter, setFilter] = useState<Partial<IFilter>>({});
+  const { filter, handleInputChange } = useFilterState();
 
   usePlayerSocket({
     socket,
@@ -59,137 +54,23 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   });
 
   const safeNets = nets || [];
-  
+  const safeRounds = rounds || [];
   const safeMatches = matches || [];
-  
+  const safeOponents = oponents || [];
+  const safePlayers = players || [];
+
   const safePlayerstats = useMemo(() => {
-    // Defensive fallback
     if (!playerstats || !Array.isArray(playerstats)) return [];
   
-    const ps = playerstats;
-    const start = filter.startDate ? new Date(filter.startDate).getTime() : null;
-    const end = filter.endDate ? new Date(filter.endDate).getTime() : null;
-    const matchIdFilter = filter.match || null;
-    const gameIdFilter = filter.game || null;
-  
-    // ✅ Precompute valid matches efficiently
-    const validMatchIds = new Set<string>();
-    for (const match of safeMatches) {
-      if (!match || !match._id) continue;
-      const matchTime = match.date ? new Date(match.date).getTime() : null;
-  
-      // Skip out-of-range matches early
-      if (start && matchTime && matchTime < start) continue;
-      if (end && matchTime && matchTime > end) continue;
-  
-      validMatchIds.add(match._id);
-    }
-  
-    // ✅ Filter player stats (single pass)
-    const filtered = [];
-    for (const stat of ps) {
-      if (!stat) continue;
-  
-      // Normalize match/net IDs
-      const statMatchId = typeof stat.match === "string" ? stat.match : stat.match?._id;
-      const statGameId = typeof stat.net === "string" ? stat.net : stat.net?._id;
-  
-      // Skip invalid matches
-      if (!statMatchId || !validMatchIds.has(statMatchId)) continue;
-  
-      // Apply match filter if selected
-      if (matchIdFilter && statMatchId !== matchIdFilter) continue;
-  
-      // Apply game filter if selected
-      if (gameIdFilter && statGameId !== gameIdFilter) continue;
-  
-      filtered.push(stat);
-    }
-  
-    return filtered;
-  }, [playerstats, filter, safeMatches]);
-  
-
+    return filterPlayerStats(playerstats, filter, player._id, safeMatches, safeNets);
+  }, [playerstats, filter, player._id, safeMatches, safeNets]);
 
   const totalGames = safePlayerstats?.length || 0;
-
-  // Event handlers
-  const handleInputChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLInputElement;
-    setFilter((prev) => ({ ...prev, [inputEl.name]: inputEl.value }));
-  };
-
-  const gameOfTheMatch = useMemo(() => {
-    if (!filter.match) return [];
-    return safeNets.filter((n) => n.match === filter.match);
-  }, [filter.match, safeNets]); // Use safeNets instead of nets
 
   let totalServe = 0;
   for (const ps of safePlayerstats) {
     totalServe += ps.serveOpportunity;
   }
-
-  // ✅ Single-pass aggregation with filtering
-  // const aggregatedStats = useMemo(() => {
-  //   const totals: IAggregatedStats = {
-  //     serveOpportunity: 0,
-  //     serveAce: 0,
-  //     serveCompletionCount: 0,
-  //     servingAceNoTouch: 0,
-  //     receiverOpportunity: 0,
-  //     receivedCount: 0,
-  //     noTouchAcedCount: 0,
-  //     settingOpportunity: 0,
-  //     cleanSets: 0,
-  //     hittingOpportunity: 0,
-  //     cleanHits: 0,
-  //     defensiveOpportunity: 0,
-  //     defensiveConversion: 0,
-  //     break: 0,
-  //     broken: 0,
-  //     matchPlayed: 0,
-  //   };
-
-  //   // Parse filter dates
-  //   const startDate = filter.startDate
-  //     ? new Date(filter.startDate).getTime()
-  //     : null;
-  //   const endDate = filter.endDate ? new Date(filter.endDate).getTime() : null;
-
-  //   // Precompute valid matches
-  //   const validMatches = new Set<string>();
-  //   for (const match of safeMatches) {
-  //     const matchTime = match.date ? new Date(match.date).getTime() : null;
-
-  //     if (startDate && matchTime && matchTime < startDate) continue;
-  //     if (endDate && matchTime && matchTime > endDate) continue;
-  //     if (filter.match && match._id !== filter.match) continue;
-
-  //     validMatches.add(match._id);
-  //   }
-
-  //   // Aggregate stats
-  //   for (const ps of safePlayerstats) {
-  //     const matchId = typeof ps.match === "string" ? ps.match : ps.match?._id;
-  //     if (!matchId || !validMatches.has(matchId)) continue;
-
-  //     const netId = typeof ps.net === "string" ? ps.net : ps.net?._id;
-  //     if (filter.game && netId !== filter.game) continue;
-
-  //     for (const key in totals) {
-  //       if (Object.prototype.hasOwnProperty.call(totals, key)) {
-  //         const value = ps[key as keyof IaggregatedStats];
-  //         if (typeof value === "number") {
-  //           totals[key as keyof IaggregatedStats] += value;
-  //         }
-  //       }
-  //     }
-
-  //     totals.matchPlayed += 1; // ✅ Count this match
-  //   }
-
-  //   return totals;
-  // }, [matches, safePlayerstats, filter]);
 
   const aggregatedStats = aggregatePlayerStats(safePlayerstats);
 
@@ -287,57 +168,19 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       </div>
 
       {/* <!-- Filters Section --> */}
-      <div className="bg-gray-900 rounded-xl p-6 mb-12 shadow-lg border border-gray-800">
-        <h2 className="text-yellow-logo text-lg uppercase font-bold mb-4 flex items-center gap-2">
-          <Image
-            src="/icons/filter.svg"
-            width={20}
-            height={20}
-            className="w-8"
-            alt="filter-icon svg-yellow"
-          />
-          Filter Stats
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* <!-- Date Range --> */}
-          <div className="md:col-span-2 grid grid-cols-2 gap-4">
-            <DateInput
-              name="startDate"
-              label="Start Date"
-              handleInputChange={handleInputChange}
-            />
-            <DateInput
-              name="endDate"
-              label="End Date"
-              handleInputChange={handleInputChange}
-            />
-          </div>
-
-          {/* <!-- Match Selector --> */}
-          <SelectInput
-            name="match"
-            handleSelect={handleInputChange}
-            optionList={safeMatches.map((m, i) => ({
-              id: i + 1,
-              value: m._id,
-              text: m.description || "",
-            }))}
-          />
-
-          {/* <!-- Game Selector --> */}
-          {filter.match && (
-            <SelectInput
-              name="game"
-              handleSelect={handleInputChange}
-              optionList={gameOfTheMatch.map((n, i) => ({
-                id: i + 1,
-                value: n._id,
-                text: `Game ${n.num}`,
-              }))}
-            />
-          )}
-        </div>
-      </div>
+      <StatsFilter
+        teams={[team, ...safeOponents]}
+        filter={filter}
+        handleInputChange={<K extends keyof IFilter>(
+          key: K,
+          value: IFilter[K]
+        ) => handleInputChange(key as string, value as any)}
+        matches={safeMatches}
+        nets={safeNets}
+        rounds={safeRounds}
+        players={safePlayers}
+        player={player}
+      />
 
       {/* <!-- Stats Overview --> */}
       <div className="mb-12">
