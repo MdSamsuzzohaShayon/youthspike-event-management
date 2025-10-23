@@ -95,12 +95,13 @@ export class MatchQueries {
 
       // Team filter (case-insensitive exact match)
       if (filter?.search) {
-        const team = await this.teamService.findOne({
+        const teams = await this.teamService.find({
           name: { $regex: new RegExp(filter.search, 'i') }, // partial + case-insensitive
         });
-        if (team) {
+        if (teams.length > 0) {
           searchFound = true;
-          matchFilter.$or = [{ teamA: team._id }, { teamB: team._id }];
+          const teamIds = teams.map((t) => t._id);
+          matchFilter.$or = [{ teamA: { $in: teamIds } }, { teamB: { $in: teamIds } }];
         }
       }
 
@@ -176,11 +177,12 @@ export class MatchQueries {
         this.teamService.find({ _id: { $in: [...teamIds] } }),
       ]);
 
+      const sortedMatches = [...matches];
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of matches',
-        data: { event, groups, ldo, matches, nets, rounds, teams },
+        data: { event, groups, ldo, matches: sortedMatches, nets, rounds, teams },
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -254,14 +256,13 @@ export class MatchQueries {
       }
       */
 
-
       // Re-rank players for both teams (only if teams exist)
       // await Promise.all([
       //   matchExist.teamA ? this.updateTeamRanking(String(matchExist.teamA), matchId) : Promise.resolve(),
       //   matchExist.teamB ? this.updateTeamRanking(String(matchExist.teamB), matchId) : Promise.resolve(),
       // ]);
 
-      await this.updateTeamRanking(String(matchExist.teamB), matchId)
+      await this.updateTeamRanking(String(matchExist.teamB), matchId);
       return {
         code: HttpStatus.OK,
         success: true,

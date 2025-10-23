@@ -333,6 +333,7 @@ type Player {
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  event: Event!
 }
 
 enum EPlayerStatus {
@@ -456,6 +457,7 @@ type PlayerWithTeam {
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  event: Event!
 }
 
 type GroupWithTeam {
@@ -581,6 +583,7 @@ type CaptainPlayer {
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  event: Event!
 }
 
 type CoCaptainPlayer {
@@ -604,6 +607,7 @@ type CoCaptainPlayer {
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  event: Event!
 }
 
 type TeamDetails {
@@ -757,6 +761,7 @@ type CustomPlayer {
   playerstats: [PlayerStats!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  event: Event!
 }
 
 type CustomPlayerRanking {
@@ -788,6 +793,22 @@ type GetEventWithPlayersResponse {
   success: Boolean!
   message: String
   data: EventWithPlayers
+}
+
+type PlayersSearch {
+  event: Event!
+  players: [CustomPlayer!]!
+  groups: [CustomGroup!]!
+  teams: [CustomTeam!]!
+  matches: [CustomMatch!]!
+  statsOfPlayer: [PlayerStatsEntry!]!
+}
+
+type PlayersSearchResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: PlayersSearch
 }
 
 type PlayerAndTeams {
@@ -1148,6 +1169,7 @@ type Query {
   getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
   getPlayers(eventId: String): PlayersResponse!
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
+  searchPlayers(eventId: String!, filter: PlayerSearchFilter): PlayersSearchResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
@@ -1193,6 +1215,14 @@ input SearchFilterInput {
   division: String
   group: String
   status: String
+  limit: Int = 30
+  offset: Int = 0
+}
+
+input PlayerSearchFilter {
+  search: String
+  division: String
+  group: String
   limit: Int = 30
   offset: Int = 0
 }

@@ -4,6 +4,8 @@ import { Player } from '../player.schema';
 import { Event } from 'src/event/event.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
+import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
+import { CustomMatch } from 'src/team/team.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {
@@ -16,6 +18,8 @@ export class PlayersResponse extends AppResponse<Player[]> {
   @Field((_type) => [Player], { nullable: true })
   data?: Player[];
 }
+
+
 
 @ObjectType()
 export class CustomPlayer extends Player {
@@ -79,7 +83,34 @@ export class GetEventWithPlayersResponse extends AppResponse<EventWithPlayers> {
   data?: EventWithPlayers;
 }
 
-// getAPlayerAndAllTeams
+
+@ObjectType()
+export class PlayersSearch {
+  @Field((_type) => Event, { nullable: false })
+  event: Event;
+
+  @Field((_type) => [CustomPlayer], { nullable: false })
+  players: CustomPlayer[];
+
+  @Field((_type) => [CustomGroup], { nullable: false })
+  groups: CustomGroup[];
+
+  @Field((_type) => [CustomTeam], { nullable: false })
+  teams: CustomTeam[];
+
+  @Field((_type) => [CustomMatch], { nullable: false })
+  matches: CustomMatch;
+
+  @Field(() => [PlayerStatsEntry])
+  statsOfPlayer: PlayerStatsEntry[];
+
+}
+
+@ObjectType()
+export class PlayersSearchResponse extends AppResponse<PlayersSearch> {
+  @Field((_type) => PlayersSearch, { nullable: true })
+  data?: PlayersSearch;
+}
 
 @ObjectType()
 export class PlayerAndTeams {

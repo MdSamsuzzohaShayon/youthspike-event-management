@@ -1,5 +1,5 @@
 import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { CreatePlayerInput, UpdatePlayerInput, UpdatePlayersInput } from './resolvers/player.input';
+import { CreatePlayerInput, PlayerSearchFilter, UpdatePlayerInput, UpdatePlayersInput } from './resolvers/player.input';
 import { Player } from './player.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UseGuards } from '@nestjs/common';
@@ -15,6 +15,7 @@ import {
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   PlayersResponse,
+  PlayersSearchResponse,
 } from './resolvers/player.response';
 import { PlayerMutations } from './resolvers/player.mutations';
 import { PlayerQueries } from './resolvers/player.queries';
@@ -106,14 +107,25 @@ export class PlayerResolver {
     return this.playerQueries.getEventWithPlayers(context, eventId);
   }
 
+
+  @Query((_returns) => PlayersSearchResponse)
+  async searchPlayers(@Args('eventId', { nullable: false }) eventId: string, @Args('filter', { nullable: true }) filter: PlayerSearchFilter) {
+    return this.playerQueries.searchPlayers(eventId, filter);
+  }
+
   /**
    * POPULATE
    * ===============================================================================================
    */
   @ResolveField(() => Event) // Specify the return type
+  async event(@Parent() player: Player): Promise<Event> {
+    return this.playerFields.event(player);
+  }
+  @ResolveField(() => [Event]) // Specify the return type
   async events(@Parent() player: Player): Promise<Event[]> {
     return this.playerFields.events(player);
   }
+
   // Do this for team and net as well
   @ResolveField(() => Team)
   async teams(@Parent() player: Player): Promise<Team[]> {

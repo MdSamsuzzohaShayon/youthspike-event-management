@@ -32,6 +32,7 @@ import { EventFilterInput } from './event.input';
 import { Match } from 'src/match/match.schema';
 import { Team } from 'src/team/team.schema';
 import { Player } from 'src/player/player.schema';
+import getStatsOfPlayers from 'src/util/getStatsOfPlayers';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -180,88 +181,7 @@ export class EventQueries implements IEventQueries {
       ]);
 
       // --- Optimize player stats ---
-      // Precompute player->nets mapping
-      const playerToNets: Record<string, Net[]> = {};
-      for (const net of nets) {
-        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].filter(Boolean).forEach((pid) => {
-          if (!playerToNets[pid]) playerToNets[pid] = [];
-          playerToNets[pid].push(net);
-        });
-      }
-
-      // Batch Redis queries for all players
-      const allRedisKeys = players.flatMap((p) => (playerToNets[p._id] || []).map((net) => playerKey(p._id, net._id)));
-      const redisResults = await Promise.all(allRedisKeys.map((key) => this.redisService.get(key)));
-      const redisStats = (redisResults as CustomPlayerStats[]).filter(Boolean);
-
-      // Organize Redis stats by playerId
-      const redisByPlayer: Record<string, CustomPlayerStats[]> = {};
-      for (const stat of redisStats) {
-        if (!redisByPlayer[stat.player]) redisByPlayer[stat.player] = [];
-        redisByPlayer[stat.player].push(stat);
-      }
-
-      // Collect missing nets for DB fetch
-      const missingStatsQueries: any[] = [];
-      players.forEach((player) => {
-        const netsOfPlayer = playerToNets[player._id] || [];
-        const redisNetIds = new Set((redisByPlayer[player._id] || []).map((s) => s.net));
-        const missingNetIds = netsOfPlayer.map((net) => String(net._id)).filter((id) => !redisNetIds.has(id));
-
-        if (missingNetIds.length) {
-          missingStatsQueries.push(this.playerStatsService.find({ player: player._id, net: { $in: missingNetIds } }));
-        }
-      });
-
-      const dbStatsResults = await Promise.all(missingStatsQueries);
-
-      // Normalize DB stats
-      const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
-      dbStatsResults.flat().forEach((ps) => {
-        const plainObj = ps.toObject();
-        const stat: CustomPlayerStats = {
-          ...plainObj,
-          net: String(plainObj.net),
-          player: String(plainObj.player),
-          match: String(plainObj.match),
-        };
-        if (!statsOfPlayer[stat.player]) statsOfPlayer[stat.player] = [];
-        statsOfPlayer[stat.player].push(stat);
-      });
-
-      // Merge redis + db + fill empty nets
-      players.forEach((player) => {
-        const netsOfPlayer = playerToNets[player._id] || [];
-        const merged = [...(redisByPlayer[player._id] || []), ...(statsOfPlayer[player._id] || [])];
-        const existingNetIds = new Set(merged.map((s) => s.net));
-
-        const emptyStats = netsOfPlayer
-          .map((net) => String(net._id))
-          .filter((id) => !existingNetIds.has(id))
-          .map((netId) => ({
-            serveOpportunity: 0,
-            serveAce: 0,
-            serveCompletionCount: 0,
-            servingAceNoTouch: 0,
-            receiverOpportunity: 0,
-            receivedCount: 0,
-            noTouchAcedCount: 0,
-            settingOpportunity: 0,
-            cleanSets: 0,
-            hittingOpportunity: 0,
-            cleanHits: 0,
-            defensiveOpportunity: 0,
-            defensiveConversion: 0,
-            break: 0,
-            broken: 0,
-            matchPlayed: 0,
-            net: netId,
-            player: String(player._id),
-            match: netsOfPlayer.find((n) => String(n._id) === netId)?.match?.toString() || '',
-          }));
-
-        statsOfPlayer[player._id] = [...merged, ...emptyStats];
-      });
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(players, nets, this.redisService, this.playerStatsService);
 
       // Prepare response
       return {
@@ -320,6 +240,72 @@ export class EventQueries implements IEventQueries {
     } catch (err) {
       return AppResponse.handleError(err);
     }
+  }
+
+  private async findMissingStats(players: any[], playerToNets: Record<string, Net[]>, redisByPlayer: Record<string, CustomPlayerStats[]>) {
+    const missingStatsQueries: any[] = [];
+    players.forEach((player) => {
+      const netsOfPlayer = playerToNets[player._id] || [];
+      const redisNetIds = new Set((redisByPlayer[player._id] || []).map((s) => s.net));
+      const missingNetIds = netsOfPlayer.map((net) => String(net._id)).filter((id) => !redisNetIds.has(id));
+
+      if (missingNetIds.length) {
+        missingStatsQueries.push(this.playerStatsService.find({ player: player._id, net: { $in: missingNetIds } }));
+      }
+    });
+
+    const dbStatsResults = await Promise.all(missingStatsQueries);
+    return dbStatsResults;
+  }
+
+  private getStatsOfPlayes(dbStatsResults: any[], players: Player[], playerToNets: Record<string, Net[]>, redisByPlayer: Record<string, CustomPlayerStats[]>) {
+    const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+    dbStatsResults.flat().forEach((ps) => {
+      const plainObj = ps.toObject();
+      const stat: CustomPlayerStats = {
+        ...plainObj,
+        net: String(plainObj.net),
+        player: String(plainObj.player),
+        match: String(plainObj.match),
+      };
+      if (!statsOfPlayer[stat.player]) statsOfPlayer[stat.player] = [];
+      statsOfPlayer[stat.player].push(stat);
+    });
+
+    // Merge redis + db + fill empty nets
+    players.forEach((player) => {
+      const netsOfPlayer = playerToNets[player._id] || [];
+      const merged = [...(redisByPlayer[player._id] || []), ...(statsOfPlayer[player._id] || [])];
+      const existingNetIds = new Set(merged.map((s) => s.net));
+
+      const emptyStats = netsOfPlayer
+        .map((net) => String(net._id))
+        .filter((id) => !existingNetIds.has(id))
+        .map((netId) => ({
+          serveOpportunity: 0,
+          serveAce: 0,
+          serveCompletionCount: 0,
+          servingAceNoTouch: 0,
+          receiverOpportunity: 0,
+          receivedCount: 0,
+          noTouchAcedCount: 0,
+          settingOpportunity: 0,
+          cleanSets: 0,
+          hittingOpportunity: 0,
+          cleanHits: 0,
+          defensiveOpportunity: 0,
+          defensiveConversion: 0,
+          break: 0,
+          broken: 0,
+          matchPlayed: 0,
+          net: netId,
+          player: String(player._id),
+          match: netsOfPlayer.find((n) => String(n._id) === netId)?.match?.toString() || '',
+        }));
+
+      statsOfPlayer[player._id] = [...merged, ...emptyStats];
+    });
+    return statsOfPlayer;
   }
 
   async getPlayerEventSetting(context: any, eventId: string): Promise<GetPlayerEventSettingResponse> {

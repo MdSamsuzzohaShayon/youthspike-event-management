@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType, PartialType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql';
 import { EPlayerStatus } from '../player.schema';
 import * as Upload from 'graphql-upload/Upload.js';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
@@ -82,5 +82,24 @@ export class UpdatePlayerBody{
   
   @Field((_type)=> GraphQLUpload, {nullable: true})
   profile?: Upload;
+}
+
+
+@InputType()
+export class PlayerSearchFilter {
+  @Field({ nullable: true })
+  search?: string; // team, description, location
+
+  @Field({ nullable: true })
+  division?: string; // 
+
+  @Field({ nullable: true })
+  group?: string;
+
+  @Field(() => Int, { nullable: true, defaultValue: 30 })
+  limit?: number;
+
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  offset?: number;
 }
 

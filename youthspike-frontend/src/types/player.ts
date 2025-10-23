@@ -1,5 +1,6 @@
 import { ITeam } from "./team";
 import { IDocument } from "./document";
+import { IAllStats, IEvent, IGroup } from ".";
 
 /**
  * Player Status
@@ -44,4 +45,20 @@ export interface IPlayerRecord extends IPlayer{
   losses: number; // Number of games loses
   averagePointsDiff: number; // Points of wins os loses by how many points in each game on average
   rank?: number | null;
+}
+
+
+interface ISearchPlayerData {
+  event: IEvent;
+  groups: IGroup[];
+  players: IPlayer[];
+  teams: ITeam[];
+  statsOfPlayer: IAllStats[];
+}
+
+export interface ISearchPlayerResponse {
+  code: number;
+  success: boolean;
+  message: string;
+  data: ISearchPlayerData;
 }

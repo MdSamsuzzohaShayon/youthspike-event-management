@@ -10,7 +10,7 @@ import { tokenToUser } from 'src/util/helper';
 import { UserRole } from 'src/user/user.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { AppResponse } from 'src/shared/response';
-import { QueryOptions } from 'mongoose';
+import { FilterQuery, QueryOptions } from 'mongoose';
 import { Player } from '../player.schema';
 import {
   GetEventWithPlayersResponse,
@@ -19,6 +19,16 @@ import {
   CustomPlayer,
 } from './player.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
+import { PlayerSearchFilter } from './player.input';
+import { Team } from 'src/team/team.schema';
+import { Group } from 'src/group/group.schema';
+import { NetService } from 'src/net/net.service';
+import getStatsOfPlayers from 'src/util/getStatsOfPlayers';
+import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { RedisService } from 'src/redis/redis.service';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
+import { Match } from 'src/match/match.schema';
+import { MatchService } from 'src/match/match.service';
 
 @Injectable()
 export class PlayerQueries implements IPlayerQueries {
@@ -29,7 +39,11 @@ export class PlayerQueries implements IPlayerQueries {
     private playerService: PlayerService,
     private userService: UserService,
     private groupService: GroupService,
+    private netService: NetService,
     private playerRankingService: PlayerRankingService,
+    private playerStatsService: PlayerStatsService,
+    private redisService: RedisService,
+    private matchesService: MatchService,
   ) {}
 
   async getEventWithPlayers(context: any, eventId: string): Promise<GetEventWithPlayersResponse> {
@@ -135,6 +149,93 @@ export class PlayerQueries implements IPlayerQueries {
         success: true,
         message: 'List of players!',
         data: players,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+  async searchPlayers(eventId: string, filter: PlayerSearchFilter) {
+    try {
+      let query: FilterQuery<Player> = {};
+      const teamQuery: FilterQuery<Team> = { event: eventId };
+      const groupQuery: FilterQuery<Group> = { event: eventId };
+      const matchQuery: FilterQuery<Match> = { event: eventId };
+
+      if (eventId) query = { events: { $in: [eventId] } };
+      if (filter?.division) {
+        query.division = { $regex: new RegExp(`${filter.division}`, 'i') };
+        teamQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') }; // This will be case insensative
+        groupQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
+        matchQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
+      }
+      if (filter?.group) {
+        teamQuery.group === filter.group;
+        matchQuery.group === filter.group;
+      }
+      if (filter?.search) {
+        // { $regex: new RegExp(filter.search, 'i') },
+        query.$or = [
+          { firstName: { $regex: new RegExp(filter.search, 'i') } },
+          { lastName: { $regex: new RegExp(filter.search, 'i') } },
+          { username: { $regex: new RegExp(filter.search, 'i') } },
+        ];
+      }
+
+      const [event, groups, teams, matches] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find(groupQuery),
+        this.teamService.find(teamQuery),
+        this.matchesService.find(matchQuery),
+      ]);
+
+      const teamIds = new Set<string>();
+      if (teams.length > 0) {
+        for (let i = 0; i < teams.length; i += 1) {
+          teamIds.add(String(teams[i]._id));
+        }
+      }
+
+      if (filter?.group) {
+        // Get all teams in that group
+        query.teams = { $in: [...teamIds] };
+      }
+
+      const players = await this.playerService.find(query, filter?.limit || 30, filter?.offset || 0);
+
+      const playerIds = players.map((p) => String(p._id));
+
+      const nets = await this.netService.find({
+        $or: [
+          { teamAplayerA: { $in: playerIds } },
+          { teamAplayerB: { $in: playerIds } },
+          { teamBplayerA: { $in: playerIds } },
+          { teamBplayerB: { $in: playerIds } },
+        ],
+      });
+
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(
+        players,
+        nets,
+        this.redisService,
+        this.playerStatsService,
+      );
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of players!',
+        data: {
+          players,
+          groups,
+          event,
+          teams,
+          matches,
+          statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+            playerId,
+            stats,
+          })),
+        },
       };
     } catch (error) {
       return AppResponse.handleError(error);

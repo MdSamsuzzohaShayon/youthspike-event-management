@@ -66,9 +66,22 @@ export class PlayerService {
   async findOne(filter: FilterQuery<Player>) {
     return this.playerModel.findOne(filter);
   }
-  async find(filter: FilterQuery<Player>, limit?: number) {
-    if(!limit)return this.playerModel.find(filter);
-    return this.playerModel.find(filter).limit(limit);
+  async find(
+    filter: FilterQuery<Player>,
+    limit?: number,
+    offset?: number, // added for consistency & scalability
+  ) {
+    let query = this.playerModel.find(filter).sort({ createdAt: -1 }); // ensures stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    return query.exec();
   }
 
   async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>) {
@@ -79,7 +92,11 @@ export class PlayerService {
     return this.playerModel.updateMany(filter, player);
   }
 
-  async arrangeFromCSV(uploadedFile: Promise<FileUpload>, event: string, division: string): Promise<{unassignedPlayers: Player[], teams: Team[]}> {
+  async arrangeFromCSV(
+    uploadedFile: Promise<FileUpload>,
+    event: string,
+    division: string,
+  ): Promise<{ unassignedPlayers: Player[]; teams: Team[] }> {
     const { createReadStream } = await uploadedFile;
 
     return new Promise((resolve, reject) => {

@@ -2,14 +2,13 @@
 /* eslint-disable import/no-cycle */
 import React from "react";
 import { IMessage } from "./elements";
-import { IDefaultMatch, IMatchExpRel, IMatchRelatives } from "./match";
+import { IDefaultMatch, IMatch, IMatchExpRel, IMatchRelatives } from "./match";
 import { ILDO } from "./ldo";
 import { IGroup, IGroupRelatives } from "./group";
 import { ITeam } from "./team";
 import { IPlayer } from "./player";
 import { INetRelatives } from "./net";
 import { IRoundRelatives } from "./round";
-import { IMatch } from "./socket";
 import { IServerReceiverSinglePlay } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
 import { QueryRef } from "@apollo/client/react";

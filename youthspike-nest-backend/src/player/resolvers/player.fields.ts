@@ -13,7 +13,11 @@ export class PlayerFields {
     private readonly eventService: EventService,
     private readonly teamService: TeamService,
     private readonly userService: UserService,
-) {}
+  ) {}
+
+  async event(player: Player): Promise<Event> {
+    return await this.eventService.findOne({ _id: { $in: player.events } });
+  }
 
   async events(player: Player): Promise<Event[]> {
     try {

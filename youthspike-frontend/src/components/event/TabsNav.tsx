@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import "./TabsNav.css";
 
 export default function TabsNav({ eventId }: { eventId: string }) {
@@ -12,19 +12,16 @@ export default function TabsNav({ eventId }: { eventId: string }) {
     {
       name: "PLAYER",
       segment: "players",
-      icon: "👤",
       color: "from-blue-500 to-cyan-500",
     },
     {
       name: "TEAM",
       segment: "teams",
-      icon: "🏆",
       color: "from-green-500 to-emerald-500",
     },
     {
       name: "MATCH",
       segment: "matches",
-      icon: "⚽",
       color: "from-purple-500 to-pink-500",
     },
   ];
@@ -67,8 +64,6 @@ export default function TabsNav({ eventId }: { eventId: string }) {
                         }}
                       />
                     )}
-
-                    <span className="text-lg mb-1">{tab.icon}</span>
                     <span className="text-xs font-semibold uppercase tracking-wide">
                       {tab.name}
                     </span>
@@ -113,18 +108,6 @@ export default function TabsNav({ eventId }: { eventId: string }) {
                       : "text-gray-300 hover:text-white hover:bg-gray-700/50"
                   }`}
                 >
-                  {/* Icon */}
-                  <motion.span
-                    animate={{
-                      rotate: isActive ? [0, -8, 8, 0] : 0,
-                      scale: isActive ? 1.2 : 1,
-                    }}
-                    transition={{ duration: 0.4 }}
-                    className="text-lg"
-                  >
-                    {tab.icon}
-                  </motion.span>
-
                   {/* Label */}
                   <span className="text-sm font-semibold uppercase tracking-wide">
                     {tab.name}

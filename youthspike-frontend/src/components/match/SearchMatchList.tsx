@@ -36,12 +36,6 @@ function SearchMatchList({ matchList = [] }: IMatchListProps) {
   const dispatch = useAppDispatch();
 
 
-  
-
-  
-
-
-
   // ✅ Stable event listener (doesn't reset on every list change)
   useEffect(() => {
     if (!socket) return;
@@ -76,6 +70,7 @@ function SearchMatchList({ matchList = [] }: IMatchListProps) {
         <MatchCard
           key={`${match?._id}-${i}`}
           match={match}
+          // @ts-ignore
           roundList={match.rounds}
           allNets={match.nets}
         />

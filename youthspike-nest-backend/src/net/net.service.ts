@@ -30,8 +30,10 @@ export class NetService {
   }
 
   async find(filter: FilterQuery<Net> = {}, options: { lean?: boolean } = {}) {
-    const query = this.netModel.find(filter);
-    return options.lean ? query.lean() : query;
+    // const query = this.netModel.find(filter);
+    // return options.lean ? query.lean() : query;
+    const nets = await this.netModel.find(filter);
+    return nets;
   }
 
   async countDocuments(filter: FilterQuery<Net>) {

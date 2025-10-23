@@ -235,6 +235,7 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         active
       }
     }
+    code
     message
     success
   }

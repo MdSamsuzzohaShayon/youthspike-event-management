@@ -15,7 +15,7 @@ import type {
 import type { IRoundRelatives } from "./round";
 import { ETeam, ITeam } from "./team";
 import type { IAccessCode, IUserContext, UserRole } from "./user";
-import { IMatchExpRel, IMatchRelatives, EMatchStatus } from "./match";
+import { IMatchExpRel, IMatchRelatives, EMatchStatus, IMatch } from "./match";
 import { IPlayer } from "./player";
 import { EServerPositionPair, IServerReceiverOnNetMixed } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
@@ -286,11 +286,7 @@ export interface ITeamCaptain extends ITeam {
   captain: IPlayer;
 }
 
-export interface IMatch extends IMatchExpRel {
-  teamA: ITeamCaptain;
-  teamB: ITeamCaptain;
-  status: EMatchStatus;
-}
+
 
 export interface IUpdateRound {
   setMatchList: React.Dispatch<React.SetStateAction<IMatch[]>>;
