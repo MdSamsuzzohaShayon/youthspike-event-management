@@ -7,7 +7,7 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { ISearchFilter } from "@/types";
+import { ISearchFilter, ISearchPlayerResponse } from "@/types";
 import PlayersMain from "@/components/player/PlayersMain";
 import { SEARCH_PLAYERS } from "@/graphql/player";
 
@@ -37,7 +37,7 @@ export default async function PlayersPage({
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <PlayersMain
-            queryRef={queryRef as QueryRef<{ searchPlayers: any }>} // Replace with proper type
+            queryRef={queryRef as QueryRef<{ searchPlayers: ISearchPlayerResponse }>} // Replace with proper type
             initialSearchParams={{ search, division, group }}
           />
         </Suspense>

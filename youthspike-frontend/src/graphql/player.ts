@@ -126,10 +126,24 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter) {
         division
         captain
       }
+      matches {
+        _id
+        group
+        completed
+        date
+        description
+        division
+        location
+        nets
+        rounds
+        teamA
+        teamB
+      }
     }
   }
 }
 
-`
+
+`;
 
 export { GET_PLAYER_AND_TEAMS_RAW, GET_A_PLAYER_RAW, SEARCH_PLAYERS };

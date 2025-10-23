@@ -120,6 +120,8 @@ export interface ISearchFilter {
   group: string;
   matchFilter: string;
   status: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface ISearchLimitFilter extends ISearchFilter {

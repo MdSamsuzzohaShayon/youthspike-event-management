@@ -1,6 +1,6 @@
 import { ITeam } from "./team";
 import { IDocument } from "./document";
-import { IAllStats, IEvent, IGroup } from ".";
+import { IAllStats, IEvent, IGroup, IMatch } from ".";
 
 /**
  * Player Status
@@ -54,6 +54,7 @@ interface ISearchPlayerData {
   players: IPlayer[];
   teams: ITeam[];
   statsOfPlayer: IAllStats[];
+  matches: IMatch[];
 }
 
 export interface ISearchPlayerResponse {

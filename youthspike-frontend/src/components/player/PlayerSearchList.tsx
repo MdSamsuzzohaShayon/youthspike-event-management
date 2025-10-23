@@ -251,7 +251,7 @@ function PlayerSearchList({
               <tbody>
                 {sortedPlayers.map((player, index) => (
                   <PlayerRow
-                    key={player?._id}
+                    key={player?._id + index}
                     index={index}
                     player={player}
                     teamRank={showRank}

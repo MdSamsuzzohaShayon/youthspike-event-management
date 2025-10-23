@@ -1,8 +1,7 @@
-import { IMatchRelatives } from "./match";
+import { IMatch, IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
 import { IPlayer } from "./player";
 import { IRoundRelatives } from "./round";
-import { IMatch } from "./socket";
 import { ITeam } from "./team";
 
 interface IPlayerCommonStats {
