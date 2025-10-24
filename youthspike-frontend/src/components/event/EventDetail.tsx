@@ -45,6 +45,9 @@ function EventDetail({ queryRef, eventId }: IEventDetailProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  console.log({lightData});
+  
+
   // Background query: full data (no filter)
   const { data: heavyData } = useQuery(GET_AN_EVENT, {
     variables: { eventId, filter: {} },

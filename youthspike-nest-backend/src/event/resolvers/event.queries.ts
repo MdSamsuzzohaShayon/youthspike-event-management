@@ -175,13 +175,15 @@ export class EventQueries implements IEventQueries {
       if(!event) return AppResponse.notFound("Event");
 
       const mIds = matches.map((m) => String(m._id));
-      const [rounds, nets] = await Promise.all([
+      let [rounds, nets] = await Promise.all([
         this.roundService.find({ match: { $in: mIds } }, {lean: true}),
         this.netService.find({ match: { $in: mIds } }, {lean: true}),
       ]);
 
+      nets = nets.map((n)=> n.toObject());
+
       // --- Optimize player stats ---
-      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(players, nets, this.redisService, this.playerStatsService);
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(players, nets , this.redisService, this.playerStatsService);
 
       // Prepare response
       return {
