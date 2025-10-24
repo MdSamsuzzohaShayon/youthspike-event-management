@@ -20,6 +20,7 @@ import {
   IPlayer,
   IServerReceiverOnNetMixed,
   IUser,
+  UserRole,
 } from "@/types";
 import organizeFetchedData from "@/utils/match/organizeFetchedData";
 import ServerReceiverDisplay from "./ServerReceiverDisplay";
@@ -42,6 +43,7 @@ import Image from "next/image";
 import { shallowEqual } from "react-redux";
 import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
 import { toOrdinal } from "@/utils/helper";
+import Link from "next/link";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -510,6 +512,14 @@ export default function ServerReceiver({
               Score of both teams are same, the match is tied! Either you play
               overtime round or you finish the match!
             </p>
+            {token && (userInfo?.role === UserRole.admin || userInfo?.role === UserRole.captain || userInfo?.role === UserRole.co_captain || userInfo?.role === UserRole.director) && (<div>
+              <Link
+                href={`/matches/${matchData._id}`}
+                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+              >
+                ← Go back to captain
+              </Link>
+            </div>)}
           </div>
         </div>
       </div>

@@ -100,19 +100,18 @@ export class PlayerRankingResolver {
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
 
       // Get all players from the first ranking
-      const teamPlayers = await this.playerService.find({ teams: teamId });
+      const teamPlayers = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
       const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
 
 
       // Check if there are not rankings in PlayerRanking create all of them
       if (teamRanking.rankings.length === 0 && playerIds.size > 0) {
         // Check players who are inactive, create ranking for them
-        const players = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
-        if (players.length > 0) {
+        if (teamPlayers.length > 0) {
           // Create team rankings again
           const newRankings = [];
           let i = 0;
-          for (const p of players) {
+          for (const p of teamPlayers) {
             const newRanking = await this.playerRankingService.createAnItem({
               player: p._id,
               rank: i + 1,
@@ -188,10 +187,22 @@ export class PlayerRankingResolver {
         const validPlayerIds = new Set<string>();
         const invalidPlayerRankings = new Set<string>();
         const deleteRankingItems = [];
+        // If a player has multiple ranking, add those rankings in here
+        const duplicatedRankingIds = new Set<string>();
         if (updatePlayerRankings[i].team) {
           // Find all rankings
           const rankings = await this.playerRankingService.findItems({ playerRanking: updatePlayerRankings[i]._id });
           for (const ranking of rankings) {
+            if(validPlayerIds.has(String(ranking.player))) {
+              deleteRankingItems.push(
+                this.playerRankingService.deleteOneItem({
+                  playerRanking: updatePlayerRankings[i]._id,
+                  player: ranking.player,
+                }),
+              );
+              duplicatedRankingIds.add(ranking._id);
+              continue;
+            }
             // Check player exists or not. If not exist delete them
             if (!playerIds.has(String(ranking.player))) {
               deleteRankingItems.push(
@@ -211,7 +222,7 @@ export class PlayerRankingResolver {
         // Remove invalid rankings from player rankings
         await this.playerRankingService.updateOne(
           { _id: updatePlayerRankings[i]._id },
-          { $pull: { rankings: { $in: invalidPlayerRankings } } },
+          { $pull: { rankings: { $in: [...invalidPlayerRankings, ...duplicatedRankingIds] } } },
         );
 
         // Check that all players in playerIds, if not delete ranking for them

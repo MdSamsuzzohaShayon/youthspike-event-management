@@ -1,7 +1,12 @@
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
-import { IMatchRelatives, INetRelatives, IRoundRelatives } from "@/types";
+import {
+  EView,
+  IMatchRelatives,
+  INetRelatives,
+  IRoundRelatives,
+} from "@/types";
 import { IRoom } from "@/types/room";
 import { ETeam } from "@/types/team";
 import { fsToggle } from "@/utils/helper";
@@ -126,7 +131,9 @@ function NetPointCard({
     e.preventDefault();
     // Persist round + net to localStorage
     LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
-    window.location.assign(`/score-keeping/${currMatch._id}`); // preserves back button history
+    window.location.assign(
+      `/matches/${currMatch._id}/scoreboard?view=${EView.NET}`
+    ); // preserves back button history
   };
 
   /**
@@ -150,8 +157,17 @@ function NetPointCard({
   );
 
   return (
-    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around items-center">
-      <div className="w-4 md:w-8" />
+    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around items-center gap-x-2">
+      <Image
+        width={30}
+        height={30}
+        role="presentation"
+        onClick={handleScorekeeperNavigation}
+        src="/icons/spectate.svg"
+        alt="Scorekeeper"
+        className="w-4 md:w-6 svg-black"
+      />
+
       <div className="flex flex-col justify-around items-center p-1 rounded-lg ">
         <TeamScoreInput
           key={`top-${net?._id}`}
@@ -220,7 +236,7 @@ function NetPointCard({
         onClick={handleScorekeeperNavigation}
         src="/icons/scorekeeper.png"
         alt="Scorekeeper"
-        className="w-4 md:w-8 svg-black"
+        className="w-4 md:w-6 svg-black"
       />
     </div>
   );

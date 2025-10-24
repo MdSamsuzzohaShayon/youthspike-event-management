@@ -25,7 +25,7 @@
 }
 
 .two-nets-row{
-  margin-top: 0;
+  margin-top: 10px;
 }
 
 .one-nets-row {
@@ -82,13 +82,13 @@
 }
 
 .team-logo-wrapper{
-  width: 45px;
-  height: 45px;
+  /* width: 45px;
+  height: 45px; */
 }
 
 .team-logo-wrapper-single{
-  width: 45px;
-  height: 45px;
+  /* width: 45px;
+  height: 45px; */
 }
 
 
@@ -150,10 +150,10 @@
   }
 
   .image-container{
-    height: 60px;
+    height: 45px;
   }
   .image-container-single{
-    height: 120px;
+    height: 90px;
   }
   .action-pt-img{
     height: 30px;
@@ -163,13 +163,13 @@
   
 
   .team-logo-wrapper{
-    width: 35px;
-    height: 35px;
+    /* width: 35px;
+    height: 35px; */
   }
 
   .team-logo-wrapper-single{
-    width: 70px;
-    height: 70px;
+    /* width: 70px;
+    height: 70px; */
   }
 
   .plus-one{
@@ -226,10 +226,10 @@
   }
 
   .image-container{
-    height: 70px;
+    height: 40px;
   }
   .image-container-single{
-    height: 70px;
+    height: 40px;
   }
 
   .score-wrapper{
@@ -243,8 +243,8 @@
   }
 
   .team-logo-wrapper-single{
-    min-width: 45px;
-    height: 45px;
+    /* min-width: 45px;
+    height: 45px; */
   }
 
 
@@ -279,10 +279,10 @@
   }
 
   .image-container{
-    height: 70px;
+    height: 40px;
   }
   .image-container-single{
-    height: 70px;
+    height: 40px;
   }
 
   .score-wrapper{
@@ -296,8 +296,8 @@
   }
 
   .team-logo-wrapper-single{
-    width: 45px;
-    height: 45px;
+    /* width: 45px;
+    height: 45px; */
   }
 
   .action-pt-img-single{
@@ -325,23 +325,23 @@
     font-size: 4.5rem;
   }
   .image-container{
-    height: 60px;
+    height: 45px;
   }
   .image-container-single{
-    height: 120px;
+    height: 90px;
   }
   .action-pt-img{
     height: 30px;
     width: 30px;
   }
   .team-logo-wrapper{
-    width: 35px;
-    height: 35px;
+    /* width: 35px;
+    height: 35px; */
   }
 
   .team-logo-wrapper-single{
-    width: 70px;
-    height: 70px;
+    /* width: 70px;
+    height: 70px; */
   }
 
   .plus-one{
@@ -363,10 +363,10 @@
 
 
   .image-container {
-    height: 150px;
+    height: 100px;
   }
   .image-container-single{
-    height: 300px;
+    height: 250px;
   }
 
   .net-team-score{
@@ -389,13 +389,13 @@
   }
 
   .team-logo-wrapper{
-    width: 90px;
-    height: 90px;
+    /* width: 90px;
+    height: 90px; */
   }
 
   .team-logo-wrapper-single{
-    width: 160px;
-    height: 160px;
+    /* width: 160px;
+    height: 160px; */
   }
 
 

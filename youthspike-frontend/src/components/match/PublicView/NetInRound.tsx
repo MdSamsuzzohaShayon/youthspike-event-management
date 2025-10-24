@@ -1,7 +1,6 @@
 import Image from "next/image";
 import TeamInNet from "./TeamInNet";
 import {
-  EServerReceiverAction,
   ETeam,
   EView,
   INetRelatives,
@@ -90,7 +89,14 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             className="w-4 svg-black"
           />
         </Link>
-        <span className="net-num uppercase">Net-{net.num}</span>
+        <button
+          className="net-num uppercase"
+          onClick={() => {
+            if (lastPlay) changePlayEl.current?.showModal();
+          }}
+        >
+          Net-{net.num}
+        </button>
         {view === EView.ROUND ? (
           <Image
             src="/icons/maximize.svg"
@@ -113,16 +119,6 @@ const NetInRound: React.FC<INetInRoundProps> = ({
           />
         )}
       </div>
-      {lastPlay && (
-        <button
-          onClick={() => {
-            changePlayEl.current?.showModal();
-          }}
-          className="net-play bg-yellow-logo absolute -bottom-3 left-1/2 -translate-x-1/2 left-0 py-0 px-1 text-black rounded-lg"
-        >
-          {`${toOrdinal(lastPlay.play)} play`}
-        </button>
-      )}
       {/* Top side  */}
       <div className="top-side flex justify-between items-start mt-2">
         {teamA && (
