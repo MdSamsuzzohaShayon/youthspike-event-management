@@ -44,6 +44,168 @@ export class PlayerRankingResolver {
     private netService: NetService,
   ) {}
 
+
+
+  
+  private async validateTeamAndUser(teamId: string, loggedUser: any, userPayload: any) {
+    const teamExist = await this.teamService.findById(teamId);
+    if (!teamExist) return AppResponse.notFound('Team');
+  
+    if (!loggedUser) return AppResponse.unauthorized();
+  
+    return teamExist;
+  }
+  
+  private async checkRosterLock(eventExist: any, loggedUser: any, userPayload: any) {
+    if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
+      const isIsoTime = isISODateString(eventExist.rosterLock);
+      if (!isIsoTime) return;
+  
+      const lastDate = new Date(eventExist.rosterLock);
+      const currentDateTime = new Date();
+  
+      if (currentDateTime > lastDate && !userPayload.passcode) {
+        throw AppResponse.handleError({
+          statusCode: HttpStatus.NOT_ACCEPTABLE,
+          message: 'Match date passed and you do not have passcode to re-rank',
+        });
+      }
+    }
+  }
+  
+  private async getPlayerRankings(teamId: string): Promise<PlayerRanking[]> {
+    const rankings = await this.playerRankingService.find({ team: teamId });
+    return rankings.map((pr) => pr.toObject());
+  }
+  
+  private async ensureRankingsExistForPlayers(teamRanking: any, teamPlayers: any[]) {
+    if (teamRanking.rankings.length === 0 && teamPlayers.length > 0) {
+      const newRankings = await Promise.all(
+        teamPlayers.map((p, i) =>
+          this.playerRankingService.createAnItem({
+            player: p._id,
+            rank: i + 1,
+            playerRanking: teamRanking._id,
+          }),
+        ),
+      );
+      await this.playerRankingService.updateOne(
+        { _id: teamRanking._id },
+        { $set: { rankings: newRankings.map((r) => r._id) } },
+      );
+    }
+  }
+  
+  private async addAbsentPlayersToRankings(
+    teamExist: any,
+    playerRankings: PlayerRanking[],
+    teamId: string,
+    playerIds: Set<string>,
+    input: UpdatePlayerRankingInput[],
+  ): Promise<PlayerRanking[]> {
+    const absentPlayers = input
+      .filter((ipr) => !playerIds.has(ipr.player))
+      .map((ipr) => ipr.player);
+  
+    if (absentPlayers.length === 0) return playerRankings;
+  
+    const teamPlayerIds = teamExist.players.map((p) => p.toString());
+    const validAbsentPlayers = absentPlayers.filter((id) => teamPlayerIds.includes(id));
+  
+    if (validAbsentPlayers.length === 0) return playerRankings;
+  
+    const insertPromises: Promise<any>[] = [];
+  
+    for (const pr of playerRankings) {
+      let currentCount = playerIds.size;
+      for (const playerId of validAbsentPlayers) {
+        insertPromises.push(
+          this.playerRankingService.createAnItem({
+            player: playerId,
+            rank: ++currentCount,
+            playerRanking: pr._id,
+          }),
+        );
+      }
+    }
+  
+    if (insertPromises.length > 0) await Promise.all(insertPromises);
+    return this.getPlayerRankings(teamId);
+  }
+  
+  private filterUpdatableRankings(playerRankings: PlayerRanking[], loggedUser: any): PlayerRanking[] {
+    return playerRankings.filter(
+      (pr) => !pr.rankLock,
+    );
+  }
+  
+  private async updatePlayerRanks(
+    updatePlayerRankings: PlayerRanking[],
+    input: UpdatePlayerRankingInput[],
+    playerIds: Set<string>,
+  ) {
+    const updatePromises: Promise<any>[] = [];
+  
+    for (const ranking of updatePlayerRankings) {
+      const rankings = await this.playerRankingService.findItems({
+        playerRanking: ranking._id,
+      });
+  
+      const { deleteRankingItems, invalidIds } = this.cleanInvalidRankings(rankings, ranking._id, playerIds);
+  
+      // Execute deletions and clean up references
+      if (deleteRankingItems.length > 0) await Promise.all(deleteRankingItems);
+  
+      await this.playerRankingService.updateOne(
+        { _id: ranking._id },
+        { $pull: { rankings: { $in: invalidIds } } },
+      );
+  
+      // Apply updated ranks
+      for (const { player, rank } of input) {
+        updatePromises.push(
+          this.playerRankingService.updateOneItem(
+            { playerRanking: ranking._id, player },
+            { rank },
+          ),
+        );
+      }
+    }
+  
+    await Promise.all(updatePromises);
+  }
+  
+  private cleanInvalidRankings(rankings: any[], rankingId: string, validPlayers: Set<string>) {
+    const validPlayerIds = new Set<string>();
+    const invalidIds = new Set<string>();
+    const deleteRankingItems: Promise<any>[] = [];
+  
+    for (const r of rankings) {
+      const playerId = String(r.player);
+  
+      if (validPlayerIds.has(playerId) || !validPlayers.has(playerId)) {
+        invalidIds.add(String(r._id));
+        deleteRankingItems.push(
+          this.playerRankingService.deleteOneItem({
+            playerRanking: rankingId,
+            player: r.player,
+          }),
+        );
+      } else {
+        validPlayerIds.add(playerId);
+      }
+    }
+  
+    return { deleteRankingItems, invalidIds };
+  }
+  
+
+
+  /**
+   * =============================
+   * Mutations
+   */
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((_returns) => PlayerRankingResponse)
@@ -55,188 +217,51 @@ export class PlayerRankingResolver {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
-
-      // Get logged in user
       const loggedUser = await this.userService.findById(userPayload._id);
 
-      const teamExist = await this.teamService.findById(teamId);
-      if (!teamExist) return AppResponse.notFound('Team');
+      const allowedRoles = new Set([
+        UserRole.director,
+        UserRole.admin,
+        UserRole.captain,
+        UserRole.co_captain,
+      ]);
 
-      const eventExist = await this.eventService.findById(teamExist.event.toString());
+      if(!allowedRoles.has(loggedUser.role)){
+        return AppResponse.handleError({message: "You do not have permission to change ranking!", code: 406});
+      }
+  
+      // Validate team, event, and user
+      const teamExist = await this.validateTeamAndUser(teamId, loggedUser, userPayload);
+      if (!teamExist || 'code' in teamExist) return teamExist;
+      const eventExist = await this.eventService.findById(String(teamExist.event));
       if (!eventExist) return AppResponse.notFound('Event');
-
-      if (!loggedUser) {
-        return AppResponse.unauthorized();
-      }
-
-      if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
-        // Check date
-        const isIsoTime = isISODateString(eventExist.rosterLock);
-        if (isIsoTime) {
-          const lastDate = new Date(eventExist.rosterLock);
-          const currentDateTime = new Date();
-          if (currentDateTime > lastDate) {
-            // if date has passed, check for passcode
-            const adminOrDirectorPasscode = userPayload.passcode || null; // Find passcode from token
-            if (!adminOrDirectorPasscode) {
-              return AppResponse.handleError({
-                statusCode: HttpStatus.NOT_ACCEPTABLE,
-                message: 'Match date passed and you do not have passcode to re-rank',
-              });
-            }
-          }
-        }
-      }
-
-      // Update player ranking in the database
-      let playerRankings = await this.playerRankingService.find({
-        team: teamId,
-      }); // Find all player rankings
-      playerRankings = playerRankings.map((pr) => pr.toObject());
-
-      const teamRanking = playerRankings.find((pr) => pr.team && !pr?.match);
-      if (!teamRanking) return AppResponse.notFound('Team Player Ranking');
-
+  
+      await this.checkRosterLock(eventExist, loggedUser, userPayload);
+  
+      // Get player rankings
+      let playerRankings = await this.getPlayerRankings(teamId);
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
-
-      // Get all players from the first ranking
+  
+      // Ensure team ranking exists
+      const teamRanking = playerRankings.find((pr) => pr.team && !pr.match);
+      if (!teamRanking) return AppResponse.notFound('Team Player Ranking');
+  
+      // Get active team players
       const teamPlayers = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
       const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
-
-
-      // Check if there are not rankings in PlayerRanking create all of them
-      if (teamRanking.rankings.length === 0 && playerIds.size > 0) {
-        // Check players who are inactive, create ranking for them
-        if (teamPlayers.length > 0) {
-          // Create team rankings again
-          const newRankings = [];
-          let i = 0;
-          for (const p of teamPlayers) {
-            const newRanking = await this.playerRankingService.createAnItem({
-              player: p._id,
-              rank: i + 1,
-              playerRanking: teamRanking._id,
-            });
-            newRankings.push(newRanking._id);
-            i++;
-          }
-          await this.playerRankingService.updateOne({ _id: teamRanking._id }, { $set: { rankings: newRankings } });
-        }
-      }
-
-
-      // Find from database if player not exist in rankings
-      const abesentPlayers: string[] = [];
-
-      for (const ipr of input) {
-        if (!playerIds.has(ipr.player)) {
-          abesentPlayers.push(ipr.player);
-        }
-      }
-
-      if (abesentPlayers.length > 0) {
-        // Add those players to rankings if not exists
-        const insertedPlayersRank = [];
-        for (const pr of playerRankings) {
-          let currTotalPlayers = playerIds.size;
-          for (const ap of abesentPlayers) {
-            const teamPlayers = teamExist.players.map((p) => p.toString());
-            if (teamPlayers.includes(ap)) {
-              console.log({ msg: 'This player is in the team: ', ap });
-              insertedPlayersRank.push(
-                this.playerRankingService.createAnItem({
-                  player: ap,
-                  rank: (currTotalPlayers += 1),
-                  playerRanking: pr._id,
-                }),
-              );
-              currTotalPlayers += 1;
-            }
-          }
-        }
-        if (insertedPlayersRank.length > 0) {
-          console.log({ msg: 'Absent players, ', playerId: abesentPlayers });
-          await Promise.all(insertedPlayersRank);
-          playerRankings = await this.playerRankingService.find({
-            team: teamId,
-          });
-          playerRankings = playerRankings.map((pr) => pr.toObject());
-        }
-      }
-
-      // Updating the rank according to input
-      const updatePlayerRankings: PlayerRanking[] = [];
-
-      for (const pr of playerRankings) {
-        if (pr.rankLock) continue;
-        if (
-          loggedUser.role !== UserRole.director &&
-          loggedUser.role !== UserRole.admin &&
-          loggedUser.role !== UserRole.captain &&
-          loggedUser.role !== UserRole.co_captain
-        )
-          continue;
-
-        updatePlayerRankings.push(pr);
-      }
-      // console.log({ input, playerRankings, updatePlayerRankings });
-
-      const updatePromises = [];
-
-      for (let i = 0; i < updatePlayerRankings.length; i += 1) {
-        const validPlayerIds = new Set<string>();
-        const invalidPlayerRankings = new Set<string>();
-        const deleteRankingItems = [];
-        // If a player has multiple ranking, add those rankings in here
-        const duplicatedRankingIds = new Set<string>();
-        if (updatePlayerRankings[i].team) {
-          // Find all rankings
-          const rankings = await this.playerRankingService.findItems({ playerRanking: updatePlayerRankings[i]._id });
-          for (const ranking of rankings) {
-            if(validPlayerIds.has(String(ranking.player))) {
-              deleteRankingItems.push(
-                this.playerRankingService.deleteOneItem({
-                  playerRanking: updatePlayerRankings[i]._id,
-                  player: ranking.player,
-                }),
-              );
-              duplicatedRankingIds.add(ranking._id);
-              continue;
-            }
-            // Check player exists or not. If not exist delete them
-            if (!playerIds.has(String(ranking.player))) {
-              deleteRankingItems.push(
-                this.playerRankingService.deleteOneItem({
-                  playerRanking: updatePlayerRankings[i]._id,
-                  player: ranking.player,
-                }),
-              );
-              invalidPlayerRankings.add(String(ranking._id));
-            } else {
-              validPlayerIds.add(String(ranking.player));
-            }
-          }
-        }
-
-        await Promise.all(deleteRankingItems);
-        // Remove invalid rankings from player rankings
-        await this.playerRankingService.updateOne(
-          { _id: updatePlayerRankings[i]._id },
-          { $pull: { rankings: { $in: [...invalidPlayerRankings, ...duplicatedRankingIds] } } },
-        );
-
-        // Check that all players in playerIds, if not delete ranking for them
-        for (let j = 0; j < input.length; j += 1) {
-          updatePromises.push(
-            this.playerRankingService.updateOneItem(
-              { playerRanking: updatePlayerRankings[i]._id, player: input[j].player },
-              { rank: input[j].rank },
-            ),
-          );
-        }
-      }
-
-      await Promise.all(updatePromises);
+  
+      // Ensure rankings exist for all players
+      await this.ensureRankingsExistForPlayers(teamRanking, teamPlayers);
+  
+      // Handle absent players (not in ranking)
+      playerRankings = await this.addAbsentPlayersToRankings(teamExist, playerRankings, teamId, playerIds, input);
+  
+      // Filter rankings for update
+      const updatePlayerRankings = this.filterUpdatableRankings(playerRankings, loggedUser);
+  
+      // Perform updates
+      await this.updatePlayerRanks(updatePlayerRankings, input, playerIds);
+  
       return {
         code: HttpStatus.ACCEPTED,
         message: 'Multiple Players ranking have been created successfully!',
@@ -247,6 +272,8 @@ export class PlayerRankingResolver {
       return AppResponse.handleError(error);
     }
   }
+  
+
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
