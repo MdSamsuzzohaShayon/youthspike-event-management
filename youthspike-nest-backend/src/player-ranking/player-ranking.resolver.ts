@@ -16,6 +16,8 @@ import { UserService } from 'src/user/user.service';
 import { EventService } from 'src/event/event.service';
 import { NetService } from 'src/net/net.service';
 import { FilterQuery } from 'mongoose';
+import { PlayerService } from 'src/player/player.service';
+import { EPlayerStatus } from 'src/player/player.schema';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
@@ -38,6 +40,7 @@ export class PlayerRankingResolver {
     private matchService: MatchService,
     private userService: UserService,
     private eventService: EventService,
+    private playerService: PlayerService,
     private netService: NetService,
   ) {}
 
@@ -89,16 +92,39 @@ export class PlayerRankingResolver {
       let playerRankings = await this.playerRankingService.find({
         team: teamId,
       }); // Find all player rankings
+      playerRankings = playerRankings.map((pr) => pr.toObject());
+
+      const teamRanking = playerRankings.find((pr) => pr.team && !pr?.match);
+      if (!teamRanking) return AppResponse.notFound('Team Player Ranking');
 
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
 
       // Get all players from the first ranking
-      const firstRankings = playerRankings[0];
-      const findRankingItems = await this.playerRankingService.findItems({ playerRanking: firstRankings._id });
-      const playerIds = new Set();
-      findRankingItems.forEach((fri) => {
-        playerIds.add(fri.player.toString());
-      });
+      const teamPlayers = await this.playerService.find({ teams: teamId });
+      const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
+
+
+      // Check if there are not rankings in PlayerRanking create all of them
+      if (teamRanking.rankings.length === 0 && playerIds.size > 0) {
+        // Check players who are inactive, create ranking for them
+        const players = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
+        if (players.length > 0) {
+          // Create team rankings again
+          const newRankings = [];
+          let i = 0;
+          for (const p of players) {
+            const newRanking = await this.playerRankingService.createAnItem({
+              player: p._id,
+              rank: i + 1,
+              playerRanking: teamRanking._id,
+            });
+            newRankings.push(newRanking._id);
+            i++;
+          }
+          await this.playerRankingService.updateOne({ _id: teamRanking._id }, { $set: { rankings: newRankings } });
+        }
+      }
+
 
       // Find from database if player not exist in rankings
       const abesentPlayers: string[] = [];
@@ -109,23 +135,11 @@ export class PlayerRankingResolver {
         }
       }
 
-      /*
-      //  If there is more or less input then player rankings
-      if (input.length !== firstRankings.rankings.length) {
-        console.log({
-          msg: 'Ranking length did not match, ',
-          inputLength: input.length,
-          dbRankingLength: firstRankings.rankings.length,
-        });
-        console.log({ abesentPlayers, teamPlayers: teamExist.players.map((p) => p.toString()), input });
-      }
-      */
-
       if (abesentPlayers.length > 0) {
         // Add those players to rankings if not exists
         const insertedPlayersRank = [];
         for (const pr of playerRankings) {
-          let currTotalPlayers = firstRankings.rankings.length;
+          let currTotalPlayers = playerIds.size;
           for (const ap of abesentPlayers) {
             const teamPlayers = teamExist.players.map((p) => p.toString());
             if (teamPlayers.includes(ap)) {
@@ -147,6 +161,7 @@ export class PlayerRankingResolver {
           playerRankings = await this.playerRankingService.find({
             team: teamId,
           });
+          playerRankings = playerRankings.map((pr) => pr.toObject());
         }
       }
 
@@ -163,20 +178,6 @@ export class PlayerRankingResolver {
         )
           continue;
 
-        /*
-        if (pr.match) {
-          // Find the match, nets of that match
-          const firstNet = await this.netService.findOne({ match: pr.match, num: 1 });
-          if (firstNet) {
-            if (!firstNet.teamAPlayerA && !firstNet.teamAPlayerB && !firstNet.teamBPlayerA && !firstNet.teamBPlayerB) {
-              updatePlayerRankings.push(pr);
-            }
-          }
-        } else {
-          updatePlayerRankings.push(pr);
-        }
-        */
-
         updatePlayerRankings.push(pr);
       }
       // console.log({ input, playerRankings, updatePlayerRankings });
@@ -184,6 +185,36 @@ export class PlayerRankingResolver {
       const updatePromises = [];
 
       for (let i = 0; i < updatePlayerRankings.length; i += 1) {
+        const validPlayerIds = new Set<string>();
+        const invalidPlayerRankings = new Set<string>();
+        const deleteRankingItems = [];
+        if (updatePlayerRankings[i].team) {
+          // Find all rankings
+          const rankings = await this.playerRankingService.findItems({ playerRanking: updatePlayerRankings[i]._id });
+          for (const ranking of rankings) {
+            // Check player exists or not. If not exist delete them
+            if (!playerIds.has(String(ranking.player))) {
+              deleteRankingItems.push(
+                this.playerRankingService.deleteOneItem({
+                  playerRanking: updatePlayerRankings[i]._id,
+                  player: ranking.player,
+                }),
+              );
+              invalidPlayerRankings.add(String(ranking._id));
+            } else {
+              validPlayerIds.add(String(ranking.player));
+            }
+          }
+        }
+
+        await Promise.all(deleteRankingItems);
+        // Remove invalid rankings from player rankings
+        await this.playerRankingService.updateOne(
+          { _id: updatePlayerRankings[i]._id },
+          { $pull: { rankings: { $in: invalidPlayerRankings } } },
+        );
+
+        // Check that all players in playerIds, if not delete ranking for them
         for (let j = 0; j < input.length; j += 1) {
           updatePromises.push(
             this.playerRankingService.updateOneItem(
@@ -267,13 +298,17 @@ export class PlayerRankingResolver {
             }
             mrankings = newMatchRankings;
 
-
             const deleteRankings = [];
             for (let i = 0; i < rankingsToBeDeleted.length; i++) {
-              deleteRankings.push(this.playerRankingService.updateOne({_id: rankingsToBeDeleted[i].playerRanking}, {$pull: {rankings: rankingsToBeDeleted[i]._id}}));
-              deleteRankings.push(this.playerRankingService.deleteOneItem({_id: rankingsToBeDeleted[i]._id}));
+              deleteRankings.push(
+                this.playerRankingService.updateOne(
+                  { _id: rankingsToBeDeleted[i].playerRanking },
+                  { $pull: { rankings: rankingsToBeDeleted[i]._id } },
+                ),
+              );
+              deleteRankings.push(this.playerRankingService.deleteOneItem({ _id: rankingsToBeDeleted[i]._id }));
             }
-            if(deleteRankings.length > 0){
+            if (deleteRankings.length > 0) {
               await Promise.all(deleteRankings);
             }
           }

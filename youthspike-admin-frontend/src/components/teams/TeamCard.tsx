@@ -203,21 +203,45 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           exit="exit"
           transition={{ duration: 0.2 }}
         >
-          {[
-            { icon: 'edit', label: 'Edit', action: 'edit' },
-            { icon: 'move', label: 'Move Team', action: 'move' },
-            { icon: 'send-email', label: `${sendCredentialLabel} Credential`, action: 'send', className: team.sendCredentials ? 'svg-green' : 'svg-white' },
-            { icon: 'delete', label: 'Delete', action: 'delete', isDanger: true },
-          ].map((item) => (
-            <li
-              key={item.action}
-              onClick={(e) => handleMenuAction(e, item.action as any)}
-              className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer ${item.isDanger ? 'text-red-500 hover:text-red-400' : ''}`}
-            >
-              <Image src={`/icons/${item.icon}.svg`} alt={item.label} width={16} height={16} className={item.className || 'svg-white'} />
-              <span className="text-sm">{item.label}</span>
-            </li>
-          ))}
+          <li>
+            <Link href={`/${eventId}/teams/${team._id}/update/${ldoIdUrl}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+              <Image src="/icons/edit.svg" alt="Edit" width={16} height={16} className="svg-white" />
+              <span className="text-sm">Edit</span>
+            </Link>
+          </li>
+
+          <li
+            onClick={(e) => {
+              setActionOpen(false);
+              setOpenMoveTeam(true);
+            }}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+          >
+            <Image src="/icons/move.svg" alt="Move Team" width={16} height={16} className="svg-white" />
+            <span className="text-sm">Move Team</span>
+          </li>
+
+          <li
+            onClick={(e) => {
+              setActionOpen(false);
+              handleSendCredential(e, team._id);
+            }}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+          >
+            <Image src="/icons/send-email.svg" alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
+            <span className="text-sm">{sendCredentialLabel} Credential</span>
+          </li>
+
+          <li
+            onClick={(e) => {
+              setActionOpen(false);
+              deleteEl.current?.showModal();
+            }}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+          >
+            <Image src="/icons/delete.svg" alt="Delete" width={16} height={16} className="svg-white" />
+            <span className="text-sm">Delete</span>
+          </li>
         </motion.ul>
       )}
     </AnimatePresence>

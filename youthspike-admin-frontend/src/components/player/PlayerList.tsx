@@ -211,6 +211,8 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
   }, [players, showRank, rankControls, playerRanking]);
 
+  
+
   /** Render List **/
   return (
     <>

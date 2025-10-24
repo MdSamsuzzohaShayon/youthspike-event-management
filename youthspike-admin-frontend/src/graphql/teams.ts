@@ -412,6 +412,9 @@ query GetEventWithTeams($eventId: String) {
 }
 `;
 
+
+const GET_EVENT_WITH_TEAMS = gql`${GET_EVENT_WITH_TEAMS_RAW}`;
+
 /**
  * Mutation
  * =========================================================================================================================================
@@ -586,6 +589,7 @@ export {
   ADD_TEAM_RAW,
   GET_A_TEAM,
   GET_EVENT_WITH_TEAMS_RAW,
+  GET_EVENT_WITH_TEAMS,
   UPDATE_TEAM_RAW,
   UPDATE_TEAM,
   DELETE_TEAM,

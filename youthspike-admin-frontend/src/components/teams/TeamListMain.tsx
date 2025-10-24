@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import Loader from '@/components/elements/Loader';
 import TeamList from '@/components/teams/TeamList';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IEventExpRel, IGroupExpRel, IOption, IPlayerExpRel, ITeam } from '@/types';
+import { IEventExpRel, IGetEventWithTeamsQuery, IGroupExpRel, IOption, IPlayerExpRel, ITeam } from '@/types';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 import InputField from '../elements/forms/InputField';
 import SelectInput from '../elements/forms/SelectInput';
@@ -15,16 +15,11 @@ import UserMenuList from '../layout/UserMenuList';
 import { useLdoId } from '@/lib/LdoProvider';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
+import { QueryRef, useReadQuery } from '@apollo/client';
 
-interface IEventDetail {
-  event: IEventExpRel;
-  teams: ITeam[];
-  groups: IGroupExpRel[];
-  players: IPlayerExpRel[];
-}
 
 interface ITeamsOfEventPage {
-  eventDetail: IEventDetail;
+  queryRef: QueryRef<{ getEventWithTeams: IGetEventWithTeamsQuery }>;
 }
 
 interface IFilter {
@@ -33,15 +28,23 @@ interface IFilter {
 }
 
 
-function TeamListMain({ eventDetail }: ITeamsOfEventPage) {
+function TeamListMain({ queryRef }: ITeamsOfEventPage) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
+  const {data} = useReadQuery(queryRef);
 
   // Initialize filters from query params
   const initialDivision = searchParams.get('division') || '';
   const initialSearch = searchParams.get('search') || '';
+
+  if(!data || !data?.getEventWithTeams || !data?.getEventWithTeams?.data){
+    console.log(data);
+    const error =  new Error("Unable to fetch data properly!", );
+    error.name = "Something went wrong!";
+    throw error;
+  }
 
 
   const importerEl = useRef<HTMLDialogElement | null>(null);
@@ -54,26 +57,30 @@ function TeamListMain({ eventDetail }: ITeamsOfEventPage) {
     search: initialSearch
   });
 
+
+  const {teams, groups, players, event} = data?.getEventWithTeams?.data;
+
   // Division list options
   const divisionList: IOption[] = useMemo(() => {
-    return divisionsToOptionList(eventDetail.event?.divisions || '');
-  }, [eventDetail.event?.divisions]);
+    return divisionsToOptionList(event?.divisions || '');
+  }, [event]);
 
   // Player map for O(1) lookup
   const playerMap = useMemo(() => {
-    return new Map(eventDetail.players.map((p) => [p._id, p]));
-  }, [eventDetail.players]);
+    return new Map(players.map((p) => [p._id, p]));
+  }, [players]);
 
   // Teams with resolved captain
   const teamList: ITeam[] = useMemo(() => {
-    if (!eventDetail.teams?.length) return [];
-    return eventDetail.teams.map((team) => ({
+    if (!teams?.length) return [];
+    const tl: ITeam[] = teams.map((team) => ({
       ...team,
-      captain: team.captain ? playerMap.get(String(team.captain)) || null : null,
+      captain: team.captain ? (playerMap.get(String(team.captain)) as IPlayerExpRel) || null : null,
     }));
-  }, [eventDetail.teams, playerMap]);
+    return tl;
+  }, [teams, playerMap]);
 
-  const groupList = useMemo(() => eventDetail.groups || [], [eventDetail.groups]);
+  const groupList = useMemo(() => groups || [], [groups]);
 
   // Filtered teams
   const filteredTeamList = useMemo(() => {
@@ -150,16 +157,16 @@ function TeamListMain({ eventDetail }: ITeamsOfEventPage) {
     <>
       <MultiPlayerAddDialog
         divisionList={divisionList}
-        eventId={eventDetail.event._id}
+        eventId={event._id}
         importerEl={importerEl}
         setIsLoading={setIsLoading}
       />
 
       {/* Event Menu Start */}
       <div className="event-and-menu">
-        {eventDetail?.event && <CurrentEvent currEvent={eventDetail.event} />}
+        {event && <CurrentEvent currEvent={event} />}
         <div className="navigator mt-8">
-          <UserMenuList eventId={eventDetail.event._id} />
+          <UserMenuList eventId={event._id} />
         </div>
       </div>
       {/* Event Menu End */}
@@ -183,7 +190,7 @@ function TeamListMain({ eventDetail }: ITeamsOfEventPage) {
 
       <div className="actions mt-8 flex flex-col sm:flex-row justify-between gap-4">
         <Link
-          href={`/${eventDetail.event._id}/teams/new/${ldoIdUrl}`}
+          href={`/${event._id}/teams/new/${ldoIdUrl}`}
           className="btn-info text-center"
         >
           Add New Team
@@ -204,7 +211,7 @@ function TeamListMain({ eventDetail }: ITeamsOfEventPage) {
         <div className="mt-8">
           <TeamList
             groupList={filteredGroupList}
-            eventId={eventDetail.event._id}
+            eventId={event._id}
             teamList={filteredTeamList}
             setIsLoading={setIsLoading}
             refetchFunc={refetchFunc}

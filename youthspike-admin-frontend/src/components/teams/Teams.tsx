@@ -1,32 +1,43 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { getEventWithTeams } from '@/app/_requests/teams';
-import { TParams } from '@/types';
+import { PreloadQuery } from '@/lib/client';
+import { QueryRef } from '@apollo/client';
+import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
 import TeamListMain from './TeamListMain';
+import Loader from '@/components/elements/Loader';
+import { IGetEventWithTeamsQuery, TParams } from '@/types';
 
-
-
-
-interface ITeamProps{
+interface ITeamProps {
   params: TParams;
 }
-export default async function Teams({params}: ITeamProps) {
-  const {eventId} = await params;
-  const eventDetail = await getEventWithTeams(eventId);
-  
-  if (!eventDetail) {
-    notFound();
-  }
 
-  if(!eventDetail?.event){
-    const err =  new Error(`There is not event found with this ID !{eventId}`)
-    err.name = "Event not found!";
+export default async function Teams({ params }: ITeamProps) {
+  const { eventId } = await params;
+
+  if (!eventId) {
+    const err = new Error('Event ID not provided.');
+    err.name = 'Invalid parameters';
     throw err;
   }
 
   return (
     <div className="w-full">
-      <h1 className="text-4xl font-bold text-center text-white mb-6">Team Management</h1>
-      <TeamListMain eventDetail={eventDetail} />
+      <h1 className="text-4xl font-bold text-center text-white mb-6">
+        Team Management
+      </h1>
+
+      {/* Preload GraphQL query like in TeamSingleMain */}
+      <PreloadQuery query={GET_EVENT_WITH_TEAMS} variables={{ eventId }}>
+        {(queryRef) => (
+          <Suspense fallback={<Loader />}>
+            <TeamListMain
+              queryRef={
+                queryRef as QueryRef<{ getEventWithTeams: IGetEventWithTeamsQuery }>
+              }
+            />
+          </Suspense>
+        )}
+      </PreloadQuery>
     </div>
   );
 }

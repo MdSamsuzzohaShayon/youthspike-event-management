@@ -36,6 +36,9 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
 
+  console.log({data: data.getTeamDetails.data});
+  
+
   // State
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
@@ -246,7 +249,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   // Main render sections
   const HeaderSection = () => (
     <div className="header bg-gray-800 rounded-xl">
-      <div className="border-b border-yellow-500/30 px-3 py-2 sticky top-0 z-20">
+      <div className="border-b border-yellow-500/30 px-3 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <TeamLogo />

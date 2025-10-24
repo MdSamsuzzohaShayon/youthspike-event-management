@@ -57,6 +57,9 @@ async function PlayersPage({ params }: IPlayersPageProps) {
     }
   }
 
+  
+  
+
   // Assign a single team object (first team) to each player
   const playerList = filteredPlayers.map((p: IPlayerExpRel) => {
     const playerTeams = Array.isArray(p.teams) && p.teams.length > 0 ? [teamMap.get(typeof p.teams[0] === 'string' ? p.teams[0] : p.teams[0]._id)].filter(Boolean) : [];

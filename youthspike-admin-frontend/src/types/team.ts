@@ -3,6 +3,7 @@ import {
   ICommonQuery,
   IError,
   IEvent,
+  IGroup,
   IGroupRelatives,
   IMatchExpRel,
   IMatchRelatives,
@@ -71,6 +72,20 @@ export interface IGetTeamDetailQuery extends ICommonQuery {
     teams: ITeam[];
     statsOfPlayer: IPlayerStats[];
   };
+}
+
+interface IEventWithTeams {
+  event: IEvent;
+  teams: ITeam[];
+  groups: IGroup[];
+  players: IPlayer[];
+}
+
+export interface IGetEventWithTeamsQuery {
+  code: number;
+  message: string;
+  success: boolean;
+  data: IEventWithTeams;
 }
 
 export interface IBaseTeamAction {

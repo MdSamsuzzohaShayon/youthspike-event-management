@@ -578,6 +578,7 @@ export class TeamResolver {
         }),
         this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
       ]);
+      await this.playerRankingService.updateOne({_id: playerRanking._id}, {$set: {rankings: rankings.map((r)=> r._id)}});
 
       // Attributes of matches
       const matchIds = matches.map((m) => m._id);
@@ -589,7 +590,6 @@ export class TeamResolver {
         this.netService.find({ match: { $in: matchIds } }),
         this.teamService.find({ event: team.event }),
       ]);
-
       // All player stats
 
       const playerToNets: Record<string, Net[]> = {};

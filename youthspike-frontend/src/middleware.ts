@@ -48,7 +48,8 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
       }
     }
-    return NextResponse.redirect(new URL(`/events/${process.env.NEXT_PUBLIC_CURRENT_EVENT_ID}/matches`, request.url));
+    return NextResponse.redirect(new URL(`/events/${process.env.NEXT_PUBLIC_CURRENT_EVENT_ID}`, request.url));
+    // return NextResponse.redirect(new URL(`/events/${process.env.NEXT_PUBLIC_CURRENT_EVENT_ID}/matches`, request.url));
     // Recover commit: 014cb44e23a6bafda3736876073f7e5046e8664a
   }
 
