@@ -179,14 +179,12 @@ function MatchSetting({
 
   const handleUnlockRank = useCallback(
     async (e: React.SyntheticEvent, rankLock: boolean) => {
-
-      console.log({rankLock});
       
       e.preventDefault();
       try {
         await mutateTeamPlayerRanking({
           variables: {
-            input: { match: match._id, team: myTeam?._id, rankLock },
+            input: { match: match._id, rankLock },
           },
         });
         dialogSettingEl.current?.close();

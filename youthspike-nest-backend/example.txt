@@ -14,3 +14,5 @@ t
 
 
 http://localhost:3001/matches/68f2fc484b562735637ddc34?ldoId=68afc4b20bf9dbb4ac0f6984
+
+https://aslsquads.com/matches/68f2fc484b562735637ddc34?ldoId=68afc4b20bf9dbb4ac0f6984

@@ -35,8 +35,6 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   const { setActErr } = useError();
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
-
-  console.log({data: data.getTeamDetails.data});
   
 
   // State

@@ -19,12 +19,9 @@ export class CreateTeamPlayerRankingInput {
 }
 
 @InputType()
-export class UpdateTeamPlayerRankingInput {
+export class UpdateMatchPlayerRankingInput {
   @Field((_type) => Boolean, { nullable: true })
   rankLock?: boolean;
-
-  @Field((_type) => String, { nullable: true })
-  team?: string;
 
   @Field((_type) => String, { nullable: true })
   match?: string;
