@@ -179,6 +179,9 @@ function MatchSetting({
 
   const handleUnlockRank = useCallback(
     async (e: React.SyntheticEvent, rankLock: boolean) => {
+
+      console.log({rankLock});
+      
       e.preventDefault();
       try {
         await mutateTeamPlayerRanking({
@@ -192,7 +195,7 @@ function MatchSetting({
         console.log(error);
       }
     },
-    [mutateTeamPlayerRanking, match._id, myTeam?._id]
+    [match._id, myTeam?._id]
   );
 
   // ====== Derived State ======

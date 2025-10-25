@@ -555,18 +555,8 @@ export class TeamResolver {
   @Query((_returns) => GetTeamDetailsResponse)
   async getTeamDetails(@Args('teamId') teamId: string) {
     try {
-      const [team, playerRanking] = await Promise.all([
-        this.teamService.findById(teamId),
-        this.playerRankingService.findOne({
-          team: teamId,
-          // rankLock: false,
-          $or: [
-            { match: { $exists: false } }, // `match` is undefined
-            { match: null }, // `match` is null
-          ],
-        }),
-      ]);
-      const [players, group, captain, cocaptain, event, matches, rankings] = await Promise.all([
+      const [team] = await Promise.all([this.teamService.findById(teamId)]);
+      const [players, group, captain, cocaptain, event, matches, playerRanking] = await Promise.all([
         // this.playerService.find({ teams: { $in: [team._id] } }),
         this.playerService.find({ events: { $in: [team.event] } }),
         this.groupService.findOne({ _id: team.group }),
@@ -576,19 +566,25 @@ export class TeamResolver {
         this.matchService.find({
           $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
         }),
-        this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
+        this.playerRankingService.findOne({
+          team: teamId,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
       ]);
-      await this.playerRankingService.updateOne({_id: playerRanking._id}, {$set: {rankings: rankings.map((r)=> r._id)}});
 
       // Attributes of matches
       const matchIds = matches.map((m) => m._id);
       // const oponentTeamIds = [
       //   ...new Set(matches.map((m) => (m.teamA.toString() === teamId ? m.teamB.toString() : m.teamA.toString()))),
       // ];
-      const [rounds, nets, teams] = await Promise.all([
+      const [rounds, nets, teams, rankings] = await Promise.all([
         this.roundService.find({ match: { $in: matchIds } }),
         this.netService.find({ match: { $in: matchIds } }),
         this.teamService.find({ event: team.event }),
+        this.playerRankingService.findItems({playerRanking: playerRanking._id})
       ]);
       // All player stats
 
@@ -653,18 +649,18 @@ export class TeamResolver {
         success: true,
         data: {
           team,
-          playerRanking,
           players,
           group,
           captain,
           cocaptain,
           event,
           matches,
-          rankings,
           rounds,
           nets,
           teams,
           statsOfPlayer: statsArray,
+          playerRanking,
+          rankings
         },
       };
     } catch (err) {

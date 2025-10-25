@@ -1,9 +1,13 @@
+
 import { UpdatePlayerRankingInput } from 'src/player-ranking/player-ranking.input';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 
 /**
- * Helper: rebuild a single player ranking with all items
+ * Helper: rebuild a single player ranking with all valid players.
+ * - Keeps ranks sequential (1, 2, 3, ...)
+ * - Ignores players not in playerIds
+ * - Includes all playerIds, even if not in sortedRankingInput
  */
 async function rebuildSinglePlayerRanking(
   playerRanking: PlayerRanking,
@@ -11,29 +15,42 @@ async function rebuildSinglePlayerRanking(
   playerIds: Set<string>,
   playerRankingService: PlayerRankingService,
 ): Promise<void> {
+  
+
   const rankingDocs: PlayerRankingItem[] = [];
 
-  // Prepare ranking documents
-  for (const input of sortedRankingInput) {
-    if (!playerIds.has(String(input.player))) {
-      const error = new Error(`Player not exist in the team (${input.player})`);
-      error.name = 'PlayerNotExist';
-      throw error;
-    }
+  // Filter only valid players from sortedRankingInput (must exist in playerIds)
+  const validSortedPlayers = sortedRankingInput
+    .filter((r) => playerIds.has(String(r.player)))
+    .map((r) => String(r.player));
 
+  // Track already ranked players
+  const rankedSet = new Set(validSortedPlayers);
+
+  // Add remaining players (not in sortedRankingInput)
+  const remainingPlayers = Array.from(playerIds).filter((id) => !rankedSet.has(id));
+
+  // Combine: ranked first (in given order), then remaining
+  const finalOrder = [...validSortedPlayers, ...remainingPlayers];
+
+  // Assign ranks sequentially (1, 2, 3, 4, ...)
+  finalOrder.forEach((playerId, index) => {
     rankingDocs.push({
-      player: input.player,
+      player: playerId,
       playerRanking: playerRanking._id,
-      rank: input.rank,
+      rank: index + 1,
     });
-  }
+  });
 
-  // Create all ranking items at once
+  // Insert all ranking items at once
   const createdRanks = await playerRankingService.insertManyItems(rankingDocs);
 
-  // Extract all IDs and update player ranking
+  // Update the parent PlayerRanking document
   const createdIds = createdRanks.map((r: any) => r._id);
-  await playerRankingService.updateOne({ _id: playerRanking._id }, { $set: { rankings: createdIds } });
+  await playerRankingService.updateOne(
+    { _id: playerRanking._id },
+    { $set: { rankings: createdIds } },
+  );
 }
 
 export default rebuildSinglePlayerRanking;

@@ -18,6 +18,7 @@ import { NetService } from 'src/net/net.service';
 import { FilterQuery } from 'mongoose';
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus, Player } from 'src/player/player.schema';
+import rebuildSinglePlayerRanking from 'src/util/rebuildSinglePlayerRanking';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
@@ -77,34 +78,7 @@ export class PlayerRankingResolver {
     sortedRankingInput: UpdatePlayerRankingInput[],
     playerIds: Set<string>,
   ): Promise<void> {
-    const rankingDocs: PlayerRankingItem[] = [];
-
-    // Prepare ranking documents
-    let rank = 1;
-    for (const input of sortedRankingInput) {
-      if (!playerIds.has(String(input.player))) {
-        // const error = new Error(`Player not exist in the team (${input.player})`);
-        // error.name = 'PlayerNotExist';
-        // throw error;
-        console.log(`Player not found ${input.player}`);
-        
-      }
-
-      rankingDocs.push({
-        player: input.player,
-        playerRanking: playerRanking._id,
-        rank: input?.rank || rank,
-      });
-
-      rank += 1;
-    }
-
-    // Create all ranking items at once
-    const createdRanks = await this.playerRankingService.insertManyItems(rankingDocs);
-
-    // Extract all IDs and update player ranking
-    const createdIds = createdRanks.map((r: any) => r._id);
-    await this.playerRankingService.updateOne({ _id: playerRanking._id }, { $set: { rankings: createdIds } });
+    await rebuildSinglePlayerRanking(playerRanking, sortedRankingInput, playerIds, this.playerRankingService);
   }
 
   private async checkRosterLock(eventExist: any, loggedUser: any, userPayload: any) {
@@ -205,13 +179,20 @@ export class PlayerRankingResolver {
 
         const teamPlayers = await this.playerService.find({ teams: input.team });
         const playerIds = new Set([...teamPlayers.map((p) => String(p._id))]);
-        const rankings = await this.playerRankingService.findItems({ playerRanking: matchRanking._id });
+        const rankings = await this.playerRankingService.findItems({ playerRanking: teamRanking._id });
 
         const sortedTeamRankings: UpdatePlayerRankingInput[] = [...rankings]
           .map((r) => ({ player: String(r.player), rank: r.rank }))
           .sort((a, b) => a.rank - b.rank);
 
-        this.rebuildSinglePlayerRanking(matchRanking, sortedTeamRankings, playerIds);
+        await this.playerRankingService.deleteManyItem({ playerRanking: matchRanking._id });
+
+        await this.rebuildSinglePlayerRanking(matchRanking, sortedTeamRankings, playerIds);
+
+        await this.playerRankingService.updateOne(
+          { team: input.team, match: input.match },
+          { $set: { rankLock: input.rankLock } },
+        );
       }
       const pr = await this.playerRankingService.find({ team: input.team, match: input.match });
 
