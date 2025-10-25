@@ -2,10 +2,10 @@ http://localhost:3000/68afc5f30bf9dbb4ac0f69cb/teams/68c19331b125ad8db98a735e?ld
 
 
 
-h 
-k 
-b 
-g 
+a
 c 
-j 
 c
+s
+o
+t 
+t
