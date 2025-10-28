@@ -116,9 +116,8 @@ success "PM2 process started."
 
 ### Test the deployment
 info "Testing API with GraphQL query..."
-curl -s -X POST 'https://api.aslsquads.com/graphql' \
-  -H 'Content-Type: application/json' \
-  -d '{"query":"{ getAbout { app author mode version } }"}' 
+curl --location --globoff https://api.aslsquads.com/graphql --header 'Content-Type: application/json' --data '{"query":"query GetAbout {\n  getAbout {\n    app\n    author\n    details\n    mode\n    version\n  }\n}","variables":{}}'
+
 
 info "Showing PM2 logs..."
 pm2 logs

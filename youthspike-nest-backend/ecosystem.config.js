@@ -4,17 +4,16 @@
 module.exports = {
   apps: [
     {
-      name: 'nest_backend', // Replace with your app name
-      script: 'dist/main.js', // Replace with the path to your compiled main file
-      instances: 1,
+      name: 'BackendAPI',             // Single app name for all instances
+      script: '/home/shayon/youthspike-nest-backend/dist/main.js',
+      instances: 'max',               // Auto-detect CPU cores
+      exec_mode: 'cluster',           // Cluster mode
       autorestart: true,
       watch: false,
       max_memory_restart: '1G',
       env: {
-        NODE_ENV: 'development',
-      },
-      env_production: {
         NODE_ENV: 'production',
+        REDIS_CLUSTER_NODES: '127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005',
       },
     },
   ],
