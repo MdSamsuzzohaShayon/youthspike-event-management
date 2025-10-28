@@ -338,5 +338,79 @@ query GetTeamDetails($teamId: String!) {
 }
 `;
 
+
+const SEARCH_TEAMS = gql`
+query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
+  searchTeams(eventId: $eventId, filter: $filter) {
+    code
+    message
+    success
+    data {
+      event {
+        _id
+        logo
+        location
+        name
+        divisions
+        description
+        groups
+      }
+      groups {
+        _id
+        division
+        active
+        matches
+        name
+        teams
+      }
+      matches {
+        _id
+        completed
+        group
+        date
+        description
+        division
+        nets
+        rounds
+        teamA
+        teamB
+      }
+      nets {
+        _id
+        match
+        netType
+        num
+        points
+        round
+        teamAScore
+        teamBScore
+      }
+      rounds {
+        _id
+        match
+        completed
+        nets
+        num
+        teamAProcess
+        teamAScore
+        teamBProcess
+        teamBScore
+      }
+      teams {
+        _id
+        group
+        logo
+        name
+        num
+        nets
+        matches
+        division
+      }
+    }
+  }
+}
+
+`;
+
 // eslint-disable-next-line import/prefer-default-export
-export { GET_A_TEAM, GET_TEAM_DETAIL_RAW };
+export { SEARCH_TEAMS, GET_A_TEAM, GET_TEAM_DETAIL_RAW };

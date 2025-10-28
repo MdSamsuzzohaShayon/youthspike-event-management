@@ -3,7 +3,9 @@ import { IPlayer } from './player';
 import { IEvent } from './event';
 import { IPlayerRanking } from './playerRanking';
 import { IGroup } from './group';
-import { IMatchExpRel } from './match';
+import { IMatch, IMatchExpRel } from './match';
+import { INetRelatives } from './net';
+import { IRoundRelatives } from './round';
 
 
 
@@ -33,6 +35,32 @@ export interface ITeamScore {
   groupLoses: number;
   matchAvgDiff: number;
   gameAvgDiff: number;
+}
+
+export interface ITeamFilter {
+  search: string;
+  division: string;
+  group: string;
+  limit?: number;
+  offset?: number;
+}
+
+
+interface ISearchTeamData {
+  event: IEvent;
+  groups: IGroup[];
+  matches: IMatch[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+  teams: ITeam[];
+}
+
+
+export interface ISearchTeamResponse{
+  code: number;
+  success: boolean;
+  message: string;
+  data: ISearchTeamData;
 }
 
 // eslint-disable-next-line no-shadow

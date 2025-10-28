@@ -140,7 +140,7 @@ export class EventQueries implements IEventQueries {
             this.playerService.find({ event: eventId, teams: { $in: tIds } }),
           ]);
         } else if (filter.item === EEventItem.TEAM) {
-          teams = await this.teamService.find({ event: eventId }, filter.limit);
+          teams = await this.teamService.find({ event: eventId }, 0, filter.limit);
 
           teams.forEach((t) => t.matches?.forEach((m) => matchIds.add(String(m))));
 

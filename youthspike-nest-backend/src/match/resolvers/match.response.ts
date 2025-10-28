@@ -4,8 +4,8 @@ import { Event } from 'src/event/event.schema';
 import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
-import { CustomMatch, CustomNet, CustomRound } from 'src/team/team.response';
 import { Match } from '../match.schema';
+import { CustomMatch, CustomNet, CustomRound } from 'src/team/resolvers/team.response';
 
 
 @ObjectType()
@@ -63,6 +63,9 @@ export class CustomTeam extends Team {
 export class CustomGroup extends Group {
   @Field((_type) => [String], { nullable: true })
   teams: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  matches: string[];
 }
 
 @ObjectType()

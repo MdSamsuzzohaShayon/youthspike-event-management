@@ -108,15 +108,20 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             onClick={handleRoundNetSelect}
           />
         ) : (
-          <Image
-            src="/icons/minimize.svg"
-            alt="maximize-button"
-            height={40}
-            width={40}
-            className="w-6 svg-black"
-            role="presentation"
-            onClick={handleRoundNetSelect}
-          />
+          <div className="relative group">
+            <Image
+              src="/icons/minimize.svg"
+              alt="maximize-button"
+              height={40}
+              width={40}
+              className="w-6 svg-black"
+              role="presentation"
+              onClick={handleRoundNetSelect}
+            />
+            <div className="absolute left-1/2 -top-10 -translate-x-1/2 bg-gray-700 text-white text-sm px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+              Click to see all nets in this round.
+            </div>
+          </div>
         )}
       </div>
       {/* Top side  */}

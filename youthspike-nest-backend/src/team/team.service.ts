@@ -29,9 +29,18 @@ export class TeamService {
     return this.teamModel.findOne(filter);
   }
 
-  async find(filter: FilterQuery<Team>, limit?: number) {
-    if (!limit) return this.teamModel.find(filter);
-    return this.teamModel.find(filter).limit(limit);
+  async find(filter: FilterQuery<Team>, offset?: number, limit?: number) {
+    const query = this.teamModel.find(filter);
+
+    if (typeof offset === 'number' && offset > 0) {
+      query.skip(offset);
+    }
+
+    if (typeof limit === 'number' && limit > 0) {
+      query.limit(limit);
+    }
+
+    return query.exec();
   }
 
   async create(team: Team) {

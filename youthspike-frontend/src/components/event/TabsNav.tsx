@@ -12,17 +12,17 @@ export default function TabsNav({ eventId }: { eventId: string }) {
     {
       name: "PLAYER",
       segment: "players",
-      color: "from-blue-500 to-cyan-500",
+      color: "bg-yellow-logo text-black",
     },
     {
       name: "TEAM",
       segment: "teams",
-      color: "from-green-500 to-emerald-500",
+      color: "bg-yellow-logo text-black",
     },
     {
       name: "MATCH",
       segment: "matches",
-      color: "from-purple-500 to-pink-500",
+      color: "bg-yellow-logo text-black",
     },
   ];
 
@@ -48,7 +48,7 @@ export default function TabsNav({ eventId }: { eventId: string }) {
                     whileTap={{ scale: 0.95 }}
                     className={`relative flex flex-col items-center p-3 rounded-xl transition-all duration-300 ${
                       isActive
-                        ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
+                        ? `bg-gradient-to-r ${tab.color} shadow-lg`
                         : "text-gray-300 hover:text-white hover:bg-gray-700/50"
                     }`}
                   >
@@ -104,7 +104,7 @@ export default function TabsNav({ eventId }: { eventId: string }) {
                   whileTap={{ scale: 0.95 }}
                   className={`relative flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
                     isActive
-                      ? `bg-gradient-to-r ${tab.color} text-white shadow-md`
+                      ? `bg-gradient-to-r ${tab.color} shadow-md`
                       : "text-gray-300 hover:text-white hover:bg-gray-700/50"
                   }`}
                 >

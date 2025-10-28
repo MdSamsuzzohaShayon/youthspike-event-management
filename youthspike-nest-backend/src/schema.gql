@@ -562,6 +562,41 @@ type CustomMatch {
   playerstats: [PlayerStats!]
 }
 
+type CustomEvent {
+  _id: String
+  name: String!
+  logo: String
+  startDate: String!
+  endDate: String!
+  active: Boolean!
+  sendCredentials: Boolean
+  playerLimit: Int!
+  fwango: String
+  ldo: LDO!
+  players: [Player!]!
+  teams: [Team!]!
+  matches: [Match!]!
+  groups: [String!]
+  sponsors: [Sponsor!]!
+  multiplayer: ProStats
+  weight: ProStats
+  divisions: String!
+  nets: Float!
+  rounds: Float!
+  netVariance: Float!
+  homeTeam: String!
+  autoAssign: Boolean!
+  autoAssignLogic: String!
+  rosterLock: String!
+  tieBreaking: String
+  timeout: Float!
+  coachPassword: String!
+  description: String
+  location: String
+  accessCode: String
+  defaultSponsor: Boolean
+}
+
 type CaptainPlayer {
   _id: String
   firstName: String!
@@ -631,6 +666,22 @@ type GetTeamDetailsResponse {
   success: Boolean!
   message: String
   data: TeamDetails
+}
+
+type TeamSearch {
+  event: CustomEvent
+  teams: [CustomTeam!]
+  groups: [CustomGroup!]
+  nets: [CustomNet!]
+  rounds: [CustomRound!]
+  matches: [CustomMatch!]
+}
+
+type GetTeamSearchResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamSearch
 }
 
 type Teamstandings {
@@ -705,7 +756,7 @@ type CustomGroup {
   division: String!
   rule: String!
   teams: [String!]
-  matches: [Match!]!
+  matches: [String!]
   event: Event!
 }
 
@@ -1154,6 +1205,7 @@ type Query {
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
+  searchTeams(eventId: String!, filter: TeamSearchFilter): GetTeamSearchResponse!
   getTeamStandings(eventId: String!): GetTeamstandingsResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   searchMatches(eventId: String!, filter: SearchFilterInput): GetEventWithMatchesResponse!
@@ -1189,6 +1241,14 @@ enum EEventItem {
   PLAYER
   MATCH
   TEAM
+}
+
+input TeamSearchFilter {
+  division: String
+  group: String
+  search: String
+  offset: Int = 0
+  limit: Int = 30
 }
 
 input FilterQueryInput {

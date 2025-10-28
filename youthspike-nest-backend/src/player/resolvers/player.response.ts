@@ -5,7 +5,7 @@ import { Event } from 'src/event/event.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
-import { CustomMatch } from 'src/team/team.response';
+import { CustomMatch } from 'src/team/resolvers/team.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {

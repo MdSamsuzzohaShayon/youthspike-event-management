@@ -1,4 +1,4 @@
-import { ArgsType, Field, ID, InputType, PartialType } from '@nestjs/graphql';
+import { ArgsType, Field, ID, InputType, Int, PartialType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateTeamInput {
@@ -31,4 +31,23 @@ export class UpdateTeamInput extends PartialType(CreateTeamInput) {
 
   @Field((type) => String, { nullable: true })
   email?: string;
+}
+
+
+@InputType()
+export class TeamSearchFilter{
+  @Field((_type) => String, { nullable: true })
+  division?: string;
+
+  @Field((_type) => String, { nullable: true })
+  group?: string;
+
+  @Field((_type) => String, { nullable: true })
+  search?: string;
+
+  @Field((_type) => Int, { nullable: true, defaultValue: 0 })
+  offset?: number;
+
+  @Field((_type) => Int, { nullable: true, defaultValue: 30 })
+  limit?: number;
 }

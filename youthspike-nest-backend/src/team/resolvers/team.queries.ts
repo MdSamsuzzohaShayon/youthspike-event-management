@@ -1,0 +1,305 @@
+import { TeamService } from 'src/team/team.service';
+import { RoundService } from 'src/round/round.service';
+import { NetService } from 'src/net/net.service';
+import { GroupService } from 'src/group/group.service';
+
+// import { ITeamQueries } from '../resolvers/event.types';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { AppResponse } from 'src/shared/response';
+import { EventService } from 'src/event/event.service';
+import { playerKey } from 'src/util/helper';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { PlayerService } from 'src/player/player.service';
+import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { Net } from 'src/net/net.schema';
+import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
+import { TeamSearchFilter } from './team.input';
+import { RedisService } from 'src/redis/redis.service';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
+import { FilterQuery } from 'mongoose';
+import { Team } from '../team.schema';
+import { MatchService } from 'src/match/match.service';
+
+// ITeamQueries
+
+@Injectable()
+export class TeamQueries {
+  constructor(
+    private playerStatsService: PlayerStatsService,
+    private eventService: EventService,
+    private teamService: TeamService,
+    private redisService: RedisService,
+    private matchService: MatchService,
+    private roundService: RoundService,
+    private netService: NetService,
+    private groupService: GroupService,
+    private playerRankingService: PlayerRankingService,
+    private playerService: PlayerService,
+  ) {}
+
+  async getTeams(eventId: string) {
+    try {
+      const query: Record<string, any> = {};
+      if (eventId) query.event = eventId;
+      const teams = await this.teamService.find(query);
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of teams!',
+        data: teams,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getEventWithTeams(eventId: string) {
+    try {
+      const [eventExist, teams, groups, players] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.teamService.find({ event: eventId }),
+        this.groupService.find({ event: eventId }),
+        this.playerService.find({ event: eventId }),
+      ]);
+
+      const updatePlayerPromises = [];
+      for (let i = 0; i < players.length; i++) {
+        if (!players[i]?.username) {
+          updatePlayerPromises.push(
+            this.playerService.updateOne(
+              { _id: players[i]._id },
+              { $set: { username: this.playerService.playerUsername(players[i].firstName + '2') } },
+            ),
+          );
+        }
+      }
+      await Promise.all(updatePlayerPromises);
+      const newPlayers = await this.playerService.find({ event: eventId });
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of teams!',
+        data: { event: eventExist, teams, groups, players: newPlayers },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getTeam(teamId: string) {
+    try {
+      const teamExist = await this.teamService.findById(teamId);
+      // getPlayer Rankings
+      if (!teamExist) return AppResponse.notFound('Team');
+
+      const locked = await this.playerRankingService.lockPlayerRanking(teamId, teamExist.event.toString());
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: teamExist,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getTeamDetails(teamId: string) {
+    try {
+      const [team] = await Promise.all([this.teamService.findById(teamId)]);
+      const [players, group, captain, cocaptain, event, matches, playerRanking] = await Promise.all([
+        // this.playerService.find({ teams: { $in: [team._id] } }),
+        this.playerService.find({ events: { $in: [team.event] } }),
+        this.groupService.findOne({ _id: team.group }),
+        this.playerService.findOne({ _id: team.captain }),
+        this.playerService.findOne({ _id: team.cocaptain }),
+        this.eventService.findOne({ _id: team.event }),
+        this.matchService.find({
+          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+        }),
+        this.playerRankingService.findOne({
+          team: teamId,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
+      ]);
+
+      // Attributes of matches
+      const matchIds = matches.map((m) => m._id);
+      // const oponentTeamIds = [
+      //   ...new Set(matches.map((m) => (m.teamA.toString() === teamId ? m.teamB.toString() : m.teamA.toString()))),
+      // ];
+      const [rounds, nets, teams, rankings] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+        this.teamService.find({ event: team.event }),
+        this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
+      ]);
+      // All player stats
+
+      const playerToNets: Record<string, Net[]> = {};
+      for (const net of nets) {
+        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
+          if (!pid) return;
+          if (!playerToNets[pid]) playerToNets[pid] = [];
+          playerToNets[pid].push(net);
+        });
+      }
+
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+
+      // Process players in parallel
+      await Promise.all(
+        players.map(async (player) => {
+          if (!player?._id) return;
+          if (!player.username) {
+            const username = this.playerService.playerUsername(player.firstName);
+            await this.playerService.updateOne({ _id: player._id }, { username });
+            player.username = username;
+          }
+
+          const netsOfPlayer = playerToNets[player._id] || [];
+
+          // Batch Redis queries
+          const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+          const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+
+          const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
+          const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+
+          // Query DB once, filter in DB if possible
+          const playerstatsDB = await this.playerStatsService.find({ player: player._id });
+
+          // Convert Mongoose documents to plain objects and filter
+          const playerstatsDBPlain = playerstatsDB
+            .map((ps) => {
+              const plainObj = ps.toObject() as any;
+              return {
+                ...plainObj,
+                net: String(plainObj.net),
+                player: String(plainObj.player),
+                match: String(plainObj.match),
+              } as CustomPlayerStats;
+            })
+            .filter((ps: CustomPlayerStats) => !redisNetIds.has(String(ps.net)));
+
+          // Merge both sources
+          statsOfPlayer[player._id] = [...playerstatsRedis, ...playerstatsDBPlain];
+        }),
+      );
+
+      const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+        playerId,
+        stats,
+      }));
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: {
+          team,
+          players,
+          group,
+          captain,
+          cocaptain,
+          event,
+          matches,
+          rounds,
+          nets,
+          teams,
+          statsOfPlayer: statsArray,
+          playerRanking,
+          rankings,
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async searchTeams(eventId: string, filter: TeamSearchFilter) {
+    try {
+      // event, teams, matches, nets, rounds
+      const [event, groups] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find({ event: eventId }),
+      ]);
+
+      const teamQuery: FilterQuery<Team> = { event: eventId };
+      if (filter?.division) {
+        teamQuery.division = filter.division;
+      }
+
+      if (filter?.group) {
+        teamQuery.group = filter.group;
+      }
+
+      if (filter?.search) {
+        teamQuery.name = { $regex: filter.search, $options: 'i' }; // case-insensitive search
+      }
+
+      // Default pagination (if missing)
+      const offset = filter?.offset ?? 0;
+      const limit = filter?.limit ?? 30;
+
+      const teams = await this.teamService.find(teamQuery, offset, limit);
+
+      const matchIds = new Set<string>();
+      for (const t of teams) {
+        if (t.matches) {
+          for (const m of t.matches) {
+            matchIds.add(String(m));
+          }
+        }
+      }
+
+      const [matches, nets, rounds] = await Promise.all([
+        this.matchService.find({ _id: { $in: [...matchIds] } }),
+        this.netService.find({ match: { $in: [...matchIds] } }),
+        this.roundService.find({ match: { $in: [...matchIds] } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: {
+          event,
+          teams,
+          groups,
+          nets,
+          rounds,
+          matches,
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getTeamStandings(eventId: string) {
+    try {
+      const [event, groups, matches, teams] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find({ event: eventId }),
+        this.matchService.find({ event: eventId }),
+        this.teamService.find({ event: eventId }),
+      ]);
+
+      const matchIds = matches.map((m) => m._id.toString());
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: { event, groups, matches, teams, rounds, nets },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+}

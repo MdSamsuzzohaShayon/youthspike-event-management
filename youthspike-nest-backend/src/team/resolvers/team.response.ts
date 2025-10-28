@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
-import { Team } from './team.schema';
+import { Team } from '../team.schema';
 import { Group } from 'src/group/group.schema';
 import { Player } from 'src/player/player.schema';
 import { Event } from 'src/event/event.schema';
@@ -117,6 +117,12 @@ export class CustomMatch extends Match {
   teamB: string;
 }
 
+@ObjectType()
+export class CustomEvent extends Event {
+  @Field((_type) => [String], { nullable: true })
+  groups: string[];
+}
+
 
 @ObjectType()
 export class CaptainPlayer extends Player {
@@ -177,10 +183,42 @@ export class TeamDetails {
   @Field(() => [PlayerStatsEntry])
   statsOfPlayer: PlayerStatsEntry[];
 }
+
+
 @ObjectType()
 export class GetTeamDetailsResponse extends AppResponse<TeamDetails> {
   @Field((_type) => TeamDetails, { nullable: true })
   data?: TeamDetails;
+}
+
+// // event, teams, matches, nets, rounds, groups
+@ObjectType()
+export class TeamSearch {
+  @Field((_type) => CustomEvent, { nullable: true })
+  event: CustomEvent;
+
+  @Field((_type) => [CustomTeam], { nullable: true })
+  teams: CustomTeam[];
+
+  @Field((_type) => [CustomGroup], { nullable: true })
+  groups: CustomGroup[];
+
+  @Field((_type) => [CustomNet], { nullable: true })
+  nets: CustomNet[];
+
+  @Field((_type) => [CustomRound], { nullable: true })
+  rounds: CustomRound[];
+
+  @Field((_type) => [CustomMatch], { nullable: true })
+  matches: CustomMatch[];
+
+}
+
+
+@ObjectType()
+export class GetTeamSearchResponse extends AppResponse<TeamSearch> {
+  @Field((_type) => TeamSearch, { nullable: true })
+  data?: TeamSearch;
 }
 
 @ObjectType()

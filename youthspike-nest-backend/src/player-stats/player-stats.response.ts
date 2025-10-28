@@ -2,9 +2,8 @@ import { Field, ObjectType } from "@nestjs/graphql";
 import { AppResponse } from "src/shared/response";
 import { PlayerStats, ProStats } from "./player-stats.schema";
 import { CustomPlayer } from "src/player/resolvers/player.response";
-import { CustomMatch, CustomNet, CustomRound } from "src/team/team.response";
 import { CustomTeam } from "src/match/resolvers/match.response";
-import { Round } from "src/round/round.schema";
+import { CustomMatch, CustomNet, CustomRound } from "src/team/resolvers/team.response";
 
 @ObjectType()
 export class PlayerStatsResponse extends AppResponse<PlayerStats[]> {

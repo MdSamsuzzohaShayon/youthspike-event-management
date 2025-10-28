@@ -19,6 +19,7 @@ import Image from "next/image";
 import { screen } from "@/utils/constant";
 import TeamScoreInput from "../team/TeamScoreInput";
 import LocalStorageService from "@/utils/LocalStorageService";
+import Link from "next/link";
 
 interface INetPointCardProps {
   net: INetRelatives | null | undefined;
@@ -229,15 +230,15 @@ function NetPointCard({
         />
       </div>
 
+      <Link href={`/score-keeping/${currMatch._id}`}>
       <Image
         width={30}
         height={30}
-        role="presentation"
-        onClick={handleScorekeeperNavigation}
         src="/icons/scorekeeper.png"
         alt="Scorekeeper"
         className="w-4 md:w-6 svg-black"
       />
+      </Link>
     </div>
   );
 }

@@ -104,7 +104,7 @@ interface ISearchMatchData {
   matches: IMatch[];
   nets: INetRelatives[];
   rounds: IRoundRelatives[];
-  teams: ITeam[];
+  teams: ITeamCaptain[];
 }
 
 export interface ISearchMatchResponse {
