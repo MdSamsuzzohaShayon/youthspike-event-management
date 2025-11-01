@@ -13,6 +13,7 @@ import {
   ITeam,
   IAllStats,
   IPlayerStats,
+  IEvent,
 } from "@/types";
 import { SEARCH_PLAYERS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
@@ -52,7 +53,7 @@ export default function PlayersMain({
   const [playerStatsMap, setPlayerStatsMap] = useState<Map<string, IPlayerStats[]>>(new Map());
   const [teamMap, setTeamMap] = useState<Map<string, ITeam>>(new Map());
   const [groups, setGroups] = useState<IGroup[]>([]);
-  const [divisions, setDivisions] = useState<string[]>([]);
+  const [event, setEvent] = useState<IEvent | null>(null);
 
   // Filter and pagination states
   const [localFilter, setLocalFilter] = useState<FilterState>({
@@ -103,12 +104,8 @@ export default function PlayersMain({
     setTeamMap(teamsMap);
     setGroups(searchData.groups || []);
     setServerData(searchData);
-    
-    // Extract divisions from event or groups
-    const uniqueDivisions = Array.from(
-      new Set(searchData.groups?.map(group => group.division) || [])
-    );
-    setDivisions(uniqueDivisions);
+    setEvent(searchData.event || null);
+
 
     // Check if there are more players to load
     setHasMorePlayers(searchData.players.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
@@ -279,16 +276,20 @@ export default function PlayersMain({
   );
 
   const displayedPlayers = useMemo(() => 
-    filteredPlayers.slice(0, currentOffset + (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!) + LOAD_MORE_INCREMENT),
-    [filteredPlayers, currentOffset, appliedFilter.limit]
+    allPlayers.slice(0, currentOffset + (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!) + LOAD_MORE_INCREMENT),
+    [allPlayers, currentOffset, appliedFilter.limit]
   );
+
+  
+
+  
 
   return (
     <div className="animate-fade-in">
       {/* Filters */}
       <FilterContent
         groups={groups}
-        divisions={divisions.join(",")}
+        divisions={event?.divisions ?? ""}
         loading={isApplyingFilters}
         filter={localFilter}
         updateFilter={updateLocalFilter}

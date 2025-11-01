@@ -71,7 +71,7 @@ export class PlayerService {
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
-    let query = this.playerModel.find(filter).sort({ createdAt: -1 }); // ensures stable pagination
+    let query = this.playerModel.find(filter); // ensures stable pagination
 
     if (typeof offset === 'number') {
       query = query.skip(offset);

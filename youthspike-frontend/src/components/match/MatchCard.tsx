@@ -77,8 +77,8 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
 
   /** ✅ Determine match status */
   const statusMessage = useMemo(() => {
-    return getMatchStatus(match as IMatch, roundList, []);
-  }, [roundList, netsByRoundId, match?.completed]);
+    return getMatchStatus(match as IMatch, roundList, allNets);
+  }, [roundList, netsByRoundId, match?.completed, allNets]);
 
   // LIVE, ASSIGNING, SCHEDULED, UPCOMING, COMPLETED
 

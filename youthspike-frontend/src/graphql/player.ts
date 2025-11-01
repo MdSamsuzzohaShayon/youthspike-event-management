@@ -77,6 +77,7 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter) {
         _id
         name
         logo
+        divisions
       }
       groups {
         _id

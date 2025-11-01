@@ -166,7 +166,6 @@ export class PlayerQueries implements IPlayerQueries {
       if (filter?.division) {
         query.division = { $regex: new RegExp(`${filter.division}`, 'i') };
         teamQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') }; // This will be case insensative
-        groupQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
         matchQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
       }
       if (filter?.group) {
@@ -174,12 +173,19 @@ export class PlayerQueries implements IPlayerQueries {
         matchQuery.group === filter.group;
       }
       if (filter?.search) {
-        // { $regex: new RegExp(filter.search, 'i') },
-        query.$or = [
-          { firstName: { $regex: new RegExp(filter.search, 'i') } },
-          { lastName: { $regex: new RegExp(filter.search, 'i') } },
-          { username: { $regex: new RegExp(filter.search, 'i') } },
-        ];
+        //Check for multiple words
+        const words = filter.search.split(' ');
+
+        if (words.length > 1) {
+          query.firstName = { $regex: new RegExp(words[0].trim(), 'i') };
+          query.lastName = { $regex: new RegExp(words[1].trim(), 'i') };
+        } else {
+          query.$or = [
+            { firstName: { $regex: new RegExp(filter.search, 'i') } },
+            { lastName: { $regex: new RegExp(filter.search, 'i') } },
+            { username: { $regex: new RegExp(filter.search, 'i') } },
+          ];
+        }
       }
 
       const [event, groups, teams, matches] = await Promise.all([

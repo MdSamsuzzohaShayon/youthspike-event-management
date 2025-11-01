@@ -36,13 +36,13 @@ function FilterContent({
       ...divisions.split(",").map((div, i) => ({
         id: i + 1,
         value: div.trim(),
-        label: div.trim(),
+        label: div.trim().toUpperCase(),
       })),
     ];
   }, [divisions]);
 
   const filteredGroups = useMemo(() => {
-    const groupOptions = (
+    const newGroups = (
       filter.division
         ? groups.filter(
             (g) =>
@@ -50,12 +50,16 @@ function FilterContent({
               filter.division!.trim().toLowerCase()
           )
         : groups
-    ).map((g, i) => ({
+    )
+    
+    
+    const groupOptions = newGroups.map((g, i) => ({
       id: i + 1,
       value: g._id,
       label: g.name,
       text: g.name,
     }));
+    
 
     return [ALL_OPTION, ...groupOptions];
   }, [groups, filter.division]);

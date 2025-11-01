@@ -229,7 +229,7 @@ export class TeamQueries {
 
       const teamQuery: FilterQuery<Team> = { event: eventId };
       if (filter?.division) {
-        teamQuery.division = filter.division;
+        teamQuery.division = { $regex: filter.division, $options: 'i' };
       }
 
       if (filter?.group) {

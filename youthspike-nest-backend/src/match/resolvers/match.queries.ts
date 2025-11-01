@@ -20,6 +20,7 @@ import { GetEventWithMatchesResponse } from './match.response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus } from 'src/player/player.schema';
+import { EActionProcess } from 'src/round/round.schema';
 
 // IMatchQueries
 
@@ -121,68 +122,67 @@ export class MatchQueries {
         matchFilter.group = filter.group;
       }
 
-      if (filter?.status) {
-        if (filter.status === EMatchStatus.COMPLETED) {
-          matchFilter.completed = true;
-        }
-        // else if(filter.status)
+      // matchFilter._id = "68f2c101277224677c41851d";
+
+      if (filter?.status === EMatchStatus.COMPLETED) {
+        matchFilter.completed = true;
+      } else if (filter?.status) {
+        filter.limit = 5000;
       }
-
-      /*
-  // ✅ Compute filtered matches on demand
-  const filteredMatchList = useMemo(() => {
-    if (!filter) return matchList || [];
-
-    switch (filter) {
-      case EEventPeriod.CURRENT:
-        return (matchList || []).filter((m) => m?.date && validateMatchDatetime(m.date) === EEventPeriod.CURRENT);
-      case EEventPeriod.PAST:
-        return (matchList || []).filter((m) => m?.date && validateMatchDatetime(m.date) === EEventPeriod.PAST);
-      case EMatchStatus.COMPLETED:
-        return (matchList || []).filter((m) => m?.completed);
-      case EMatchStatus.IN_PROGRESS:
-        return (matchList || []).filter(
-          (m) => !m?.completed && m?.rounds?.length > 0 && m.rounds[0]?.teamAProcess !== EActionProcess.INITIATE
-        );
-      case EMatchStatus.NOT_STARTED:
-        return (matchList || []).filter(
-          (m) => !m?.completed && m?.rounds?.length > 0 && m.rounds[0]?.teamAProcess === EActionProcess.INITIATE
-        );
-      default:
-        return matchList || [];
-    }
-  }, [matchList, filter]);
-
-      */
-
-      // Fetch matches (paginated)
-      const matches = await this.matchService.find(matchFilter, filter?.limit || 30, filter?.offset || 0);
+      let matches = await this.matchService.find(matchFilter, filter?.limit || 30, filter?.offset || 0);
 
       // Collect IDs efficiently
-      const netIds = new Set<string>();
-      const roundIds = new Set<string>();
       const teamIds = new Set<string>();
+      const matchIds = new Set<string>();
 
-      matches.forEach((m) => {
-        m.nets?.forEach((n) => netIds.add(String(n)));
-        m.rounds?.forEach((r) => roundIds.add(String(r)));
-        if (m.teamA) teamIds.add(String(m.teamA));
-        if (m.teamB) teamIds.add(String(m.teamB));
-      });
+      for (const m of matches) {
+        matchIds.add(m._id);
+        if (m.teamA) teamIds.add(m.teamA as string);
+        if (m.teamB) teamIds.add(m.teamB as string);
+      }
 
       // Fetch related entities in parallel
       const [nets, rounds, teams] = await Promise.all([
-        this.netService.find({ _id: { $in: [...netIds] } }),
-        this.roundService.find({ _id: { $in: [...roundIds] } }),
-        this.teamService.find({ _id: { $in: [...teamIds] } }),
+        this.netService.find({ match: { $in: [...matchIds] } }),
+        this.roundService.find({ match: { $in: [...matchIds] } }),
+        this.teamService.find({ event: eventId }), // { _id: { $in: [...teamIds] } }
       ]);
 
-      const sortedMatches = [...matches];
+      if (filter?.status) {
+        if (filter.status === EMatchStatus.IN_PROGRESS) {
+          // Check all matches that are not completed and have first round teamAProcess is not INITIATE
+          matches = matches.filter((m) => {
+            if (m.completed) return false;
+            const firstRound = rounds.find((r) => String(r.match) === String(m._id));
+            if (!firstRound) return false;
+            return firstRound && firstRound.teamAProcess !== EActionProcess.INITIATE;
+          });
+        } else if (filter.status === EMatchStatus.NOT_STARTED) {
+          // Check all matches that are not completed and have first round teamAProcess is INITIATE
+          matches = matches.filter((m) => {
+            if (m.completed) return false;
+            const firstRound = rounds.find((r) => String(r.match) === String(m._id));
+            if (!firstRound) return false;
+            return firstRound && firstRound.teamAProcess === EActionProcess.INITIATE;
+          });
+        } else if (filter.status === EMatchStatus.CURRENT) {
+          // Check all matches that are not completed and have first round teamAProcess is CHECKIN
+          matches = matches.filter((m) => {
+            if (m.completed) return false;
+            const firstRound = rounds.find((r) => String(r.match) === String(m._id));
+            if (!firstRound) return false;
+            return firstRound && firstRound.teamAProcess === EActionProcess.CHECKIN;
+          });
+        } else if (filter.status === EMatchStatus.PAST) {
+          // CHeck all matches date is less than current date
+          matches = matches.filter((m) => new Date(m.date) < new Date());
+        }
+      }
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of matches',
-        data: { event, groups, ldo, matches: sortedMatches, nets, rounds, teams },
+        data: { event, groups, ldo, matches, nets, rounds, teams },
       };
     } catch (err) {
       return AppResponse.handleError(err);

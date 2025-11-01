@@ -1,9 +1,9 @@
-import { INetRelatives, IRoundRelatives, IMatch } from "@/types";
+import { INetRelatives, IRoundExpRel, IRoundRelatives, IMatch } from "@/types";
 import { EMatchStatus, EActionProcess } from "@/types"; // Adjust import path
 
 export function getMatchStatus(
   match: IMatch,
-  roundList: IRoundRelatives[],
+  roundList: (IRoundExpRel | IRoundRelatives)[],
   nets: INetRelatives[]
 ): EMatchStatus {
   if (match?.completed) return EMatchStatus.COMPLETED;
@@ -43,5 +43,5 @@ export function getMatchStatus(
     }
   }
 
-  return EMatchStatus.UPCOMING;
+  return EMatchStatus.SCHEDULED;
 }
