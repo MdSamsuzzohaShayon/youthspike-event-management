@@ -1,22 +1,14 @@
 import {
   IMatch,
-  IMatchExpRel,
   INetRelatives,
-  IPlayer,
   IRoundRelatives,
   IRoundUpdateData,
-  ITeam,
 } from "@/types";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useSocket } from "@/lib/SocketProvider";
 import { useAppDispatch } from "@/redux/hooks";
 import SocketEventListener from "@/utils/socket/SocketEventListener";
-import { EActionProcess } from "@/types/room";
-import { validateMatchDatetime } from "@/utils/datetime";
-import { EEventPeriod } from "@/types/event";
 import MatchCard from "./MatchCard";
-import SelectInput from "../elements/SelectInput";
-import Pagination from "../elements/Pagination";
 import { getMatchStatus } from "@/utils/match/getMatchStatus";
 import { EMatchStatus } from "@/types/match";
 
@@ -26,41 +18,65 @@ interface IMatchListProps {
   rounds: IRoundRelatives[];
 }
 
-// enum EMatchStatus {
-//   COMPLETED = 'COMPLETED',
-//   IN_PROGRESS = 'IN_PROGRESS',
-//   NOT_STARTED = 'NOT_STARTED',
-// }
-
-// const filterOptions = [
-//   { id: 4, text: EMatchStatus.IN_PROGRESS },
-//   { id: 1, text: EEventPeriod.CURRENT },
-//   { id: 2, text: EEventPeriod.PAST },
-//   { id: 3, text: EMatchStatus.COMPLETED },
-//   { id: 5, text: EMatchStatus.NOT_STARTED },
-// ];
-
 function SearchMatchList({ matchList = [] }: IMatchListProps) {
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
   const sortedMatches = useMemo(() => {
-    // Live, Assigning, Scheduled, Completed
     const statusPriority: Record<EMatchStatus, number> = {
       [EMatchStatus.LIVE]: 0,
       [EMatchStatus.ASSIGNING]: 1,
       [EMatchStatus.SCHEDULED]: 2,
-      [EMatchStatus.COMPLETED]: 3,
       [EMatchStatus.UPCOMING]: 2,
+      [EMatchStatus.COMPLETED]: 3,
     };
-
+  
+    // helper: produce a 'day key' like "2025-10-25" (local date) to group by day
+    const dayKey = (iso?: string) => {
+      if (!iso) return "";
+      const d = new Date(iso);
+      // use local date parts to group by calendar date
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    };
+  
+    // clone array before sorting
     const ml = [...matchList].sort((a, b) => {
-      const mt = getMatchStatus(a as IMatch, a.rounds as any[], a.nets);
-      const mb = getMatchStatus(b as IMatch, b.rounds, b.nets);
-      return statusPriority[mt] - statusPriority[mb];
+      // 1) primary: group by day (newest day first)
+      const dayA = dayKey(a.date);
+      const dayB = dayKey(b.date);
+      if (dayA !== dayB) {
+        // convert to timestamps for correct newest-first ordering
+        const timeA = new Date(dayA).getTime();
+        const timeB = new Date(dayB).getTime();
+        return timeB - timeA; // newer day first
+      }
+  
+      // 2) secondary: within same day, sort by status priority
+      const statusA = getMatchStatus(a as IMatch, a.rounds as any[], a.nets);
+      const statusB = getMatchStatus(b as IMatch, b.rounds, b.nets);
+  
+      // fallback if status not found in priority map
+      const prioA = typeof statusA === "string" && statusPriority[statusA as EMatchStatus] !== undefined
+        ? statusPriority[statusA as EMatchStatus]
+        : Number.MAX_SAFE_INTEGER;
+      const prioB = typeof statusB === "string" && statusPriority[statusB as EMatchStatus] !== undefined
+        ? statusPriority[statusB as EMatchStatus]
+        : Number.MAX_SAFE_INTEGER;
+  
+      if (prioA !== prioB) return prioA - prioB; // lower number = higher priority (LIVE first)
+  
+      // 3) tertiary: same day & same status — sort by exact time (newest first)
+      const timeExactA = new Date(a.date).getTime();
+      const timeExactB = new Date(b.date).getTime();
+      return timeExactB - timeExactA;
     });
+  
     return ml;
   }, [matchList]);
+  
 
   // ✅ Stable event listener (doesn't reset on every list change)
   useEffect(() => {

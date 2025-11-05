@@ -29,11 +29,22 @@ export class NetService {
     return updatedNets;
   }
 
-  async find(filter: FilterQuery<Net> = {}, options: { lean?: boolean } = {}) {
-    // const query = this.netModel.find(filter);
-    // return options.lean ? query.lean() : query;
-    const nets = await this.netModel.find(filter);
-    return nets;
+  async find(
+    filter: FilterQuery<Net>,
+    limit?: number,
+    offset?: number, // added for consistency & scalability
+  ) {
+    let query = this.netModel.find(filter); // ensures stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+    query = query.lean();
+    return query.exec();
   }
 
   async countDocuments(filter: FilterQuery<Net>) {

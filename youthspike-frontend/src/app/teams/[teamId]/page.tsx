@@ -107,6 +107,7 @@ async function TeamSinglePage({ params }: TeamSinglePageProps) {
 
   return (
     <div className="container mx-auto px-2 min-h-screen">
+      
       {teamData && (
         <TeamDetail
           event={eventData}

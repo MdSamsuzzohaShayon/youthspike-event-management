@@ -16,6 +16,7 @@ export default async function TeamSingleMain({ params }: TeamSingleMainProps) {
 
   return (
     <div className="container mx-auto px-4 min-h-screen">
+      
       <PreloadQuery query={GET_TEAM_DETAIL} variables={{ teamId }}>
         {(queryRef) => (
           <Suspense fallback={<Loader />}>

@@ -312,8 +312,8 @@ export class MatchMutations {
       // Update incompleted rounds → completed
       if (!matchExist.completed && input.completed) {
         const [roundListDocs, allNetsDocs] = await Promise.all([
-          this.roundService.find({ match: matchId }, { lean: true }),
-          this.netService.find({ match: matchId }, { lean: true }),
+          this.roundService.find({ match: matchId }),
+          this.netService.find({ match: matchId }),
         ]);
 
         // ⚡ Build a fast lookup for nets by roundId to avoid repeated filtering (O(n))
@@ -385,8 +385,8 @@ export class MatchMutations {
       // Revert completed → incompleted
       else if (matchExist.completed && !input.completed) {
         const [roundListDocs, allNetsDocs] = await Promise.all([
-          this.roundService.find({ match: matchId }, { lean: true }),
-          this.netService.find({ match: matchId }, { lean: true }),
+          this.roundService.find({ match: matchId }),
+          this.netService.find({ match: matchId }),
         ]);
 
         const currRound = roundListDocs.find((r) => String(r._id) === currRoundId);

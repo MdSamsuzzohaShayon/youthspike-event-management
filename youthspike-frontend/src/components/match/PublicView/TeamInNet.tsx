@@ -1,6 +1,7 @@
 import TextImg from "@/components/elements/TextImg";
 import {
   EServerReceiverAction,
+  EStatsFilter,
   ETeam,
   EView,
   IPlayer,
@@ -9,6 +10,7 @@ import {
   ITeam,
 } from "@/types";
 import { CldImage } from "next-cloudinary";
+import Link from "next/link";
 import { useCallback, useMemo } from "react";
 
 interface ITeamInNetProps {
@@ -19,6 +21,8 @@ interface ITeamInNetProps {
   srOnNet: IServerReceiverOnNetMixed | null;
   lastPlay: IServerReceiverSinglePlay | null;
   view: EView;
+  matchId: string;
+  netId: string;
 }
 
 const TeamInNet: React.FC<ITeamInNetProps> = ({
@@ -29,6 +33,8 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
   srOnNet,
   lastPlay,
   view,
+  matchId,
+  netId
 }) => {
   const teamScored = useMemo(() => {
     let scored = false;
@@ -66,6 +72,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
     }
     return scored;
   }, [lastPlay, playerA, playerB]);
+  
 
   const playerAName = useMemo(() => {
     const first = playerA?.firstName?.trim() || "";
@@ -81,9 +88,12 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
   // Find last play of the net
   return (
     <div className="team-in-net team-a w-3/6 flex items-center justify-between p-1">
-      <div className="w-4/12 flex flex-col items-center space-y-1">
+      <div className="w-4/12">
         {playerA && (
-          <>
+          <Link
+            href={`/players/${playerA._id}/?${EStatsFilter.MATCH}=${matchId}&${EStatsFilter.GAME}=${netId}`}
+            className="w-full flex flex-col items-center space-y-1"
+          >
             <div
               className={`${
                 view === EView.ROUND
@@ -128,12 +138,18 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 {playerAName.lastName && <span>{playerAName.lastName}</span>}
               </span>
             </p>
-          </>
+          </Link>
         )}
       </div>
       <div className="w-4/12 flex justify-center">
         <div className="image-container w-full aspect-square flex flex-col justify-center items-center">
-          <div className={`${view === EView.ROUND ? "team-logo-wrapper" : "team-logo-wrapper-single"} w-full`}>
+          <div
+            className={`${
+              view === EView.ROUND
+                ? "team-logo-wrapper"
+                : "team-logo-wrapper-single"
+            } w-full`}
+          >
             {team?.logo ? (
               <CldImage
                 src={team.logo}
@@ -146,12 +162,23 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
               <TextImg className="w-full" fullText={team.name} />
             )}
           </div>
-          {teamScored && <span className={`${ view === EView.ROUND ? "plus-one" : "plus-one-single" } text-yellow-logo font-bold text-center leading-none animate-pulse [text-shadow:0_0_8px_#facc15]`}>+1</span>}
+          {teamScored && (
+            <span
+              className={`${
+                view === EView.ROUND ? "plus-one" : "plus-one-single"
+              } text-yellow-logo font-bold text-center leading-none animate-pulse [text-shadow:0_0_8px_#facc15]`}
+            >
+              +1
+            </span>
+          )}
         </div>
       </div>
-      <div className="w-4/12 flex flex-col items-center space-y-1">
+      <div className="w-4/12">
         {playerB && (
-          <>
+          <Link
+            href={`/players/${playerB._id}/?${EStatsFilter.MATCH}=${matchId}&${EStatsFilter.GAME}=${netId}`}
+            className="w-full flex flex-col items-center space-y-1"
+          >
             <div
               className={`${
                 view === EView.ROUND
@@ -196,7 +223,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 {playerBName.lastName && <span>{playerBName.lastName}</span>}
               </span>
             </p>
-          </>
+          </Link>
         )}
       </div>
     </div>

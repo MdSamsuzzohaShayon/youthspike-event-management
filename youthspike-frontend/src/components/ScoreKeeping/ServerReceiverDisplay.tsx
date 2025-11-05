@@ -14,20 +14,24 @@ interface IPlayerRole {
   role: ESRRole;
 }
 
-const ServerReceiverDisplay: React.FC<{
-  currServerReceiver: IServerReceiverOnNetMixed | null;
-  teamA: ITeam | null;
-  teamB: ITeam | null;
-  playerMap: Map<string, IPlayer>;
-  handleAddReceiver?: (e: React.SyntheticEvent) => void;
-  handleAddServer?: (e: React.SyntheticEvent) => void;
-}> = ({
+interface IServerReceiverDisplayProps{
+    currServerReceiver: IServerReceiverOnNetMixed | null;
+    teamA: ITeam | null;
+    teamB: ITeam | null;
+    playerMap: Map<string, IPlayer>;
+    handleAddReceiver?: (e: React.SyntheticEvent) => void;
+    handleAddServer?: (e: React.SyntheticEvent) => void;
+    matchId: string,
+}
+
+const ServerReceiverDisplay: React.FC<IServerReceiverDisplayProps> = ({
   currServerReceiver,
   teamA,
   teamB,
   playerMap,
   handleAddReceiver,
   handleAddServer,
+  matchId
 }) => {
 
   
@@ -183,6 +187,8 @@ const ServerReceiverDisplay: React.FC<{
             teamB={teamB}
             handlePlayerSelection={handlePlayerSelection}
             positionPairE={positionPairE}
+            matchId={matchId}
+            netId={String(currServerReceiver?.net) || null}
           />
         );
       }
@@ -196,10 +202,12 @@ const ServerReceiverDisplay: React.FC<{
           selected={playerPosition.player?._id || null}
           handlePlayerSelection={handlePlayerSelection}
           positionPairE={positionPairE}
+          matchId={matchId}
+          netId={String(currServerReceiver?.net) || null}
         />
       );
     },
-    [positions, currServerReceiver, handleAddServer, handleAddReceiver]
+    [positions, currServerReceiver, handleAddServer, handleAddReceiver, matchId]
   );
 
   return (

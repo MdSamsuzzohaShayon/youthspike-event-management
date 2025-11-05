@@ -124,7 +124,6 @@ export default function ServerReceiver({
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
   const revertPlayEl = useRef<HTMLDialogElement | null>(null);
-  const netInputEl = useRef<HTMLDialogElement | null>(null);
   const stickyScoreBoardRef = useRef<HTMLDivElement | null>(null);
 
   /* Derived maps / helpers */
@@ -573,6 +572,7 @@ export default function ServerReceiver({
                 teamB={teamB || null}
                 playerMap={playerMap}
                 currServerReceiver={currServerReceiver}
+                matchId={currMatch._id}
               />
             </div>
             {/* Left side end  */}
@@ -707,6 +707,7 @@ export default function ServerReceiver({
                   teamA={teamA || null}
                   teamB={teamB || null}
                   currServerReceiver={currServerReceiver}
+                  matchId={currMatch._id}
                 />
 
                 {currPlays.length === 0 &&

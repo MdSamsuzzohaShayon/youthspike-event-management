@@ -40,7 +40,9 @@ function SearchTeamList({
       let totalNets = 0;
 
       for (const match of teamMatches) {
-        const isTeamA = match.teamA._id === team._id;
+        if (!match.completed) continue;
+        const teamId: string = typeof match.teamA == "object" ? match.teamA._id : match.teamA;
+        const isTeamA = teamId === team._id;
 
         // direct lookups instead of filter
 
@@ -122,6 +124,8 @@ function SearchTeamList({
 
     return sortedList;
   }, [teamList, teamScores, selectedGroup]);
+
+  
 
   return (
     <div className="teamList w-full flex flex-col gap-y-4">

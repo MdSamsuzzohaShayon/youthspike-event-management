@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
-import { ISearchFilter, ISearchLimitFilter, ISearchMatchResponse, ISearchTeamResponse, ITeamFilter } from "@/types";
+import { ISearchLimitFilter, ISearchTeamResponse, ITeamFilter } from "@/types";
 import { SEARCH_TEAMS } from "@/graphql/team";
 import TeamsMain from "@/components/team/TeamsMain";
 

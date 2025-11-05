@@ -1,5 +1,4 @@
 import TextImg from "@/components/elements/TextImg";
-import { useAppSelector } from "@/redux/hooks";
 import { EServerPositionPair, ESRRole, IPlayer, ITeam } from "@/types";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
@@ -15,6 +14,8 @@ interface ISPPlayerCardProps {
   dark?: boolean;
   handlePlayerSelection?: (e: React.SyntheticEvent) => void;
   positionPairE: EServerPositionPair; // This is not server position pair
+  matchId: string;
+  netId: string | null;
 }
 
 const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
@@ -26,9 +27,9 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
   teamB,
   handlePlayerSelection,
   positionPairE,
+  matchId,
+  netId
 }) => {
-
-  console.log("Rendering SRPlayerCard");
   
 
   // Memoization
@@ -182,7 +183,7 @@ const SRPlayerCard: React.FC<ISPPlayerCardProps> = ({
             {teamOfPlayer?.name}
           </p>
           <Link
-            href={`/players/${player?._id}`}
+            href={`/players/${player?._id}?m=${matchId}&g=${netId}`}
             className="w-full mt-3 flex items-center justify-center w-6 h-6 rounded-full bg-yellow-logo hover:bg-yellow-500 transition-colors"
             title="View Stats"
           >

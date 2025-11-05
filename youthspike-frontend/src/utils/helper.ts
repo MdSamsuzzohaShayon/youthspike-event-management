@@ -1,4 +1,4 @@
-import { IAggregatedStats, IOption, IPlayer, IPlayerRankingItemExpRel, IPlayerStats, IServerReceiverSinglePlay } from '@/types';
+import { EStatsFilter, IAggregatedStats, IFilter, IOption, IPlayer, IPlayerRankingItemExpRel, IPlayerStats, IServerReceiverSinglePlay } from '@/types';
 import { GraphQLError } from 'graphql';
 import { netSize, screen } from './constant';
 
@@ -165,3 +165,21 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
 
   return aggregated;
 };
+
+
+
+
+
+
+
+// Filter key to enum 
+export const filterToEnum: Record<keyof IFilter, EStatsFilter>={
+  startDate: EStatsFilter.START_DATE,
+  endDate: EStatsFilter.END_DATE,
+  match: EStatsFilter.MATCH,
+  game: EStatsFilter.GAME,
+  conference: EStatsFilter.CONFERENCE,
+  teammate: EStatsFilter.TEAMMATE,
+  club: EStatsFilter.CLUB,
+  vsPlayer: EStatsFilter.VS_PLAYER
+}

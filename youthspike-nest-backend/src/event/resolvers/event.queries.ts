@@ -176,8 +176,8 @@ export class EventQueries implements IEventQueries {
 
       const mIds = matches.map((m) => String(m._id));
       let [rounds, nets] = await Promise.all([
-        this.roundService.find({ match: { $in: mIds } }, {lean: true}),
-        this.netService.find({ match: { $in: mIds } }, {lean: true}),
+        this.roundService.find({ match: { $in: mIds } }),
+        this.netService.find({ match: { $in: mIds } }),
       ]);
 
       nets = nets.map((n)=> n.toObject());

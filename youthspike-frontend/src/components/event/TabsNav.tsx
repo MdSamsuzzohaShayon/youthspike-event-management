@@ -15,7 +15,7 @@ export default function TabsNav({ eventId }: { eventId: string }) {
       color: "bg-yellow-logo text-black",
     },
     {
-      name: "TEAM",
+      name: "Standings",
       segment: "teams",
       color: "bg-yellow-logo text-black",
     },

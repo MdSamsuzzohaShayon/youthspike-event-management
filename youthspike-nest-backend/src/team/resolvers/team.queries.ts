@@ -245,6 +245,7 @@ export class TeamQueries {
       const limit = filter?.limit ?? 30;
 
       const teams = await this.teamService.find(teamQuery, offset, limit);
+      // const teams = await this.teamService.find({_id: "68c56f96f50830d0fd04590e"});
 
       const matchIds = new Set<string>();
       for (const t of teams) {

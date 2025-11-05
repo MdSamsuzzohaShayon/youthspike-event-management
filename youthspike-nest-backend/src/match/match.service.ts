@@ -36,6 +36,8 @@ export class MatchService {
       query = query.limit(limit);
     }
 
+    query = query.lean()
+
     return query.exec();
   }
 

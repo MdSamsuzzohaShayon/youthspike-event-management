@@ -80,6 +80,19 @@ export interface IGetPlayerStats {
   stats: IProStats;
 }
 
+// Keys (To make url clean)
+export enum EStatsFilter {
+  MATCH = 'm', // Match
+  GAME = 'g', // game
+  TEAMMATE = 'tm', // teammate
+  CLUB = 'cb', // teammate
+  VS_PLAYER = 'vp', // teammate
+  CONFERENCE = 'ce', // teammate
+  START_DATE = 'sd',
+  END_DATE = 'ed',
+}
+
+
 export interface IFilter {
   startDate: string;
   endDate: string;
@@ -108,7 +121,7 @@ export enum EPlayerStatType {
 export interface IStatsFilterProps {
   player: IPlayer;
   players: IPlayer[];
-  filter: Partial<IFilter>;
+  filter: Partial<Record<EStatsFilter, string | string[]>>;
   /**
    * Improved type for handler:
    * key must be a key of IFilter and value must be the correct type for that key.

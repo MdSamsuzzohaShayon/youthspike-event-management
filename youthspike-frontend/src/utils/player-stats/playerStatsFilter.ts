@@ -1,5 +1,5 @@
 // utils/playerStatsFilter.ts
-import { IFilter, IMatch, INetRelatives, IPlayerStats } from "@/types";
+import { EStatsFilter, IFilter, IMatch, INetRelatives, IPlayerStats } from "@/types";
 
 /**
  * Check if a match is within the selected date range.
@@ -26,33 +26,33 @@ export function isMatchInDateRange(
 export function isNetValidForPlayer(
   net: INetRelatives,
   playerId: string,
-  filter: Partial<IFilter>
+  filter: Partial<Record<EStatsFilter, string | string[]>>
 ): boolean {
   if (!net) return false;
 
   // Teammate filter
-  if (filter.teammate && filter.teammate.length > 0) {
+  if (filter[EStatsFilter.TEAMMATE] && filter[EStatsFilter.TEAMMATE].length > 0) {
     const teammateIds = [
       net.teamAPlayerA,
       net.teamAPlayerB,
       net.teamBPlayerA,
       net.teamBPlayerB,
     ];
-    if (!filter.teammate.some((tid) => teammateIds.includes(tid))) return false;
+    if (!(filter[EStatsFilter.TEAMMATE] as string[]).some((tid) => teammateIds.includes(tid))) return false;
   }
 
   // Club filter (if netId represents club)
-  if (filter.club && filter.club.length > 0 && !filter.club.includes(net._id))
+  if (filter[EStatsFilter.CLUB] && filter[EStatsFilter.CLUB].length > 0 && !filter[EStatsFilter.CLUB].includes(net._id))
     return false;
 
   // VS Player filter
-  if (filter.vsPlayer && filter.vsPlayer.length > 0) {
+  if (filter[EStatsFilter.VS_PLAYER] && (filter[EStatsFilter.VS_PLAYER] as string).length > 0) {
     const opponentIds =
       net.teamAPlayerA === playerId || net.teamAPlayerB === playerId
         ? [net.teamBPlayerA, net.teamBPlayerB]
         : [net.teamAPlayerA, net.teamAPlayerB];
 
-    if (!opponentIds.some((pid) => filter.vsPlayer?.includes(String(pid)))) return false;
+    if (!opponentIds.some((pid) => filter[EStatsFilter.VS_PLAYER]?.includes(String(pid)))) return false;
   }
 
   return true;
@@ -63,7 +63,7 @@ export function isNetValidForPlayer(
  */
 export function filterPlayerStats(
   playerStats: IPlayerStats[],
-  filter: Partial<IFilter>,
+  filter: Partial<Record<EStatsFilter, string | string[]>>,
   playerId: string,
   matches: IMatch[],
   nets: INetRelatives[]
@@ -72,16 +72,16 @@ export function filterPlayerStats(
   const netMap = new Map(nets.map((n) => [n._id, n]));
 
   // Determine valid matches
-  const selectedMatchIds: string[] = filter.match || matches.map((m) => m._id);
+  const selectedMatchIds: string[] = (filter[EStatsFilter.MATCH] as string[]) || matches.map((m) => m._id);
   const validMatchIds = new Set(
     selectedMatchIds.filter((id) => {
       const match = matchMap.get(id);
-      return match ? isMatchInDateRange(match, filter.startDate, filter.endDate) : false;
+      return match ? isMatchInDateRange(match, filter[EStatsFilter.START_DATE] as string, filter[EStatsFilter.END_DATE] as string) : false;
     })
   );
 
   // Determine valid nets
-  const selectedNetIds: string[] = filter.game || nets.map((n) => n._id);
+  const selectedNetIds: string[] = (filter[EStatsFilter.GAME] as string[]) || nets.map((n) => n._id);
   const validNetIds = new Set(
     selectedNetIds.filter((id) => isNetValidForPlayer(netMap.get(id)!, playerId, filter))
   );

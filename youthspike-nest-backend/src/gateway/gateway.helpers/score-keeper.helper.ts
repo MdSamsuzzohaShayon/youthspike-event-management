@@ -186,6 +186,7 @@ export class ScoreKeeperHelper {
     const prevServer = net.server;
     const prevPartner = net.servingPartner;
 
+    // A helper function that updates the positions and players for server & receiver
     const swapTo = (
       newPos: EServerPositionPair,
       newServer: string | Player,
@@ -200,6 +201,7 @@ export class ScoreKeeperHelper {
       net.receivingPartner = newReceiverPartner;
     };
 
+     // When the receiving team's score is EVEN, the server and receiver rotation follows this map
     const evenMap: Record<EServerPositionPair, () => void> = {
       [EServerPositionPair.PAIR_B_BOTTOM]: () =>
         swapTo(EServerPositionPair.PAIR_A_LEFT, net.receivingPartner, net.receiver, prevPartner, prevServer),
@@ -211,6 +213,7 @@ export class ScoreKeeperHelper {
         swapTo(EServerPositionPair.PAIR_B_RIGHT, net.receiver, net.receivingPartner, prevServer, prevPartner),
     };
 
+     // When the receiving team's score is ODD, rotation happens differently
     const oddMap: Record<EServerPositionPair, () => void> = {
       [EServerPositionPair.PAIR_A_TOP]: () =>
         swapTo(EServerPositionPair.PAIR_B_BOTTOM, net.receiver, net.receivingPartner, prevServer, prevPartner),
@@ -222,12 +225,19 @@ export class ScoreKeeperHelper {
         swapTo(EServerPositionPair.PAIR_A_TOP, net.receivingPartner, net.receiver, prevPartner, prevServer),
     };
 
+   
+     // 
+     /**
+      * Decide which rotation map to use based on whether the receiving team's score is even or odd
+      * (Receiving team scores), if the score is even setter will serve first, if the score is odd then receiver will be the server
+      */
     if (receivingTeamScore % 2 === 0) {
       evenMap[net.serverPositionPair]?.();
     } else {
       oddMap[net.serverPositionPair]?.();
     }
 
+    // Update string IDs for the players after rotation
     net.serverId = String(net.server);
     net.receiverId = String(net.receiver);
     net.servingPartnerId = String(net.servingPartner);

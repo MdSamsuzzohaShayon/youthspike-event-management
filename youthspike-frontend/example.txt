@@ -128,5 +128,3 @@ You need to do:
   4. Optimize the component for better time and space complexity, improving both performance and scalability.
   4. Fix all errors if there are any, it should work properly
 
-
-

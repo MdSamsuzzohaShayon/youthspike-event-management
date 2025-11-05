@@ -1,37 +1,42 @@
 /* Custom scrollbar for desktop sidebar */
 .side-bar::-webkit-scrollbar {
-    width: 4px;
+  width: 4px;
+}
+
+.side-bar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.side-bar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #f59e0b, #d97706);
+  border-radius: 10px;
+}
+
+.side-bar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #d97706, #b45309);
+}
+
+/* Glass morphism effect */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Gradient text animation */
+.gradient-text {
+  background: linear-gradient(45deg, #f59e0b, #d97706, #b45309);
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
   }
-  
-  .side-bar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+  50% {
+    background-position: 100% 50%;
   }
-  
-  .side-bar::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #f59e0b, #d97706);
-    border-radius: 10px;
-  }
-  
-  .side-bar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #d97706, #b45309);
-  }
-  
-  /* Glass morphism effect */
-  .glass-effect {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  /* Gradient text animation */
-  .gradient-text {
-    background: linear-gradient(45deg, #f59e0b, #d97706, #b45309);
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
-  }
-  
-  @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
+}

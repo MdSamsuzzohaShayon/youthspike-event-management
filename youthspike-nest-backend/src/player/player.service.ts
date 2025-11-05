@@ -80,7 +80,7 @@ export class PlayerService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-
+    query = query.lean()
     return query.exec();
   }
 

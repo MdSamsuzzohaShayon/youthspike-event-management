@@ -55,6 +55,8 @@ const NetInRound: React.FC<INetInRoundProps> = ({
     return srMap.get(net._id) || null;
   }, [srMap]);
 
+  
+
   const sortedPlays = useMemo(() => {
     const serverReceiverPlays = playMapByNet.get(net._id) || [];
     return [...serverReceiverPlays].sort((a, b) => a.play - b.play);
@@ -139,6 +141,8 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             srOnNet={srOnNet}
             lastPlay={lastPlay}
             view={view}
+            matchId={matchId}
+            netId={net._id}
           />
         )}
 
@@ -155,6 +159,8 @@ const NetInRound: React.FC<INetInRoundProps> = ({
             srOnNet={srOnNet}
             lastPlay={lastPlay}
             view={view}
+            matchId={matchId}
+            netId={net._id}
           />
         )}
       </div>

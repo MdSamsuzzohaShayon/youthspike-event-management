@@ -36,9 +36,20 @@ export class RoundService {
     });
   }
 
-  async find(filter: FilterQuery<Round> = {}, options: { lean?: boolean } = {}) {
-    const query = this.roundModel.find(filter).sort({ num: 1 });
-    return options.lean ? query.lean() : query;
+  async find(filter: FilterQuery<Round>, limit?: number, offset?: number) {
+    let query = this.roundModel.find(filter).sort({ num: 1 }); // always sort for stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    query = query.lean()
+
+    return query.exec();
   }
 
   async findOne(query: FilterQuery<Round>) {
