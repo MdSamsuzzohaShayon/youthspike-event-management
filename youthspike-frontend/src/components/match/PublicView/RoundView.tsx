@@ -136,11 +136,13 @@ const RoundView = ({
       {/* Show team score here only for portrait  */}
       <div className="team-score-poietrat flex justify-center items-center gap-4">
         <ScoreBox
+          teamId={teamA?._id || ""}
           name={teamA?.name || ""}
           teamLogo={teamA?.logo || null}
           score={teamATotalScore}
         />
         <ScoreBox
+          teamId={teamB?._id || ""}
           name={teamB?.name || ""}
           teamLogo={teamB?.logo || null}
           score={teamBTotalScore}
@@ -187,6 +189,7 @@ const RoundView = ({
       <div className="one-nets-row w-full flex justify-around items-center gap-3 md:gap-4">
         <div className="team-score">
           <ScoreBox
+            teamId={teamA?._id || ""}
             name={teamA?.name || ""}
             teamLogo={teamA?.logo || null}
             score={teamATotalScore}
@@ -210,6 +213,7 @@ const RoundView = ({
         )}
         <div className="team-score">
           <ScoreBox
+            teamId={teamB?._id || ""}
             name={teamB?.name || ""}
             teamLogo={teamB?.logo || null}
             score={teamBTotalScore}

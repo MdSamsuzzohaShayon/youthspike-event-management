@@ -23,18 +23,20 @@ import { Net } from 'src/net/net.schema';
 import { Round } from 'src/round/round.schema';
 import { Match } from 'src/match/match.schema';
 import { Player } from 'src/player/player.schema';
+import { GroupService } from 'src/group/group.service';
 
 @Resolver((_of) => PlayerStats)
 export class PlayerStatsResolver {
   constructor(
-    private playerService: PlayerService,
-    private teamService: TeamService,
-    private matchService: MatchService,
-    private netService: NetService,
-    private playerStatsService: PlayerStatsService,
+    private readonly playerService: PlayerService,
+    private readonly teamService: TeamService,
+    private readonly matchService: MatchService,
+    private readonly netService: NetService,
+    private readonly playerStatsService: PlayerStatsService,
     private readonly redisService: RedisService,
-    private eventService: EventService,
-    private roundService: RoundService,
+    private readonly eventService: EventService,
+    private readonly roundService: RoundService,
+    private readonly groupService: GroupService,
   ) {}
 
   @Query((_returns) => PlayerStatsResponse)
@@ -89,9 +91,10 @@ export class PlayerStatsResolver {
       const eventExist = await this.eventService.findOne({ _id: { $in: player.events } });
       if (!eventExist) return AppResponse.notFound('Event');
 
-      const [multiplayer, weight] = await Promise.all([
+      const [multiplayer, weight, groups] = await Promise.all([
         this.playerStatsService.proStatFindOne({ _id: eventExist.multiplayer }),
         this.playerStatsService.proStatFindOne({ _id: eventExist.weight }),
+        this.groupService.find({event: eventExist._id})
       ]);
 
       // 4️⃣ If player has teams → fetch team, matches, nets, rounds
@@ -209,6 +212,7 @@ export class PlayerStatsResolver {
           weight,
           oponents,
           players,
+          groups,
         },
       };
 

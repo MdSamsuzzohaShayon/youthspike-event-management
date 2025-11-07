@@ -1,3 +1,4 @@
+import { IGroupRelatives } from "./group";
 import { IMatch, IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
 import { IPlayer } from "./player";
@@ -78,6 +79,7 @@ export interface IGetPlayerStats {
   multiplayer: IProStats;
   weight: IProStats;
   stats: IProStats;
+  groups: IGroupRelatives[];
 }
 
 // Keys (To make url clean)
@@ -85,9 +87,9 @@ export enum EStatsFilter {
   MATCH = 'm', // Match
   GAME = 'g', // game
   TEAMMATE = 'tm', // teammate
-  CLUB = 'cb', // teammate
-  VS_PLAYER = 'vp', // teammate
-  CONFERENCE = 'ce', // teammate
+  CLUB = 'cb', 
+  VS_PLAYER = 'vp', 
+  CONFERENCE = 'ce', 
   START_DATE = 'sd',
   END_DATE = 'ed',
 }
@@ -104,6 +106,11 @@ export interface IFilter {
   vsPlayer?: string[];
 }
 
+export enum EGroupType{
+  OVERALL = "OVERALL",
+  CONFERENCE = "CONFERENCE",
+  NON_CONFERENCE = "NON_CONFERENCE",
+}
 
 export enum EPlayerStatType {
   Player = "player",

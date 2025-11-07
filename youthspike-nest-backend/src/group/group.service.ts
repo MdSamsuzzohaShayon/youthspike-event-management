@@ -19,8 +19,24 @@ export class GroupService {
     return this.groupModal.findOne(query);
   }
 
-  async find(filter: FilterQuery<Group>) {
-    return this.groupModal.find(filter);
+  // async find(filter: FilterQuery<Group>) {
+  //   return this.groupModal.find(filter);
+  // }
+
+  async find(filter: FilterQuery<Group>, limit?: number, offset?: number) {
+    let query = this.groupModal.find(filter).sort({ date: -1 }); // always sort for stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    query = query.lean()
+
+    return query.exec();
   }
 
   async create(event: Group): Promise<Group> {

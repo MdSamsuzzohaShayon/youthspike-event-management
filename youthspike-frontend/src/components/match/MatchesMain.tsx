@@ -41,7 +41,6 @@ const PAGE_SIZE = 30;
 
 export default function MatchesMain({ queryRef, eventId, initialSearchParams }: MatchesMainProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
 
@@ -93,6 +92,8 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
     setHasMore((searchData.matches || []).length === PAGE_SIZE);
   }, []);
 
+  
+
   // Execute GraphQL query
   const executeSearchQuery = useCallback(async (filter: FilterState, offset: number = 0) => {
     try {
@@ -101,7 +102,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
         variables: buildQueryVariables(filter, offset),
         fetchPolicy: "network-only",
       });
-      return result.data;
+      return result.data as { searchMatches: ISearchMatchResponse };
     } catch (error) {
       console.error("Failed to fetch matches:", error);
       throw error;
@@ -151,27 +152,40 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   }, [executeSearchQuery, updateAllData, router]);
 
   // Load more matches
-  const handleLoadMore = useCallback(async () => {
-    setIsLoadingMore(true);
+  // Load more matches
+const handleLoadMore = useCallback(async () => {
+  setIsLoadingMore(true);
+  
+  try {
+    const offset = matches.length;
+    const responseData = await executeSearchQuery(appliedFilter, offset);
+    const searchData = responseData?.searchMatches?.data;
     
-    try {
-      const offset = matches.length;
-      const responseData = await executeSearchQuery(appliedFilter, offset);
-      // @ts-ignore
-      const newMatches = responseData?.searchMatches?.data?.matches || [];
-      
+    if (searchData) {
+      // Append new matches to existing ones
+      const newMatches = searchData.matches || [];
       if (newMatches.length > 0) {
         setMatches(prev => [...prev, ...newMatches]);
         setHasMore(newMatches.length === PAGE_SIZE);
       } else {
         setHasMore(false);
       }
-    } catch (error) {
-      console.error("Failed to load more matches:", error);
-    } finally {
-      setIsLoadingMore(false);
+
+      // Update other entities with the latest data from server
+      // This ensures all related data is in sync
+      setTeams(prev => [...prev, ...(searchData.teams || [])]);
+      setNets(prev => [...prev, ...(searchData.nets || [])]);
+      setRounds(prev => [...prev, ...(searchData.rounds || [])]);
     }
-  }, [matches.length, appliedFilter, executeSearchQuery]);
+  } catch (error) {
+    console.error("Failed to load more matches:", error);
+  } finally {
+    setIsLoadingMore(false);
+  }
+}, [matches.length, appliedFilter, executeSearchQuery]);
+
+  console.log({ml: matches.length});
+  
 
   // Initialize with preloaded data
   useEffect(() => {

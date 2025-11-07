@@ -912,6 +912,7 @@ type CustomPlayerStats {
 }
 
 type PlayerStatsDetails {
+  groups: [CustomGroup!]!
   player: CustomPlayer!
   players: [CustomPlayer!]!
   team: CustomTeam

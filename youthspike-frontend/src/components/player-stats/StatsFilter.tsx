@@ -4,14 +4,14 @@ import React from "react";
 import DateInput from "../elements/DateInput";
 import SelectInput from "../elements/SelectInput";
 import MultiSelectInput from "../elements/MultiSelectInput";
-import { EStatsFilter, IFilter, IOption, IStatsFilterProps } from "@/types";
+import { EGroupType, EStatsFilter, IFilter, IOption, IStatsFilterProps } from "@/types";
 import useStatsFilterData from "@/hooks/player-stats/useStatsFilterData";
 
 /** Conference options (unchanged) */
 const CONFERENCE_OPTIONS: IOption[] = [
-  { id: 1, value: "overall", text: "Overall" },
-  { id: 2, value: "conference", text: "Conference" },
-  { id: 3, value: "non-conference", text: "Non-Conference" },
+  { id: 1, value: EGroupType.OVERALL },
+  { id: 2, value: EGroupType.CONFERENCE },
+  { id: 3, value: EGroupType.NON_CONFERENCE },
 ];
 
 export default function StatsFilter({

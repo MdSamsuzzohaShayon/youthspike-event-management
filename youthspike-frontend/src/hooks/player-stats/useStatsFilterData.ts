@@ -1,4 +1,6 @@
 import {
+  EPlayerStatType,
+  EStatsFilter,
   IMatch,
   INetRelatives,
   IOption,
@@ -72,10 +74,10 @@ function useStatsFilterData({
 
   // 1) Filter matches by date range (pure, readable, no mutation)
   const availableMatches = useMemo(() => {
-    const startTs = filter.startDate
-      ? new Date(filter.startDate).getTime()
+    const startTs = filter[EStatsFilter.START_DATE]
+      ? new Date(String(filter[EStatsFilter.START_DATE])).getTime()
       : null;
-    const endTs = filter.endDate ? new Date(filter.endDate).getTime() : null;
+    const endTs = filter[EStatsFilter.END_DATE] ? new Date(String(filter[EStatsFilter.END_DATE])).getTime() : null;
 
     return matches.filter((m) => {
       const t = new Date(m.date).getTime();
@@ -83,7 +85,7 @@ function useStatsFilterData({
       if (endTs != null && t > endTs) return false;
       return true;
     });
-  }, [matches, filter.startDate, filter.endDate]);
+  }, [matches, filter]);
 
   // 2) Match options for the UI (formatted labels)
   const matchOptions = useMemo(() => {
@@ -102,8 +104,8 @@ function useStatsFilterData({
   const vsClubOptions = useMemo(() => {
     // decide which match ids are in scope
     const selectedMatchIds =
-      filter.match && filter.match.length > 0
-        ? filter.match
+      filter[EStatsFilter.MATCH] && filter[EStatsFilter.MATCH].length > 0
+        ? filter[EStatsFilter.MATCH]
         : availableMatches.map((m) => m._id);
 
     const clubSet = new Map<string, ITeam>();
@@ -125,7 +127,7 @@ function useStatsFilterData({
       value: c._id,
       text: c.name,
     }));
-  }, [filter.match, availableMatches, matchMap, teamMap, player.teams]);
+  }, [filter, availableMatches, matchMap, teamMap, player.teams]);
 
   // 4) Teammates — players who share the player's primary team (no mutation)
   const teammateOptions = useMemo(() => {
@@ -149,10 +151,10 @@ function useStatsFilterData({
     // Determine relevant nets (either selected by game, or nets under selected matches, or all nets)
     const relevantNetIds = new Set<string>();
 
-    if (filter.game && filter.game.length > 0) {
-      filter.game.forEach((id) => relevantNetIds.add(id));
-    } else if (filter.match && filter.match.length > 0) {
-      for (const matchId of filter.match) {
+    if (filter[EStatsFilter.GAME] && filter[EStatsFilter.GAME].length > 0) {
+      (filter[EStatsFilter.GAME] as string[]).forEach((id) => relevantNetIds.add(id));
+    } else if (filter[EStatsFilter.MATCH] && filter[EStatsFilter.MATCH].length > 0) {
+      for (const matchId of filter[EStatsFilter.MATCH]) {
         const netsForMatch = netMapByMatch.get(matchId) || [];
         for (const n of netsForMatch) relevantNetIds.add(n._id);
       }
@@ -187,8 +189,7 @@ function useStatsFilterData({
       text: `${p.firstName} ${p.lastName}`,
     }));
   }, [
-    filter.game,
-    filter.match,
+    filter,
     nets,
     netMap,
     netMapByMatch,
@@ -198,10 +199,10 @@ function useStatsFilterData({
 
   // 6) Game options — nets grouped by rounds under selected matches where the player participated
   const gameOptions = useMemo(() => {
-    if (!filter.match || filter.match.length === 0) return [];
+    if (!filter[EStatsFilter.MATCH] || filter[EStatsFilter.MATCH].length === 0) return [];
 
     const options: IOption[] = [];
-    for (const matchId of filter.match) {
+    for (const matchId of filter[EStatsFilter.MATCH]) {
       const roundsForMatch = roundMapByMatch.get(matchId) || [];
       for (const round of roundsForMatch) {
         const netsForRound = netMapByRound.get(round._id) || [];
@@ -228,7 +229,7 @@ function useStatsFilterData({
     }
 
     return options;
-  }, [filter.match, roundMapByMatch, netMapByRound, player._id, playerMap]);
+  }, [filter, roundMapByMatch, netMapByRound, player._id, playerMap]);
 
   return {
     matchOptions,

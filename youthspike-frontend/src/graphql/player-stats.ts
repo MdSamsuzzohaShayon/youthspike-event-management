@@ -6,6 +6,11 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
     message
     success
     data {
+      groups{
+        _id
+        name
+        division
+      }
       player {
         _id
         captainofteams
@@ -57,6 +62,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         description
         location
         nets
+        group
         netVariance
         numberOfNets
         numberOfRounds

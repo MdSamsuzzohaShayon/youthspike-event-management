@@ -1,26 +1,47 @@
+import QRCode from "@/components/elements/QRCode.tsx";
 import TextImg from "@/components/elements/TextImg";
-import { EView } from "@/types";
+import { FRONTEND_URL } from "@/utils/keys";
 import { CldImage } from "next-cloudinary";
-import Image from "next/image";
+import Link from "next/link";
+
 interface IScoreBoxProps {
+  teamId: string;
   name: string;
   teamLogo: string | null;
   score: number;
 }
-const ScoreBox: React.FC<IScoreBoxProps> = ({ name, teamLogo, score }) => (
+
+const ScoreBox: React.FC<IScoreBoxProps> = ({
+  teamId,
+  name,
+  teamLogo,
+  score,
+}) => (
   <div className="w-full flex flex-col justify-center items-center">
-    {teamLogo ? (
-      <CldImage
-        src={teamLogo}
-        alt={name}
-        className="w-20"
-        height={50}
-        width={50}
-      />
-    ) : (
-      <TextImg fullText={name} className="w-20 h-20" />
-    )}
-    <div className={`team-score-point text-center`}>{score}</div>
+    <h4 className="match-points">Match Points</h4>
+    <div className="w-full flex justify-enter items-start gap-x-1">
+      <div className="w-3/6">
+        <Link className="inline-block w-20" href={`${FRONTEND_URL}/teams/${teamId}`}>
+          {teamLogo ? (
+            <CldImage
+              src={teamLogo}
+              alt={name}
+              className="w-full h-full"
+              height={50}
+              width={50}
+            />
+          ) : (
+            <TextImg fullText={name} className="w-full h-full" />
+          )}
+        </Link>
+        <div className={`team-score-point text-center`}>{score}</div>
+      </div>
+      <div className="w-3/6">
+        <div className="w-12 md:w-32 aspect-square border border-white">
+          <QRCode value={`${FRONTEND_URL}/teams/${teamId}`} />
+        </div>
+      </div>
+    </div>
   </div>
 );
 

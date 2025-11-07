@@ -5,7 +5,7 @@ import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client/react";
 import StatBox from "./StatBox";
 import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
-import { IFilter, IGetPlayerStats, IProStats } from "@/types";
+import { IFilter, IGetPlayerStats, INetRelatives, IProStats } from "@/types";
 import StatAddBox from "./StatAddBox";
 import usePlayerSocket from "@/hooks/player/usePlayerScoket";
 import { useSocket } from "@/lib/SocketProvider";
@@ -16,6 +16,7 @@ import { useFilterState } from "@/hooks/player-stats/useFilterState";
 import { filterPlayerStats } from "@/utils/player-stats/playerStatsFilter";
 import Link from "next/link";
 import Image from "next/image";
+import ActiveFilters from "./ActiveFilters";
 
 interface IPlayerStatsMainProps {
   queryRef: QueryRef<{
@@ -47,9 +48,10 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     multiplayer,
     weight,
     stats,
+    groups,
   } = data.getPlayerWithStats.data;
 
-  const { filter, handleInputChange } = useFilterState();
+  const { filter, handleInputChange, clearAllFilters } = useFilterState();
 
   usePlayerSocket({
     socket,
@@ -84,6 +86,28 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const safeOponents = oponents || [];
   const safePlayers = players || [];
 
+  const {netMap, allNetIds} = useMemo(() => {
+    const map = new Map<string, INetRelatives>();
+    const netIds = new Set<string>();
+    for (let i = 0; i < safeNets.length; i++) {
+      const n = safeNets[i];
+      map.set(n._id, n);
+      netIds.add(n._id);
+    }
+    return {netMap: new Map(nets.map((n) => [n._id, n])), allNetIds: netIds};
+  }, [safeNets]);
+
+
+  const playerMap = useMemo(()=>{
+    return new Map(safePlayers.map((p)=> [p._id, p]));
+  }, [safePlayers]);
+
+  
+  const clubMap = useMemo(()=>{
+    return new Map(safeOponents.map((p)=> [p._id, p]));
+  }, [safeOponents]);
+  
+
   const safePlayerstats = useMemo(() => {
     if (!playerstats || !Array.isArray(playerstats)) return [];
 
@@ -92,9 +116,11 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       filter,
       player._id,
       safeMatches,
-      safeNets
+      netMap,
+      allNetIds,
+      groups
     );
-  }, [playerstats, filter, player._id, safeMatches, safeNets]);
+  }, [playerstats, filter, player._id, safeMatches, safeNets, netMap]);
 
   let totalServe = 0;
   for (const ps of safePlayerstats) {
@@ -171,16 +197,30 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           <p className="text-yellow-logo font-medium mt-2">
             {player.status} | {player.division}
           </p>
-          <div className="flex justify-between md:justify-start gap-x-2 items-center mt-2">
+          <div className="flex justify-start gap-x-2 items-stretch mt-2">
+            {/* Team Box */}
             <Link
               href={`/teams/${team._id}`}
-              className="bg-gray-800 px-4 py-2 rounded-lg underline decoration-yellow-400"
+              className="bg-gray-800 px-4 py-2 rounded-lg underline decoration-yellow-400 flex gap-x-2 items-center"
             >
-              <p className="text-xs text-gray-400 uppercase">Team</p>
-              <p className="font-medium">{team?.name || ""}</p>
+              {team?.logo && (
+                <CldImage
+                  height={100}
+                  width={100}
+                  src={team.logo}
+                  alt={team.name}
+                  className="w-12 h-12 object-cover"
+                />
+              )}
+              <div className="flex flex-col justify-center">
+                <p className="text-xs text-gray-400 uppercase">Team</p>
+                <p className="font-medium">{team?.name || ""}</p>
+              </div>
             </Link>
+
+            {/* Username Box */}
             {player.username && (
-              <div className="bg-gray-800 px-4 py-2 rounded-lg">
+              <div className="bg-gray-800 px-4 py-2 rounded-lg flex flex-col justify-center">
                 <p className="text-xs text-gray-400 uppercase">Username</p>
                 <p className="font-medium">{player.username}</p>
               </div>
@@ -229,9 +269,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
         {/* Desktop Filter Sidebar */}
         <div className="hidden md:block md:w-3/12 bg-gray-900 rounded-xl p-4">
-          <button
-            className="flex items-center justify-between mb-4 border-b border-gray-500 w-full"
-          >
+          <button className="flex items-center justify-between mb-4 border-b border-gray-500 w-full">
             <span>
               <Image
                 src="/icons/filter.svg"
@@ -260,11 +298,12 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
         {/* Main Content */}
         <div className="w-full md:w-9/12">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Performance Overview</h2>
             {/* <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
             Pro Score: {proScore}
           </div> */}
+            <ActiveFilters filter={filter} netMap={netMap}  onClearAll={clearAllFilters} playerMap={playerMap} clubMap={clubMap} />
           </div>
 
           {/* <!-- Stats Grid --> */}
