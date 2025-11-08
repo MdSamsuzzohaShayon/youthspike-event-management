@@ -34,7 +34,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
   lastPlay,
   view,
   matchId,
-  netId
+  netId,
 }) => {
   const teamScored = useMemo(() => {
     let scored = false;
@@ -72,7 +72,6 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
     }
     return scored;
   }, [lastPlay, playerA, playerB]);
-  
 
   const playerAName = useMemo(() => {
     const first = playerA?.firstName?.trim() || "";
@@ -99,7 +98,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 view === EView.ROUND
                   ? "image-container"
                   : "image-container-single"
-              } w-full aspect-square flex justify-center items-center overflow-hidden`}
+              } w-full relative aspect-square flex justify-center items-center overflow-hidden`}
             >
               {playerA?.profile ? (
                 <CldImage
@@ -119,18 +118,21 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                   fullText={`${playerA.firstName} ${playerA.lastName}`}
                 />
               )}
+
+              <div className="absolute bg-yellow-logo text-black left-0 bottom-0 rounded-xs">
+                {srOnNet?.server && srOnNet.server === playerA._id && (
+                  <span className="server-receiver-text text-xs font-bold">
+                    S
+                  </span>
+                )}
+                {srOnNet?.receiver && srOnNet.receiver === playerA._id && (
+                  <span className="server-receiver-text text-xs font-bold">
+                    R
+                  </span>
+                )}
+              </div>
             </div>
             <p className="player-name flex justify-start gap-x-1 items-center text-center uppercase w-full">
-              {srOnNet?.server && srOnNet.server === playerA._id && (
-                <span className="italic text-yellow-logo server-receiver-text">
-                  S
-                </span>
-              )}
-              {srOnNet?.receiver && srOnNet.receiver === playerA._id && (
-                <span className="italic text-yellow-logo server-receiver-text">
-                  R
-                </span>
-              )}
               <span className="flex flex-col leading-tight items-start">
                 {playerAName.firstName && (
                   <span className="font-bold">{playerAName.firstName}</span>
@@ -184,7 +186,7 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 view === EView.ROUND
                   ? "image-container"
                   : "image-container-single"
-              } w-full aspect-square flex justify-center items-center overflow-hidden`}
+              } w-full relative aspect-square flex justify-center items-center overflow-hidden`}
             >
               {playerB?.profile ? (
                 <CldImage
@@ -204,18 +206,21 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                   fullText={`${playerB.firstName} ${playerB.lastName}`}
                 />
               )}
+
+              <div className="absolute bg-yellow-logo text-black left-0 bottom-0 rounded-xs">
+                {srOnNet?.server && srOnNet.server === playerB._id && (
+                  <span className="server-receiver-text text-xs font-bold">
+                    S
+                  </span>
+                )}
+                {srOnNet?.receiver && srOnNet.receiver === playerB._id && (
+                  <span className="server-receiver-text text-xs font-bold">
+                    R
+                  </span>
+                )}
+              </div>
             </div>
             <p className="player-name flex justify-start gap-x-1 items-center text-center uppercase w-full">
-              {srOnNet?.server && srOnNet.server === playerB._id && (
-                <span className="italic text-yellow-logo server-receiver-text">
-                  S
-                </span>
-              )}
-              {srOnNet?.receiver && srOnNet.receiver === playerB._id && (
-                <span className="italic text-yellow-logo server-receiver-text">
-                  R
-                </span>
-              )}
               <span className="flex flex-col leading-tight items-start">
                 {playerBName.firstName && (
                   <span className="font-bold">{playerBName.firstName}</span>

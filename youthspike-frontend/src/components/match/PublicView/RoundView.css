@@ -61,7 +61,7 @@
 }
 
 .image-container{
-  height: 50px;
+  height: 60px;
 }
 .image-container-single{
   height: 300px;
@@ -81,15 +81,7 @@
   width: 80px;
 }
 
-.team-logo-wrapper{
-  /* width: 45px;
-  height: 45px; */
-}
 
-.team-logo-wrapper-single{
-  /* width: 45px;
-  height: 45px; */
-}
 
 
 .team-score-point{
@@ -100,35 +92,12 @@
   font-size: 7rem;
 }
 
-.player-name {
-  /* font-size: 1rem; 
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  text-align: center;
-  width: 100%;
-  line-height: 1.2;
-  display: block; */
-}
-
-.server-receiver-text{
-  font-size: 1rem;
-  font-family: "Vujahday Script", cursive;
-}
-
-.team-in-net {
-}
 
 /* =============================== */
 /* 📱 Mobile Landscape (≤740px)    */
 /* =============================== */
 @container round-net-view (max-width: 740px) {
-  .player-name {
-    /* font-size: 0.5rem !important;
-    line-height: 1;
-    padding: 0 1px;
-    margin: 0; */
-  }
+
 
   .team-in-net {
   }
@@ -136,10 +105,6 @@
   .net-in-round {
     width: 48%;
   }
-  .net-in-round .top-side {
-    /* min-height: 80%; */
-  }
-
 
   .team-score {
     width: 30%;
@@ -160,18 +125,6 @@
     width: 30px;
   }
 
-  
-
-  .team-logo-wrapper{
-    /* width: 35px;
-    height: 35px; */
-  }
-
-  .team-logo-wrapper-single{
-    /* width: 70px;
-    height: 70px; */
-  }
-
   .plus-one{
     font-size: 1rem;
   }
@@ -179,6 +132,10 @@
     font-size: 1.5rem;
   }
   
+
+  .team-score-point{
+    font-size: 3rem;
+  }
   
 
 }
@@ -190,14 +147,7 @@
   .team-score {
     display: none;
   }
-  .player-name {
-    /* font-size: 0.65rem; */
-    /* line-height: 1.1;
-    padding: 0 2px; */
-  }
-  .server-receiver-text{
-    font-size: 1.5rem;
-  }
+
 
   .team-in-net {
   }
@@ -207,9 +157,6 @@
     width: 100%;
   }
 
-  .net-in-round .top-side {
-    /* min-height: 50%; */
-  }
 
   .vertical-separator {
     min-height: 100px;
@@ -226,10 +173,10 @@
   }
 
   .image-container{
-    height: 40px;
+    height: 60px;
   }
   .image-container-single{
-    height: 40px;
+    height: 60px;
   }
 
   .score-wrapper{
@@ -240,11 +187,6 @@
   .score-wrapper-single{
     min-width: 90px;
     height: 70px;
-  }
-
-  .team-logo-wrapper-single{
-    /* min-width: 45px;
-    height: 45px; */
   }
 
 
@@ -279,10 +221,10 @@
   }
 
   .image-container{
-    height: 40px;
+    height: 60px;
   }
   .image-container-single{
-    height: 40px;
+    height: 60px;
   }
 
   .score-wrapper{
@@ -334,21 +276,17 @@
     height: 30px;
     width: 30px;
   }
-  .team-logo-wrapper{
-    /* width: 35px;
-    height: 35px; */
-  }
 
-  .team-logo-wrapper-single{
-    /* width: 70px;
-    height: 70px; */
-  }
 
   .plus-one{
     font-size: 1rem;
   }
   .plus-one-single{
     font-size: 1.5rem;
+  }
+
+  .team-score-point{
+    font-size: 3rem;
   }
 }
 
@@ -388,15 +326,6 @@
     height: 220px;
   }
 
-  .team-logo-wrapper{
-    /* width: 90px;
-    height: 90px; */
-  }
-
-  .team-logo-wrapper-single{
-    /* width: 160px;
-    height: 160px; */
-  }
 
 
   .plus-one-single{

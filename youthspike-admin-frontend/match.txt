@@ -39,9 +39,13 @@ This is my code:
 
 ```
 
-Make it very beautiful and very unique layout. Keep same color scheme (black, white, and yellow). Use tailwind css classes for styling.
-Everything should look eye catching and very responsive. Use gradient color if it looks beautiful.
-Follow UI/UX design principles. Convert it properly to JSX code
+You need to do:
+  1. Create a visually stunning and unique layout using Tailwind CSS. 
+  2. Maintain the existing color scheme (black, white, and yellow) while ensuring a clean, modern, and professional appearance. 
+  3. Incorporate gradients or subtle animations if they enhance the visual appeal. 
+  4. Follow modern UI/UX design principles to make the layout highly responsive, accessible, and engaging on all devices. 
+  5. ally, convert the design into well-structured, production-ready JSX code with proper Tailwind class organization.
+
 
 
 
