@@ -50,7 +50,7 @@ export class UpdatePointsHandler {
       const nets: NetScore[] = [];
 
       let matchCompleted = completed;
-      if (completed) {
+      if (completed && roundExist.num === roundList.length) {
         // check check all nets are completed or not
         for (let i = 0; i < netList.length; i += 1) {
           const net = netList[i];
@@ -97,6 +97,8 @@ export class UpdatePointsHandler {
             }
           }
         }
+      }else{
+        matchCompleted = false;
       }
       await matchService.updateOne({ _id: prevRoom.match }, { $set: { completed: matchCompleted } });
 

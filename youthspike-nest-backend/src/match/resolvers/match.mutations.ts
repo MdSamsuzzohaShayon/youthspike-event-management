@@ -374,7 +374,15 @@ export class MatchMutations {
           roundUpdatePromises.push(
             this.roundService.updateOne(
               { _id: inRound._id },
-              { $set: { teamAScore: roundTeamAScore, teamBScore: roundTeamBScore, completed: true, teamAProcess: EActionProcess.LINEUP, teamBProcess: EActionProcess.LINEUP } },
+              {
+                $set: {
+                  teamAScore: roundTeamAScore,
+                  teamBScore: roundTeamBScore,
+                  completed: true,
+                  teamAProcess: EActionProcess.LINEUP,
+                  teamBProcess: EActionProcess.LINEUP,
+                },
+              },
             ),
           );
         }
@@ -402,18 +410,30 @@ export class MatchMutations {
 
         const revertPromises: Promise<any>[] = [];
         for (const round of roundListDocs) {
-          if (currRound.num > round.num) continue;
+          if (currRound.num >= round.num) continue;
 
           // Bulk reset all nets for this round
           revertPromises.push(
-            this.netService.updateMany({ round: round._id }, { $set: { teamAScore: null, teamBScore: null } }),
+            this.netService.updateMany(
+              { round: round._id },
+              {
+                $set: {
+                  teamAScore: null,
+                  teamBScore: null,
+                  teamAPlayerA: null,
+                  teamAPlayerB: null,
+                  teamBPlayerA: null,
+                  teamBPlayerB: null,
+                },
+              },
+            ),
           );
 
           // Reset the round
           revertPromises.push(
             this.roundService.updateOne(
               { _id: round._id },
-              { $set: { teamAScore: null, teamBScore: null, completed: false } },
+              { $set: { teamAScore: null, teamBScore: null, completed: false, teamAProcess: EActionProcess.CHECKIN, teamBProcess: EActionProcess.CHECKIN } },
             ),
           );
         }

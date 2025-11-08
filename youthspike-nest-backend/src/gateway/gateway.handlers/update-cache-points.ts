@@ -359,14 +359,17 @@ export class UpdateCachePointsHandler {
               }
               if (teamARoundScore !== teamBRoundScore) {
                 matchCompleted = true;
-                await matchService.updateOne({ _id: body.match }, { $set: { completed: matchCompleted } });
+                
               }
+            }
+          }else{
+            if (String(lastRound._id) === String(round._id)) {
+              matchCompleted = true;
             }
           }
         } else {
           if (String(lastRound._id) === String(round._id)) {
             matchCompleted = true;
-            await matchService.updateOne({ _id: body.match }, { $set: { completed: matchCompleted } });
           }
         }
       }
@@ -377,8 +380,18 @@ export class UpdateCachePointsHandler {
         teamBScore: n.teamBScore,
       }));
 
+
+      for (let i = 0; i < nets.length; i++) {
+        if(!nets[i].teamAScore || !nets[i].teamBScore){
+          matchCompleted = false;
+        }
+      }
+
       // Update round with new scores
-      await roundService.updateOne({ _id: round._id }, { $set: { teamAScore, teamBScore, completed: roundCompleted } });
+      await Promise.all([
+        roundService.updateOne({ _id: round._id }, { $set: { teamAScore, teamBScore, completed: roundCompleted } }),
+        matchService.updateOne({ _id: body.match }, { $set: { completed: matchCompleted } })
+      ]);
 
       const pointsResponse: RoundUpdatedResponse = {
         nets,
