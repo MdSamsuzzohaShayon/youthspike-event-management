@@ -14,13 +14,14 @@ import { cardAnimate } from '@/utils/animation';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
-import { getDivisionFromStore } from '@/utils/localStorage';
 import { UserRole } from '@/types/user';
 import { useError } from '@/lib/ErrorProvider';
 import InputField from '../elements/forms/InputField';
 import Pagination from '../elements/Pagination';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useDebounce } from 'use-debounce';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 const { initial: cInitial, animate: cAnimate, exit: cExit } = cardAnimate;
 
@@ -176,7 +177,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
    * Opponent select options
    */
   const opponentOptions = useMemo(() => {
-    const division = getDivisionFromStore();
+    const division = SessionStorageService.getItem(DIVISION);
     const notSameCaptain = (t: ITeam) => t.captain?._id !== user.info?.captainplayer && t.cocaptain?._id !== user.info?.cocaptainplayer;
 
     return teamList

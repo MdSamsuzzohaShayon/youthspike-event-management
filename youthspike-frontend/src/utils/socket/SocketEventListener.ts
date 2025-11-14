@@ -15,6 +15,7 @@ import {
 } from "@/redux/slices/serverReceiverOnNetSlice";
 import {
   EMessage,
+  IChangeServerReceiverResponse,
   ICheckInResponse,
   ILineUpResponse,
   IPlayerStats,
@@ -155,10 +156,6 @@ class SocketEventListener {
     }
   }
 
-
-
-
-
   handleLineupResponse({
     data,
     dispatch,
@@ -247,7 +244,6 @@ class SocketEventListener {
       dispatch(setCurrNetNum(1));
     }
   }
-
 
   handleUpdatePoints({
     data,
@@ -676,6 +672,31 @@ class SocketEventListener {
     });
   }
 
+  handleChangeServerReceiver({
+    data,
+    dispatch,
+    serverReceiversOnNet,
+    currServerReceiver,
+  }: IChangeServerReceiverResponse) {
+    // Update the array and update curr server receiver
+    const serverReceiversOnNetClone = [...serverReceiversOnNet];
+    const index = serverReceiversOnNetClone.findIndex((sr) => sr.net === data.net);
+    if (index !== -1) {
+      const newSr: IServerReceiverOnNetMixed = {
+        ...serverReceiversOnNetClone[index],
+        server: data.server,
+        receiver: data.receiver,
+        servingPartner: data.servingPartner,
+        receivingPartner: data.receivingPartner,
+      };
+      serverReceiversOnNetClone[index] = newSr;
+      dispatch(setServerReceiversOnNet(serverReceiversOnNetClone));
+      if(data.net === currServerReceiver?.net){
+        dispatch(setCurrentServerReceiver(newSr));
+      }
+    }
+  }
+
   /**
    * Server/Receiver Database changes
    * ========================================================================
@@ -715,7 +736,7 @@ class SocketEventListener {
     serverReceiversOnNet, // From redux store
     serverReceiverPlays,
     netByNum,
-    currNetNum
+    currNetNum,
   }: IRevertPlayReceiverResponse) {
     this.dispatch = dispatch;
 
@@ -733,8 +754,7 @@ class SocketEventListener {
 
     // If found, update current server receiver (Both, the array and current server receiver)
     if (serverReceiverOnNetData && serverReceiverOnNetData.room) {
-
-      if(currNetNum){
+      if (currNetNum) {
         const selectedNet = netByNum.get(currNetNum);
         if (selectedNet?._id === serverReceiverOnNetData.net) {
           dispatch(setCurrentServerReceiver(serverReceiverOnNetData));
@@ -798,11 +818,13 @@ class SocketEventListener {
         variables: { playerId },
       });
 
+      // @ts-ignore
       if (!queryData?.getPlayerWithStats?.data?.playerstats) {
         console.warn("No playerstats found in cache");
         return;
       }
 
+      // @ts-ignore
       const currentStats = queryData.getPlayerWithStats.data.playerstats;
 
       // Check if this is an update or a new stat
@@ -831,8 +853,10 @@ class SocketEventListener {
         data: {
           ...queryData,
           getPlayerWithStats: {
+            // @ts-ignore
             ...queryData.getPlayerWithStats,
             data: {
+              // @ts-ignore
               ...queryData.getPlayerWithStats.data,
               playerstats: updatedStatsArray,
             },

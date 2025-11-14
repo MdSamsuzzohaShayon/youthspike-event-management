@@ -10,6 +10,7 @@ import {
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { Player } from 'src/player/player.schema';
+import { ChangeServerReceiverInput } from '../gateway.types';
 
 @Injectable()
 export class ScoreKeeperHelper {
@@ -163,6 +164,22 @@ export class ScoreKeeperHelper {
   updateScore(net: ServerReceiverOnNet, team: 'A' | 'B') {
     if (team === 'A') net.teamAScore += 1;
     else net.teamBScore += 1;
+  }
+
+  rotateServerReceiverManually(
+    net: ServerReceiverOnNet,
+    body: Pick<ChangeServerReceiverInput, 'server' | 'receiver' | 'servingPartner' | 'receivingPartner'>,
+  ) {
+
+    net.server = body.server;
+    net.receiver = body.receiver;
+    net.servingPartner = body.servingPartner;
+    net.receivingPartner = body.receivingPartner;
+
+    net.serverId = String(net.server);
+    net.receiverId = String(net.receiver);
+    net.servingPartnerId = String(net.servingPartner);
+    net.receivingPartnerId = String(net.receivingPartner);
   }
 
   rotateReceiver(net: ServerReceiverOnNet) {

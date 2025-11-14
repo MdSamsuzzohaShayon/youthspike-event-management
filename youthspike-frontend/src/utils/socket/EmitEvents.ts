@@ -42,6 +42,7 @@ import {
   EServerPositionPair,
   IRevertPlayInput,
   EMessage,
+  IChangeServerReceiverAction,
 } from "@/types";
 import { Socket } from "socket.io-client";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
@@ -705,6 +706,10 @@ class EmitEvents {
   receiverDefensiveConversion({ match, net, room }: IRallyConversionInput) {
     const actionData = { match, net, room };
     this.socket?.emit("receiver-defensive-conversion-from-client", actionData);
+  }
+
+  changeServerReceiverManually(actionData: IChangeServerReceiverAction) {
+    this.socket?.emit("server-receiver-change-manually-from-client", actionData);
   }
 
   updateCachePoints({

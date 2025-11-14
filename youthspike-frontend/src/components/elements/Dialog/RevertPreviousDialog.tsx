@@ -6,6 +6,7 @@ import {
   IPlayer,
   IRoom,
   IServerReceiverSinglePlay,
+  ITeam,
 } from "@/types";
 import EmitEvents from "@/utils/socket/EmitEvents";
 import React, { useMemo } from "react";
@@ -25,6 +26,8 @@ interface IRevertPreviousDialogProps {
   socket?: Socket | null;
   token?: string | null;
   accessCode?: IAccessCode | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
 }
 
 function RevertPreviousDialog({
@@ -41,6 +44,8 @@ function RevertPreviousDialog({
   playerMap,
   teamAPlayers,
   teamBPlayers,
+  teamA,
+  teamB
 }: IRevertPreviousDialogProps) {
 
   
@@ -104,6 +109,8 @@ function RevertPreviousDialog({
                 key={`last-play-${lastPlay.play}`}
                 teamAPlayers={teamAPlayers}
                 teamBPlayers={teamBPlayers}
+                teamA={teamA}
+                teamB={teamB}
               />
             </ul>
           </div>

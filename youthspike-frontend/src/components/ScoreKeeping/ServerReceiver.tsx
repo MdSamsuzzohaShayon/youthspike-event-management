@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   EActionProcess,
   EMessage,
+  ESRRole,
   ETeam,
   ETieBreaker,
   ETieBreakingStrategy,
@@ -39,11 +40,11 @@ import ChangePlayDialog from "../elements/Dialog/ChangePlayDialog";
 import ResetPlayDialog from "../elements/Dialog/ResetPlayDialog";
 import RevertPreviousDialog from "../elements/Dialog/RevertPreviousDialog";
 import NetInputItem from "./NetInputItem";
-import Image from "next/image";
 import { shallowEqual } from "react-redux";
 import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlice";
 import { toOrdinal } from "@/utils/helper";
 import Link from "next/link";
+import ServerReceiverDialog from "../elements/Dialog/ServerReceiverDialog";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -65,7 +66,6 @@ export default function ServerReceiver({
   const socket = useSocket();
 
   /* Redux slices */
-
   const {
     roundList,
     currRound,
@@ -123,6 +123,7 @@ export default function ServerReceiver({
 
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
+  const srChangerEl = useRef<HTMLDialogElement | null>(null);
   const revertPlayEl = useRef<HTMLDialogElement | null>(null);
   const stickyScoreBoardRef = useRef<HTMLDivElement | null>(null);
 
@@ -511,14 +512,20 @@ export default function ServerReceiver({
               Score of both teams are same, the match is tied! Either you play
               overtime round or you finish the match!
             </p>
-            {token && (userInfo?.role === UserRole.admin || userInfo?.role === UserRole.captain || userInfo?.role === UserRole.co_captain || userInfo?.role === UserRole.director) && (<div>
-              <Link
-                href={`/matches/${matchData._id}`}
-                className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
-              >
-                ← Go back to captain
-              </Link>
-            </div>)}
+            {token &&
+              (userInfo?.role === UserRole.admin ||
+                userInfo?.role === UserRole.captain ||
+                userInfo?.role === UserRole.co_captain ||
+                userInfo?.role === UserRole.director) && (
+                <div>
+                  <Link
+                    href={`/matches/${matchData._id}`}
+                    className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                  >
+                    ← Go back to captain
+                  </Link>
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -673,6 +680,14 @@ export default function ServerReceiver({
               <button onClick={openResetConfirm} className="btn-info">
                 Reset
               </button>
+              <button
+                onClick={() => {
+                  srChangerEl.current?.showModal();
+                }}
+                className="btn-info"
+              >
+                Change Server/Receiver
+              </button>
             </div>
           )}
         </div>
@@ -716,14 +731,14 @@ export default function ServerReceiver({
                     <div className="my-6 flex gap-x-2 justify-center">
                       <button
                         onClick={handleSetPlayers}
-                        className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                        className="inline-block text-sm btn-info"
                       >
                         Confirm Order
                       </button>
                       <button
                         onClick={() => setActionPreview(false)}
                         type="button"
-                        className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                        className="inline-block text-sm btn-info"
                       >
                         Server/Receiver
                       </button>
@@ -734,13 +749,13 @@ export default function ServerReceiver({
                   <>
                     <button
                       onClick={openResetConfirm}
-                      className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                      className="inline-block text-sm btn-info"
                     >
                       Reset
                     </button>
                     <button
                       onClick={() => setActionPreview(true)}
-                      className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                      className="inline-block text-sm btn-info"
                     >
                       Action Preview
                     </button>
@@ -795,6 +810,18 @@ export default function ServerReceiver({
         teamAPlayers={teamAPlayers}
         teamBPlayers={teamBPlayers}
         token={token}
+        teamA={teamA || null}
+        teamB={teamB || null}
+      />
+
+      {/* Server receiver change manually  */}
+      <ServerReceiverDialog
+        currServerReceiver={currServerReceiver}
+        net={selectedNet}
+        playerMap={playerMap}
+        teamA={teamA || null}
+        teamB={teamB || null}
+        srChangerEl={srChangerEl}
       />
     </div>
   );

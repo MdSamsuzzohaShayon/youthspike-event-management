@@ -8,10 +8,12 @@ import { usePathname } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import { UserRole } from '@/types/user';
 import Image from 'next/image';
-import { removeDivisionFromStore, removeTeamFromStore } from '@/utils/localStorage';
+import { removeTeamFromStore } from '@/utils/localStorage';
 import Link from 'next/link';
 import { itemVariants } from '@/utils/animation';
 import { getUserFromCookie, removeCookie } from '@/utils/clientCookie';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 const menuBackdropVariants = {
   visible: { opacity: 1, transition: { duration: 0.3 } },
@@ -41,7 +43,7 @@ const AdminMenu = () => {
     e.preventDefault();
     removeCookie('token');
     removeCookie('user');
-    removeDivisionFromStore();
+    SessionStorageService.removeItem(DIVISION);
     removeTeamFromStore();
     return window.location.reload();
   };

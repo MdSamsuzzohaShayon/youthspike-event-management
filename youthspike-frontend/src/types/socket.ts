@@ -84,6 +84,15 @@ export interface IServerDoNotKnowInput extends ICommonAction {}
 export interface IReceiverDoNotKnowInput extends ICommonAction {}
 export interface IReceivingHittingErrorInput extends ICommonAction {}
 
+
+export interface IChangeServerReceiverAction extends  ICommonAction{
+  server: string;
+  servingPartner: string;
+  receiver: string;
+  receivingPartner: string;
+}
+
+
 export interface IUpdateCachePointsInput extends ICommonAction {
   dispatch: AppDispatch;
   accessCode: string | null;

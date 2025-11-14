@@ -39,12 +39,7 @@ This is my code:
 
 ```
 
-You need to do:
-  1. Create a visually stunning and unique layout using Tailwind CSS. 
-  2. Maintain the existing color scheme (black, white, and yellow) while ensuring a clean, modern, and professional appearance. 
-  3. Incorporate gradients or subtle animations if they enhance the visual appeal. 
-  4. Follow modern UI/UX design principles to make the layout highly responsive, accessible, and engaging on all devices. 
-  5. ally, convert the design into well-structured, production-ready JSX code with proper Tailwind class organization.
+
 
 
 
@@ -478,9 +473,18 @@ export default MatchesMain;
 
 
 
-Make MatchesPage properly, use PrefetchQuery.
-ANd make sure properly type safety with typescript. 
-Handle error properly and throw that error with proper description.
-Apply KISS and DRY method. 
-Moreover, make the component better in terms of time and space complexty
+You need to do:
+  1. Create a visually stunning and unique layout using Tailwind CSS. 
+  2. Maintain the existing color scheme (black, white, and yellow) while ensuring a clean, modern, and professional appearance. 
+  3. Incorporate gradients or subtle animations if they enhance the visual appeal. 
+  4. Follow modern UI/UX design principles to make the layout highly responsive, accessible, and engaging on all devices. 
+  5. ally, convert the design into well-structured, production-ready JSX code with proper Tailwind class organization.
+
+You need to do:
+  1. Ensure that all variable and function names are meaningful and self-explanatory.
+  2. Follow the KISS (Keep It Simple, Stupid) and DRY (Don’t Repeat Yourself) principles to maintain clean and efficient code.
+  3. Use proper TypeScript typings to ensure type safety and prevent runtime errors.
+  4. Optimize the component for better time and space complexity, improving both performance and scalability.
+  4. Fix all errors if there are any, it should work properly
+
 

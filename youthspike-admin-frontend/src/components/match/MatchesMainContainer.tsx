@@ -1,11 +1,10 @@
 // components/match/MatchesMainContainer.tsx
 'use client';
 
-import React from 'react';
 import { useReadQuery } from '@apollo/client';
 import { QueryRef } from '@apollo/client';
 import MatchesMain from './MatchesMain';
-import { IEventExpRel, IEventWithMatchesResponse, IGroupExpRel, IGroupRelatives, ILDO, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import { IEventWithMatchesResponse, IGroupExpRel, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
 
 
 
@@ -34,6 +33,7 @@ function MatchesMainContainer({ queryRef, eventId }: IMatchesMainContainerProps)
   
   // Process groups - O(g) time complexity where g is groups count
   const processedGroups = processGroups(groups, teamMap);
+
 
   return (
     <MatchesMain 

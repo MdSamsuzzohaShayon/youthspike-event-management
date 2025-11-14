@@ -4,7 +4,7 @@ import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { IGetTeamDetailQuery, IMatchExpRel, INetRelatives, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IRoundRelatives, ITeam } from '@/types';
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import sessionStorageService from '@/utils/SessionStorageService';
+import SessionStorageService from '@/utils/SessionStorageService';
 import { CldImage } from 'next-cloudinary';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -143,7 +143,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
 
   const teamDivisionLower = useMemo(() => {
     const division = teamData.division?.trim().toLowerCase() || '';
-    sessionStorageService.setItem(DIVISION, division);
+    SessionStorageService.setItem(DIVISION, division);
     return division;
   }, [teamData.division]);
 
@@ -201,7 +201,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
   const handleSelectMatch = useCallback(() => {}, []);
 
   useEffect(() => {
-    if (team?._id) sessionStorageService.setItem(TEAM, team._id);
+    if (team?._id) SessionStorageService.setItem(TEAM, team._id);
   }, [team?._id]);
 
   // Reusable components

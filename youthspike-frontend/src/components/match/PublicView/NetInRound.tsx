@@ -16,7 +16,6 @@ import { setCurrNetNum } from "@/redux/slices/netSlice";
 import { useMemo, useRef } from "react";
 import Link from "next/link";
 import { useLdoId } from "@/lib/LdoProvider";
-import { toOrdinal } from "@/utils/helper";
 import ChangePlayDialog from "@/components/elements/Dialog/ChangePlayDialog";
 
 interface INetInRoundProps {

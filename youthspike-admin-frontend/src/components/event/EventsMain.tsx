@@ -13,11 +13,12 @@ import { IEvent, IGetEventDirectorQuery, IOption } from '@/types';
 import { redirect, useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
-import { removeDivisionFromStore } from '@/utils/localStorage';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorProvider';
 import EventFilterDialog from './EventFilterDialog';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 
 const itemList: IOption[] = [
@@ -133,7 +134,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
   };
 
   useEffect(() => {
-    removeDivisionFromStore();
+    SessionStorageService.removeItem(DIVISION);
   }, [router, user]);
 
   if (isLoading) return <Loader />;

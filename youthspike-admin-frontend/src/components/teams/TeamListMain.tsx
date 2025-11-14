@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
 import Loader from '@/components/elements/Loader';
 import TeamList from '@/components/teams/TeamList';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IEventExpRel, IGetEventWithTeamsQuery, IGroupExpRel, IOption, IPlayerExpRel, ITeam } from '@/types';
+import { IGetEventWithTeamsQuery, IOption, IPlayerExpRel, ITeam } from '@/types';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 import InputField from '../elements/forms/InputField';
 import SelectInput from '../elements/forms/SelectInput';
@@ -13,8 +13,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CurrentEvent from '../event/CurrentEvent';
 import UserMenuList from '../layout/UserMenuList';
 import { useLdoId } from '@/lib/LdoProvider';
-import SessionStorageService from '@/utils/SessionStorageService';
-import { DIVISION } from '@/utils/constant';
 import { QueryRef, useReadQuery } from '@apollo/client';
 
 

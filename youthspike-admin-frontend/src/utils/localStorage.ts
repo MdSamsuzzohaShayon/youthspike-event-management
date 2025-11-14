@@ -1,25 +1,9 @@
 import { IPlayerPage, IPlayerWithRank } from '@/types';
 import { PLAYER_PAGE } from './constant';
 
-// Division
-function setDivisionToStore(division: string) {
-  window.localStorage.setItem('division', division);
-}
 
-function getDivisionFromStore(): null | string {
-  if (typeof window === 'undefined') return null;
-  const division = window.localStorage.getItem('division');
-  if (division?.trim() === 'undefined') {
-    removeDivisionFromStore();
-    return null;
-  }
-  if (division && division.trim() !== '') return division.trim().toLowerCase();
-  return null;
-}
 
-function removeDivisionFromStore() {
-  window.localStorage.removeItem('division');
-}
+
 
 // Team
 function setTeamToStore(teamId: string) {
@@ -141,4 +125,4 @@ function setMatch(matchId: string, roundId: string, netId?: string | null): void
 }
 
 
-export { setMatch, setDivisionToStore, getDivisionFromStore, removeDivisionFromStore, setTeamToStore, getTeamFromStore, removeTeamFromStore, setPlayerRankings, removePlayerRankings, getPlayerRankings, setPlayerPage, getPlayerPage };
+export { setMatch, setTeamToStore, getTeamFromStore, removeTeamFromStore, setPlayerRankings, removePlayerRankings, getPlayerRankings, setPlayerPage, getPlayerPage };

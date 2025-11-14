@@ -13,48 +13,75 @@ import { useUser } from '@/lib/UserProvider';
 import { IEventExpRel, IGroupExpRel, IMatchExpRel, IOption, ITeam } from '@/types';
 import { IUserContext, UserRole } from '@/types/user';
 import { divisionsToOptionList } from '@/utils/helper';
-import { getDivisionFromStore, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore } from '@/utils/localStorage';
+import { removeTeamFromStore } from '@/utils/localStorage';
 
 import { getUserFromCookie } from '@/utils/clientCookie';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
-interface IMatchesMainProps {
+interface MatchesMainProps {
   matches: IMatchExpRel[];
   teams: ITeam[];
   groups: IGroupExpRel[];
   currEvent: IEventExpRel;
 }
 
-/**
- * Returns matches that belong to the team of the current user (if captain/co-captain/player).
- */
-function getUserScopedMatches(user: IUserContext, teams: ITeam[], matches: IMatchExpRel[]): IMatchExpRel[] {
-  if (!user?.info) return matches;
-
-  let userTeam: ITeam | undefined;
-
-  switch (user.info.role) {
-    case UserRole.captain:
-      userTeam = teams.find((t) => t.captain?._id === user.info?.captainplayer);
-      break;
-    case UserRole.co_captain:
-      userTeam = teams.find((t) => t.cocaptain?._id === user.info?.cocaptainplayer);
-      break;
-    case UserRole.player:
-      // @ts-ignore
-      userTeam = teams.find((t) => t.players?.includes(user.info?.player));
-      break;
-    default:
-      break;
-  }
-
-  if (!userTeam) return matches;
-
-  const teamId = userTeam._id;
-  return matches.filter((m) => m?.teamA?._id === teamId || m?.teamB?._id === teamId);
+interface FilteredData {
+  teams: ITeam[];
+  matches: IMatchExpRel[];
+  groups: IGroupExpRel[];
 }
 
-function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
-  if (!currEvent) return <div>Event not found</div>;
+/**
+ * Returns the user's team based on their role
+ */
+function getUserTeam(user: IUserContext, teams: ITeam[]): ITeam | undefined {
+  if (!user?.info) return undefined;
+
+  const { role, captainplayer, cocaptainplayer, player } = user.info;
+  if (!player) return undefined;
+
+  switch (role) {
+    case UserRole.captain:
+      return teams.find((team) => team.captain?._id === captainplayer);
+    case UserRole.co_captain:
+      return teams.find((team) => team.cocaptain?._id === cocaptainplayer);
+    case UserRole.player:
+      return teams.find((team) => (team.players.map((p) => (typeof p === 'object' ? p._id : p)) as string[])?.includes(player));
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Returns matches that belong to the team of the current user
+ */
+function getUserScopedMatches(user: IUserContext, teams: ITeam[], matches: IMatchExpRel[]): IMatchExpRel[] {
+  const userTeam = getUserTeam(user, teams);
+  if (!userTeam) return matches;
+
+  const userTeamId = userTeam._id;
+  return matches.filter((match) => match?.teamA?._id === userTeamId || match?.teamB?._id === userTeamId);
+}
+
+/**
+ * Check if user has restricted view (captain/co-captain/player)
+ */
+function hasRestrictedView(userRole?: UserRole): boolean {
+  return [UserRole.captain, UserRole.co_captain, UserRole.player].includes(userRole as UserRole);
+}
+
+/**
+ * Check if user can manage matches (admin/director)
+ */
+function canManageMatches(userRole?: UserRole): boolean {
+  return userRole === UserRole.admin || userRole === UserRole.director;
+}
+
+function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
+  if (!currEvent) {
+    return <div>Event not found</div>;
+  }
 
   // Local state
   const [isLoading, setIsLoading] = useState(false);
@@ -65,63 +92,79 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
   const currentUser = useUser();
   const cachedUserFromCookie = useMemo(() => getUserFromCookie(), []);
 
-  // Division list (memoized, only changes when event divisions change)
+  // Memoized values
   const divisionOptions: IOption[] = useMemo(() => divisionsToOptionList(currEvent?.divisions || ''), [currEvent?.divisions]);
 
-  // Apply division + user role filtering in one memoized block
-  const { divisionTeams, divisionMatches, divisionGroups } = useMemo(() => {
-    let divisionTeams = teams;
-    let divisionMatches = matches;
-    let divisionGroups = groups;
+  const userRole = currentUser?.info?.role;
+  const hasRestrictedAccess = hasRestrictedView(userRole);
+  const canManage = canManageMatches(userRole);
 
-    if (selectedDivision) {
-      const divisionKey = selectedDivision.trim().toLowerCase();
-      divisionTeams = divisionTeams.filter((t) => t?.division?.trim().toLowerCase() === divisionKey);
-      divisionMatches = divisionMatches.filter((m) => m?.division?.trim().toLowerCase() === divisionKey);
-      divisionGroups = divisionGroups.filter((g) => g?.division?.trim().toLowerCase() === divisionKey);
+  // Apply division + user role filtering
+  const filteredData: FilteredData = useMemo(() => {
+    const normalizedDivision = selectedDivision.trim().toLowerCase();
+    const hasDivisionFilter = Boolean(selectedDivision);
+
+    // Filter by division
+    let filteredTeams = hasDivisionFilter ? teams.filter((team) => team?.division?.trim().toLowerCase() === normalizedDivision) : teams;
+
+    let filteredMatches = hasDivisionFilter ? matches.filter((match) => match?.division?.trim().toLowerCase() === normalizedDivision) : matches;
+
+    let filteredGroups = hasDivisionFilter ? groups.filter((group) => group?.division?.trim().toLowerCase() === normalizedDivision) : groups;
+
+    // Apply user scope filtering for restricted roles
+    if (cachedUserFromCookie?.info && hasRestrictedView(cachedUserFromCookie.info.role)) {
+      filteredMatches = getUserScopedMatches(cachedUserFromCookie, filteredTeams, filteredMatches);
     }
 
-    if (cachedUserFromCookie?.info?.role && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(cachedUserFromCookie.info.role)) {
-      divisionMatches = getUserScopedMatches(cachedUserFromCookie, divisionTeams, divisionMatches);
-    }
-
-    return { divisionTeams, divisionMatches, divisionGroups };
+    return {
+      teams: filteredTeams,
+      matches: filteredMatches,
+      groups: filteredGroups,
+    };
   }, [selectedDivision, cachedUserFromCookie, teams, matches, groups]);
 
-  // Refetch function (reload page)
-  const refetchMatches = useCallback(() => {
-    window.location.reload();
-  }, []);
+  const { teams: divisionTeams, matches: divisionMatches, groups: divisionGroups } = filteredData;
 
-  // On mount: initialize division filter from localStorage
+  // Initialize division filter from localStorage
   useEffect(() => {
     removeTeamFromStore();
-    const storedDivision = getDivisionFromStore();
-    if (storedDivision) setSelectedDivision(storedDivision);
+    const savedDivision = SessionStorageService.getItem(DIVISION);
+    if (savedDivision) {
+      setSelectedDivision(String(savedDivision).trim());
+    }
   }, []);
 
   // Division dropdown handler
   const handleDivisionChange = useCallback((e: React.SyntheticEvent) => {
-    const selectedValue = (e.target as HTMLSelectElement).value.trim();
+    const inputEl = e.target as HTMLInputElement;
+    const selectedValue = inputEl.value.trim();
     setSelectedDivision(selectedValue);
 
     if (selectedValue) {
-      setDivisionToStore(selectedValue);
+      SessionStorageService.setItem(DIVISION, selectedValue);
     } else {
-      removeDivisionFromStore();
+      SessionStorageService.removeItem(DIVISION);
     }
   }, []);
 
   // Callback when a new match is added
   const handleMatchAdded = useCallback(
     (newMatch: IMatchExpRel) => {
-      // Mutating matches directly — keeps UI fast and avoids unnecessary refetch
+      // Note: This mutates the original matches array
+      // Consider using state management if this causes issues
       matches.push(newMatch);
     },
     [matches],
   );
 
-  if (isLoading) return <Loader />;
+  // Toggle between add form and list view
+  const toggleMatchView = useCallback(() => {
+    setShowMatchAddForm((prev) => !prev);
+  }, []);
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -136,18 +179,17 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
       <div className="mt-4">
         {showMatchAddForm ? (
           <div className="match-add-wrapper w-full">
-            {currentUser?.info && (currentUser.info.role === UserRole.admin || currentUser.info.role === UserRole.director) && (
+            {canManage && (
               <>
-                <button type="button" className="btn-info mb-4" onClick={() => setShowMatchAddForm(false)}>
+                <button type="button" className="btn-info mb-4" onClick={toggleMatchView}>
                   Match List
                 </button>
 
-                {/* Only allow division selection if user is not a captain/co-captain/player */}
-                {!currentUser?.info?.role || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(currentUser.info.role) ? (
+                {!hasRestrictedAccess && (
                   <div className="division-selection w-full">
                     <SelectInput key="division-selector-add" handleSelect={handleDivisionChange} defaultValue={selectedDivision} name="division" optionList={divisionOptions} />
                   </div>
-                ) : null}
+                )}
 
                 <MatchAdd
                   eventData={currEvent}
@@ -164,24 +206,31 @@ function MatchesMain({ currEvent, matches, teams, groups }: IMatchesMainProps) {
           </div>
         ) : (
           <div className="match-list-wrapper w-full">
-            {currentUser?.info && (currentUser.info.role === UserRole.admin || currentUser.info.role === UserRole.director) && (
-              <button type="button" className="btn-info mb-4" onClick={() => setShowMatchAddForm(true)}>
+            {canManage && (
+              <button type="button" className="btn-info mb-4" onClick={toggleMatchView}>
                 Add Match
               </button>
             )}
+
             <br />
 
-            {/* Only allow division selection if user is not a captain/co-captain/player */}
-            {!currentUser?.info?.role || ![UserRole.captain, UserRole.co_captain, UserRole.player].includes(currentUser.info.role) ? (
+            {!hasRestrictedAccess && (
               <div className="division-selection w-full">
                 <SelectInput key="division-selector-list" handleSelect={handleDivisionChange} defaultValue={selectedDivision} name="division" optionList={divisionOptions} />
               </div>
-            ) : null}
+            )}
 
             {divisionMatches.length > 0 ? (
-              <MatchList eventId={currEvent?._id} setIsLoading={setIsLoading} matchList={divisionMatches} teamList={teams} refetchFunc={refetchMatches} groupList={divisionGroups} />
+              <MatchList
+                eventId={currEvent?._id}
+                setIsLoading={setIsLoading}
+                matchList={divisionMatches}
+                teamList={teams}
+                refetchFunc={() => window.location.reload()}
+                groupList={divisionGroups}
+              />
             ) : (
-              <p>No match created yet!</p>
+              <p>No matches created yet!</p>
             )}
           </div>
         )}

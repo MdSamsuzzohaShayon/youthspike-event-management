@@ -32,6 +32,7 @@ import {
   ReceiverDoNotKnowInput,
   RevertPlayInput,
   JoinPlayerRoomInput,
+  ChangeServerReceiverInput,
 } from './gateway.types';
 import { UserRole } from 'src/user/user.schema';
 import { RoomHelper } from './gateway.helpers/room.helper';
@@ -62,6 +63,7 @@ import { JoinPlayerRoomHandler } from './gateway.handlers/join-player-room.handl
 import { LeavePlayerRoomHandler } from './gateway.handlers/leave-player-room.handler';
 import { RevertPlayHelper } from './gateway.helpers/revert-play.helper';
 import { UndoCheckInHandler } from './gateway.handlers/undo-check-in.handler';
+import { ChangeServerReceiverManually } from './gateway.handlers/change-server-receiver-manually';
 
 @WebSocketGateway({
   cors: true,
@@ -101,6 +103,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
   private updateCachePoints: UpdateCachePointsHandler;
   private resetScore: ResetScoreHandler;
   private revertPlay: RevertPlayHandler;
+  private changeServerReceiverManully: ChangeServerReceiverManually;
 
   constructor(
     private readonly gatewayService: GatewayService,
@@ -139,6 +142,10 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.oneTwoThreePutAway = new OneTwoThreePutAwayHandler(scoreKeeperHelper, pointsUpdateHelper);
     this.rallyConversion = new RallyConversionHandler(scoreKeeperHelper, pointsUpdateHelper);
     this.receiverDoNotKnow = new ReceiverDoNotKnowHandler(scoreKeeperHelper);
+
+
+    // Change server receiver manually
+    this.changeServerReceiverManully = new ChangeServerReceiverManually(gatewayService, scoreKeeperHelper);
 
     // Update database
     this.updateCachePoints = new UpdateCachePointsHandler(gatewayService, validationHelper, scoreKeeperHelper);
@@ -313,6 +320,12 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() receiverDoNotKnowInput: ReceiverDoNotKnowInput,
   ) {
     return this.receiverDoNotKnow.handle(client, receiverDoNotKnowInput, this.roomsLocal);
+  }
+
+  // Change server receiver manually
+  @SubscribeMessage('server-receiver-change-manually-from-client')
+  async onServerReceiverChange(@ConnectedSocket() client: Socket, @MessageBody() serverReceiverInput: ChangeServerReceiverInput) {
+    return this.changeServerReceiverManully.handle(client, serverReceiverInput);
   }
 
   // MongoDB Database operations

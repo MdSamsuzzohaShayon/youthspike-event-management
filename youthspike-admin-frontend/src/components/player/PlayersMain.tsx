@@ -4,18 +4,20 @@ import { EPlayerStatus, IPlayerExpRel } from '@/types/player';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Loader from '@/components/elements/Loader';
-import { divisionsToOptionList, isValidObjectId } from '@/utils/helper';
+import { divisionsToOptionList } from '@/utils/helper';
 import { IEvent, IGroupRelatives, IPlayerRankingExpRel, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import CurrentEvent from '@/components/event/CurrentEvent';
-import { getDivisionFromStore, getPlayerPage, removeDivisionFromStore, removeTeamFromStore, setDivisionToStore, setPlayerPage } from '@/utils/localStorage';
+import { removeTeamFromStore } from '@/utils/localStorage';
 import SelectInput from '@/components/elements/forms/SelectInput';
 import PlayerList from '@/components/player/PlayerList';
 import UserMenuList from '@/components/layout/UserMenuList';
 import Pagination from '../elements/Pagination';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import InputField from '../elements/forms/InputField';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 interface IPlayersMainProps {
   currEvent: IEvent;
@@ -101,8 +103,8 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     setCurrentPageActive(1);
     setCurrentPageInactive(1);
 
-    if (!value) removeDivisionFromStore();
-    else setDivisionToStore(value);
+    if (!value) SessionStorageService.removeItem(DIVISION);
+    else SessionStorageService.setItem(DIVISION, value);
   }, []);
 
   // Handle search change - remove debounce for immediate feedback
@@ -125,9 +127,9 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
   // Load division from store initially (fallback for backward compatibility)
   useEffect(() => {
     removeTeamFromStore();
-    const divisionExist = getDivisionFromStore();
+    const divisionExist = SessionStorageService.getItem(DIVISION);
     if (divisionExist && !filter.division) {
-      setFilter((prev) => ({ ...prev, division: divisionExist }));
+      setFilter((prev) => ({ ...prev, division: divisionExist as string }));
     }
   }, [filter.division]);
 

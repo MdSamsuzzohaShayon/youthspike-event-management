@@ -9,7 +9,8 @@ import Pagination from '@/components/elements/Pagination';
 
 import { IEventExpRel, IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
 import { divisionsToOptionList } from '@/utils/helper';
-import { getDivisionFromStore, removeDivisionFromStore, setDivisionToStore } from '@/utils/localStorage';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 interface ITeamStandingsMainProps {
   eventData: IEventExpRel;
@@ -66,9 +67,9 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
     setCurrentPage(1); // reset pagination
 
     if (division) {
-      setDivisionToStore(division);
+      SessionStorageService.setItem(DIVISION, division);
     } else {
-      removeDivisionFromStore();
+      SessionStorageService.removeItem(DIVISION);
     }
   }, []);
 
@@ -79,9 +80,9 @@ function TeamStandingsMain({ eventData }: ITeamStandingsMainProps) {
   }, []);
 
   useEffect(() => {
-    const divisionExist = getDivisionFromStore() || '';
+    const divisionExist = SessionStorageService.getItem(DIVISION) || '';
     if (divisionExist) {
-      setCurrDivision(divisionExist);
+      setCurrDivision(divisionExist as string);
     }
   }, []);
 

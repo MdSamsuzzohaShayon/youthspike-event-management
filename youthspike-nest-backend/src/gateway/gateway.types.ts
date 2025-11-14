@@ -207,6 +207,23 @@ export class RevertPlayInput extends UpdateCachePointsInput {
   play: number;
 }
 
+@InputType()
+export class ChangeServerReceiverInput extends CommonActionInput {
+  @Field({ nullable: false })
+  server: string;
+
+  @Field({ nullable: false })
+  servingPartner: string;
+
+  @Field({ nullable: false })
+  receiver: string;
+
+
+  @Field({ nullable: false })
+  receivingPartner: string;
+
+}
+
 
 @InputType()
 export class ResetScoreInput extends UpdateCachePointsInput {}

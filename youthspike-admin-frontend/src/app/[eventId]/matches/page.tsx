@@ -1,8 +1,7 @@
 // React.js and Next.js
-import React from 'react';
 
 // GraphQL, helpers, utils, types
-import { IEventExpRel, IEventWithMatchesResponse, IGroupExpRel, ILDO, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam, TParams } from '@/types';
+import { IEventWithMatchesResponse, TParams } from '@/types';
 import { PreloadQuery } from '@/lib/client';
 import { Suspense } from 'react';
 import Loader from '@/components/elements/Loader';

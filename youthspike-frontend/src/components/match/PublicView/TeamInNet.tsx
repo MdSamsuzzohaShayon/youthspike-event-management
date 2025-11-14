@@ -11,7 +11,7 @@ import {
 } from "@/types";
 import { CldImage } from "next-cloudinary";
 import Link from "next/link";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 interface ITeamInNetProps {
   team: ITeam;

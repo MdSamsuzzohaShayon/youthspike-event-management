@@ -1,8 +1,7 @@
-import { IAccessCode, IMatchExpRel, IUser } from '.';
+import { IAccessCode, IMatch, IMatchExpRel, IUser } from '.';
 import { INetRelatives } from './net';
 import { IPlayer } from './player';
 import { IRoundRelatives } from './round';
-import { IMatch, IRevertPlayInput } from './socket';
 
 
 export enum EServerPositionPair {
@@ -119,6 +118,12 @@ export interface IResetServerReceiverResponse extends IServerReceiverCommonRespo
   setSelectedServer?: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedReceiver?: React.Dispatch<React.SetStateAction<string | null>>;
   setActionPreview?: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+
+
+export interface IChangeServerReceiverResponse extends IServerReceiverCommonResponse{
+  data: IServerReceiverOnNetMixed;
 }
 
 

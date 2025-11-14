@@ -6,7 +6,7 @@ import CurrentEvent from '@/components/event/CurrentEvent';
 import PlayerAdd from '@/components/player/PlayerAdd';
 import { IEventExpRel, ITeam } from '@/types';
 import { divisionsToOptionList } from '@/utils/helper';
-import sessionStorageService from '@/utils/SessionStorageService';
+import SessionStorageService from '@/utils/SessionStorageService';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { DIVISION } from '@/utils/constant';
 
@@ -23,7 +23,7 @@ function PlayerAddMain({ teams, divisions, event }: IPlayerAddMainProps) {
 
   // ===== Load division from sessionStorage only once =====
   useEffect(() => {
-    const savedDivision = sessionStorageService.getItem(DIVISION);
+    const savedDivision = SessionStorageService.getItem(DIVISION);
     if (savedDivision) setCurrDivision(String(savedDivision));
   }, []);
 

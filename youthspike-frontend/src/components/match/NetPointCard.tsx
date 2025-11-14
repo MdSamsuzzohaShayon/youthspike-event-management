@@ -159,15 +159,17 @@ function NetPointCard({
 
   return (
     <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around items-center gap-x-2">
-      <Image
-        width={30}
-        height={30}
-        role="presentation"
-        onClick={handleScorekeeperNavigation}
-        src="/icons/spectate.svg"
-        alt="Scorekeeper"
-        className="w-4 md:w-6 svg-black"
-      />
+      <div className="px-2">
+        <Image
+          width={30}
+          height={30}
+          role="presentation"
+          onClick={handleScorekeeperNavigation}
+          src="/icons/spectate.svg"
+          alt="Scorekeeper"
+          className="w-6 md:w-6 svg-black"
+        />
+      </div>
 
       <div className="flex flex-col justify-around items-center p-1 rounded-lg ">
         <TeamScoreInput
@@ -230,14 +232,14 @@ function NetPointCard({
         />
       </div>
 
-      <Link href={`/score-keeping/${currMatch._id}`}>
-      <Image
-        width={30}
-        height={30}
-        src="/icons/scorekeeper.png"
-        alt="Scorekeeper"
-        className="w-4 md:w-6 svg-black"
-      />
+      <Link href={`/score-keeping/${currMatch._id}`} className="px-2">
+        <Image
+          width={30}
+          height={30}
+          src="/icons/scorekeeper.png"
+          alt="Scorekeeper"
+          className="w-6 md:w-6 svg-black"
+        />
       </Link>
     </div>
   );

@@ -3,18 +3,19 @@
 import React, { useMemo, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import TeamAdd from './TeamAdd';
-import { removeDivisionFromStore, setDivisionToStore } from '@/utils/localStorage';
 import { IGroup, IOption, IPlayer, ITeam } from '@/types';
 import Loader from '../elements/Loader';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
-interface INewTeamMainProps{
+interface ITeamContainerProps{
     eventId: string;
     divisionList: IOption[];
     players: IPlayer[];
     groups: IGroup[];
 }
 
-function NewTeamMain({ eventId, divisionList, players, groups }: INewTeamMainProps) {
+function TeamContainer({ eventId, divisionList, players, groups }: ITeamContainerProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [currDivision, setCurrDivision] = useState<string>('');
 
@@ -29,9 +30,10 @@ function NewTeamMain({ eventId, divisionList, players, groups }: INewTeamMainPro
         const inputEl = e.target as HTMLInputElement;
         setCurrDivision(inputEl.value.trim());
         if (inputEl.value === '') {
-            removeDivisionFromStore();
+            SessionStorageService.removeItem(DIVISION);
+            
         } else {
-            setDivisionToStore(inputEl.value.trim());
+            SessionStorageService.setItem(DIVISION, inputEl.value.trim());
         }
     }
 
@@ -62,4 +64,4 @@ function NewTeamMain({ eventId, divisionList, players, groups }: INewTeamMainPro
     )
 }
 
-export default NewTeamMain;
+export default TeamContainer;

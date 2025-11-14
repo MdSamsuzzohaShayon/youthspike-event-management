@@ -4,12 +4,13 @@ import { BACKEND_URL } from '@/utils/keys';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
-import { getDivisionFromStore } from '@/utils/localStorage';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorProvider';
 import { handleError, handleResponse } from '@/utils/handleError';
 import { getCookie } from '@/utils/clientCookie';
 import FileInput from '../elements/forms/FileInput';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 interface IMultiPlayerAddProps {
   eventId: string;
@@ -100,9 +101,9 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IM
   };
 
   useEffect(() => {
-    const prevDivision = getDivisionFromStore();
-    if (prevDivision) {
-      setSelectedDivision(prevDivision);
+    const division = SessionStorageService.getItem(DIVISION);
+    if (division) {
+      setSelectedDivision(division as string);
     }
   }, []);
 
