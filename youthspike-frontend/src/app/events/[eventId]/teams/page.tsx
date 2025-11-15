@@ -8,7 +8,7 @@ import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 import { ISearchLimitFilter, ISearchTeamResponse, ITeamFilter } from "@/types";
 import { SEARCH_TEAMS } from "@/graphql/team";
-import TeamsMain from "@/components/team/TeamsMain";
+import TeamsContainer from "@/components/team/TeamsContainer";
 
 
 
@@ -43,7 +43,7 @@ export default async function TeamsPage({
     >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
-          <TeamsMain
+          <TeamsContainer
             queryRef={
               queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>
             }

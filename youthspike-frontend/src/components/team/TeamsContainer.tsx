@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import {
@@ -18,7 +24,7 @@ import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
 import SearchTeamList from "./SearchTeamList";
 
-interface ITeamsMainProps {
+interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
   eventId: string;
   initialSearchParams: Partial<ISearchFilter>;
@@ -32,11 +38,12 @@ const DEFAULT_FILTER_STATE: ITeamFilter = {
 
 const PAGE_SIZE = 30;
 
-export default function TeamsMain({
+export default function TeamsContainer({
   queryRef,
   eventId,
   initialSearchParams,
-}: ITeamsMainProps) {
+}: ITeamsContainerProps) {
+  const isInitial = useRef<boolean>(true);
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
@@ -83,6 +90,10 @@ export default function TeamsMain({
       const searchData = responseData?.searchTeams?.data;
       if (!searchData) return;
 
+      console.log("searching for data");
+
+      console.log(searchData.teams);
+
       setTeams(searchData.teams || []);
       setNets(searchData.nets || []);
       setMatches(searchData.matches || []);
@@ -118,6 +129,7 @@ export default function TeamsMain({
 
     try {
       const responseData = await executeSearchQuery(localFilter);
+
       updateAllData(responseData);
       setAppliedFilter(localFilter);
 
@@ -179,10 +191,11 @@ export default function TeamsMain({
 
   // Initialize with preloaded data
   useEffect(() => {
-    if (initialData && teams.length === 0) {
+    if (isInitial.current && initialData) {
       updateAllData(initialData);
+      isInitial.current = false;
     }
-  }, [initialData, teams.length, updateAllData]);
+  }, [initialData, updateAllData]);
 
   const roundsByMatchId = useMemo(() => {
     const map = new Map<string, IRoundRelatives[]>();
@@ -195,8 +208,6 @@ export default function TeamsMain({
     return map;
   }, [rounds]);
 
-  
-
   const netsByMatchId = useMemo(() => {
     const map = new Map<string, INetRelatives[]>();
     nets.forEach((n) => {
@@ -208,7 +219,6 @@ export default function TeamsMain({
     return map;
   }, [nets]);
 
-  
   // Optimized data lookups
   const matchesByTeamId = useMemo(() => {
     const matchList = matches.map((m) => ({

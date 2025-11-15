@@ -1,8 +1,8 @@
 import { useUser } from '@/lib/UserProvider';
-import { IEvent, IGroup, IOption, ITeam } from '@/types';
+import { EPlayerStatus, IEvent, IGroup, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
-import React, { CSSProperties, useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { useRouter } from 'next/navigation';
@@ -151,6 +151,21 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     }
   };
 
+  // const playerCount = team?.players?.length || 0;
+  const { activePlayers, inactivePlayers } = useMemo(() => {
+    const active = [],
+      inactive = [];
+    for (let i = 0; i < team.players.length; i++) {
+      const player = team.players[i];
+      if (player.status === EPlayerStatus.ACTIVE) {
+        active.push(player);
+      } else {
+        inactive.push(player);
+      }
+    }
+    return { activePlayers: active, inactivePlayers: inactive };
+  }, [team]);
+
   // Effects
   useEffect(() => {
     if (eventList?.length) {
@@ -171,8 +186,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       value: g._id,
       text: g.name,
     }));
-
-  const playerCount = team?.players?.length || 0;
 
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
 
@@ -259,7 +272,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       <div className="flex items-center justify-center flex-1">
         <div className="flex items-center text-sm text-gray-300 bg-gray-700 px-3 py-1.5 rounded-lg">
           <span className="mr-2">Players:</span>
-          <span className="font-medium">{playerCount}</span>
+          <span className="font-medium">{activePlayers.length} / {activePlayers.length + inactivePlayers.length}</span>
         </div>
       </div>
 
@@ -347,79 +360,76 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       </div>
 
       {/* Desktop Layout */}
-      <div className="w-full hidden md:flex p-2 items-center justify-between">
-        {/* Left Section */}
-        <div className="flex items-center gap-x-2">
-          <div className="flex flex-col  items-center gap-y-2">
-            <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-            <span className="bg-yellow-logo text-black font-bold rounded-full text-sm h-6 w-6 text-center flex justify-center items-center">{team.num}</span>
-          </div>
+      <div className="w-full hidden md:flex flex-col p-2 items-center justify-between">
+        <div className="top-section w-full flex items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center gap-x-2">
+            <div className="flex flex-col  items-center gap-y-2">
+              <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+              <span className="bg-yellow-logo text-black font-bold rounded-full text-sm h-6 w-6 text-center flex justify-center items-center">{team.num}</span>
+            </div>
 
-          <div className="flex gap-x-2 items-center">
-            {team.logo ? (
-              <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="h-16" />
-            ) : (
-              <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />
-            )}
-            <div className="">
-              <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
-              <div className="w-full md:w-4/6">
-                <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+            <div className="flex gap-x-2 items-center">
+              {team.logo ? (
+                <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="h-16" />
+              ) : (
+                <TextImg className="w-16 h-16 rounded-lg bg-yellow-logo" fullText={team.name} />
+              )}
+              <div className="">
+                <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
+                <div className="w-full md:w-4/6">
+                  <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Right Section */}
+          {team?.captain && (
+            <div className="flex items-center gap-x-2">
+              {team.captain.profile ? (
+                <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
+                  <CldImage crop="fit" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-12 h-12 rounded-full border border-yellow-400 flex items-center justify-center bg-gray-600 flex-shrink-0">
+                  <Image src="/icons/sports-man.svg" width={28} height={28} alt="Captain" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 uppercase">Captain</p>
+                <h4 className="text-sm font-semibold text-white truncate">
+                  {team.captain.firstName} {team.captain.lastName}
+                </h4>
+                <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Middle Section */}
-        {team.captain && (
-          <div className="flex items-center">
-            {team.captain.profile ? (
-              <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
-                <CldImage crop="fit" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
-              </div>
-            ) : (
-              <div className="w-12 h-12 rounded-full border border-yellow-400 flex items-center justify-center bg-gray-600 flex-shrink-0">
-                <Image src="/icons/sports-man.svg" width={28} height={28} alt="Captain" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs text-gray-400 uppercase">Captain</p>
-              <h4 className="text-sm font-semibold text-white truncate">
-                {team.captain.firstName} {team.captain.lastName}
-              </h4>
-              <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
-            </div>
+        {/* Bottom Section */}
+        <div className="w-full flex items-center justify-end gap-2">
+          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+            <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview Team</button>
+          </Link>
+          <div className="flex items-center text-sm text-gray-300">
+            <span className="mr-2">Players:</span>
+            <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{activePlayers.length} / {activePlayers.length + inactivePlayers.length}</span>
           </div>
-        )}
+          <Image
+            onClick={(e) => handleSendCredential(e, team._id)}
+            src="/icons/send-email.svg"
+            alt="Send Email"
+            width={24}
+            height={24}
+            className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
+          />
 
-        {/* Right Section */}
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col items-end gap-2">
-            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
-              <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview Team</button>
-            </Link>
-            <div className="flex items-center text-sm text-gray-300">
-              <span className="mr-2">Players:</span>
-              <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{playerCount}</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <Image
-              onClick={(e) => handleSendCredential(e, team._id)}
-              src="/icons/send-email.svg"
-              alt="Send Email"
-              width={24}
-              height={24}
-              className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
-            />
-
-            <div className="relative">
-              <button onClick={toggleActionMenu} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
-                <Image width={20} height={20} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
-              </button>
-              <ActionMenu />
-            </div>
+          <div className="relative">
+            <button onClick={toggleActionMenu} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
+              <Image width={20} height={20} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
+            </button>
+            <ActionMenu />
           </div>
         </div>
       </div>

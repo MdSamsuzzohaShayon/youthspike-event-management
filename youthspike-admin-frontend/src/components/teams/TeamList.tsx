@@ -23,11 +23,9 @@ interface TeamListProps {
   refetchFunc?: () => void;
 }
 
-
 const ITEMS_PER_PAGE = 20;
 
 function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refetchFunc }: TeamListProps) {
-
   const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
   const [updateGroup] = useMutation(UPDATE_GROUP);
   const { setActErr } = useError();
@@ -43,12 +41,10 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
 
   const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
 
-  
-
   // eslint-disable-next-line no-unused-vars
   const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
     e.preventDefault();
-    
+
     setFilteredGroupId(groupId);
     setShowFilter(false);
     setShowBulkAction(false);
@@ -64,8 +60,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       newCheckedItems.set(teamId, false);
     }
     setCheckedTeams(newCheckedItems);
-  }
-
+  };
 
   const handleCheckAllToggle = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
@@ -78,12 +73,12 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     } else {
       setCheckedTeams(new Map());
     }
-  }
+  };
 
   const handleShowBulk = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setShowBulkAction(!showBulkAction);
-  }
+  };
 
   const handleBulkDelete = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -97,14 +92,12 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
       const success = await handleResponse({ response: response.data.deleteTeams, setActErr });
       if (success && refetchFunc) await refetchFunc();
-
     } catch (error: any) {
       handleError({ error, setActErr });
     } finally {
       setIsLoading(false);
     }
-
-  }
+  };
 
   const handleBulkCredentials = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -122,7 +115,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleShowChangeGroup = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -130,7 +123,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       .filter(([_, isChecked]) => isChecked) // Filter for checked items
       .map(([teamId]) => teamId); // Map to just the team IDs
     if (checkedTeamIds.length === 0) {
-      return setActErr({ message: "You must select a few teams and do this action", success: false });
+      return setActErr({ message: 'You must select a few teams and do this action', success: false });
     }
 
     setShowBulkAction(false);
@@ -138,8 +131,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     if (cngGroupEl.current) {
       cngGroupEl.current.showModal();
     }
-  }
-
+  };
 
   const handleBulkChangeGroup = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -152,20 +144,19 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       .filter(([_, isChecked]) => isChecked) // Filter for checked items
       .map(([teamId]) => teamId); // Map to just the team IDs
 
-
     // console.log({ groupId: inputEl.value, checkedTeamIds });
 
     // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
-      await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } })
+      await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } });
       if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleBulkMoveTeam = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -173,7 +164,6 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       .filter(([_, isChecked]) => isChecked) // Filter for checked items
       .map(([teamId]) => teamId); // Map to just the team IDs
 
-
     // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
@@ -183,7 +173,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
     try {
@@ -195,12 +185,12 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const paginatedTeamList: ITeam[] = useMemo(() => {
     // Paginated
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-   
+
     // filteredGroupId
     const paginatedTeams = teamList.slice(start, start + ITEMS_PER_PAGE);
 
@@ -208,16 +198,13 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     return paginatedTeams;
   }, [teamList, currentPage]);
 
-  
-  
-
   return (
     <div className="team-list w-full">
       <div className="action-section flex justify-between mb-4">
         <div className="input-group relative flex items-center gap-2 justify-between">
           <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
           <label htmlFor="bulk-action">Bulk Action</label>
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role='presentation' onClick={handleShowBulk} />
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role="presentation" onClick={handleShowBulk} />
           {/* Bulk Action start  */}
           <AnimatePresence>
             {showBulkAction && (
@@ -233,16 +220,24 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
                   <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} />
                   delete
                 </li> */}
-                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkCredentials}>
+                <li
+                  role="presentation"
+                  className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+                  onClick={handleBulkCredentials}
+                >
                   <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
                   Send Credentials
                 </li>
-                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleShowChangeGroup}>
+                <li
+                  role="presentation"
+                  className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+                  onClick={handleShowChangeGroup}
+                >
                   <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
                   Change Group
                 </li>
 
-                <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkMoveTeam}>
+                <li role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center" onClick={handleBulkMoveTeam}>
                   <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
                   Move team
                 </li>
@@ -253,7 +248,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
         </div>
         <div className="input-group relative ">
           <div className="button flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
-            <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : "Group"}</p>
+            <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : 'Group'}</p>
             <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
           </div>
 
@@ -268,22 +263,19 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
                 exit="exit"
                 transition={{ duration: 0.2 }}
               >
-                <li key={"all"} role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
-                  onClick={(e) => handleGroupFilter(e, null)}>All</li>
-                {groupList.map((g, gI) => (<li key={gI} role="presentation"
-                  className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer' onClick={(e) => handleGroupFilter(e, g._id)}>
-                  {g.name}
-                </li>))}
-
+                <li key={'all'} role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleGroupFilter(e, null)}>
+                  All
+                </li>
+                {groupList.map((g, gI) => (
+                  <li key={gI} role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleGroupFilter(e, g._id)}>
+                    {g.name}
+                  </li>
+                ))}
               </motion.ul>
             )}
           </AnimatePresence>
           {/* Filter Action End  */}
         </div>
-
-
-
-
       </div>
       <div className="team-list-card grid grid-cols-1 md:grid-cols-2 gap-2">
         {paginatedTeamList.map((team) => {
@@ -311,13 +303,13 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
         <Pagination currentPage={currentPage} itemList={teamList} setCurrentPage={setCurrentPage} ITEMS_PER_PAGE={ITEMS_PER_PAGE} />
       </div>
 
-      <dialog ref={cngGroupEl} className='modal-dialog'>
+      <dialog ref={cngGroupEl} className="modal-dialog">
         <h3>Change Group</h3>
         {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
         <SelectInput
           name="group"
           optionList={groupList.map((g, gI) => ({
-            id: gI+1,
+            id: gI + 1,
             value: g._id,
             text: g.name,
           }))}

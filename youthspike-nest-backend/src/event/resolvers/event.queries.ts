@@ -340,8 +340,13 @@ export class EventQueries implements IEventQueries {
               teams: playerExist.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
             },
             teams: teams.map((t) => ({
-              ...t.toObject(),
+              ...t,
               matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
+              nets: t.nets?.map((n) => (typeof n === 'object' ? n._id : n)) || [],
+              players: t.players?.map((p) => (typeof p === 'object' ? p._id : p)) || [],
+              captain: typeof t.captain === 'object' ? t.captain._id : t.captain,
+              cocaptain: typeof t.cocaptain === 'object' ? t.cocaptain._id : t.cocaptain,
+              group: typeof t.group === 'object' ? t.group._id : t.group,
             })),
           },
         };
@@ -366,8 +371,13 @@ export class EventQueries implements IEventQueries {
         data: {
           event,
           teams: teams.map((t) => ({
-            ...t.toObject(),
+            ...t,
             matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
+            nets: t.nets?.map((n) => (typeof n === 'object' ? n._id : n)) || [],
+            players: t.players?.map((p) => (typeof p === 'object' ? p._id : p)) || [],
+            captain: typeof t.captain === 'object' ? t.captain._id : t.captain,
+            cocaptain: typeof t.cocaptain === 'object' ? t.cocaptain._id : t.cocaptain,
+            group: typeof t.group === 'object' ? t.group._id : t.group,
           })),
           ldo,
           sponsors,

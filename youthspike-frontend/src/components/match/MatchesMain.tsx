@@ -184,7 +184,6 @@ const handleLoadMore = useCallback(async () => {
   }
 }, [matches.length, appliedFilter, executeSearchQuery]);
 
-  console.log({ml: matches.length});
   
 
   // Initialize with preloaded data

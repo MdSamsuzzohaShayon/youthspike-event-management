@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo, useCallback } from 'react';
 import Loader from '@/components/elements/Loader';
 import TeamList from '@/components/teams/TeamList';
 import { divisionsToOptionList } from '@/utils/helper';
-import { IGetEventWithTeamsQuery, IOption, IPlayerExpRel, ITeam } from '@/types';
+import { IGetEventWithTeamsQuery, IOption, IPlayer, IPlayerExpRel, ITeam } from '@/types';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 import InputField from '../elements/forms/InputField';
 import SelectInput from '../elements/forms/SelectInput';
@@ -32,6 +32,7 @@ function TeamListMain({ queryRef }: ITeamsOfEventPage) {
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
   const {data} = useReadQuery(queryRef);
+  
 
   // Initialize filters from query params
   const initialDivision = searchParams.get('division') || '';
@@ -71,11 +72,23 @@ function TeamListMain({ queryRef }: ITeamsOfEventPage) {
   // Teams with resolved captain
   const teamList: ITeam[] = useMemo(() => {
     if (!teams?.length) return [];
-    const tl: ITeam[] = teams.map((team) => ({
-      ...team,
-      captain: team.captain ? (playerMap.get(String(team.captain)) as IPlayerExpRel) || null : null,
-    }));
-    return tl;
+
+    const newTeamList: ITeam[] = [];
+    for (let i = 0; i < teams.length; i++) {
+      const team = {...teams[i]};
+      team.captain = team.captain ? (playerMap.get(String(team.captain)) as IPlayerExpRel) || null : null;
+      const players: IPlayerExpRel[] = [];
+      for (let j = 0; j < team.players.length; j++) {
+        const player = team.players[j];
+        if(playerMap.has(String(player))){
+          players.push(playerMap.get(String(player)) as IPlayerExpRel);
+        }
+      }
+      team.players = players;
+      newTeamList.push(team);
+      
+    }
+    return newTeamList;
   }, [teams, playerMap]);
 
   const groupList = useMemo(() => groups || [], [groups]);

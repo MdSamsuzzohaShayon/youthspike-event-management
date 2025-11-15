@@ -31,19 +31,15 @@ export class TeamService {
 
 
 
-  async find(filter: FilterQuery<Team>, limit?: number, offset?: number) {
-    let query = this.teamModel.find(filter); // always sort for stable pagination
-
-    if (typeof offset === 'number') {
-      query = query.skip(offset);
-    }
-
-    if (typeof limit === 'number') {
-      query = query.limit(limit);
-    }
-
-    query = query.lean();
-
+  async find(filter: FilterQuery<Team>, offset?: number, limit?: number) {
+    let query = this.teamModel
+      .find(filter)
+      .sort({ _id: 1 })
+      .lean();
+  
+    if (typeof offset === "number") query = query.skip(offset);
+    if (typeof limit === "number") query = query.limit(limit);
+  
     return query.exec();
   }
 
