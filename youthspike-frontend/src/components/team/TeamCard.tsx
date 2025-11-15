@@ -80,7 +80,7 @@ function TeamCard({ team, matchList = [] }: ITeamCardProps) {
 
   return (
     <div className="team-card w-full flex justify-between items-center bg-gray-700 rounded-lg">
-      <Link href={`/teams/${team._id}/${ldoIdUrl}`} className=" w-11/12 p-2 flex items-start justify-between">
+      <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`} className=" w-11/12 p-2 flex items-start justify-between">
         <div className="w-6/12">
           <div className="brand flex gap-1 items-center">
             {team.logo ? (

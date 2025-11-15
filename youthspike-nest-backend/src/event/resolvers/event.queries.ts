@@ -318,13 +318,12 @@ export class EventQueries implements IEventQueries {
 
       // Get user
       const loggedUser = await this.userService.findById(userPayload?._id);
-      if (!loggedUser) return AppResponse.unauthorized();
 
       const teams = await this.teamService.find({ event: eventId });
       if (
-        loggedUser.role === UserRole.captain ||
-        loggedUser.role === UserRole.co_captain ||
-        loggedUser.role === UserRole.player
+        loggedUser?.role === UserRole.captain ||
+        loggedUser?.role === UserRole.co_captain ||
+        loggedUser?.role === UserRole.player
       ) {
         const playerExist = await this.playerService.findOne({
           $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }, { _id: loggedUser.player }],
@@ -372,12 +371,12 @@ export class EventQueries implements IEventQueries {
           event,
           teams: teams.map((t) => ({
             ...t,
-            matches: t.matches?.map((m) => (typeof m === 'object' ? m._id : m)) || [],
-            nets: t.nets?.map((n) => (typeof n === 'object' ? n._id : n)) || [],
-            players: t.players?.map((p) => (typeof p === 'object' ? p._id : p)) || [],
-            captain: typeof t.captain === 'object' ? t.captain._id : t.captain,
-            cocaptain: typeof t.cocaptain === 'object' ? t.cocaptain._id : t.cocaptain,
-            group: typeof t.group === 'object' ? t.group._id : t.group,
+            matches: t.matches?.map((m) => (typeof m === 'object' ? m?._id : m)) || [],
+            nets: t.nets?.map((n) => (typeof n === 'object' ? n?._id : n)) || [],
+            players: t.players?.map((p) => (typeof p === 'object' ? p?._id : p)) || [],
+            captain: typeof t.captain === 'object' ? t.captain?._id : t.captain,
+            cocaptain: typeof t.cocaptain === 'object' ? t.cocaptain?._id : t.cocaptain,
+            group: typeof t.group === 'object' ? t.group?._id : t.group,
           })),
           ldo,
           sponsors,

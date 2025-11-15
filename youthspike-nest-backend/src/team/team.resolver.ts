@@ -16,7 +16,9 @@ import {
   CreateOrUpdateTeamResponse,
   GetEventWithTeamsResponse,
   GetTeamDetailsResponse,
+  GetTeamMatchesResponse,
   GetTeamResponse,
+  GetTeamRosterResponse,
   GetTeamSearchResponse,
   GetTeamsResponse,
   GetTeamstandingsResponse,
@@ -97,6 +99,16 @@ export class TeamResolver {
   @Query((_returns) => GetTeamDetailsResponse)
   async getTeamDetails(@Args('teamId') teamId: string) {
     return this.teamQueris.getTeamDetails(teamId);
+  }
+
+  @Query((_returns) => GetTeamRosterResponse)
+  async getTeamRoster(@Args('teamId') teamId: string) {
+    return this.teamQueris.getTeamRoster(teamId);
+  }
+
+  @Query((_returns) => GetTeamMatchesResponse)
+  async getTeamMatches(@Args('teamId') teamId: string) {
+    return this.teamQueris.getTeamMatches(teamId);
   }
 
   @Query((_returns) => GetTeamSearchResponse)

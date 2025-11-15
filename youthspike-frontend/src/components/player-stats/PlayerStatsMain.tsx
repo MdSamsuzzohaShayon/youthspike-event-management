@@ -200,7 +200,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           <div className="flex justify-start gap-x-2 items-stretch mt-2">
             {/* Team Box */}
             <Link
-              href={`/teams/${team._id}`}
+              href={`/teams/${team._id}/roster`}
               className="bg-gray-800 px-4 py-2 rounded-lg underline decoration-yellow-400 flex gap-x-2 items-center"
             >
               {team?.logo && (

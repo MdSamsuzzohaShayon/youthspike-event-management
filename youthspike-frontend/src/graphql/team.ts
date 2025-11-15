@@ -412,5 +412,159 @@ query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
 
 `;
 
+
+const GET_TEAM_ROSTER = gql`
+query GetTeamRoster($teamId: String!) {
+  getTeamRoster(teamId: $teamId) {
+    code
+    message
+    success
+    data {
+      players {
+        _id
+        captainofteams
+        cocaptainofteams
+        division
+        email
+        firstName
+        lastName
+        phone
+        profile
+        status
+        username
+      }
+      team {
+        _id
+        active
+        num
+        name
+        logo
+        rankLock
+        sendCredentials
+      }
+      statsOfPlayer {
+        playerId
+        stats {
+          _id
+          break
+          broken
+          cleanHits
+          cleanSets
+          defensiveConversion
+          defensiveOpportunity
+          hittingOpportunity
+          match
+          matchPlayed
+          net
+          noTouchAcedCount
+          player
+          receivedCount
+          receiverOpportunity
+          serveAce
+          serveCompletionCount
+          serveOpportunity
+          servingAceNoTouch
+          settingOpportunity
+        }
+      }
+      rankings {
+        _id
+        player
+        playerRanking
+        rank
+      }
+    }
+  }
+}
+
+`;
+
+
+const GET_TEAM_MATCHES = gql`
+query GetTeamMatches($teamId: String!) {
+  getTeamMatches(teamId: $teamId) {
+    code
+    message
+    success
+    data {
+      event {
+        _id
+        active
+        divisions
+        description
+        logo
+        location
+        name
+      }
+      team {
+        _id
+        active
+        division
+        logo
+        name
+        num
+        rankLock
+      }
+      matches {
+        _id
+        completed
+        date
+        description
+        division
+        extendedOvertime
+        fwango
+        location
+        netVariance
+        nets
+        numberOfNets
+        numberOfRounds
+        rounds
+        teamA
+        teamB
+        tieBreaking
+        timeout
+      }
+      nets {
+        _id
+        match
+        num
+        pairRange
+        points
+        round
+        teamAPlayerA
+        teamAPlayerB
+        teamAScore
+        teamBPlayerA
+        teamBPlayerB
+        teamBScore
+        netType
+      }
+      rounds {
+        _id
+        completed
+        match
+        firstPlacing
+        nets
+        num
+        teamAScore
+        teamBProcess
+        teamBScore
+        teamAProcess
+      }
+      teams {
+        _id
+        matches
+        logo
+        name
+        num
+        rankLock
+        division
+      }
+    }
+  }
+}
+
+`;
+
 // eslint-disable-next-line import/prefer-default-export
-export { SEARCH_TEAMS, GET_A_TEAM, GET_TEAM_DETAIL_RAW };
+export { SEARCH_TEAMS, GET_A_TEAM, GET_TEAM_DETAIL_RAW, GET_TEAM_ROSTER, GET_TEAM_MATCHES };

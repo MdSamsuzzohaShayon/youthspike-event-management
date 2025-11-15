@@ -53,7 +53,7 @@ function PlayerStandings({
   const allPlayerRecords = useMemo(() => {
     if (!playerList.length) return [];
     
-    const newMatchList: IMatchExpRel[] = matchList.length > 0 ? matchList : [];
+    const newMatchList: IMatchExpRel[] = matchList?.length > 0 ? matchList : [];
     const newRankingMap = new Map<string, number>(rankingMap);
     
     const records = calculatePlayerRecords(playerList, newMatchList, newRankingMap);

@@ -219,6 +219,146 @@ export class TeamQueries {
     }
   }
 
+  async getTeamRoster(teamId: string) {
+    try {
+      const team = await this.teamService.findById(teamId);
+      const [players, matches, playerRanking] = await Promise.all([
+        this.playerService.find({ events: { $in: [team.event] }, teams: { $in: [team._id] } }),
+        this.matchService.find({
+          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+        }),
+        this.playerRankingService.findOne({
+          team: teamId,
+          $or: [
+            { match: { $exists: false } }, // `match` is undefined
+            { match: null }, // `match` is null
+          ],
+        }),
+      ]);
+
+      // Attributes of matches
+      const matchIds = matches.map((m) => m._id);
+      const [nets, rankings] = await Promise.all([
+        this.netService.find({ match: { $in: matchIds } }),
+        this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
+      ]);
+      // All player stats
+
+      const playerToNets: Record<string, Net[]> = {};
+      for (const net of nets) {
+        [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
+          if (!pid) return;
+          if (!playerToNets[pid]) playerToNets[pid] = [];
+          playerToNets[pid].push(net);
+        });
+      }
+
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+
+      // Process players in parallel
+      await Promise.all(
+        players.map(async (player) => {
+          if (!player?._id) return;
+          // Create new username for the player if there is no username
+          if (!player.username) {
+            const username = this.playerService.playerUsername(player.firstName);
+            await this.playerService.updateOne({ _id: player._id }, { username });
+            player.username = username;
+          }
+
+          const netsOfPlayer = playerToNets[player._id] || [];
+
+          // Batch Redis queries
+          const redisKeys = netsOfPlayer.map((net) => playerKey(player._id, net._id));
+          const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+
+          const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean) as CustomPlayerStats[];
+          const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+
+          // Query DB once, filter in DB if possible
+          const playerstatsDB = await this.playerStatsService.find({ player: player._id });
+
+          const mergedStats: CustomPlayerStats[] = [
+            ...playerstatsRedis, // Redis stats already prepared
+          ];
+
+          // Single efficient loop for DB stats
+          for (const ps of playerstatsDB) {
+            const plain = { ...ps };
+
+            const netId = String(plain.net);
+
+            // Skip if redis already has this net ID
+            if (redisNetIds.has(netId)) continue;
+
+            mergedStats.push({
+              ...plain,
+              net: netId,
+              player: String(plain.player),
+              match: String(plain.match),
+            } as CustomPlayerStats);
+          }
+
+          statsOfPlayer[player._id] = mergedStats;
+        }),
+      );
+
+      const statsArray: PlayerStatsEntry[] = Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+        playerId,
+        stats,
+      }));
+
+      // team, players, rankings, statsOfPlayer
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: {
+          team,
+          players,
+          statsOfPlayer: statsArray,
+          rankings,
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getTeamMatches(teamId: string) {
+    try {
+      const team = await this.teamService.findById(teamId);
+      const [event, matches] = await Promise.all([
+        this.eventService.findOne({ _id: team.event }),
+        this.matchService.find({
+          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+        }),
+      ]);
+
+      // Attributes of matches
+      const matchIds = matches.map((m) => m._id);
+      const [teams, rounds, nets] = await Promise.all([
+        this.teamService.find({ matches: { $in: matchIds } }),
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: matchIds } }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: {
+          team,
+          teams,
+          event,
+          matches,
+          rounds,
+          nets,
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
   async searchTeams(eventId: string, filter: TeamSearchFilter) {
     try {
       // event, teams, matches, nets, rounds

@@ -21,6 +21,7 @@ const SettingsMain = ({ queryRef, eventId }: ISettingsMainProps) => {
   const { data, error } = useReadQuery(queryRef);
 
   const { event, ldo, sponsors, teams, multiplayer, weight, player } = data?.getPlayerEventSetting?.data ?? {};
+  
 
   const eventObj: IEvent | null = event ? { ...event } : null;
   if (eventObj) {

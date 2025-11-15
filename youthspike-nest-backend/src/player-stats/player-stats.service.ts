@@ -32,8 +32,23 @@ export class PlayerStatsService {
     return this.playerStats.findOne(filter);
   }
 
-  async find(filter: FilterQuery<PlayerStats>) {
-    return this.playerStats.find(filter);
+
+  async find(
+    filter: FilterQuery<PlayerStats>,
+    limit?: number,
+    offset?: number, // added for consistency & scalability
+  ) {
+    let query = this.playerStats.find(filter); // ensures stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+    query = query.lean()
+    return query.exec();
   }
 
   async updateOne(filter: FilterQuery<PlayerStats>, updateObj: UpdateQuery<PlayerStats>) {

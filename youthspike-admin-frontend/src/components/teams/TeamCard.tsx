@@ -272,7 +272,9 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       <div className="flex items-center justify-center flex-1">
         <div className="flex items-center text-sm text-gray-300 bg-gray-700 px-3 py-1.5 rounded-lg">
           <span className="mr-2">Players:</span>
-          <span className="font-medium">{activePlayers.length} / {activePlayers.length + inactivePlayers.length}</span>
+          <span className="font-medium">
+            {activePlayers.length} / {activePlayers.length + inactivePlayers.length}
+          </span>
         </div>
       </div>
 
@@ -322,7 +324,11 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           <h4 className="text-xs font-semibold text-white truncate">
             {team.captain.firstName} {team.captain.lastName}
           </h4>
-          <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
+          <div className="w-full flex items-center gap-x-2 flex-wrap">
+            <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
+            <div className="border border-l border-yellow-logo h-6"></div>
+            {team?.captain?.email && <p className="text-xs text-gray-400 truncate">{team.captain.email}</p>}
+          </div>
         </div>
       </div>
     );
@@ -397,11 +403,14 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-xs text-gray-400 uppercase">Captain</p>
                 <h4 className="text-sm font-semibold text-white truncate">
-                  {team.captain.firstName} {team.captain.lastName}
+                  <span>
+                    {team.captain.firstName} {team.captain.lastName}
+                  </span>
+                  <span className="text-xs text-gray-400 uppercase mx-2">(Captain)</span>
                 </h4>
                 <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
+                {team?.captain?.email && <p className="text-xs text-gray-400 truncate">{team.captain.email}</p>}
               </div>
             </div>
           )}
@@ -414,7 +423,9 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           </Link>
           <div className="flex items-center text-sm text-gray-300">
             <span className="mr-2">Players:</span>
-            <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">{activePlayers.length} / {activePlayers.length + inactivePlayers.length}</span>
+            <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">
+              {activePlayers.length} / {activePlayers.length + inactivePlayers.length}
+            </span>
           </div>
           <Image
             onClick={(e) => handleSendCredential(e, team._id)}

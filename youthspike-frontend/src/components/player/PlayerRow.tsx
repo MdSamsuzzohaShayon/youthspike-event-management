@@ -88,7 +88,7 @@ function PlayerRow({
                   player.teams.length > 0 &&
                   typeof player.teams[0] === "object" && (
                     <Link
-                      href={`/teams/${(player.teams[0] as ITeam)?._id}`}
+                      href={`/teams/${(player.teams[0] as ITeam)?._id}/roster`}
                       className="text-yellow-400 text-[10px] uppercase hover:underline truncate max-w-full"
                     >
                       {(player.teams[0] as ITeam).name}

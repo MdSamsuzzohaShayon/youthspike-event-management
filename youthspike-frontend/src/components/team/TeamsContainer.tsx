@@ -90,10 +90,6 @@ export default function TeamsContainer({
       const searchData = responseData?.searchTeams?.data;
       if (!searchData) return;
 
-      console.log("searching for data");
-
-      console.log(searchData.teams);
-
       setTeams(searchData.teams || []);
       setNets(searchData.nets || []);
       setMatches(searchData.matches || []);

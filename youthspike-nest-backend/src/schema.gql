@@ -645,20 +645,38 @@ type CoCaptainPlayer {
   event: Event!
 }
 
+type TeamRoster {
+  team: Team
+  players: [CustomPlayer!]
+  playerRanking: PlayerRanking
+  rankings: [CustomPlayerRankingItem!]
+  event: Event
+  statsOfPlayer: [PlayerStatsEntry!]!
+}
+
+type TeamMatches {
+  team: CustomTeam
+  teams: [CustomTeam!]
+  event: Event
+  matches: [CustomMatch!]
+  rounds: [CustomRound!]
+  nets: [CustomNet!]
+}
+
 type TeamDetails {
   team: Team
-  playerRanking: PlayerRanking
   players: [CustomPlayer!]
+  playerRanking: PlayerRanking
+  rankings: [CustomPlayerRankingItem!]
+  event: Event
+  statsOfPlayer: [PlayerStatsEntry!]!
   group: Group
   captain: CaptainPlayer
   cocaptain: CoCaptainPlayer
-  event: Event
   matches: [CustomMatch!]
-  rankings: [CustomPlayerRankingItem!]
   rounds: [CustomRound!]
   nets: [CustomNet!]
   teams: [Team!]
-  statsOfPlayer: [PlayerStatsEntry!]!
 }
 
 type GetTeamDetailsResponse {
@@ -666,6 +684,20 @@ type GetTeamDetailsResponse {
   success: Boolean!
   message: String
   data: TeamDetails
+}
+
+type GetTeamRosterResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamRoster
+}
+
+type GetTeamMatchesResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamMatches
 }
 
 type TeamSearch {
@@ -1206,6 +1238,8 @@ type Query {
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
+  getTeamRoster(teamId: String!): GetTeamRosterResponse!
+  getTeamMatches(teamId: String!): GetTeamMatchesResponse!
   searchTeams(eventId: String!, filter: TeamSearchFilter): GetTeamSearchResponse!
   getTeamStandings(eventId: String!): GetTeamstandingsResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!

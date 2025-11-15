@@ -1,9 +1,9 @@
 /* eslint-disable import/no-cycle */
 import { IPlayer } from './player';
-import { IEvent } from './event';
-import { IPlayerRanking } from './playerRanking';
+import { IAllStats, IEvent } from './event';
+import { IPlayerRanking, IPlayerRankingItem } from './playerRanking';
 import { IGroup } from './group';
-import { IMatch, IMatchExpRel } from './match';
+import { IMatch, IMatchExpRel, IMatchRelatives } from './match';
 import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
 
@@ -61,6 +61,37 @@ export interface ISearchTeamResponse{
   success: boolean;
   message: string;
   data: ISearchTeamData;
+}
+
+
+interface ITeamRoster {
+  players: IPlayer[];
+  team: ITeam;
+  statsOfPlayer: IAllStats[];
+  rankings: IPlayerRankingItem[];
+}
+
+export interface IGetTeamRosterResponse{
+  code: number;
+  success: boolean;
+  message: string;
+  data: ITeamRoster;
+}
+
+interface ITeamMatches {
+  event: IEvent;
+  team: ITeam;
+  teams: ITeam[];
+  matches: IMatch[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+}
+
+export interface IGetTeamMatchesResponse{
+  code: number;
+  success: boolean;
+  message: string;
+  data: ITeamMatches;
 }
 
 // eslint-disable-next-line no-shadow
