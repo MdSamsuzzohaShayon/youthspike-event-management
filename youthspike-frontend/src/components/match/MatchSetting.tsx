@@ -151,13 +151,13 @@ function MatchSetting({
     dialogSettingEl.current?.close();
   }, []);
 
-  const handleMenuItem = useCallback(
-    (e: React.SyntheticEvent, menuItem: EMenuTitle) => {
-      e.preventDefault();
-      dispatch(setSelectedColItem(menuItem));
-    },
-    [dispatch]
-  );
+  // const handleMenuItem = useCallback(
+  //   (e: React.SyntheticEvent, menuItem: EMenuTitle) => {
+  //     e.preventDefault();
+  //     dispatch(setSelectedColItem(menuItem));
+  //   },
+  //   [dispatch]
+  // );
 
   const handleUndoCheckIn = useCallback(
     (e: React.SyntheticEvent) => {
@@ -179,7 +179,6 @@ function MatchSetting({
 
   const handleUnlockRank = useCallback(
     async (e: React.SyntheticEvent, rankLock: boolean) => {
-      
       e.preventDefault();
       try {
         await mutateTeamPlayerRanking({
@@ -356,71 +355,10 @@ function MatchSetting({
     [match.fwango]
   );
 
-  const renderMenuItem = useCallback(
-    (cm: IColMenu) => {
-      if (cm.title === EMenuTitle.EDIT_MATCH) {
-        return (
-          <Link
-            href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${match._id}/${ldoIdUrl}`}
-            key={cm.id}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-xl hover:from-yellow-500/20 hover:to-yellow-500/10 transition-all duration-200 group"
-          >
-            <span className="text-yellow-400 font-semibold group-hover:text-yellow-300 capitalize">
-              {cm.title}
-            </span>
-            <Image
-              width={16}
-              height={16}
-              src="/icons/external-link.svg"
-              alt="external"
-              className="w-4 h-4 svg-yellow"
-            />
-          </Link>
-        );
-      }
-      return (
-        <div
-          key={cm.id}
-          className="border border-yellow-500/30 rounded-xl overflow-hidden"
-        >
-          <button
-            type="button"
-            className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
-            onClick={(e) => handleMenuItem(e, cm.title)}
-          >
-            <span className="text-white font-semibold capitalize">
-              {cm.title}
-            </span>
-            <Image
-              width={16}
-              height={16}
-              src="/icons/right-arrow.svg"
-              alt="arrow"
-              className={`w-4 h-4 svg-white transition-transform duration-200 ${
-                selectedColItem === cm.title ? "rotate-90" : ""
-              }`}
-            />
-          </button>
-          {selectedColItem === cm.title && (
-            <div className="bg-black-logo border-t border-yellow-500/30 p-4">
-              <CollapseContent title={selectedColItem} />
-            </div>
-          )}
-        </div>
-      );
-    },
-    [selectedColItem, handleMenuItem, match.event, match._id, ldoIdUrl]
-  );
-
   // ====== JSX ======
   return (
     <>
-      <dialog
-        ref={dialogSettingEl}
-        className="modal-dialog"
-      >
+      <dialog ref={dialogSettingEl} className="modal-dialog">
         <div className="bg-gradient-to-br from-gray-900 to-black-logo border-2 border-yellow-500/20 overflow-hidden">
           <DialogHeader onClose={handleSettingClose} />
           <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-80px)]">
@@ -478,10 +416,121 @@ function MatchSetting({
               </div>
             )}
 
-            {fwangoLink}
+            {/* Menu Items - Plain JSX */}
+            <div className="space-y-3">
+              {/* Item 1 */}
+              {match.fwango && (
+                <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
+                  <a
+                    href={match.fwango}
+                    className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
+                  >
+                    <span className="text-white font-semibold capitalize">
+                      Fwango
+                    </span>
+                    <Image
+                      width={16}
+                      height={16}
+                      src="/icons/right-arrow.svg"
+                      alt="arrow"
+                      className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                        selectedColItem === colMenus[0]?.title
+                          ? "rotate-90"
+                          : ""
+                      }`}
+                    />
+                  </a>
+                </div>
+              )}
 
-            {/* Menu Items */}
-            <div className="space-y-3">{colMenus.map(renderMenuItem)}</div>
+              {/* Item 2 */}
+              <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
+                <Link
+                  href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${match._id}`}
+                  className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
+                >
+                  <span className="text-white font-semibold capitalize">
+                    Edit Match
+                  </span>
+                  <Image
+                    width={16}
+                    height={16}
+                    src="/icons/right-arrow.svg"
+                    alt="arrow"
+                    className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                      selectedColItem === colMenus[1]?.title ? "rotate-90" : ""
+                    }`}
+                  />
+                </Link>
+              </div>
+
+              {/* Item 3 */}
+              {myTeam && (
+                <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
+                  <Link
+                    href={`${ADMIN_FRONTEND_URL}/${match.event}/teams/${myTeam._id}`}
+                    className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
+                  >
+                    <span className="text-white font-semibold capitalize">
+                      Edit Roster
+                    </span>
+                    <Image
+                      width={16}
+                      height={16}
+                      src="/icons/right-arrow.svg"
+                      alt="arrow"
+                      className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                        selectedColItem === colMenus[2]?.title
+                          ? "rotate-90"
+                          : ""
+                      }`}
+                    />
+                  </Link>
+                </div>
+              )}
+
+              {/* Item 4 */}
+              <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
+                <Link
+                  href={`${ADMIN_FRONTEND_URL}/`}
+                  className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
+                >
+                  <span className="text-white font-semibold capitalize">
+                    Dashboard
+                  </span>
+                  <Image
+                    width={16}
+                    height={16}
+                    src="/icons/right-arrow.svg"
+                    alt="arrow"
+                    className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                      selectedColItem === colMenus[3]?.title ? "rotate-90" : ""
+                    }`}
+                  />
+                </Link>
+              </div>
+
+              {/* Item 5 */}
+              <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
+                <Link
+                  href={`/events/${match.event}/matches`}
+                  className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
+                >
+                  <span className="text-white font-semibold capitalize">
+                    Find Matches
+                  </span>
+                  <Image
+                    width={16}
+                    height={16}
+                    src="/icons/right-arrow.svg"
+                    alt="arrow"
+                    className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                      selectedColItem === colMenus[4]?.title ? "rotate-90" : ""
+                    }`}
+                  />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </dialog>

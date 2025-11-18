@@ -38,8 +38,6 @@ interface IUpdateRank {
   rank: number;
 }
 
-const ITEMS_PER_PAGE = 20;
-
 function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, playerRanking, currEvent, inactive }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
@@ -124,11 +122,9 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     e.preventDefault(); // Prevent the default context menu from showing
   };
 
-
-  const teamMap = useMemo(()=> {
-    return new Map<string, ITeam>(teamList?.map((t)=> [t._id, t]));
+  const teamMap = useMemo(() => {
+    return new Map<string, ITeam>(teamList?.map((t) => [t._id, t]));
   }, [teamList]);
-
 
   useEffect(() => {
     if (playerList.length > 0) {
@@ -211,8 +207,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
   }, [players, showRank, rankControls, playerRanking]);
 
-  
-
   /** Render List **/
   return (
     <>
@@ -242,7 +236,13 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
               player={player}
               setIsLoading={setIsLoading}
               showRank={showRank}
-              team={teamId ? (teamMap.get(teamId) || null) : null}
+              team={
+                teamId
+                  ? teamMap.get(teamId) || null
+                  : player.teams && player.teams.length > 0
+                  ? teamMap.get(typeof player.teams[0] === 'object' ? String(player.teams[0]._id) : String(player.teams[0])) || null
+                  : null
+              }
               teamList={teamList || []}
               divisionList={divisionList}
               refetchFunc={refetchFunc}
@@ -250,7 +250,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
               rank={player.rank}
             />
           </motion.li>
-        
         ))}
       </ul>
       {/* {totalPages > 1 && (

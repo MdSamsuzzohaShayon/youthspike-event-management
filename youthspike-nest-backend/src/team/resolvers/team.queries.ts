@@ -175,7 +175,7 @@ export class TeamQueries {
           // Convert Mongoose documents to plain objects and filter
           const playerstatsDBPlain = playerstatsDB
             .map((ps) => {
-              const plainObj = ps.toObject() as any;
+              const plainObj = { ...ps };
               return {
                 ...plainObj,
                 net: String(plainObj.net),
@@ -222,7 +222,7 @@ export class TeamQueries {
   async getTeamRoster(teamId: string) {
     try {
       const team = await this.teamService.findById(teamId);
-      const [players, matches, playerRanking] = await Promise.all([
+      const [players, matches, playerRanking, event] = await Promise.all([
         this.playerService.find({ events: { $in: [team.event] }, teams: { $in: [team._id] } }),
         this.matchService.find({
           $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
@@ -234,6 +234,7 @@ export class TeamQueries {
             { match: null }, // `match` is null
           ],
         }),
+        this.eventService.findOne({ _id: team.event }),
       ]);
 
       // Attributes of matches
@@ -313,9 +314,11 @@ export class TeamQueries {
         code: HttpStatus.OK,
         success: true,
         data: {
+          event,
           team,
           players,
           statsOfPlayer: statsArray,
+          playerRanking,
           rankings,
         },
       };

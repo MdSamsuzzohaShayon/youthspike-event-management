@@ -290,7 +290,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           />
         </button>
 
-        <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+        <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
           <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-yellow-400/10 transition-colors border border-yellow-400/30">Preview</button>
         </Link>
 
@@ -418,7 +418,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
 
         {/* Bottom Section */}
         <div className="w-full flex items-center justify-end gap-2">
-          <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`}>
+          <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
             <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview Team</button>
           </Link>
           <div className="flex items-center text-sm text-gray-300">

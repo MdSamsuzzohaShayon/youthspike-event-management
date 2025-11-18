@@ -10,6 +10,8 @@ import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FRONTEND_URL } from "@/utils/keys";
+import { useLdoId } from "@/lib/LdoProvider";
 
 interface TeamMatchesContainerProps {
   queryRef: QueryRef<{ getTeamMatches: IGetTeamMatchesResponse }>;
@@ -19,6 +21,7 @@ interface TeamMatchesContainerProps {
 function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   const { data } = useReadQuery(queryRef);
   const pathname = usePathname();
+  const { ldoIdUrl } = useLdoId();
 
   if (!data?.getTeamMatches?.data) {
     return <div>Team not found</div>;
@@ -79,6 +82,20 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
 
         {/* Navigation */}
         <div className="px-3 py-2">
+          <div className="flex gap-2 bg-gray-700 rounded-lg p-1 mb-2">
+            <NavLink href={`/${team.event}/${ldoIdUrl}`} isActive={false}>
+              Standings
+            </NavLink>
+            <NavLink
+              href={`${FRONTEND_URL}/events/${
+                team.event
+              }/?event_item=TEAM&search=${team?.name?.split(" ").join("+")}`}
+              isActive={false}
+            >
+              Stats
+            </NavLink>
+          </div>
+
           <div className="flex gap-2 bg-gray-700 rounded-lg p-1">
             <NavLink href={`/teams/${teamId}/roster`} isActive={isRosterPage}>
               ROSTER

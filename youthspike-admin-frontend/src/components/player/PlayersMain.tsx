@@ -32,7 +32,7 @@ interface IFilter {
   search: string;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 30;
 
 function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlayersMainProps) {
   const user = useUser();
@@ -133,6 +133,8 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     }
   }, [filter.division]);
 
+  
+
   /** ------------------------------
    * FILTERING & SCOPING
    * ------------------------------ */
@@ -180,7 +182,7 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
 
     return { filteredPlayers: basePlayers, filteredTeams: baseTeams };
   }, [players, teams, user, filter.division, filter.search]); // Use filter.search directly
-
+  
   /** ------------------------------
    * ACTIVE + INACTIVE SPLIT
    * ------------------------------ */

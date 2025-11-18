@@ -397,8 +397,11 @@ export class MatchMutations {
           this.netService.find({ match: matchId }),
         ]);
 
-        const currRound = roundListDocs.find((r) => String(r._id) === currRoundId);
-        if (!currRound) return AppResponse.notFound('Current round');
+        // const currRound = roundListDocs.find((r) => String(r._id) === currRoundId);
+        // if (!currRound) return AppResponse.notFound('Current round');
+
+        // Find a round that has lowest round number and all nets of that round is incomplete
+        const incompleteRoundIds = new Set<string>();
 
         // Fast grouping for nets
         const netsByRound = new Map<string, any[]>();
@@ -406,11 +409,16 @@ export class MatchMutations {
           const key = String(net.round);
           if (!netsByRound.has(key)) netsByRound.set(key, []);
           netsByRound.get(key)!.push(net);
+
+          // Check net is filled with players or not
+          if(!net?.teamAPlayerA || !net?.teamAPlayerB || !net?.teamBPlayerA || !net?.teamBPlayerB){
+            incompleteRoundIds.add(String(net.round));
+          }
         }
 
         const revertPromises: Promise<any>[] = [];
         for (const round of roundListDocs) {
-          if (currRound.num >= round.num) continue;
+          if (!incompleteRoundIds.has(String(round._id))) continue;
 
           // Bulk reset all nets for this round
           revertPromises.push(

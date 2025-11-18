@@ -59,12 +59,12 @@ export class PlayerService {
   }
 
   async findById(playerId: string) {
-    const playerExist = await this.playerModel.findById(playerId);
+    const playerExist = await this.playerModel.findById(playerId).lean();
     return playerExist;
   }
 
   async findOne(filter: FilterQuery<Player>) {
-    return this.playerModel.findOne(filter);
+    return this.playerModel.findOne(filter).lean();
   }
   async find(
     filter: FilterQuery<Player>,

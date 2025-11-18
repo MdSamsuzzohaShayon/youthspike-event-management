@@ -28,8 +28,22 @@ export class ServerReceiverOnNetService {
     return updatedNets;
   }
 
-  async find(filter: FilterQuery<ServerReceiverOnNet>): Promise<ServerReceiverOnNet[]> {
-    return this.serverReceiverOnNetModel.find(filter);
+  async find(
+    filter: FilterQuery<ServerReceiverOnNet>,
+    limit?: number,
+    offset?: number, // added for consistency & scalability
+  ) {
+    let query = this.serverReceiverOnNetModel.find(filter); // ensures stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+    query = query.lean()
+    return query.exec();
   }
 
   async findOne(filter: FilterQuery<ServerReceiverOnNet>): Promise<ServerReceiverOnNet> {
@@ -61,8 +75,22 @@ export class ServerReceiverOnNetService {
     return updatedNets;
   }
 
-  async findSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>): Promise<ServerReceiverSinglePlayDocument[]> {
-    return this.serverReceiverOnNetSinglePlayModel.find(filter);
+  async findSinglePlay(
+    filter: FilterQuery<ServerReceiverSinglePlay>,
+    limit?: number,
+    offset?: number, // added for consistency & scalability
+  ) {
+    let query = this.serverReceiverOnNetSinglePlayModel.find(filter); // ensures stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+    query = query.lean()
+    return query.exec();
   }
 
   async findOneSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>): Promise<ServerReceiverSinglePlay> {

@@ -121,7 +121,7 @@ export class MatchFields {
   }
 
   private async processServerReceiver(
-    receiver: any,
+    receiver: ServerReceiverOnNet,
     netMap: Map<string, Net>,
     room: string,
   ): Promise<ServerReceiverOnNet> {
@@ -129,7 +129,7 @@ export class MatchFields {
     const net = netMap.get(netId);
     if (!net) return null;
 
-    const receiverObj = typeof receiver?.toObject === 'function' ? receiver?.toObject() : receiver;
+    const receiverObj = structuredClone(receiver);
 
     receiverObj.mutate = (receiverObj.teamAScore || 0) + (receiverObj.teamBScore || 0);
 
@@ -265,7 +265,7 @@ export class MatchFields {
       const newMissedPlays = await Promise.all(
         missedPlays.map(async (mp) => {
           const key = singlePlayKey(mp.net?.toString?.() || '', room, mp.play);
-          const dataToCache = typeof mp?.toObject === 'function' ? mp?.toObject() : mp;
+          const dataToCache = structuredClone(mp);
           await this.redisService.set(key, dataToCache);
           return this.normalizeSinglePlay(dataToCache as any);
         }),

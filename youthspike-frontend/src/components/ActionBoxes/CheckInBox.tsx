@@ -127,8 +127,8 @@ function CheckInBox({ currRoundNets, currRoom, otp, eventId, teamA, teamB }: IBo
         </div>
         <div className="hidden md:block w-2/6">
           <Image
-            width={300}
-            height={200}
+            width={500}
+            height={500}
             src="/imgs/spikeball-players.png"
             alt="spikeball-players"
             className="w-full h-full object-cover object-top"

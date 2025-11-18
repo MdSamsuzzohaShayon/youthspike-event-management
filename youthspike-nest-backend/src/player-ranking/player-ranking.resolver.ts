@@ -166,8 +166,8 @@ export class PlayerRankingResolver {
       await this.checkRosterLock(eventExist, loggedUser, userPayload);
 
       // Get player rankings
-      let playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
-      playerRankings = playerRankings.map((pr) => pr.toObject());
+      const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
+     
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
 
       // Ensure team ranking exists
@@ -175,8 +175,8 @@ export class PlayerRankingResolver {
       if (!teamRanking) return AppResponse.notFound('Team Player Ranking');
 
       // Get active team players
-      const teamPlayers = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
-      const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
+      // const teamPlayers = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
+      // const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
 
       await this.recreatePlayerRankings(playerRankings, input, teamId);
 

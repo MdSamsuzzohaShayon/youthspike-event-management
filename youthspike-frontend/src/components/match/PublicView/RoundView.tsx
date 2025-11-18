@@ -220,6 +220,26 @@ const RoundView = ({
           />
         </div>
       </div>
+
+      {restNets && restNets.length > 0 && (
+        <div className="res-of-the-nets w-full flex justify-center items-center gap-3 md:gap-4 mt-4">
+          {restNets.map((n) => (
+            <div className="net-in-round" key={n._id}>
+              <NetInRound
+                net={n}
+                teamA={teamA}
+                teamB={teamB}
+                playerMap={playerMap}
+                srMap={srMap}
+                playMapByNet={playMapByNet}
+                view={view}
+                matchId={matchId}
+                setView={setView}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

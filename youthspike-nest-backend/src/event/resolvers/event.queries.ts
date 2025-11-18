@@ -180,8 +180,6 @@ export class EventQueries implements IEventQueries {
         this.netService.find({ match: { $in: mIds } }),
       ]);
 
-      nets = nets.map((n)=> n.toObject());
-
       // --- Optimize player stats ---
       const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(players, nets , this.redisService, this.playerStatsService);
 
@@ -193,21 +191,21 @@ export class EventQueries implements IEventQueries {
         data: {
           event,
           matches: matches.map((m) => ({
-            ...m.toObject(),
+            ...m,
             group: String(typeof m.group === 'object' ? (m.group as any)._id : m.group),
           })),
           teams: teams.map((t) => ({
-            ...t.toObject(),
+            ...t,
             matches: t.matches?.map((m) => String(typeof m === 'object' ? (m as any)._id : m)) || [],
           })),
           players: players.map((p) => ({
-            ...p.toObject(),
+            ...p,
             teams: p.teams?.map((t) => String(typeof t === 'object' ? (t as any)._id : t)) || [],
             username: p?.username || 'Unknown',
           })),
           ldo,
           groups: groups.map((g) => ({
-            ...g.toObject(),
+            ...g,
             teams: g.teams?.map((t) => String(typeof t === 'object' ? (t as any)._id : t)) || [],
           })),
           rounds: rounds.map((r) => ({
@@ -260,55 +258,7 @@ export class EventQueries implements IEventQueries {
     return dbStatsResults;
   }
 
-  private getStatsOfPlayes(dbStatsResults: any[], players: Player[], playerToNets: Record<string, Net[]>, redisByPlayer: Record<string, CustomPlayerStats[]>) {
-    const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
-    dbStatsResults.flat().forEach((ps) => {
-      const plainObj = ps.toObject();
-      const stat: CustomPlayerStats = {
-        ...plainObj,
-        net: String(plainObj.net),
-        player: String(plainObj.player),
-        match: String(plainObj.match),
-      };
-      if (!statsOfPlayer[stat.player]) statsOfPlayer[stat.player] = [];
-      statsOfPlayer[stat.player].push(stat);
-    });
 
-    // Merge redis + db + fill empty nets
-    players.forEach((player) => {
-      const netsOfPlayer = playerToNets[player._id] || [];
-      const merged = [...(redisByPlayer[player._id] || []), ...(statsOfPlayer[player._id] || [])];
-      const existingNetIds = new Set(merged.map((s) => s.net));
-
-      const emptyStats = netsOfPlayer
-        .map((net) => String(net._id))
-        .filter((id) => !existingNetIds.has(id))
-        .map((netId) => ({
-          serveOpportunity: 0,
-          serveAce: 0,
-          serveCompletionCount: 0,
-          servingAceNoTouch: 0,
-          receiverOpportunity: 0,
-          receivedCount: 0,
-          noTouchAcedCount: 0,
-          settingOpportunity: 0,
-          cleanSets: 0,
-          hittingOpportunity: 0,
-          cleanHits: 0,
-          defensiveOpportunity: 0,
-          defensiveConversion: 0,
-          break: 0,
-          broken: 0,
-          matchPlayed: 0,
-          net: netId,
-          player: String(player._id),
-          match: netsOfPlayer.find((n) => String(n._id) === netId)?.match?.toString() || '',
-        }));
-
-      statsOfPlayer[player._id] = [...merged, ...emptyStats];
-    });
-    return statsOfPlayer;
-  }
 
   async getPlayerEventSetting(context: any, eventId: string): Promise<GetPlayerEventSettingResponse> {
     try {
@@ -335,8 +285,13 @@ export class EventQueries implements IEventQueries {
           message: 'event, teams, ldo, sponsors, multiplayer, weight, stats',
           data: {
             player: {
-              ...playerExist.toObject(),
+              ...playerExist,
               teams: playerExist.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+              captainofteams:
+                playerExist.captainofteams?.map((t: any) => (typeof t === 'object' ? t._id : t?.toString?.() || String(t))) || [],
+              cocaptainofteams:
+                playerExist.cocaptainofteams?.map((t: any) => (typeof t === 'object' ? t._id : t?.toString?.() || String(t))) ||
+                [],
             },
             teams: teams.map((t) => ({
               ...t,

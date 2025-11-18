@@ -67,30 +67,7 @@ const teamResponse = `
     }
 `;
 
-const teamResponseMin = `
-    _id
-    active
-    name
-    logo
-    division
-    sendCredentials
-    num
-    players {
-      _id
-      firstName
-      lastName
-    }
-    captain {
-      _id
-      firstName
-      lastName
-      profile
-    }
-    group {
-      _id
-      name
-    }
-`;
+
 
 const eventResponse = `
     _id
@@ -415,6 +392,156 @@ query GetEventWithTeams($eventId: String) {
 
 const GET_EVENT_WITH_TEAMS = gql`${GET_EVENT_WITH_TEAMS_RAW}`;
 
+const GET_TEAM_ROSTER = gql`
+query GetTeamRoster($teamId: String!) {
+  getTeamRoster(teamId: $teamId) {
+    code
+    message
+    success
+    data {
+      event{
+        _id
+        name
+        logo
+        active
+        autoAssign
+        autoAssignLogic
+        coachPassword
+        divisions
+        endDate
+        homeTeam
+        description
+        netVariance
+        playerLimit
+        rosterLock
+        timeout
+        startDate
+      }
+      players {
+        _id
+        captainofteams
+        cocaptainofteams
+        division
+        email
+        firstName
+        lastName
+        phone
+        profile
+        status
+        username
+      }
+      team {
+        _id
+        active
+        num
+        name
+        logo
+        rankLock
+        sendCredentials
+      }
+      playerRanking {
+        _id
+        rankLock
+        rankings
+      }
+      rankings {
+        _id
+        player
+        playerRanking
+        rank
+      }
+    }
+  }
+}
+
+`;
+
+const GET_TEAM_MATCHES = gql`
+query GetTeamMatches($teamId: String!) {
+  getTeamMatches(teamId: $teamId) {
+    code
+    message
+    success
+    data {
+      event {
+        _id
+        active
+        divisions
+        description
+        logo
+        location
+        name
+      }
+      team {
+        _id
+        active
+        division
+        logo
+        name
+        num
+        rankLock
+      }
+      matches {
+        _id
+        completed
+        date
+        description
+        division
+        extendedOvertime
+        fwango
+        location
+        netVariance
+        nets
+        numberOfNets
+        numberOfRounds
+        rounds
+        teamA
+        teamB
+        tieBreaking
+        timeout
+      }
+      nets {
+        _id
+        match
+        num
+        pairRange
+        points
+        round
+        teamAPlayerA
+        teamAPlayerB
+        teamAScore
+        teamBPlayerA
+        teamBPlayerB
+        teamBScore
+        netType
+      }
+      rounds {
+        _id
+        completed
+        match
+        firstPlacing
+        nets
+        num
+        teamAScore
+        teamBProcess
+        teamBScore
+        teamAProcess
+      }
+      teams {
+        _id
+        matches
+        logo
+        name
+        num
+        rankLock
+        division
+      }
+    }
+  }
+}
+
+`;
+
 /**
  * Mutation
  * =========================================================================================================================================
@@ -599,4 +726,6 @@ export {
   GET_TEAM_DETAIL,
   GET_A_TEAM_RAW,
   GET_TEAMS_MIN_RAW,
+  GET_TEAM_ROSTER,
+  GET_TEAM_MATCHES
 };

@@ -40,6 +40,7 @@ interface IPlayerCardProps {
 }
 
 export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, eventId, rankControls }: IPlayerCardProps) {
+  
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -269,14 +270,6 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
           <CldImage crop="fit" width={100} height={100} alt={name} src={player.profile} className="w-full h-full object-cover object-fit" />
         ) : (
           <TextImg fullText={name} className="w-full h-full rounded-full object-cover object-fit" />
-
-
-
-
-
-
-
-
         )}
       </div>
     ),

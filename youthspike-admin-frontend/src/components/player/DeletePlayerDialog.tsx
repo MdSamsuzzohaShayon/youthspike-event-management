@@ -12,7 +12,7 @@ function DeletePlayerDialog({deleteEl, player, handleDelete}: IDeletePlayerDialo
     <dialog ref={deleteEl} className="modal-dialog p-4">
         <div className="flex flex-col gap-y-2">
           <h2>Delete player</h2>
-          <p className="text-yellow-100/90">Are your sure you want to delete the player?</p>
+          <p className="text-yellow-100/90">Deleting players deletes their stats. Just make player inactive if you want to keep players stats.</p>
           <p>
             Name: {player?.firstName} {player?.lastName}
           </p>

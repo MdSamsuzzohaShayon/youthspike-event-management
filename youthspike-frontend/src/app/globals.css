@@ -81,12 +81,12 @@ input[type=number] {
 
 /* Button style start  */
 .btn-primary {
-  @apply px-3 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-700 font-bold text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-gray-500 text-white;
 }
 
 
 .btn-light {
-  @apply px-3 py-2 bg-green-50 text-green-600 rounded-full hover:bg-white font-black text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-green-50 text-black;
 }
 
 .btn-light-outline {
@@ -104,7 +104,7 @@ input[type=number] {
 }
 
 .btn-danger {
-  @apply px-3 py-2 bg-red-500 text-white rounded-full hover:bg-red-700 font-bold text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-red-500 text-white;
 }
 
 .btn-success {

@@ -42,7 +42,7 @@ function LineupBox({ otp }: IBoxProps) {
 
         {/* Right Column Image */}
         <div className="hidden md:block w-2/6">
-          <Image width={300} height={300} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+          <Image width={500} height={500} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
         </div>
       </div>
     </div>

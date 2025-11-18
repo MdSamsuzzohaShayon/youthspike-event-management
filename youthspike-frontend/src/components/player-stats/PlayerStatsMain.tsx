@@ -27,6 +27,8 @@ interface IPlayerStatsMainProps {
 function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const { data, error } = useReadQuery(queryRef);
   if (error) console.error(error);
+
+  
   if (!data?.getPlayerWithStats?.data) return <div>No data found</div>;
 
   const socket = useSocket();

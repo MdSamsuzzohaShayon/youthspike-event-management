@@ -1,10 +1,12 @@
 import { MutationFunction } from '@apollo/client';
 import {
+  IAllStats,
   ICommonQuery,
   IError,
   IEvent,
   IGroup,
   IGroupRelatives,
+  IMatch,
   IMatchExpRel,
   IMatchRelatives,
   INetRelatives,
@@ -13,6 +15,7 @@ import {
   IPlayerRanking,
   IPlayerRankingExpRel,
   IPlayerRankingItem,
+  IPlayerRankingItemExpRel,
   IPlayerStats,
   IRoundRelatives,
 } from '.';
@@ -74,6 +77,23 @@ export interface IGetTeamDetailQuery extends ICommonQuery {
   };
 }
 
+
+interface ITeamRoster {
+  event: IEvent;
+  players: IPlayer[];
+  team: ITeam;
+  statsOfPlayer: IAllStats[];
+  rankings: IPlayerRankingItemExpRel[];
+  playerRanking: IPlayerRankingExpRel;
+}
+
+export interface IGetTeamRosterResponse{
+  code: number;
+  success: boolean;
+  message: string;
+  data: ITeamRoster;
+}
+
 interface IEventWithTeams {
   event: IEvent;
   teams: ITeam[];
@@ -99,6 +119,27 @@ export interface IBaseTeamAction {
   setPlayerIdList: React.Dispatch<React.SetStateAction<string[]>>;
   teamAddCB?: (teamData: ITeam) => void;
 }
+
+
+
+
+interface ITeamMatches {
+  event: IEvent;
+  team: ITeam;
+  teams: ITeam[];
+  matches: IMatchExpRel[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+}
+
+export interface IGetTeamMatchesResponse{
+  code: number;
+  success: boolean;
+  message: string;
+  data: ITeamMatches;
+}
+
+
 
 export enum ETeam {
   teamA = 'teamA',

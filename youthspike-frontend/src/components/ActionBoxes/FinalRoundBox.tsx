@@ -92,7 +92,7 @@ function FinalRoundBox({ myTeamE }: IBoxProps) {
         </div>
 
         <div className="hidden md:block w-2/6">
-          <Image width={imgW.xs} height={imgW.xs} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
+          <Image width={500} height={500} src="/imgs/spikeball-players.png" alt="spikeball-players" className="w-full h-full object-cover object-top" />
         </div>
       </div>
     </div>

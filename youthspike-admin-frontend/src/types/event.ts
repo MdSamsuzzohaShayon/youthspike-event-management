@@ -6,7 +6,7 @@ import { IPlayer } from './player';
 import { ITeam } from './team';
 import { ICommonQuery, ILDO, ILDOItem } from './ldo';
 import { IGroup, IGroupExpRel } from './group';
-import { IProStats } from './playerStats';
+import { IPlayerStats, IProStats } from './playerStats';
 import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
 
@@ -83,6 +83,11 @@ export interface IEventAdd extends IDefaultEventMatch {
   coachPassword: string;
   defaultSponsor: boolean;
   tieBreaking: ETieBreakingStrategy;
+}
+
+export interface IAllStats{
+  playerId: string;
+  stats: IPlayerStats[]
 }
 
 export interface IGetPlayerEventSettingsQuery extends ICommonQuery {

@@ -49,6 +49,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
 
   // Data extraction
   const { team, playerRanking, players, captain, cocaptain, event, matches, rankings, rounds, nets, teams } = data?.getTeamDetails?.data ?? {};
+  
 
   // Memoized data processing
   const divisionList = useMemo(() => (event?.divisions ? divisionsToOptionList(event.divisions) : []), [event?.divisions]);
@@ -134,7 +135,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
     });
 
     return { teamPlayers, unassignedPlayers };
-  }, [players, teamData, teamData._id]);
+  }, [players, teamData, teamData]);
 
   // Filter and sort players
   const activePlayers = useMemo(() => teamPlayers?.filter((p) => p.status === EPlayerStatus.ACTIVE) || [], [teamPlayers]);
@@ -186,7 +187,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
         setActErr({ message: (error as Error)?.message || '', success: false });
       }
     },
-    [playerIdsToAdd, team._id, event._id, mutateTeam, setActErr],
+    [playerIdsToAdd, team, event, mutateTeam, setActErr],
   );
 
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
@@ -271,7 +272,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
           >
             Stats
           </ActionLink> */}
-          <ActionLink href={`${FRONTEND_URL}/events/${eventId}/?event_item=TEAM&search=${team.name.split(' ').join('+')}`}>Stats</ActionLink>
+          <ActionLink href={`${FRONTEND_URL}/events/${eventId}/?event_item=TEAM&search=${team?.name?.split(' ').join('+')}`}>Stats</ActionLink>
         </div>
       </div>
 

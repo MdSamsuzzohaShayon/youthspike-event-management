@@ -8,7 +8,7 @@ import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-rank
 import { Match } from 'src/match/match.schema';
 import { Round } from 'src/round/round.schema';
 import { Net } from 'src/net/net.schema';
-import { CustomPlayer, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
+import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
 import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 
@@ -154,8 +154,8 @@ export class TeamRoster {
   @Field((_type) => [CustomPlayer], { nullable: true })
   players: CustomPlayer[];
 
-  @Field((_type) => PlayerRanking, { nullable: true })
-  playerRanking: PlayerRanking;
+  @Field((_type) => CustomPlayerRanking, { nullable: true })
+  playerRanking: CustomPlayerRanking;
 
   @Field((_type) => [CustomPlayerRankingItem], { nullable: true })
   rankings: CustomPlayerRankingItem[];

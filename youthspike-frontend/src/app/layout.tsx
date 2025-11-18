@@ -10,10 +10,19 @@ import LdoProvider from '@/lib/LdoProvider';
 import MenuSwitcher from '@/components/layout/MenuSwitcher';
 import Message from '@/components/elements/Message';
 import { ApolloWrapper } from '@/lib/ApolloWrapper';
+import { cookies } from 'next/headers';
+import { ACCESS_CODE } from '@/utils/constant';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+
+  const cookieStore = await cookies();
+  const accessCodeCookie = cookieStore.get(ACCESS_CODE);
+  const accessCodeList = accessCodeCookie
+    ? JSON.parse(accessCodeCookie.value)
+    : [];
+
   return (
     <html lang="en">
       <head>
@@ -32,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ReduxProvider>
                   <LdoProvider>
                     <Message />
-                    <MenuSwitcher />
+                    <MenuSwitcher accessCodeList={accessCodeList} />
                     {children}
                     <Footer />
                   </LdoProvider>

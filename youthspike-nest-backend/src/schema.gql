@@ -648,7 +648,7 @@ type CoCaptainPlayer {
 type TeamRoster {
   team: Team
   players: [CustomPlayer!]
-  playerRanking: PlayerRanking
+  playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
   event: Event
   statsOfPlayer: [PlayerStatsEntry!]!
@@ -666,7 +666,7 @@ type TeamMatches {
 type TeamDetails {
   team: Team
   players: [CustomPlayer!]
-  playerRanking: PlayerRanking
+  playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
   event: Event
   statsOfPlayer: [PlayerStatsEntry!]!

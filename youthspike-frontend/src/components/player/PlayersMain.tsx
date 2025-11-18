@@ -47,6 +47,8 @@ export default function PlayersMain({
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
 
+  console.log({initialData});
+  
   // Server data state
   const [serverData, setServerData] = useState<ISearchPlayerResponse['data'] | null>(null);
   const [allPlayers, setAllPlayers] = useState<IPlayer[]>([]);

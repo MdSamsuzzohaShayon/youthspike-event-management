@@ -1,13 +1,17 @@
 'use client';
 
-import { IUserContext } from '@/types';
+import { IAccessCode, IUserContext } from '@/types';
 import { getUserFromCookie } from '@/utils/cookie';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import AdminMenu from './AdminMenu';
 import PublicMenu from './PublicMenu';
 
-function MenuSwitcher() {
+
+interface IMenuSwitcherProps{
+  accessCodeList: IAccessCode[];
+}
+function MenuSwitcher({accessCodeList}: IMenuSwitcherProps) {
   const pathname = usePathname();
 
   const [user, setUser] = useState<IUserContext | null>(null);
@@ -20,7 +24,7 @@ function MenuSwitcher() {
     }
   }, [pathname]);
 
-  return <div className="MenuSwitcher">{user ? <AdminMenu user={user} /> : <PublicMenu />}</div>;
+  return <div className="MenuSwitcher">{user ? <AdminMenu user={user} /> : <PublicMenu accessCodeList={accessCodeList} />}</div>;
 }
 
 export default MenuSwitcher;

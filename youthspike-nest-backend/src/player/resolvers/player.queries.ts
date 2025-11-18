@@ -84,8 +84,8 @@ export class PlayerQueries implements IPlayerQueries {
       }
 
       // Normalize to Custom* GraphQL output shapes (string IDs for refs)
-      const normalizedPlayers: CustomPlayer[] = players.map((p: any) => {
-        const obj = typeof p?.toObject === 'function' ? p.toObject() : p;
+      const normalizedPlayers: CustomPlayer[] = players.map((p: Player) => {
+        const obj = { ...p };
         if (!obj?.username) {
           obj.username = this.playerService.playerUsername((obj?.firstName || '') + '2');
           (async () => {
@@ -100,8 +100,8 @@ export class PlayerQueries implements IPlayerQueries {
         } as CustomPlayer;
       });
 
-      const normalizedTeams: CustomTeam[] = teams.map((t: any) => {
-        const obj = typeof t?.toObject === 'function' ? t.toObject() : t;
+      const normalizedTeams: CustomTeam[] = teams.map((t: Team) => {
+        const obj = { ...t };
         return {
           ...obj,
           matches: (obj?.matches || []).map((m: any) => m?.toString?.() || String(m)),
@@ -113,8 +113,8 @@ export class PlayerQueries implements IPlayerQueries {
         } as CustomTeam;
       });
 
-      const normalizedGroups: CustomGroup[] = groups.map((g: any) => {
-        const obj = typeof g?.toObject === 'function' ? g.toObject() : g;
+      const normalizedGroups: CustomGroup[] = groups.map((g: Group) => {
+        const obj = { ...g };
         return {
           ...obj,
           teams: (obj?.teams || []).map((tm: any) => tm?.toString?.() || String(tm)),
@@ -255,7 +255,7 @@ export class PlayerQueries implements IPlayerQueries {
         this.teamService.find({ event: eventId }),
       ]);
       const normalizedPlayer: CustomPlayer = (() => {
-        const obj: any = typeof (player as any)?.toObject === 'function' ? (player as any).toObject() : player;
+        const obj = structuredClone(player);
         // if(obj?.username){
         //   obj.username = this.playerService.playerUsername((obj?.firstName || "abc") + "4");
         //   (async()=>{
@@ -271,7 +271,7 @@ export class PlayerQueries implements IPlayerQueries {
       })();
 
       const normalizedTeams: CustomTeam[] = teams.map((t: any) => {
-        const obj = typeof t?.toObject === 'function' ? t.toObject() : t;
+        const obj = structuredClone(t);
         return {
           ...obj,
           matches: (obj?.matches || []).map((m: any) => m?.toString?.() || String(m)),

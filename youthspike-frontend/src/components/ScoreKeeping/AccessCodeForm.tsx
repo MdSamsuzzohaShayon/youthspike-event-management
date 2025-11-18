@@ -4,9 +4,8 @@ import React from 'react';
 import InputField from '@/components/elements/InputField';
 import { useMutation } from '@apollo/client/react';
 import { ACCESS_CODE_VALIDATION } from '@/graphql/matches';
-import { getCookie, getUserFromCookie, setAccessCode, setCookie } from '@/utils/cookie';
+import { setAccessCode } from '@/utils/cookie';
 import { EMessage, IAccessCode, IUser } from '@/types';
-import { ACCESS_CODE } from '@/utils/constant';
 import { useAppDispatch } from '@/redux/hooks';
 import { setMessage } from '@/redux/slices/elementSlice';
 

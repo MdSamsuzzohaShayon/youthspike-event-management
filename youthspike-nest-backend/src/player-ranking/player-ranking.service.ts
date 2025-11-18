@@ -58,8 +58,23 @@ export class PlayerRankingService {
     return this.playerRanking.findOne(filter);
   }
 
-  async find(filter: FilterQuery<PlayerRanking>) {
-    return this.playerRanking.find(filter);
+
+  async find(
+    filter: FilterQuery<PlayerRanking>,
+    limit?: number,
+    offset?: number, // added for consistency & scalability
+  ) {
+    let query = this.playerRanking.find(filter); // ensures stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+    query = query.lean()
+    return query.exec();
   }
 
   async updateOne(filter: FilterQuery<PlayerRanking>, updateObj: UpdateQuery<PlayerRanking>) {

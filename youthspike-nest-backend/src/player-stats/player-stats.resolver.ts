@@ -2,7 +2,6 @@ import { HttpStatus } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
 import { PlayerStats } from './player-stats.schema';
-import { ConfigService } from '@nestjs/config';
 import { PlayerStatsService } from './player-stats.service';
 import {
   CustomPlayerStats,
@@ -153,7 +152,7 @@ export class PlayerStatsResolver {
 
             // 4.6️⃣ Merge DB + Redis stats
             const playerstatsDBPlain = playerstatsDB.map((ps) => ({
-              ...ps.toObject(),
+              ...ps,
               net: String(ps.net),
               player: String(ps.player),
               match: String(ps.match),

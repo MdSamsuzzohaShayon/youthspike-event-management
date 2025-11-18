@@ -44,7 +44,7 @@ async function getStatsOfPlayers(players: Player[], nets: Net[], redisService: R
   // --- Normalize DB stats ---
   const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
   dbStatsResults.flat().forEach((ps) => {
-    const plainObj = ps.toObject();
+    const plainObj = {...ps}
     const stat: CustomPlayerStats = {
       ...plainObj,
       net: String(plainObj.net),
