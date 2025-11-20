@@ -18,6 +18,7 @@ import TextareaInput from '../elements/forms/TextareaInput';
 import { getLocalDateTimeISO } from '@/utils/datetime';
 import { updateMatchHandler } from '@/utils/requestHandlers/updateMatchHandler';
 import addMatchHandler from '@/utils/requestHandlers/addMatchHandler';
+import Image from 'next/image';
 
 interface IMatchAddProps {
   eventId: string;
@@ -62,6 +63,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
   const [updateMatch, setUpdateMatch] = useState<Partial<IAddMatch>>({});
   const [selectedGroup, setSelectedGroup] = useState<string | undefined>(undefined);
+  const [expanded, setExpanded] = useState<boolean>(false);
 
   // GraphQL
   const [createMatch] = useMutation(CREATE_MATCH);
@@ -123,7 +125,6 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     }
   };
 
-
   const handleDateChange = (name: string, value: string) => {
     if (update) {
       setUpdateMatch((prev) => ({ ...prev, [name]: value }));
@@ -163,29 +164,29 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     e.preventDefault();
     if (update && matchId) {
       await updateMatchHandler({
-          setActErr,
-          setIsLoading,
-          eventId,
-          mutateMatch,
-          matchId,
-          updateMatch,
-          showAddMatch,
-          router,
-          ldoIdUrl,
+        setActErr,
+        setIsLoading,
+        eventId,
+        mutateMatch,
+        matchId,
+        updateMatch,
+        showAddMatch,
+        router,
+        ldoIdUrl,
       });
-  } else {
+    } else {
       await addMatchHandler({
-          setActErr,
-          setIsLoading,
-          eventId,
-          createMatch,
-          addMatch,
-          currDivision,
-          showAddMatch,
-          router,
-          addMatchCB,
+        setActErr,
+        setIsLoading,
+        eventId,
+        createMatch,
+        addMatch,
+        currDivision,
+        showAddMatch,
+        router,
+        addMatchCB,
       });
-  }
+    }
   };
 
   // Initialize state
@@ -235,94 +236,75 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   return (
     <form onSubmit={handleAddMatch} className="w-full">
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <DateInput 
-          label="Start Date" 
-          name="date" 
-          handleDateChange={handleDateChange} 
-          value={addMatch.date} 
-          required={!update} 
-        />
-
-        <InputField
-          key="field-numberOfNets"
-          type="number"
-          required={!update}
-          label="Number of nets"
-          name="numberOfNets"
-          value={addMatch.numberOfNets ?? ''}
-          handleInputChange={handleNumInputChange}
-        />
-        <InputField
-          key="field-numberOfRounds"
-          type="number"
-          required={!update}
-          label="Number of rounds"
-          name="numberOfRounds"
-          value={addMatch.numberOfRounds??''}
-          handleInputChange={handleNumInputChange}
-        />
-        <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={addMatch.netVariance ?? ''} handleInputChange={handleNumInputChange} />
-      </div>
-
-      <div className="part-3 grid grid-cols-1 gap-6 mt-6">
-        {!update && <SelectInput key="select-group" handleSelect={handleGroupChange} name="group" label="Group" defaultValue={addMatch.division} optionList={groupOptions} />}
-      </div>
-
-      <div className="part-3.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        {/* We have division in the parent component */}
+        <DateInput label="Start Date" name="date" handleDateChange={handleDateChange} value={addMatch.date} required={!update} />
+        {!update && <SelectInput key="select-group" handleSelect={handleGroupChange} name="group" label="Conference (Group)" defaultValue={addMatch.division} optionList={groupOptions} />}
         {selectedGroup && filteredTeamList.length > 0 && <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
-      </div>
-
-      <div className="mt-6 w-full">
-        <h3 className="w-full capitalize">Default settings</h3>
-      </div>
-      <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
-        <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
-      </div>
-
-      <div className="part-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        <ToggleInput handleInputChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
-      </div>
-
-      <div className="part-5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <SelectInput
-          key="select-autoAssignLogic"
-          defaultValue={addMatch.autoAssignLogic}
-          name="autoAssignLogic"
-          optionList={assignStrategies}
-          label="Which auto assign logic when clock runs out?"
-          handleSelect={handleInputChange}
-        />
-
-        <SelectInput
-          key="select-rosterLock"
-          name="rosterLock"
-          value={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? ERosterLock.FIRST_ROSTER_SUBMIT : ERosterLock.PICK_A_DATE}
-          optionList={lockTimes}
-          label="When does the roster lock setting?"
-          handleSelect={handleInputChange}
-        />
-        {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-          <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
-        )}
-
-      </div>
-
-      <div className="part-6 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={addMatch.timeout ?? ''} handleInputChange={handleNumInputChange} />
-        <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" value={addMatch.fwango || ''} />
-      </div>
-
-      <div className="part-7 grid grid-cols-1 gap-6 mt-6">
         <TextareaInput key="field-description" handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
-      </div>
-
-      <div className="part-8 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField key="field-location" type="text" handleInputChange={handleInputChange} label="Location / Start time" name="location" defaultValue={addMatch.location || ''} />
-        <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" value={addMatch.accessCode || ''} />
       </div>
 
-      <button className="btn-info mt-4 w-full">{update ? 'Update' : 'Create'}</button>
+      <button type="button" className="flex justify-start items-center md:flex-wrap mt-6" onClick={() => setExpanded((prev) => !prev)}>
+        <span>
+          <Image alt="Left-arrow" height={20} width={20} className="mr-2 transform rotate-90 w-8 svg-white" src="/icons/right-arrow.svg" />
+        </span>
+        <span className="uppercase">OTHER MATCH DETAILS AND SETTINGS. CLICK TO EXPAND</span>
+      </button>
+
+      {expanded && !update && (
+        <div className=" grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <InputField
+            key="field-numberOfNets"
+            type="number"
+            required={!update}
+            label="Number of nets"
+            name="numberOfNets"
+            value={addMatch.numberOfNets ?? ''}
+            handleInputChange={handleNumInputChange}
+          />
+          <InputField
+            key="field-numberOfRounds"
+            type="number"
+            required={!update}
+            label="Number of rounds"
+            name="numberOfRounds"
+            value={addMatch.numberOfRounds ?? ''}
+            handleInputChange={handleNumInputChange}
+          />
+          <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={addMatch.netVariance ?? ''} handleInputChange={handleNumInputChange} />
+          <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
+          <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
+          <ToggleInput handleInputChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
+
+          <SelectInput
+            key="select-autoAssignLogic"
+            defaultValue={addMatch.autoAssignLogic}
+            name="autoAssignLogic"
+            optionList={assignStrategies}
+            label="Which auto assign logic when clock runs out?"
+            handleSelect={handleInputChange}
+          />
+
+          <SelectInput
+            key="select-rosterLock"
+            name="rosterLock"
+            value={addMatch.rosterLock === ERosterLock.FIRST_ROSTER_SUBMIT ? ERosterLock.FIRST_ROSTER_SUBMIT : ERosterLock.PICK_A_DATE}
+            optionList={lockTimes}
+            label="When does the roster lock setting?"
+            handleSelect={handleInputChange}
+          />
+          {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+            <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
+          )}
+          <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={addMatch.timeout ?? ''} handleInputChange={handleNumInputChange} />
+          <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" value={addMatch.fwango || ''} />
+          <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" value={addMatch.accessCode || ''} />
+        </div>
+      )}
+
+      <button type="submit" className="btn-info mt-4 w-full">
+        {update ? 'Update' : 'Create'}
+      </button>
     </form>
   );
 }

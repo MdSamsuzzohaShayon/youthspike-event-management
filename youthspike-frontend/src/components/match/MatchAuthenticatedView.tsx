@@ -245,7 +245,7 @@ function MatchAuthenticatedView({
         />
 
         <div className="team-name-selection">
-          {selectTeam && teamA && teamB ? (
+          {selectTeam && teamA && teamB && (
             <div className="select-team-wrapper px-4">
               <SelectTeamDialog
                 teamA={teamA}
@@ -253,20 +253,18 @@ function MatchAuthenticatedView({
                 setSelectTeam={setSelectTeam}
               />
             </div>
-          ) : (
+          )}
             <div className="w-full">
               <div className="container px-4 mx-auto flex justify-between">
-                <h1 className="my-team-name text-xl font-bold uppercase">
-                  {myTeam?.name}
-                </h1>
                 {(user.info?.role === UserRole.director ||
                   user.info?.role === UserRole.admin) && (
                   <button
-                    className="right-4 z-20"
+                    className="w-full flex justify-between items-center"
                     aria-label="select-team"
                     type="button"
                     onClick={() => setSelectTeam(true)}
                   >
+                    <span className="uppercase">{myTeam?.name}</span>
                     <Image
                       width={24}
                       height={24}
@@ -278,7 +276,6 @@ function MatchAuthenticatedView({
                 )}
               </div>
             </div>
-          )}
         </div>
       </div>
 

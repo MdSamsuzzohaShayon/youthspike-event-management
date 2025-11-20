@@ -33,7 +33,7 @@ export class TeamService {
 
 
 
-  async find(filter: FilterQuery<Team>, limit?: number, offset?: number) {
+  async find(filter: FilterQuery<Team>, offset?: number, limit?: number) {
     let query = this.teamModel.find(filter).sort({ name: -1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {

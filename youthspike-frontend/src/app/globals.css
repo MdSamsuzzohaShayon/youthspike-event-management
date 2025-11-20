@@ -90,7 +90,7 @@ input[type=number] {
 }
 
 .btn-light-outline {
-  @apply px-3 py-2 bg-transparent text-white border border-2 border-white rounded-full font-black text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit border bg-transparent text-white;
 }
 
 .btn-info { 
@@ -100,7 +100,7 @@ input[type=number] {
 
 
 .btn-secondary {
-  @apply px-3 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-700 font-bold text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-gray-800 hover:bg-gray-700 text-white;
 }
 
 .btn-danger {
@@ -108,7 +108,7 @@ input[type=number] {
 }
 
 .btn-success {
-  @apply px-3 py-2 bg-green-500 text-white rounded-full hover:bg-green-700 font-bold text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-green-500 hover:bg-green-700 text-white;
 }
 
 /* Button style end  */
