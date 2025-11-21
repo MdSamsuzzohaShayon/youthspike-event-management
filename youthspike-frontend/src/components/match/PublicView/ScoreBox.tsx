@@ -9,6 +9,7 @@ interface IScoreBoxProps {
   name: string;
   teamLogo: string | null;
   score: number;
+  penalty: number;
 }
 
 const ScoreBox: React.FC<IScoreBoxProps> = ({
@@ -16,6 +17,7 @@ const ScoreBox: React.FC<IScoreBoxProps> = ({
   name,
   teamLogo,
   score,
+  penalty
 }) => (
   <div className="w-full flex flex-col justify-center items-center">
     <h4 className="match-points">Match Points</h4>
@@ -36,7 +38,7 @@ const ScoreBox: React.FC<IScoreBoxProps> = ({
           <TextImg fullText={name} className="w-full h-full" />
         )}
       </Link>
-      <div className={`team-score-point text-center`}>{score}</div>
+      <div className={`team-score-point text-center`}>{score + penalty}</div>
     </div>
   </div>
 );

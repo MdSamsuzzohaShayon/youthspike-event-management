@@ -374,6 +374,8 @@ query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
         rounds
         teamA
         teamB
+        teamAP
+        teamBP
       }
       nets {
         _id

@@ -1,34 +1,67 @@
-import React from 'react';
 import { ISelectInputProps } from '@/types';
+import React from 'react';
 
-const SelectInput = (props: ISelectInputProps) => {
-  return (
-    <div className={`flex flex-col ${props.className || ''} gap-1`}>
-      {props.label && (
-        <label htmlFor={props.name} className="capitalize text-sm md:text-lg font-semibold mb-1">
-          {props.label}
+function SelectInput({ 
+  className, 
+  name, 
+  optionList, 
+  label, 
+  defaultValue, 
+  value, 
+  handleSelect,
+  compact = false 
+}: ISelectInputProps) {
+  if (compact) {
+    return (
+      <div className={`flex flex-col gap-1 ${className || ''}`}>
+        <label htmlFor={name} className="text-xs font-medium text-gray-300 uppercase">
+          {label || name}
         </label>
-      )}
+        <select
+          onChange={handleSelect}
+          name={name}
+          id={name}
+          className="text-sm p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+          {...(defaultValue ? { defaultValue } : {})}
+          {...(value ? { value } : {})}
+        >
+          <option value="" className="bg-gray-600 text-gray-300">
+            All
+          </option>
+          {optionList.map((o, i) => (
+            <option value={o.value} key={o.id + "_" + i} className="capitalize bg-gray-800 text-white">
+              {o.text ? o.text : o.value}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
 
+  return (
+    <div className={`flex flex-col gap-1 ${className || ''}`}>
+      <label htmlFor={name} className="text-sm font-medium text-gray-300 mb-1 uppercase">
+        {label || name}
+      </label>
       <select
-        onChange={props.handleSelect}
-        name={props.name}
-        id={props.name}
-        className="p-2 md:p-3 text-sm md:text-base rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-        {...(props.defaultValue ? { defaultValue: props.defaultValue } : {})}
-        {...(props.value ? { value: props.value } : {})}
+        onChange={handleSelect}
+        name={name}
+        id={name}
+        className="p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-sm"
+        {...(defaultValue ? { defaultValue } : {})}
+        {...(value ? { value } : {})}
       >
-        <option value="" className="bg-gray-400 text-gray-700">
-          {`Select ${props.name}`}
+        <option value="" className="bg-gray-600 text-gray-300">
+          {`Select ${label || name}`}
         </option>
-        {props.optionList.map((o, i) => (
-          <option value={o.value} key={i} className="capitalize">
+        {optionList.map((o, i) => (
+          <option value={o.value} key={o.id + "_" + i} className="capitalize bg-gray-800 text-white">
             {o.text ? o.text : o.value}
           </option>
         ))}
       </select>
     </div>
   );
-};
+}
 
 export default SelectInput;

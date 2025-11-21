@@ -93,100 +93,113 @@ export class PlayerStatsResolver {
       const [multiplayer, weight, groups] = await Promise.all([
         this.playerStatsService.proStatFindOne({ _id: eventExist.multiplayer }),
         this.playerStatsService.proStatFindOne({ _id: eventExist.weight }),
-        this.groupService.find({event: eventExist._id})
+        this.groupService.find({ event: eventExist._id }),
       ]);
 
+      const teams = await this.teamService.find({ $or: [{ players: playerId }, { moved: playerId }] });
       // 4️⃣ If player has teams → fetch team, matches, nets, rounds
-      if (player.teams.length > 0) {
-        team = await this.teamService.findOne({ players: playerId });
-        if (team) {
-          // 4.1️⃣ Fetch matches once
-          matches = await this.matchService.find({
-            $or: [{ teamA: team._id }, { teamB: team._id }],
+      if (teams.length > 0) {
+        const teamIds = new Set<string>(teams.map((t) => t._id));
+        for (let i = 0; i < teams.length; i++) {
+          const t = teams[i];
+          teamIds.add(t._id);
+
+          for (let j = 0; j < t.players.length; j++) {
+            const p = t.players[j];
+            if (String(p) === playerId) {
+              team = t;
+            }
+          }
+        }
+        // find all teams a player ever played in
+        // 4.1️⃣ Fetch matches once
+        matches = await this.matchService.find(
+          {
+            $or: [{ teamA: { $in: [...teamIds] } }, { teamB: { $in: [...teamIds] } }],
+          },
+          10000,
+          0,
+        );
+
+        if (matches.length > 0) {
+          // 4.2️⃣ Collect matchIds and opponent IDs efficiently
+          const matchIds = matches.map((m) => {
+            if (!teamIds.has(String(m.teamA))) oponentIds.add(String(m.teamA));
+            if (!teamIds.has(String(m.teamB))) oponentIds.add(String(m.teamB));
+            return m?._id?.toString();
           });
 
-          if (matches.length > 0) {
-            // 4.2️⃣ Collect matchIds and opponent IDs efficiently
-            const matchIds = matches.map((m) => {
-              if (String(m.teamA) !== String(team._id)) oponentIds.add(String(m.teamA));
-              if (String(m.teamB) !== String(team._id)) oponentIds.add(String(m.teamB));
-              return m._id.toString();
-            });
+          // 4.3️⃣ Fetch nets & rounds in parallel
+          [nets, rounds] = await Promise.all([
+            this.netService.find({
+              match: { $in: matchIds },
+              $or: [
+                { teamAPlayerA: playerId },
+                { teamAPlayerB: playerId },
+                { teamBPlayerA: playerId },
+                { teamBPlayerB: playerId },
+              ],
+            }),
+            this.roundService.find({ match: { $in: matchIds } }),
+          ]);
 
-            // 4.3️⃣ Fetch nets & rounds in parallel
-            [nets, rounds] = await Promise.all([
-              this.netService.find({
-                match: { $in: matchIds },
-                $or: [
-                  { teamAPlayerA: playerId },
-                  { teamAPlayerB: playerId },
-                  { teamBPlayerA: playerId },
-                  { teamBPlayerB: playerId },
-                ],
-              }),
-              this.roundService.find({ match: { $in: matchIds } }),
-            ]);
+          // 4.4️⃣ Process nets once
+          const redisKeys: string[] = [];
+          for (const n of nets) {
+            redisKeys.push(playerKey(playerId, n._id));
+            [n.teamAPlayerA, n.teamAPlayerB, n.teamBPlayerA, n.teamBPlayerB]
+              .filter(Boolean)
+              .forEach((pid) => playerIds.add(pid as string));
+          }
 
-            // 4.4️⃣ Process nets once
-            const redisKeys: string[] = [];
-            for (const n of nets) {
-              redisKeys.push(playerKey(playerId, n._id));
-              [n.teamAPlayerA, n.teamAPlayerB, n.teamBPlayerA, n.teamBPlayerB]
-                .filter(Boolean)
-                .forEach((pid) => playerIds.add(pid as string));
-            }
+          // 4.5️⃣ Fetch Redis + DB stats concurrently
+          const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
+          const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean);
 
-            // 4.5️⃣ Fetch Redis + DB stats concurrently
-            const redisResults = await Promise.all(redisKeys.map((key) => this.redisService.get(key)));
-            const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean);
+          const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
+          const dbQuery =
+            redisNetIds.size > 0 ? { player: playerId, net: { $nin: Array.from(redisNetIds) } } : { player: playerId };
 
-            const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
-            const dbQuery =
-              redisNetIds.size > 0
-                ? { player: playerId, net: { $nin: Array.from(redisNetIds) } }
-                : { player: playerId };
+          // Use separate awaits (readability + simplicity)
+          const playerstatsDB = await this.playerStatsService.find(dbQuery);
+          players = await this.playerService.find({ _id: { $in: [...playerIds] } });
 
-            // Use separate awaits (readability + simplicity)
-            const playerstatsDB = await this.playerStatsService.find(dbQuery);
-            players = await this.playerService.find({ _id: { $in: [...playerIds] } });
+          // 4.6️⃣ Merge DB + Redis stats
+          const playerstatsDBPlain = playerstatsDB.map((ps) => ({
+            ...ps,
+            net: String(ps.net),
+            player: String(ps.player),
+            match: String(ps.match),
+          }));
 
-            // 4.6️⃣ Merge DB + Redis stats
-            const playerstatsDBPlain = playerstatsDB.map((ps) => ({
-              ...ps,
-              net: String(ps.net),
-              player: String(ps.player),
-              match: String(ps.match),
-            }));
+          playerstats = [...playerstatsRedis, ...playerstatsDBPlain];
 
-            playerstats = [...playerstatsRedis, ...playerstatsDBPlain];
-
-            // 4.7️⃣ If no stats, create empty placeholders
-            if (playerstats.length === 0) {
-              playerstats = nets.map(
-                (net) =>
-                  ({
-                    serveOpportunity: 0,
-                    serveAce: 0,
-                    serveCompletionCount: 0,
-                    servingAceNoTouch: 0,
-                    receiverOpportunity: 0,
-                    receivedCount: 0,
-                    noTouchAcedCount: 0,
-                    settingOpportunity: 0,
-                    cleanSets: 0,
-                    hittingOpportunity: 0,
-                    cleanHits: 0,
-                    defensiveOpportunity: 0,
-                    defensiveConversion: 0,
-                    break: 0,
-                    broken: 0,
-                    matchPlayed: 0,
-                    net: net._id.toString(),
-                    player: playerId,
-                    match: net.match.toString(),
-                  } as CustomPlayerStats),
-              );
-            }
+          // 4.7️⃣ If no stats, create empty placeholders
+          if (playerstats.length === 0) {
+            playerstats = nets.map(
+              (net) =>
+                ({
+                  serveOpportunity: 0,
+                  serveAce: 0,
+                  serveCompletionCount: 0,
+                  servingAceNoTouch: 0,
+                  receiverOpportunity: 0,
+                  receivedCount: 0,
+                  noTouchAcedCount: 0,
+                  settingOpportunity: 0,
+                  cleanSets: 0,
+                  hittingOpportunity: 0,
+                  cleanHits: 0,
+                  defensiveOpportunity: 0,
+                  defensiveConversion: 0,
+                  break: 0,
+                  broken: 0,
+                  matchPlayed: 0,
+                  net: net._id.toString(),
+                  player: playerId,
+                  match: net.match.toString(),
+                } as CustomPlayerStats),
+            );
           }
         }
       }
@@ -214,7 +227,6 @@ export class PlayerStatsResolver {
           groups,
         },
       };
-
     } catch (error) {
       return AppResponse.handleError(error);
     }

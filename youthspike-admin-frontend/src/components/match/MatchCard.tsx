@@ -162,7 +162,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   }, [match.rounds, netsByRoundId]);
 
   /** ✅ Team card reusable component - optimized with direct props */
-  const TeamCard = React.memo(({ team, teamScore, teamE, won }: { team: ITeam; teamScore: number; teamE: ETeam; won: boolean }) => (
+  const TeamCard = React.memo(({ team, teamScore, teamE, won, penalty }: { team: ITeam; teamScore: number; teamE: ETeam; won: boolean, penalty: number }) => (
     <div className={`flex items-center ${teamE === ETeam.teamA ? 'flex-row' : 'flex-row-reverse'} gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
       <div className="flex-shrink-0">
         {team?.logo ? (
@@ -175,7 +175,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <h5 className="text-xs font-medium text-white capitalize break-words">{team?.name}</h5>
       </div>
       <div className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl border ${won ? 'border-green-500 bg-green-600 text-white' : 'border-gray-400 bg-white text-black'}`}>
-        <span className="text-xs font-bold">{teamScore}</span>
+        <span className="text-xs font-bold">{teamScore + penalty}</span>
       </div>
     </div>
   ));
@@ -247,8 +247,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <MatchHeader />
 
         <div className="grid grid-cols-2 gap-2 mt-1">
-          <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} />
-          <TeamCard team={match.teamB} teamScore={teamScores.teamB} teamE={ETeam.teamB} won={teamBWon} />
+          <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} penalty={match.completed ? (match.teamAP || 0) : 0} />
+          <TeamCard team={match.teamB} teamScore={teamScores.teamB} teamE={ETeam.teamB} won={teamBWon} penalty={match.completed ? (match.teamBP || 0) : 0} />
         </div>
         <ActionButtons iconSize={20} />
       </div>
@@ -258,8 +258,8 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
         <MatchHeader />  
         <div className="flex flex-col items-center justify-between mt-2">
           <div className="grid grid-cols-2 gap-3 flex-1">
-            <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} />
-            <TeamCard team={match.teamB} teamScore={teamScores.teamB} teamE={ETeam.teamB} won={teamBWon} />
+            <TeamCard team={match.teamA} teamScore={teamScores.teamA} teamE={ETeam.teamA} won={teamAWon} penalty={match.completed ? (match.teamAP || 0) : 0} />
+            <TeamCard team={match.teamB} teamScore={teamScores.teamB} teamE={ETeam.teamB} won={teamBWon} penalty={match.completed ? (match.teamBP || 0) : 0} />
           </div>
           <ActionButtons iconSize={24} />
         </div>

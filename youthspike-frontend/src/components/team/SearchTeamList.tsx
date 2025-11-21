@@ -1,6 +1,9 @@
 import {
-  IRoundRelatives, ITeamCaptain, IMatch,
-  ITeamScore, ETeam
+  IRoundRelatives,
+  ITeamCaptain,
+  IMatch,
+  ITeamScore,
+  ETeam,
 } from "@/types";
 import { useMemo } from "react";
 import TeamRow from "./TeamRow";
@@ -17,7 +20,6 @@ function SearchTeamList({
   matchesByTeamId,
   selectedGroup,
 }: ITeamListProps) {
-  
   const teamScores = useMemo(() => {
     const scores = new Map<string, ITeamScore>();
 
@@ -41,16 +43,24 @@ function SearchTeamList({
 
       for (const match of teamMatches) {
         if (!match.completed) continue;
-        const teamId: string = typeof match.teamA == "object" ? match.teamA._id : match.teamA;
+        const teamId: string =
+          typeof match.teamA == "object" ? match.teamA._id : match.teamA;
         const isTeamA = teamId === team._id;
 
         // direct lookups instead of filter
 
-        const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(
+        const {
+          teamScore: ts,
+          oponentScore: os,
+          teamPlusMinus,
+        } = calcMatchScore(
           match.rounds as unknown as IRoundRelatives[],
           match.nets,
           isTeamA ? ETeam.teamA : ETeam.teamB
         );
+
+        const teamScore = ts + (isTeamA ? match?.teamAP || 0 : 0),
+          oponentScore = os + (isTeamA ? match?.teamBP || 0 : 0);
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
@@ -125,14 +135,12 @@ function SearchTeamList({
     return sortedList;
   }, [teamList, teamScores, selectedGroup]);
 
-  
-
   return (
     <div className="teamList w-full flex flex-col gap-y-4">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden">
           <thead>
-            <tr className="bg-yellow-500 text-black font-semibold">
+            <tr className="bg-yellow-logo text-black font-semibold">
               <th className="py-3 px-2">Team</th>
               {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Overall</th>

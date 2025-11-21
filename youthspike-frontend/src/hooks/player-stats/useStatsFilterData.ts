@@ -22,7 +22,7 @@ import {
 import SessionStorageService from "@/utils/SessionStorageService";
 import { useMemo } from "react";
 
-interface IStatsFilterDataProps{
+interface IStatsFilterDataProps {
   player: IPlayer;
   players: IPlayer[];
   filter: Partial<Record<EStatsFilter, string | string[]>>;
@@ -55,17 +55,23 @@ function useStatsFilterData({
     netMapByMatch,
     netMapByRound,
   } = useMemo(() => {
-    const teamMap = new Map<string, ITeam>(
-      teams.map((t) => [String(t._id), t])
-    );
+    const teamMap = new Map<string, ITeam>();
+
+    for (let i = 0; i < teams.length; i++) {
+      const t = teams[i];
+      if (t && t?._id) {
+        teamMap.set(String(t._id), t);
+      }
+    }
+
     const matchMap = new Map<string, IMatch>(
-      matches.map((m) => [String(m._id), m])
+      matches.map((m) => [String(m?._id), m])
     );
     const playerMap = new Map<string, IPlayer>(
-      players.map((p) => [String(p._id), p])
+      players.map((p) => [String(p?._id), p])
     );
     const netMap = new Map<string, INetRelatives>(
-      nets.map((n) => [String(n._id), n])
+      nets.map((n) => [String(n?._id), n])
     );
     const roundMapByMatch = createRoundMapByMatch(rounds);
     const netMapByMatch = createNetMapByMatch(nets);
@@ -87,7 +93,9 @@ function useStatsFilterData({
     const startTs = filter[EStatsFilter.START_DATE]
       ? new Date(String(filter[EStatsFilter.START_DATE])).getTime()
       : null;
-    const endTs = filter[EStatsFilter.END_DATE] ? new Date(String(filter[EStatsFilter.END_DATE])).getTime() : null;
+    const endTs = filter[EStatsFilter.END_DATE]
+      ? new Date(String(filter[EStatsFilter.END_DATE])).getTime()
+      : null;
 
     return matches.filter((m) => {
       const t = new Date(m.date).getTime();
@@ -99,7 +107,7 @@ function useStatsFilterData({
 
   // 2) Match options for the UI (formatted labels)
   const matchOptions = useMemo(() => {
-    const options =  availableMatches.map((m, idx) => ({
+    const options = availableMatches.map((m, idx) => ({
       id: idx + 1,
       value: m._id,
       text: formatMatchLabel(
@@ -164,8 +172,13 @@ function useStatsFilterData({
     const relevantNetIds = new Set<string>();
 
     if (filter[EStatsFilter.GAME] && filter[EStatsFilter.GAME].length > 0) {
-      (filter[EStatsFilter.GAME] as string[]).forEach((id) => relevantNetIds.add(id));
-    } else if (filter[EStatsFilter.MATCH] && filter[EStatsFilter.MATCH].length > 0) {
+      (filter[EStatsFilter.GAME] as string[]).forEach((id) =>
+        relevantNetIds.add(id)
+      );
+    } else if (
+      filter[EStatsFilter.MATCH] &&
+      filter[EStatsFilter.MATCH].length > 0
+    ) {
       for (const matchId of filter[EStatsFilter.MATCH]) {
         const netsForMatch = netMapByMatch.get(matchId) || [];
         for (const n of netsForMatch) relevantNetIds.add(n._id);
@@ -200,18 +213,12 @@ function useStatsFilterData({
       value: p._id,
       text: `${p.firstName} ${p.lastName}`,
     }));
-  }, [
-    filter,
-    nets,
-    netMap,
-    netMapByMatch,
-    player._id,
-    playerMap,
-  ]);
+  }, [filter, nets, netMap, netMapByMatch, player._id, playerMap]);
 
   // 6) Game options — nets grouped by rounds under selected matches where the player participated
   const gameOptions = useMemo(() => {
-    if (!filter[EStatsFilter.MATCH] || filter[EStatsFilter.MATCH].length === 0) return [];
+    if (!filter[EStatsFilter.MATCH] || filter[EStatsFilter.MATCH].length === 0)
+      return [];
 
     const options: IOption[] = [];
     for (const matchId of filter[EStatsFilter.MATCH]) {

@@ -139,6 +139,8 @@ function MatchAuthenticatedView({
     mainEl.current?.click();
   }, [mainEl]);
 
+  
+
   return (
     <div className="relative bg-white text-black-logo" ref={mainEl}>
       <button

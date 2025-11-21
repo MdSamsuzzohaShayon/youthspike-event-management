@@ -161,6 +161,8 @@ query GetEventWithMatches($eventId: String!) {
         rounds
         teamA
         teamB
+        teamAP
+        teamBP
         group
       }
       teams {
@@ -251,6 +253,8 @@ query GetMatches {
       numberOfRounds
       numberOfNets
       location
+      teamAP
+      teamBP
       teamB {
         _id
         name

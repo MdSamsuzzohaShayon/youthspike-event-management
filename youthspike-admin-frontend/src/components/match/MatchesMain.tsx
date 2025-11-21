@@ -83,6 +83,8 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
     return <div>Event not found</div>;
   }
 
+  
+
   // Local state
   const [isLoading, setIsLoading] = useState(false);
   const [showMatchAddForm, setShowMatchAddForm] = useState(false);
@@ -156,6 +158,8 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
     },
     [matches],
   );
+
+  
 
   // Toggle between add form and list view
   const toggleMatchView = useCallback(() => {

@@ -16,6 +16,8 @@ interface IPlayersPageProps {
   searchParams: Promise<ISearchFilter>;
 }
 
+// Player list -> http://localhost:3001/events/68afc5f30bf9dbb4ac0f69cb/players?search=alex+hart&limit=30
+// Player stats -> http://localhost:3001/players/68c428341a3dc4cfb835d29c
 export default async function PlayersPage({
   params,
   searchParams,

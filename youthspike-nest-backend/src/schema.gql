@@ -236,6 +236,8 @@ type Match {
   fwango: String
   completed: Boolean
   extendedOvertime: Boolean
+  teamAP: Int
+  teamBP: Int
   event: Event!
   nets: [Net!]!
   serverReceiverOnNet: [ServerReceiverOnNet!]
@@ -548,6 +550,8 @@ type CustomMatch {
   fwango: String
   completed: Boolean
   extendedOvertime: Boolean
+  teamAP: Int
+  teamBP: Int
   event: Event!
   nets: [String!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
@@ -1397,6 +1401,8 @@ input CreateMatchInput {
   date: String!
   teamA: String
   teamB: String
+  teamAP: Int
+  teamBP: Int
   division: String
   group: String
   numberOfNets: Float
@@ -1419,6 +1425,8 @@ input UpdateMatchInput {
   date: String
   teamA: String
   teamB: String
+  teamAP: Int
+  teamBP: Int
   division: String
   group: String
   numberOfNets: Float

@@ -18,6 +18,8 @@ export interface ICommonMatchEvent{
 export interface IDefaultMatch extends ICommonMatchEvent{
   division: string;
   extendedOvertime?: boolean;
+  teamAP?: number; // Plus minus points of teamA
+  teamBP?: number; // Plus minus points of teamB
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {

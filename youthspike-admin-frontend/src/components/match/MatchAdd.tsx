@@ -44,6 +44,8 @@ const initialAddMatch: IAddMatch = {
   numberOfRounds: 0,
   teamA: '',
   teamB: '',
+  teamAP: 0,
+  teamBP: 0,
   autoAssignLogic: EAssignStrategies.AUTO,
   autoAssign: false,
   division: '',
@@ -55,7 +57,6 @@ const initialAddMatch: IAddMatch = {
 };
 
 function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
-  
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
@@ -240,7 +241,12 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         {/* We have division in the parent component */}
         <DateInput label="Start Date" name="date" handleDateChange={handleDateChange} value={addMatch.date} required={!update} />
         {!update && <SelectInput key="select-group" handleSelect={handleGroupChange} name="group" label="Conference (Group)" defaultValue={addMatch.division} optionList={groupOptions} />}
-        {selectedGroup && filteredTeamList.length > 0 && <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />}
+        {selectedGroup &&
+          (filteredTeamList.length > 0 ? (
+            <TeamSelector handleNumInputChange={handleNumInputChange} teamList={filteredTeamList} setAddMatch={setAddMatch} />
+          ) : (
+            <span className="text-yellow-logo">No team in the group, try selecting another group!</span>
+          ))}
         <TextareaInput key="field-description" handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
         <InputField key="field-location" type="text" handleInputChange={handleInputChange} label="Location / Start time" name="location" defaultValue={addMatch.location || ''} />
       </div>

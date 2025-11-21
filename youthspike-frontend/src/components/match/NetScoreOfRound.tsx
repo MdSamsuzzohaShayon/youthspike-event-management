@@ -4,10 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { EXTRA_HEIGHT, screen } from "@/utils/constant";
 import { border } from "@/utils/styles";
 import { ETeam } from "@/types/team";
-import {
-  setOutOfRange,
-  setShowTeamPlayers,
-} from "@/redux/slices/matchesSlice";
+import { setOutOfRange, setShowTeamPlayers } from "@/redux/slices/matchesSlice";
 import MatchSetting from "./MatchSetting";
 import LogoMatchScore from "./LogoMatchScore";
 import PointsByRound from "./PointsByRound";
@@ -73,15 +70,13 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     netsByRound,
     myTeamE,
     currentRound,
-    match
+    match,
   });
 
   // Simplified event handler using the hook
   const handleRoundChangeClick = useCallback(
     (e: React.SyntheticEvent, roundId: string) => {
       e.preventDefault();
-
-
 
       handleRoundChange(roundId, (errorMessage) => {
         dispatch(
@@ -184,11 +179,30 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             team={opTeam}
             teamE={opTeamE}
             completed={match.completed}
+            penalty={
+              opTeamE === ETeam.teamA ? match.teamAP || 0 : match.teamBP || 0
+            }
           />
           <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
+            {match.teamAP && match.teamAP && (
+              <button
+                className={`single-r bg-white py-1 text-center cursor-pointer ${
+                  screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
+                } rounded-t-lg`}
+                type="button"
+                onClick={(e) => e.preventDefault()}
+              >
+                PT
+              </button>
+            )}
             {roundButtons}
           </div>
-          <PointsByRound roundList={roundList} dark screenWidth={screenWidth} />
+          <PointsByRound
+            roundList={roundList}
+            dark
+            screenWidth={screenWidth}
+            currMatch={match}
+          />
         </div>
 
         {match.completed && (
@@ -209,6 +223,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             roundList={roundList}
             dark={false}
             screenWidth={screenWidth}
+            currMatch={match}
           />
           <div className="mb-2 w-full">
             <LogoMatchScore
@@ -216,6 +231,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
               team={myTeam}
               teamE={myTeamE}
               completed={match.completed}
+              penalty={
+                myTeamE === ETeam.teamA ? match.teamAP || 0 : match.teamBP || 0
+              }
             />
           </div>
         </div>

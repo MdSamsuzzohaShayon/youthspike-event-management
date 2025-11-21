@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from "react";
 import RoundView from "./PublicView/RoundView";
 import {
   EView,
+  IMatchExpRel,
   INetRelatives,
   IRoundRelatives,
   IServerReceiverOnNetMixed,
@@ -27,6 +28,7 @@ interface IMatchPublicViewProps {
   currServerReceiver: IServerReceiverOnNetMixed | null;
   matchId: string;
   serverReceiverPlays: IServerReceiverSinglePlay[];
+  currMatch: IMatchExpRel;
 }
 
 function MatchPublicView({
@@ -40,6 +42,7 @@ function MatchPublicView({
   currServerReceiver,
   matchId,
   serverReceiverPlays,
+  currMatch,
 }: IMatchPublicViewProps) {
   const searchParams = useSearchParams();
   const [view, setView] = useState<EView>(() => {
@@ -57,8 +60,6 @@ function MatchPublicView({
     }
     return EView.ROUND;
   }); // allNets | round | net
-  
- 
 
   const { teamAPlayers, teamBPlayers } = useAppSelector(
     (state) => state.players
@@ -159,42 +160,39 @@ function MatchPublicView({
     return currRoundNets.find((n) => n.num === currNetNum);
   }, [currNetNum, currRoundNets]);
 
-
-
   return (
-
-      <div className="round-net-view w-full">
-        {/* Views */}
-        {view === EView.ROUND && (
-          <RoundView
-            currRound={currRound}
-            currRoundNets={currRoundNets}
-            teamA={teamA}
-            teamB={teamB}
-            setView={setView}
-            allNets={nets}
-            roundList={roundList}
-            srMap={srMap}
-            matchId={matchId}
-            view={view}
-            playerMap={playerMap}
-            playMapByNet={playMapByNet}
-          />
-        )}
-        {view === EView.NET && selectedNet && (
-          <NetInRound
-            net={selectedNet || null}
-            teamA={teamA}
-            teamB={teamB}
-            playerMap={playerMap}
-            srMap={srMap}
-            playMapByNet={playMapByNet}
-            view={view}
-            matchId={matchId}
-            setView={setView}
-          />
-        )}
-      </div>
+    <div className="round-net-view w-full">
+      {/* Views */}
+      {view === EView.ROUND && (
+        <RoundView
+          currRound={currRound}
+          match={currMatch}
+          teamA={teamA}
+          teamB={teamB}
+          setView={setView}
+          allNets={nets}
+          roundList={roundList}
+          srMap={srMap}
+          matchId={matchId}
+          view={view}
+          playerMap={playerMap}
+          playMapByNet={playMapByNet}
+        />
+      )}
+      {view === EView.NET && selectedNet && (
+        <NetInRound
+          net={selectedNet || null}
+          teamA={teamA}
+          teamB={teamB}
+          playerMap={playerMap}
+          srMap={srMap}
+          playMapByNet={playMapByNet}
+          view={view}
+          matchId={matchId}
+          setView={setView}
+        />
+      )}
+    </div>
   );
 }
 

@@ -79,6 +79,8 @@ query GetMatch($matchId: String!) {
       timeout
       tieBreaking
       extendedOvertime
+      teamAP
+      teamBP
       serverReceiverSinglePlay {
         _id
         matchId
@@ -193,6 +195,8 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         _id
         teamB
         teamA
+        teamAP
+        teamBP
         date
         location
         group

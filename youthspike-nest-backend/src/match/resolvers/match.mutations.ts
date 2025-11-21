@@ -163,6 +163,8 @@ export class MatchMutations {
         location: input.location ?? eventExist.location,
         accessCode: input.accessCode ?? eventExist.accessCode,
         fwango: input.fwango ?? eventExist.fwango,
+        teamAP: input?.teamAP || 0,
+        teamBP: input?.teamBP || 0,
         extendedOvertime: false,
       };
 

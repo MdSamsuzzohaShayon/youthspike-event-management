@@ -10,9 +10,10 @@ interface ILogoMatchScoreProps {
   completed: boolean;
   // eslint-disable-next-line react/require-default-props
   team?: ITeam | null;
+  penalty: number;
 }
 
-function LogoMatchScore({ dark, team, teamE, completed }: ILogoMatchScoreProps) {
+function LogoMatchScore({ dark, team, teamE, completed, penalty }: ILogoMatchScoreProps) {
   const { teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
 
   const myS = teamE === ETeam.teamA ? teamATotalScore : teamBTotalScore;
@@ -33,7 +34,7 @@ function LogoMatchScore({ dark, team, teamE, completed }: ILogoMatchScoreProps) 
             Match <br /> Score
           </h3>
           <div className={`score-box w-3/6 border border-yellow p-2 ${myS > opS && completed ? 'bg-green-600 text-white' : ''} flex justify-center items-center text-center flex-col rounded-lg`}>
-            <h3>{myS}</h3>
+            <h3>{myS + penalty}</h3>
           </div>
         </div>
       </div>

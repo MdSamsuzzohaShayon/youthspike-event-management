@@ -1,8 +1,4 @@
-import {
-  IMatch,
-  IMatchExpRel,
-  INetRelatives, IRoundRelatives
-} from "@/types";
+import { IMatch, IMatchExpRel, INetRelatives, IRoundRelatives } from "@/types";
 import { ETeam, ITeam } from "@/types/team";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import Link from "next/link";
@@ -98,9 +94,13 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const TeamCard = useCallback(
     ({ team, teamType }: { team?: ITeam | null; teamType: ETeam }) => {
       const teamScore =
-        teamType === ETeam.teamA ? teamScores.teamA : teamScores.teamB;
+        teamType === ETeam.teamA
+          ? teamScores.teamA + (match.completed ? match?.teamAP || 0 : 0)
+          : teamScores.teamB + (match.completed ? match?.teamBP || 0 : 0);
       const opponentScore =
-        teamType === ETeam.teamA ? teamScores.teamB : teamScores.teamA;
+        teamType === ETeam.teamA
+          ? teamScores.teamB + (match.completed ? match?.teamBP || 0 : 0)
+          : teamScores.teamA + (match.completed ? match?.teamAP || 0 : 0);
       const won = teamScore > opponentScore && match?.completed;
 
       return (

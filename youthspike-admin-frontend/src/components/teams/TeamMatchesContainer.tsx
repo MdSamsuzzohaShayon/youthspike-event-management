@@ -4,13 +4,10 @@
 import { useCallback, useMemo } from 'react';
 import { useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
-import { IGetTeamMatchesResponse, IMatch, INetRelatives, IRoundRelatives, ITeam } from '@/types';
-import MatchList from '@/components/match/MatchList';
+import { IGetTeamMatchesResponse, INetRelatives, IRoundRelatives, ITeam } from '@/types';
 import { CldImage } from 'next-cloudinary';
 import TextImg from '../elements/TextImg';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FRONTEND_URL } from '@/utils/keys';
 import { useLdoId } from '@/lib/LdoProvider';
 import MatchCard from '../match/MatchCard';
 import { useError } from '@/lib/ErrorProvider';

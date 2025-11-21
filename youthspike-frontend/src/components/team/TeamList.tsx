@@ -232,7 +232,7 @@ function TeamList({
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden">
           <thead>
-            <tr className="bg-yellow-500 text-black font-semibold">
+            <tr className="bg-yellow-logo text-black font-semibold">
               <th className="py-3 px-2">Team</th>
               {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Overall</th>

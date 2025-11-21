@@ -358,6 +358,7 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
         currServerReceiver={currServerReceiver}
         matchId={match._id}
         serverReceiverPlays={serverReceiverPlays}
+        currMatch={match}
       />
     </div>
   );

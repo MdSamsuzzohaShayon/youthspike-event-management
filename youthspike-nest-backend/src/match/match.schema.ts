@@ -99,6 +99,14 @@ export class Match extends AppDocument {
   @Prop({ required: false, default: false })
   extendedOvertime: boolean;
 
+  @Field((_type) => Int, {nullable: true})
+  @Prop({ type: Number, required: false })
+  teamAP?: number; // Plus minus point for team A
+
+  @Field((_type) => Int, {nullable: true})
+  @Prop({ type: Number, required: false })
+  teamBP?: number; // Plus minus point for team A
+
   // Relations
   @Field((_type) => Event, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })

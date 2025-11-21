@@ -1,6 +1,8 @@
 import {
   ENDirection,
   EView,
+  IMatch,
+  IMatchExpRel,
   INetRelatives,
   IPlayer,
   IRoundRelatives,
@@ -21,7 +23,7 @@ import RoundSelector from "./RoundSelector";
 interface IRoundViewProps {
   roundList: IRoundRelatives[];
   allNets: INetRelatives[];
-  currRoundNets: INetRelatives[];
+  match: IMatchExpRel;
   currRound: IRoundRelatives | null;
   teamA: ITeam | null;
   teamB: ITeam | null;
@@ -37,7 +39,7 @@ const RoundView = ({
   roundList,
   allNets,
   currRound,
-  currRoundNets,
+  match,
   teamA,
   teamB,
   setView,
@@ -140,12 +142,14 @@ const RoundView = ({
           name={teamA?.name || ""}
           teamLogo={teamA?.logo || null}
           score={teamATotalScore}
+          penalty={match?.teamAP || 0}
         />
         <ScoreBox
           teamId={teamB?._id || ""}
           name={teamB?.name || ""}
           teamLogo={teamB?.logo || null}
           score={teamBTotalScore}
+          penalty={match?.teamBP || 0}
         />
       </div>
 
@@ -193,6 +197,7 @@ const RoundView = ({
             name={teamA?.name || ""}
             teamLogo={teamA?.logo || null}
             score={teamATotalScore}
+            penalty={match?.teamAP || 0}
           />
         </div>
         {/* In this row there will be 1 net */}
@@ -217,6 +222,7 @@ const RoundView = ({
             name={teamB?.name || ""}
             teamLogo={teamB?.logo || null}
             score={teamBTotalScore}
+            penalty={match?.teamBP || 0}
           />
         </div>
       </div>

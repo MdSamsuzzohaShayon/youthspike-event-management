@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { AppResponse } from 'src/shared/response';
 import { Team } from '../team.schema';
 import { Group } from 'src/group/group.schema';

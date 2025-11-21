@@ -88,6 +88,9 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const safeOponents = oponents || [];
   const safePlayers = players || [];
 
+  console.log({safeMatches});
+  
+
   const {
     matchOptions,
     vsClubOptions,
@@ -205,6 +208,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
           </p>
           <div className="flex justify-start gap-x-2 items-stretch mt-2">
             {/* Team Box */}
+            {team?._id && (
             <Link
               href={`/teams/${team._id}/roster`}
               className="bg-gray-800 px-4 py-2 rounded-lg underline decoration-yellow-400 flex gap-x-2 items-center"
@@ -223,6 +227,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
                 <p className="font-medium">{team?.name || ""}</p>
               </div>
             </Link>
+            )}
 
             {/* Username Box */}
             {player.username && (

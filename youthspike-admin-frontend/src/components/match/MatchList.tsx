@@ -268,6 +268,9 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
     e.preventDefault();
   }, []);
 
+  console.log({paginatedMatches});
+  
+
   return (
     <div className="matchList w-full flex flex-col md:flex-row justify-between gap-4 flex-wrap">
       {/* Filters */}

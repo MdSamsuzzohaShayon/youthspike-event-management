@@ -15,6 +15,12 @@ export class CreateMatchInput {
   @Field({ nullable: true })
   teamB: string;
 
+  @Field(() => Int, { nullable: true })
+  teamAP?: number;
+
+  @Field(() => Int, { nullable: true })
+  teamBP?: number;
+
   // Default properties
   @Field({ nullable: true })
   division?: string;

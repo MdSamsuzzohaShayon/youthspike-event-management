@@ -62,7 +62,7 @@ const EventNavigationTabs = ({
         <li
           className={`cursor-pointer p-2 rounded-md uppercase text-center transition-colors text-sm ${
             selectedItem === EEventItem.PLAYER
-              ? "bg-yellow-500 text-black font-semibold"
+              ? "bg-yellow-logo text-black font-semibold"
               : "bg-gray-700 text-white hover:bg-gray-600"
           }`}
           onClick={() => handleItemSelect(EEventItem.PLAYER)}
@@ -72,7 +72,7 @@ const EventNavigationTabs = ({
         <li
           className={`cursor-pointer p-2 rounded-md uppercase text-center transition-colors text-sm ${
             selectedItem === EEventItem.TEAM
-              ? "bg-yellow-500 text-black font-semibold"
+              ? "bg-yellow-logo text-black font-semibold"
               : "bg-gray-700 text-white hover:bg-gray-600"
           }`}
           onClick={() => handleItemSelect(EEventItem.TEAM)}
@@ -82,7 +82,7 @@ const EventNavigationTabs = ({
         <li
           className={`cursor-pointer p-2 rounded-md uppercase text-center transition-colors text-sm ${
             selectedItem === EEventItem.MATCH
-              ? "bg-yellow-500 text-black font-semibold"
+              ? "bg-yellow-logo text-black font-semibold"
               : "bg-gray-700 text-white hover:bg-gray-600"
           }`}
           onClick={() => handleItemSelect(EEventItem.MATCH)}

@@ -23,6 +23,7 @@ function MatchesMainContainer({ queryRef, eventId }: IMatchesMainContainerProps)
 
   const { event, matches, teams, nets, rounds, groups } = data.getEventWithMatches.data;
 
+
   // Create lookup maps for efficient data access - O(n) time complexity
   const teamMap = createLookupMap(teams);
   const roundMap = createLookupMap(rounds);
