@@ -420,6 +420,15 @@ query GetTeamRoster($teamId: String!) {
     message
     success
     data {
+      event {
+          _id
+          active
+          divisions
+          description
+          logo
+          location
+          name
+      }
       players {
         _id
         captainofteams

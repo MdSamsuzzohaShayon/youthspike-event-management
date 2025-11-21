@@ -2,10 +2,40 @@
 import { InputFieldProps } from '@/types';
 import React from 'react';
 
-function InputField({ name, type = 'text', label, value, defaultValue, handleInputChange, className = '', required = false }: InputFieldProps) {
+function InputField({ 
+  name, 
+  type = 'text', 
+  label, 
+  value, 
+  defaultValue, 
+  handleInputChange, 
+  className = '', 
+  required = false,
+  compact = false 
+}: InputFieldProps & { compact?: boolean }) {
+  if (compact) {
+    return (
+      <div className={`flex flex-col gap-1 ${className}`}>
+        <label htmlFor={name} className="text-xs font-medium text-gray-300 capitalize">
+          {label || name}
+        </label>
+        <input
+          id={name}
+          name={name}
+          type={type}
+          {...(defaultValue && { defaultValue })}
+          {...(value && { value })}
+          {...(handleInputChange && { onChange: handleInputChange })}
+          required={required}
+          className="text-sm p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-white"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label htmlFor={name} className="capitalize text-lg font-semibold mb-1">
+      <label htmlFor={name} className="text-sm font-medium text-gray-300 mb-1 capitalize">
         {label || name}
       </label>
       <input
@@ -16,7 +46,7 @@ function InputField({ name, type = 'text', label, value, defaultValue, handleInp
         {...(value && { value })}
         {...(handleInputChange && { onChange: handleInputChange })}
         required={required}
-        className="w-full p-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        className="p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-white text-sm"
       />
     </div>
   );

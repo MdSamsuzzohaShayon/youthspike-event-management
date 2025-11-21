@@ -17,6 +17,7 @@ import { filterPlayerStats } from "@/utils/player-stats/playerStatsFilter";
 import Link from "next/link";
 import Image from "next/image";
 import ActiveFilters from "./ActiveFilters";
+import useStatsFilterData from "@/hooks/player-stats/useStatsFilterData";
 
 interface IPlayerStatsMainProps {
   queryRef: QueryRef<{
@@ -28,7 +29,6 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const { data, error } = useReadQuery(queryRef);
   if (error) console.error(error);
 
-  
   if (!data?.getPlayerWithStats?.data) return <div>No data found</div>;
 
   const socket = useSocket();
@@ -88,7 +88,23 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const safeOponents = oponents || [];
   const safePlayers = players || [];
 
-  const {netMap, allNetIds} = useMemo(() => {
+  const {
+    matchOptions,
+    vsClubOptions,
+    teammateOptions,
+    vsPlayerOptions,
+    gameOptions,
+  } = useStatsFilterData({
+    player,
+    players: safePlayers,
+    filter,
+    matches,
+    rounds: safeRounds,
+    nets,
+    teams: [team, ...safeOponents],
+  });
+
+  const { netMap, allNetIds } = useMemo(() => {
     const map = new Map<string, INetRelatives>();
     const netIds = new Set<string>();
     for (let i = 0; i < safeNets.length; i++) {
@@ -96,19 +112,8 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       map.set(n._id, n);
       netIds.add(n._id);
     }
-    return {netMap: new Map(nets.map((n) => [n._id, n])), allNetIds: netIds};
+    return { netMap: new Map(nets.map((n) => [n._id, n])), allNetIds: netIds };
   }, [safeNets]);
-
-
-  const playerMap = useMemo(()=>{
-    return new Map(safePlayers.map((p)=> [p._id, p]));
-  }, [safePlayers]);
-
-  
-  const clubMap = useMemo(()=>{
-    return new Map(safeOponents.map((p)=> [p._id, p]));
-  }, [safeOponents]);
-  
 
   const safePlayerstats = useMemo(() => {
     if (!playerstats || !Array.isArray(playerstats)) return [];
@@ -173,17 +178,16 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
 
               {/* Filter Content */}
               <StatsFilter
-                teams={[team, ...safeOponents]}
                 filter={filter}
                 handleInputChange={<K extends keyof IFilter>(
                   key: K,
                   value: IFilter[K]
-                ) => handleInputChange(key as keyof IFilter, value as any)}
-                matches={safeMatches}
-                nets={safeNets}
-                rounds={safeRounds}
-                players={safePlayers}
-                player={player}
+                ) => handleInputChange(key as keyof IFilter, value as string)}
+                gameOptions={gameOptions}
+                matchOptions={matchOptions}
+                teammateOptions={teammateOptions}
+                vsClubOptions={vsClubOptions}
+                vsPlayerOptions={vsPlayerOptions}
               />
             </div>
           </div>
@@ -284,17 +288,16 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             Filter Stats
           </button>
           <StatsFilter
-            teams={[team, ...safeOponents]}
             filter={filter}
             handleInputChange={<K extends keyof IFilter>(
               key: K,
               value: IFilter[K]
-            ) => handleInputChange(key as keyof IFilter, value as any)}
-            matches={safeMatches}
-            nets={safeNets}
-            rounds={safeRounds}
-            players={safePlayers}
-            player={player}
+            ) => handleInputChange(key as keyof IFilter, value as string)}
+            gameOptions={gameOptions}
+            matchOptions={matchOptions}
+            teammateOptions={teammateOptions}
+            vsClubOptions={vsClubOptions}
+            vsPlayerOptions={vsPlayerOptions}
           />
         </div>
 
@@ -305,7 +308,15 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             {/* <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
             Pro Score: {proScore}
           </div> */}
-            <ActiveFilters filter={filter} netMap={netMap}  onClearAll={clearAllFilters} playerMap={playerMap} clubMap={clubMap} />
+            <ActiveFilters
+              filter={filter}
+              onClearAll={clearAllFilters}
+              gameOptions={gameOptions}
+              matchOptions={matchOptions}
+              teammateOptions={teammateOptions}
+              vsClubOptions={vsClubOptions}
+              vsPlayerOptions={vsPlayerOptions}
+            />
           </div>
 
           {/* <!-- Stats Grid --> */}

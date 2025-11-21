@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useFragment, useReadQuery } from "@apollo/client/react";
+import { useReadQuery } from "@apollo/client/react";
 import { QueryRef } from "@apollo/client/react";
 import {
   IPlayer,
@@ -12,10 +12,11 @@ import {
   ITeam,
 } from "@/types";
 import PlayerStandings from "@/components/player/PlayerStandings";
-import Link from "next/link";
 import { CldImage } from "next-cloudinary";
 import TextImg from "../elements/TextImg";
 import { usePathname } from "next/navigation";
+import TeamNavigation from "./TeamNavigation";
+import { useLdoId } from "@/lib/LdoProvider";
 
 interface TeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -24,12 +25,13 @@ interface TeamRosterContainerProps {
 
 function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const { data } = useReadQuery(queryRef);
+  const {ldoIdUrl} = useLdoId();
 
   if (!data?.getTeamRoster?.data) {
     return <div>Team not found</div>;
   }
 
-  const { team, players, rankings, statsOfPlayer } = data.getTeamRoster.data;
+  const { team, players, rankings, statsOfPlayer, event } = data.getTeamRoster.data;
 
   
 
@@ -56,8 +58,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
 
   const pathname = usePathname();
 
-  const isRosterPage = pathname === `/teams/${teamId}/roster`;
-  const isMatchesPage = pathname === `/teams/${teamId}/matches`;
+
 
   return (
     <div className="min-h-screen bg-gray-900 pb-4">
@@ -84,16 +85,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
         </div>
 
         {/* Navigation */}
-        <div className="px-3 py-2">
-          <div className="flex gap-2 bg-gray-700 rounded-lg p-1">
-            <NavLink href={`/teams/${teamId}/roster`} isActive={isRosterPage}>
-              ROSTER
-            </NavLink>
-            <NavLink href={`/teams/${teamId}/matches`} isActive={isMatchesPage}>
-              MATCHES
-            </NavLink>
-          </div>
-        </div>
+        <TeamNavigation eventId={event?._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
       </div>
 
       {/* Page Content */}
@@ -134,25 +126,6 @@ const StatItem = ({ label, value }: { label: string; value: number }) => (
   </div>
 );
 
-const NavLink = ({
-  href,
-  children,
-  isActive,
-}: {
-  href: string;
-  children: React.ReactNode;
-  isActive: boolean;
-}) => (
-  <Link
-    href={href}
-    className={`flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all text-center ${
-      isActive
-        ? "bg-yellow-400 text-gray-900 shadow-sm"
-        : "text-gray-300 hover:text-white bg-gray-700"
-    }`}
-  >
-    {children}
-  </Link>
-);
+
 
 export default TeamRosterContainer;

@@ -206,8 +206,8 @@ function PlayerStandings({
           <div className="relative w-full">
             <table className="w-full text-left text-sm text-gray-300 bg-gray-900">
               <thead>
-                <tr className="bg-yellow-500 text-black font-semibold">
-                  <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-500 min-w-[120px] max-w-[120px]">
+                <tr className="bg-yellow-logo text-black font-semibold">
+                  <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">
                     Player
                   </th>
                   

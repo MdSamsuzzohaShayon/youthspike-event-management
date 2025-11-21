@@ -16,6 +16,8 @@ interface IMatchUpdateMainProps {
 function MatchUpdateMain({ match, roundList, eventId, matchId }: IMatchUpdateMainProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  
+
   if (isLoading) return <Loader />;
   return (
     <div>

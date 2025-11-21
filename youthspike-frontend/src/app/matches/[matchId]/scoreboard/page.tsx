@@ -26,6 +26,7 @@ export async function MatchPage({ params }: IMatchPageProps) {
             queryRef={
               queryRef as QueryRef<{ getMatch: { data: IMatchExpRel } }>
             }
+            matchId={matchId} // Pass matchId for refreshing
           />
         </Suspense>
       )}

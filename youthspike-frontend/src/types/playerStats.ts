@@ -1,3 +1,4 @@
+import { IOption } from ".";
 import { IGroupRelatives } from "./group";
 import { IMatch, IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
@@ -126,18 +127,19 @@ export enum EPlayerStatType {
 
 
 export interface IStatsFilterProps {
-  player: IPlayer;
-  players: IPlayer[];
   filter: Partial<Record<EStatsFilter, string | string[]>>;
   /**
    * Improved type for handler:
    * key must be a key of IFilter and value must be the correct type for that key.
    */
   handleInputChange: <K extends keyof IFilter>(key: K, value: IFilter[K]) => void;
-  matches: IMatch[];
-  rounds: IRoundRelatives[];
-  nets: INetRelatives[];
-  teams: ITeam[];
+
+
+  matchOptions: IOption[];
+  vsClubOptions: IOption[];
+  teammateOptions: IOption[];
+  vsPlayerOptions: IOption[];
+  gameOptions: IOption[];
 }
 
 

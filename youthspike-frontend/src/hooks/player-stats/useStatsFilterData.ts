@@ -1,10 +1,12 @@
 import {
   EPlayerStatType,
   EStatsFilter,
+  IFilter,
   IMatch,
   INetRelatives,
   IOption,
   IPlayer,
+  IRoundRelatives,
   IStatsFilterProps,
   ITeam,
 } from "@/types";
@@ -17,7 +19,18 @@ import {
   formatMatchLabel,
   isPlayerParticipatingInNet,
 } from "@/utils/player-stats/formatDescription";
+import SessionStorageService from "@/utils/SessionStorageService";
 import { useMemo } from "react";
+
+interface IStatsFilterDataProps{
+  player: IPlayer;
+  players: IPlayer[];
+  filter: Partial<Record<EStatsFilter, string | string[]>>;
+  matches: IMatch[];
+  rounds: IRoundRelatives[];
+  nets: INetRelatives[];
+  teams: ITeam[];
+}
 
 /**
  * Hook that encapsulates all derived data and expensive computations.
@@ -31,10 +44,7 @@ function useStatsFilterData({
   rounds,
   nets,
   teams,
-}: Pick<
-  IStatsFilterProps,
-  "player" | "players" | "filter" | "matches" | "rounds" | "nets" | "teams"
->) {
+}: IStatsFilterDataProps) {
   // base maps memoized to O(n) build cost once per dependency change
   const {
     teamMap,
@@ -89,7 +99,7 @@ function useStatsFilterData({
 
   // 2) Match options for the UI (formatted labels)
   const matchOptions = useMemo(() => {
-    return availableMatches.map((m, idx) => ({
+    const options =  availableMatches.map((m, idx) => ({
       id: idx + 1,
       value: m._id,
       text: formatMatchLabel(
@@ -98,6 +108,8 @@ function useStatsFilterData({
         teamMap.get(String(m.teamB)) ?? null
       ),
     }));
+    // SessionStorageService.setItem(EStatsFilter.MATCH, JSON.stringify(options));
+    return options;
   }, [availableMatches, teamMap]);
 
   // 3) Clubs (VS clubs) derived from either selected matches or all matches

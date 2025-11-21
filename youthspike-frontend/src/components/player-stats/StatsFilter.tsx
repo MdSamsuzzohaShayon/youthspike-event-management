@@ -15,30 +15,15 @@ const CONFERENCE_OPTIONS: IOption[] = [
 ];
 
 export default function StatsFilter({
-  player,
-  players,
   filter,
   handleInputChange,
-  matches,
-  rounds,
-  nets,
-  teams,
+  matchOptions,
+  vsClubOptions,
+  teammateOptions,
+  vsPlayerOptions,
+  gameOptions,
 }: IStatsFilterProps) {
-  const {
-    matchOptions,
-    vsClubOptions,
-    teammateOptions,
-    vsPlayerOptions,
-    gameOptions,
-  } = useStatsFilterData({
-    player,
-    players,
-    filter,
-    matches,
-    rounds,
-    nets,
-    teams,
-  });
+  
 
   // Wrapper function to match MultiSelectInput's expected signature
   const handleMultiSelectChange = (name: string, value: string[]) => {
@@ -60,7 +45,7 @@ export default function StatsFilter({
           handleInputChange={(e) =>
             handleInputChange(
               "startDate" as keyof IFilter,
-              (e.target as HTMLInputElement).value as any
+              (e.target as HTMLInputElement).value as string
             )
           }
         />
@@ -75,7 +60,7 @@ export default function StatsFilter({
           handleInputChange={(e) =>
             handleInputChange(
               "endDate" as keyof IFilter,
-              (e.target as HTMLInputElement).value as any
+              (e.target as HTMLInputElement).value as string
             )
           }
         />
@@ -89,7 +74,7 @@ export default function StatsFilter({
         handleSelect={(e) =>
           handleInputChange(
             "conference" as keyof IFilter,
-            e.target.value as any
+            e.target.value as string
           )
         }
         optionList={CONFERENCE_OPTIONS}

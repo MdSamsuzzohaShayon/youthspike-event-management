@@ -95,7 +95,7 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
   
   return (
     <motion.div
-      className="border border-gray-200 dark:border-gray-700 w-full bg-gray-50 dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-6 relative flex flex-col gap-6"
+      className="border border-gray-200 border-gray-700 w-full bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 p-6 relative flex flex-col gap-6"
       variants={cardVariants}
       initial="hidden"
       animate="visible"
@@ -103,10 +103,10 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
     >
       {/* Header Section */}
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold text-gray-800 dark:text-white">{group.name}</h3>
+        <h3 className="text-xl font-bold text-gray-800 text-white">{group.name}</h3>
         <button
           onClick={() => setActionOpen((prev) => !prev)}
-          className="w-10 h-10 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className="w-10 h-10 flex items-center justify-center bg-gray-200 bg-gray-700 rounded-full hover:bg-gray-300 hover:bg-gray-600 transition-colors"
           aria-label="Options"
         >
           <Image
@@ -120,10 +120,10 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
       </div>
 
       {/* Team List Section */}
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+      <div className="border-t border-gray-200 border-gray-700 pt-4">
         <div className="mt-4">
-          <h4 className="text-sm font-medium text-gray-600 dark:text-gray-300">Teams</h4>
-          <ul className="list-inside mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <h4 className="text-sm font-medium text-gray-600 text-gray-300">Teams</h4>
+          <ul className="list-inside mt-2 text-sm text-gray-600 text-gray-400">
             {group.teams.map((team) => (
               <li key={team._id}>{team.name}</li>
             ))}
@@ -132,7 +132,7 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
       </div>
 
       {/* Footer Section */}
-      <p className="text-sm text-gray-500 dark:text-gray-400">
+      <p className="text-sm text-gray-500 text-gray-400">
         Total Teams: <span className="font-semibold">{group.teams.length}</span>
       </p>
 
@@ -140,33 +140,33 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
       <AnimatePresence>
         {actionOpen && (
           <motion.ul
-            className="absolute z-10 right-6 top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+            className="absolute z-10 right-6 top-12 w-48 bg-gray-100 bg-gray-900 text-gray-800 text-gray-200 rounded-md shadow-lg overflow-hidden"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
             transition={{ duration: 0.2 }}
           >
-            <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+            <li className="px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer">
               <Link href={`/${params.eventId}/groups/${group._id}/update/${ldoIdUrl}`}>
                 Edit Group
               </Link>
             </li>
             <li
               onClick={handleOpenMoveGroupBox}
-              className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+              className="px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
             >
               Move Group
             </li>
             <li
               onClick={(e) => handleChangeStatus(e, !group.active, group._id)}
-              className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+              className="px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
             >
               {group.active ? 'Make Inactive' : 'Make Active'}
             </li>
             <li
               onClick={(e) => handleDelete(e, group._id)}
-              className="px-4 py-3 text-red-500 hover:bg-red-100 dark:hover:bg-red-600 cursor-pointer"
+              className="px-4 py-3 text-red-500 hover:bg-red-100 hover:bg-red-600 cursor-pointer"
             >
               Delete Group
             </li>

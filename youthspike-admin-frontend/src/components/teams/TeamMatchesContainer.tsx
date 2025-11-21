@@ -14,6 +14,7 @@ import { FRONTEND_URL } from '@/utils/keys';
 import { useLdoId } from '@/lib/LdoProvider';
 import MatchCard from '../match/MatchCard';
 import { useError } from '@/lib/ErrorProvider';
+import TeamNavigation from './TeamNavigation';
 
 interface TeamMatchesContainerProps {
   queryRef: QueryRef<{ getTeamMatches: IGetTeamMatchesResponse }>;
@@ -85,10 +86,10 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
       if (teamA) match.teamA = teamA;
       if (teamB) match.teamB = teamB;
 
-      if(mNets && mNets.length > 0){
+      if (mNets && mNets.length > 0) {
         match.nets = mNets;
       }
-      if(mRounds && mRounds.length > 0){
+      if (mRounds && mRounds.length > 0) {
         match.rounds = mRounds;
       }
 
@@ -101,9 +102,6 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   if (!team) {
     return <div>Team not found</div>;
   }
-
-  const isRosterPage = pathname === `/teams/${teamId}/roster`;
-  const isMatchesPage = pathname === `/teams/${teamId}/matches`;
 
   return (
     <div className="min-h-screen bg-gray-900 pb-4">
@@ -126,25 +124,7 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
         </div>
 
         {/* Navigation */}
-        <div className="px-3 py-2">
-          <div className="flex gap-2 bg-gray-700 rounded-lg p-1 mb-2">
-            <NavLink href={`/${event._id}/teamstandings/${ldoIdUrl}`} isActive={false}>
-              Standings
-            </NavLink>
-            <NavLink href={`${FRONTEND_URL}/events/${event._id}/?event_item=TEAM&search=${team?.name?.split(' ').join('+')}`} isActive={false}>
-              Stats
-            </NavLink>
-          </div>
-
-          <div className="flex gap-2 bg-gray-700 rounded-lg p-1">
-            <NavLink href={`/teams/${teamId}/roster`} isActive={isRosterPage}>
-              ROSTER
-            </NavLink>
-            <NavLink href={`/teams/${teamId}/matches`} isActive={isMatchesPage}>
-              MATCHES
-            </NavLink>
-          </div>
-        </div>
+        <TeamNavigation eventId={event._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
       </div>
 
       {/* Page Content */}
@@ -176,15 +156,6 @@ const StatItem = ({ label, value }: { label: string; value: number }) => (
     <div className="text-xs text-gray-400">{label}</div>
     <div className="text-white font-bold text-sm">{value}</div>
   </div>
-);
-
-const NavLink = ({ href, children, isActive }: { href: string; children: React.ReactNode; isActive: boolean }) => (
-  <Link
-    href={href}
-    className={`flex-1 py-2 px-2 rounded-md text-xs font-bold transition-all text-center ${isActive ? 'bg-yellow-400 text-gray-900 shadow-sm' : 'text-gray-300 hover:text-white bg-gray-700'}`}
-  >
-    {children}
-  </Link>
 );
 
 export default TeamMatchesContainer;

@@ -81,34 +81,34 @@ input[type=number] {
 
 /* Button style start  */
 .btn-primary {
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-gray-500 text-white;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-gray-500 text-white;
 }
 
 
 .btn-light {
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-green-50 text-black;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-green-50 text-black;
 }
 
 .btn-light-outline {
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit border bg-transparent text-white;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit border bg-transparent text-white;
 }
 
 .btn-info { 
   background-color: #fce013;
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit text-black;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit text-black;
 }
 
 
 .btn-secondary {
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-gray-800 hover:bg-gray-700 text-white;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-gray-800 hover:bg-gray-700 text-white;
 }
 
 .btn-danger {
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-red-500 text-white;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-red-500 text-white;
 }
 
 .btn-success {
-  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-full shadow-md w-fit bg-green-500 hover:bg-green-700 text-white;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-green-500 hover:bg-green-700 text-white;
 }
 
 /* Button style end  */

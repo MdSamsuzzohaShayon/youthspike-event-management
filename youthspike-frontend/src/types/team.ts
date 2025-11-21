@@ -65,6 +65,7 @@ export interface ISearchTeamResponse{
 
 
 interface ITeamRoster {
+  event: IEvent;
   players: IPlayer[];
   team: ITeam;
   statsOfPlayer: IAllStats[];

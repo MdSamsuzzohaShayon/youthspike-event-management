@@ -31,12 +31,12 @@ function PlayerRow({
   return (
     <tr className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all">
       <td className="py-2 px-3 sticky left-0 bg-inherit min-w-[120px] max-w-[120px] z-10">
-        <div className="flex items-start">
+        <div className="md:flex md:items-start">
           <span className="w-5 text-center font-medium text-sm shrink-0 mt-1">
             {teamRank ? player.rank : index + 1}
           </span>
 
-          <div className="ml-2 flex flex-col w-full">
+          <div className="md:ml-2 md:flex md:flex-col md:w-full">
             {/* Player info container */}
             <div className="flex flex-col">
               {/* Player link (image + name) - Stacked vertically on mobile */}
@@ -75,7 +75,7 @@ function PlayerRow({
               </Link>
               {team && (
                 <Link
-                  href={`/`}
+                  href={`/teams/${team._id}/roster/`}
                   className="text-xs font-medium hover:text-yellow-400 transition-colors break-words capitalize text-yellow-logo"
                 >
                   {team.name}

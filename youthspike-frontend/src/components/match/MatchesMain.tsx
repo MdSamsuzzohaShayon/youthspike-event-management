@@ -39,7 +39,11 @@ const DEFAULT_FILTER_STATE: FilterState = {
 
 const PAGE_SIZE = 30;
 
-export default function MatchesMain({ queryRef, eventId, initialSearchParams }: MatchesMainProps) {
+export default function MatchesMain({
+  queryRef,
+  eventId,
+  initialSearchParams,
+}: MatchesMainProps) {
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
@@ -49,7 +53,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-  
+
   const [appliedFilter, setAppliedFilter] = useState<FilterState>(localFilter);
 
   // Server data state
@@ -66,58 +70,65 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Build query variables
-  const buildQueryVariables = useCallback((filter: FilterState, offset: number = 0) => ({
-    eventId,
-    filter: {
-      limit: PAGE_SIZE,
-      offset,
-      search: filter.search || undefined,
-      division: filter.division || undefined,
-      group: filter.group || undefined,
-      status: filter.status || undefined,
-    },
-  }), [eventId]);
+  const buildQueryVariables = useCallback(
+    (filter: FilterState, offset: number = 0) => ({
+      eventId,
+      filter: {
+        limit: PAGE_SIZE,
+        offset,
+        search: filter.search || undefined,
+        division: filter.division || undefined,
+        group: filter.group || undefined,
+        status: filter.status || undefined,
+      },
+    }),
+    [eventId]
+  );
 
   // Update all server data from response
-  const updateAllData = useCallback((responseData: any) => {
-    const searchData = responseData?.searchMatches?.data;
-    if (!searchData) return;
+  const updateAllData = useCallback(
+    (responseData: { searchMatches: ISearchMatchResponse }) => {
+      const searchData = responseData?.searchMatches?.data;
+      if (!searchData) return;
 
-    setMatches(searchData.matches || []);
-    setTeams(searchData.teams || []);
-    setNets(searchData.nets || []);
-    setRounds(searchData.rounds || []);
-    setGroups(searchData.groups || []);
-    setEvent(searchData.event || null);
-    setHasMore((searchData.matches || []).length === PAGE_SIZE);
-  }, []);
-
-  
+      setMatches(searchData.matches || []);
+      setTeams(searchData.teams || []);
+      setNets(searchData.nets || []);
+      setRounds(searchData.rounds || []);
+      setGroups(searchData.groups || []);
+      setEvent(searchData.event || null);
+      setHasMore((searchData.matches || []).length === PAGE_SIZE);
+    },
+    []
+  );
 
   // Execute GraphQL query
-  const executeSearchQuery = useCallback(async (filter: FilterState, offset: number = 0) => {
-    try {
-      const result = await apolloClient.query({
-        query: SEARCH_MATCHES,
-        variables: buildQueryVariables(filter, offset),
-        fetchPolicy: "network-only",
-      });
-      return result.data as { searchMatches: ISearchMatchResponse };
-    } catch (error) {
-      console.error("Failed to fetch matches:", error);
-      throw error;
-    }
-  }, [apolloClient, buildQueryVariables]);
+  const executeSearchQuery = useCallback(
+    async (filter: FilterState, offset: number = 0) => {
+      try {
+        const result = await apolloClient.query({
+          query: SEARCH_MATCHES,
+          variables: buildQueryVariables(filter, offset),
+          fetchPolicy: "network-only",
+        });
+        return result.data as { searchMatches: ISearchMatchResponse };
+      } catch (error) {
+        console.error("Failed to fetch matches:", error);
+        throw error;
+      }
+    },
+    [apolloClient, buildQueryVariables]
+  );
 
   // Apply filters
   const handleApplyFilters = useCallback(async () => {
     setIsApplyingFilters(true);
-    
+
     try {
       const responseData = await executeSearchQuery(localFilter);
       updateAllData(responseData);
       setAppliedFilter(localFilter);
-      
+
       // Update URL
       const params = new URLSearchParams();
       Object.entries(localFilter).forEach(([key, value]) => {
@@ -125,7 +136,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
           params.set(key, value);
         }
       });
-      
+
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       router.replace(newUrl, { scroll: false });
     } catch (error) {
@@ -138,9 +149,9 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   // Clear filters
   const handleClearFilters = useCallback(async () => {
     const clearedFilter = { ...DEFAULT_FILTER_STATE };
-    
+
     setLocalFilter(clearedFilter);
-    
+
     try {
       const responseData = await executeSearchQuery(clearedFilter);
       updateAllData(responseData);
@@ -153,38 +164,36 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
 
   // Load more matches
   // Load more matches
-const handleLoadMore = useCallback(async () => {
-  setIsLoadingMore(true);
-  
-  try {
-    const offset = matches.length;
-    const responseData = await executeSearchQuery(appliedFilter, offset);
-    const searchData = responseData?.searchMatches?.data;
-    
-    if (searchData) {
-      // Append new matches to existing ones
-      const newMatches = searchData.matches || [];
-      if (newMatches.length > 0) {
-        setMatches(prev => [...prev, ...newMatches]);
-        setHasMore(newMatches.length === PAGE_SIZE);
-      } else {
-        setHasMore(false);
+  const handleLoadMore = useCallback(async () => {
+    setIsLoadingMore(true);
+
+    try {
+      const offset = matches.length;
+      const responseData = await executeSearchQuery(appliedFilter, offset);
+      const searchData = responseData?.searchMatches?.data;
+
+      if (searchData) {
+        // Append new matches to existing ones
+        const newMatches = searchData.matches || [];
+        if (newMatches.length > 0) {
+          setMatches((prev) => [...prev, ...newMatches]);
+          setHasMore(newMatches.length === PAGE_SIZE);
+        } else {
+          setHasMore(false);
+        }
+
+        // Update other entities with the latest data from server
+        // This ensures all related data is in sync
+        setTeams((prev) => [...prev, ...(searchData.teams || [])]);
+        setNets((prev) => [...prev, ...(searchData.nets || [])]);
+        setRounds((prev) => [...prev, ...(searchData.rounds || [])]);
       }
-
-      // Update other entities with the latest data from server
-      // This ensures all related data is in sync
-      setTeams(prev => [...prev, ...(searchData.teams || [])]);
-      setNets(prev => [...prev, ...(searchData.nets || [])]);
-      setRounds(prev => [...prev, ...(searchData.rounds || [])]);
+    } catch (error) {
+      console.error("Failed to load more matches:", error);
+    } finally {
+      setIsLoadingMore(false);
     }
-  } catch (error) {
-    console.error("Failed to load more matches:", error);
-  } finally {
-    setIsLoadingMore(false);
-  }
-}, [matches.length, appliedFilter, executeSearchQuery]);
-
-  
+  }, [matches.length, appliedFilter, executeSearchQuery]);
 
   // Initialize with preloaded data
   useEffect(() => {
@@ -194,14 +203,14 @@ const handleLoadMore = useCallback(async () => {
   }, [initialData, matches.length, updateAllData]);
 
   // Optimized data lookups
-  const teamById = useMemo(() => 
-    new Map(teams.map(team => [team._id, team])),
+  const teamById = useMemo(
+    () => new Map(teams.map((team) => [team._id, team])),
     [teams]
   );
 
   const roundsByMatchId = useMemo(() => {
     const map = new Map<string, IRoundRelatives[]>();
-    rounds.forEach(round => {
+    rounds.forEach((round) => {
       if (round?.match) {
         const existingRounds = map.get(round.match) || [];
         map.set(round.match, [...existingRounds, round]);
@@ -210,29 +219,33 @@ const handleLoadMore = useCallback(async () => {
     return map;
   }, [rounds]);
 
-  const normalizedNets = useMemo(() => 
-    nets.map(net => ({
-      ...net,
-      round: (net as any)?.round?._id ?? (net as any)?.round,
-    })),
+  const normalizedNets = useMemo(
+    () =>
+      nets.map((net) => ({
+        ...net,
+        round: (net as any)?.round?._id ?? (net as any)?.round,
+      })),
     [nets]
   );
 
   // Enrich matches with related data
   const enrichedMatches = useMemo(() => {
-    return matches.map(match => {
+    return matches.map((match) => {
       const matchRounds = roundsByMatchId.get(match._id) || [];
-      const matchNets = normalizedNets.filter(net => 
-        net.round && matchRounds.some(round => round._id === net.round)
+      const matchNets = normalizedNets.filter(
+        (net) =>
+          net.round && matchRounds.some((round) => round._id === net.round)
       );
 
-      const teamA = typeof match.teamA === "string" 
-        ? teamById.get(match.teamA) 
-        : match.teamA;
-      
-      const teamB = typeof match.teamB === "string" 
-        ? teamById.get(match.teamB) 
-        : match.teamB;
+      const teamA =
+        typeof match.teamA === "string"
+          ? teamById.get(match.teamA)
+          : match.teamA;
+
+      const teamB =
+        typeof match.teamB === "string"
+          ? teamById.get(match.teamB)
+          : match.teamB;
 
       return {
         ...match,
@@ -246,12 +259,15 @@ const handleLoadMore = useCallback(async () => {
 
   // Update local filter
   const updateLocalFilter = (key: string, value: string) => {
-    setLocalFilter(prev => ({ ...prev, [key]: value }));
+    setLocalFilter((prev) => ({ ...prev, [key]: value }));
   };
 
   // UI state computations
-  const hasActiveFilters = Object.values(appliedFilter).some(value => value !== "");
-  const hasUnsavedChanges = JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
+  const hasActiveFilters = Object.values(appliedFilter).some(
+    (value) => value !== ""
+  );
+  const hasUnsavedChanges =
+    JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && matches.length === 0;
 
@@ -275,10 +291,11 @@ const handleLoadMore = useCallback(async () => {
         <div className="mb-4 p-3 bg-gray-800 rounded-md">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-300">
-              Active filters: {Object.entries(appliedFilter)
+              Active filters:{" "}
+              {Object.entries(appliedFilter)
                 .filter(([_, value]) => value)
                 .map(([key, value]) => `${key}: ${value}`)
-                .join(', ')}
+                .join(", ")}
             </span>
             <button
               onClick={handleClearFilters}
@@ -303,10 +320,10 @@ const handleLoadMore = useCallback(async () => {
         <div className="match-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {enrichedMatches.length > 0 ? (
-              <SearchMatchList 
-                nets={nets} 
-                rounds={rounds} 
-                matchList={enrichedMatches as unknown as IMatch[]} 
+              <SearchMatchList
+                nets={nets}
+                rounds={rounds}
+                matchList={enrichedMatches as unknown as IMatch[]}
               />
             ) : (
               <div className="text-center py-8 text-gray-400">
@@ -318,8 +335,8 @@ const handleLoadMore = useCallback(async () => {
           {/* Load more button */}
           {hasMore && matches.length > 0 && (
             <div className="w-full mt-6 flex justify-center">
-              <button 
-                onClick={handleLoadMore} 
+              <button
+                onClick={handleLoadMore}
                 disabled={isLoading}
                 className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
               >

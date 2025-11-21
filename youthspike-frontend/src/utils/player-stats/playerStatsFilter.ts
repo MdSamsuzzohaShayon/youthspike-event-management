@@ -107,6 +107,7 @@ export function filterPlayerStats(
   
 
   // Check group, group that has conference, groups that does not have
+  /*
   const groupIds = new Set<string>();
   const conferenceIds = new Set<string>();
   const nonConferenceIds = new Set<string>();
@@ -120,6 +121,7 @@ export function filterPlayerStats(
       nonConferenceIds.add(group._id);
     }
   }
+    */
 
   // Determine valid matches
   const selectedMatchIds = new Set(filter[EStatsFilter.MATCH] as string[]);
@@ -144,9 +146,9 @@ export function filterPlayerStats(
     // Check groups
     if(filter[EStatsFilter.CONFERENCE] && filter[EStatsFilter.CONFERENCE] !== EGroupType.OVERALL){
       if (filter[EStatsFilter.CONFERENCE] === EGroupType.CONFERENCE) {
-        if(!conferenceIds.has(String(match.group))) continue;
+        if(!match.group || String(match.group) === "") continue;
       } else if (filter[EStatsFilter.CONFERENCE] === EGroupType.NON_CONFERENCE) {
-        if(!nonConferenceIds.has(String(match.group))) continue;
+        if(match.group) continue;
       } 
     }
 

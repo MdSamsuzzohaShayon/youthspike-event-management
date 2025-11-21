@@ -1,14 +1,17 @@
-import { IMatch, IMatchExpRel, INetRelatives, IRoundExpRel, IRoundRelatives } from "@/types";
+import {
+  IMatch,
+  IMatchExpRel,
+  INetRelatives, IRoundRelatives
+} from "@/types";
 import { ETeam, ITeam } from "@/types/team";
 import { calcRoundScore } from "@/utils/scoreCalc";
 import Link from "next/link";
-import React, { useCallback, useMemo, useRef } from "react";
-import { readDate, readTime } from "@/utils/datetime";
+import React, { useCallback, useMemo } from "react";
+import { readDate } from "@/utils/datetime";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/UserProvider";
 import { useLdoId } from "@/lib/LdoProvider";
-import { EActionProcess } from "@/types/room";
 import { CldImage } from "next-cloudinary";
 import localStorageService from "@/utils/LocalStorageService";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
@@ -108,7 +111,10 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
             won ? "bg-green-600/20 border border-green-500" : ""
           }`}
         >
-          <div className="flex-shrink-0">
+          <Link
+            href={`/teams/${team?._id}/roster/${ldoIdUrl}`}
+            className="flex-shrink-0"
+          >
             {team?.logo ? (
               <CldImage
                 alt={team?.name || "Team logo"}
@@ -124,12 +130,15 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
                 className="w-12 h-12 rounded-xl"
               />
             )}
-          </div>
-          <div className="flex-1 min-w-0">
+          </Link>
+          <Link
+            href={`/teams/${team?._id}/roster/${ldoIdUrl}`}
+            className="flex-1 min-w-0"
+          >
             <h5 className="text-xs font-medium text-white capitalize word-breaks text-center">
               {team?.name || "Unknown Team"}
             </h5>
-          </div>
+          </Link>
           <div
             className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg border ${
               won

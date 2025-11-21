@@ -1,6 +1,7 @@
 import { IGroup, ISearchFilter } from "@/types";
 import React, { useMemo } from "react";
 import SelectInput from "../elements/SelectInput";
+import InputField from "../elements/InputField";
 
 interface IFilterContentProps {
   divisions: string;
@@ -27,12 +28,9 @@ function FilterContent({
   hasActiveFilters,
   showStatus,
 }: IFilterContentProps) {
-  const ALL_OPTION = { id: 0, value: "", label: "All" };
-
   const divisionList = useMemo(() => {
-    if (!divisions) return [ALL_OPTION];
+    if (!divisions) return [];
     return [
-      ALL_OPTION,
       ...divisions.split(",").map((div, i) => ({
         id: i + 1,
         value: div.trim(),
@@ -42,26 +40,22 @@ function FilterContent({
   }, [divisions]);
 
   const filteredGroups = useMemo(() => {
-    const newGroups = (
-      filter.division
-        ? groups.filter(
-            (g) =>
-              g.division.trim().toLowerCase() ===
-              filter.division!.trim().toLowerCase()
-          )
-        : groups
-    )
-    
-    
+    const newGroups = filter.division
+      ? groups.filter(
+          (g) =>
+            g.division.trim().toLowerCase() ===
+            filter.division!.trim().toLowerCase()
+        )
+      : groups;
+
     const groupOptions = newGroups.map((g, i) => ({
       id: i + 1,
       value: g._id,
       label: g.name,
       text: g.name,
     }));
-    
 
-    return [ALL_OPTION, ...groupOptions];
+    return [...groupOptions];
   }, [groups, filter.division]);
 
   const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -81,77 +75,43 @@ function FilterContent({
   };
 
   return (
-    <div className="w-full animate-slide-down mb-3">
+    <form
+      className="w-full animate-slide-down mb-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!loading && hasUnsavedChanges) {
+          onApplyFilters();
+        }
+      }}
+    >
       <div className="grid grid-cols-2 gap-3 mb-3">
         {/* Division */}
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor="division"
-            className="text-sm font-medium text-gray-300 mb-1"
-          >
-            Division
-          </label>
-          <select
-            id="division"
-            value={filter.division || ""}
-            onChange={handleDivisionChange}
-            className="p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-sm text-white"
-            disabled={loading}
-          >
-            {divisionList.map((option) => (
-              <option key={option.id} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectInput
+          handleSelect={handleDivisionChange}
+          name="division"
+          optionList={divisionList}
+          label="Division"
+          value={filter.division}
+        />
 
         {/* Group */}
-        <div className="flex flex-col gap-1">
-          <label
-            htmlFor="group"
-            className="text-sm font-medium text-gray-300 mb-1"
-          >
-            Group
-          </label>
-          <select
-            id="group"
-            value={filter.group || ""}
-            onChange={handleGroupChange}
-            className="p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-sm text-white"
-            disabled={loading}
-          >
-            {filteredGroups.map((option) => (
-              <option key={option.id} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectInput
+          handleSelect={handleGroupChange}
+          name="group"
+          optionList={filteredGroups}
+          label="Group"
+          value={filter.group}
+        />
       </div>
 
       {/* Search Input */}
       <div className="relative mb-3">
-        <label
-          htmlFor="search"
-          className="text-sm font-medium text-gray-300 mb-1 block"
-        >
-          Search Matches
-        </label>
-        <input
-          id="search"
-          placeholder="Search matches..."
-          value={filter.search || ""}
-          onChange={handleSearchChange}
-          className="w-full px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:ring-2 focus:ring-yellow-400 text-sm"
+        <InputField
+          name="search"
           type="text"
-          disabled={loading}
+          defaultValue={filter.search || ""}
+          handleInputChange={handleSearchChange}
         />
-        {loading && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
       </div>
 
       {/* Status Filter */}
@@ -185,7 +145,7 @@ function FilterContent({
         <button
           onClick={onApplyFilters}
           disabled={loading || !hasUnsavedChanges}
-          className="flex-1 bg-yellow-400 text-black font-semibold py-2 px-4 rounded-md hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+          className="btn-info"
         >
           {loading ? (
             <>
@@ -214,7 +174,7 @@ function FilterContent({
           You have unsaved filter changes
         </div>
       )}
-    </div>
+    </form>
   );
 }
 

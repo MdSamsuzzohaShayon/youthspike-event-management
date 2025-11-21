@@ -1,17 +1,24 @@
 "use client";
 import React from "react";
-import { IFilter, EStatsFilter, INetRelatives, IPlayer, ITeam } from "@/types";
 import Image from "next/image";
+import { IOption, EStatsFilter } from "@/types";
 
-interface IActiveFiltersProps {
+// ------------------------------------------------------
+// Types
+// ------------------------------------------------------
+
+interface ActiveFiltersProps {
   filter: Partial<Record<EStatsFilter, string | string[]>>;
-  netMap: Map<string, INetRelatives>;
-  playerMap: Map<string, IPlayer>;
-  clubMap: Map<string, ITeam>; // optional clubMap for future use
   onClearAll?: () => void;
+
+  matchOptions: IOption[];
+  vsClubOptions: IOption[];
+  teammateOptions: IOption[];
+  vsPlayerOptions: IOption[];
+  gameOptions: IOption[];
 }
 
-const filterLabels: Record<EStatsFilter, string> = {
+const FILTER_LABELS: Record<EStatsFilter, string> = {
   m: "Matches",
   g: "Games",
   tm: "Teammates",
@@ -22,69 +29,86 @@ const filterLabels: Record<EStatsFilter, string> = {
   ed: "End Date",
 };
 
+// ------------------------------------------------------
+// Helper: Convert list of option IDs to display text
+// ------------------------------------------------------
+function resolveOptionValues(value: string[], options: IOption[]): string {
+  if (!Array.isArray(value)) return "";
+
+  const lookup = new Set(value);
+  const results: string[] = [];
+
+  for (const option of options) {
+    if (lookup.has(option.value)) {
+      results.push(option.text || option.value);
+    }
+  }
+
+  return results.join(", ");
+}
+
+// ------------------------------------------------------
+// Main Component
+// ------------------------------------------------------
+
 export default function ActiveFilters({
   filter,
-  netMap,
-  playerMap,
-  clubMap,
   onClearAll,
-}: IActiveFiltersProps) {
-  const entries = Object.entries(filter).filter(([_, value]) => {
-    if (Array.isArray(value)) return value.length > 0;
-    return value !== undefined && value !== "";
+  matchOptions,
+  vsClubOptions,
+  teammateOptions,
+  vsPlayerOptions,
+  gameOptions,
+}: ActiveFiltersProps) {
+  // Filter out empty or undefined entries
+  const activeFilterEntries = Object.entries(filter).filter(([_, val]) => {
+    return Array.isArray(val)
+      ? val.length > 0
+      : val !== "" && val !== undefined;
   });
 
-  if (entries.length === 0) return null;
+  if (activeFilterEntries.length === 0) return null;
 
+  // --------------------------------------------------
+  // Value Resolver
+  // --------------------------------------------------
+  const getDisplayValue = (
+    key: string,
+    rawValue: string | string[]
+  ): string => {
+    if (!Array.isArray(rawValue)) return rawValue;
+
+    switch (key) {
+      case EStatsFilter.VS_PLAYER:
+        return resolveOptionValues(rawValue, vsPlayerOptions);
+
+      case EStatsFilter.TEAMMATE:
+        return resolveOptionValues(rawValue, teammateOptions);
+
+      case EStatsFilter.GAME:
+        return resolveOptionValues(rawValue, gameOptions);
+
+      case EStatsFilter.CLUB:
+        return resolveOptionValues(rawValue, vsClubOptions);
+
+      case EStatsFilter.MATCH:
+        return resolveOptionValues(rawValue, matchOptions);
+
+      default:
+        return rawValue.join(", ");
+    }
+  };
+
+  // --------------------------------------------------
+  // JSX Output
+  // --------------------------------------------------
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-      {/* Active filters list */}
+      {/* Active Filters */}
       <div className="flex flex-wrap gap-2">
-        {entries.map(([key, value]) => {
-          const label = filterLabels[key as EStatsFilter] || key;
-
-          // ---- Resolve display values ----
-          let displayValue = "";
-
-          if (Array.isArray(value)) {
-            // VS Players (vp)
-            if (key === EStatsFilter.VS_PLAYER) {
-              displayValue = value
-                .map((id) => {
-                  const player = playerMap.get(id);
-                  return player
-                    ? `${player.firstName || ""} ${player.lastName || ""}`.trim()
-                    : id;
-                })
-                .join(", ");
-            }
-            // Teammates (tm)
-            else if (key === EStatsFilter.TEAMMATE) {
-              displayValue = value
-                .map((id) => {
-                  const player = playerMap.get(id);
-                  return player
-                    ? `${player.firstName || ""} ${player.lastName || ""}`.trim()
-                    : id;
-                })
-                .join(", ");
-            }
-            // VS Clubs (cb)
-            else if (key === EStatsFilter.CLUB && clubMap) {
-              displayValue = value
-                .map((id) => {
-                  const club = clubMap.get(id);
-                  return club ? club.name : id;
-                })
-                .join(", ");
-            }
-            // Other array filters (matches, games, etc.)
-            else {
-              displayValue = value.join(", ");
-            }
-          } else {
-            displayValue = value;
-          }
+        {activeFilterEntries.map(([key, rawValue]) => {
+          const label = FILTER_LABELS[key as EStatsFilter] ?? key;
+          const displayValue = getDisplayValue(key, rawValue);
 
           return (
             <span
@@ -97,18 +121,18 @@ export default function ActiveFilters({
         })}
       </div>
 
-      {/* Clear All button */}
+      {/* Clear All Button */}
       {onClearAll && (
         <button
           onClick={onClearAll}
-          className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-semibold ml-auto"
+          className="btn-danger flex items-center gap-1"
         >
           <Image
             width={20}
             height={20}
             alt="close"
             src="/icons/close.svg"
-            className="w-4 h-4"
+            className="w-4 h-4 svg-white"
           />
           Clear All
         </button>

@@ -55,6 +55,7 @@ const initialAddMatch: IAddMatch = {
 };
 
 function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
+  
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
@@ -199,7 +200,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           ...prevMatch,
           teamA: prevMatch.teamA._id,
           teamB: prevMatch.teamB._id,
-          group: typeof prevMatch.group === 'object' ? prevMatch.group._id : prevMatch.group,
+          group: typeof prevMatch.group === 'object' ? prevMatch?.group?._id : prevMatch.group,
         }
       : {
           ...initialAddMatch,
@@ -251,7 +252,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         <span className="uppercase">OTHER MATCH DETAILS AND SETTINGS. CLICK TO EXPAND</span>
       </button>
 
-      {expanded && !update && (
+      {(expanded || update) && (
         <div className=" grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <InputField
             key="field-numberOfNets"
