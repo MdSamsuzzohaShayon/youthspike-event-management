@@ -32,14 +32,8 @@ export interface IPlayer extends IDocument {
   status: EPlayerStatus,
   events?: string[];
   teams?: string[];
-  captainofteams: {
-    _id: string;
-    name: string;
-  }[] | null;
-  cocaptainofteams: {
-    _id: string;
-    name: string;
-  }[] | null;
+  captainofteams: ITeam[] | string[] | null;
+  cocaptainofteams: ITeam[] | string[] | null;
 }
 
 export interface IPlayerExpRel extends IDocument {

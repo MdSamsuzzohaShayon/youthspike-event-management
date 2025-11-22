@@ -2,17 +2,18 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useReadQuery } from '@apollo/client/react';
+import { useQuery, useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
 import { IPlayer, IMatch, IAllStats, IGetTeamRosterResponse, ITeam } from '@/types';
 import Link from 'next/link';
 import { CldImage } from 'next-cloudinary';
 import TextImg from '../elements/TextImg';
-import { usePathname } from 'next/navigation';
+import { notFound, usePathname } from 'next/navigation';
 import RosterWrapper from './RosterWrapper';
 import { FRONTEND_URL } from '@/utils/keys';
 import { useLdoId } from '@/lib/LdoProvider';
 import TeamNavigation from './TeamNavigation';
+import { GET_TEAMS } from '@/graphql/teams';
 
 interface TeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -23,12 +24,22 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
 
+
   if (!data?.getTeamRoster?.data) {
-    return <div>Team not found</div>;
+    notFound();
   }
 
   const { team, players, rankings, event, playerRanking } = data.getTeamRoster.data;
 
+  const { data: teamsData, loading, error } = useQuery(GET_TEAMS, {
+    variables: { eventId: event._id },
+    fetchPolicy: "cache-first",   // default
+  });
+
+
+  const teamList = useMemo(()=>{
+    return (teamsData?.getTeams?.data || []) as ITeam[];
+  }, [teamsData]);
   const playerList = useMemo(() => {
     if (!players?.length || !rankings?.length) return [];
 
@@ -60,9 +71,6 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
 
   const pathname = usePathname();
 
-  const isRosterPage = pathname === `/teams/${teamId}/roster`;
-  const isMatchesPage = pathname === `/teams/${teamId}/matches`;
-
   return (
     <div className="min-h-screen bg-gray-900 pb-4">
       {/* Header Section */}
@@ -91,7 +99,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
 
       {/* Page Content */}
       <div className="min-h-screen">
-        <RosterWrapper event={event} players={players} teamId={teamId} playerRanking={playerRankingData} />
+        <RosterWrapper event={event} players={players} team={team} playerRanking={playerRankingData} teamList={teamList} />
       </div>
     </div>
   );

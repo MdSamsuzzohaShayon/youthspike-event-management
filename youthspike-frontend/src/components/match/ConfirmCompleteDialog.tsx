@@ -2,16 +2,10 @@ import { UPDATE_MATCH } from "@/graphql/matches";
 import { useMutation } from "@apollo/client/react";
 import React from "react";
 import { useAppDispatch } from "@/redux/hooks";
-import { EMessage, IMatchExpRel, IMatchRelatives } from "@/types";
+import { EMessage, IMatchExpRel, IMatchRelatives, IUpdateMatchResponse } from "@/types";
 import { setMessage } from "@/redux/slices/elementSlice";
-import { useRouter } from "next/navigation";
 
-interface UpdateMatchResponse {
-  updateMatch: {
-    success: boolean;
-    message: string;
-  };
-}
+
 
 interface IConfirmCompleteDialogProps {
   completeDialogEl: React.RefObject<HTMLDialogElement | null>;
@@ -27,7 +21,7 @@ function ConfirmCompleteDialog({
   match,
 }: IConfirmCompleteDialogProps) {
   const dispatch = useAppDispatch();
-  const [mutateMatch, { loading }] = useMutation<UpdateMatchResponse>(UPDATE_MATCH);
+  const [mutateMatch, { loading }] = useMutation<IUpdateMatchResponse>(UPDATE_MATCH);
 
   const handleConfirmComplete = async (e: React.SyntheticEvent) => {
     e.preventDefault();

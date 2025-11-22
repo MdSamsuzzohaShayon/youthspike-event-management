@@ -1,3 +1,4 @@
+/*
 import { IGetTeamDetailQuery, TParams } from '@/types';
 import { PreloadQuery } from '@/lib/client';
 import { GET_TEAM_DETAIL } from '@/graphql/teams';
@@ -30,4 +31,17 @@ export default async function TeamSinglePage({ params }: TeamSinglePageProps) {
     </div>
   );
 }
+  */
 
+import { TParams } from '@/types';
+import { redirect } from 'next/navigation';
+
+interface TeamSinglePageProps {
+  params: TParams;
+}
+
+export default async function TeamSinglePage({ params }: TeamSinglePageProps) {
+  const { teamId, eventId } = await params;
+
+  redirect(`/teams/${teamId}/roster`);
+}

@@ -39,76 +39,88 @@ export class PlayerMutations implements IPlayerMutations {
           { $pull: { players: playerId }, $addToSet: { moved: playerId } },
         ),
       );
-  
+
       // ✅ 2. Fetch all previous rankings & items in parallel
       const prevRankings = await this.playerRankingService.find({
         team: { $in: currentTeams },
         rankLock: false,
       });
-  
+
       if (prevRankings.length > 0) {
         // 🔄 Instead of looping with await, build all queries first
         const rankingItemLookups = prevRankings.map((r) =>
           this.playerRankingService.findOneItem({ playerRanking: r._id, player: playerId }),
         );
-  
+
         const rankingItems = await Promise.all(rankingItemLookups);
-  
+
         // Delete ranking items & update rankings in one batch
         const deleteAndPullOps = rankingItems
           .filter(Boolean)
           .flatMap((item, idx) => [
-            this.playerRankingService.updateOne(
-              { _id: prevRankings[idx]._id },
-              { $pull: { rankings: item!._id } },
-            ),
+            this.playerRankingService.updateOne({ _id: prevRankings[idx]._id }, { $pull: { rankings: item!._id } }),
             this.playerRankingService.deleteOneItem({ _id: item!._id }),
           ]);
-  
+
         await Promise.all(deleteAndPullOps);
-  
+
         // ✅ 3. Re-rank remaining players (parallel updates)
         const reRankOps: Promise<any>[] = [];
         for (const pr of prevRankings) {
           const rankingItems = await this.playerRankingService.findItems({ playerRanking: pr._id });
-  
+
           // Use in-place sort (no extra array)
           rankingItems.sort((a, b) => a.rank - b.rank);
-  
+
           // Build all update promises without awaiting each one
           rankingItems.forEach((item, index) => {
-            reRankOps.push(
-              this.playerRankingService.updateOneItem(
-                { _id: item._id },
-                { $set: { rank: index + 1 } },
-              ),
-            );
+            reRankOps.push(this.playerRankingService.updateOneItem({ _id: item._id }, { $set: { rank: index + 1 } }));
           });
         }
-  
+
         await Promise.all(reRankOps);
       }
-  
+
       // ✅ 4. Update player's team list efficiently
-      const existingTeams: string[] = Array.isArray(playerObj?.teams)
-        ? playerObj.teams.map((t) => t.toString())
-        : [];
-  
+      const existingTeams: string[] = Array.isArray(playerObj?.teams) ? playerObj.teams.map((t) => t.toString()) : [];
+
       input.teams = existingTeams.filter((t) => !currentTeams.includes(t));
       input.$addToSet = { prevteams: currentTeams[0] };
     }
-  
+
+    // Remove as captain or co-captain from current team
+    if (playerObj?.captainofteams?.length > 0) {
+      updatePromises.push(
+        this.teamService.updateOne({ _id: { $in: playerObj?.captainofteams } }, { $set: { captain: null } }),
+      );
+      updatePromises.push(
+        this.playerService.updateOne(
+          { _id: playerId },
+          { $pull: { captainofteams: { $in: playerObj?.captainofteams } } },
+        ),
+      );
+    }
+    if (playerObj?.cocaptainofteams?.length > 0) {
+      updatePromises.push(
+        this.teamService.updateOne({ _id: { $in: playerObj?.cocaptainofteams } }, { $set: { captain: null } }),
+      );
+      updatePromises.push(
+        this.playerService.updateOne(
+          { _id: playerId },
+          { $pull: { cocaptainofteams: { $in: playerObj?.cocaptainofteams } } },
+        ),
+      );
+    }
+
     // ✅ 5. Add player to new team (single DB call)
-    updatePromises.push(
-      this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }),
-    );
+    updatePromises.push(this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }));
     input.teams.push(newTeamId);
-  
+
     // ✅ 6. Add player to new team's rankings in parallel
     const newTeam = await this.teamService.findById(newTeamId);
     if (newTeam) {
       const newTeamRankings = await this.playerRankingService.find({ team: newTeam._id, rankLock: false });
-  
+
       // Prepare all ranking insertions first
       const newRankingItemPromises = newTeamRankings.map((ranking, idx) =>
         this.playerRankingService.createAnItem({
@@ -117,19 +129,15 @@ export class PlayerMutations implements IPlayerMutations {
           rank: ranking.rankings.length + 1 + idx,
         }),
       );
-  
+
       const newRankingItems = await Promise.all(newRankingItemPromises);
-  
+
       // Push all updates into updatePromises (no extra await here)
       newRankingItems.forEach((item, idx) => {
         updatePromises.push(
-          this.playerRankingService.updateOne(
-            { _id: newTeamRankings[idx]._id },
-            { $addToSet: { rankings: item._id } },
-          ),
+          this.playerRankingService.updateOne({ _id: newTeamRankings[idx]._id }, { $addToSet: { rankings: item._id } }),
         );
       });
-
 
       // ✅ 3. Re-rank remaining players (parallel updates)
       const newRankings = await this.playerRankingService.find({ team: newTeam._id, rankLock: false });
@@ -142,19 +150,13 @@ export class PlayerMutations implements IPlayerMutations {
 
         // Build all update promises without awaiting each one
         rankingItems.forEach((item, index) => {
-          reRankOps.push(
-            this.playerRankingService.updateOneItem(
-              { _id: item._id },
-              { $set: { rank: index + 1 } },
-            ),
-          );
+          reRankOps.push(this.playerRankingService.updateOneItem({ _id: item._id }, { $set: { rank: index + 1 } }));
         });
       }
 
       await Promise.all(reRankOps);
     }
   }
-  
 
   async createPlayer({ input, profile }: CreatePlayerBody): Promise<PlayerResponse> {
     /**

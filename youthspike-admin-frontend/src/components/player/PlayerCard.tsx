@@ -40,7 +40,6 @@ interface IPlayerCardProps {
 }
 
 export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, eventId, rankControls }: IPlayerCardProps) {
-  
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -63,12 +62,15 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
   const name = useMemo(() => `${player.firstName} ${player.lastName}`, [player.firstName, player.lastName]);
 
   const teamId = team?._id;
-  const captainofteams = useMemo(() => player.captainofteams?.map((t) => (typeof t === 'object' ? t._id : t)) || [], [player.captainofteams]);
+  const captainofteams = useMemo(() => player.captainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
 
-  const cocaptainofteams = useMemo(() => player.cocaptainofteams?.map((t) => (typeof t === 'object' ? t._id : t)) || [], [player.cocaptainofteams]);
+  const cocaptainofteams = useMemo(() => player.cocaptainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
 
   const isCaptain = useMemo(() => teamId && captainofteams.includes(teamId), [teamId, captainofteams]);
   const isCoCaptain = useMemo(() => teamId && cocaptainofteams.includes(teamId), [teamId, cocaptainofteams]);
+
+
+  
 
   // Optimized callbacks
   const makeCaptainOrCoCaptain = useCallback(
@@ -216,6 +218,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     },
     [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, setActErr],
   );
+  
 
   // Memoized components
   const PlayerRole = useMemo(
@@ -235,15 +238,19 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       <div className="player-name flex flex-col w-full text-white">
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
-           {team && <Link href={`/teams/${team._id}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">{team.name.slice(0, 3)}</Link>}
+          {team && (
+            <Link href={`/teams/${team._id}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">
+              {team.name.slice(0, 3)}
+            </Link>
+          )}
           {rank && (
-              <button
-                className="md:hidden flex w-8 h-8 items-center justify-center bg-yellow-logo dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                aria-label="Options"
-              >
-                <p className="text-black uppercase font-bold tracking-wide">{rank}</p>
-              </button>
-            )}
+            <button
+              className="md:hidden flex w-8 h-8 items-center justify-center bg-yellow-logo dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              aria-label="Options"
+            >
+              <p className="text-black uppercase font-bold tracking-wide">{rank}</p>
+            </button>
+          )}
         </div>
         {team && (
           <div className="w-full hidden md:flex justify-between items-center">
@@ -391,9 +398,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       <div className="w-full flex flex-col items-center gap-y-1 md:hidden">
         <div className="w-full flex justify-between items-center">
           {PlayerImage}
-          <div>
-            {PlayerRole}
-          </div>
+          <div>{PlayerRole}</div>
           {OptionsButton}
         </div>
         {PlayerInfo}

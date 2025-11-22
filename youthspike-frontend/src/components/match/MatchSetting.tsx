@@ -1,8 +1,21 @@
-import React, { useRef, useCallback, useMemo, useEffect } from "react";
+import React, {
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+  useState,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { ETeam, IMatchRelatives, IRoom, IRoundRelatives, ITeam } from "@/types";
+import {
+  ETeam,
+  IMatchRelatives,
+  IRoom,
+  IRoundRelatives,
+  ITeam,
+  IUpdateMatchResponse,
+} from "@/types";
 import { readDate } from "@/utils/datetime";
 import { EMenuTitle, IColMenu } from "@/types/elements";
 import { setMessage, setSelectedColItem } from "@/redux/slices/elementSlice";
@@ -17,6 +30,8 @@ import EmitEvents from "@/utils/socket/EmitEvents";
 import { useSocket } from "@/lib/SocketProvider";
 import { useMutation } from "@apollo/client/react";
 import { UPDATE_TEAM_PLAYER_RANKING } from "@/graphql/player-ranking";
+import InputField from "../elements/InputField";
+import { UPDATE_MATCH } from "@/graphql/matches";
 
 // Sub-component: Dialog Header
 const DialogHeader = ({
@@ -114,16 +129,19 @@ function MatchSetting({
   currRound,
   myTeamE,
 }: IMatchSettingProps) {
+  // Hooks
   const dispatch = useAppDispatch();
   const user = useUser();
   const socket = useSocket();
   const { ldoIdUrl } = useLdoId();
-  const dialogSettingEl = useRef<HTMLDialogElement>(null);
 
   const [mutateTeamPlayerRanking, { error: uErr }] = useMutation(
     UPDATE_TEAM_PLAYER_RANKING
   );
+  const [mutateMatch, { loading }] =
+    useMutation<IUpdateMatchResponse>(UPDATE_MATCH);
 
+  // Redux selector
   const {
     ldo,
     colMenus,
@@ -139,6 +157,13 @@ function MatchSetting({
     teamBPlayerRanking: state.playerRanking.teamBPlayerRanking,
     rounds: state.rounds.roundList,
   }));
+
+  // Local state and refs
+  const dialogSettingEl = useRef<HTMLDialogElement>(null);
+  const [updateMatchObj, setUpdateMatchObj] = useState({
+    teamAP: match?.teamAP || 0,
+    teamBP: match?.teamBP || 0,
+  });
 
   // ====== Handlers ======
   const handleSettingOpen = useCallback((e: React.SyntheticEvent) => {
@@ -195,6 +220,25 @@ function MatchSetting({
     [match._id, myTeam?._id]
   );
 
+  const handleUpdateMatch = useCallback(
+    async (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      try {
+        const input = {
+          teamAP: updateMatchObj.teamAP,
+          teamBP: updateMatchObj.teamBP,
+        };
+        const { data } = await mutateMatch({
+          variables: { input, matchId: match._id },
+        });
+        console.log(data);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [match, updateMatchObj]
+  );
+
   // ====== Derived State ======
   const canBeScoreKeeper = useMemo(() => {
     if (!currRoom || !currRound) return false;
@@ -222,6 +266,8 @@ function MatchSetting({
       numberOfNets: match.numberOfNets,
       numberOfRounds: match.numberOfRounds,
       tieBreaking: match.tieBreaking?.replace(/_/, " "),
+      teamAP: match?.teamAP || 0,
+      teamBP: match?.teamBP || 0,
     }),
     [match]
   );
@@ -406,6 +452,45 @@ function MatchSetting({
               </div>
             </InfoCard>
 
+            <form
+              className="flex flex-col md:flex-row justify-between items-end gap-2 border border-yellow-500/30 rounded-xl p-4 shadow-lg"
+              onSubmit={handleUpdateMatch}
+            >
+              <InputField
+                name="teamAP"
+                type="number"
+                label={`${
+                  myTeamE === ETeam.teamA ? myTeam?.name : opTeam?.name
+                } penalty`}
+                defaultValue={matchDetails?.teamAP}
+                handleInputChange={(e) => {
+                  setUpdateMatchObj((prev) => ({
+                    ...prev,
+                    teamAP: parseInt(e.target.value, 10),
+                  }));
+                }}
+                className="w-full md:w-2/6"
+              />
+              <InputField
+                name="teamBP"
+                label={`${
+                  myTeamE === ETeam.teamA ? opTeam?.name : myTeam?.name
+                } penalty`}
+                type="number"
+                defaultValue={matchDetails?.teamBP}
+                handleInputChange={(e) => {
+                  setUpdateMatchObj((prev) => ({
+                    ...prev,
+                    teamBP: parseInt(e.target.value, 10),
+                  }));
+                }}
+                className="w-full md:w-2/6"
+              />
+              <button className="btn-info w-full md:w-2/6" type="submit">
+                Update
+              </button>
+            </form>
+
             {teamComponents}
 
             {/* Action Buttons */}
@@ -468,7 +553,9 @@ function MatchSetting({
               {myTeam && (
                 <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
                   <Link
-                    href={`${ADMIN_FRONTEND_URL}/${match.event}/teams/${myTeam._id}`}
+                    // href={`${ADMIN_FRONTEND_URL}/${match.event}/teams/${myTeam._id}`}
+                    href={`${ADMIN_FRONTEND_URL}/teams/${myTeam._id}/roster/${ldoIdUrl}`}
+                    // http://localhost:3000/teams/68cc71225901b0a2cdc15208/roster?ldoId=68afc4b20bf9dbb4ac0f6984
                     className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
                   >
                     <span className="text-white font-semibold capitalize">

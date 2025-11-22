@@ -47,11 +47,12 @@ const TeamSelector = ({ teamList, setAddMatch, handleNumInputChange }: ITeamSele
           name="teamA"
           value={teamA}
           optionList={availableTeamsForA.map((t, i) => ({ id: i + 1, value: t._id, text: t.name }))}
-          label="Team A"
+          label="Team A (Placing first)"
           handleSelect={handleTeamAChange}
-          className="w-full md:w-4/6"
+          className="w-full"
+          // className="w-full md:w-4/6"
         />
-        <InputField name="teamAP" label="Round P ponts (Team A)" type="number" className="w-full md:w-2/6" handleInputChange={handleNumInputChange} />
+        {/* <InputField name="teamAP" label="Round P ponts (Team A)" type="number" className="w-full md:w-2/6" handleInputChange={handleNumInputChange} /> */}
       </div>
       <div className="team-b flex flex-col md:flex-row justify-between items-center gap-x-2 gap-y-6">
         <SelectInput
@@ -61,9 +62,10 @@ const TeamSelector = ({ teamList, setAddMatch, handleNumInputChange }: ITeamSele
           optionList={availableTeamsForB.map((t, i) => ({ id: i + 1, value: t._id, text: t.name }))}
           label="Team B"
           handleSelect={handleTeamBChange}
-          className="w-full md:w-4/6"
+          // className="w-full md:w-4/6"
+          className="w-full"
         />
-        <InputField name="teamBP" label="Round P ponts (Team B)" type="number" className="w-full md:w-2/6" handleInputChange={handleNumInputChange} />
+        {/* <InputField name="teamBP" label="Round P ponts (Team B)" type="number" className="w-full md:w-2/6" handleInputChange={handleNumInputChange} /> */}
       </div>
     </React.Fragment>
   );

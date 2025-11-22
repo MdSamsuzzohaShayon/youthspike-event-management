@@ -144,7 +144,8 @@ function FilterContent({
       <div className="flex gap-2">
         <button
           onClick={onApplyFilters}
-          disabled={loading || !hasUnsavedChanges}
+          // disabled={loading || !hasUnsavedChanges}
+          disabled={loading}
           className="btn-info"
         >
           {loading ? (

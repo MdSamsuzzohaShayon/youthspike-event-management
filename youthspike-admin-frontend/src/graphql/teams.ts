@@ -542,6 +542,26 @@ query GetTeamMatches($teamId: String!) {
 
 `;
 
+
+const GET_TEAMS = gql`
+query GetTeams($eventId: String) {
+  getTeams(eventId: $eventId) {
+    code
+    message
+    success
+    data {
+      _id
+      name
+      division
+      group {
+        _id
+        name
+      }
+    }
+  }
+}
+`;
+
 /**
  * Mutation
  * =========================================================================================================================================
@@ -727,5 +747,6 @@ export {
   GET_A_TEAM_RAW,
   GET_TEAMS_MIN_RAW,
   GET_TEAM_ROSTER,
-  GET_TEAM_MATCHES
+  GET_TEAM_MATCHES,
+  GET_TEAMS
 };

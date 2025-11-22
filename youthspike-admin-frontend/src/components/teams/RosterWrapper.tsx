@@ -1,6 +1,6 @@
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { useError } from '@/lib/ErrorProvider';
-import { EPlayerStatus, IEvent, IPlayer, IPlayerExpRel, IPlayerRank, IPlayerRanking, IPlayerRankingExpRel } from '@/types';
+import { EPlayerStatus, IEvent, IPlayer, IPlayerExpRel, IPlayerRank, IPlayerRanking, IPlayerRankingExpRel, ITeam } from '@/types';
 import { useMutation } from '@apollo/client';
 import React, { useCallback, useMemo, useState } from 'react';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -9,11 +9,12 @@ import { divisionsToOptionList } from '@/utils/helper';
 
 interface IRosterWrapperProps {
   event: IEvent;
-  teamId: string;
+  team: ITeam;
   players: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
+  teamList: ITeam[];
 }
-function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapperProps) {
+function RosterWrapper({ event, team, players, playerRanking, teamList }: IRosterWrapperProps) {
   // Local State
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -23,6 +24,7 @@ function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapper
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const { setActErr } = useError();
 
+  
   // Event handlers
   const handleAddPlayersToTeam = useCallback(
     async (e: React.SyntheticEvent) => {
@@ -31,7 +33,7 @@ function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapper
         await mutateTeam({
           variables: {
             input: { players: Array.from(playerIdsToAdd) },
-            teamId,
+            teamId: team._id,
             eventId: event._id,
           },
         });
@@ -40,7 +42,7 @@ function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapper
         setActErr({ message: (error as Error)?.message || '', success: false });
       }
     },
-    [playerIdsToAdd, teamId, event, mutateTeam, setActErr],
+    [playerIdsToAdd, team, event, mutateTeam, setActErr],
   );
   const refetchFunc = useCallback(() => window.location.reload(), []);
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
@@ -56,14 +58,12 @@ function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapper
     const active = [],
       inactive = [];
     for (let i = 0; i < players.length; i++) {
-      const p = structuredClone(players[i]);
-      p.teams = teamId ? [teamId] : [];
-      // @ts-ignore
-      p.captainofteams = p.captainofteams?.length ? [teamId] : [];
-      // @ts-ignore
-      p.cocaptainofteams = p.cocaptainofteams?.length ? [teamId] : [];
+      const p = {...players[i]};
+      p.teams = team ? [team._id] : [];
 
-      //   teamPlayers.push(p as IPlayerExpRel);
+      p.captainofteams = p.captainofteams?.length ? [String(team._id)] : [];
+      p.cocaptainofteams = p.cocaptainofteams?.length ? [team._id] : [];
+
       const obj = { ...p } as IPlayerExpRel;
 
       if (obj.status === EPlayerStatus.ACTIVE) {
@@ -125,9 +125,9 @@ function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapper
           setIsLoading={setIsLoading}
           rankControls
           refetchFunc={refetchFunc}
-          teamList={[]}
+          teamList={teamList}
           divisionList={divisionList}
-          teamId={teamId}
+          teamId={team?._id}
           showRank
           playerRanking={playerRanking}
           currEvent={event}
@@ -145,9 +145,9 @@ function RosterWrapper({ event, teamId, players, playerRanking }: IRosterWrapper
             eventId={event._id}
             setIsLoading={setIsLoading}
             refetchFunc={refetchFunc}
-            teamList={[]}
+            teamList={teamList}
             divisionList={divisionList}
-            teamId={teamId}
+            teamId={team._id}
             currEvent={event}
             inactive
           />

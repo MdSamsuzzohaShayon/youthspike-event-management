@@ -79,7 +79,6 @@ export class TeamResolver {
   /**
    * Queries
    */
-  @Roles(UserRole.admin, UserRole.director)
   @Query((_returns) => GetTeamsResponse)
   async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
     return this.teamQueris.getTeams(eventId);
@@ -90,7 +89,6 @@ export class TeamResolver {
     return this.teamQueris.getEventWithTeams(eventId);
   }
 
-  @Roles(UserRole.admin, UserRole.director)
   @Query((returns) => GetTeamResponse)
   async getTeam(@Args('teamId') teamId: string) {
     return this.teamQueris.getTeam(teamId);

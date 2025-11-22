@@ -130,3 +130,11 @@ export interface ISearchLimitFilter extends ISearchFilter {
   limit: number;
   offset: number;
 }
+
+
+export interface IUpdateMatchResponse {
+  updateMatch: {
+    success: boolean;
+    message: string;
+  };
+}
