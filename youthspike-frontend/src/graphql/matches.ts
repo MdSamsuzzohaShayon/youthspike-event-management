@@ -72,6 +72,7 @@ query GetMatch($matchId: String!) {
       description
       location
       fwango
+      streamUrl
       netVariance
       numberOfNets
       numberOfRounds
@@ -158,6 +159,7 @@ query GetMatch($matchId: String!) {
           teamAPlayerB
           teamBPlayerA
           teamBPlayerB
+          streamUrl
         }
       }
       teamA {
@@ -209,12 +211,13 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         num
         match
         round
-        teamAScore
         teamBPlayerA
         teamBPlayerB
         teamAPlayerA
-        teamBScore
         teamAPlayerB
+        teamBScore
+        teamAScore
+        streamUrl
         points
       }
       rounds {

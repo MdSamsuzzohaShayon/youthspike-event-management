@@ -56,7 +56,7 @@ function PlayerStandings({
     const newMatchList: IMatchExpRel[] = matchList?.length > 0 ? matchList : [];
     const newRankingMap = new Map<string, number>(rankingMap);
     
-    const records = calculatePlayerRecords(playerList, newMatchList, newRankingMap);
+    const records = calculatePlayerRecords(playerList, newMatchList, teamMap, newRankingMap);
     
     // Filter out null or invalid player records
     return records.filter(record => 
@@ -64,7 +64,7 @@ function PlayerStandings({
       record._id && 
       record.firstName !== undefined
     );
-  }, [playerList, matchList, rankingMap]);
+  }, [playerList, matchList, rankingMap, teamMap]);
 
   // Memoize sorted players with additional safety checks
   const sortedPlayers = useMemo(() => {
@@ -206,7 +206,7 @@ function PlayerStandings({
           <div className="relative w-full">
             <table className="w-full text-left text-sm text-gray-300 bg-gray-900">
               <thead>
-                <tr className="bg-yellow-logo text-black font-semibold">
+                <tr className="bg-yellow-logo text-black font-semibold rounded-lg">
                   <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">
                     Player
                   </th>

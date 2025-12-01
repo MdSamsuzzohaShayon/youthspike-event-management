@@ -88,7 +88,7 @@ query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
   }
 }
 `;
-
+const GET_PLAYER_AND_TEAMS = gql`${GET_PLAYER_AND_TEAMS_RAW}`;
 const GET_A_PLAYER_RAW = `
 query GetPlayer($playerId: String!) {
   getPlayer(playerId: $playerId) {
@@ -352,5 +352,6 @@ export {
   DELETE_A_PLAYER,
   GET_EVENT_WITH_TEAM_PLAYERS_RAW,
   GET_PLAYER_AND_TEAMS_RAW,
+  GET_PLAYER_AND_TEAMS,
   GET_PLAYERS_MIN_RAW,
 };

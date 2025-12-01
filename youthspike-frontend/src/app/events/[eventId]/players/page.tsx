@@ -7,7 +7,7 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { ISearchFilter, ISearchPlayerResponse } from "@/types";
+import { EGroupType, ISearchFilter, ISearchPlayerResponse } from "@/types";
 import PlayersMain from "@/components/player/PlayersMain";
 import { SEARCH_PLAYERS } from "@/graphql/player";
 
@@ -29,6 +29,7 @@ export default async function PlayersPage({
     search,
     division,
     group,
+    ce: EGroupType.CONFERENCE
   };
 
   return (

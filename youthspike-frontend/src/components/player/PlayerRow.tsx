@@ -1,6 +1,8 @@
 import React from "react";
 import Image from "next/image";
 import {
+  EGroupType,
+  EStatsFilter,
   IPlayerRecord,
   IPlayerStats,
   IServerReceiverSinglePlay,
@@ -41,7 +43,7 @@ function PlayerRow({
             <div className="flex flex-col">
               {/* Player link (image + name) - Stacked vertically on mobile */}
               <Link
-                href={`/players/${player?._id || ""}`}
+                href={`/players/${player?._id || ""}/?${EStatsFilter.CONFERENCE}=${EGroupType.CONFERENCE}`}
                 className="flex flex-col sm:flex-row sm:items-center"
               >
                 <div className="relative w-8 h-8 flex-shrink-0 mx-auto sm:mx-0">
@@ -62,7 +64,7 @@ function PlayerRow({
                   )}
                 </div>
                 <div className="ml-0 sm:ml-2 min-w-0 text-center sm:text-left mt-1 sm:mt-0">
-                  <div className="text-xs font-medium hover:text-yellow-400 transition-colors break-words capitalize">
+                  <div className="text-xs font-medium transition-colors break-words capitalize">
                     <span className="block sm:inline">{player.firstName}</span>
                     {player.lastName && (
                       <span className="block sm:inline">
@@ -76,7 +78,7 @@ function PlayerRow({
               {team && (
                 <Link
                   href={`/teams/${team._id}/roster/`}
-                  className="text-xs font-medium hover:text-yellow-400 transition-colors break-words capitalize text-yellow-logo"
+                  className="text-xs font-medium hover:text-yellow-500 transition-colors break-words capitalize text-yellow-logo"
                 >
                   {team.name}
                 </Link>
@@ -89,13 +91,13 @@ function PlayerRow({
                   typeof player.teams[0] === "object" && (
                     <Link
                       href={`/teams/${(player.teams[0] as ITeam)?._id}/roster`}
-                      className="text-yellow-400 text-[10px] uppercase hover:underline truncate max-w-full"
+                      className="text-yellow-logo text-[10px] uppercase hover:underline truncate max-w-full"
                     >
                       {(player.teams[0] as ITeam).name}
                     </Link>
                   )}
                 {player?.captainofteams?.length > 0 && (
-                  <div className="text-yellow-400 text-[10px] uppercase">
+                  <div className="text-yellow-logo text-[10px] uppercase">
                     Captain
                   </div>
                 )}

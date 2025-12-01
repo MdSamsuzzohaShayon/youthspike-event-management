@@ -7,7 +7,6 @@ import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import { Round } from 'src/round/round.schema';
 import { ServerReceiverOnNet, ServerReceiverSinglePlay } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
-import { Team } from 'src/team/team.schema';
 
 export enum ETieBreaker {
   PREV_NET = 'PREV_NET',
@@ -33,23 +32,16 @@ export class Net extends AppDocument {
   /**
    * Relationship
    */
-  @Field((type) => Match, { nullable: false })
+  @Field((_type) => Match, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
   match: string | Match;
 
-  @Field((type) => Round, { nullable: false })
+  @Field((_type) => Round, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Round' })
   round: Round | string;
 
-  @Field((type) => Team, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
-  teamA?: Team | string;
 
-  @Field((type) => Team, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
-  teamB?: Team | string;
-
-  @Field((type) => ServerReceiverOnNet, { nullable: true })
+  @Field((_type) => ServerReceiverOnNet, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' })
   serverReceiverOnNet?: ServerReceiverOnNet | string;
 
@@ -83,25 +75,29 @@ export class Net extends AppDocument {
   /**
    * Points / Score / Stats
    */
-  @Field((type) => Int, { nullable: false })
+  @Field((_type) => Int, { nullable: false })
   @Prop({ required: true, min: 1, max: 2, default: 1 })
   points: number;
 
-  @Field((type) => ETieBreaker, { nullable: true })
+  @Field((_type) => ETieBreaker, { nullable: true })
   @Prop({ required: false, default: ETieBreaker.PREV_NET })
   netType: ETieBreaker;
 
-  @Field((type) => Int, { nullable: true })
+  @Field((_type) => Int, { nullable: true })
   @Prop({ required: false, min: 0, default: null })
   teamAScore: number;
 
-  @Field((type) => Int, { nullable: true })
+  @Field((_type) => Int, { nullable: true })
   @Prop({ required: false, min: 0, default: null })
   teamBScore: number;
 
-  @Field((type) => Int)
+  @Field((_type) => Int)
   @Prop({ required: false, min: 0, default: 0 })
   pairRange?: number;
+
+  @Field(() => String, { nullable: true })
+  @Prop({ required: false })
+  streamUrl?: string;
 }
 
 

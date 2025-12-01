@@ -70,7 +70,7 @@ class SocketEventListener {
   }
 
   handleJoinPlayerRoom(data: { success: boolean; playerId: string }) {
-    console.log(`You have joined to player(${data.playerId}) room`);
+    console.info(`You have joined to player(${data.playerId}) room`);
   }
 
   restartAudio() {
@@ -441,7 +441,6 @@ class SocketEventListener {
     updatedMatchList[matchIndex] = matchObj;
     setMatchList(updatedMatchList);
 
-    console.log("round-update-all-pages ----> ", matchList, actionData);
     this.dispatch(setRoundList([]));
   }
 
@@ -520,8 +519,6 @@ class SocketEventListener {
 
     dispatch(setServerReceiverPlays([...serverReceiverPlays, data.singlePlay]));
     dispatch(setServerReceiversOnNet(updatedList));
-
-    // console.log({"currServerReceiver?.net === srObj.net": currServerReceiver?.net === srObj.net, currServerReceiver, srObj});
 
     if (currServerReceiver?.net === srObj.net) {
       dispatch(setCurrentServerReceiver(srObj));
@@ -806,7 +803,6 @@ class SocketEventListener {
     data,
     apolloClient,
   }: IPlayerStatsResponse) {
-    console.log(`Player stats have been updated`, data);
 
     const updatedPlayerStats = data[playerId];
     if (!updatedPlayerStats) return;
@@ -864,7 +860,7 @@ class SocketEventListener {
         },
       });
 
-      console.log("Player stats updated in cache successfully");
+      console.info("Player stats updated in cache successfully");
     } catch (error) {
       console.error("Error updating player stats in cache:", error);
     }
@@ -874,7 +870,6 @@ class SocketEventListener {
     error: string,
     dispatch: React.Dispatch<React.SetStateAction<any>>
   ) {
-    console.log({ error });
     this.dispatch = dispatch;
     dispatch(
       setMessage({

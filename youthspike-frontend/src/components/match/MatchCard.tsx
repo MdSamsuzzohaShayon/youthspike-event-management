@@ -26,6 +26,8 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const user = useUser();
   const router = useRouter();
 
+
+
   const handleCaptainView = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
@@ -227,7 +229,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   if (!match) return null;
 
   return (
-    <>
+    <div>
       {/* Mobile View */}
       <div className="block md:hidden bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-2">
         <MatchHeader />
@@ -250,7 +252,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
           <ActionButtons iconSize={24} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

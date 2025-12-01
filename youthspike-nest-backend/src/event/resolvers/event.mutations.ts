@@ -16,7 +16,7 @@ import { GroupService } from 'src/group/group.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
-import { tokenToUser } from 'src/util/helper';
+import { tokenToUser } from 'src/utils/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
 import { CreateEventBody, UpdateEventBody } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';

@@ -81,7 +81,7 @@ export default function useMatchSocket({
         currRound: currRound,
         matchId: match._id,
       });
-      console.log("Joined room on socket:", socketInstance.id);
+      console.info("Joined room on socket:", socketInstance.id);
     }, 100);
   };
 
@@ -268,7 +268,7 @@ export default function useMatchSocket({
 
     // Handle reconnect event
     const handleReconnect = () => {
-      console.log("Socket reconnected, rejoining room...");
+      console.info("Socket reconnected, rejoining room...");
       joinRoom(socket);
     };
 
@@ -276,7 +276,7 @@ export default function useMatchSocket({
 
     // Handle disconnect event
     const handleDisconnect = (reason: string) => {
-      console.log("Socket disconnected:", reason);
+      console.info("Socket disconnected:", reason);
       handlersRegisteredRef.current = false;
     };
 

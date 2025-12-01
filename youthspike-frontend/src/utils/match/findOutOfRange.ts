@@ -42,8 +42,7 @@ const findOutOfRange = ({ currMatch, net, myPlayers, opPlayers, myTeamE, playerS
     }
   }
 
-  console.log({rankingMap, opRankingMap});
-  
+
 
   // Find pair score
   let oponentPairScore = 0;

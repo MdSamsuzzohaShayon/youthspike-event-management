@@ -267,8 +267,6 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   const handleMoveSelected = useCallback((e: React.SyntheticEvent) => {
     e.preventDefault();
   }, []);
-
-  console.log({paginatedMatches});
   
 
   return (

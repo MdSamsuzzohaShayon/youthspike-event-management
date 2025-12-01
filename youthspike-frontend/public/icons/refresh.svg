@@ -1,0 +1,23 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  role="img"
+  aria-label="Refresh"
+>
+  <style>
+    .rot {
+      transform-origin: 12px 12px;
+      animation: spin 1.6s ease-in-out infinite;
+    }
+    @keyframes spin {
+      0%   { transform: rotate(0deg);   }
+      50%  { transform: rotate(180deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+  <g class="rot" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 12a9 9 0 1 0-3 6.7" />
+    <polyline points="21 12 21 6 15 6" />
+  </g>
+</svg>

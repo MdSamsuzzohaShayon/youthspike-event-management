@@ -52,6 +52,7 @@ const initialAddMatch: IAddMatch = {
   netVariance: 0,
   homeTeam: '',
   rosterLock: '',
+  streamUrl: '',
   timeout: 0,
   tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
 };
@@ -217,7 +218,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           location: eventData!.location,
           accessCode: eventData!.accessCode,
           tieBreaking: eventData!.tieBreaking,
-          fwango: eventData!.fwango,
+          fwango: eventData!.fwango
         };
 
     setAddMatch(mObj);
@@ -305,6 +306,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           )}
           <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={addMatch.timeout ?? ''} handleInputChange={handleNumInputChange} />
           <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" value={addMatch.fwango || ''} />
+          <InputField key="field-streamUrl" type="text" handleInputChange={handleInputChange} label="Streaming Link" name="streamUrl" defaultValue={addMatch.streamUrl || ''} />
           <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" value={addMatch.accessCode || ''} />
         </div>
       )}

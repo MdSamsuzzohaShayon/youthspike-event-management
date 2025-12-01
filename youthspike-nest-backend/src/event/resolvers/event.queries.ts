@@ -14,7 +14,7 @@ import { UserService } from 'src/user/user.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
-import { playerKey, tokenToUser } from 'src/util/helper';
+import { playerKey, tokenToUser } from 'src/utils/helper';
 import { EEventItem, Event } from '../event.schema';
 import {
   GetEventDetailsResponse,
@@ -27,12 +27,12 @@ import {
 import { IEventQueries } from '../resolvers/event.types';
 import { RedisService } from 'src/redis/redis.service';
 import { Net } from 'src/net/net.schema';
-import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { EventFilterInput } from './event.input';
 import { Match } from 'src/match/match.schema';
 import { Team } from 'src/team/team.schema';
 import { Player } from 'src/player/player.schema';
-import getStatsOfPlayers from 'src/util/getStatsOfPlayers';
+import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
 
 @Injectable()
 export class EventQueries implements IEventQueries {

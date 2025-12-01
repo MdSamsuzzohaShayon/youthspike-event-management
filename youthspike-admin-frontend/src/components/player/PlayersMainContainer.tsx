@@ -4,37 +4,31 @@
 import { useReadQuery } from '@apollo/client';
 import { QueryRef } from '@apollo/client';
 import PlayersMain from './PlayersMain';
-import { IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam } from '@/types';
-import { UserRole } from '@/types/user';
+import { IEventPlayersGroupsTeamsResponse, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam } from '@/types';
+import { IUser, IUserContext, UserRole } from '@/types/user';
 import { notFound, redirect } from 'next/navigation';
-import { UNAUTHORIZED } from '@/utils/constant';
 import { useMemo } from 'react';
-
-interface IEventPlayersGroupsTeamsResponse {
-  getEventWithPlayers: {
-    data: {
-      event: any;
-      players: IPlayerExpRel[];
-      groups: any[];
-      teams: ITeam[];
-      playerRankings: IPlayerRanking[];
-      rankings: IPlayerRankingItem[];
-    };
-  };
-}
 
 interface IPlayersMainContainerProps {
   queryRef: QueryRef<IEventPlayersGroupsTeamsResponse>;
   eventId: string;
-  userExist: any; // Replace with proper user type
+  userExist: IUserContext; // Replace with proper user type
 }
 
 function PlayersMainContainer({ queryRef, eventId, userExist }: IPlayersMainContainerProps) {
-  const { data } = useReadQuery(queryRef);
+  const { data, error } = useReadQuery(queryRef);
 
   // Handle GraphQL errors
   if (!data?.getEventWithPlayers) {
     return <div>Event not found</div>;
+  }
+
+  if (data?.getEventWithPlayers?.code === 401) {
+    redirect('/api/logout');
+  }
+
+  if (!data?.getEventWithPlayers?.data) {
+    return <div>No data found!</div>;
   }
 
   const { event, players, groups, teams, playerRankings, rankings } = data.getEventWithPlayers.data;
@@ -64,17 +58,12 @@ function PlayersMainContainer({ queryRef, eventId, userExist }: IPlayersMainCont
       notFound();
     }
 
-
     if (playerRankings.length > 0) {
-      const foundRanking = playerRankings.find((pr: IPlayerRanking) =>
-        pr.team === teamId && pr.rankLock === 0
-      );
+      const foundRanking = playerRankings.find((pr: IPlayerRanking) => pr.team === teamId && pr.rankLock === 0);
 
       if (foundRanking) {
-        const filteredRankings = rankings.length > 0
-          ? rankings.filter((r: IPlayerRankingItem) => r.playerRanking === foundRanking._id)
-          : [];
-        
+        const filteredRankings = rankings.length > 0 ? rankings.filter((r: IPlayerRankingItem) => r.playerRanking === foundRanking._id) : [];
+
         playerRanking = {
           ...foundRanking,
           rankings: filteredRankings as unknown as IPlayerRankingItemExpRel[],

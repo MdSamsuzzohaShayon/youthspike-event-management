@@ -86,7 +86,7 @@ class EmitEvents {
     matchId,
   }: IJoinTheRoomProps) {
     if (!this.socket || !currRound) return;
-    console.log(`Joined to the room: ${new Date()}`);
+    console.info(`Joined to the room: ${new Date()}`);
 
     const joinData: IJoinData = {
       match: matchId,
@@ -531,7 +531,6 @@ class EmitEvents {
     myTeamE: ETeam
   ): IRoomNetAssign[] {
     this.roomNetAssign = true;
-    console.log({ myTeamE });
 
     return currRoundNets.map((net) => ({
       _id: net._id,
@@ -595,7 +594,6 @@ class EmitEvents {
     accessCode,
     currServerReceiver
   }: ISetServerReceiverChange) {
-    console.log({currServerReceiver});
     
     if (!currNetNum) {
       return dispatch(

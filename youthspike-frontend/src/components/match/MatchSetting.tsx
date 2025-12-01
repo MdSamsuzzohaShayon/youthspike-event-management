@@ -214,7 +214,7 @@ function MatchSetting({
         dialogSettingEl.current?.close();
         window.location.reload();
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     },
     [match._id, myTeam?._id]
@@ -231,9 +231,9 @@ function MatchSetting({
         const { data } = await mutateMatch({
           variables: { input, matchId: match._id },
         });
-        console.log(data);
+        console.info("Update match data", data);
       } catch (error) {
-        console.log(error);
+        console.error(error);
       }
     },
     [match, updateMatchObj]
@@ -300,18 +300,20 @@ function MatchSetting({
       canBeScoreKeeper && (
         <InfoCard className="bg-gradient-to-r from-yellow-500/10 to-yellow-500/5">
           <div className="text-center mb-3">
-            <h4 className="text-yellow-400 font-bold text-lg">Score Keeping</h4>
+            <h4 className="text-yellow-logo font-bold text-lg">
+              Score Keeping
+            </h4>
             <p className="text-gray-300 text-sm">Manage match scoring</p>
           </div>
           <div className="flex gap-3 justify-center">
             <Link
-              className="bg-yellow-500 text-black-logo px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition-colors text-sm shadow-lg"
+              className="btn-info"
               href={`/score-keeping/${match._id}/${ldoIdUrl}`}
             >
               Start New
             </Link>
             <Link
-              className="bg-gray-700 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors text-sm border border-yellow-500/30"
+              className="btn-primary"
               href={`/score-keeping/${match._id}/${ldoIdUrl}`}
             >
               Edit
@@ -376,30 +378,6 @@ function MatchSetting({
     teamBPlayerRanking?.rankLock,
     handleUnlockRank,
   ]);
-
-  const fwangoLink = useMemo(
-    () =>
-      match.fwango && (
-        <Link
-          href={match.fwango}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-xl hover:from-yellow-500/20 hover:to-yellow-500/10 transition-all duration-200 group"
-        >
-          <span className="text-yellow-400 font-semibold group-hover:text-yellow-300">
-            Fwango Link
-          </span>
-          <Image
-            width={16}
-            height={16}
-            src="/icons/external-link.svg"
-            alt="external"
-            className="w-4 h-4 svg-yellow"
-          />
-        </Link>
-      ),
-    [match.fwango]
-  );
 
   // ====== JSX ======
   return (
@@ -512,6 +490,30 @@ function MatchSetting({
                   >
                     <span className="text-white font-semibold capitalize">
                       Fwango
+                    </span>
+                    <Image
+                      width={16}
+                      height={16}
+                      src="/icons/right-arrow.svg"
+                      alt="arrow"
+                      className={`w-4 h-4 svg-white transition-transform duration-200 ${
+                        selectedColItem === colMenus[0]?.title
+                          ? "rotate-90"
+                          : ""
+                      }`}
+                    />
+                  </a>
+                </div>
+              )}
+
+              {match?.streamUrl && match?.streamUrl !== "" && (
+                <div className="border border-yellow-500/30 rounded-xl overflow-hidden">
+                  <a
+                    href={match.streamUrl}
+                    className="flex items-center justify-between w-full p-4 bg-gradient-to-r from-gray-900 to-black-logo hover:from-yellow-500/10 hover:to-yellow-500/5 transition-all duration-200"
+                  >
+                    <span className="text-white font-semibold capitalize">
+                      Stream Link
                     </span>
                     <Image
                       width={16}

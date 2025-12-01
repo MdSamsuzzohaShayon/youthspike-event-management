@@ -105,6 +105,7 @@ const organizeFetchedData = async ({
     completed,
     tieBreaking,
     fwango,
+    streamUrl,
     room,
     netVariance,
     extendedOvertime,
@@ -368,6 +369,7 @@ const organizeFetchedData = async ({
     numberOfNets,
     numberOfRounds,
     fwango,
+    streamUrl,
     teamA: teamAF._id,
     teamB: teamBF._id,
     teamAP,
@@ -379,7 +381,6 @@ const organizeFetchedData = async ({
     extendedOvertime,
   };
   dispatch(setMatchInfo(matchObj));
-  // console.log('Match info: ', matchObj);
 
   // Setting variables for team A and team B
 

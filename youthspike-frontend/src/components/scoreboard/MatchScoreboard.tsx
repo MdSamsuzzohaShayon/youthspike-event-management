@@ -2,11 +2,8 @@
 
 import { useReadQuery, QueryRef, useQuery } from "@apollo/client/react";
 import {
-  EMessage,
-  EPlayerStatus,
-  ETeam,
-  IMatchExpRel,
-  UserRole,
+  EMessage, ETeam,
+  IMatchExpRel
 } from "@/types";
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -25,6 +22,7 @@ import { GET_MATCH_DETAIL } from "@/graphql/matches";
 import QRCode from "../elements/QRCode.tsx";
 import { FRONTEND_URL } from "@/utils/keys";
 import Image from "next/image";
+import Link from "next/link";
 
 interface IMatchScoreBoardProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -104,7 +102,7 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
     try {
       await refetch();
       setLastRefreshed(new Date());
-      console.log("Match data refreshed at:", new Date().toLocaleTimeString());
+      console.info("Match data refreshed at:", new Date().toLocaleTimeString());
     } catch (error) {
       console.error("Failed to refresh match data:", error);
     }
@@ -261,20 +259,59 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
                 )}
               </div>
               <div className="flex gap-2">
+                {match?.streamUrl && match?.streamUrl !== "" && (
+                  <Link
+                    href={match?.streamUrl}
+                    className="btn-info"
+                    target="_blank"
+                  >
+                    <Image
+                      src="/icons/live.svg"
+                      height={20}
+                      width={20}
+                      className="w-18 svg-black"
+                      alt="live-icon"
+                    />
+                  </Link>
+                )}
                 <button
                   onClick={handleRefresh}
                   disabled={loading}
-                  className="btn-info"
+                  className="btn-info flex items-center justify-center gap-x-2"
                 >
+                  <Image
+                    src="/icons/refresh.svg"
+                    height={20}
+                    width={20}
+                    className="w-4 svg-black"
+                    alt="refresh-icon"
+                  />
                   Refresh Now
                 </button>
                 <button
                   onClick={() => setIsAutoRefresh(!isAutoRefresh)}
                   className={`${
                     isAutoRefresh ? "btn-success" : "btn-secondary"
-                  }`}
+                  } flex items-center justify-center gap-x-2`}
                 >
-                  Auto: {isAutoRefresh ? "ON" : "OFF"}
+                  {isAutoRefresh ? (
+                    <Image
+                      src="/icons/sync.svg"
+                      height={20}
+                      width={20}
+                      className="w-4 svg-black"
+                      alt="sync-icon"
+                    />
+                  ) : (
+                    <Image
+                      src="/icons/no-sync.svg"
+                      height={20}
+                      width={20}
+                      className="w-4 svg-black"
+                      alt="no-sync-icon"
+                    />
+                  )}
+                  : {isAutoRefresh ? "ON" : "OFF"}
                 </button>
               </div>
             </div>

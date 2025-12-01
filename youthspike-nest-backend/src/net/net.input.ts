@@ -20,6 +20,9 @@ export class UpdateNetInput extends PartialType(CreateNetInput) {
 
   @Field({ nullable: true })
   teamBPlayerB?: string | null;
+
+  @Field({ nullable: true })
+  streamUrl?: string | null;
 }
 
 @InputType()
@@ -45,4 +48,7 @@ export class UpdateMultipleNetInput extends PartialType(CreateNetInput) {
 
   @Field((type) => Int, { nullable: true })
   teamBScore?: number;
+
+  @Field({ nullable: true })
+  streamUrl?: string | null;
 }

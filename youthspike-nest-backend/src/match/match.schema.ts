@@ -93,6 +93,10 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true })
   @Prop({ required: false })
+  streamUrl?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
   completed: boolean;
 
   @Field({ nullable: true, defaultValue: false })

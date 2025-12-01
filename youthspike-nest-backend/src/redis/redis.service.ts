@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Cluster } from 'ioredis';
-import { EEnv, NODE_ENV, REDIS_CACHE_EXPIRE } from 'src/util/keys';
+import { EEnv, NODE_ENV, REDIS_CACHE_EXPIRE } from 'src/utils/keys';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {

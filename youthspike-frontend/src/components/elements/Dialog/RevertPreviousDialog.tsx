@@ -52,11 +52,11 @@ function RevertPreviousDialog({
   const handleRevertPlay = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!socket) {
-      console.log("No socket found");
+      console.error("No socket found");
       return;
     }
     if(!netByNum){
-      console.log("No net number found");
+      console.error("No net number found");
       return;
     }
     const emit = new EmitEvents(socket, dispatch);

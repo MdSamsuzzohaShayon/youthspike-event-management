@@ -12,7 +12,7 @@ import {
   ServerReceiverSinglePlay,
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { RedisService } from 'src/redis/redis.service';
-import { netKey, singlePlayKey } from 'src/util/helper';
+import { netKey, singlePlayKey } from 'src/utils/helper';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
 import { EventService } from 'src/event/event.service';
 import { RoomService } from 'src/room/room.service';
@@ -129,7 +129,7 @@ export class MatchFields {
     const net = netMap.get(netId);
     if (!net) return null;
 
-    const receiverObj = structuredClone(receiver);
+    const receiverObj = {...receiver};
 
     receiverObj.mutate = (receiverObj.teamAScore || 0) + (receiverObj.teamBScore || 0);
 
@@ -265,7 +265,7 @@ export class MatchFields {
       const newMissedPlays = await Promise.all(
         missedPlays.map(async (mp) => {
           const key = singlePlayKey(mp.net?.toString?.() || '', room, mp.play);
-          const dataToCache = structuredClone(mp);
+          const dataToCache = {...mp};
           await this.redisService.set(key, dataToCache);
           return this.normalizeSinglePlay(dataToCache as any);
         }),

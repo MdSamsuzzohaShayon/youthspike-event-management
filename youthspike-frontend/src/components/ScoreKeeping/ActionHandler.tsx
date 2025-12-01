@@ -43,7 +43,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     (action: EServerReceiverAction) => (e: React.SyntheticEvent) => {
       e.preventDefault();
       if (!currServerReceiver) {
-        console.log("No current server receiver found");
+        console.error("No current server receiver found");
         return;
       }
 
@@ -104,7 +104,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
           break;
 
         default:
-          console.log(`Action is unknown ${action}`);
+          console.error(`Action is unknown ${action}`);
           break;
       }
 

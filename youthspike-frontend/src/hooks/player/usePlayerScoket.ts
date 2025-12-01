@@ -12,7 +12,7 @@ interface IUsePlayerSocketProps {
   socket: Socket | null;
   dispatch: React.Dispatch<React.SetStateAction<any>>;
   playerId: string;
-  apolloClient: ApolloClient<object>;
+  apolloClient: ApolloClient;
 }
 
 const usePlayerSocket = ({
@@ -26,7 +26,7 @@ const usePlayerSocket = ({
       console.warn("No socket or player available");
       return;
     }
-    console.log("Socket connected");
+    console.info("Socket connected");
 
     const emitEvents = new EmitEvents(socket, dispatch);
     const listener = new SocketEventListener(socket, dispatch);
@@ -46,7 +46,6 @@ const usePlayerSocket = ({
         listener.handleError(error, dispatch),
       // revert-play-from-server
       "revert-player-notify": ({players}: {players: string}) =>{
-        console.log({players});
         
         window.location.reload();
       },

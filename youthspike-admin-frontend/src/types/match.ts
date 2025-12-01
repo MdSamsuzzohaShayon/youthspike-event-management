@@ -42,6 +42,7 @@ export interface IAddMatch extends IDefaultMatch{
   numberOfNets: number;
   numberOfRounds: number;
   group?: string;
+  streamUrl?: string;
 }
 
 export interface IMatch extends IMatchBase{

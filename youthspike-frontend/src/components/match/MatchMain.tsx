@@ -59,7 +59,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     verifyLineup,
     match: currMatch,
     teamATotalScore,
-    teamBTotalScore,
+    teamBTotalScore
   } = useAppSelector((state) => state.matches);
 
   const netByNum = useNetMaps(currRoundNets);
@@ -111,6 +111,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
 
     const userDetail = getUserFromCookie();
 
+    
     await organizeFetchedData({
       matchData: match,
       token: userDetail.token,

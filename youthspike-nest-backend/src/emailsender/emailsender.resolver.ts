@@ -12,8 +12,8 @@ import { UserService } from 'src/user/user.service';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
-import { formatDate, isISODateString, tokenToUser } from 'src/util/helper';
-import { EEnv, NODE_ENV } from 'src/util/keys';
+import { formatDate, isISODateString, tokenToUser } from 'src/utils/helper';
+import { EEnv, NODE_ENV } from 'src/utils/keys';
 
 @Resolver()
 export class EmailsenderResolver {

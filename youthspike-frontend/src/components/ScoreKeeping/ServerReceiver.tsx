@@ -338,13 +338,13 @@ export default function ServerReceiver({
       //     message: "Match, net, receiver, or room does not exist!",
       //   })
       // );
-      console.log("Match, net, receiver, or room does not exist!");
+      console.error("Match, net, receiver, or room does not exist!");
 
       return;
     }
 
     if (!serverReceiverPlays || serverReceiverPlays.length === 0) {
-      console.log(
+      console.error(
         "This is the first play, you do not need to update anything here"
       );
       return;

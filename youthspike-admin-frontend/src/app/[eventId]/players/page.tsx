@@ -1,4 +1,4 @@
-import { IEvent, IGroup, IPlayerExpRel, IPlayerRanking, IPlayerRankingItem, ITeam, TParams } from '@/types';
+import { IEventPlayersGroupsTeamsResponse, TParams } from '@/types';
 import { redirect } from 'next/navigation';
 import { PreloadQuery } from '@/lib/client';
 import { Suspense } from 'react';
@@ -13,19 +13,6 @@ interface IPlayersPageProps {
   params: TParams;
 }
 
-// Define the response type for your GraphQL query
-interface IEventPlayersGroupsTeamsResponse {
-  getEventWithPlayers: {
-    data: {
-      event: IEvent;
-      players: IPlayerExpRel[];
-      groups: IGroup[];
-      teams: ITeam[];
-      playerRankings: IPlayerRanking[];
-      rankings: IPlayerRankingItem[];
-    };
-  };
-}
 
 async function PlayersPage({ params }: IPlayersPageProps) {
   const { eventId } = await params;

@@ -24,7 +24,7 @@ import { EmailsenderModule } from './emailsender/emailsender.module';
 import { PlayerRankingModule } from './player-ranking/player-ranking.module';
 import { GroupModule } from './group/group.module';
 import { RedisModule } from './redis/redis.module';
-import { EEnv, NODE_ENV } from './util/keys';
+import { EEnv, NODE_ENV } from './utils/keys';
 import { PlayerStatsModule } from './player-stats/player-stats.module';
 import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-receiver-on-net.module';
 

@@ -3,7 +3,7 @@ import { AppResponse } from "src/shared/response";
 import { CustomPlayer } from "src/player/resolvers/player.response";
 import { CustomGroup, CustomTeam } from "src/match/resolvers/match.response";
 import { CustomMatch, CustomNet, CustomRound } from "src/team/resolvers/team.response";
-import { PlayerStats, ProStats } from "./player-stats.schema";
+import { PlayerStats, ProStats } from "../player-stats.schema";
 
 @ObjectType()
 export class PlayerStatsResponse extends AppResponse<PlayerStats[]> {

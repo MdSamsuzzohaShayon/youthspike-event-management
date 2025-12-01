@@ -38,6 +38,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         _id
         active
         captain
+        group
         cocaptain
         division
         logo

@@ -7,10 +7,10 @@ import { GroupService } from 'src/group/group.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
-import { playerKey } from 'src/util/helper';
+import { playerKey } from 'src/utils/helper';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
-import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { Net } from 'src/net/net.schema';
 import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
 import { TeamSearchFilter } from './team.input';
@@ -19,6 +19,7 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { FilterQuery } from 'mongoose';
 import { Team } from '../team.schema';
 import { MatchService } from 'src/match/match.service';
+import { Match } from 'src/match/match.schema';
 
 // ITeamQueries
 
@@ -222,11 +223,16 @@ export class TeamQueries {
   async getTeamRoster(teamId: string) {
     try {
       const team = await this.teamService.findById(teamId);
+      const matchQuery: FilterQuery<Match> = {
+        // $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+      };
+      if (team.group) {
+        // matchQuery.group = team.group;
+        matchQuery.group = { $ne: null };
+      }
       const [players, matches, playerRanking, event] = await Promise.all([
         this.playerService.find({ events: { $in: [team.event] }, teams: { $in: [team._id] } }),
-        this.matchService.find({
-          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
-        }),
+        this.matchService.find(matchQuery),
         this.playerRankingService.findOne({
           team: teamId,
           $or: [
@@ -238,13 +244,12 @@ export class TeamQueries {
       ]);
 
       // Attributes of matches
-      const matchIds = matches.map((m) => m._id);
+      const matchIds = new Set(matches.map((m) => String(m._id)));
       const [nets, rankings] = await Promise.all([
-        this.netService.find({ match: { $in: matchIds } }),
+        this.netService.find({ match: { $in: [...matchIds] } }),
         this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
       ]);
       // All player stats
-
       const playerToNets: Record<string, Net[]> = {};
       for (const net of nets) {
         [net.teamAPlayerA, net.teamAPlayerB, net.teamBPlayerA, net.teamBPlayerB].forEach((pid) => {
@@ -291,6 +296,7 @@ export class TeamQueries {
 
             // Skip if redis already has this net ID
             if (redisNetIds.has(netId)) continue;
+            if (!matchIds.has(String(plain.match))) continue;
 
             mergedStats.push({
               ...plain,

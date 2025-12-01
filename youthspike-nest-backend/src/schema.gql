@@ -144,19 +144,31 @@ enum ETeam {
   teamB
 }
 
-type PlayerRankingItem {
+type Net {
   _id: String
-  rank: Int!
-  player: Player!
-  playerRanking: PlayerRanking!
+  num: Int
+  match: Match!
+  round: Round!
+  serverReceiverOnNet: ServerReceiverOnNet
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  playerstats: [PlayerStats!]
+  teamAPlayerA: String
+  teamAPlayerB: String
+  teamBPlayerA: String
+  teamBPlayerB: String
+  points: Int!
+  netType: ETieBreaker
+  teamAScore: Int
+  teamBScore: Int
+  pairRange: Int!
+  streamUrl: String
 }
 
-type PlayerRanking {
-  _id: String
-  rankLock: Int!
-  rankings: [PlayerRankingItem!]
-  team: Team!
-  match: Match
+enum ETieBreaker {
+  PREV_NET
+  FINAL_ROUND_NET
+  FINAL_ROUND_NET_LOCKED
+  TIE_BREAKER_NET
 }
 
 type Team {
@@ -182,32 +194,19 @@ type Team {
   player: PlayerRankingItem!
 }
 
-type Net {
+type PlayerRankingItem {
   _id: String
-  num: Int
-  match: Match!
-  round: Round!
-  teamA: Team
-  teamB: Team
-  serverReceiverOnNet: ServerReceiverOnNet
-  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
-  playerstats: [PlayerStats!]
-  teamAPlayerA: String
-  teamAPlayerB: String
-  teamBPlayerA: String
-  teamBPlayerB: String
-  points: Int!
-  netType: ETieBreaker
-  teamAScore: Int
-  teamBScore: Int
-  pairRange: Int!
+  rank: Int!
+  player: Player!
+  playerRanking: PlayerRanking!
 }
 
-enum ETieBreaker {
-  PREV_NET
-  FINAL_ROUND_NET
-  FINAL_ROUND_NET_LOCKED
-  TIE_BREAKER_NET
+type PlayerRanking {
+  _id: String
+  rankLock: Int!
+  rankings: [PlayerRankingItem!]
+  team: Team!
+  match: Match
 }
 
 type Room {
@@ -234,6 +233,7 @@ type Match {
   accessCode: String
   description: String
   fwango: String
+  streamUrl: String
   completed: Boolean
   extendedOvertime: Boolean
   teamAP: Int
@@ -515,8 +515,6 @@ type CustomNet {
   num: Int
   match: String
   round: String
-  teamA: String
-  teamB: String
   serverReceiverOnNet: ServerReceiverOnNet
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
   playerstats: [PlayerStats!]
@@ -529,6 +527,9 @@ type CustomNet {
   teamAScore: Int
   teamBScore: Int
   pairRange: Int!
+  streamUrl: String
+  teamA: String
+  teamB: String
 }
 
 type CustomMatch {
@@ -548,6 +549,7 @@ type CustomMatch {
   accessCode: String
   description: String
   fwango: String
+  streamUrl: String
   completed: Boolean
   extendedOvertime: Boolean
   teamAP: Int
@@ -1265,7 +1267,7 @@ type Query {
   getGroup(groupId: String!): GetGroupResponse!
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
   getPlayersStats: PlayersStatsResponse!
-  getPlayerWithStats(playerId: String!): PlayerWithStatsResponse!
+  getPlayerWithStats(playerId: String!, group: Boolean): PlayerWithStatsResponse!
 }
 
 input EventFilterInput {
@@ -1319,6 +1321,7 @@ input SearchFilterInput {
 }
 
 input PlayerSearchFilter {
+  ce: String
   search: String
   division: String
   group: String
@@ -1418,6 +1421,7 @@ input CreateMatchInput {
   location: String
   accessCode: String
   fwango: String
+  streamUrl: String
 }
 
 input UpdateMatchInput {
@@ -1442,6 +1446,7 @@ input UpdateMatchInput {
   location: String
   accessCode: String
   fwango: String
+  streamUrl: String
   currRound: String
   completed: Boolean
 }
@@ -1463,6 +1468,7 @@ input UpdateNetInput {
   teamAPlayerB: String
   teamBPlayerA: String
   teamBPlayerB: String
+  streamUrl: String
 }
 
 input UpdateMultipleNetInput {
@@ -1474,6 +1480,7 @@ input UpdateMultipleNetInput {
   teamBPlayerB: String
   teamAScore: Int
   teamBScore: Int
+  streamUrl: String
 }
 
 input CreateDirector {

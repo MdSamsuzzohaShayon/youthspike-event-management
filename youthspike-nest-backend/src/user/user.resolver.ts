@@ -15,7 +15,7 @@ import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
-import { rmInvalidProps } from 'src/util/helper';
+import { rmInvalidProps } from 'src/utils/helper';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { EventService } from 'src/event/event.service';
 import { LdoService } from 'src/ldo/ldo.service';

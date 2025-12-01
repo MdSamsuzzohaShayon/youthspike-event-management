@@ -265,12 +265,12 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       {/* Left: Checkbox and Team Number */}
       <div className="flex items-center gap-3 flex-1">
         <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-        <span className="bg-yellow-400 text-black font-bold rounded-full px-3 py-1 text-xs min-w-[2rem] text-center">{team.num}</span>
+        <span className="bg-yellow-logo text-black text-xs font-bold rounded-full h-8 w-8 flex items-center justify-center">{team.num}</span>
       </div>
 
       {/* Center: Players Count */}
       <div className="flex items-center justify-center flex-1">
-        <div className="flex items-center text-sm text-gray-300 bg-gray-700 px-3 py-1.5 rounded-lg">
+        <div className="flex flex-col md:flew-row items-center justify-center text-sm text-gray-300 bg-gray-700 px-3 py-1.5 rounded-lg">
           <span className="mr-2">Players:</span>
           <span className="font-medium">
             {activePlayers.length} / {activePlayers.length + inactivePlayers.length}
@@ -291,7 +291,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         </button>
 
         <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
-          <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-yellow-400/10 transition-colors border border-yellow-400/30">Preview</button>
+          <button className="btn-info">Preview</button>
         </Link>
 
         <div className="relative">
@@ -372,7 +372,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           <div className="flex items-center gap-x-2">
             <div className="flex flex-col  items-center gap-y-2">
               <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-              <span className="bg-yellow-logo text-black font-bold rounded-full text-sm h-6 w-6 text-center flex justify-center items-center">{team.num}</span>
+              <span className="bg-yellow-logo text-black font-bold rounded-full text-sm h-8 w-8 text-center flex justify-center items-center">{team.num}</span>
             </div>
 
             <div className="flex gap-x-2 items-center">
@@ -419,7 +419,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         {/* Bottom Section */}
         <div className="w-full flex items-center justify-end gap-2">
           <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
-            <button className="text-yellow-400 hover:text-yellow-300 text-sm font-medium px-3 py-1 rounded-lg hover:bg-yellow-400/10 transition-colors">Preview Team</button>
+            <button className="btn-info">Preview</button>
           </Link>
           <div className="flex items-center text-sm text-gray-300">
             <span className="mr-2">Players:</span>

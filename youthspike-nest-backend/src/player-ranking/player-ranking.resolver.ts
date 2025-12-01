@@ -11,14 +11,12 @@ import { UpdateMatchPlayerRankingInput, UpdatePlayerRankingInput } from './playe
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
 import { ConfigService } from '@nestjs/config';
-import { isISODateString, tokenToUser } from 'src/util/helper';
+import { isISODateString, tokenToUser } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
 import { EventService } from 'src/event/event.service';
-import { NetService } from 'src/net/net.service';
-import { FilterQuery } from 'mongoose';
 import { PlayerService } from 'src/player/player.service';
-import { EPlayerStatus, Player } from 'src/player/player.schema';
-import rebuildSinglePlayerRanking from 'src/util/rebuildSinglePlayerRanking';
+import { EPlayerStatus } from 'src/player/player.schema';
+import rebuildSinglePlayerRanking from 'src/utils/rebuildSinglePlayerRanking';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {

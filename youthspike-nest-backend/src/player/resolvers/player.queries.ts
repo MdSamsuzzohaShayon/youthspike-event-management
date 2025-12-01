@@ -6,7 +6,7 @@ import { TeamService } from 'src/team/team.service';
 import { PlayerService } from '../player.service';
 import { UserService } from 'src/user/user.service';
 import { GroupService } from 'src/group/group.service';
-import { tokenToUser } from 'src/util/helper';
+import { tokenToUser } from 'src/utils/helper';
 import { UserRole } from 'src/user/user.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { AppResponse } from 'src/shared/response';
@@ -19,12 +19,12 @@ import {
   CustomPlayer,
 } from './player.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
-import { PlayerSearchFilter } from './player.input';
+import { EGroupType, PlayerSearchFilter } from './player.input';
 import { Team } from 'src/team/team.schema';
 import { Group } from 'src/group/group.schema';
 import { NetService } from 'src/net/net.service';
-import getStatsOfPlayers from 'src/util/getStatsOfPlayers';
-import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
+import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { RedisService } from 'src/redis/redis.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { Match } from 'src/match/match.schema';
@@ -157,35 +157,46 @@ export class PlayerQueries implements IPlayerQueries {
 
   async searchPlayers(eventId: string, filter: PlayerSearchFilter) {
     try {
-      let query: FilterQuery<Player> = {};
+      const playerQuery: FilterQuery<Player> = {};
       const teamQuery: FilterQuery<Team> = { event: eventId };
       const groupQuery: FilterQuery<Group> = { event: eventId };
       const matchQuery: FilterQuery<Match> = { event: eventId };
 
-      if (eventId) query = { events: { $in: [eventId] } };
+      // By default select conference
+
+      if (eventId) {
+        playerQuery.events = { $in: [eventId] };
+      }
       if (filter?.division) {
-        query.division = { $regex: new RegExp(`${filter.division}`, 'i') };
+        playerQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
         teamQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') }; // This will be case insensative
         matchQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
       }
       if (filter?.group) {
-        teamQuery.group === filter.group;
-        matchQuery.group === filter.group;
+        teamQuery.group = filter.group;
+        matchQuery.group = filter.group;
+        // If there is a group then show matches for a player according to group
       }
+
       if (filter?.search) {
         //Check for multiple words
         const words = filter.search.split(' ');
 
         if (words.length > 1) {
-          query.firstName = { $regex: new RegExp(words[0].trim(), 'i') };
-          query.lastName = { $regex: new RegExp(words[1].trim(), 'i') };
+          playerQuery.firstName = { $regex: new RegExp(words[0].trim(), 'i') };
+          playerQuery.lastName = { $regex: new RegExp(words[1].trim(), 'i') };
         } else {
-          query.$or = [
+          playerQuery.$or = [
             { firstName: { $regex: new RegExp(filter.search, 'i') } },
             { lastName: { $regex: new RegExp(filter.search, 'i') } },
             { username: { $regex: new RegExp(filter.search, 'i') } },
           ];
         }
+      }
+
+      if (filter?.ce === EGroupType.CONFERENCE) {
+        // teamQuery.group = { $ne: null };
+        matchQuery.group = { $ne: null };
       }
 
       const [event, groups, teams, matches] = await Promise.all([
@@ -194,6 +205,8 @@ export class PlayerQueries implements IPlayerQueries {
         this.teamService.find(teamQuery),
         this.matchesService.find(matchQuery),
       ]);
+
+      const matchIds = new Set(matches.map((m) => String(m._id)));
 
       const teamIds = new Set<string>();
       if (teams.length > 0) {
@@ -204,21 +217,23 @@ export class PlayerQueries implements IPlayerQueries {
 
       if (filter?.group) {
         // Get all teams in that group
-        query.teams = { $in: [...teamIds] };
+        playerQuery.teams = { $in: [...teamIds] };
       }
 
-      const players = await this.playerService.find(query, filter?.limit || 30, filter?.offset || 0);
+      const players = await this.playerService.find(playerQuery, filter?.limit || 30, filter?.offset || 0);
 
       const playerIds = players.map((p) => String(p._id));
 
-      const nets = await this.netService.find({
+      let nets = await this.netService.find({
         $or: [
-          { teamAplayerA: { $in: playerIds } },
-          { teamAplayerB: { $in: playerIds } },
-          { teamBplayerA: { $in: playerIds } },
-          { teamBplayerB: { $in: playerIds } },
+          { teamAPlayerA: { $in: playerIds } },
+          { teamAPlayerB: { $in: playerIds } },
+          { teamBPlayerA: { $in: playerIds } },
+          { teamBPlayerB: { $in: playerIds } },
         ],
       });
+
+      nets = nets.filter((n) => matchIds.has(String(n.match)));
 
       const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(
         players,
@@ -255,7 +270,7 @@ export class PlayerQueries implements IPlayerQueries {
         this.teamService.find({ event: eventId }),
       ]);
       const normalizedPlayer: CustomPlayer = (() => {
-        const obj = structuredClone(player);
+        const obj = { ...player };
         // if(obj?.username){
         //   obj.username = this.playerService.playerUsername((obj?.firstName || "abc") + "4");
         //   (async()=>{
@@ -271,7 +286,7 @@ export class PlayerQueries implements IPlayerQueries {
       })();
 
       const normalizedTeams: CustomTeam[] = teams.map((t: any) => {
-        const obj = structuredClone(t);
+        const obj = { ...t };
         return {
           ...obj,
           matches: (obj?.matches || []).map((m: any) => m?.toString?.() || String(m)),

@@ -50,8 +50,7 @@ const calculateScores = (match: IMatch, team: ITeamCaptain) => {
 };
 
 function TeamCard({ team, matchList = [] }: ITeamCardProps) {
-  console.log({team, matchList});
-  
+
   const user = useUser();
   const params = useParams();
   const { ldoIdUrl } = useLdoId();

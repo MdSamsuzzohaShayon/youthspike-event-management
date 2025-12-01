@@ -67,6 +67,9 @@ export class CreateMatchInput {
 
   @Field({ nullable: true })
   fwango?: string;
+
+  @Field({ nullable: true })
+  streamUrl?: string;
 }
 
 @InputType()

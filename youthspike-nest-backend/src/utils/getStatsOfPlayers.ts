@@ -1,5 +1,5 @@
 import { Net } from "src/net/net.schema";
-import { CustomPlayerStats } from "src/player-stats/player-stats.response";
+import { CustomPlayerStats } from "src/player-stats/resolvers/player-stats.response";
 import { Player } from "src/player/player.schema";
 import { playerKey } from "./helper";
 import { RedisService } from "src/redis/redis.service";
@@ -43,6 +43,8 @@ async function getStatsOfPlayers(players: Player[], nets: Net[], redisService: R
 
   // --- Normalize DB stats ---
   const statsOfPlayer: Record<string, CustomPlayerStats[]> = {};
+
+
   dbStatsResults.flat().forEach((ps) => {
     const plainObj = {...ps}
     const stat: CustomPlayerStats = {
@@ -54,6 +56,7 @@ async function getStatsOfPlayers(players: Player[], nets: Net[], redisService: R
     if (!statsOfPlayer[stat.player]) statsOfPlayer[stat.player] = [];
     statsOfPlayer[stat.player].push(stat);
   });
+
 
   // --- Merge redis + db + fill empty nets ---
   for (const player of players) {

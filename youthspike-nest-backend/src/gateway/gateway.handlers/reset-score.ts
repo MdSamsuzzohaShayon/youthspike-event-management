@@ -4,7 +4,7 @@ import { ResetScoreInput, RoomLocal } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
-import { singlePlayKey } from 'src/util/helper';
+import { singlePlayKey } from 'src/utils/helper';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
 export class ResetScoreHandler {

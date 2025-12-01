@@ -27,23 +27,23 @@ function SocketProvider({ children }: React.PropsWithChildren<{}>) {
     });
 
     newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
+      console.info("Socket connected:", newSocket.id);
     });
 
     newSocket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
+      console.info("Socket disconnected:", reason);
     });
 
     newSocket.on("reconnect", (attempt) => {
-      console.log("Socket reconnected after", attempt, "attempts");
+      console.info("Socket reconnected after", attempt, "attempts");
     });
 
     newSocket.on("reconnect_error", (error) => {
-      console.log("Socket reconnection error:", error);
+      console.info("Socket reconnection error:", error);
     });
 
     newSocket.on("reconnect_failed", () => {
-      console.log("Socket reconnection failed");
+      console.info("Socket reconnection failed");
     });
 
     setSocket(newSocket);

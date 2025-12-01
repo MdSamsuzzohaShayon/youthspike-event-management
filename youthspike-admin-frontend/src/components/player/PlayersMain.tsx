@@ -133,8 +133,6 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     }
   }, [filter.division]);
 
-  
-
   /** ------------------------------
    * FILTERING & SCOPING
    * ------------------------------ */
@@ -172,17 +170,30 @@ function PlayersMain({ currEvent, players, groups, teams, playerRanking }: IPlay
     // Search filter - use immediate value (not debounced)
     if (filter.search) {
       const searchTerm = filter.search.toLowerCase().trim();
+
+      // Split by spaces for multi-word search
+      const searchParts = searchTerm.split(/\s+/);
+
       basePlayers = basePlayers.filter((p) => {
-        const firstName = p.firstName?.toLowerCase() || '';
-        const lastName = p.lastName?.toLowerCase() || '';
-        const username = p.username?.toLowerCase() || '';
-        return firstName.includes(searchTerm) || lastName.includes(searchTerm) || username.includes(searchTerm);
+        const first = (p.firstName || '').toLowerCase();
+        const last = (p.lastName || '').toLowerCase();
+        const username = (p.username || '').toLowerCase();
+
+        const fullName = `${first} ${last}`.trim();
+
+        // 1️⃣ Single-word search (normal behavior)
+        const basicMatch = first.includes(searchTerm) || last.includes(searchTerm) || username.includes(searchTerm) || fullName.includes(searchTerm);
+
+        // 2️⃣ Multi-word search (“john doe” must match both)
+        const multiWordMatch = searchParts.every((part) => fullName.includes(part));
+
+        return basicMatch || multiWordMatch;
       });
     }
 
     return { filteredPlayers: basePlayers, filteredTeams: baseTeams };
   }, [players, teams, user, filter.division, filter.search]); // Use filter.search directly
-  
+
   /** ------------------------------
    * ACTIVE + INACTIVE SPLIT
    * ------------------------------ */

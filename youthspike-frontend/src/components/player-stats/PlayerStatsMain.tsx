@@ -35,8 +35,8 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const dispatch = useAppDispatch();
   const apolloClient = useApolloClient();
 
-  const filterEl = useRef<HTMLDivElement | null>(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
 
   const {
     player,
@@ -88,7 +88,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const safeOponents = oponents || [];
   const safePlayers = players || [];
 
-  console.log({safeMatches});
+
   
 
   const {
@@ -128,9 +128,10 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
       safeMatches,
       netMap,
       allNetIds,
-      groups
+      team
     );
   }, [playerstats, filter, player._id, safeMatches, safeNets, netMap]);
+  
 
   let totalServe = 0;
   for (const ps of safePlayerstats) {

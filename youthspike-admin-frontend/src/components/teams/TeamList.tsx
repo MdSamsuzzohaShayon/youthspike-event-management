@@ -277,7 +277,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
           {/* Filter Action End  */}
         </div>
       </div>
-      <div className="team-list-card grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="team-list-card grid grid-cols-1 lg:grid-cols-2 gap-2">
         {paginatedTeamList.map((team) => {
           if (!filteredGroupId || team.group?._id === filteredGroupId || String(team.group) === filteredGroupId) {
             return (

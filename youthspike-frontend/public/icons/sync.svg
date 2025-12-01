@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Auto Sync">
+  <style>
+    .rot {
+      transform-origin: 12px 12px;
+      animation: spin 1.6s ease-in-out infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(180deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+  <g class="rot" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 4v6h6M20 20v-6h-6" />
+    <path d="M5 13a7 7 0 0 0 14 0 7 7 0 0 0-14 0z" />
+    <polyline points="4 10 4 4 10 4" />
+    <polyline points="20 14 20 20 14 20" />
+  </g>
+</svg>

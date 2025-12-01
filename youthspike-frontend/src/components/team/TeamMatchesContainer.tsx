@@ -30,7 +30,6 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
 
   const { team, matches, nets, rounds, teams, event } =
     data.getTeamMatches.data;
-  console.log({ team, matches, nets, rounds, teams });
 
   const teamMap = useMemo(() => {
     return new Map<string, ITeam>(teams.map((t) => [t._id, t]));

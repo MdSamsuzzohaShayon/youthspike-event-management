@@ -6,7 +6,8 @@ h2,
 h3,
 h4,
 h5,
-h6 {}
+h6 {
+}
 
 h1 {
   @apply text-2xl sm:text-3xl font-bold;
@@ -44,7 +45,6 @@ label {
   @apply text-base sm:text-lg font-normal;
 }
 
-
 /* Chrome, Safari, and newer Opera */
 /* input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -54,14 +54,14 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 } */
 
-input[type="number"] {
+input[type='number'] {
   appearance: none; /* For most browsers */
   -moz-appearance: textfield; /* For Firefox */
 }
 
 /* Hide arrows in WebKit browsers (Chrome, Safari) */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -81,25 +81,18 @@ input:-ms-autofill:focus {
 
 /* New  */
 .modal-dialog {
-    /* Positioning & sizing */
-    @apply fixed top-1/2 left-1/2 w-11/12 md:w-6/12 -translate-x-1/2 -translate-y-1/2 z-50;
-    /* Coloring  */
-    @apply bg-gray-900 text-white rounded-xl;
+  /* Positioning & sizing */
+  @apply fixed top-1/2 left-1/2 w-11/12 md:w-6/12 -translate-x-1/2 -translate-y-1/2 z-50;
+  /* Coloring  */
+  @apply bg-gray-900 text-white rounded-xl;
 }
 
 /* Backdrop behind the dialog */
 .modal-dialog::backdrop {
-  background-image: linear-gradient(
-    45deg,
-    #232323,
-    #232323,
-    #232323,
-    #232323
-  );
+  background-image: linear-gradient(45deg, #232323, #232323, #232323, #232323);
   opacity: 0.75;
   backdrop-filter: blur(2px); /* Optional: adds blur */
 }
-
 
 /* Typography End  */
 
@@ -127,21 +120,35 @@ input:-ms-autofill:focus {
 /* SVG Style end  */
 
 /* Button style start  */
+
+/* Button style start  */
 .btn-primary {
-  @apply text-black px-6 py-3 rounded-lg shadow-md font-semibold transition bg-gray-500 hover:bg-gray-700 text-gray-100;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-gray-500 text-white;
 }
 
-.btn-secondary {
-  @apply text-black px-6 py-3 rounded-lg shadow-md font-semibold transition bg-gray-800 hover:bg-gray-700 text-gray-100;
+.btn-light {
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-green-50 text-black;
+}
+
+.btn-light-outline {
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit border bg-transparent text-white;
 }
 
 .btn-info {
-  @apply text-black px-6 py-3 rounded-lg shadow-md font-semibold hover:bg-yellow-500 transition;
-  background: #fce013;
+  background-color: #fce013;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit text-black;
+}
+
+.btn-secondary {
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-gray-800 hover:bg-gray-700 text-white;
 }
 
 .btn-danger {
-  @apply px-3 py-2 bg-red-500 text-red-100 rounded-md hover:bg-red-700 font-bold text-xl;
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-red-500 text-white;
+}
+
+.btn-success {
+  @apply text-xs md:text-sm font-bold uppercase tracking-wider px-4 py-1 md:px-6 md:py-2 rounded-lg shadow-md w-fit bg-green-500 hover:bg-green-700 text-white;
 }
 
 /* Button style end  */
@@ -166,8 +173,6 @@ input:-ms-autofill:focus {
   filter: invert(1);
 }
 
-
-
 /* Loading animation  */
 @keyframes spin {
   to {
@@ -182,7 +187,7 @@ input:-ms-autofill:focus {
 }
 
 /* Custom Design */
-.text-yellow-logo{
+.text-yellow-logo {
   color: #fce013;
 }
 
@@ -194,11 +199,11 @@ input:-ms-autofill:focus {
   @apply bg-gray-700;
 } */
 
-.bg-yellow-logo{
+.bg-yellow-logo {
   background: #fce013;
 }
 
-.bg-yellow-gradient{
+.bg-yellow-gradient {
   @apply bg-gradient-to-r from-[#fce013] to-[#fff293];
 }
 
@@ -217,26 +222,25 @@ input:-ms-autofill:focus {
 }
 /* Background styling end  */
 
-
-.overflow-gradient{
+.overflow-gradient {
   @apply absolute inset-0 z-0 bg-gradient-to-tr from-yellow-500/10 to-gray-800/10 opacity-80;
 }
 
-.text-yellow{
+.text-yellow {
   color: #fce013;
 }
-.border-yellow-logo{
+.border-yellow-logo {
   border-color: #fce013;
 }
 
-.border-yellow{
+.border-yellow {
   border-color: #fce013;
 }
 
-.advanced-img{
+.advanced-img {
   overflow: hidden;
 }
-.advanced-img img{
+.advanced-img img {
   width: 100%;
   height: 100%;
   object-position: top;
@@ -244,14 +248,8 @@ input:-ms-autofill:focus {
 }
 
 /* Event card design  */
-.events-page .event-card{
+.events-page .event-card {
   /* style={{ width: '48.5%', minHeight: '12rem' }} */
   width: 48%;
   min-height: 12rem;
 }
-
-
-
-
-
-

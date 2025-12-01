@@ -1,4 +1,4 @@
-import { IEvent, ITeam } from ".";
+import { IEvent, IGroup, IPlayerRanking, IPlayerRankingItem, ITeam } from ".";
 import { IDocument } from "./document";
 
 /**
@@ -49,6 +49,32 @@ export interface IPlayerExpRel extends IDocument {
   teams?: ITeam[];
   captainofteams: ITeam[] | null;
   cocaptainofteams: ITeam[] | null;
+}
+
+export interface IPlayerAndTeamsResponse{
+  getPlayerAndTeams: {
+    code: number,
+    message: string;
+    data: {
+      player: IPlayer;
+      teams: ITeam[];
+    };
+  };
+}
+
+export interface IEventPlayersGroupsTeamsResponse {
+  getEventWithPlayers: {
+    code: number,
+    message: string;
+    data: {
+      event: IEvent;
+      players: IPlayerExpRel[];
+      groups: IGroup[];
+      teams: ITeam[];
+      playerRankings: IPlayerRanking[];
+      rankings: IPlayerRankingItem[];
+    };
+  };
 }
 
 export interface IPlayerRank extends IPlayerExpRel {

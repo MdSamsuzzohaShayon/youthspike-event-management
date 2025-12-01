@@ -21,13 +21,12 @@ interface INetBase {
   teamAScore: number | null;
   teamBScore: number | null;
   pairRange?: number;
+  streamUrl?: string;
 }
 
 interface INetRelatives extends INetBase {
   match: string;
   round: string;
-  teamA?: string | null;
-  teamB?: string | null;
   teamAPlayerA?: string | null;
   teamAPlayerB?: string | null;
   teamBPlayerA?: string | null;

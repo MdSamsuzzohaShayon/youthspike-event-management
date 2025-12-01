@@ -6,7 +6,7 @@ import { Event } from '../event.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { PlayerStats, ProStats } from 'src/player-stats/player-stats.schema';
 import { Match } from 'src/match/match.schema';
-import { CustomPlayerStats } from 'src/player-stats/player-stats.response';
+import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { CustomTeam, EventMatches } from 'src/match/resolvers/match.response';
 
 @ObjectType()

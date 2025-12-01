@@ -196,7 +196,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
       <div className="container px-4 mx-auto flex py-2 w-full justify-between items-end gap-1">
         {/* Left side */}
         <div className="w-2/6 md:w-1/6">
-          {teamScoreBoard({ team: teamA ?? null, teamPoints: teamAPoints })}
+          {teamScoreBoard({ team: teamA ?? null, teamPoints: teamAPoints + (match?.teamAP || 0) })}
         </div>
 
         {/* Middle side  */}
@@ -267,7 +267,7 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
 
         {/* Right side */}
         <div className="w-2/6 md:w-1/6">
-          {teamScoreBoard({ team: teamB ?? null, teamPoints: teamBPoints })}
+          {teamScoreBoard({ team: teamB ?? null, teamPoints: teamBPoints + (match?.teamBP || 0) })}
         </div>
       </div>
     </div>
@@ -275,5 +275,3 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
 }
 
 export default CompletedBox;
-
-// db.matches.updateMany({division: ""}, {$set: {division: "MINOR"}});

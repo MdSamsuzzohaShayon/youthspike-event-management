@@ -44,7 +44,7 @@ function AccessCodeForm({ matchId, accessCodes }: IAccessCodeFormProps) {
       const response = await mutateAccessCode({ variables: { input: data } });
 
       if(response?.data?.accessCodeValidation?.code === 404){
-        console.log(response?.data?.accessCodeValidation);
+        console.error(response?.data?.accessCodeValidation);
         const error = new Error("Ask the director about access code for specific match, each match has different access code!");
         error.name = "Invalid access code!";
         throw error;

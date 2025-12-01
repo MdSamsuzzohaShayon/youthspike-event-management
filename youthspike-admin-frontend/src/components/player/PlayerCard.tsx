@@ -69,9 +69,6 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
   const isCaptain = useMemo(() => teamId && captainofteams.includes(teamId), [teamId, captainofteams]);
   const isCoCaptain = useMemo(() => teamId && cocaptainofteams.includes(teamId), [teamId, cocaptainofteams]);
 
-
-  
-
   // Optimized callbacks
   const makeCaptainOrCoCaptain = useCallback(
     async (input: { captain?: string; cocaptain?: string }) => {
@@ -218,7 +215,6 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     },
     [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, setActErr],
   );
-  
 
   // Memoized components
   const PlayerRole = useMemo(
@@ -239,7 +235,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
           {team && (
-            <Link href={`/teams/${team._id}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">
+            <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">
               {team.name.slice(0, 3)}
             </Link>
           )}
@@ -254,7 +250,9 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         </div>
         {team && (
           <div className="w-full hidden md:flex justify-between items-center">
-            <p className="text-yellow-400 uppercase font-bold tracking-wide">{team.name}</p>
+            <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="text-yellow-400 uppercase font-bold tracking-wide">
+              {team.name}
+            </Link>
             {rank && (
               <button
                 className="md:hidden flex w-10 h-10 items-center justify-center bg-yellow-logo dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
@@ -325,11 +323,11 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
                       >
                         Make Co-Captain
                       </li>
-                      <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={handleMovePlayerBox}>
-                        Move Player
-                      </li>
                     </>
                   )}
+                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={handleMovePlayerBox}>
+                    Move Player
+                  </li>
                   {player.status === EPlayerStatus.ACTIVE ? (
                     <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
                       Make Inactive

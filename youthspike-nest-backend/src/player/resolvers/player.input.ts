@@ -85,8 +85,18 @@ export class UpdatePlayerBody{
 }
 
 
+export enum EGroupType{
+  OVERALL = "OVERALL",
+  CONFERENCE = "CONFERENCE",
+  NON_CONFERENCE = "NON_CONFERENCE",
+}
+
+
 @InputType()
 export class PlayerSearchFilter {
+  @Field({ nullable: true })
+  ce?: EGroupType; // team, description, location
+  
   @Field({ nullable: true })
   search?: string; // team, description, location
 

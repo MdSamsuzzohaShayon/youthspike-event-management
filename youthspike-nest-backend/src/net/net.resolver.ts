@@ -13,10 +13,7 @@ import { HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { GetNetResponse, GetNetsResponse } from './net.response';
-import { RedisService } from 'src/redis/redis.service';
 import { MatchService } from 'src/match/match.service';
-import { PlayerService } from 'src/player/player.service';
-import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 
 @Resolver((of) => Net)
 export class NetResolver {
@@ -25,26 +22,24 @@ export class NetResolver {
     private netService: NetService,
     private teamService: TeamService,
     private matchService: MatchService,
-    private playerService: PlayerService,
-    private playerStatsService: PlayerStatsService,
-    private redisService: RedisService,
   ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((returns) => GetNetResponse)
+  @Mutation((_returns) => GetNetResponse)
   async updateNet(@Args('input') input: UpdateNetInput, @Args('netId') netId: string): Promise<GetNetResponse> {
     try {
       /**
        * TODO:
        *  Set players for team A and team B
        */
-      const findNetPromise: any = (await this.netService.findOne({ _id: netId })).populate('match');
-      const netExist = await findNetPromise;
+      const netExist = await this.netService.findOne({ _id: netId });
       if (!netExist) return AppResponse.notFound('Net');
+      const matchExist = await this.matchService.findOne({_id: netExist.match});
+      if (!matchExist) return AppResponse.notFound('Match');
       const teamIds = [];
-      if (netExist.match?.teamA) teamIds.push(netExist.match.teamA);
-      if (netExist.match?.teamB) teamIds.push(netExist.match.teamB);
+      if (matchExist?.teamA) teamIds.push(matchExist.teamA);
+      if (matchExist?.teamB) teamIds.push(matchExist.teamB);
 
       await Promise.all([
         this.netService.updateOne({ _id: netId }, input),
@@ -188,26 +183,6 @@ export class NetResolver {
    * POPULATE
    * ===============================================================================================
    */
-
-  @ResolveField((returns) => Round)
-  async teamA(@Parent() net: Net) {
-    try {
-      if (!net?.teamA) return null;
-      return this.teamService.findById(net.teamA.toString());
-    } catch {
-      return null;
-    }
-  }
-
-  @ResolveField((returns) => Round)
-  async teamB(@Parent() net: Net) {
-    try {
-      if (!net?.teamB) return null;
-      return this.teamService.findById(net.teamB.toString());
-    } catch {
-      return null;
-    }
-  }
 
   @ResolveField((returns) => Round)
   async round(@Parent() net: Net) {

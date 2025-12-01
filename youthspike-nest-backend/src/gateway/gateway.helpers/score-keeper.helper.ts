@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GatewayRedisService } from '../gateway.redis';
 import { GatewayService } from '../gateway.service';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
-import { initPlayerStat, netKey, playerKey, singlePlayKey } from 'src/util/helper';
+import { initPlayerStat, netKey, playerKey, singlePlayKey } from 'src/utils/helper';
 import {
   EServerPositionPair,
   EServerReceiverAction,

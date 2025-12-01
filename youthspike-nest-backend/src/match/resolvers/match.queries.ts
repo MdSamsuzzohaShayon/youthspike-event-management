@@ -11,7 +11,7 @@ import { FilterQueryInput, SearchFilterInput } from './match.input';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { ConfigService } from '@nestjs/config';
-import { tokenToUser } from 'src/util/helper';
+import { tokenToUser } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
 import { FilterQuery } from 'mongoose';

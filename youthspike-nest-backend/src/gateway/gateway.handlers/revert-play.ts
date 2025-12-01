@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { ETeam, RevertPlayInput } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
-import { singlePlayKey } from 'src/util/helper';
+import { singlePlayKey } from 'src/utils/helper';
 import {
   EServerReceiverAction,
   ServerReceiverSinglePlay,

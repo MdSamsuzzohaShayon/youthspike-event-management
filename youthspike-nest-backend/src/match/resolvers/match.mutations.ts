@@ -7,7 +7,7 @@ import { NetService } from 'src/net/net.service';
 import { Match } from '../match.schema';
 import { RoomService } from 'src/room/room.service';
 import { RedisService } from 'src/redis/redis.service';
-import { netKey, singlePlayKey } from 'src/util/helper';
+import { netKey, singlePlayKey } from 'src/utils/helper';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { PlayerService } from 'src/player/player.service';
 import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -163,6 +163,7 @@ export class MatchMutations {
         location: input.location ?? eventExist.location,
         accessCode: input.accessCode ?? eventExist.accessCode,
         fwango: input.fwango ?? eventExist.fwango,
+        streamUrl: input.streamUrl || null,
         teamAP: input?.teamAP || 0,
         teamBP: input?.teamBP || 0,
         extendedOvertime: false,
@@ -413,7 +414,7 @@ export class MatchMutations {
           netsByRound.get(key)!.push(net);
 
           // Check net is filled with players or not
-          if(!net?.teamAPlayerA || !net?.teamAPlayerB || !net?.teamBPlayerA || !net?.teamBPlayerB){
+          if (!net?.teamAPlayerA || !net?.teamAPlayerB || !net?.teamBPlayerA || !net?.teamBPlayerB) {
             incompleteRoundIds.add(String(net.round));
           }
         }
@@ -443,7 +444,15 @@ export class MatchMutations {
           revertPromises.push(
             this.roundService.updateOne(
               { _id: round._id },
-              { $set: { teamAScore: null, teamBScore: null, completed: false, teamAProcess: EActionProcess.CHECKIN, teamBProcess: EActionProcess.CHECKIN } },
+              {
+                $set: {
+                  teamAScore: null,
+                  teamBScore: null,
+                  completed: false,
+                  teamAProcess: EActionProcess.CHECKIN,
+                  teamBProcess: EActionProcess.CHECKIN,
+                },
+              },
             ),
           );
         }

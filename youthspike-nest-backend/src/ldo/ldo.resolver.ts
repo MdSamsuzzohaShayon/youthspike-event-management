@@ -22,7 +22,7 @@ import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import * as Upload from 'graphql-upload/Upload.js';
 import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import * as bcrypt from 'bcrypt';
-import { rmInvalidProps, tokenToUser } from 'src/util/helper';
+import { rmInvalidProps, tokenToUser } from 'src/utils/helper';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';

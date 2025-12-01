@@ -11,7 +11,6 @@ import {
 import { calculatePlayerRecords } from "@/utils/scoreCalc";
 import { useAppSelector } from "@/redux/hooks";
 import PlayerRow from "./PlayerRow";
-import Pagination from "../elements/Pagination";
 import SortableHeader from "../elements/SortableHeader";
 import { aggregatePlayerStats } from "@/utils/helper";
 
@@ -50,7 +49,7 @@ function PlayerSearchList({
     const newMatchList: IMatchExpRel[] = matchList.length > 0 ? matchList : [];
     const newRankingMap = new Map<string, number>(rankingMap);
     
-    const records = calculatePlayerRecords(playerList, newMatchList, newRankingMap);
+    const records = calculatePlayerRecords(playerList, newMatchList, teamMap, newRankingMap);
     
     // Filter out null or invalid player records
     return records.filter(record => 
@@ -58,7 +57,7 @@ function PlayerSearchList({
       record._id && 
       record.firstName !== undefined
     );
-  }, [playerList, matchList, rankingMap]);
+  }, [playerList, matchList, rankingMap, teamMap]);
 
   // Memoize sorted players with additional safety checks
   const sortedPlayers = useMemo(() => {

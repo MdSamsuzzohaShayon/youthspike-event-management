@@ -6,7 +6,7 @@ import { PlayerStats, ProStats } from './player-stats.schema';
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { ERosterLock } from 'src/event/event.schema';
-import { checkDateHasPassed } from 'src/util/helper';
+import { checkDateHasPassed } from 'src/utils/helper';
 
 @Injectable()
 export class PlayerStatsService {

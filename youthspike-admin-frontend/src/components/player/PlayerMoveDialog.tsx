@@ -19,7 +19,13 @@ interface IPlayerMoveDialogProps {
 }
 
 function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, refetchFunc, setActionOpen, setActErr, setMovePlayer }: IPlayerMoveDialogProps) {
-  const [teamOptions, setTeamOptions] = useState<IOption[]>([]);
+  const [teamOptions, setTeamOptions] = useState<IOption[]>(
+    (teamList || []).map((t, i) => ({
+      id: i + 1,
+      value: t._id,
+      text: t.name,
+    })),
+  );
   const [newTeamId, setNewTeamId] = useState<null | string>(null);
 
   const handleTeamChange = async (e: React.SyntheticEvent, playerId: string) => {
@@ -42,7 +48,9 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
     const dl: IOption[] = [];
 
     for (let i = 0; i < teamList.length; i += 1) {
-      if (teamList[i]._id !== teamId && teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
+      if (!inputEl.value || inputEl.value === '') {
+        dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
+      } else if (teamList[i]._id !== teamId && teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
         dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
       }
     }

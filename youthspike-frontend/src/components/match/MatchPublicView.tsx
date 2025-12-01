@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import RoundView from "./PublicView/RoundView";
 import {
   EView,
@@ -10,12 +10,9 @@ import {
   ITeam,
 } from "@/types";
 import { useAppSelector } from "@/redux/hooks";
-import Image from "next/image";
 import LocalStorageService from "@/utils/LocalStorageService";
 import { useSearchParams } from "next/navigation";
 import NetInRound from "./PublicView/NetInRound";
-import QRCode from "../elements/QRCode.tsx";
-import { FRONTEND_URL } from "@/utils/keys";
 
 interface IMatchPublicViewProps {
   nets: INetRelatives[];

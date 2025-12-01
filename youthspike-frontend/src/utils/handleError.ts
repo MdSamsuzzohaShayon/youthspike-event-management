@@ -27,6 +27,6 @@ export function handleResponse({ response, setMessage }: IHandleResponseProps): 
   }
 
   // Check response
-  console.log(response);
+  console.info(response);
   return success;
 }

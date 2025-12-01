@@ -1,4 +1,5 @@
 // utils/playerStatsFilter.ts
+import TeamCard from "@/components/team/TeamCard";
 import {
   EGroupType,
   EStatsFilter,
@@ -8,6 +9,7 @@ import {
   IMatch,
   INetRelatives,
   IPlayerStats,
+  ITeam,
 } from "@/types";
 
 /**
@@ -66,11 +68,6 @@ export function isNetValidForPlayer(
   )
     return false;
 
-
-  
-
-
-
   // VS Player filter
   if (
     filter[EStatsFilter.VS_PLAYER] &&
@@ -102,10 +99,8 @@ export function filterPlayerStats(
   matches: IMatch[],
   netMap: Map<string, INetRelatives>,
   allNetIds: Set<string>,
-  groups: IGroupRelatives[]
+  team: ITeam
 ): IPlayerStats[] {
-  
-
   // Check group, group that has conference, groups that does not have
   /*
   const groupIds = new Set<string>();
@@ -129,6 +124,10 @@ export function filterPlayerStats(
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
 
+
+    
+    // if (team.group && String(team.group) !== "" && team.group !== match.group) continue;
+
     // Check the match is been selected or not
     if (selectedMatchIds.size > 0 && !selectedMatchIds.has(match._id)) continue;
 
@@ -142,33 +141,36 @@ export function filterPlayerStats(
       if (!withinRange) continue;
     }
 
-
     // Check groups
-    if(filter[EStatsFilter.CONFERENCE] && filter[EStatsFilter.CONFERENCE] !== EGroupType.OVERALL){
+    if (
+      filter[EStatsFilter.CONFERENCE] &&
+      filter[EStatsFilter.CONFERENCE] !== EGroupType.OVERALL
+    ) {
       if (filter[EStatsFilter.CONFERENCE] === EGroupType.CONFERENCE) {
-        if(!match.group || String(match.group) === "") continue;
-      } else if (filter[EStatsFilter.CONFERENCE] === EGroupType.NON_CONFERENCE) {
-        if(match.group) continue;
-      } 
+        if (!match.group || String(match.group) === "") continue;
+      } else if (
+        filter[EStatsFilter.CONFERENCE] === EGroupType.NON_CONFERENCE
+      ) {
+        if (match.group) continue;
+      }
     }
-
 
     validMatchIds.add(match._id);
   }
 
+  
+
   // Determine valid nets
-  const selectedNetIds: string[] =
-    (filter[EStatsFilter.GAME] as string[]) || [...allNetIds];
+  const selectedNetIds: string[] = (filter[EStatsFilter.GAME] as string[]) || [
+    ...allNetIds,
+  ];
   const validNetIds = new Set(
     selectedNetIds.filter((id) =>
       isNetValidForPlayer(netMap.get(id)!, playerId, filter)
     )
   );
 
-
   // Check vs club is selected or not.
-
-
 
   // Filter player stats in a single pass
   return playerStats.filter((stat) => {

@@ -1,8 +1,9 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
-import React from 'react';
-import { IUserContext, UserRole } from './user';
-import { IPlayer } from './player';
+import React from "react";
+import { IUserContext, UserRole } from "./user";
+import { useMutation } from "@apollo/client/react";
+import { ApolloCache } from "@apollo/client";
 
 export interface IMenuItem {
   id: number;
@@ -13,22 +14,22 @@ export interface IMenuItem {
 }
 
 export enum EAssignStrategies {
-  RANDOM = 'RANDOM',
-  ANCHOR = 'ANCHOR',
-  HIERARCHY = 'HIERARCHY',
+  RANDOM = "RANDOM",
+  ANCHOR = "ANCHOR",
+  HIERARCHY = "HIERARCHY",
 }
 
 export enum EMenuTitle {
-  FWANGO = 'FWANGO',
-  EDIT_MATCH = 'EDIT MATCH',
-  EDIT_ROSTER = 'EDIT ROSTER',
-  DASHBOARD = 'DASHBOARD',
-  FIND_MATCHES = 'FIND MATCHES',
+  FWANGO = "FWANGO",
+  EDIT_MATCH = "EDIT MATCH",
+  EDIT_ROSTER = "EDIT ROSTER",
+  DASHBOARD = "DASHBOARD",
+  FIND_MATCHES = "FIND MATCHES",
 }
 
 export enum EDirection {
-  LEFT = 'LEFT',
-  RIGHT = 'RIGHT',
+  LEFT = "LEFT",
+  RIGHT = "RIGHT",
 }
 
 export interface IColMenu {
@@ -38,11 +39,9 @@ export interface IColMenu {
 }
 
 export enum EEnv {
-  development = 'development',
-  production = 'production',
+  development = "development",
+  production = "production",
 }
-
-
 
 export interface IOption {
   id: number;
@@ -66,7 +65,7 @@ export interface InputFieldProps extends IInputCommon {
 
 export interface ISelectInputProps extends IInputCommon {
   optionList: IOption[];
-  handleSelect: (e:  React.ChangeEvent<HTMLSelectElement>) => void;
+  handleSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   compact?: boolean;
 }
 
@@ -82,7 +81,7 @@ export interface ITextInputProps {
 export interface IDateInputProps {
   name: string;
   handleInputChange: (e: React.SyntheticEvent) => void;
-  label?: string; 
+  label?: string;
   className?: string;
   required?: boolean;
   defaultValue?: Date;
@@ -121,8 +120,6 @@ export interface IToggleInputProps {
   handleValueChange: (e: React.SyntheticEvent, stateName: string) => void;
 }
 
-
-
 export interface IButtonProps {
   handleClickEvent: (e: React.SyntheticEvent) => void;
   bg?: string;
@@ -132,29 +129,40 @@ export interface IButtonProps {
 export interface IMenuArrangeProps {
   eventId: null | string;
   closeMenuHandler: (e: React.SyntheticEvent) => void;
-  renderMenuItems: (eventId: string, userMenuList: IMenuItem[]) => React.ReactNode;
+  renderMenuItems: (
+    eventId: string,
+    userMenuList: IMenuItem[]
+  ) => React.ReactNode;
   userMenuList: IMenuItem[];
   user: IUserContext;
   handleLogout: (e: React.SyntheticEvent) => void;
 }
 
-export enum EMessage{
+export enum EMessage {
   ERROR = "ERROR",
   WARN = "WARN",
   INFO = "INFO",
   SUCCESS = "SUCCESS",
 }
 
-export enum EView{
-  ALL_NETS= "ALL_NETS",
-  ROUND= "ROUND",
-  NET= "NET",
+export enum EView {
+  ALL_NETS = "ALL_NETS",
+  ROUND = "ROUND",
+  NET = "NET",
 }
 export interface IMessage {
   name?: string;
   message?: string;
   type?: EMessage;
 }
+
+export type TMutation = useMutation.MutationFunction<
+  unknown,
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
 export interface ILoginProps {
   handleLogin: (e: React.SyntheticEvent) => void;
@@ -166,10 +174,8 @@ export interface ILoginProps {
 
 export type TParams = Promise<Record<string, string>>;
 
-
-
 export enum EActionTexts {
-  INITIALIZE = '',
+  INITIALIZE = "",
 }
 
 export enum ESRRole {
@@ -182,22 +188,22 @@ export enum ESRRole {
 // Enums for better type safety
 export enum ENDirection {
   PREV = "prev",
-  NEXT = "next"
+  NEXT = "next",
 }
 
 export enum EArrowSize {
   SM = "sm",
   MD = "md",
-  LG = "lg"
+  LG = "lg",
 }
 
 export enum ELayout {
   MOBILE = "mobile",
-  DESKTOP = "desktop", 
-  TABLET = "tablet", 
+  DESKTOP = "desktop",
+  TABLET = "tablet",
 }
 
 export enum ETeamType {
   TEAM_A = "teamA",
-  TEAM_B = "teamB"
+  TEAM_B = "teamB",
 }

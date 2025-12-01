@@ -19,5 +19,20 @@ const UPDATE_NETS = gql`
   }
 `;
 
+
+const UPDATE_NET = gql`
+  mutation UpdateNet($input: UpdateNetInput!, $netId: String!) {
+    updateNet(input: $input, netId: $netId) {
+      code
+      message
+      success
+      data {
+        _id
+        num
+      }
+    }
+  }
+`;
+
 // eslint-disable-next-line import/prefer-default-export
-export { UPDATE_NETS };
+export { UPDATE_NETS, UPDATE_NET };

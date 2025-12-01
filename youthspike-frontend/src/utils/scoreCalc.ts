@@ -5,6 +5,7 @@ import {
   IPlayer,
   IPlayerRecord,
   IRoundRelatives,
+  ITeam,
 } from "@/types";
 import { ETeam } from "@/types/team";
 
@@ -24,7 +25,6 @@ function calcRoundScore(
   let score = 0;
   let plusMinusScore = 0;
 
-
   // Calculate score
   for (const net of findNets) {
     const teamAScore = net.teamAScore || 0;
@@ -37,8 +37,6 @@ function calcRoundScore(
     }
   }
 
-  // console.log({teamAScore: round.teamAScore, teamBScore: round.teamBScore});
-  
 
   const teamPoints =
     teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
@@ -46,7 +44,6 @@ function calcRoundScore(
     teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0;
 
   plusMinusScore = teamPoints - opponentPoints;
-  
 
   return { score, plusMinusScore };
 }
@@ -119,14 +116,16 @@ function calcPairScore(
 const calculatePlayerRecords = (
   playerList: IPlayer[],
   matchList: IMatchExpRel[],
+  teamMap?: Map<string, ITeam>,
   rankingMap?: Map<string, number>
 ): IPlayerRecord[] => {
   // Filter out invalid players first
-  const validPlayers = playerList.filter(player => 
-    player && 
-    player._id && 
-    typeof player._id === 'string' &&
-    player.firstName !== undefined
+  const validPlayers = playerList.filter(
+    (player) =>
+      player &&
+      player._id &&
+      typeof player._id === "string" &&
+      player.firstName !== undefined
   );
 
   if (validPlayers.length === 0) return [];
@@ -135,7 +134,7 @@ const calculatePlayerRecords = (
   const matchLookup = new Map<string, IMatchExpRel[]>();
   matchList.forEach((match) => {
     if (!match) return;
-    
+
     const teamAId = match?.teamA?._id;
     const teamBId = match?.teamB?._id;
 
@@ -159,14 +158,14 @@ const calculatePlayerRecords = (
     let running = 0;
 
     const rank = rankingMap?.get(player._id) ?? null;
-    
+
     // Safely get team IDs with null checking
     const playerTeamIds: string[] = [];
     if (player.teams && Array.isArray(player.teams)) {
-      player.teams.forEach(team => {
-        if (typeof team === 'string' && team) {
+      player.teams.forEach((team) => {
+        if (typeof team === "string" && team) {
           playerTeamIds.push(team);
-        } else if (team && typeof team === 'object' && team._id) {
+        } else if (team && typeof team === "object" && team._id) {
           playerTeamIds.push(team._id);
         }
       });
@@ -174,10 +173,23 @@ const calculatePlayerRecords = (
 
     // Get relevant matches with null checking
     const relevantMatches: IMatchExpRel[] = [];
-    playerTeamIds.forEach(teamId => {
+    playerTeamIds.forEach((teamId) => {
       const matches = matchLookup.get(teamId);
       if (matches && Array.isArray(matches)) {
-        relevantMatches.push(...matches.filter(match => match !== undefined));
+        const team = teamMap ? teamMap.get(teamId) : null;
+        if (!team) {
+          relevantMatches.push(
+            ...matches.filter((match) => match !== undefined)
+          );
+        } else {
+          if (team?.group) {
+            relevantMatches.push(
+              ...matches.filter(
+                (match) => match !== undefined && match.group === team.group
+              )
+            );
+          }
+        }
       }
     });
 
@@ -226,7 +238,8 @@ const calculatePlayerRecords = (
       });
     });
 
-    const averagePointsDiff = numOfGames > 0 ? (myScore - opScore) / numOfGames : 0;
+    const averagePointsDiff =
+      numOfGames > 0 ? (myScore - opScore) / numOfGames : 0;
 
     return {
       ...player,

@@ -5,6 +5,7 @@ import { ILDO } from "./ldo";
 import { INetRelatives } from "./net";
 import { IPlayer } from "./player";
 import { IPlayerRanking, IPlayerRankingExpRel } from "./playerRanking";
+import { EGroupType } from "./playerStats";
 import { IRoom } from "./room";
 import { IRoundExpRel, IRoundRelatives } from "./round";
 import {
@@ -42,6 +43,7 @@ export interface IDefaultMatch {
   location: string;
   tieBreaking: ETieBreakingStrategy;
   fwango?: string | null;
+  streamUrl?: string | null;
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {
@@ -117,6 +119,7 @@ export interface ISearchMatchResponse {
 }
 
 export interface ISearchFilter {
+  ce: EGroupType;
   search: string;
   division: string;
   group: string;
