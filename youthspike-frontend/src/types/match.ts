@@ -54,8 +54,8 @@ export interface IDefaultMatchProps extends IDefaultMatch {
 interface IMatchBase extends Partial<IDefaultMatchProps> {
   date: string;
   extendedOvertime?: boolean;
-  teamAP?: number;
-  teamBP?: number;
+  teamAP?: number | null;
+  teamBP?: number | null;
 }
 
 export interface IAddMatch extends IMatchBase {

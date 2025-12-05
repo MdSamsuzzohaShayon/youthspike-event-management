@@ -102,7 +102,7 @@ npm install --force
 success "Dependencies installed."
 
 ### Optional manual review
-nano src/util/keys.ts
+nano src/utils/keys.ts
 
 ### Build and run with PM2
 info "Building the app..."

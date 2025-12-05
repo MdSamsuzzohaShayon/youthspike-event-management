@@ -1,6 +1,7 @@
 import Image from "next/image";
 import TeamInNet from "./TeamInNet";
 import {
+  EMessage,
   ETeam,
   EView,
   INetRelatives,
@@ -20,6 +21,7 @@ import ChangePlayDialog from "@/components/elements/Dialog/ChangePlayDialog";
 import { useMutation } from "@apollo/client/react";
 import { UPDATE_NET } from "@/graphql/net";
 import StreamUrlDialog from "@/components/elements/Dialog/StreamUrlDialog";
+import { setMessage } from "@/redux/slices/elementSlice";
 
 interface NetInRoundProps {
   net: INetRelatives;
@@ -145,8 +147,30 @@ const NetInRound: React.FC<NetInRoundProps> = ({
   const handleUpdateStreamUrl = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    streamUrlDialogRef.current?.close();
+
     if (!streamUrl.trim()) {
-      alert("Please enter a valid stream URL");
+      dispatch(
+        setMessage({
+          name: "Invalid URL",
+          message: "Put a valid URL",
+          type: EMessage.ERROR,
+        })
+      );
+      return;
+    }
+
+    if (
+      !streamUrl.trim().includes("www") &&
+      !streamUrl.trim().includes("http")
+    ) {
+      dispatch(
+        setMessage({
+          name: "Invalid URL",
+          message: "Put a valid URL. Include www or http in the URL.",
+          type: EMessage.ERROR,
+        })
+      );
       return;
     }
 
@@ -162,15 +186,33 @@ const NetInRound: React.FC<NetInRoundProps> = ({
 
       // @ts-ignore
       if (data?.updateNet?.success) {
-        alert("Stream URL updated successfully!");
-        streamUrlDialogRef.current?.close();
+        dispatch(
+          setMessage({
+            name: "Invalid URL",
+            message: "Stream URL updated successfully!",
+            type: EMessage.SUCCESS,
+          })
+        );
+        
       } else {
-        // @ts-ignore
-        alert(data?.updateNet?.message || "Failed to update stream URL");
+        const message = (data as any)?.updateNet?.message || "Failed to update stream URL"
+        dispatch(
+          setMessage({
+            name: "Invalid URL",
+            message: message,
+            type: EMessage.ERROR,
+          })
+        );
       }
     } catch (error) {
       console.error("Error updating stream URL:", error);
-      alert("Error updating stream URL. Please try again.");
+      dispatch(
+        setMessage({
+          name: "Invalid URL",
+          message: "Error updating stream URL. Please try again.",
+          type: EMessage.ERROR,
+        })
+      );
     }
   };
 

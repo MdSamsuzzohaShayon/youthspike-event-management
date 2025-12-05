@@ -1,5 +1,6 @@
 import { INetRelatives } from '@/types';
 import React from 'react';
+import InputField from '../InputField';
 
 interface IStreamUrlDialogProps{
     streamUrlDialogRef: React.RefObject<HTMLDialogElement | null>; 
@@ -23,23 +24,7 @@ function StreamUrlDialog({streamUrlDialogRef, handleUpdateStreamUrl, net, stream
       </h3>
 
       <div className="space-y-4">
-        <div>
-          <label htmlFor="streamUrl" className="block text-sm font-medium mb-2">
-            Stream URL
-          </label>
-          <input
-            type="url"
-            id="streamUrl"
-            value={streamUrl || ""}
-            onChange={(e) => setStreamUrl(e.target.value)}
-            className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            placeholder="https://example.com/stream"
-            required
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            Enter full URL (e.g., https://youtube.com/live/abc123)
-          </p>
-        </div>
+        <InputField value={streamUrl || ""} name='streamUrl' type='text' className='w-full' label='Stream URL' handleInputChange={(e) => setStreamUrl(e.target.value)} />
 
         <div className="flex justify-between gap-2">
           {net.streamUrl && (

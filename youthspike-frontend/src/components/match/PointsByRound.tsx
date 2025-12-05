@@ -74,26 +74,16 @@ export default function PointsByRound({
 
   // --------- Determine Match Base Point (teamAP/BP) ----------
   const matchBasePoint = useMemo(() => {
-    if (
-      currMatch.teamAP == null ||
-      currMatch.teamAP === 0 ||
-      currMatch.teamBP == null ||
-      currMatch.teamBP === 0
-    )
-      return null;
+    if (!currMatch.teamAP && !currMatch.teamBP) return null;
 
     const isTeamA = myTeamE === ETeam.teamA;
     const isTeamB = myTeamE === ETeam.teamB;
 
     return dark
       ? // dark mode = show opposing team
-        isTeamA
-        ? currMatch.teamBP
-        : currMatch.teamAP
+        (isTeamA ? currMatch.teamBP : currMatch.teamAP) || 0
       : // light mode = show my team
-      isTeamB
-      ? currMatch.teamBP
-      : currMatch.teamAP;
+        (isTeamB ? currMatch.teamBP : currMatch.teamAP) || 0;
   }, [currMatch, myTeamE, dark]);
 
   return (
@@ -101,13 +91,13 @@ export default function PointsByRound({
       className={`points-by-round flex flex-wrap justify-center items-center w-full ${textColor} gap-1`}
     >
       {/* Base match-wide score box */}
-      {matchBasePoint !== null && (
+      {(matchBasePoint || matchBasePoint === 0) && (
         <div
           className={`r-box ${boxSizeClass} flex flex-wrap ${baseFlexDir} justify-center items-center`}
         >
           <p className="plus-minus w-full h-6" />
           <p
-            className={`base-point h-10 w-full border border-yellow ${
+            className={`base-point h-10 w-full border border-yellow-logo ${
               dark ? "rounded-t-lg" : "rounded-b-lg"
             } flex justify-center items-center`}
           >

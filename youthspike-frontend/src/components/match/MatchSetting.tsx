@@ -32,6 +32,7 @@ import { useMutation } from "@apollo/client/react";
 import { UPDATE_TEAM_PLAYER_RANKING } from "@/graphql/player-ranking";
 import InputField from "../elements/InputField";
 import { UPDATE_MATCH } from "@/graphql/matches";
+import { setMatchInfo } from "@/redux/slices/matchesSlice";
 
 // Sub-component: Dialog Header
 const DialogHeader = ({
@@ -225,12 +226,15 @@ function MatchSetting({
       e.preventDefault();
       try {
         const input = {
-          teamAP: updateMatchObj.teamAP,
-          teamBP: updateMatchObj.teamBP,
+          teamAP: updateMatchObj?.teamAP || null,
+          teamBP: updateMatchObj?.teamBP || null,
         };
         const { data } = await mutateMatch({
           variables: { input, matchId: match._id },
         });
+        dialogSettingEl.current?.close();
+        // Update match info
+        dispatch(setMatchInfo({ ...match, ...input }));
         console.info("Update match data", data);
       } catch (error) {
         console.error(error);

@@ -92,17 +92,20 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     return "bg-gray-500";
   }, [statusMessage]);
 
+  console.log(match?.teamAP);
+  
+
   /** ✅ Team card reusable component */
   const TeamCard = useCallback(
     ({ team, teamType }: { team?: ITeam | null; teamType: ETeam }) => {
       const teamScore =
         teamType === ETeam.teamA
-          ? teamScores.teamA + (match.completed ? match?.teamAP || 0 : 0)
-          : teamScores.teamB + (match.completed ? match?.teamBP || 0 : 0);
+          ? teamScores.teamA + ( match?.teamAP || 0)
+          : teamScores.teamB + ( match?.teamBP || 0);
       const opponentScore =
         teamType === ETeam.teamA
-          ? teamScores.teamB + (match.completed ? match?.teamBP || 0 : 0)
-          : teamScores.teamA + (match.completed ? match?.teamAP || 0 : 0);
+          ? teamScores.teamB + ( match?.teamBP || 0)
+          : teamScores.teamA + ( match?.teamAP || 0);
       const won = teamScore > opponentScore && match?.completed;
 
       return (
@@ -153,7 +156,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         </div>
       );
     },
-    [teamScores, match?.completed]
+    [teamScores, match]
   );
 
   /** ✅ Reusable Action Buttons */

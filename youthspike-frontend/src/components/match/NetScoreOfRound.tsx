@@ -184,7 +184,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             }
           />
           <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
-            {Boolean(match.teamAP) && Boolean(match.teamAP) && (
+            {(Boolean(match.teamAP) || Boolean(match.teamAP) )&& (
               <button
                 className={`single-r bg-white py-1 text-center cursor-pointer ${
                   screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
