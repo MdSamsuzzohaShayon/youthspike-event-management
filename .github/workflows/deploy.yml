@@ -23,7 +23,11 @@ jobs:
       - name: Copy admin frontend to VPS
         run: |
           ssh -o StrictHostKeyChecking=no shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }} "mkdir -p ~/youthspike-admin-frontend"
-          rsync -avz --delete ./youthspike-admin-frontend/ shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }}:~/youthspike-admin-frontend/
+          rsync -avz \
+            --exclude=".env" \
+            ./youthspike-admin-frontend/ \
+            shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }}:~/youthspike-admin-frontend/
+
 
       # 4️⃣ Build and run Docker Compose
       - name: Deploy Docker Compose
