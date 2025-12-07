@@ -28,4 +28,4 @@ jobs:
       # 4️⃣ Build and run Docker Compose
       - name: Deploy Docker Compose
         run: |
-          ssh shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }} "cd ~/youthspike-admin-frontend && sudo docker compose pull && sudo docker compose up -d --build"
+          ssh shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }} "cd ~/youthspike-admin-frontend && docker compose pull && docker compose up -d --build"
