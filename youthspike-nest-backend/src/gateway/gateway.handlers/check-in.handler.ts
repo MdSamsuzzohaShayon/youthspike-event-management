@@ -20,6 +20,8 @@ export class CheckInHandler {
     roomsLocal: Map<string, RoomLocal>,
   ) {
     try {
+      
+
       const prevRoom = roomsLocal.get(checkIn.room);
       if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
 
@@ -29,11 +31,20 @@ export class CheckInHandler {
 
       if (roundI === -1) throw new Error('Round not found with that round ID!');
 
+      // Might have some error in here
       if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
         await this.validationHelper.validateCaptainCheckIn(checkIn.userId);
       }
 
+      const {roundService} = this.gatewayService.getServices();
+
       const currRoundObj = { ...roundList[roundI] };
+      const currRound = await roundService.findOne({ _id: checkIn.round});
+      if (!currRound) throw new Error('Round not found with that round ID!');
+      currRoundObj.teamAProcess = currRound.teamAProcess;
+      currRoundObj.teamBProcess = currRound.teamBProcess;
+
+
       if (checkIn.teamE === ETeam.teamA) {
         currRoundObj.teamAProcess = EActionProcess.CHECKIN;
       } else {
@@ -45,7 +56,8 @@ export class CheckInHandler {
         teamBProcess: currRoundObj.teamBProcess,
       };
 
-      await this.gatewayService.getServices().roundService.updateOne({ _id: checkIn.round }, updateRoundData);
+      // await this.gatewayService.getServices().roundService.updateOne({ _id: checkIn.round }, updateRoundData);
+      const update = await roundService.updateOne({ _id: checkIn.round }, updateRoundData);
 
       roundList[roundI] = currRoundObj;
       roomData.rounds = roundList;
@@ -56,6 +68,9 @@ export class CheckInHandler {
         _id: checkIn.round,
         match: prevRoom.match,
       };
+
+      
+      
 
       await Promise.all([
         this.gatewayRedisService.publishToRoom(checkIn.room, 'check-in-response-to-all', roomData, client.id),

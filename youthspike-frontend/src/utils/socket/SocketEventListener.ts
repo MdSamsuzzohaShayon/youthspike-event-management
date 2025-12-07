@@ -112,8 +112,10 @@ class SocketEventListener {
           }
         }
       }
+      // console.log("Running-----");
+      
 
-      // Temp - Creating an issue running this again and again
+      // Temp - Creating an issue running this again and again 
       dispatch(setRoundList(updatedRoundList));
       if (currRoundObj) dispatch(setCurrentRound(currRoundObj));
     }

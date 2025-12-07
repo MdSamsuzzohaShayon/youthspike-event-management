@@ -1,0 +1,17 @@
+# ----- builder -----
+FROM node:24-alpine3.22
+
+WORKDIR /app
+
+# Install dev dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy everything (but during dev we'll mount workspace over it)
+COPY . .
+
+# Expose dev port (Next dev server default)
+EXPOSE 3000
+
+# Use nodemon or next dev directly. We'll use npm script:
+CMD ["npm", "run", "dev"]

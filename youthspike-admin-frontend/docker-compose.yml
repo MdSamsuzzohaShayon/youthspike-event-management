@@ -1,0 +1,9 @@
+services:
+  ys_admin_frontend:
+    build: .
+    container_name: ys_admin_frontend_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production

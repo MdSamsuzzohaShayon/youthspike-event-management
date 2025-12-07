@@ -43,3 +43,10 @@ gnome-terminal --tab --working-directory="/home/shayon/Documents/web/youthspike-
 # code /home/shayon/Documents/web/youthspike-event-management/youthspike-frontend
 
 
+
+
+# Docker
+cd youthspike-admin-frontend
+docker compose -f docker-compose.dev.yml up --build
+
+

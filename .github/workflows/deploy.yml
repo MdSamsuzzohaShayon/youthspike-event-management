@@ -1,117 +1,31 @@
-name: Multi-App CI/CD
+name: Deploy Applications
 
 on:
   push:
     branches: [ master ]
 
 jobs:
-  deploy-nestjs-backend:
+  deploy-admin-frontend:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # 2️⃣ Set up SSH key for VPS
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          node-version: 18
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-      - name: Install Dependencies (Nest.js)
-        run: cd youthspike-nest-backend && npm install --production
+      # 3️⃣ Copy only the admin frontend project
+      - name: Copy admin frontend to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }} "mkdir -p ~/youthspike-admin-frontend"
+          rsync -avz --delete ./youthspike-admin-frontend/ shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }}:~/youthspike-admin-frontend/
 
-      - name: Set Production environment
-        run: export NODE_ENV=production
-
-      - name: Build and Test (Nest.js)
-        # run: cd youthspike-nest-backend && npm run build && npm test
-        run: cd youthspike-nest-backend && npm run build
-
-      - name: Deploy to DigitalOcean (Nest.js)
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/shayon/youthspike-event-management
-            git pull origin master --rebase
-            cd youthspike-nest-backend
-            npm install --production
-            npm run build
-            pm2 startOrRestart ecosystem.config.js --env production
-            pm2 save --force
-
-  deploy-nextjs-admin:
-    needs: [deploy-nestjs-backend]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install Dependencies (Next.js)
-        run: cd youthspike-admin-frontend && npm install --production
-
-      - name: Set Production environment
-        run: export NODE_ENV=production
-
-      - name: Build and Test (Next.js)
-        # run: cd youthspike-admin-frontend && npm run build && npm test
-        run: cd youthspike-admin-frontend && npm run build
-
-      - name: Deploy to DigitalOcean (Next.js)
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/shayon/youthspike-event-management/youthspike-admin-frontend
-            npm install --production
-            npm run build
-            pm2 startOrRestart ecosystem.config.js --env production
-            pm2 save --force
-
-  deploy-nextjs-frontend:
-    needs: [deploy-nestjs-backend]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install Dependencies (Next.js)
-        run: cd youthspike-frontend && npm install --production
-
-      - name: Set Production environment
-        run: export NODE_ENV=production
-
-      - name: Build and Test (Next.js)
-        # run: cd youthspike-frontend && npm run build && npm test
-        run: cd youthspike-frontend && npm run build
-
-      - name: Deploy to DigitalOcean (Next.js)
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /home/shayon/youthspike-event-management/youthspike-frontend
-            npm install --production
-            npm run build
-            pm2 startOrRestart ecosystem.config.js --env production
-            pm2 save --force
-          
-          
+      # 4️⃣ Build and run Docker Compose
+      - name: Deploy Docker Compose
+        run: |
+          ssh shayon@${{ secrets.YS_ADMIN_FRONTEND_VPS_IP }} "cd ~/youthspike-admin-frontend && sudo docker compose pull && sudo docker compose up -d --build"
