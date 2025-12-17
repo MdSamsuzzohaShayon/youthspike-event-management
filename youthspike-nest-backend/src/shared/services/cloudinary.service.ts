@@ -5,7 +5,9 @@ import { createWriteStream } from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 import { unlink } from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
-import * as Upload from 'graphql-upload/Upload.js';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 type SponsorType = {
   company: string;
@@ -23,8 +25,8 @@ export class CloudinaryService {
     });
   }
 
-  async uploadFiles(files: Promise<Upload>, w = 300, h = 300): Promise<string> {
-    const { createReadStream, filename, mimetype, encoding } = await files;
+  async uploadFiles(files: Promise<FileUpload>, w = 300, h = 300): Promise<string> {
+    const { createReadStream, filename,  encoding } = await files;
     try {
       const localPath = `./uploads/${filename}`;
       const stream = createReadStream();
@@ -54,8 +56,8 @@ export class CloudinaryService {
     }
   }
 
-  async uploadSponsors(files: Promise<Upload>, company: string, w = 300, h = 300): Promise<SponsorType | null> {
-    const { createReadStream, filename, mimetype, encoding } = await files;
+  async uploadSponsors(files: Promise<FileUpload>, company: string, w = 300, h = 300): Promise<SponsorType | null> {
+    const { createReadStream, filename, mimetype } = await files;
     try {
       const localPath = `./uploads/${filename}`;
       const stream = createReadStream();

@@ -19,8 +19,6 @@ export class PlayersResponse extends AppResponse<Player[]> {
   data?: Player[];
 }
 
-
-
 @ObjectType()
 export class CustomPlayer extends Player {
   @Field((_type) => [String], { nullable: false })
@@ -74,7 +72,6 @@ export class EventWithPlayers {
 
   @Field((_type) => [CustomPlayerRankingItem], { nullable: false })
   rankings: CustomPlayerRankingItem[];
-
 }
 
 @ObjectType()
@@ -82,7 +79,6 @@ export class GetEventWithPlayersResponse extends AppResponse<EventWithPlayers> {
   @Field((_type) => EventWithPlayers, { nullable: true })
   data?: EventWithPlayers;
 }
-
 
 @ObjectType()
 export class PlayersSearch {
@@ -103,7 +99,6 @@ export class PlayersSearch {
 
   @Field(() => [PlayerStatsEntry])
   statsOfPlayer: PlayerStatsEntry[];
-
 }
 
 @ObjectType()
@@ -125,4 +120,31 @@ export class PlayerAndTeams {
 export class GetPlayerAndTeamsResponse extends AppResponse<PlayerAndTeams> {
   @Field(() => PlayerAndTeams, { nullable: true })
   data?: PlayerAndTeams;
+}
+
+@ObjectType()
+export class ExportOrganizedPlayers {
+  @Field((_type) => String, { nullable: false })
+  _id: string;
+
+  @Field((_type) => String, { nullable: true })
+  name: string;
+
+  @Field((_type) => String, { nullable: true })
+  username: string;
+
+  @Field((_type) => String, { nullable: true })
+  division: string;
+
+  @Field((_type) => String, { nullable: true })
+  team?: string;
+
+  @Field((_type) => [String], { nullable: true })
+  matches: string[];
+}
+
+@ObjectType()
+export class ExportPlayersResponse extends AppResponse<ExportOrganizedPlayers[]> {
+  @Field(() => [ExportOrganizedPlayers], { nullable: true })
+  data?: ExportOrganizedPlayers[];
 }

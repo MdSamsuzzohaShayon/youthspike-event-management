@@ -10,7 +10,7 @@ import { tokenToUser } from 'src/utils/helper';
 import { UserRole } from 'src/user/user.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { AppResponse } from 'src/shared/response';
-import { FilterQuery, QueryOptions } from 'mongoose';
+import { QueryFilter, QueryOptions } from 'mongoose';
 import { Player } from '../player.schema';
 import {
   GetEventWithPlayersResponse,
@@ -157,10 +157,10 @@ export class PlayerQueries implements IPlayerQueries {
 
   async searchPlayers(eventId: string, filter: PlayerSearchFilter) {
     try {
-      const playerQuery: FilterQuery<Player> = {};
-      const teamQuery: FilterQuery<Team> = { event: eventId };
-      const groupQuery: FilterQuery<Group> = { event: eventId };
-      const matchQuery: FilterQuery<Match> = { event: eventId };
+      const playerQuery: QueryFilter<Player> = {};
+      const teamQuery: QueryFilter<Team> = { event: eventId };
+      const groupQuery: QueryFilter<Group> = { event: eventId };
+      const matchQuery: QueryFilter<Match> = { event: eventId };
 
       // By default select conference
 

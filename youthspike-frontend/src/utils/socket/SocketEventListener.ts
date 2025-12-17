@@ -257,6 +257,7 @@ class SocketEventListener {
     match,
   }: IUpdatePointsResponse) {
     this.dispatch = dispatch;
+    
     // ===== set current round nets =====
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
@@ -284,6 +285,10 @@ class SocketEventListener {
         };
       }
     }
+    console.log("Updating nets");
+    console.log(netsOfRound);
+    
+    
 
     dispatch(setNets(newAllNets));
     dispatch(setCurrentRoundNets(netsOfRound));

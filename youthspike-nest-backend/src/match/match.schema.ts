@@ -59,6 +59,11 @@ export class Match extends AppDocument {
   @Prop({ required: false })
   autoAssign?: boolean;
 
+  @Field({ nullable: true, defaultValue: true })
+  @Prop({ required: false, type: Boolean, default: true })
+  includeState?: boolean;
+
+
   @Field({ nullable: true })
   @Prop({ required: false })
   autoAssignLogic?: string;

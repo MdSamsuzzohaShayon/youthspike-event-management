@@ -8,8 +8,10 @@ import { Event } from './event.schema';
 import { EventMutations } from './resolvers/event.mutations';
 import { EventQueries } from './resolvers/event.queries';
 import { EventFields } from './resolvers/event.fields';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
+
 import {
   CreateEventInput,
   EventFilterInput,
@@ -46,7 +48,8 @@ export class EventResolver {
     @Context() context: any,
     @Args('multiplayerInput', { nullable: true }) multiplayerInput?: ProStatsInput,
     @Args('weightInput', { nullable: true }) weightInput?: ProStatsInput,
-    @Args('logo', { nullable: true, type: () => GraphQLUpload }) logo?: Upload,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
+    logo?: Promise<FileUpload>,
   ) {
     return this.eventMutations.createEvent({
       sponsorsInput,
@@ -70,7 +73,7 @@ export class EventResolver {
     sponsorsStringInput?: EventSponsorStringInput[],
     @Args('multiplayerInput', { nullable: true }) multiplayerInput?: UpdateProStatsInput,
     @Args('weightInput', { nullable: true }) weightInput?: UpdateProStatsInput,
-    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Upload,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<FileUpload>,
   ) {
     return this.eventMutations.updateEvent({
       sponsorsInput,
@@ -91,14 +94,11 @@ export class EventResolver {
     return this.eventMutations.cloneEvent(eventId, context);
   }
 
-
   // Temporary
   @Mutation((_returns) => CreateOrUpdateEventResponse)
   async updateEventCache(@Args({ name: 'eventId', type: () => String }) eventId: string) {
     return this.eventMutations.updateEventCache(eventId);
   }
-
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -114,7 +114,10 @@ export class EventResolver {
   }
 
   @Query((__returns) => GetEventDetailsResponse)
-  async getEventDetails(@Args('eventId', { nullable: false }) eventId: string, @Args('filter', { nullable: false }) filter: EventFilterInput) {
+  async getEventDetails(
+    @Args('eventId', { nullable: false }) eventId: string,
+    @Args('filter', { nullable: false }) filter: EventFilterInput,
+  ) {
     // , @Args('filter') filter: EventFilterInput
     return this.eventQueries.getEventDetails(eventId, filter);
   }

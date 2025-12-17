@@ -7,9 +7,8 @@ import Link from 'next/link';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
-import { useMutation } from '@apollo/client';
 import { DELETE_MATCH } from '@/graphql/matches';
-import { EActionProcess, IError, INetRelatives, IRoundRelatives } from '@/types';
+import { EActionProcess, IError, INetRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
@@ -21,7 +20,7 @@ import TextImg from '../elements/TextImg';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ConfirmDeleteDialog from './ConfirmDeleteDialog';
-import { setMatch } from '@/utils/localStorage';
+import { useMutation } from '@apollo/client/react';
 
 interface MatchCardProps {
   match: IMatchExpRel;
@@ -57,13 +56,6 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   }, [match.nets]);
 
 
-
-  const handleRedirectScoreboard=(e: React.SyntheticEvent)=>{
-    e.preventDefault();
-    const lastRound = match.rounds[match.rounds.length - 1];
-    setMatch(match._id, String(lastRound?._id || lastRound));
-    router.push(`${FRONTEND_URL}/matches/${match._id}/scoreboard/${ldoIdUrl}`);
-  }
 
   // Optimized status message calculation with early returns
   const statusMessage = useMemo(() => {

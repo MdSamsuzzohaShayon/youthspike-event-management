@@ -45,13 +45,15 @@ export const sendGraphQLFormData = async (
 
 export const handleResponseCheck = async (
   responseData: any,
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>
+  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>
 ) => {
+  console.error(responseData);
+  
   const successCode = responseData?.code >= 200 && responseData?.code < 300;
   if (!successCode) {
-    setActErr({ success: false, message: responseData?.message });
+    if(setActErr)setActErr({ success: false, message: responseData?.message });
     return false;
   }
-  setActErr(null);
+  if(setActErr)setActErr(null);
   return true;
 };

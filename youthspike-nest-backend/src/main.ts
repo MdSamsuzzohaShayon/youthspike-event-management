@@ -3,10 +3,11 @@ import { AppModule } from './app.module';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { RedisService } from './redis/redis.service';
-import * as graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import * as GraphqlUploadExpressModule from 'graphql-upload/graphqlUploadExpress.mjs';
 import { EEnv, NODE_ENV } from './utils/keys';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ServerOptions } from 'socket.io';
+const graphqlUploadExpress = GraphqlUploadExpressModule.default;
 
 class RedisIoAdapter extends IoAdapter {
   private adapterConstructor: any;
@@ -56,7 +57,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.use(graphqlUploadExpress({ maxFiles: 10, maxFileSize: 10000000 }));
+  app.use(graphqlUploadExpress({ maxFiles: 10, maxFileSize: 10_000_000 }));
+
 
   // Get RedisService instance
   const redisService = app.get(RedisService);

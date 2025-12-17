@@ -85,7 +85,7 @@ export class RevertPlayHandler {
         playerIds.add(net.receivingPartner);
         deletePromises.push(
           playerService.updateMany(
-            { serverReceiverOnNet: { $in: [net.server, net.servingPartner, net.receiver, net.receivingPartner] } },
+            { serverReceiverOnNet: { $in: [net.server, net.servingPartner, net.receiver, net.receivingPartner].map(p => String(p)) } },
             { $pull: { serverReceiverSinglePlay: { $in: [...savedIds] } } },
           ),
         );

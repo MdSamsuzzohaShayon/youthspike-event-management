@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Round } from 'src/round/round.schema';
 
 @Injectable()
@@ -18,25 +18,25 @@ export class RoundService {
   }
 
 
-  async updateOne(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>) {
+  async updateOne(filter: QueryFilter<Round>, updateData: UpdateQuery<Round>) {
     return this.roundModel.updateOne(filter, updateData);
   }
 
-  async updateMany(filter: FilterQuery<Round>, updateData: UpdateQuery<Round>) {
+  async updateMany(filter: QueryFilter<Round>, updateData: UpdateQuery<Round>) {
     return this.roundModel.updateMany(filter, updateData);
   }
 
-  async countDocuments(query: FilterQuery<Round>) {
+  async countDocuments(query: QueryFilter<Round>) {
     return this.roundModel.countDocuments(query);
   }
 
-  async query(query: FilterQuery<Round>) {
+  async query(query: QueryFilter<Round>) {
     return this.roundModel.find(query).sort({
       num: 1,
     });
   }
 
-  async find(filter: FilterQuery<Round>, limit?: number, offset?: number) {
+  async find(filter: QueryFilter<Round>, limit?: number, offset?: number) {
     let query = this.roundModel.find(filter).sort({ num: 1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {
@@ -47,12 +47,10 @@ export class RoundService {
       query = query.limit(limit);
     }
 
-    query = query.lean()
-
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async findOne(query: FilterQuery<Round>) {
+  async findOne(query: QueryFilter<Round>) {
     return this.roundModel.findOne(query).sort({
       updatedAt: -1,
     });
@@ -62,11 +60,11 @@ export class RoundService {
     return this.roundModel.findById(id);
   }
 
-  async delete(filter: FilterQuery<Round>) {
+  async delete(filter: QueryFilter<Round>) {
     return this.roundModel.deleteMany(filter);
   }
 
-  async deleteMany(filter: FilterQuery<Round>) {
+  async deleteMany(filter: QueryFilter<Round>) {
     return this.roundModel.deleteMany(filter);
   }
   

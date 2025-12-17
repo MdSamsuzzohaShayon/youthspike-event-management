@@ -4,9 +4,9 @@ import Loader from '@/components/elements/Loader';
 import GroupAddOrUpdate from '@/components/group/GroupAddOrUpdate';
 import { GET_A_GROUP } from '@/graphql/group';
 import { useError } from '@/lib/ErrorProvider';
-import { IGroupAdd, ITeam } from '@/types';
-import { handleResponse } from '@/utils/handleError';
-import { useLazyQuery } from '@apollo/client';
+import { IGroupAdd, IGroupRes, ITeam } from '@/types';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { useLazyQuery } from '@apollo/client/react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 
@@ -18,8 +18,8 @@ interface IUpdatePageProps {
 }
 
 function UpdateGroupPage({ params: { eventId, groupId } }: IUpdatePageProps) {
-  const [getGroup, { loading }] = useLazyQuery(GET_A_GROUP, {
-    variables: { groupId },
+  const [getGroup, { loading }] = useLazyQuery<{getGroup: IGroupRes}>(GET_A_GROUP, {
+    // variables: { groupId },
     fetchPolicy: 'network-only',
   });
 
@@ -32,11 +32,12 @@ function UpdateGroupPage({ params: { eventId, groupId } }: IUpdatePageProps) {
   const [divisions, setDivisions] = useState<string>('');
 
   const fetchGroup = async () => {
-    const groupResponse = await getGroup();
-    const success = await handleResponse({ response: groupResponse?.data?.getGroup, setActErr });
+    const groupResponse = await getGroup({variables: {groupId}});
+    const success = await handleResponseCheck(groupResponse?.data?.getGroup, setActErr );
     if (success) {
-      const groupExist = groupResponse.data.getGroup.data || null;
-      if (groupExist) setGroupState(groupExist);
+      const groupExist = groupResponse?.data?.getGroup?.data || null;
+      // @ts-ignore
+      if (groupExist) setGroupState({...groupExist} as IGroupAdd);
 
       setTeamList(groupExist?.teams || []);
       setDivisions(groupExist?.event?.divisions || '');

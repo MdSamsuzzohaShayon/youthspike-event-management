@@ -1,11 +1,10 @@
 // components/player/PlayersMainContainer.tsx
 'use client';
 
-import { useReadQuery } from '@apollo/client';
-import { QueryRef } from '@apollo/client';
 import PlayersMain from './PlayersMain';
-import { IEventPlayersGroupsTeamsResponse, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam } from '@/types';
+import { IEventPlayersGroupsTeamsResponse, IGroup, IGroupRelatives, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam } from '@/types';
 import { IUser, IUserContext, UserRole } from '@/types/user';
+import { QueryRef, useReadQuery } from '@apollo/client/react';
 import { notFound, redirect } from 'next/navigation';
 import { useMemo } from 'react';
 
@@ -94,7 +93,7 @@ function PlayersMainContainer({ queryRef, eventId, userExist }: IPlayersMainCont
     return list;
   }, [players]);
 
-  return <PlayersMain currEvent={event} players={playerList} groups={groups} teams={teams} playerRanking={playerRanking} />;
+  return <PlayersMain currEvent={event} players={playerList} groups={groups as IGroupRelatives[]} teams={teams} playerRanking={playerRanking} />;
 }
 
 export default PlayersMainContainer;

@@ -3,20 +3,19 @@ import { EventService } from 'src/event/event.service';
 import { TeamService } from 'src/team/team.service';
 import { NetService } from 'src/net/net.service';
 
-import { RoomService } from 'src/room/room.service';
-import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { PlayerService } from 'src/player/player.service';
-import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
 import { AppResponse } from 'src/shared/response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { Team } from '../team.schema';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { CreateTeamInput, UpdateTeamInput } from './team.input';
-import * as Upload from 'graphql-upload/Upload.js';
 import { CreateOrUpdateTeamResponse } from './team.response';
 import { UserService } from 'src/user/user.service';
 import { UserRole } from 'src/user/user.schema';
 import { GroupService } from 'src/group/group.service';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @Injectable()
 export class TeamMutations {
@@ -62,7 +61,7 @@ export class TeamMutations {
 
   async createTeam(
     input: CreateTeamInput,
-    logo?: Upload,
+    logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const players = input.players ? input.players : [];
@@ -169,7 +168,7 @@ export class TeamMutations {
     input: UpdateTeamInput,
    teamId: string,
     eventId: string,
-    logo?: Upload,
+    logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
       const [teamExist, eventExist] = await Promise.all([
@@ -403,7 +402,7 @@ export class TeamMutations {
           if (teamExist.players && teamExist.players.length > 0) {
             deletePromises.push(
               this.playerService.updateMany(
-                { _id: { $in: teamExist.players } },
+                { _id: { $in: teamExist.players.map(p => String(p)) } },
                 { $pull: { teams: teamExist._id.toString() } },
               ),
             );
@@ -420,11 +419,11 @@ export class TeamMutations {
           }
 
           if (teamExist.playerRankings && teamExist.playerRankings.length > 0) {
-            const playerRankings = await this.playerRankingService.find({ _id: { $in: teamExist.playerRankings } });
+            const playerRankings = await this.playerRankingService.find({ _id: { $in: teamExist.playerRankings.map(p => String(p)) } });
             for (const pr of playerRankings) {
-              deletePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: pr.rankings } }));
+              deletePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: pr.rankings.map(p => String(p)) } }));
             }
-            deletePromises.push(this.playerRankingService.deletMany({ _id: { $in: teamExist.playerRankings } }));
+            deletePromises.push(this.playerRankingService.deletMany({ _id: { $in: teamExist.playerRankings.map(p => String(p)) } }));
           }
           if (teamExist) {
             deletePromises.push(this.singleDelete(teamExist));

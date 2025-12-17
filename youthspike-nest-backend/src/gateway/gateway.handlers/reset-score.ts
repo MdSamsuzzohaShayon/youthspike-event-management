@@ -39,17 +39,17 @@ export class ResetScoreHandler {
 
       const cachedPlays = await Promise.all([...playKeys].map((key) => this.scoreKeeperHelper.getSinglePlays(key)));
       const deletePlayPromises = [];
-      const playIds = new Set();
-      const playerIdsOfAllPlay = new Set();
+      const playIds = new Set<string>();
+      const playerIdsOfAllPlay = new Set<string>();
       for (const play of cachedPlays.flat()) {
         if (play?._id) {
           playIds.add(play._id);
           // Has relationships
           // net, match, server, receiver, servingPartner, receivingPartner
-          if (play.server) playerIdsOfAllPlay.add(play.server);
-          if (play.servingPartner) playerIdsOfAllPlay.add(play.servingPartner);
-          if (play.receiver) playerIdsOfAllPlay.add(play.receiver);
-          if (play.receivingPartner) playerIdsOfAllPlay.add(play.receivingPartner);
+          if (play.server) playerIdsOfAllPlay.add(String(play.server));
+          if (play.servingPartner) playerIdsOfAllPlay.add(String(play.servingPartner));
+          if (play.receiver) playerIdsOfAllPlay.add(String(play.receiver));
+          if (play.receivingPartner) playerIdsOfAllPlay.add(String(play.receivingPartner));
         }
 
         // Delete all play cached

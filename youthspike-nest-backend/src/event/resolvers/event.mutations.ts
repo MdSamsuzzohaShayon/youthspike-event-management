@@ -87,7 +87,8 @@ export class EventMutations implements IEventMutations {
       // Upload sponsors file to cloudinary
       const uploadPromises = [];
       for (let i = 0; i < sponsorsInput.length; i++) {
-        uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+        // Temp
+        // uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
       }
       const sponsorsFileList = await Promise.all(uploadPromises);
 
@@ -232,7 +233,7 @@ export class EventMutations implements IEventMutations {
 
       // ===== Update logo =====
       if (logo) {
-        const logoUrl = await this.cloudinaryService.uploadFiles(logo);
+        const logoUrl = await this.cloudinaryService.uploadFiles(logo as any);
         if (logoUrl) {
           eventData.logo = logoUrl;
         }

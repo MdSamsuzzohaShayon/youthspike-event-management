@@ -121,7 +121,7 @@ export class EmailsenderResolver {
         }
       } else {
         // Send credentials to captains and co-captains of all teams in the event
-        const teams = await this.teamService.find({ _id: { $in: eventExist.teams } });
+        const teams = await this.teamService.find({ _id: { $in: eventExist.teams.map(t => String(t)) } });
         for (const team of teams) {
           if (team.captain) {
             recipients.push(team.captain.toString());

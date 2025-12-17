@@ -139,8 +139,6 @@ function MatchAuthenticatedView({
     mainEl.current?.click();
   }, [mainEl]);
 
-  
-
   return (
     <div className="relative bg-white text-black-logo" ref={mainEl}>
       <button
@@ -245,6 +243,9 @@ function MatchAuthenticatedView({
           screenWidth={screenWidth}
           teamE={myTeamE}
         />
+        <h1 className="op-team-name text-2xl font-bold uppercase container px-4 mx-auto">
+          {myTeam?.name}
+        </h1>
 
         <div className="team-name-selection">
           {selectTeam && teamA && teamB && (
@@ -256,28 +257,28 @@ function MatchAuthenticatedView({
               />
             </div>
           )}
-            <div className="w-full">
-              <div className="container px-4 mx-auto flex justify-between">
-                {(user.info?.role === UserRole.director ||
-                  user.info?.role === UserRole.admin) && (
-                  <button
-                    className="w-full flex justify-between items-center"
-                    aria-label="select-team"
-                    type="button"
-                    onClick={() => setSelectTeam(true)}
-                  >
-                    <span className="uppercase">{myTeam?.name}</span>
-                    <Image
-                      width={24}
-                      height={24}
-                      src="/icons/dropdown.svg"
-                      className="w-6 svg-white"
-                      alt="dropdown-icon"
-                    />
-                  </button>
-                )}
-              </div>
+          <div className="w-full">
+            <div className="container px-4 mx-auto flex justify-between">
+              {(user.info?.role === UserRole.director ||
+                user.info?.role === UserRole.admin) && (
+                <button
+                  className="w-full flex justify-between items-center"
+                  aria-label="select-team"
+                  type="button"
+                  onClick={() => setSelectTeam(true)}
+                >
+                  <span className="uppercase">{myTeam?.name}</span>
+                  <Image
+                    width={24}
+                    height={24}
+                    src="/icons/dropdown.svg"
+                    className="w-6 svg-white"
+                    alt="dropdown-icon"
+                  />
+                </button>
+              )}
             </div>
+          </div>
         </div>
       </div>
 

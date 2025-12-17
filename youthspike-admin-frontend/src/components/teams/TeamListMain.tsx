@@ -13,7 +13,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CurrentEvent from '../event/CurrentEvent';
 import UserMenuList from '../layout/UserMenuList';
 import { useLdoId } from '@/lib/LdoProvider';
-import { QueryRef, useReadQuery } from '@apollo/client';
+import { QueryRef, useReadQuery } from '@apollo/client/react';
+
 
 
 interface ITeamsOfEventPage {

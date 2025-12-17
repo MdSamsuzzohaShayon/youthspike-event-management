@@ -1,18 +1,17 @@
 import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { EPlayerStatus } from '@/types/player';
-import { useMutation } from '@apollo/client';
+import { EPlayerStatus, IUpdatePlayerRes } from '@/types/player';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { IOption, IPlayerRank, ITeam } from '@/types';
+import { IOption, IPlayerRank, IResponse, ITeam, IUpdateTeamRes } from '@/types';
 import { UserRole } from '@/types/user';
 import { formatUSPhoneNumber } from '@/utils/datetime';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import EmailInput from '../elements/forms/EmailInput';
-import { handleError, handleResponse } from '@/utils/handleError';
+import { handleError } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
@@ -23,6 +22,8 @@ import InputField from '../elements/forms/InputField';
 import AddEmailDialog from './AddEmailDialog';
 import { FRONTEND_URL } from '@/utils/keys';
 import DeletePlayerDialog from './DeletePlayerDialog';
+import { useMutation } from '@apollo/client/react';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface IPlayerCardProps {
   player: IPlayerRank;
@@ -54,9 +55,9 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
 
-  const [mutateTeam] = useMutation(UPDATE_TEAM);
-  const [mutatePlayer, { client }] = useMutation(UPDATE_PLAYER);
-  const [deleteAPlayer] = useMutation(DELETE_A_PLAYER);
+  const [mutateTeam] = useMutation<{ updateTeam: IUpdateTeamRes }>(UPDATE_TEAM);
+  const [mutatePlayer, { client }] = useMutation<{ updatePlayer: IUpdatePlayerRes }>(UPDATE_PLAYER);
+  const [deleteAPlayer] = useMutation<{ deletePlayer: IResponse }>(DELETE_A_PLAYER);
 
   // Memoized values
   const name = useMemo(() => `${player.firstName} ${player.lastName}`, [player.firstName, player.lastName]);
@@ -77,7 +78,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         setIsLoading(true);
         if (teamId && eventId) {
           const response = await mutateTeam({ variables: { input, teamId, eventId } });
-          const success = await handleResponse({ response: response.data.updateTeam, setActErr });
+          const success = await handleResponseCheck(response.data?.updateTeam, setActErr);
           if (!success) return;
           window.location.reload();
         }
@@ -124,7 +125,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
             playerId,
           },
         });
-        const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
+        const success = await handleResponseCheck(response.data?.updatePlayer, setActErr);
         if (!success) return;
 
         if (refetchFunc) {
@@ -144,7 +145,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         setActionOpen((prev) => !prev);
         setIsLoading(true);
         const response = await deleteAPlayer({ variables: { playerId } });
-        const success = await handleResponse({ response: response.data.deletePlayer, setActErr });
+        const success = await handleResponseCheck(response.data?.deletePlayer, setActErr);
         if (!success) return;
         if (refetchFunc) {
           await refetchFunc();
@@ -176,14 +177,6 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       dialogEl.current.showModal();
     }
   }, []);
-
-  const handleCloseModal = useCallback(
-    (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      closeModal();
-    },
-    [closeModal],
-  );
 
   const handleCaptainEmail = useCallback(
     async (e: React.SyntheticEvent) => {

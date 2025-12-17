@@ -8,8 +8,6 @@ import { Player } from 'src/player/player.schema';
 import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { JwtService } from '@nestjs/jwt';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
 import { UpdateUser } from './user.input';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -19,6 +17,9 @@ import { rmInvalidProps } from 'src/utils/helper';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { EventService } from 'src/event/event.service';
 import { LdoService } from 'src/ldo/ldo.service';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @ObjectType()
 class LoginUser extends UserBase {
@@ -50,11 +51,6 @@ class LoginResponseData {
   user: LoginUser;
 }
 
-@ObjectType()
-class ChangePWDData {
-  @Field()
-  updated: boolean;
-}
 
 @ObjectType()
 class LoginResponse extends AppResponse<LoginResponseData> {
@@ -227,7 +223,7 @@ export class UserResolver {
     }
   }
 
-  @Query((returns) => UserResponse)
+  @Query((_returns) => UserResponse)
   async getUser(@Args('userId') userId: string) {
     try {
       const userExist: any = await this.userService.findById(userId);
@@ -246,11 +242,12 @@ export class UserResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((returns) => UserResponse)
+  @Mutation((_returns) => UserResponse)
   async updateUser(
     @Args({ name: 'userId', type: () => String, nullable: false }) userId: string,
     @Args('updateInput') updateInput: UpdateUser,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Promise<FileUpload>,
+    
   ) {
     try {
       const userExist = await this.userService.findById(userId);

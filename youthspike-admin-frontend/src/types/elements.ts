@@ -4,6 +4,8 @@ import React from 'react';
 import { IPlayer } from './player';
 import { IUserContext } from './user';
 import { ITeam } from './team';
+import { useMutation } from '@apollo/client/react';
+import { ApolloCache } from '@apollo/client';
 
 export enum EAssignStrategies {
   RANDOM = 'RANDOM',
@@ -119,7 +121,9 @@ export interface INumberInputProps {
   lblTxt?: string;
 }
 
+// @ts-ignore
 export interface IToggleInputProps extends ITextCommon {
+  value?: boolean;
   defaultValue?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
 }
@@ -149,8 +153,7 @@ export interface ITextCommon {
 }
 */
 
-
-export interface IPlayerPage{
+export interface IPlayerPage {
   eventId: string;
   date: string;
   page: number;
@@ -159,7 +162,7 @@ export interface IPlayerPage{
 export interface ISelectInputProps extends ITextCommon {
   optionList: IOption[];
   defaultValue?: string | number | null;
-  compact?:  boolean;
+  compact?: boolean;
   handleSelect?: (e: React.SyntheticEvent) => void;
 }
 
@@ -184,6 +187,12 @@ export interface IError {
   code?: number;
 }
 
+export interface IResponse {
+  success: boolean;
+  code: number;
+  message: string;
+}
+
 export interface ILoginProps {
   handleLogin: (e: React.SyntheticEvent) => void;
   email: string;
@@ -199,5 +208,12 @@ export interface ICheckedInput {
   checked: boolean;
 }
 
+export type TMutationFunction = useMutation.MutationFunction<
+  unknown,
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 // export type TParams = { [key: string]: string | string[] | undefined };
 export type TParams = Promise<Record<string, string>>;

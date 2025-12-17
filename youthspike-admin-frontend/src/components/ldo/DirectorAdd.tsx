@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useMutation } from '@apollo/client';
 import { motion } from 'motion/react';
 import { ADD_DIRECTOR } from '@/graphql/director';
-import { IAddDirector, ILDO, ILdoUpdate, IError } from '@/types';
+import { IAddDirector, IAddLDO, ILDO, ILdoUpdate } from '@/types';
 import { UPDATE_DIRECTOR } from '@/graphql/director';
 import { useUser } from '@/lib/UserProvider';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
-import addOrUpdateDirector from '@/utils/requestHandlers/addOrUpdateDirector';
 import Loader from '../elements/Loader';
 import { buttonVariants, containerVariants, inputVariants } from '@/utils/animation';
 import InputField from '../elements/forms/InputField';
@@ -14,17 +12,18 @@ import { useError } from '@/lib/ErrorProvider';
 import ImageInput from '../elements/forms/ImageInput';
 import { createLdoDirector } from '@/utils/requestHandlers/createLdoDirector';
 import { updateLdoDirector } from '@/utils/requestHandlers/updateLdoDirector';
+import { useMutation } from '@apollo/client/react';
 
 interface DirectorAddProps {
   update: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   prevLdo?: null | ILDO | undefined;
   ldoId?: string;
-  setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
+  setAddNewDirector?: React.Dispatch<React.SetStateAction<boolean>>;
   refetchFunc?: () => Promise<void>;
 }
 
-const initialLdo: ILDO = {
+const initialLdo: IAddLDO = {
   name: '',
   logo: '',
   phone: '',
@@ -42,14 +41,14 @@ const initialDirector: IAddDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, refetchFunc }: DirectorAddProps) {
+function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, refetchFunc }: DirectorAddProps) {
   // Hooks
   const user = useUser();
   const { setActErr } = useError();
 
   // Local State
   const [directorState, setDirectorState] = useState<IAddDirector>(prevLdo && prevLdo.director ? { ...initialDirector, ...prevLdo.director } : initialDirector);
-  const [ldoState, setLdoState] = useState<ILDO>(prevLdo ? prevLdo : initialLdo);
+  const [ldoState, setLdoState] = useState<IAddLDO>(prevLdo ? {...prevLdo} : {...initialLdo});
   const [ldoUpdate, setLdoUpdate] = useState({});
   const [directorUpdate, setDirectorUpdate] = useState<ILdoUpdate>({});
   const uploadedLogo = useRef<null | MediaSource | Blob>(null);
@@ -92,13 +91,6 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
    */
   const handleDirectorSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    /*
-        addOrUpdateDirector({
-            directorUpdate, update, setActErr, directorState, ldoState,
-            ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
-            initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc
-        });
-        */
     if (update) {
       updateLdoDirector({
         directorUpdate,
@@ -124,7 +116,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNetDirector, ldoId, 
         setDirectorState,
         initialLdo,
         setLdoState,
-        setAddNetDirector,
+        setAddNewDirector,
         e,
         refetchFunc,
       });

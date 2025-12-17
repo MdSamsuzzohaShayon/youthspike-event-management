@@ -1,4 +1,4 @@
-import { IEvent, IGroup, IPlayerRanking, IPlayerRankingItem, ITeam } from ".";
+import { IEvent, IGroup, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam } from ".";
 import { IDocument } from "./document";
 
 /**
@@ -79,5 +79,9 @@ export interface IEventPlayersGroupsTeamsResponse {
 
 export interface IPlayerRank extends IPlayerExpRel {
   rank?: number;
+}
+
+export interface IUpdatePlayerRes extends IResponse{
+  data?: IPlayerExpRel;
 }
 

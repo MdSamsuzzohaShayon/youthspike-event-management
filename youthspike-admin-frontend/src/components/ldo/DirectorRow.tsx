@@ -1,10 +1,10 @@
-import { ILDOItem } from '@/types';
+import { ILDO, ILDOItem } from '@/types';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React from 'react';
 
 interface IDeleteRowProps{
-    ldo: ILDOItem;
+    ldo: ILDO;
     handleDeleteLDO: (e: React.SyntheticEvent, ldoId: string)=> void;
 }
 const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {

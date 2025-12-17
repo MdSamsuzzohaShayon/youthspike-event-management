@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
 import { IPlayerAndTeamsResponse } from '@/types';
-import { QueryRef, useReadQuery } from '@apollo/client';
 import { notFound } from 'next/navigation';
 import PlayerAdd from './PlayerAdd';
+import { QueryRef, useReadQuery } from '@apollo/client/react';
 
 function PlayerSingleContainer({ queryRef, eventId, playerId }: { queryRef: QueryRef<IPlayerAndTeamsResponse>; eventId: string; playerId: string }) {
   const { data, error } = useReadQuery(queryRef);

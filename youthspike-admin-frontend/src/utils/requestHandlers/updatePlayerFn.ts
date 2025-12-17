@@ -1,9 +1,24 @@
 import { UPDATE_PLAYER_RAW } from '@/graphql/players';
-import { IPlayer, IPlayerAdd } from '@/types/player';
-import { MutationFunction } from '@apollo/client';
+import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IError } from '@/types';
+import { IError, IResponse } from '@/types';
+import { useMutation } from '@apollo/client/react';
+import { ApolloCache } from '@apollo/client';
+
+interface IUpdatePlayerData extends IResponse{
+  data?: IPlayerExpRel;
+}
+
+type TMutationFunction = useMutation.MutationFunction<
+  {
+    updatePlayer: IUpdatePlayerData;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
 interface IUpdatePlayer {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
@@ -12,7 +27,7 @@ interface IUpdatePlayer {
   prevPlayer: IPlayer | null;
   eventId: string;
   uploadedProfile: React.RefObject<File | null>;
-  updatePlayer: MutationFunction;
+  updatePlayer: TMutationFunction;
   router: AppRouterInstance;
   ldoIdUrl: string;
   refetch?: () => Promise<void>;

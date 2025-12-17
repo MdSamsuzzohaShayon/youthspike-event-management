@@ -8,8 +8,6 @@ import { Player } from 'src/player/player.schema';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { Match } from 'src/match/match.schema';
 import {
@@ -26,6 +24,9 @@ import {
 import { TeamFields } from './resolvers/team.fields';
 import { TeamQueries } from './resolvers/team.queries';
 import { TeamMutations } from './resolvers/team.mutations';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @Resolver((of) => Team)
 export class TeamResolver {
@@ -43,8 +44,8 @@ export class TeamResolver {
   async createTeam(
     @Args('input') input: CreateTeamInput,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-    logo?: Upload,
-  ): Promise<CreateOrUpdateTeamResponse> {
+    logo?: Promise<FileUpload>,
+  ) {
     return this.teamMutations.createTeam(input, logo);
   }
 
@@ -56,8 +57,8 @@ export class TeamResolver {
     @Args('teamId') teamId: string,
     @Args('eventId') eventId: string,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-    logo?: Upload,
-  ): Promise<CreateOrUpdateTeamResponse> {
+    logo?: Promise<FileUpload>,
+  ) {
     return this.teamMutations.updateTeam(input, teamId, eventId, logo);
   }
 

@@ -1,13 +1,11 @@
-import { useMutation } from '@apollo/client';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
-import { IAddMatch, IDateChangeHandlerProps, IEventExpRel, IGroupExpRel, IMatchExpRel, ITeam } from '@/types';
+import { IAddMatch, ICreateMatchData, IEventExpRel, IGroupExpRel, IMatchAddProps, IMatchExpRel, ITeam } from '@/types';
 import SelectInput from '../elements/forms/SelectInput';
 import ToggleInput from '../elements/forms/ToggleInput';
 import { CREATE_MATCH, UPDATE_MATCH } from '@/graphql/matches';
 import { assignStrategies, homeTeamStrategy, lockTimes, tieBreakingRules } from '@/utils/staticData';
-import { EAssignStrategies } from '@/types/elements';
-import addOrUpdateMatch from '@/utils/requestHandlers/addOrUpdateMatch';
+import { EAssignStrategies, IResponse } from '@/types/elements';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
@@ -19,20 +17,7 @@ import { getLocalDateTimeISO } from '@/utils/datetime';
 import { updateMatchHandler } from '@/utils/requestHandlers/updateMatchHandler';
 import addMatchHandler from '@/utils/requestHandlers/addMatchHandler';
 import Image from 'next/image';
-
-interface IMatchAddProps {
-  eventId: string;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  groupList: IGroupExpRel[];
-  currDivision?: string;
-  update?: boolean;
-  teamList?: ITeam[];
-  matchId?: string;
-  eventData?: IEventExpRel | null;
-  showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-  prevMatch?: IMatchExpRel;
-  addMatchCB?: (matchData: IMatchExpRel) => void;
-}
+import { useMutation } from '@apollo/client/react';
 
 const initialAddMatch: IAddMatch = {
   date: getLocalDateTimeISO(),
@@ -55,6 +40,7 @@ const initialAddMatch: IAddMatch = {
   streamUrl: '',
   timeout: 0,
   tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
+  includeState: true,
 };
 
 function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
@@ -69,8 +55,8 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   const [expanded, setExpanded] = useState<boolean>(false);
 
   // GraphQL
-  const [createMatch] = useMutation(CREATE_MATCH);
-  const [mutateMatch] = useMutation(UPDATE_MATCH);
+  const [createMatch] = useMutation<{createMatch: ICreateMatchData}>(CREATE_MATCH);
+  const [mutateMatch] = useMutation<{updateMatch: IResponse}>(UPDATE_MATCH);
 
   // Memoized derived state
   const filteredTeamList = useMemo(() => {
@@ -103,8 +89,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     };
 
   const handleInputChange = createChangeHandler(!!update, update ? setUpdateMatch : setAddMatch);
-  // const handleNumInputChange = createChangeHandler(!!update, update ? setUpdateMatch : setAddMatch, parseInt);
-  const handleSelectChange = handleInputChange;
+
 
   const handleNumInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();

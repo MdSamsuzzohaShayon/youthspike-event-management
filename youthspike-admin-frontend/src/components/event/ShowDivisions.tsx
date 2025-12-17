@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import InputField from '../elements/forms/InputField';
+import Image from 'next/image';
 
 interface ShowDivisionsProps {
   divisions: string; // comma-separated string
@@ -13,7 +14,12 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
 
   // Sync local state when prop changes
   useEffect(() => {
-    setDivisionList(divisions.split(',').map((d) => d.trim()).filter(Boolean));
+    setDivisionList(
+      divisions
+        .split(',')
+        .map((d) => d.trim())
+        .filter(Boolean),
+    );
   }, [divisions]);
 
   const openDialog = useCallback(
@@ -23,7 +29,7 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       const inputEl = document.getElementById('division-input') as HTMLInputElement | null;
       if (inputEl) inputEl.value = index !== null ? divisionList[index] : '';
     },
-    [divisionList]
+    [divisionList],
   );
 
   const closeDialog = useCallback(() => {
@@ -40,14 +46,14 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       } as unknown as React.SyntheticEvent;
       onInputChange(syntheticEvent);
     },
-    [onInputChange]
+    [onInputChange],
   );
 
   const handleDelete = useCallback(
     (item: string) => {
       updateParent(divisionList.filter((d) => d !== item));
     },
-    [divisionList, updateParent]
+    [divisionList, updateParent],
   );
 
   const handleSave = useCallback(
@@ -68,7 +74,7 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       updateParent(newDivisionsArr);
       closeDialog();
     },
-    [divisionList, editIndex, updateParent, closeDialog]
+    [divisionList, editIndex, updateParent, closeDialog],
   );
 
   return (
@@ -76,12 +82,7 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       <dialog ref={dialogRef} className="modal-dialog">
         <div className="p-4">
           <img src="/icons/close.svg" role="presentation" onClick={closeDialog} className="svg-white mt-2" alt="Close" />
-          <InputField
-            type="text"
-            name="division-input"
-            label={editIndex !== null ? 'Update Division' : 'Add Division'}
-            required={false}
-          />
+          <InputField type="text" name="division-input" label={editIndex !== null ? 'Update Division' : 'Add Division'} required={false} />
           <button className="btn-info mt-4 text-center" onClick={handleSave}>
             Ok
           </button>
@@ -91,30 +92,13 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       {divisionList.map((item, i) => (
         <li key={`${item}-${i}`} className="px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between">
           {item}
-          <img
-            className="w-4 h-4 svg-white ml-2"
-            role="presentation"
-            onClick={() => openDialog(i)}
-            src="/icons/edit.svg"
-            alt="Edit"
-          />
-          <img
-            className="w-4 h-4 svg-white ml-2"
-            role="presentation"
-            onClick={() => handleDelete(item)}
-            src="/icons/close.svg"
-            alt="Remove"
-          />
+          <img className="w-4 h-4 svg-white ml-2" role="presentation" onClick={() => openDialog(i)} src="/icons/edit.svg" alt="Edit" />
+          <img className="w-4 h-4 svg-white ml-2" role="presentation" onClick={() => handleDelete(item)} src="/icons/close.svg" alt="Remove" />
         </li>
       ))}
 
-      <li
-        className="px-4 py-2 rounded-full bg-yellow-logo text-black flex items-center justify-between"
-        role="presentation"
-        onClick={() => openDialog(null)}
-      >
-        Add New
-        <img className="w-4 h-4 svg-black ml-2" src="/icons/plus.svg" alt="Add" />
+      <li className="btn-info" role="presentation" onClick={() => openDialog(null)}>
+        <Image height={50} width={50} className="w-4 h-4 svg-black ml-2" src="/icons/plus.svg" alt="Add" />
       </li>
     </ul>
   );

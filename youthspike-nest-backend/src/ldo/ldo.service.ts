@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LDO } from 'src/ldo/ldo.schema';
 import { AppResponse } from '../shared/response';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 interface LDOEvents extends LDO {
@@ -36,7 +36,7 @@ export class LdoService {
     }
 
     // Build the query based on the provided directorOrLdoId
-    const filter: FilterQuery<LDO> = {
+    const filter: QueryFilter<LDO> = {
       $or: [{ director: directorOrLdoId.toString() }, { _id: directorOrLdoId.toString() }],
     };
 
@@ -46,7 +46,7 @@ export class LdoService {
     return result;
   }
 
-  async updateOne(filter: FilterQuery<LDO>, updateObj: UpdateQuery<LDO>) {
+  async updateOne(filter: QueryFilter<LDO>, updateObj: UpdateQuery<LDO>) {
     // Execute the update query
     const result = await this.ldoModel.updateOne(filter, updateObj);
     return result;
@@ -58,19 +58,19 @@ export class LdoService {
     });
   }
 
-  async findOne(filter: FilterQuery<LDO>) {
+  async findOne(filter: QueryFilter<LDO>) {
     return this.ldoModel.findOne(filter);
   }
 
-  async find(filter: FilterQuery<LDO>) {
+  async find(filter: QueryFilter<LDO>) {
     return this.ldoModel.find(filter);
   }
 
-  async query(filter: FilterQuery<LDO>) {
+  async query(filter: QueryFilter<LDO>) {
     return this.ldoModel.find(filter);
   }
 
-  async delete(filter: FilterQuery<LDO>) {
+  async delete(filter: QueryFilter<LDO>) {
     return this.ldoModel.deleteMany(filter);
   }
 }

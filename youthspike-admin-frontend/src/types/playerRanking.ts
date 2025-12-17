@@ -1,4 +1,4 @@
-import { IMatch, IPlayer, ITeam } from ".";
+import { IMatch, IPlayer, IResponse, ITeam } from ".";
 import { IDocument } from "./document";
 
 interface IPlayerRankingCommon extends IDocument{
@@ -42,4 +42,11 @@ export interface IPlayerRankingExpRel extends IPlayerRankingCommon{
 export interface IPlayerWithRank {
   player: string;
   rank: number;
+}
+
+export interface IUpdatePlayerRankingRes extends IResponse{
+  data?: {
+    _id: string;
+    rankLock: boolean;
+  }
 }

@@ -1,90 +1,59 @@
 import { IError } from '@/types';
-// import { OperationVariables, QueryResult } from "@apollo/client";
-import { ApolloError } from '@apollo/client';
-// lib/handle-response.ts
+import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { removeCookie } from './clientCookie';
 
-interface IResponse {
-  message: string;
-  success: boolean;
-  code: number;
-  data?: any;
-}
-
-interface IHandleResponseProps {
-  response: IResponse;
-  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
-}
-
 interface IHandleApolloErrorProps {
-  error: ApolloError | Error[];
+  error: unknown;
   setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
-}
-
-export async function handleResponse({ response, setActErr }: IHandleResponseProps): Promise<boolean> {
-  if (!response) {
-    await fetch('/api/logout', { method: 'GET' });
-    window.location.href = '/login';
-    return false;
-  };
-
-  if (response.success) return true;
-
-  const message = response.message || 'Internal Server Error';
-  if (setActErr) setActErr({ code: response.code, message, success: response.success });
-
-  if (response.code >= 400) {
-    if (typeof window !== 'undefined') {
-      // Client-side handling
-      await fetch('/api/logout', { method: 'GET' });
-      window.location.href = '/login';
-    } else {
-      // Server-side handling
-      // redirect('/api/logout');
-    }
-  }
-
-  return false;
 }
 
 export function handleError({ error, setActErr }: IHandleApolloErrorProps): void {
-  if (error instanceof ApolloError) {
-    const unauthenticatedError = error.graphQLErrors.find((err) => err.extensions?.code === 'UNAUTHENTICATED');
+  try {
+    // Check if error is a CombinedGraphQLErrors instance
+    if (CombinedGraphQLErrors.is(error)) {
+      error.errors.forEach((graphQLError) => {
+        const code = graphQLError.extensions?.code || 500;
+        const message = graphQLError.extensions?.message || graphQLError.message || 'GraphQL Error';
 
-    if (unauthenticatedError) {
-      removeCookie('user');
-      removeCookie('token');
-      // Handle unauthenticated error
-      if (setActErr) {
-        setActErr({
-          code: 401, // unauthenticatedError.extensions?.response?.statusCode ||
-          // @ts-ignore
-          message: unauthenticatedError.extensions?.response?.message || unauthenticatedError.message,
-          success: false,
-        });
-      }
+        // Handle unauthenticated
+        if (code === 'UNAUTHENTICATED' || code === 401) {
+          removeCookie('user');
+          removeCookie('token');
+          if (typeof window !== 'undefined') window.location.reload();
+        }
 
-      if (window) window.location.reload();
-    } else {
-      // Handle other types of GraphQL errors
+        if (setActErr) {
+          setActErr({
+            code: typeof code === 'number' ? code : 500,
+            message: typeof message === 'string' ? message : JSON.stringify(message),
+            success: false,
+          });
+        }
 
-      if (setActErr) {
-        setActErr({
-          code: 500,
-          // @ts-ignore
-          message: error.graphQLErrors[0]?.extensions?.response?.message || error.message,
-          success: false,
-        });
-      }
-      console.log('GraphQL Error: ', error);
+        console.error('GraphQL Error:', graphQLError);
+      });
+
+      // Optional: access original GraphQL result
+      // console.log(error.result);
+
+      return;
     }
-  } else {
-    // Handle non-Apollo errors
-    console.log('Non-Apollo Error: ', error);
+
+    // Handle generic errors
+    console.error('Unexpected Error:', error);
     if (setActErr) {
       setActErr({
         code: 500,
-        message: `An unexpected error occurred: ${JSON.stringify(error)}`,
+        message: typeof error === 'string' ? error : JSON.stringify(error),
+        success: false,
+      });
+    }
+  } catch (err) {
+    console.error('Error in handleError function:', err);
+    if (setActErr) {
+      setActErr({
+        code: 500,
+        message: 'Error handling failed',
         success: false,
       });
     }

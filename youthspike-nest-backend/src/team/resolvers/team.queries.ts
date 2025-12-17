@@ -16,7 +16,7 @@ import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
 import { TeamSearchFilter } from './team.input';
 import { RedisService } from 'src/redis/redis.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
-import { FilterQuery } from 'mongoose';
+import { QueryFilter } from 'mongoose';
 import { Team } from '../team.schema';
 import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
@@ -223,7 +223,7 @@ export class TeamQueries {
   async getTeamRoster(teamId: string) {
     try {
       const team = await this.teamService.findById(teamId);
-      const matchQuery: FilterQuery<Match> = {
+      const matchQuery: QueryFilter<Match> = {
         // $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
       };
       if (team.group) {
@@ -376,7 +376,7 @@ export class TeamQueries {
         this.groupService.find({ event: eventId }),
       ]);
 
-      const teamQuery: FilterQuery<Team> = { event: eventId };
+      const teamQuery: QueryFilter<Team> = { event: eventId };
       if (filter?.division) {
         teamQuery.division = { $regex: filter.division, $options: 'i' };
       }

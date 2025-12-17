@@ -47,6 +47,8 @@ export class CreateMatchInput {
   @Field({ nullable: true })
   autoAssign?: boolean;
 
+
+
   @Field({ nullable: true })
   autoAssignLogic?: string;
 

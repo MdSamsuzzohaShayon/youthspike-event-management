@@ -1,4 +1,4 @@
-import { IMatch, IRoundRelatives, ITeam } from ".";
+import { IMatch, IResponse, IRoundRelatives, ITeam } from ".";
 
 export interface INetBase{
     num: number;
@@ -26,4 +26,8 @@ export interface INetExpRel extends INetBase{
     round: IRoundRelatives;
     teamA?: ITeam;
     teamB?: ITeam;
+}
+
+export interface INetRes extends IResponse{
+    data?: INetExpRel;
 }

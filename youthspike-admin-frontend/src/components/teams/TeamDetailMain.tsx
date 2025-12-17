@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { IGetTeamDetailQuery, IMatchExpRel, INetRelatives, IPlayerExpRel, IPlayerRanking, IPlayerRankingExpRel, IRoundRelatives, ITeam } from '@/types';
-import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
+import { IGetTeamDetailQuery, IMatchExpRel, INetRelatives, IPlayerExpRel, IRoundRelatives, ITeam } from '@/types';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CldImage } from 'next-cloudinary';
@@ -18,6 +17,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { divisionsToOptionList } from '@/utils/helper';
 import { DIVISION, TEAM } from '@/utils/constant';
 import { FRONTEND_URL } from '@/utils/keys';
+import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
 
 interface ITeamDetailMainProps {
   eventId: string;

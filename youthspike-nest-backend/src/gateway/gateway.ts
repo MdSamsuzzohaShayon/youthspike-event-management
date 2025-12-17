@@ -122,7 +122,7 @@ export class Gateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.checkInHandler = new CheckInHandler(gatewayService, gatewayRedisService, validationHelper);
     this.undoCheckInHandler = new UndoCheckInHandler(gatewayService, gatewayRedisService, validationHelper);
     this.submitLineupHandler = new SubmitLineupHandler(gatewayService, gatewayRedisService, roomHelper);
-    this.updatePointsHandler = new UpdatePointsHandler(gatewayService, pointsUpdateHelper);
+    this.updatePointsHandler = new UpdatePointsHandler(gatewayService, gatewayRedisService, pointsUpdateHelper);
     this.tieBreakerHandler = new TieBreakerHandler(gatewayService, gatewayRedisService);
     this.extendOvertimeHandler = new ExtendOvertimeHandler(gatewayService, gatewayRedisService);
 

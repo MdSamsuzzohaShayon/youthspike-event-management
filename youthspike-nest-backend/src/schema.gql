@@ -225,6 +225,7 @@ type Match {
   netVariance: Float
   homeTeam: String
   autoAssign: Boolean
+  includeState: Boolean
   autoAssignLogic: String
   rosterLock: String
   tieBreaking: String
@@ -541,6 +542,7 @@ type CustomMatch {
   netVariance: Float
   homeTeam: String
   autoAssign: Boolean
+  includeState: Boolean
   autoAssignLogic: String
   rosterLock: String
   tieBreaking: String
@@ -912,6 +914,22 @@ type GetPlayerAndTeamsResponse {
   data: PlayerAndTeams
 }
 
+type ExportOrganizedPlayers {
+  _id: String!
+  name: String
+  username: String
+  division: String
+  team: String
+  matches: [String!]
+}
+
+type ExportPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [ExportOrganizedPlayers!]
+}
+
 type PlayerStatsResponse {
   code: Int!
   success: Boolean!
@@ -1167,8 +1185,9 @@ input CreateEventInput {
   rounds: Int!
   playerLimit: Int!
   netVariance: Int!
-  homeTeam: String!
+  homeTeam: String
   autoAssign: Boolean
+  includeState: Boolean = true
   autoAssignLogic: String
   tieBreaking: String
   rosterLock: String
@@ -1195,6 +1214,7 @@ input UpdateEventInput {
   netVariance: Int
   homeTeam: String
   autoAssign: Boolean
+  includeState: Boolean = true
   autoAssignLogic: String
   tieBreaking: String
   rosterLock: String
@@ -1207,30 +1227,6 @@ input UpdateEventInput {
   ldo: String
   id: String
   defaultSponsor: Boolean = true
-}
-
-input CreatePlayerInput {
-  firstName: String!
-  lastName: String!
-  username: String
-  event: String!
-  division: String!
-  email: String
-  phone: String
-  team: String
-}
-
-input UpdatePlayerInput {
-  firstName: String
-  lastName: String
-  username: String
-  event: String
-  division: String
-  email: String
-  phone: String
-  team: String
-  status: String
-  newTeamId: String
 }
 
 type Query {
@@ -1349,9 +1345,10 @@ type Mutation {
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
-  createDirector(input: CreateDirector!, logo: Upload): GetDirectorLDOResponse!
-  updateDirector(input: UpdateDirector!, logo: Upload, dId: String): GetDirectorLDOResponse!
+  createDirector(input: CreateDirector!): GetDirectorLDOResponse!
+  updateDirector(input: UpdateDirector!, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!
+  exportPlayers(eventId: String!): ExportPlayersResponse!
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
   updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
@@ -1501,6 +1498,30 @@ input UpdateDirector {
   password: String
   passcode: String
   name: String
+}
+
+input CreatePlayerInput {
+  firstName: String!
+  lastName: String!
+  username: String
+  event: String!
+  division: String!
+  email: String
+  phone: String
+  team: String
+}
+
+input UpdatePlayerInput {
+  firstName: String
+  lastName: String
+  username: String
+  event: String
+  division: String
+  email: String
+  phone: String
+  team: String
+  status: String
+  newTeamId: String
 }
 
 input UpdatePlayersInput {

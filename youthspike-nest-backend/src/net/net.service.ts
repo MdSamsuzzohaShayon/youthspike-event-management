@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Net } from 'src/net/net.schema';
-import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+
 
 @Injectable()
 export class NetService {
@@ -18,19 +18,19 @@ export class NetService {
     return newNets;
   }
 
-  async updateOne(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>) {
+  async updateOne(filter: QueryFilter<Net>, updateObj: UpdateQuery<Net>) {
     const updatedNets = await this.netModel.updateOne(filter, updateObj);
     return updatedNets;
   }
 
-  async updateMany(filter: FilterQuery<Net>, updateObj: UpdateQuery<Net>) {
+  async updateMany(filter: QueryFilter<Net>, updateObj: UpdateQuery<Net>) {
     // db.collection.updateMany(filter, update, options)
     const updatedNets = await this.netModel.updateMany(filter, updateObj);
     return updatedNets;
   }
 
   async find(
-    filter: FilterQuery<Net>,
+    filter: QueryFilter<Net>,
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
@@ -43,15 +43,15 @@ export class NetService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-    query = query.lean();
-    return query.exec();
+
+    return query.lean().exec();
   }
 
-  async countDocuments(filter: FilterQuery<Net>) {
+  async countDocuments(filter: QueryFilter<Net>) {
     return this.netModel.countDocuments(filter);
   }
 
-  async findOne(filter: FilterQuery<Net>) {
+  async findOne(filter: QueryFilter<Net>) {
     return this.netModel.findOne(filter);
   }
 
@@ -63,7 +63,7 @@ export class NetService {
     return this.netModel.find({ _id: { $in: netIds } }).populate('match');
   }
 
-  async deleteMany(filter: FilterQuery<Net>) {
+  async deleteMany(filter: QueryFilter<Net>) {
     return this.netModel.deleteMany(filter);
   }
 }

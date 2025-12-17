@@ -6,7 +6,7 @@ import PlayerAdd from '@/components/player/PlayerAdd';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import { IEvent, IGetPlayerEventSettingsQuery } from '@/types';
-import { QueryRef, useReadQuery } from '@apollo/client';
+import { QueryRef, useReadQuery } from '@apollo/client/react';
 
 interface ISettingsMainProps {
   queryRef: QueryRef<{ getPlayerEventSetting: IGetPlayerEventSettingsQuery }>;

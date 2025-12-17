@@ -1,14 +1,11 @@
-import { MutationFunction } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 import {
   IAllStats,
-  ICommonQuery,
   IError,
   IEvent,
   IGroup,
   IGroupRelatives,
-  IMatch,
   IMatchExpRel,
-  IMatchRelatives,
   INetRelatives,
   IPlayer,
   IPlayerExpRel,
@@ -17,8 +14,13 @@ import {
   IPlayerRankingItem,
   IPlayerRankingItemExpRel,
   IPlayerStats,
+  IResponse,
   IRoundRelatives,
+  TMutationFunction,
 } from '.';
+import { ApolloCache } from '@apollo/client';
+
+
 
 export interface ITeam {
   _id: string;
@@ -59,7 +61,7 @@ export interface ITeamScore {
   gameAvgDiff: number;
 }
 
-export interface IGetTeamDetailQuery extends ICommonQuery {
+export interface IGetTeamDetailQuery extends IResponse {
   data: {
     team: ITeam;
     playerRanking: IPlayerRanking;
@@ -113,8 +115,8 @@ export interface IBaseTeamAction {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploadedLogo: React.RefObject<null | Blob | MediaSource>;
   playerIdList: string[];
-  mutateTeam: MutationFunction;
-  addTeam: MutationFunction;
+  mutateTeam: TUpdateTeamFunction;
+  addTeam: TCreateTeamMutationFunction;
   setAvailablePlayers: React.Dispatch<React.SetStateAction<IPlayer[]>>;
   setPlayerIdList: React.Dispatch<React.SetStateAction<string[]>>;
   teamAddCB?: (teamData: ITeam) => void;
@@ -140,6 +142,23 @@ export interface IGetTeamMatchesResponse{
 }
 
 
+export interface IUpdateTeamRes extends IResponse{
+  data?: ITeam;
+}
+
+export interface ITeamRes extends IUpdateTeamRes{}
+
+export type TUpdateTeamFunction = useMutation.MutationFunction<{
+  updateTeam: IUpdateTeamRes;
+}, {
+  [x: string]: any;
+}, ApolloCache>;
+
+export type TCreateTeamMutationFunction = useMutation.MutationFunction<{
+  createTeam: ITeamRes;
+}, {
+  [x: string]: any;
+}, ApolloCache>;
 
 export enum ETeam {
   teamA = 'teamA',

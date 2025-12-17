@@ -3,7 +3,8 @@ import Image from 'next/image';
 import React, { useMemo, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { IError, IOption, IPlayer, IPlayerRank, ITeam } from '@/types';
-import { handleError, handleResponse } from '@/utils/handleError';
+import { handleError } from '@/utils/handleError';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface IPlayerMoveDialogProps {
   dialogMoveEl: React.RefObject<HTMLDialogElement | null>;
@@ -80,7 +81,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
         },
       });
 
-      const success = await handleResponse({ response: response.data.updatePlayer, setActErr });
+      const success = await handleResponseCheck(response.data.updatePlayer, setActErr);
       if (!success) return;
 
       if (refetchFunc) await refetchFunc();

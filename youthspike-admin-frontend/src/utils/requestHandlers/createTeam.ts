@@ -4,7 +4,8 @@
 
 import { IBaseTeamAction, ITeamAdd } from '@/types';
 import uploadTeamData from './uploadTeamData';
-import { handleError, handleResponse } from '../handleError';
+import { handleError } from '../handleError';
+import { handleResponseCheck } from './playerHelpers';
 
 interface ICreateTeam extends IBaseTeamAction {
   eventId: string | null;
@@ -60,7 +61,7 @@ export async function createTeam({
     }
 
     // 🧩 Handle response
-    const isSuccess = await handleResponse({ response, setActErr });
+    const isSuccess = await handleResponseCheck(response, setActErr );
     if (isSuccess) {
       setAvailablePlayers((prev) => prev.filter((p) => !playerIdList.includes(p._id)));
       setPlayerIdList([]);

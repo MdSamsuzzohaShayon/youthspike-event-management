@@ -6,11 +6,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useError } from '@/lib/ErrorProvider';
-import { handleError, handleResponse } from '@/utils/handleError';
+import { handleError } from '@/utils/handleError';
 import { getCookie } from '@/utils/clientCookie';
 import FileInput from '../elements/forms/FileInput';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface IMultiPlayerAddProps {
   eventId: string;
@@ -82,7 +83,7 @@ function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IM
       console.log({ response });
 
       const jsonRes = await response.json();
-      const success = await handleResponse({ response: jsonRes?.data?.createMultiPlayers, setActErr });
+      const success = await handleResponseCheck(jsonRes?.data?.createMultiPlayers, setActErr );
       if (success) {
         await router.push(`/${eventId}/teams/${ldoIdUrl}`);
         if (jsonRes?.data?.createMultiPlayers?.code !== 201) {

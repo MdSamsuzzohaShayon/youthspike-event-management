@@ -4,7 +4,7 @@ import NetPlayer from './NetPlayer';
 
 interface INetTeamCardProps {
     team?: ITeam;
-    teamScore?: number;
+    teamScore?: number | null;
 }
 
 function NetTeamCard({ team, teamScore }: INetTeamCardProps) {

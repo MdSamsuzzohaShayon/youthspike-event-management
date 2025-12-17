@@ -66,7 +66,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   }, [playerRanking, rankings]);
 
   if (!team) {
-    return <div>Team not found</div>;
+    notFound();
   }
 
   const pathname = usePathname();
@@ -82,9 +82,6 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
               <TeamLogo team={team} />
               <div className="min-w-0">
                 <h1 className="text-sm font-bold text-white truncate leading-tight">{team?.name || 'Loading...'}</h1>
-                {/* <p className="text-xs text-gray-400 truncate leading-tight">
-                  {event?.name || "Loading..."}
-                </p> */}
               </div>
             </div>
             <div className="flex items-center gap-3">

@@ -9,35 +9,35 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.7",
-    "@apollo/client-integration-nextjs": "^0.13.2",
-    "@reduxjs/toolkit": "^2.8.2",
+    "@apollo/client": "^4.0.10",
+    "@apollo/client-integration-nextjs": "^0.14.2",
+    "@reduxjs/toolkit": "^2.11.2",
     "@types/jest": "^30.0.0",
-    "autoprefixer": "^10.4.21",
-    "express": "^5.1.0",
-    "graphql": "^16.11.0",
-    "motion": "^12.23.15",
-    "next": "15.4.5",
-    "next-cloudinary": "^6.16.0",
+    "autoprefixer": "^10.4.23",
+    "express": "^5.2.1",
+    "graphql": "^16.12.0",
+    "motion": "^12.23.26",
+    "next": "16.0.10",
+    "next-cloudinary": "^6.17.5",
     "postcss": "^8.5.6",
     "qrcode.react": "^4.2.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-redux": "^9.2.0",
     "rxjs": "^7.8.2",
     "socket.io-client": "^4.8.1",
     "use-debounce": "^10.0.6",
-    "zustand": "^5.0.7"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4.1.11",
-    "@types/node": "^20",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.4.5",
-    "tailwindcss": "^4.1.11",
-    "typescript": "^5.8.3"
+    "eslint-config-next": "16.0.10",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   }
 }

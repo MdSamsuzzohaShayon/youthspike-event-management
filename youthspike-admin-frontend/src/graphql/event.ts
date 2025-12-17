@@ -272,4 +272,21 @@ mutation SendCredentials($eventId: String!, $teamIds: [String!], $captain: Strin
 }
 `;
 
-export { GET_EVENTS, GET_EVENTS_MIN_RAW, GET_PLAYER_EVENT_SETTINGS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_AN_EVENT, GET_AN_EVENT_RAW, DELETE_AN_EVENT, SEND_CREDENTIALS };
+const EXPORT_PLAYERS = gql`
+mutation ExportPlayers($eventId: String!) {
+  exportPlayers(eventId: $eventId) {
+    code
+    message
+    success
+    data {
+      division
+      matches
+      name
+      team
+      username
+    }
+  }
+}
+`;
+
+export { GET_EVENTS, GET_EVENTS_MIN_RAW, GET_PLAYER_EVENT_SETTINGS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_AN_EVENT, EXPORT_PLAYERS, GET_AN_EVENT_RAW, DELETE_AN_EVENT, SEND_CREDENTIALS };

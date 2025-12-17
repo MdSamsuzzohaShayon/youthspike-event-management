@@ -1,43 +1,80 @@
+import React, { useEffect, useState } from 'react';
 import { IToggleInputProps } from '@/types';
-import React, { useEffect, useRef, useState } from 'react';
 
-const ToggleInput = ({ name, label, defaultValue, handleInputChange }: IToggleInputProps) => {
-  const [isChecked, setIsChecked] = useState<boolean>(defaultValue ?? false);
-  const hiddenInputEl = useRef<HTMLInputElement>(null);
+function ToggleInput({
+  name,
+  label,
+  value,
+  defaultValue = false,
+  handleInputChange,
+  className = '',
+}: IToggleInputProps & { className?: string }) {
+  const [isChecked, setIsChecked] = useState<boolean>(defaultValue);
 
+  // Sync external value/defaultValue
   useEffect(() => {
-    setIsChecked(defaultValue ?? false);
-  }, [defaultValue]);
-
-  useEffect(() => {
-    if (hiddenInputEl.current) {
-      hiddenInputEl.current.checked = isChecked;
+    if (value !== undefined) {
+      setIsChecked(value);
+    } else {
+      setIsChecked(defaultValue);
     }
-  }, [isChecked]);
+  }, [value, defaultValue]);
 
-  const toggle = (e: React.SyntheticEvent, newValue: boolean) => {
-    e.preventDefault();
+  const handleToggle = (e: React.SyntheticEvent) => {
+    const newValue = !isChecked;
     setIsChecked(newValue);
+
+    // Emit event compatible with input fields
+    if (handleInputChange) {
+      handleInputChange(e);
+    }
   };
 
   return (
-    <div className="flex justify-between items-center bg-gray-800 px-3 py-1 rounded-md border border-gray-700">
-      <span className="capitalize text-lg font-semibold">{label || name}</span>
-      <div
-        className={`border border-yellow-logo ${isChecked ? 'bg-yellow-logo text-black' : 'bg-transparent'} 
-        outline-none px-2 rounded-full h-10 w-20 text-center flex items-center justify-between`}
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label
+        htmlFor={name}
+        className="text-sm font-medium text-gray-300 uppercase"
       >
-        {isChecked && <span role="presentation" onClick={(e) => toggle(e, false)}>Off</span>}
+        {label || name}
+      </label>
+
+      <div className="flex items-center justify-between bg-gray-800 border border-gray-700 rounded-md p-2">
+        {/* ON / OFF text visible always */}
+        <span className="text-sm font-semibold text-gray-300">OFF</span>
+
         <button
           type="button"
-          className="w-7 h-7 bg-white rounded-full"
-          onClick={(e) => toggle(e, !isChecked)}
-        />
-        {!isChecked && <span role="presentation" onClick={(e) => toggle(e, true)}>On</span>}
+          id={name}
+          aria-pressed={isChecked}
+          onClick={handleToggle}
+          className={`
+            relative w-12 h-6 rounded-full transition-colors 
+            duration-300 flex items-center
+            ${isChecked ? 'bg-yellow-logo' : 'bg-gray-700'}
+          `}
+        >
+          <span
+            className={`
+              block w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300
+              ${isChecked ? 'translate-x-6' : 'translate-x-1'}
+            `}
+          />
+        </button>
+
+        <span className="text-sm font-semibold text-gray-300">ON</span>
       </div>
-      <input ref={hiddenInputEl} type="checkbox" className="hidden" name={name} defaultChecked={isChecked} onChange={handleInputChange} />
+
+      {/* Real form input for forms */}
+      <input
+        type="checkbox"
+        name={name}
+        checked={isChecked}
+        onChange={handleInputChange}
+        className="hidden"
+      />
     </div>
   );
-};
+}
 
 export default ToggleInput;

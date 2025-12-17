@@ -1,9 +1,16 @@
 import { CREATE_PLAYER_RAW } from '@/graphql/players';
 import { IPlayerAdd } from '@/types/player';
-import { MutationFunction } from '@apollo/client';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IError } from '@/types';
+import { sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
+import { IError, IResponse } from '@/types';
+import { useMutation } from '@apollo/client/react';
+import { ApolloCache } from '@apollo/client';
+
+type IAddPlayer =  useMutation.MutationFunction<{
+  createPlayer: IResponse;
+}, {
+  [x: string]: any;
+}, ApolloCache>;
 
 interface ICreatePlayer {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
@@ -12,7 +19,7 @@ interface ICreatePlayer {
   division?: string;
   eventId: string;
   uploadedProfile: React.RefObject<File | null>;
-  addPlayer: MutationFunction;
+  addPlayer: IAddPlayer;
   setPlayerState: React.Dispatch<React.SetStateAction<IPlayerAdd>>;
   initialPlayerAdd: IPlayerAdd;
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;

@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
+import { IPlayer, IPlayerAdd, IPlayerExpRel, IUpdatePlayerRes } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IOption, ITeam } from '@/types';
-import { useMutation } from '@apollo/client';
+import { IOption, IResponse, ITeam } from '@/types';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { setTeamToStore } from '@/utils/localStorage';
@@ -19,6 +18,7 @@ import Loader from '../elements/Loader';
 import updatePlayerFn from '@/utils/requestHandlers/updatePlayerFn';
 import createPlayer from '@/utils/requestHandlers/createPlayer';
 import { DIVISION, TEAM } from '@/utils/constant';
+import { useMutation } from '@apollo/client/react';
 
 interface IPlayerAddProps {
   eventId: string;
@@ -28,6 +28,9 @@ interface IPlayerAddProps {
   setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   update?: boolean;
 }
+
+
+
 
 const initialPlayerAdd: IPlayerAdd = {
   firstName: '',
@@ -48,8 +51,8 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
 
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
-  const [addPlayer] = useMutation(CREATE_PLAYER);
-  const [updatePlayer] = useMutation(UPDATE_PLAYER);
+  const [addPlayer] = useMutation<{createPlayer: IResponse}>(CREATE_PLAYER);
+  const [updatePlayer] = useMutation<{updatePlayer: IUpdatePlayerRes}>(UPDATE_PLAYER);
 
   const uploadedProfile = useRef<File | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);

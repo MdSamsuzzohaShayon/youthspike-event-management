@@ -1,11 +1,10 @@
 import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
 import { PreloadQuery } from '@/lib/client';
-import { QueryRef } from '@apollo/client';
 import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
 import TeamListMain from './TeamListMain';
 import Loader from '@/components/elements/Loader';
 import { IGetEventWithTeamsQuery, TParams } from '@/types';
+import { QueryRef } from '@apollo/client/react';
 
 interface ITeamProps {
   params: TParams;

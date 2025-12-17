@@ -50,7 +50,7 @@ export class Player extends AppDocument {
   status: EPlayerStatus;
 
   @Prop({ required: false })
-  @Field({ nullable: true })
+  @Field((_types) => String, { nullable: true })
   profile?: string;
 
   @Prop({ required: false })

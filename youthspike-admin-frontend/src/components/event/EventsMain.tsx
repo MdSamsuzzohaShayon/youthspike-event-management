@@ -1,15 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @next/next/no-img-element */
-
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/lib/UserProvider';
-import { CLONE_EVENT, DELETE_AN_EVENT, SEND_CREDENTIALS } from '@/graphql/event';
-import { QueryRef, useMutation, useReadQuery } from '@apollo/client';
+import { CLONE_EVENT, DELETE_AN_EVENT, EXPORT_PLAYERS, SEND_CREDENTIALS } from '@/graphql/event';
 import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
-import { IEvent, IGetEventDirectorQuery, IOption } from '@/types';
+import { IEvent, IEventExpRel, IGetEventDirectorQuery, IOption, IPlayer, IResponse } from '@/types';
 import { redirect, useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
@@ -19,51 +15,64 @@ import { useError } from '@/lib/ErrorProvider';
 import EventFilterDialog from './EventFilterDialog';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
-
+import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
 
 const itemList: IOption[] = [
-  { id: 1, text: 'Upcoming', value: "upcoming" },
-  { id: 2, text: 'A-Z', value: "a-z" },
-  { id: 3, text: 'Upcoming Matches', value: "upcoming-matches" },
-  { id: 4, text: 'Orlando', value: "orlando" },
+  { id: 1, text: 'Upcoming', value: 'upcoming' },
+  { id: 2, text: 'A-Z', value: 'a-z' },
+  { id: 3, text: 'Upcoming Matches', value: 'upcoming-matches' },
+  { id: 4, text: 'Orlando', value: 'orlando' },
 ];
 
 
+interface IPlayerExport extends Pick<IPlayer, 'username' | 'division'>{
+  name: string;
+  team: string | null;
+  matches: string[];
+}
+
+interface IExportData extends IResponse{
+  data?: IPlayerExport[];
+}
 
 
-interface IEventsMainProps{
+interface ICloneEventData extends IResponse{
+  data?: IEventExpRel;
+}
+
+
+interface IEventsMainProps {
   queryRef: QueryRef<{ getEventDirector: IGetEventDirectorQuery }>;
 }
 
 
-function EventsMain({queryRef}: IEventsMainProps) {
+
+function EventsMain({ queryRef }: IEventsMainProps) {
   // Hooks
   const user = useUser();
   const router = useRouter();
-  const {ldoIdUrl} = useLdoId();
-  const {setActErr} = useError();
+  const { ldoIdUrl } = useLdoId();
+  const { setActErr } = useError();
 
   // Local States
   const [filteredItems, setFilteredItems] = useState<IOption[]>([]);
   const filterListEl = useRef<HTMLDialogElement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-   // Read query data from Apollo (Suspense friendly)
-   const { data, error } = useReadQuery(queryRef);
-   if(data?.getEventDirector?.code === 401){
+  // Read query data from Apollo (Suspense friendly)
+  const { data, error } = useReadQuery(queryRef);
+  if (data?.getEventDirector?.code === 401) {
     redirect('/api/logout');
-   }
-   
+  }
 
-
-   const ldo = data?.getEventDirector?.data?.director;
-   const events = data?.getEventDirector?.data?.events ?? [];
+  const ldo = data?.getEventDirector?.data?.director;
+  const events = data?.getEventDirector?.data?.events ?? [];
 
   // GraphQL Queries
-  const [cloneEvent] = useMutation(CLONE_EVENT);
-  const [deleteEvent] = useMutation(DELETE_AN_EVENT);
-  const [sendCredentials] = useMutation(SEND_CREDENTIALS);
-
+  const [cloneEvent] = useMutation<{cloneEvent: ICloneEventData}>(CLONE_EVENT);
+  const [deleteEvent] = useMutation<{deleteEvent: IResponse}>(DELETE_AN_EVENT);
+  const [sendCredentials] = useMutation<{sendCredentials: IResponse}>(SEND_CREDENTIALS);
+  const [exportPlayers] = useMutation<{exportPlayers: IExportData}>(EXPORT_PLAYERS);
 
   // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
@@ -91,6 +100,47 @@ function EventsMain({queryRef}: IEventsMainProps) {
     setFilteredItems((prevState) => [...prevState.filter((fi) => fi.id !== iid)]);
   };
 
+  const handleExportPlayers = async (e: React.SyntheticEvent, eventId: string) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const res = await exportPlayers({ variables: { eventId } });
+
+      const playerList = res?.data?.exportPlayers?.data;
+      if (!playerList || playerList.length === 0) {
+        console.log('No players found.');
+        return;
+      }
+
+      // ---- GENERATE CSV ---- //
+      const csvRows: string[] = [];
+      const headers = ['Name', 'Username', 'Division', 'Team', 'Matches'];
+      csvRows.push(headers.join(',')); 
+
+      playerList.forEach((player: IPlayerExport) => {
+        const row = [`"${player.name || ''}"`, `"${player.username || ''}"`, `"${player.division || ''}"`, `"${player.team || ''}"`, `"${(player.matches || []).join('; ')}"`];
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\n');
+
+      // ---- TRIGGER DOWNLOAD ---- //
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download', 'players.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendCredentials = async (eventId: string) => {
     try {
       setIsLoading(true);
@@ -110,10 +160,10 @@ function EventsMain({queryRef}: IEventsMainProps) {
   const handleCopyEvent = async (e: React.SyntheticEvent, eventId: string) => {
     e.preventDefault();
     const eventResponse = await cloneEvent({ variables: { eventId } });
-    if (eventResponse.data.cloneEvent.success !== true) {
-      return setActErr({ code: eventResponse.data.cloneEvent.code, message: eventResponse.data.cloneEvent.message, success: false });
+    if (eventResponse.data?.cloneEvent.success !== true) {
+      return setActErr({ code: eventResponse.data?.cloneEvent.code, message: eventResponse.data?.cloneEvent.message, success: false });
     }
-    return router.push(`/${eventResponse.data.cloneEvent.data._id}/settings/${ldoIdUrl}`);
+    return router.push(`/${eventResponse?.data?.cloneEvent?.data?._id || ""}/settings/${ldoIdUrl}`);
   };
 
   const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
@@ -121,14 +171,14 @@ function EventsMain({queryRef}: IEventsMainProps) {
     try {
       setIsLoading(true);
       const eventResponse = await deleteEvent({ variables: { eventId } });
-      if (eventResponse.data.deleteEvent.success !== true) {
-        setActErr({ code: eventResponse.data.deleteEvent.code, message: eventResponse.data.deleteEvent.message, success: false })
-        return ;
+      if (eventResponse.data?.deleteEvent.success !== true) {
+        setActErr({ code: eventResponse.data?.deleteEvent.code, message: eventResponse.data?.deleteEvent.message, success: false });
+        return;
       }
       window.location.reload();
     } catch (error) {
       console.log(error);
-    }finally{
+    } finally {
       setIsLoading(false);
     }
   };
@@ -139,18 +189,16 @@ function EventsMain({queryRef}: IEventsMainProps) {
 
   if (isLoading) return <Loader />;
 
-
   return (
     <React.Fragment>
-
       <h1 className="my-4 text-center">Events Director</h1>
       <div className="box w-full flex flex-col justify-center items-center mb-4">
         {ldo?.logo ? (
           <div className="w-28 h-28 advanced-img rounded-full">
-            <CldImage crop="fit" width={100} height={100}  alt="LDO logo" className="w-24" src={ldo?.logo} />
+            <CldImage crop="fit" width={100} height={100} alt="LDO logo" className="w-24" src={ldo?.logo} />
           </div>
         ) : (
-          <Image src="/free-logo.png" width={100} height={100} alt='sports-man-logo' className="w-28 h-28 object-cover object-fill" />
+          <Image src="/free-logo.png" width={100} height={100} alt="sports-man-logo" className="w-28 h-28 object-cover object-fill" />
         )}
 
         <h1>{ldo ? ldo.firstName : ''}</h1>
@@ -177,10 +225,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
       </div>
       <div className="events flex flex-wrap gap-2 justify-between">
         <div className="event-card mb-1 p-2 bg-yellow-gradient rounded-lg">
-          <Link
-            href={`/newevent/${ldoIdUrl}`}
-            className="h-full w-full flex justify-center items-center flex-col gap-2 rounded-md"
-          >
+          <Link href={`/newevent/${ldoIdUrl}`} className="h-full w-full flex justify-center items-center flex-col gap-2 rounded-md">
             <img src="/icons/plus.svg" alt="plus" className="w-12 svg-black" />
             <p className="text-black">Add New</p>
           </Link>
@@ -189,7 +234,7 @@ function EventsMain({queryRef}: IEventsMainProps) {
         {events &&
           events.length > 0 &&
           events.map((event: IEvent) => (
-            <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} />
+            <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} handleExportPlayers={handleExportPlayers} />
           ))}
       </div>
 

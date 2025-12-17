@@ -87,6 +87,8 @@ export default function useMatchSocket({
 
   // Selectors
   useEffect(() => {
+    console.log("Handling socket");
+    
     if (!socket) {
       console.warn("No socket available");
       return;

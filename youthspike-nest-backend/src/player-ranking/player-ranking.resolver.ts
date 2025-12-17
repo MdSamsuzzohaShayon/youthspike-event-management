@@ -321,7 +321,7 @@ export class PlayerRankingResolver {
   async rankings(@Parent() pr: PlayerRanking): Promise<PlayerRankingItem[]> {
     try {
       //   const pr = await this.playerRankingService.findById(team.playerRanking.toString());
-      const rankingItems = await this.playerRankingService.findItems({ _id: { $in: pr.rankings } });
+      const rankingItems = await this.playerRankingService.findItems({ _id: { $in: pr.rankings.map(r => String(r)) } });
       return rankingItems;
     } catch (error) {
       console.log(error);

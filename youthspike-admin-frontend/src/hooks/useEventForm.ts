@@ -24,6 +24,7 @@ const initialEvent: IEventAdd = {
   divisions: '',
   homeTeam: homeTeamStrategy[0].value,
   autoAssign: false,
+  includeState: true,
   autoAssignLogic: assignStrategies[0].value,
   rosterLock: lockTimes[0].value,
   tieBreaking: tieBreakingRules[0].value as ETieBreakingStrategy,

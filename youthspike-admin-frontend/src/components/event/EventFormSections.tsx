@@ -51,32 +51,30 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
 }) => {
   return (
     <>
-      <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputField name="name" type="text" label="Name" handleInputChange={onInputChange} defaultValue={eventState.name} required={!update} />
+      <InputField name="name" type="text" label="Name" handleInputChange={onInputChange} defaultValue={eventState.name} required={!update} />
 
-        <div className="img-wrapper">
-          <div className="hidden md:block w-3/6" />
-          <div className="w-full md:w-3/6">
-            <ImageInput handleFileChange={onLogoChange} name="logo" defaultValue={eventState.logo || null} />
-          </div>
+      <div className="img-wrapper">
+        <div className="hidden md:block w-3/6" />
+        <div className="w-full md:w-3/6">
+          <ImageInput handleFileChange={onLogoChange} name="logo" defaultValue={eventState.logo || null} />
         </div>
-
-        <DateInput label="Start Date" name="startDate" handleDateChange={onDateChange} defaultValue={eventState.startDate} required={!update} />
-
-        <DateInput label="End Date" name="endDate" handleDateChange={onDateChange} defaultValue={eventState.endDate} required={!update} />
-
-        <InputField required={!update} name="nets" type="number" handleInputChange={onNumberChange} label="Number of nets" defaultValue={eventState.nets} />
-
-        <InputField required={!update} name="rounds" type="number" handleInputChange={onNumberChange} label="Number of rounds" defaultValue={eventState.rounds} />
-
-        <InputField required={!update} name="netVariance" type="number" handleInputChange={onNumberChange} label="Net Variance" defaultValue={eventState.netVariance} />
-
-        <InputField name="fwango" type="text" label="Fwango Link" handleInputChange={onInputChange} defaultValue={eventState.fwango || ''} />
       </div>
 
-      <div className="w-full mt-6">
+      <DateInput label="Start Date" name="startDate" handleDateChange={onDateChange} defaultValue={eventState.startDate} required={!update} />
+
+      <DateInput label="End Date" name="endDate" handleDateChange={onDateChange} defaultValue={eventState.endDate} required={!update} />
+
+      <InputField required={!update} name="nets" type="number" handleInputChange={onNumberChange} label="Number of nets" defaultValue={eventState.nets} />
+
+      <InputField required={!update} name="rounds" type="number" handleInputChange={onNumberChange} label="Number of rounds" defaultValue={eventState.rounds} />
+
+      <InputField required={!update} name="netVariance" type="number" handleInputChange={onNumberChange} label="Net Variance" defaultValue={eventState.netVariance} />
+
+      <InputField name="fwango" type="text" label="Fwango Link" handleInputChange={onInputChange} defaultValue={eventState.fwango || ''} />
+
+      <div className="w-full flex flex-col justify-center items-start">
         {!update ? (
-          <InputField type="text" required value={eventState.divisions} handleInputChange={onInputChange} label="Divisions" name="divisions" />
+          <InputField type="text" required value={eventState.divisions} handleInputChange={onInputChange} label="Divisions" name="divisions" className='w-full' />
         ) : (
           <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
         )}
@@ -84,74 +82,57 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
         {<ShowDivisions divisions={eventState?.divisions || ''} onInputChange={onInputChange} />}
       </div>
 
-      <div className="part-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <SelectInput name="homeTeam" label="How is home team decided?" handleSelect={onSelectChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />
+      <SelectInput name="homeTeam" label="How is home team decided?" handleSelect={onSelectChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />
 
-        <SelectInput name="tieBreaking" optionList={tieBreakingRules} defaultValue={eventState.tieBreaking} handleSelect={onSelectChange} label="Tie breaking strategy" />
+      <SelectInput name="tieBreaking" optionList={tieBreakingRules} defaultValue={eventState.tieBreaking} handleSelect={onSelectChange} label="Tie breaking strategy" />
 
-        <ToggleInput handleInputChange={onToggleChange} name="autoAssign" label="Auto assign when clock runs out" defaultValue={eventState.autoAssign} />
+      <ToggleInput handleInputChange={onToggleChange} name="autoAssign" label="Auto assign when clock runs out" defaultValue={eventState.autoAssign} />
+      <ToggleInput handleInputChange={onToggleChange} name="includeState" label="Include the match into player stats" defaultValue={eventState.includeState} />
 
-        <SelectInput
-          name="autoAssignLogic"
-          optionList={assignStrategies}
-          handleSelect={onSelectChange}
-          label="Which auto assign logic when clock runs out?"
-          defaultValue={eventState.autoAssignLogic}
-        />
+      <SelectInput name="autoAssignLogic" optionList={assignStrategies} handleSelect={onSelectChange} label="Which auto assign logic when clock runs out?" defaultValue={eventState.autoAssignLogic} />
 
-        <SelectInput name="rosterLock" optionList={lockTimes} handleSelect={onSelectChange} defaultValue={eventState.rosterLock} label="When does the roster lock setting?" />
+      <SelectInput name="rosterLock" optionList={lockTimes} handleSelect={onSelectChange} defaultValue={eventState.rosterLock} label="When does the roster lock setting?" />
 
-        {eventState.rosterLock && eventState.rosterLock !== '' && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
-          <DateTimeInput name="rosterLockDate" label="Set a time for locking roster ranking!" required={!update} handleDateChange={onDateChange} />
-        )}
-      </div>
+      {eventState.rosterLock && eventState.rosterLock !== '' && eventState.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
+        <DateTimeInput name="rosterLockDate" label="Set a time for locking roster ranking!" required={!update} handleDateChange={onDateChange} />
+      )}
 
-      <div className="part-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField name="timeout" type="number" handleInputChange={onNumberChange} label="Sub Clock (in minutes)" defaultValue={eventState.timeout} />
+      <InputField name="timeout" type="number" handleInputChange={onNumberChange} label="Sub Clock (in minutes)" defaultValue={eventState.timeout} />
 
-        <InputField name="coachPassword" type="password" label="Coach Password" required={!update} handleInputChange={onInputChange} defaultValue={eventState.coachPassword} />
-      </div>
+      <InputField name="coachPassword" type="password" label="Coach Password" required={!update} handleInputChange={onInputChange} defaultValue={eventState.coachPassword} />
+      <TextareaInput name="description" label="Description" required={!update} handleInputChange={onInputChange} defaultValue={eventState.description} />
+      <InputField type="text" name="location" label="Location" required={!update} handleInputChange={onInputChange} defaultValue={eventState.location} />
 
-      <div className="part-4 grid grid-cols-1 gap-6 mt-6">
-        <TextareaInput name="description" label="Description" required={!update} handleInputChange={onInputChange} defaultValue={eventState.description} />
-      </div>
+      <InputField
+        type="text"
+        tooltip="For scorekeeper, access code are needed to change the score!"
+        name="accessCode"
+        label="Access Code"
+        handleInputChange={onInputChange}
+        value={eventState.accessCode}
+      />
 
-      <div className="part-4.5 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField type="text" name="location" label="Location" required={!update} handleInputChange={onInputChange} defaultValue={eventState.location} />
+      <ProStatsInput
+        label="Multiplayer Stats"
+        namePrefix="multiplayer"
+        defaultValue={multiplayer}
+        handleInputChange={(e) => {
+          const name = e.target.name.split('.')[1];
+          const value = parseFloat(e.target.value);
+          onProStatsChange('multiplayer', name, value);
+        }}
+      />
 
-        <InputField
-          type="text"
-          tooltip="For scorekeeper, access code are needed to change the score!"
-          name="accessCode"
-          label="Access Code"
-          handleInputChange={onInputChange}
-          value={eventState.accessCode}
-        />
-      </div>
-
-      <div className="w-full pro-stats mt-4">
-        <ProStatsInput
-          label="Multiplayer Stats"
-          namePrefix="multiplayer"
-          defaultValue={multiplayer}
-          handleInputChange={(e) => {
-            const name = e.target.name.split('.')[1];
-            const value = parseFloat(e.target.value);
-            onProStatsChange('multiplayer', name, value);
-          }}
-        />
-
-        <ProStatsInput
-          label="Weight Stats"
-          namePrefix="weight"
-          defaultValue={weight}
-          handleInputChange={(e) => {
-            const name = e.target.name.split('.')[1];
-            const value = parseFloat(e.target.value);
-            onProStatsChange('weight', name, value);
-          }}
-        />
-      </div>
+      <ProStatsInput
+        label="Weight Stats"
+        namePrefix="weight"
+        defaultValue={weight}
+        handleInputChange={(e) => {
+          const name = e.target.name.split('.')[1];
+          const value = parseFloat(e.target.value);
+          onProStatsChange('weight', name, value);
+        }}
+      />
     </>
   );
 };

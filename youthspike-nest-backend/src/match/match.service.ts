@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { sign } from 'crypto';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Match } from 'src/match/match.schema';
 import { AppResponse } from 'src/shared/response';
 import { UserService } from 'src/user/user.service';
@@ -19,13 +19,13 @@ export class MatchService {
     private roundService: RoundService,
   ) {}
 
-  async query(filter: FilterQuery<Match>) {
+  async query(filter: QueryFilter<Match>) {
     return this.matchModel.find(filter).sort({
       updatedAt: -1,
     });
   }
 
-  async find(filter: FilterQuery<Match>, limit?: number, offset?: number) {
+  async find(filter: QueryFilter<Match>, limit?: number, offset?: number) {
     let query = this.matchModel.find(filter).sort({ date: -1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {
@@ -36,12 +36,11 @@ export class MatchService {
       query = query.limit(limit);
     }
 
-    query = query.lean()
 
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async findOne(filter: FilterQuery<Match>) {
+  async findOne(filter: QueryFilter<Match>) {
     return this.matchModel.findOne(filter);
   }
 
@@ -51,10 +50,7 @@ export class MatchService {
 
   async create(matchObj: Match): Promise<Match> {
     try {
-      const match = await this.matchModel.create({
-        ...matchObj,
-        active: true,
-      });
+      const match = await this.matchModel.create(matchObj);
       return match;
     } catch (error) {
       console.log(error);
@@ -62,19 +58,19 @@ export class MatchService {
     return null;
   }
 
-  async updateMany(filter: FilterQuery<Match>, matchObj: UpdateQuery<Match>) {
+  async updateMany(filter: QueryFilter<Match>, matchObj: UpdateQuery<Match>) {
     return this.matchModel.updateMany(filter, matchObj);
   }
 
-  async updateOne(filter: FilterQuery<Match>, matchObj: UpdateQuery<Match>) {
+  async updateOne(filter: QueryFilter<Match>, matchObj: UpdateQuery<Match>) {
     return this.matchModel.updateOne(filter, matchObj);
   }
 
-  async deleteMany(filter: FilterQuery<Match>) {
+  async deleteMany(filter: QueryFilter<Match>) {
     return this.matchModel.deleteMany(filter);
   }
 
-  async deleteOne(filter: FilterQuery<Match>) {
+  async deleteOne(filter: QueryFilter<Match>) {
     return this.matchModel.deleteOne(filter);
   }
 }

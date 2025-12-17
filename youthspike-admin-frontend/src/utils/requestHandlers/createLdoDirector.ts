@@ -20,7 +20,7 @@ export async function createLdoDirector({
   setDirectorState,
   initialLdo,
   setLdoState,
-  setAddNetDirector,
+  setAddNewDirector,
   refetchFunc,
   e
 }: ICreateDirectorProps): Promise<void> {
@@ -59,7 +59,7 @@ export async function createLdoDirector({
 
     setActErr(null);
     if (refetchFunc) await refetchFunc();
-    if (setAddNetDirector) setAddNetDirector(false);
+    if (setAddNewDirector) setAddNewDirector(false);
   } catch (error: any) {
     console.error('Error during director creation:', error);
     handleError(error);

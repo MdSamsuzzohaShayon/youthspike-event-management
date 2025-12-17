@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { PlayerRanking, PlayerRankingItem } from './player-ranking.schema';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { ERosterLock } from 'src/event/event.schema';
 import { checkDateHasPassed } from 'src/utils/helper';
@@ -54,13 +54,13 @@ export class PlayerRankingService {
     return this.playerRanking.findById(playerRankingId);
   }
 
-  async findOne(filter: FilterQuery<PlayerRanking>) {
+  async findOne(filter: QueryFilter<PlayerRanking>) {
     return this.playerRanking.findOne(filter);
   }
 
 
   async find(
-    filter: FilterQuery<PlayerRanking>,
+    filter: QueryFilter<PlayerRanking>,
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
@@ -73,19 +73,18 @@ export class PlayerRankingService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-    query = query.lean()
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async updateOne(filter: FilterQuery<PlayerRanking>, updateObj: UpdateQuery<PlayerRanking>) {
+  async updateOne(filter: QueryFilter<PlayerRanking>, updateObj: UpdateQuery<PlayerRanking>) {
     return this.playerRanking.updateOne(filter, updateObj);
   }
 
-  async updateMany(filter: FilterQuery<PlayerRanking>, updateObj: UpdateQuery<PlayerRanking>) {
+  async updateMany(filter: QueryFilter<PlayerRanking>, updateObj: UpdateQuery<PlayerRanking>) {
     return this.playerRanking.updateMany(filter, updateObj);
   }
 
-  async deleteOne(filter: FilterQuery<PlayerRanking>) {
+  async deleteOne(filter: QueryFilter<PlayerRanking>) {
     const deleteRanking = await this.playerRanking.findOne(filter);
     if (deleteRanking && deleteRanking?._id) {
       await this.playerRankingItem.deleteMany({ playerRanking: deleteRanking._id });
@@ -104,7 +103,7 @@ export class PlayerRankingService {
     return newPlayerRankingItem;
   }
 
-  async findItems(filter: FilterQuery<PlayerRankingItem>) {
+  async findItems(filter: QueryFilter<PlayerRankingItem>) {
     const rankingItemList = await this.playerRankingItem.find(filter);
     return rankingItemList;
   }
@@ -124,26 +123,26 @@ export class PlayerRankingService {
   }
 
 
-  async deletMany(filter: FilterQuery<PlayerRanking>) {
+  async deletMany(filter: QueryFilter<PlayerRanking>) {
     return this.playerRanking.deleteMany(filter);
   }
 
-  async updateOneItem(filter: FilterQuery<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
+  async updateOneItem(filter: QueryFilter<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
     return this.playerRankingItem.updateOne(filter, updateObj);
   }
 
-  async updateManyItems(filter: FilterQuery<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
+  async updateManyItems(filter: QueryFilter<PlayerRankingItem>, updateObj: UpdateQuery<PlayerRankingItem>) {
     return this.playerRankingItem.updateMany(filter, updateObj);
   }
 
-  async deleteOneItem(filter: FilterQuery<PlayerRankingItem>) {
+  async deleteOneItem(filter: QueryFilter<PlayerRankingItem>) {
     return this.playerRankingItem.deleteOne(filter);
   }
 
-  async findOneItem(filter: FilterQuery<PlayerRankingItem>) {
+  async findOneItem(filter: QueryFilter<PlayerRankingItem>) {
     return this.playerRankingItem.findOne(filter);
   }
-  async deleteManyItem(filter: FilterQuery<PlayerRankingItem>) {
+  async deleteManyItem(filter: QueryFilter<PlayerRankingItem>) {
     return this.playerRankingItem.deleteMany(filter);
   }
 }

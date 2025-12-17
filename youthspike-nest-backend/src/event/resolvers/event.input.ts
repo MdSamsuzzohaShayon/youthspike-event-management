@@ -1,8 +1,9 @@
 // events.dto.ts
 import { Field, Float, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
 import { EEventItem } from '../event.schema';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @InputType()
 export class EventSponsorInput {
@@ -10,7 +11,7 @@ export class EventSponsorInput {
   company: string;
 
   @Field(() => GraphQLUpload)
-  logo: Upload;
+  logo: Promise<FileUpload>;
 }
 
 @InputType()
@@ -59,6 +60,8 @@ export class CreateEventInput {
   @Field(() => String)
   endDate: string;
 
+
+
   @Field()
   active: boolean;
 
@@ -78,11 +81,14 @@ export class CreateEventInput {
   @Field(() => Int)
   netVariance: number;
 
-  @Field()
+  @Field({ nullable: true })
   homeTeam: string; // Make it required
 
   @Field({ nullable: true })
   autoAssign: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  includeState: boolean;
 
   @Field({ nullable: true })
   autoAssignLogic: string;
@@ -162,7 +168,7 @@ export class CreateEventBody {
   weightInput?: ProStatsInput;
 
   @Field(() => GraphQLUpload, { nullable: true })
-  logo?: Upload;
+  logo?: Promise<FileUpload>;
 
 }
 
@@ -189,5 +195,5 @@ export class UpdateEventBody{
   weightInput?: UpdateProStatsInput;
   
   @Field(() => GraphQLUpload, { nullable: true })
-  logo?: Upload;
+  logo?: Promise<FileUpload>;
 }

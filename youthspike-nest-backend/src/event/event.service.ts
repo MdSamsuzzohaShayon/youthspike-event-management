@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Event } from './event.schema';
 import { Types } from 'mongoose';
 
@@ -27,11 +27,11 @@ export class EventService {
     return this.eventModel.findOne({ name });
   }
 
-  async findOne(filter: FilterQuery<Event>) {
+  async findOne(filter: QueryFilter<Event>) {
     return this.eventModel.findOne(filter);
   }
 
-  async find(filter: FilterQuery<Event>) {
+  async find(filter: QueryFilter<Event>) {
     return this.eventModel.find(filter);
   }
 
@@ -42,12 +42,12 @@ export class EventService {
     });
   }
 
-  async updateOne(filter: FilterQuery<Event>, updateData: UpdateQuery<Event>){
+  async updateOne(filter: QueryFilter<Event>, updateData: UpdateQuery<Event>){
     const updateEvent = await this.eventModel.updateOne(filter, updateData);
     return updateEvent;
   }
 
-  async delete(filter: FilterQuery<Event>) {
+  async delete(filter: QueryFilter<Event>) {
     return this.eventModel.deleteMany(filter);
   }
 }

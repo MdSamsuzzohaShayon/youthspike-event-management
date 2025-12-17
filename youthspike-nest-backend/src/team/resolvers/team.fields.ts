@@ -71,7 +71,7 @@ export class TeamFields {
         ],
         team: team._id,
       });
-      const rankingItems = await this.playerRankingService.findItems({ _id: { $in: pr.rankings } });
+      const rankingItems = await this.playerRankingService.findItems({ _id: { $in: pr.rankings.map(p => String(p)) } });
 
       // Ensure rank is not null for any item
       return rankingItems.map((item) => {

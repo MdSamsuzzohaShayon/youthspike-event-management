@@ -1,18 +1,18 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { useMutation } from '@apollo/client';
 import { DELETE_DIRECTOR } from '@/graphql/director';
 import DirectorRow from './DirectorRow';
-import { ILDOItem } from '@/types';
+import { ILDO, ILDOItem } from '@/types';
 import DirectorDialog from './DirectorDialog';
+import { useMutation } from '@apollo/client/react';
 
 interface IDirectorListProps {
-  ldoList: ILDOItem[];
+  ldoList: ILDO[];
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  referchFunc?: () => void;
+  refetchFunc?: () => void;
 }
 
-function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps) {
+function DirectorList({ ldoList, setIsLoading, refetchFunc }: IDirectorListProps) {
   const [ldoIdToDelete, setLdoIdToDelete] = useState<string | null>(null);
   const [deleteDirector] = useMutation(DELETE_DIRECTOR);
   const dialogEl = useRef<HTMLDialogElement | null>(null);
@@ -37,7 +37,7 @@ function DirectorList({ ldoList, setIsLoading, referchFunc }: IDirectorListProps
         await deleteDirector({ variables: { dId: ldoIdToDelete } });
         setLdoIdToDelete(null);
         dialogEl.current?.close();
-        referchFunc && (await referchFunc());
+        refetchFunc && (await refetchFunc());
       } catch (error) {
         console.error(error);
       } finally {

@@ -90,7 +90,7 @@ export class MatchMutations {
         updatePromises.push(this.playerStatsService.deleteMany({ match: matchExist._id }));
         updatePromises.push(
           this.playerService.updateMany(
-            { _id: { $in: playerStatsOfMatch.map((ps) => ps.player) } },
+            { _id: { $in: playerStatsOfMatch.map((ps) => String(ps.player)) } },
             { $pullAll: { playerstats: playerStatsOfMatch.map((p) => p._id) } },
           ),
         );

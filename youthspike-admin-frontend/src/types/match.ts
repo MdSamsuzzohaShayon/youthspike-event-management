@@ -1,10 +1,13 @@
-import { IGroup, IGroupRelatives, INetRelatives, IRoundRelatives, ITeam } from ".";
-import { ETieBreakingStrategy } from "./event";
+import { useMutation } from "@apollo/client/react";
+import { IGroup, IGroupExpRel, IGroupRelatives, INetRelatives, IResponse, IRoundRelatives, ITeam } from ".";
+import { ETieBreakingStrategy, IEventExpRel } from "./event";
+import { ApolloCache } from "@apollo/client";
 
 export interface ICommonMatchEvent{
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;
+  includeState: boolean;
   autoAssignLogic: string;
   rosterLock: string;
   timeout: number;
@@ -70,6 +73,34 @@ export interface IMatchExpRel extends IMatchBase{
   nets: INetRelatives[];
   group?: IGroup;
 }
+
+export interface IMatchAddProps {
+  eventId: string;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  groupList: IGroupExpRel[];
+  currDivision?: string;
+  update?: boolean;
+  teamList?: ITeam[];
+  matchId?: string;
+  eventData?: IEventExpRel | null;
+  showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
+  prevMatch?: IMatchExpRel;
+  addMatchCB?: (matchData: IMatchExpRel) => void;
+}
+
+
+
+
+
+export interface ICreateMatchData extends IResponse{
+  data?: IMatchExpRel;
+}
+
+export type TMatchMutationFunction = useMutation.MutationFunction<{
+  updateMatch: IResponse;
+}, {
+  [x: string]: any;
+}, ApolloCache>;
 
 export enum EMatchStatus {
   COMPLETED = 'COMPLETED',

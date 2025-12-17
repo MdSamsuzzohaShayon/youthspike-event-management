@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Types } from 'mongoose';
 import { Group } from './group.schema';
 
@@ -19,11 +19,11 @@ export class GroupService {
     return this.groupModal.findOne(query);
   }
 
-  // async find(filter: FilterQuery<Group>) {
+  // async find(filter: QueryFilter<Group>) {
   //   return this.groupModal.find(filter);
   // }
 
-  async find(filter: FilterQuery<Group>, limit?: number, offset?: number) {
+  async find(filter: QueryFilter<Group>, limit?: number, offset?: number) {
     let query = this.groupModal.find(filter).sort({ date: -1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {
@@ -34,9 +34,7 @@ export class GroupService {
       query = query.limit(limit);
     }
 
-    query = query.lean()
-
-    return query.exec();
+    return query.lean().exec();
   }
 
   async create(event: Group): Promise<Group> {
@@ -46,21 +44,21 @@ export class GroupService {
     });
   }
 
-  async updateOne(filter: FilterQuery<Group>, updateData: UpdateQuery<Group>) {
+  async updateOne(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
     const updateGroup = await this.groupModal.updateOne(filter, updateData);
     return updateGroup;
   }
 
-  async updateMany(filter: FilterQuery<Group>, updateData: UpdateQuery<Group>) {
+  async updateMany(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
     const updateGroup = await this.groupModal.updateMany(filter, updateData);
     return updateGroup;
   }
 
-  async deleteMany(filter: FilterQuery<Group>) {
+  async deleteMany(filter: QueryFilter<Group>) {
     return this.groupModal.deleteMany(filter);
   }
 
-  async deleteOne(filter: FilterQuery<Group>) {
+  async deleteOne(filter: QueryFilter<Group>) {
     return this.groupModal.deleteOne(filter);
   }
 }

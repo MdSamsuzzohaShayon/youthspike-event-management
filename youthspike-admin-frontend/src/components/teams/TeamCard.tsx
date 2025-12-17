@@ -3,7 +3,6 @@ import { EPlayerStatus, IEvent, IGroup, IOption, ITeam } from '@/types';
 import { UserRole } from '@/types/user';
 import Link from 'next/link';
 import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
-import { useMutation } from '@apollo/client';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
@@ -18,6 +17,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import TextImg from '../elements/TextImg';
+import { useMutation } from '@apollo/client/react';
 
 interface ITeamCardProps {
   eventId: string;

@@ -12,7 +12,7 @@ import { Group } from './group.schema';
 import { CreateGroupInput, UpdateGroupInput } from './group.input';
 import { GroupService } from './group.service';
 import { EventService } from 'src/event/event.service';
-import { FilterQuery, UpdateQuery } from 'mongoose';
+import { QueryFilter, UpdateQuery } from 'mongoose';
 import { MatchService } from 'src/match/match.service';
 
 @ObjectType()
@@ -128,13 +128,13 @@ export class GroupResolver {
       const deletePromises = [];
       if (groupExist.teams.length > 0) {
         deletePromises.push(
-          this.teamService.updateMany({ _id: { $in: groupExist.teams } }, { $pull: { group: groupId } }),
+          this.teamService.updateMany({ _id: { $in: groupExist.teams.map(g => String(g)) } }, { $pull: { group: groupId } }),
         );
       }
 
       if (groupExist.matches.length > 0) {
         deletePromises.push(
-          this.matchService.updateMany({ _id: { $in: groupExist.matches } }, { $pull: { group: groupId } }),
+          this.matchService.updateMany({ _id: { $in: groupExist.matches.map(m => String(m)) } }, { $pull: { group: groupId } }),
         );
       }
 
@@ -155,7 +155,7 @@ export class GroupResolver {
   @Query((returns) => GetGroupsResponse)
   async getGroups(@Context() context: any, @Args('eventId', { nullable: true }) eventId?: string) {
     try {
-      const queryParams: FilterQuery<Group> = {};
+      const queryParams: QueryFilter<Group> = {};
       if (eventId) queryParams.event = eventId;
       const groupList = await this.groupService.find({});
       return {
@@ -189,13 +189,13 @@ export class GroupResolver {
 
   @ResolveField()
   async teams(@Parent() group: Group) {
-    const teamList = await this.teamService.find({ _id: { $in: group.teams } });
+    const teamList = await this.teamService.find({ _id: { $in: group.teams.map(g => String(g)) } });
     return teamList;
   }
 
   @ResolveField()
   async matches(@Parent() group: Group) {
-    const matchList = await this.matchService.find({ _id: { $in: group.matches } });
+    const matchList = await this.matchService.find({ _id: { $in: group.matches.map(m => String(m)) } });
     return matchList;
   }
 

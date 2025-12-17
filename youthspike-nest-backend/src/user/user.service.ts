@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { FilterQuery, Model, ObjectId, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, ObjectId, UpdateQuery } from 'mongoose';
 import { AppResponse } from 'src/shared/response';
 import { User, UserRole } from './user.schema';
 import { PlayerService } from 'src/player/player.service';
@@ -69,11 +69,11 @@ export class UserService {
     return this.userModel.findById(id).lean();
   }
 
-  async findOne(filter: FilterQuery<User>) {
+  async findOne(filter: QueryFilter<User>) {
     return this.userModel.findOne(filter);
   }
 
-  async find(filter: FilterQuery<User>) {
+  async find(filter: QueryFilter<User>) {
     return this.userModel.find(filter);
   }
 
@@ -127,11 +127,11 @@ export class UserService {
     });
   }
 
-  async updateOne(filter: FilterQuery<User>, updateData: UpdateQuery<User>) {
+  async updateOne(filter: QueryFilter<User>, updateData: UpdateQuery<User>) {
     return this.userModel.updateOne(filter, updateData);
   }
 
-  async updateMany(filter: FilterQuery<User>, updateData: UpdateQuery<User>) {
+  async updateMany(filter: QueryFilter<User>, updateData: UpdateQuery<User>) {
     return this.userModel.updateMany(filter, updateData);
   }
 
@@ -145,14 +145,14 @@ export class UserService {
     }
   }
 
-  async delete(filter: FilterQuery<User>) {
+  async delete(filter: QueryFilter<User>) {
     return this.userModel.deleteMany(filter);
   }
 
-  async deleteMany(filter: FilterQuery<User>) {
+  async deleteMany(filter: QueryFilter<User>) {
     return this.userModel.deleteMany(filter);
   }
-  async deleteOne(filter: FilterQuery<User>) {
+  async deleteOne(filter: QueryFilter<User>) {
     return this.userModel.deleteOne(filter);
   }
 }

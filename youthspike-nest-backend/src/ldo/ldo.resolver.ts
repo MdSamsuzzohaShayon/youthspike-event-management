@@ -19,8 +19,8 @@ import { UserService } from 'src/user/user.service';
 import { CreateDirector, UpdateDirector } from 'src/user/user.input';
 import { UserRole } from 'src/user/user.schema';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
-import * as Upload from 'graphql-upload/Upload.js';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import * as Upload from 'graphql-upload/Upload.mjs';
+import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import * as bcrypt from 'bcrypt';
 import { rmInvalidProps, tokenToUser } from 'src/utils/helper';
 import { HttpStatus, UseGuards } from '@nestjs/common';
@@ -97,12 +97,12 @@ export class LdoResolver {
   @Mutation((returns) => GetDirectorLDOResponse)
   async createDirector(
     @Args('input') input: CreateDirector,
-    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<Upload>,
+    // @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<typeof Upload>,
   ) {
     try {
       // Upload image to cloudinary
       let logoUrl: string | null = null;
-      if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
+      // if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
       const salt = await bcrypt.genSalt(10);
       const hashPwd = await bcrypt.hash(input.password, salt);
@@ -146,8 +146,8 @@ export class LdoResolver {
   async updateDirector(
     @Args('input') input: UpdateDirector,
     @Context() context: any,
-    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-    logo?: Promise<Upload>,
+    // @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
+    // logo?: Promise<typeof Upload>,
     @Args({ name: 'dId', type: () => String, nullable: true }) dId?: string,
   ) {
     try {
@@ -173,7 +173,7 @@ export class LdoResolver {
 
       // Upload image to cloudinary
       let logoUrl: string | null = null;
-      if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
+      // if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
       const userObj = {
         firstName: input.firstName,
@@ -263,23 +263,23 @@ export class LdoResolver {
     }
   }
 
-  @Query((returns) => GetDirectorsLDOResponse)
+  @Query((_returns) => GetDirectorsLDOResponse)
   async getEventDirectors() {
     try {
       // If the user is admin we must need ldoId otherwise get id from token
-      const ldosExist = await this.ldoService.find({ role: UserRole.director });
+      const ldos = await this.ldoService.find({});
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of all LDOs',
-        data: ldosExist,
+        data: ldos,
       };
     } catch (err) {
       return AppResponse.handleError(err);
     }
   }
 
-  @Query((returns) => GetSystemDetailsResponse)
+  @Query((_returns) => GetSystemDetailsResponse)
   async getSystemDetails() {
     try {
       // If the user is admin we must need ldoId otherwise get id from token
@@ -310,7 +310,7 @@ export class LdoResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
-  @Mutation((returns) => GetDirectorLDOResponse)
+  @Mutation((_returns) => GetDirectorLDOResponse)
   async deleteEventDirector(@Context() context: any, @Args({ name: 'dId', type: () => String }) dId: string) {
     /**
      * Delete all events assosiated with it
@@ -385,7 +385,7 @@ export class LdoResolver {
    * ===============================================================================================
    */
   // Assuming "director" is a string representing the ID of the director user
-  @ResolveField((returns) => User) // Assuming UserType is your GraphQL type for users
+  @ResolveField((_returns) => User) // Assuming UserType is your GraphQL type for users
   async director(@Parent() ldo: LDO) {
     const userId = ldo.director; // Assuming director property holds the user ID
     return this.userService.findById(userId.toString());

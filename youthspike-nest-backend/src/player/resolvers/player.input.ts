@@ -1,7 +1,8 @@
 import { Field, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql';
 import { EPlayerStatus } from '../player.schema';
-import * as Upload from 'graphql-upload/Upload.js';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @InputType()
 export class CreatePlayerInput {
@@ -50,16 +51,16 @@ export class UpdatePlayersInput extends PartialType(CreatePlayerInput) {
 }
 
 
-@ObjectType()
+@InputType()
 export class CreatePlayerBody{
   @Field()
   input: CreatePlayerInput;
   
   @Field((_type)=> GraphQLUpload, {nullable: true})
-  profile?: Upload;
+  profile?: Promise<FileUpload>;
 }
 
-@ObjectType()
+@InputType()
 export class CreateMultiPlayerBody{
   @Field()
   eventId: string;
@@ -68,11 +69,11 @@ export class CreateMultiPlayerBody{
   division: string;
   
   @Field((_type)=> GraphQLUpload)
-  uploadedFile: Upload;
+  uploadedFile: Promise<FileUpload>;
 }
 
 
-@ObjectType()
+@InputType()
 export class UpdatePlayerBody{
   @Field()
   input: UpdatePlayerInput;
@@ -81,7 +82,7 @@ export class UpdatePlayerBody{
   playerId: string;
   
   @Field((_type)=> GraphQLUpload, {nullable: true})
-  profile?: Upload;
+  profile?: Promise<FileUpload>;
 }
 
 

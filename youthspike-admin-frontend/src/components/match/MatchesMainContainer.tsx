@@ -1,8 +1,7 @@
 // components/match/MatchesMainContainer.tsx
 'use client';
 
-import { useReadQuery } from '@apollo/client';
-import { QueryRef } from '@apollo/client';
+import { QueryRef, useReadQuery } from '@apollo/client/react';
 import MatchesMain from './MatchesMain';
 import { IEventWithMatchesResponse, IGroupExpRel, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
 

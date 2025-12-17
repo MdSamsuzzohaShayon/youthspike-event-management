@@ -60,7 +60,7 @@ export class MatchFields {
       // Create new ranking if not exist
       if (!playerRanking) {
         const teamExist = await this.teamService.findOne({ _id: teamId });
-        const playerList = await this.playerService.find({ _id: { $in: teamExist.players } });
+        const playerList = await this.playerService.find({ _id: { $in: teamExist.players.map((p) => String(p)) } });
         const rankingData = {
           rankLock: false,
           team: teamExist._id,
@@ -129,7 +129,7 @@ export class MatchFields {
     const net = netMap.get(netId);
     if (!net) return null;
 
-    const receiverObj = {...receiver};
+    const receiverObj = { ...receiver };
 
     receiverObj.mutate = (receiverObj.teamAScore || 0) + (receiverObj.teamBScore || 0);
 
@@ -265,7 +265,7 @@ export class MatchFields {
       const newMissedPlays = await Promise.all(
         missedPlays.map(async (mp) => {
           const key = singlePlayKey(mp.net?.toString?.() || '', room, mp.play);
-          const dataToCache = {...mp};
+          const dataToCache = { ...mp };
           await this.redisService.set(key, dataToCache);
           return this.normalizeSinglePlay(dataToCache as any);
         }),
@@ -314,7 +314,6 @@ export class MatchFields {
     }
   }
 
-
   async event(match: Match) {
     try {
       return this.eventService.findById(match.event.toString());
@@ -347,6 +346,6 @@ export class MatchFields {
   }
 
   async teamBRanking(match: Match): Promise<PlayerRanking> {
-    return this.getTeamRanking(match, String(match.teamB),String( match.teamBRanking), 'teamBRanking');
+    return this.getTeamRanking(match, String(match.teamB), String(match.teamBRanking), 'teamBRanking');
   }
 }

@@ -1,10 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { ICheckedInput, IError, IEvent, IGroup, ITeam } from '@/types';
+import { ICheckedInput, IError, IEvent, IGroup, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
-import { handleError, handleResponse } from '@/utils/handleError';
-import { useMutation } from '@apollo/client';
+import { handleError } from '@/utils/handleError';
 import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
@@ -13,6 +12,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorProvider';
 import Pagination from '../elements/Pagination';
+import { useMutation } from '@apollo/client/react';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface TeamListProps {
   eventId: string;
@@ -26,20 +27,25 @@ interface TeamListProps {
 const ITEMS_PER_PAGE = 20;
 
 function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refetchFunc }: TeamListProps) {
-  const [deleteMultipleTeams] = useMutation(DELETE_MULTIPLE_TEAMS);
-  const [updateGroup] = useMutation(UPDATE_GROUP);
+
+  // Hook
   const { setActErr } = useError();
 
+  // References
   const cngGroupEl = useRef<HTMLDialogElement | null>(null);
 
-  // const [bulkTeams, setBulkTeams] = useState<string[]>([]);
+
+  // Local State
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
   const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
   const [filteredGroupId, setFilteredGroupId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Mutations
   const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
+  const [deleteMultipleTeams] = useMutation<{deleteTeams: IResponse}>(DELETE_MULTIPLE_TEAMS);
+  const [updateGroup] = useMutation(UPDATE_GROUP);
 
   // eslint-disable-next-line no-unused-vars
   const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
@@ -90,7 +96,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
         .filter(([_, isChecked]) => isChecked) // Filter for checked items
         .map(([teamId]) => teamId); // Map to just the team IDs
       const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
-      const success = await handleResponse({ response: response.data.deleteTeams, setActErr });
+      const success = await handleResponseCheck(response.data?.deleteTeams, setActErr );
       if (success && refetchFunc) await refetchFunc();
     } catch (error: any) {
       handleError({ error, setActErr });

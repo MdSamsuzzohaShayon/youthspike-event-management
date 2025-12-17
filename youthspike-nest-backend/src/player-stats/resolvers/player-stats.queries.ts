@@ -16,7 +16,7 @@ import { Round } from 'src/round/round.schema';
 import { CustomPlayerStats } from './player-stats.response';
 import { Player } from 'src/player/player.schema';
 import { playerKey } from 'src/utils/helper';
-import { FilterQuery, QueryOptions } from 'mongoose';
+import { QueryFilter, QueryOptions } from 'mongoose';
 
 @Injectable()
 export class PlayerStatsQueries {
@@ -78,7 +78,7 @@ export class PlayerStatsQueries {
       const playerIds = new Set<string>();
 
       // 3️⃣ Fetch event + pro stats concurrently
-      const eventExist = await this.eventService.findOne({ _id: { $in: player.events } });
+      const eventExist = await this.eventService.findOne({ _id: { $in: player.events.map(e => String(e)) } });
       if (!eventExist) return AppResponse.notFound('Event');
 
       const [multiplayer, weight, groups] = await Promise.all([
@@ -87,7 +87,7 @@ export class PlayerStatsQueries {
         this.groupService.find({ event: eventExist._id }),
       ]);
 
-      const teamQuery: FilterQuery<Team> = { $or: [{ players: playerId }, { moved: playerId }] };
+      const teamQuery: QueryFilter<Team> = { $or: [{ players: playerId }, { moved: playerId }] };
       if (group) {
         teamQuery.group = {
           $exists: true,
@@ -118,7 +118,7 @@ export class PlayerStatsQueries {
         }
         // find all teams a player ever played in
         // 4.1️⃣ Fetch matches once
-        const matchQuery: FilterQuery<Match> = {
+        const matchQuery: QueryFilter<Match> = {
           $or: [{ teamA: { $in: [...teamIds] } }, { teamB: { $in: [...teamIds] } }],
         };
         if (group) {

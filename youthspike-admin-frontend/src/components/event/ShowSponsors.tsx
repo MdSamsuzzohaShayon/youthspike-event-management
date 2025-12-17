@@ -41,7 +41,7 @@ const ShowSponsors: React.FC<IShowSponsors> = ({ fileList, handleImgRemove, defa
   }, [fileList]);
 
   return (
-    <ul className="show-sponsors flex justify-between w-full items-center flex-wrap">
+    <ul className="w-full show-sponsors flex justify-between w-full items-center flex-wrap">
       {/* Default Sponsor */}
       {defaultSponsor && (
         <li className="relative">

@@ -9,14 +9,18 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
 import { Player } from '../player.schema';
 import { UpdateQuery } from 'mongoose';
 import { CreateMultiPlayerBody, CreatePlayerBody, UpdatePlayerBody, UpdatePlayersInput } from './player.input';
-import { PlayerResponse, PlayersResponse } from './player.response';
+import { ExportOrganizedPlayers, ExportPlayersResponse, PlayerResponse, PlayersResponse } from './player.response';
 import { IPlayerMutations } from './player.types';
+import { MatchService } from 'src/match/match.service';
+import { Match } from 'src/match/match.schema';
+import { Team } from 'src/team/team.schema';
 
 @Injectable()
 export class PlayerMutations implements IPlayerMutations {
   constructor(
     private eventService: EventService,
     private teamService: TeamService,
+    private matchService: MatchService,
     private cloudinaryService: CloudinaryService,
     private playerService: PlayerService,
     private userService: UserService,
@@ -90,26 +94,28 @@ export class PlayerMutations implements IPlayerMutations {
 
     // Remove as captain or co-captain from current team
     if (playerObj?.captainofteams?.length > 0) {
-      updatePromises.push(
-        this.teamService.updateOne({ _id: { $in: playerObj?.captainofteams } }, { $set: { captain: null } }),
-      );
-      updatePromises.push(
+      await Promise.all([
+        this.teamService.updateMany(
+          { _id: { $in: playerObj.captainofteams.map(team => team?.toString()) } },
+          { $set: { captain: null } }
+        ),
+
         this.playerService.updateOne(
           { _id: playerId },
-          { $pull: { captainofteams: { $in: playerObj?.captainofteams } } },
+          { $pull: { captainofteams: { $in: playerObj.captainofteams } } },
         ),
-      );
+      ]);
     }
+
     if (playerObj?.cocaptainofteams?.length > 0) {
-      updatePromises.push(
-        this.teamService.updateOne({ _id: { $in: playerObj?.cocaptainofteams } }, { $set: { captain: null } }),
-      );
-      updatePromises.push(
+      await Promise.all([
+        this.teamService.updateMany({ _id: { $in: playerObj.cocaptainofteams.map(cc => cc?.toString()) } }, { $set: { cocaptain: null } }),
+
         this.playerService.updateOne(
           { _id: playerId },
-          { $pull: { cocaptainofteams: { $in: playerObj?.cocaptainofteams } } },
+          { $pull: { cocaptainofteams: { $in: playerObj.cocaptainofteams } } },
         ),
-      );
+      ]);
     }
 
     // ✅ 5. Add player to new team (single DB call)
@@ -156,6 +162,24 @@ export class PlayerMutations implements IPlayerMutations {
 
       await Promise.all(reRankOps);
     }
+  }
+
+  private matchToString(match: Match, teamMap: Map<string, Team>) {
+    let matchStr = '';
+    matchStr += `${match.description} - `;
+    const date = new Date(match.date);
+
+    const day = date.getDate().toString().padStart(2, '0');
+    const monthName = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+    matchStr += `${day} ${monthName} ${year} -`;
+
+    const teamA = teamMap.get(String(match.teamA));
+    const teamB = teamMap.get(String(match.teamB));
+
+    matchStr += ` ${teamA?.name || ''} VS ${teamB?.name || ''}`;
+
+    return matchStr;
   }
 
   async createPlayer({ input, profile }: CreatePlayerBody): Promise<PlayerResponse> {
@@ -275,13 +299,13 @@ export class PlayerMutations implements IPlayerMutations {
 
       if (playerExist.events && playerExist.events.length > 0) {
         updatePromises.push(
-          this.eventService.updateOne({ _id: { $in: playerExist.events } }, { $pull: { players: playerId } }),
+          this.eventService.updateOne({ _id: { $in: playerExist.events.map(e => String(e)) } }, { $pull: { players: playerId } }),
         );
       }
 
       if (playerExist.teams && playerExist.teams.length > 0) {
         updatePromises.push(
-          this.teamService.updateOne({ _id: { $in: playerExist.teams } }, { $pull: { players: playerId } }),
+          this.teamService.updateOne({ _id: { $in: playerExist.teams.map(t => String(t)) } }, { $pull: { players: playerId } }),
         );
 
         updatePromises.push(this.playerRankingService.deleteOneItem({ player: playerId }));
@@ -289,13 +313,13 @@ export class PlayerMutations implements IPlayerMutations {
 
       if (playerExist.captainofteams && playerExist.captainofteams.length > 0) {
         updatePromises.push(
-          this.teamService.updateMany({ _id: { $in: playerExist.captainofteams } }, { $pull: { players: playerId } }),
+          this.teamService.updateMany({ _id: { $in: playerExist.captainofteams.map(p => String(p)) } }, { $pull: { players: playerId } }),
         );
       }
 
       if (playerExist.cocaptainofteams && playerExist.cocaptainofteams.length > 0) {
         updatePromises.push(
-          this.teamService.updateMany({ _id: { $in: playerExist.cocaptainofteams } }, { $pull: { players: playerId } }),
+          this.teamService.updateMany({ _id: { $in: playerExist.cocaptainofteams.map(cc => String(cc)) } }, { $pull: { players: playerId } }),
         );
       }
 
@@ -333,13 +357,13 @@ export class PlayerMutations implements IPlayerMutations {
      */
     try {
       const allowedFileTypes = ['csv', 'xlsx']; // Add the allowed file types
-      const uploaded = await uploadedFile;
-      const fileExtension = uploaded.filename.split('.').pop().toLowerCase();
+      const uploaded = await uploadedFile as any;
+      const fileExtension = uploaded?.filename?.split('.').pop().toLowerCase();
       if (!allowedFileTypes.includes(fileExtension)) {
         return AppResponse.invalidFile('Please upload a CSV or XLSX file!');
       }
 
-      let { teams, unassignedPlayers } = await this.playerService.arrangeFromCSV(uploadedFile, eventId, division);
+      let { teams, unassignedPlayers } = await this.playerService.arrangeFromCSV(uploaded, eventId, division);
       const playerIds = [];
       const teamIds = [];
       const promiseOperations = [];
@@ -577,6 +601,96 @@ export class PlayerMutations implements IPlayerMutations {
         message: 'Player has been updated successfully!',
         success: true,
         data: findPlayer,
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+  async exportPlayers(eventId: string) {
+    try {
+      // Get all players
+      const players = await this.playerService.find({ events: eventId });
+      const playerIds = new Set(players.map((p) => String(p._id)));
+
+      const teams = await this.teamService.find({
+        event: eventId,
+        $or: [{ players: { $in: [...playerIds] } }, { moved: { $in: [...playerIds] } }],
+      });
+      // const teamIds = new Set(teams.map((t) => String(t._id)));
+      const teamIds = new Set<string>();
+      const teamMap = new Map<string, Team>();
+      const teamByPlayer = new Map<string, Team>();
+      for (let i = 0; i < teams.length; i += 1) {
+        const team = teams[i];
+        teamIds.add(String(team._id));
+        teamMap.set(String(team._id), team);
+
+        // Current team
+        for (let j = 0; j < team.players.length; j += 1) {
+          const player = team.players[j];
+          teamByPlayer.set(String(player), team);
+        }
+
+        // Previous teams
+        for (let j = 0; j < (team?.moved || []).length; j += 1) {
+          const player = team.moved[j];
+          teamByPlayer.set(String(player), team);
+        }
+      }
+      //  I need name, team, match info and the division the match was in.  or labeled at not a division (Out of division)
+      const matches = await this.matchService.find({
+        event: eventId,
+        $or: [{ teamA: { $in: [...teamIds] } }, { teamB: { $in: [...teamIds] } }],
+      });
+      const matchByTeam = new Map<string, Match[]>();
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        const teamA = String(match.teamA);
+        const teamB = String(match.teamB);
+
+        // Add match to teamA list
+        if (!matchByTeam.has(teamA)) {
+          matchByTeam.set(teamA, []);
+        }
+        matchByTeam.get(teamA)!.push(match);
+
+        // Add match to teamB list
+        if (!matchByTeam.has(teamB)) {
+          matchByTeam.set(teamB, []);
+        }
+        matchByTeam.get(teamB)!.push(match);
+      }
+
+      const organizedPlayers: ExportOrganizedPlayers[] = [];
+
+      for (let i = 0; i < players.length; i += 1) {
+        const player = players[i];
+        const team = teamByPlayer.get(String(player._id));
+        const matchesOfAPlayer = team ? matchByTeam.get(String(team._id)) ?? [] : [];
+
+        const matchStrList = [];
+        for (let j = 0; j < (matchesOfAPlayer || []).length; j += 1) {
+          const match = matchesOfAPlayer[j];
+          const matchStr = this.matchToString(match, teamMap);
+          matchStrList.push(matchStr);
+        }
+        const row = {
+          _id: String(player._id),
+          name: player.firstName + ' ' + player.lastName,
+          username: player.username,
+          division: player.division,
+          team: team ? team?.name : null,
+          matches: matchStrList || [],
+        };
+        organizedPlayers.push(row);
+      }
+
+      return {
+        code: HttpStatus.ACCEPTED,
+        message: 'Player has been updated successfully!',
+        success: true,
+        data: organizedPlayers,
       };
     } catch (error) {
       return AppResponse.handleError(error);

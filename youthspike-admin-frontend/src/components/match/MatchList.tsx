@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { IGroup, IMatchExpRel, IOption, ITeam } from '@/types';
+import { IGroup, IMatchExpRel, IOption, IResponse, ITeam } from '@/types';
 import MatchCard from './MatchCard';
 import SelectInput from '../elements/forms/SelectInput';
 import { useUser } from '@/lib/UserProvider';
 import { eventPeriods } from '@/utils/staticData';
 import { validateMatchDatetime } from '@/utils/datetime';
 import { EEventPeriod } from '@/types/event';
-import { useMutation } from '@apollo/client';
 import { DELETE_MATCHES } from '@/graphql/matches';
-import { handleError, handleResponse } from '@/utils/handleError';
 import { motion } from 'motion/react';
 import { cardAnimate } from '@/utils/animation';
 import Image from 'next/image';
@@ -22,6 +20,9 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useDebounce } from 'use-debounce';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
+import { useMutation } from '@apollo/client/react';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleError } from '@/utils/handleError';
 
 const { initial: cInitial, animate: cAnimate, exit: cExit } = cardAnimate;
 
@@ -40,6 +41,7 @@ interface MatchFilters {
   description?: string;
   group?: string | null;
 }
+
 
 const ITEMS_PER_PAGE = 10;
 
@@ -66,7 +68,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   // Debounced description search
   const [debouncedDescription] = useDebounce(filters.description, 300);
 
-  const [deleteMatchesMutation] = useMutation(DELETE_MATCHES);
+  const [deleteMatchesMutation] = useMutation<{deleteMatches: IResponse}>(DELETE_MATCHES);
 
   useClickOutside(bulkMenuRef, () => setShowBulkMenu(false));
 
@@ -250,7 +252,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         if (ids.length === 0) return;
 
         const response = await deleteMatchesMutation({ variables: { matchIds: ids } });
-        const success = await handleResponse({ response: response.data.deleteMatches, setActErr });
+        const success = await handleResponseCheck(response.data?.deleteMatches, setActErr );
         if (!success) return;
 
         setSelectedMatches(new Map());

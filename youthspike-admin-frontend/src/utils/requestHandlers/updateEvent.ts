@@ -2,7 +2,7 @@ import { UPDATE_EVENT_RAW } from '@/graphql/event';
 import { IError, IEventAdd, IEventSponsorAdd, IProStats, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
-import { handleResponse } from '../handleError';
+import { handleResponseCheck } from './playerHelpers';
 
 interface IUpdateEventVariables {
   eventId: string;
@@ -131,5 +131,5 @@ export async function updateEventWithFiles({
 
   const responseData = await response.json();
   const eventRes = responseData?.data?.updateEvent;
-  return handleResponse({ response: eventRes, setActErr });
+  return handleResponseCheck(eventRes, setActErr );
 }

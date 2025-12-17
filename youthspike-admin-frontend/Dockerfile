@@ -1,5 +1,5 @@
 # Stage 1 — builder
-FROM node:24-alpine3.22 AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -8,18 +8,16 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 2 — runtime
-FROM node:24-alpine3.22 AS runner
+# Stage 2 — runner
+FROM node:24-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package*.json ./
-RUN npm ci --production=true
-
-COPY --from=builder /app/.next ./.next
+# Copy standalone output
+COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["node", "server.js"]

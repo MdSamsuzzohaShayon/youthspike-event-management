@@ -25,13 +25,9 @@ export class EventFields {
   }
 
   async teams(@Parent() event: Event) {
-
-
     try {
-
-
       // If not cached, fetch the teams from the database
-      const teamList = await this.teamService.find({ _id: { $in: event.teams } });
+      const teamList = await this.teamService.find({ _id: { $in: event.teams.map((t) => String(t)) } });
 
       return teamList;
     } catch (err) {
@@ -43,7 +39,6 @@ export class EventFields {
 
   async groups(@Parent() event: Event) {
     try {
-
       const groupList = await this.groupService.find({ event: event._id.toString() });
 
       return groupList;
@@ -53,13 +48,12 @@ export class EventFields {
     }
   }
   async sponsors(@Parent() event: Event) {
-    return this.sponsorService.find({ _id: { $in: event.sponsors } });
+    return this.sponsorService.find({ _id: { $in: event.sponsors.map((s) => String(s)) } });
   }
 
   async players(@Parent() event: Event): Promise<Player[]> {
-
     try {
-      const players = await this.playerService.find({ _id: { $in: event.players } });
+      const players = await this.playerService.find({ _id: { $in: event.players.map((p) => String(p)) } });
 
       return players;
     } catch (error) {
@@ -70,6 +64,6 @@ export class EventFields {
   }
 
   async matches(@Parent() event: Event) {
-    return this.matchService.query({ _id: { $in: event.matches } });
+    return this.matchService.find({ _id: { $in: event.matches.map(m => String(m)) } });
   }
 }

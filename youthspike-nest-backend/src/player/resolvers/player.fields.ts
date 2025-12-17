@@ -16,13 +16,13 @@ export class PlayerFields {
   ) {}
 
   async event(player: Player): Promise<Event> {
-    return await this.eventService.findOne({ _id: { $in: player.events } });
+    return await this.eventService.findOne({ _id: { $in: player.events.map(e => String(e)) } });
   }
 
   async events(player: Player): Promise<Event[]> {
     try {
       if (!player.events) return [];
-      const findEvents = await this.eventService.find({ _id: { $in: player.events } });
+      const findEvents = await this.eventService.find({ _id: { $in: player.events.map(e => String(e)) } });
       return findEvents;
     } catch (error) {
       return [];
@@ -33,7 +33,7 @@ export class PlayerFields {
   async teams(player: Player): Promise<Team[]> {
     try {
       if (!player.teams) return null;
-      const findTeams = await this.teamService.find({ _id: { $in: player.teams } });
+      const findTeams = await this.teamService.find({ _id: { $in: player.teams.map(t => String(t)) } });
       return findTeams;
     } catch (error) {
       console.log(error);
@@ -44,7 +44,7 @@ export class PlayerFields {
   async captainofteams(player: Player): Promise<Team[]> {
     try {
       if (!player.captainofteams) return null;
-      const findTeams = await this.teamService.find({ _id: { $in: player.captainofteams } });
+      const findTeams = await this.teamService.find({ _id: { $in: player.captainofteams.map(c => String(c)) } });
       return findTeams;
     } catch (error) {
       return null;
@@ -54,7 +54,7 @@ export class PlayerFields {
   async cocaptainofteams(player: Player): Promise<Team[]> {
     try {
       if (!player.cocaptainofteams) return null;
-      const findTeams = await this.teamService.find({ _id: { $in: player.cocaptainofteams } });
+      const findTeams = await this.teamService.find({ _id: { $in: player.cocaptainofteams.map(cc => String(cc)) } });
       return findTeams;
     } catch (error) {
       return null;

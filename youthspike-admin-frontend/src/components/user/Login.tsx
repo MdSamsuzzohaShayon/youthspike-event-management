@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { motion } from 'motion/react';
 import { cardAnimate, headingAnimate } from '@/utils/animation';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useMutation } from '@apollo/client';
 import Loader from '@/components/elements/Loader';
 import { LOGIN_USER } from '@/graphql/admin';
 import { UserRole } from '@/types/user';
@@ -13,6 +12,7 @@ import InputField from '../elements/forms/InputField';
 import { useState } from 'react';
 import { setCookie } from '@/utils/clientCookie';
 import { FRONTEND_URL } from '@/utils/keys';
+import { useMutation } from '@apollo/client/react';
 
 const { initial: hInitial, animate: hAnimate, exit: hExit } = headingAnimate;
 const { initial: cInitial, animate: cAnimate, exit: cExit } = cardAnimate;
@@ -39,7 +39,7 @@ function Login() {
       setCookie('user', '', -1);
     },
     onCompleted: (data) => {
-      const resultData = data?.login;
+      const resultData = (data as { login?: any })?.login;
 
       if (!resultData || resultData.code !== 202) {
         setActErr({

@@ -8,9 +8,8 @@ import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { User, UserRole } from 'src/user/user.schema';
 import { Event } from 'src/event/event.schema';
 import { Team } from 'src/team/team.schema';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import * as Upload from 'graphql-upload/Upload.js';
 import {
+  ExportPlayersResponse,
   GetEventWithPlayersResponse,
   GetPlayerAndTeamsResponse,
   PlayerResponse,
@@ -20,6 +19,9 @@ import {
 import { PlayerMutations } from './resolvers/player.mutations';
 import { PlayerQueries } from './resolvers/player.queries';
 import { PlayerFields } from './resolvers/player.fields';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @Resolver((_of) => Player) // Specify the object type for the resolver
 export class PlayerResolver {
@@ -33,13 +35,19 @@ export class PlayerResolver {
    * MUTATIONS
    * ===============================================================================================
    */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => ExportPlayersResponse)
+  async exportPlayers(@Args('eventId') eventId: string) {
+    return this.playerMutations.exportPlayers(eventId);
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayerResponse) // Specify the return type
   async createPlayer(
     @Args('input') input: CreatePlayerInput,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Promise<FileUpload>,
   ) {
     return this.playerMutations.createPlayer({ input, profile });
   }
@@ -50,8 +58,8 @@ export class PlayerResolver {
   async updatePlayer(
     @Args('input') input: UpdatePlayerInput,
     @Args('playerId') playerId: string,
-    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Upload,
-  ): Promise<PlayerResponse> {
+    @Args({ name: 'profile', type: () => GraphQLUpload, nullable: true }) profile?: Promise<FileUpload>,
+  ) {
     return this.playerMutations.updatePlayer({ input, playerId, profile });
   }
 
@@ -68,7 +76,7 @@ export class PlayerResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(
-    @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Upload,
+    @Args('uploadedFile', { type: () => GraphQLUpload, nullable: false }) uploadedFile: Promise<FileUpload>,
     @Args('eventId') eventId: string,
     @Args('division') division: string,
   ) {
@@ -107,9 +115,11 @@ export class PlayerResolver {
     return this.playerQueries.getEventWithPlayers(context, eventId);
   }
 
-
   @Query((_returns) => PlayersSearchResponse)
-  async searchPlayers(@Args('eventId', { nullable: false }) eventId: string, @Args('filter', { nullable: true }) filter: PlayerSearchFilter) {
+  async searchPlayers(
+    @Args('eventId', { nullable: false }) eventId: string,
+    @Args('filter', { nullable: true }) filter: PlayerSearchFilter,
+  ) {
     return this.playerQueries.searchPlayers(eventId, filter);
   }
 

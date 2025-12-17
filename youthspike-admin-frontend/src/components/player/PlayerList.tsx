@@ -6,17 +6,18 @@ import './PlayerList.css';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank } from '@/types';
+import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes } from '@/types';
 import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
-import { useMutation } from '@apollo/client';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
-import { handleError, handleResponse } from '@/utils/handleError';
+import { handleError } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useError } from '@/lib/ErrorProvider';
 import { isISODateString } from '@/utils/datetime';
 import { setPlayerRankings } from '@/utils/localStorage';
+import { useMutation } from '@apollo/client/react';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -45,7 +46,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   const user = useUser();
   const { setActErr } = useError();
 
-  const [mutatePlayerRanking] = useMutation(UPDATE_PLAYER_RANKING);
+  const [mutatePlayerRanking] = useMutation<{updatePlayerRanking: IUpdatePlayerRankingRes}>(UPDATE_PLAYER_RANKING);
 
   /** State **/
   const [checkedPlayers, setCheckedPlayers] = useState<Map<string, boolean>>(new Map());
@@ -72,7 +73,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
       try {
         const rankingRes = await mutatePlayerRanking({ variables: { teamId, input: upr } });
 
-        const success = handleResponse({ response: rankingRes?.data?.updatePlayerRanking, setActErr });
+        const success = handleResponseCheck(rankingRes?.data?.updatePlayerRanking, setActErr);
         console.log({ success, rankingRes });
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();

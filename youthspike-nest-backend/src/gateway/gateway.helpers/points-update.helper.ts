@@ -49,6 +49,15 @@ export class PointsUpdateHelper {
       this.scoreKeeperHelper.publishRoom(room, 'update-points-response-all', pointsResponse),
       this.scoreKeeperHelper.publishRoom(room, 'net-update-all-pages', presizedRoundData),
     ]);
+    /*
+        this.gatewayRedisService.publishToRoom(
+          submitLineup.room,
+          'submit-lineup-response-all',
+          roomDataWithNets,
+          client.id,
+        ),
+
+    */
   }
 
   async publishError(socketId: string, message: string) {

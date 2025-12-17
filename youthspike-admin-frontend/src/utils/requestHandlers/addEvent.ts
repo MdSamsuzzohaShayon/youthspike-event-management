@@ -2,7 +2,7 @@ import { ADD_EVENT_RAW } from '@/graphql/event';
 import { IError, IEventAdd, IEventSponsorAdd, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
-import { handleResponse } from '../handleError';
+import { handleResponseCheck } from './playerHelpers';
 
 interface IAddEventVariables {
   input: Partial<IEventAdd>;
@@ -35,7 +35,7 @@ export async function addEventWithFiles({
   inputData.endDate = new Date(inputData.endDate).toISOString();
 
   const { sponsorsInput, sponsorFileList } = processSponsors(sponsorImgList);
-  
+
   const formData = new FormData();
   const variables: IAddEventVariables = {
     input: inputData,
@@ -45,10 +45,13 @@ export async function addEventWithFiles({
     weightInput: weight,
   };
 
-  formData.set('operations', JSON.stringify({
-    query: ADD_EVENT_RAW,
-    variables,
-  }));
+  formData.set(
+    'operations',
+    JSON.stringify({
+      query: ADD_EVENT_RAW,
+      variables,
+    }),
+  );
 
   const mapObj = createFileMap(sponsorFileList, !!eventLogo);
   formData.set('map', JSON.stringify(mapObj));
@@ -70,7 +73,7 @@ export async function addEventWithFiles({
   const responseData = await response.json();
 
   const eventRes = responseData?.data?.createEvent;
-  const res = handleResponse({ response: eventRes, setActErr });
+  const res = handleResponseCheck(eventRes, setActErr);
   return eventRes?.data?._id || null;
 }
 
@@ -96,7 +99,7 @@ function processSponsors(sponsorImgList: IEventSponsorAdd[]) {
 
 function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolean) {
   const mapObj: Record<string, string[]> = {};
-  
+
   sponsorFileList.forEach((_, index) => {
     mapObj[index.toString()] = [`variables.sponsorsInput.${index}.logo`];
   });
@@ -108,11 +111,7 @@ function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolea
   return mapObj;
 }
 
-function addFilesToFormData(
-  formData: FormData, 
-  sponsorFileList: IEventSponsorAdd[], 
-  eventLogo: Blob | null
-) {
+function addFilesToFormData(formData: FormData, sponsorFileList: IEventSponsorAdd[], eventLogo: Blob | null) {
   sponsorFileList.forEach((sponsor, index) => {
     if (sponsor.logo instanceof File && sponsor.company) {
       formData.set(`${index}`, sponsor.logo);

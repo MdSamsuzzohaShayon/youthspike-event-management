@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ServerReceiverOnNet, ServerReceiverSinglePlay } from './server-receiver-on-net.schema';
-import { Document, FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { Document, QueryFilter, Model, UpdateQuery } from 'mongoose';
 
 type ServerReceiverSinglePlayDocument = ServerReceiverSinglePlay & Document;
 
@@ -18,18 +18,18 @@ export class ServerReceiverOnNetService {
     return savedNet;
   }
 
-  async updateOne(filter: FilterQuery<ServerReceiverOnNet>, updateObj: UpdateQuery<ServerReceiverOnNet>) {
+  async updateOne(filter: QueryFilter<ServerReceiverOnNet>, updateObj: UpdateQuery<ServerReceiverOnNet>) {
     const updatedNets = await this.serverReceiverOnNetModel.updateOne(filter, updateObj);
     return updatedNets;
   }
 
-  async updateMany(filter: FilterQuery<ServerReceiverOnNet>, updateObj: UpdateQuery<ServerReceiverOnNet>){
+  async updateMany(filter: QueryFilter<ServerReceiverOnNet>, updateObj: UpdateQuery<ServerReceiverOnNet>){
     const updatedNets = await this.serverReceiverOnNetModel.updateMany(filter, updateObj);
     return updatedNets;
   }
 
   async find(
-    filter: FilterQuery<ServerReceiverOnNet>,
+    filter: QueryFilter<ServerReceiverOnNet>,
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
@@ -42,11 +42,10 @@ export class ServerReceiverOnNetService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-    query = query.lean()
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async findOne(filter: FilterQuery<ServerReceiverOnNet>): Promise<ServerReceiverOnNet> {
+  async findOne(filter: QueryFilter<ServerReceiverOnNet>): Promise<ServerReceiverOnNet> {
     return this.serverReceiverOnNetModel.findOne(filter);
   }
 
@@ -54,7 +53,7 @@ export class ServerReceiverOnNetService {
     return this.serverReceiverOnNetModel.findById(id);
   }
 
-  async deleteMany(filter: FilterQuery<ServerReceiverOnNet>) {
+  async deleteMany(filter: QueryFilter<ServerReceiverOnNet>) {
     return this.serverReceiverOnNetModel.deleteMany(filter);
   }
 
@@ -65,18 +64,18 @@ export class ServerReceiverOnNetService {
     return savedNet;
   }
 
-  async updateOneSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>, updateObj: UpdateQuery<ServerReceiverSinglePlay>) {
+  async updateOneSinglePlay(filter: QueryFilter<ServerReceiverSinglePlay>, updateObj: UpdateQuery<ServerReceiverSinglePlay>) {
     const updatedNets = await this.serverReceiverOnNetSinglePlayModel.updateOne(filter, updateObj);
     return updatedNets;
   }
 
-  async updateManySinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>, updateObj: UpdateQuery<ServerReceiverSinglePlay>){
+  async updateManySinglePlay(filter: QueryFilter<ServerReceiverSinglePlay>, updateObj: UpdateQuery<ServerReceiverSinglePlay>){
     const updatedNets = await this.serverReceiverOnNetSinglePlayModel.updateMany(filter, updateObj);
     return updatedNets;
   }
 
   async findSinglePlay(
-    filter: FilterQuery<ServerReceiverSinglePlay>,
+    filter: QueryFilter<ServerReceiverSinglePlay>,
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
@@ -89,11 +88,10 @@ export class ServerReceiverOnNetService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-    query = query.lean()
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async findOneSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>): Promise<ServerReceiverSinglePlay> {
+  async findOneSinglePlay(filter: QueryFilter<ServerReceiverSinglePlay>): Promise<ServerReceiverSinglePlay> {
     return this.serverReceiverOnNetSinglePlayModel.findOne(filter);
   }
 
@@ -101,10 +99,10 @@ export class ServerReceiverOnNetService {
     return this.serverReceiverOnNetSinglePlayModel.findById(id);
   }
 
-  async deleteManySinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>) {
+  async deleteManySinglePlay(filter: QueryFilter<ServerReceiverSinglePlay>) {
     return this.serverReceiverOnNetSinglePlayModel.deleteMany(filter);
   }
-  async deleteOneSinglePlay(filter: FilterQuery<ServerReceiverSinglePlay>) {
+  async deleteOneSinglePlay(filter: QueryFilter<ServerReceiverSinglePlay>) {
     return this.serverReceiverOnNetSinglePlayModel.deleteOne(filter);
   }
 }

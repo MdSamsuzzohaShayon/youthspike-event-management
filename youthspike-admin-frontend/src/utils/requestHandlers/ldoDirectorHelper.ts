@@ -1,7 +1,5 @@
-import { IAddDirector, IError, ILDO, ILdoUpdate } from '@/types';
-import { IUserContext, UserRole } from '@/types/user';
-import { MutationFunction } from '@apollo/client';
-import { handleError } from '../handleError';
+import { IAddDirector, IAddLDO, IError, ILDO, ILdoUpdate, TMutationFunction } from '@/types';
+import { IUserContext } from '@/types/user';
 import { getCookie } from '../clientCookie';
 
 interface ICommonDirector {
@@ -13,25 +11,25 @@ interface ICommonDirector {
 
 export interface IDirectorBaseProps extends ICommonDirector {
   directorState: IAddDirector;
-  ldoState: ILDO;
+  ldoState: IAddLDO;
   initialDirector: IAddDirector;
   setDirectorState: React.Dispatch<React.SetStateAction<IAddDirector>>;
-  initialLdo: ILDO;
-  setLdoState: React.Dispatch<React.SetStateAction<ILDO>>;
+  initialLdo: IAddLDO | ILDO;
+  setLdoState: React.Dispatch<React.SetStateAction<IAddLDO>>;
   e: React.SyntheticEvent;
 }
 
 export interface ICreateDirectorProps extends IDirectorBaseProps {
-  registerDirector: MutationFunction;
-  setAddNetDirector?: React.Dispatch<React.SetStateAction<boolean>>;
+  registerDirector: TMutationFunction;
+  setAddNewDirector?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface IUpdateDirectorProps extends ICommonDirector {
   user: IUserContext;
   directorUpdate: ILdoUpdate;
   ldoUpdate: ILdoUpdate;
-  mutateUser: MutationFunction;
-  updateDirector: MutationFunction;
+  mutateUser: TMutationFunction;
+  updateDirector: TMutationFunction;
   ldoId?: string;
   refetchFunc?: () => Promise<void>;
 }
@@ -82,9 +80,9 @@ export const executeFileUpload = async (formData: FormData, BACKEND_URL: string)
 // Common cleanup function
 export const resetFormAndState = (
   setDirectorState: React.Dispatch<React.SetStateAction<IAddDirector>>,
-  setLdoState: React.Dispatch<React.SetStateAction<ILDO>>,
+  setLdoState: React.Dispatch<React.SetStateAction<IAddLDO>>,
   initialDirector: IAddDirector,
-  initialLdo: ILDO,
+  initialLdo: IAddLDO,
   e: React.SyntheticEvent,
 ): void => {
   setDirectorState(initialDirector);

@@ -1,11 +1,7 @@
-import { useMutation } from '@apollo/client';
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, ITeam, ITeamAdd, IGroup } from '@/types';
+import { IOption, IPlayer, ITeamAdd, IGroup, IUpdateTeamRes, ITeamRes } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
-import { redirect, useRouter } from 'next/navigation';
-import FileInput from '../elements/forms/FileInput';
-import addOrUpdateTeam from '@/utils/requestHandlers/addOrUpdateTeam';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
@@ -15,6 +11,7 @@ import ImageInput from '../elements/forms/ImageInput';
 import { divisionsToOptionList } from '@/utils/helper';
 import updateTeam from '@/utils/requestHandlers/updateTeam';
 import createTeam from '@/utils/requestHandlers/createTeam';
+import { useMutation } from '@apollo/client/react';
 
 interface IPrevTeam extends ITeamAdd {
   _id: string;
@@ -55,8 +52,8 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   const uploadedLogo = useRef<null | MediaSource | Blob>(null);
 
   // GraphQL
-  const [addTeam, { data, loading, error }] = useMutation(ADD_A_TEAM);
-  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation(UPDATE_TEAM);
+  const [addTeam, { data, loading, error }] = useMutation<{createTeam: ITeamRes}>(ADD_A_TEAM);
+  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation<{updateTeam: IUpdateTeamRes}>(UPDATE_TEAM);
 
   const refetch = (url?: string) => {
     // if (url) {

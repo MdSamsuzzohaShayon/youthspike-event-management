@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { EPlayerStatus, Player } from './player.schema';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { CreatePlayerInput } from './resolvers/player.input';
 import { rmInvalidProps } from 'src/utils/helper';
 import * as Papa from 'papaparse';
-import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import { Team } from 'src/team/team.schema';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 type OptionalProps<T> = {
   [K in keyof T]?: T[K];
@@ -63,11 +65,11 @@ export class PlayerService {
     return playerExist;
   }
 
-  async findOne(filter: FilterQuery<Player>) {
+  async findOne(filter: QueryFilter<Player>) {
     return this.playerModel.findOne(filter).lean();
   }
   async find(
-    filter: FilterQuery<Player>,
+    filter: QueryFilter<Player>,
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
@@ -80,20 +82,19 @@ export class PlayerService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-    query = query.lean()
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async updateOne(filter: FilterQuery<Player>, player: UpdateQuery<Player>) {
+  async updateOne(filter: QueryFilter<Player>, player: UpdateQuery<Player>) {
     return this.playerModel.updateOne(filter, player);
   }
 
-  async updateMany(filter: FilterQuery<Player>, player: UpdateQuery<Player>) {
+  async updateMany(filter: QueryFilter<Player>, player: UpdateQuery<Player>) {
     return this.playerModel.updateMany(filter, player);
   }
 
   async arrangeFromCSV(
-    uploadedFile: Promise<FileUpload>,
+    uploadedFile: FileUpload,
     event: string,
     division: string,
   ): Promise<{ unassignedPlayers: Player[]; teams: Team[] }> {
@@ -167,11 +168,11 @@ export class PlayerService {
         .on('error', reject);
     });
   }
-  async delete(filter: FilterQuery<Player>) {
+  async delete(filter: QueryFilter<Player>) {
     return this.playerModel.deleteMany(filter);
   }
 
-  async deleteOne(filter: FilterQuery<Player>) {
+  async deleteOne(filter: QueryFilter<Player>) {
     const deletePlayer = await this.playerModel.deleteOne(filter);
     return deletePlayer;
   }

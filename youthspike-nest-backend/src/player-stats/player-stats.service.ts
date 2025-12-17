@@ -1,9 +1,7 @@
-
-
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { PlayerStats, ProStats } from './player-stats.schema';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { EventService } from 'src/event/event.service';
 import { ERosterLock } from 'src/event/event.schema';
 import { checkDateHasPassed } from 'src/utils/helper';
@@ -23,18 +21,16 @@ export class PlayerStatsService {
     return playerStats;
   }
 
-
   async findById(playerStatsId: string) {
     return this.playerStats.findById(playerStatsId);
   }
 
-  async findOne(filter: FilterQuery<PlayerStats>) {
+  async findOne(filter: QueryFilter<PlayerStats>) {
     return this.playerStats.findOne(filter);
   }
 
-
   async find(
-    filter: FilterQuery<PlayerStats>,
+    filter: QueryFilter<PlayerStats>,
     limit?: number,
     offset?: number, // added for consistency & scalability
   ) {
@@ -47,19 +43,18 @@ export class PlayerStatsService {
     if (typeof limit === 'number') {
       query = query.limit(limit);
     }
-    query = query.lean()
-    return query.exec();
+    return query.lean().exec();
   }
 
-  async updateOne(filter: FilterQuery<PlayerStats>, updateObj: UpdateQuery<PlayerStats>) {
+  async updateOne(filter: QueryFilter<PlayerStats>, updateObj: UpdateQuery<PlayerStats>) {
     return this.playerStats.updateOne(filter, updateObj);
   }
 
-  async deleteOne(filter: FilterQuery<PlayerStats>) {
+  async deleteOne(filter: QueryFilter<PlayerStats>) {
     return this.playerStats.deleteOne(filter);
   }
 
-  async deleteMany(filter: FilterQuery<PlayerStats>) {
+  async deleteMany(filter: QueryFilter<PlayerStats>) {
     return this.playerStats.deleteMany(filter);
   }
 
@@ -69,29 +64,27 @@ export class PlayerStatsService {
     return proStats;
   }
 
-
   async proStatFindById(proStatsId: string) {
     return this.proStats.findById(proStatsId);
   }
 
-  async proStatFindOne(filter: FilterQuery<ProStats>) {
+  async proStatFindOne(filter: QueryFilter<ProStats>) {
     return this.proStats.findOne(filter);
   }
 
-  async proStatFind(filter: FilterQuery<ProStats>) {
+  async proStatFind(filter: QueryFilter<ProStats>) {
     return this.proStats.find(filter);
   }
 
-  async proStatUpdateOne(filter: FilterQuery<ProStats>, updateObj: UpdateQuery<ProStats>) {
+  async proStatUpdateOne(filter: QueryFilter<ProStats>, updateObj: UpdateQuery<ProStats>) {
     return this.proStats.updateOne(filter, updateObj);
   }
 
-  async proStatDeleteOne(filter: FilterQuery<ProStats>) {
+  async proStatDeleteOne(filter: QueryFilter<ProStats>) {
     return this.proStats.deleteOne(filter);
   }
 
-  async proStatDeleteMany(filter: FilterQuery<ProStats>) {
+  async proStatDeleteMany(filter: QueryFilter<ProStats>) {
     return this.proStats.deleteMany(filter);
   }
-
 }

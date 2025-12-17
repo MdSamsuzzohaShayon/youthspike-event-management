@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
@@ -15,16 +15,20 @@ import SponsorDialog from './SponsorDialog';
 import { updateEventWithFiles } from '@/utils/requestHandlers/updateEvent';
 import { addEventWithFiles } from '@/utils/requestHandlers/addEvent';
 import ShowSponsors from './ShowSponsors';
+import Image from 'next/image';
 
 const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEventAddProps) => {
+  // Hooks
   const router = useRouter();
   const user = useUser();
   const searchParams = useSearchParams();
   const pName = usePathname();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState(false);
+
+  // States
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState<boolean>(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
 
@@ -32,7 +36,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     eventState,
     multiplayer,
     weight,
-    
+
     updateEvent,
     updateMultiplayer,
     updateStats,
@@ -54,10 +58,6 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     initialEvent,
     initialProStats,
   } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
-  
-
-
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +84,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
           directorId,
           multiplayer,
           weight,
-          
+
           setActErr,
         });
       }
@@ -102,7 +102,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const pnList = pName.split('/');
     if (pnList.includes('settings')) {
       const newEventId = pnList.filter((pn) => pn !== '')[0];
@@ -124,7 +124,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
   if (isLoading) return <Loader />;
 
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
+    <form className="w-full grid grid-col-1 md:grid-cols-2 gap-x-2 gap-y-1" onSubmit={handleSubmit}>
       <EventFormSections
         update={update}
         eventState={eventState}
@@ -142,23 +142,25 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
         setUpdateEvent={setUpdateEvent}
       />
 
-      <SponsorDialog isOpen={isSponsorDialogOpen} onClose={() => setIsSponsorDialogOpen(false)} onSave={handleSponsorImgList} />
+      <div className="w-full flex flex-col">
+        <SponsorDialog isOpen={isSponsorDialogOpen} onClose={() => setIsSponsorDialogOpen(false)} onSave={handleSponsorImgList} />
 
-      <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
-        <h3 className="text-2xl capitalize">Sponsors</h3>
-        <button type="button" onClick={() => setIsSponsorDialogOpen(true)} className="btn-info">
-          Add New
-        </button>
+        <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
+          <h3 className="text-2xl capitalize">Sponsors</h3>
+          <button className="btn-info" role="presentation" onClick={() => setIsSponsorDialogOpen(true)}>
+            <Image height={50} width={50} className="w-4 h-4 svg-black ml-2" src="/icons/plus.svg" alt="Add" />
+          </button>
+        </div>
+        <ShowSponsors
+          defaultSponsor={eventState.defaultSponsor}
+          fileList={sponsorImgList}
+          handleImgRemove={(e, company) => handleSponsorRemove(company)}
+          handleDefaultSponsor={(e) => handleDefaultSponsorToggle(false)}
+        />
       </div>
+      <div />
 
-      <ShowSponsors
-        defaultSponsor={eventState.defaultSponsor}
-        fileList={sponsorImgList}
-        handleImgRemove={(e, company) => handleSponsorRemove(company)}
-        handleDefaultSponsor={(e) => handleDefaultSponsorToggle(false)}
-      />
-
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6">
         <button type="submit" className="w-full btn-info">
           {update ? 'Update' : 'Submit'}
         </button>

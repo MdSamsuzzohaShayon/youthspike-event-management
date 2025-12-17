@@ -1,46 +1,50 @@
 'use client';
 
 import React from 'react';
+import {
+  ApolloClient,
+  InMemoryCache,
+  HttpLink,
+  ApolloLink,
+} from '@apollo/client';
 import { BACKEND_URL } from '@/utils/keys';
-import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink, HttpLink } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
 import { getCookie } from '@/utils/clientCookie';
+import { ApolloProvider } from '@apollo/client/react';
 
-// Explicitly using the fetch API
-const fetchWithPolyfill = (uri: string, options: any) => {
-  // Ensure fetch works in all environments
-  return typeof window !== 'undefined' ? fetch(uri, options) : null;
-};
-
-// Http link using the fetch API
-const httpLink = createHttpLink({
-  uri: BACKEND_URL,
-  // fetch: fetchWithPolyfill,  // Explicitly set fetch
-});
-
-const authLink = setContext((_, { headers }) => {
+/**
+ * Auth middleware link
+ */
+const authLink = new ApolloLink((operation, forward) => {
   const token = getCookie('token');
-  return {
+
+  operation.setContext(({ headers = {} }) => ({
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : "",
+      authorization: token ? `Bearer ${token}` : '',
     },
-  };
+  }));
+
+  return forward(operation);
 });
 
-// Create the Apollo client with the links
+/**
+ * HTTP link
+ */
+const httpLink = new HttpLink({
+  uri: BACKEND_URL,
+  credentials: 'include',
+});
+
+/**
+ * Apollo Client
+ */
 export const client = new ApolloClient({
-  link: authLink.concat(httpLink),  // Chain auth and http links
+  link: ApolloLink.from([authLink, httpLink]),
   cache: new InMemoryCache(),
 });
 
-
 function ApolloWrapper({ children }: React.PropsWithChildren) {
-  return (
-    <ApolloProvider client={client}>
-      {children}
-    </ApolloProvider>
-  );
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
 }
 
 export default ApolloWrapper;

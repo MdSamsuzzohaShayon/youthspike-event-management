@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { FilterQuery } from 'mongoose';
+import { QueryFilter } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { EventService } from '../event.service';
 import { TeamService } from 'src/team/team.service';
@@ -82,7 +82,7 @@ export class EventQueries implements IEventQueries {
       }
 
       // Filter events based on director ID
-      const filter: FilterQuery<Event> = {};
+      const filter: QueryFilter<Event> = {};
       if (newDirectorId) {
         const ldoExist = await this.ldoService.findByDirectorId(newDirectorId);
         if (ldoExist) {

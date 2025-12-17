@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
 
 @Injectable()
 export class TeamService {
   constructor(@InjectModel(Team.name) private teamModel: Model<Team>) {}
 
-  async query(filter: FilterQuery<Team>) {
+  async query(filter: QueryFilter<Team>) {
     return this.teamModel.find(filter).sort({ name: 1 });
   }
 
@@ -25,7 +25,7 @@ export class TeamService {
     return this.teamModel.findOne({ name });
   }
 
-  async findOne(filter: FilterQuery<Team>) {
+  async findOne(filter: QueryFilter<Team>) {
     return this.teamModel.findOne(filter);
   }
 
@@ -33,7 +33,7 @@ export class TeamService {
 
 
 
-  async find(filter: FilterQuery<Team>, offset?: number, limit?: number) {
+  async find(filter: QueryFilter<Team>, offset?: number, limit?: number) {
     let query = this.teamModel.find(filter).sort({ name: -1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {
@@ -44,9 +44,7 @@ export class TeamService {
       query = query.limit(limit);
     }
 
-    query = query.lean()
-
-    return query.exec();
+    return query.lean().exec();
   }
 
   async create(team: Team) {
@@ -64,24 +62,24 @@ export class TeamService {
     return this.teamModel.insertMany(teams);
   }
 
-  async update(team: UpdateQuery<Team>, filter: FilterQuery<Team>) {
+  async update(team: UpdateQuery<Team>, filter: QueryFilter<Team>) {
     const teamObj = { ...team };
     return this.teamModel.findOneAndUpdate(filter, teamObj, { upsert: true, new: true });
   }
 
-  async updateMany(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>) {
+  async updateMany(filter: QueryFilter<Team>, updateObj: UpdateQuery<Team>) {
     return this.teamModel.updateMany(filter, updateObj);
   }
-  async updateOne(filter: FilterQuery<Team>, updateObj: UpdateQuery<Team>) {
+  async updateOne(filter: QueryFilter<Team>, updateObj: UpdateQuery<Team>) {
     const updateTeam = await this.teamModel.updateOne(filter, updateObj);
     return updateTeam;
   }
 
-  async delete(filter: FilterQuery<Team>) {
+  async delete(filter: QueryFilter<Team>) {
     return this.teamModel.deleteMany(filter);
   }
 
-  async countDocuments(filter: FilterQuery<Team>) {
+  async countDocuments(filter: QueryFilter<Team>) {
     return this.teamModel.countDocuments();
   }
 }

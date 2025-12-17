@@ -7,17 +7,18 @@ import { useParams } from 'next/navigation';
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cardVariants, menuVariants } from '@/utils/animation';
-import { ApolloQueryResult, OperationVariables, useMutation } from '@apollo/client';
 import { DELETE_A_GROUP, UPDATE_GROUP } from '@/graphql/group';
 import { handleError } from '@/utils/handleError';
 import SelectInput from '../elements/forms/SelectInput';
 import { useError } from '@/lib/ErrorProvider';
+import { OperationVariables } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
 
 interface IGroupCardProps {
   group: IGroupExpRel;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   divisionList: IOption[];
-  refetch?: (variables?: Partial<OperationVariables> | undefined) => Promise<ApolloQueryResult<any>>;
+  refetch?: (variables?: Partial<OperationVariables> | undefined) => Promise<any>;
 }
 
 function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardProps) {

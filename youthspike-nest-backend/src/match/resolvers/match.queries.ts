@@ -14,7 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { tokenToUser } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
-import { FilterQuery } from 'mongoose';
+import { QueryFilter } from 'mongoose';
 import { EMatchStatus, Match } from '../match.schema';
 import { GetEventWithMatchesResponse } from './match.response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
@@ -90,7 +90,7 @@ export class MatchQueries {
       ]);
 
       // Build match filter
-      const matchFilter: FilterQuery<Match> = { event: eventId };
+      const matchFilter: QueryFilter<Match> = { event: eventId };
 
       let searchFound = false;
 

@@ -1,4 +1,4 @@
-import { EActionProcess, INetRelatives } from ".";
+import { EActionProcess, INetRelatives, IResponse } from ".";
 
 export interface IRoundBase {
     num: number,
@@ -22,4 +22,8 @@ export interface IRoundExpRel extends IRoundBase {
     players: string[];
     nets: INetRelatives[];
     subs: string[];
+}
+
+export interface IRoundResponse extends IResponse{
+    data?: IRoundExpRel;
 }
