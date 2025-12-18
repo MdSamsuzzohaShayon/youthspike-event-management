@@ -1,10 +1,10 @@
 import { PreloadQuery } from '@/lib/client';
-import { QueryRef } from '@apollo/client';
 import { Suspense } from 'react';
 import Loader from '@/components/elements/Loader';
 import { IPlayerAndTeamsResponse, TParams } from '@/types';
 import { GET_PLAYER_AND_TEAMS } from '@/graphql/players';
 import PlayerSingleContainer from '@/components/player/PlayerSingleContainer';
+import { QueryRef } from '@apollo/client/react';
 
 interface IPlayerSingleProps {
   params: TParams;

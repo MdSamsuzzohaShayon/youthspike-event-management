@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation';
 import { PreloadQuery } from '@/lib/client';
 import { Suspense } from 'react';
 import Loader from '@/components/elements/Loader';
-import { QueryRef } from '@apollo/client';
 import { GET_EVENT_PLAYERS_GROUPS_TEAMS } from '@/graphql/players'; // Adjust import path as needed
 import { getUserFromCookie } from '@/utils/serverCookie';
 import { cookies } from 'next/headers';
 import PlayersMainContainer from '@/components/player/PlayersMainContainer';
+import { QueryRef } from '@apollo/client/react';
 
 interface IPlayersPageProps {
   params: TParams;

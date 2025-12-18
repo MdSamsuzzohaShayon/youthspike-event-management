@@ -18,10 +18,9 @@ interface IGroupCardProps {
   group: IGroupExpRel;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   divisionList: IOption[];
-  refetch?: (variables?: Partial<OperationVariables> | undefined) => Promise<any>;
 }
 
-function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardProps) {
+function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
   const { ldoIdUrl } = useLdoId();
   
   const [deleteGroup] = useMutation(DELETE_A_GROUP);
@@ -52,7 +51,7 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
     try {
       setIsLoading(true);
       await deleteGroup({ variables: { groupId } });
-      if (refetch) await refetch();
+
 
     } catch (error: any) {
       console.log(error);
@@ -75,7 +74,7 @@ function GroupCard({ group, setIsLoading, divisionList, refetch }: IGroupCardPro
     try {
       setIsLoading(true);
       await mutateGroup({variables: {updateInput: {_id: group._id, division: divisionToMove}}});
-      if (refetch) await refetch();
+
 
     } catch (error: any) {
       console.log(error);

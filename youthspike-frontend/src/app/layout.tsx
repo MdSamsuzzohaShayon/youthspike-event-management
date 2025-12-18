@@ -1,22 +1,28 @@
-import React, { Suspense } from 'react';
-import { Inter } from 'next/font/google';
-import ReduxProvider from '@/lib/ReduxProviders';
-import './globals.css';
-import Footer from '@/components/layout/Footer';
-import UserProvider from '@/lib/UserProvider';
-import SocketProvider from '@/lib/SocketProvider';
-import Loader from '@/components/elements/Loader';
-import LdoProvider from '@/lib/LdoProvider';
-import MenuSwitcher from '@/components/layout/MenuSwitcher';
-import Message from '@/components/elements/Message';
-import { cookies } from 'next/headers';
-import { ACCESS_CODE } from '@/utils/constant';
-import ApolloWrapper from '@/lib/ApolloWrapper';
+import React, { Suspense } from "react";
+import { Inter } from "next/font/google";
+import ReduxProvider from "@/lib/ReduxProviders";
+import "./globals.css";
+import Footer from "@/components/layout/Footer";
+import UserProvider from "@/lib/UserProvider";
+import SocketProvider from "@/lib/SocketProvider";
+import Loader from "@/components/elements/Loader";
+import LdoProvider from "@/lib/LdoProvider";
+import MenuSwitcher from "@/components/layout/MenuSwitcher";
+import Message from "@/components/elements/Message";
+import { cookies } from "next/headers";
+import { ACCESS_CODE } from "@/utils/constant";
+import ApolloWrapper from "@/lib/ApolloWrapper";
+import Script from "next/script";
+import { NODE_ENV } from "@/utils/keys";
+import { EEnv } from "@/types";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const cookieStore = await cookies();
   const accessCodeCookie = cookieStore.get(ACCESS_CODE);
   const accessCodeList = accessCodeCookie
@@ -26,6 +32,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <head>
+        {NODE_ENV !== EEnv.development && (
+          <Script
+            id="gtm-head"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                  })(window,document,'script','dataLayer','GTM-59QBLKWZ');
+                `,
+            }}
+          />
+        )}
+
         <title>ASL - MatchPlay</title>
         <meta
           name="description"
@@ -34,6 +56,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body className={`${inter.className} bg-black-logo text-white`}>
+        {NODE_ENV !== EEnv.development && (
+          <noscript>
+            <iframe
+              src="https://www.googletagmanager.com/ns.html?id=GTM-59QBLKWZ"
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
         <Suspense fallback={<Loader />}>
           <SocketProvider>
             <ApolloWrapper>

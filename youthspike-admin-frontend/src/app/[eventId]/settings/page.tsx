@@ -4,7 +4,7 @@ import { PreloadQuery } from '@/lib/client';
 import { GET_PLAYER_EVENT_SETTINGS } from '@/graphql/event';
 import { Suspense } from 'react';
 import Loader from '@/components/elements/Loader';
-import { QueryRef } from '@apollo/client';
+import { QueryRef } from '@apollo/client/react';
 
 interface ISettingsPageProps {
   params: TParams;
