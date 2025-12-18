@@ -8,6 +8,8 @@ function ToggleInput({
   defaultValue = false,
   handleInputChange,
   className = '',
+  negative,
+  positive
 }: IToggleInputProps & { className?: string }) {
   const [isChecked, setIsChecked] = useState<boolean>(defaultValue);
 
@@ -41,7 +43,7 @@ function ToggleInput({
 
       <div className="flex items-center justify-between bg-gray-800 border border-gray-700 rounded-md p-2">
         {/* ON / OFF text visible always */}
-        <span className="text-sm font-semibold text-gray-300">OFF</span>
+        <span className="text-sm font-semibold text-gray-300">{negative || "OFF"}</span>
 
         <button
           type="button"
@@ -62,7 +64,7 @@ function ToggleInput({
           />
         </button>
 
-        <span className="text-sm font-semibold text-gray-300">ON</span>
+        <span className="text-sm font-semibold text-gray-300">{positive || "ON"}</span>
       </div>
 
       {/* Real form input for forms */}

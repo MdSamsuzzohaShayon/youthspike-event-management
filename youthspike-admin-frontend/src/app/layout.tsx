@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import ApolloWrapper from '@/lib/ApolloProvider';
 import UserProvider, { useUser } from '@/lib/UserProvider';
 import Footer from '@/components/layout/Footer';
 import './globals.css';
@@ -14,6 +13,7 @@ import AdminMenu from '@/components/layout/AdminMenu';
 import { ErrorProvider } from '@/lib/ErrorProvider';
 import Message from '@/components/elements/Message';
 import Loader from '@/components/elements/Loader';
+import ApolloWrapper from '@/lib/ApolloWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 

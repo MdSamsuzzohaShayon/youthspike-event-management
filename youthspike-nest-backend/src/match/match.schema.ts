@@ -61,7 +61,7 @@ export class Match extends AppDocument {
 
   @Field({ nullable: true, defaultValue: true })
   @Prop({ required: false, type: Boolean, default: true })
-  includeState?: boolean;
+  includeStats?: boolean;
 
 
   @Field({ nullable: true })

@@ -1,98 +1,114 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { UserRole } from './types/user'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { UserRole } from './types/user';
 
-// Role-based page definitions
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
 const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/newevent', '/teamstandings'];
-const capCoPlayerPages = ['/players', '/matches', '/settings', '/teamstandings'];
+const capCoPlayerPages = ['/players', '/matches', '/settings', '/teamstandings']; // Player
 const adminPages = ['/', '/admin', '/directors', '/settings', '/teamstandings'];
 
-// Configuration for the proxy
 export const config = {
   matcher: [
     "/((?!api|static|.*\\..*|_next).*)",
   ],
 };
 
-// Authentication check helper
-function checkAuthentication(request: NextRequest) {
-  const token = request.cookies.get('token');
-  const user = request.cookies.get('user');
+
+function handleUnauthenticated(request: NextRequest, pathname: string) {
+  const protectedPages = [...new Set([...directorAuthPages, ...capCoPlayerPages, ...adminPages])];
   
-  if (!token?.value || !user?.value) {
-    return { authenticated: false, userObj: null };
-  }
   
-  try {
-    const userObj = JSON.parse(user.value);
-    return { authenticated: true, userObj };
-  } catch (error) {
-    return { authenticated: false, userObj: null };
+
+  // if (protectedPages.some(page => new RegExp(`${page}(\\/?$)`, 'i').test(pathname))) {
+  //   return NextResponse.redirect(new URL('/login', request.url).toString());
+  // }
+
+
+  // if (protectedPages.some(page => new RegExp(`(?:^|\\/|\\/)${page}(?:\\/|$)`, 'i').test(pathname))) {
+  //   return NextResponse.redirect(new URL('/login', request.url).toString());
+  // }
+
+  const redirectPageUrl = '/login';
+
+  let isMatch = false;
+  for(const page of protectedPages){
+    if(pathname.includes(page) && pathname !== redirectPageUrl) isMatch = true;
   }
+  if(isMatch){
+    return NextResponse.redirect(new URL(redirectPageUrl, request.url).toString());
+  }
+
+  /**
+   *    (?:^|\\/|\\/) matches the start of the string or a / before the page.
+   *    ${page} matches the specific page pattern.
+   *    (?:\\/|$) matches the end of the string or a / after the page.
+   */
+
+  return NextResponse.next();
 }
 
-// Path matching helper
-function matchesPath(pathname: string, pageList: string[]) {
-  return pageList.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
+function isUnauthenticatedPage(pathname: string) {
+  return unauthenticatedPages.includes(pathname) || unauthenticatedPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
 }
 
-// Authentication logic from your middleware
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const { authenticated, userObj } = checkAuthentication(request);
-  
-  console.log({ pathname, authenticated, user: userObj });
-  
-  // Handle unauthenticated users
-  if (!authenticated) {
-    const protectedPages = [...new Set([...directorAuthPages, ...capCoPlayerPages, ...adminPages])];
-    const redirectPageUrl = '/login';
-    
-    let isProtected = false;
-    for (const page of protectedPages) {
-      if (pathname.includes(page) && pathname !== redirectPageUrl) {
-        isProtected = true;
-        break;
-      }
-    }
-    
-    if (isProtected) {
-      const response = NextResponse.redirect(new URL(redirectPageUrl, request.url));
-      return response;
-    }
-    
+function handleUnauthenticatedPage(request: NextRequest) {
+  return NextResponse.redirect(new URL('/', request.url).toString());
+}
+
+function isAuthenticatedPage(pathname: string, userObj: any) {
+  const authorizedPages = [...directorAuthPages, ...capCoPlayerPages];
+
+  return authorizedPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname)) && userObj?.role !== UserRole.admin;
+}
+
+function handleAuthenticatedPage(request: NextRequest, pathname: string, userObj: any) {
+  if (userObj?.role === UserRole.director && directorAuthPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+    return NextResponse.next();
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && capCoPlayerPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
+    return NextResponse.next();
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && userObj.event) {
+    return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url).toString());
+  }
+
+  return NextResponse.redirect(new URL('/not-found/404', request.url).toString());
+}
+
+function isAdminPage(pathname: string, userObj: any) {
+  return adminPages.includes(pathname) || adminPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname));
+}
+
+function handleAdminPage(request: NextRequest, userObj: any) {
+  if (userObj?.role === UserRole.admin) {
     return NextResponse.next();
   }
-  
-  // Handle authenticated users trying to access unauthenticated pages
-  if (matchesPath(pathname, unauthenticatedPages)) {
-    return NextResponse.redirect(new URL('/', request.url));
+
+  return NextResponse.redirect(new URL('/', request.url).toString());
+}
+
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('token');
+  const user = request.cookies.get('user');
+
+  console.log({ pathname, token: token?.value, user: user?.value ? JSON.parse(user.value) : null });
+
+  if (!token?.value || !user?.value) {
+    return handleUnauthenticated(request, pathname);
   }
-  
-  // Handle role-based access control
-  if (userObj?.role === UserRole.admin) {
-    // Admin access logic
-    if (matchesPath(pathname, adminPages)) {
-      return NextResponse.next();
-    }
-  } else if (userObj?.role === UserRole.director) {
-    // Director access logic
-    if (matchesPath(pathname, directorAuthPages)) {
-      return NextResponse.next();
-    }
-  } else if ([UserRole.captain, UserRole.co_captain, UserRole.player].includes(userObj?.role)) {
-    // Captain/Co-captain/Player access logic
-    if (matchesPath(pathname, capCoPlayerPages)) {
-      return NextResponse.next();
-    }
-    
-    // Redirect players with event to their event page
-    if (userObj.event) {
-      return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url));
-    }
+
+  const userObj = user?.value ? JSON.parse(user.value) : null;
+
+  if (isUnauthenticatedPage(pathname)) {
+    return handleUnauthenticatedPage(request);
   }
-  
-  // Default: redirect to not found for unauthorized access
-  return NextResponse.redirect(new URL('/not-found', request.url));
+
+  if (isAuthenticatedPage(pathname, userObj)) {
+    return handleAuthenticatedPage(request, pathname, userObj);
+  }
+
+  if (isAdminPage(pathname, userObj)) {
+    return handleAdminPage(request, userObj);
+  }
+
+  return NextResponse.next();
 }

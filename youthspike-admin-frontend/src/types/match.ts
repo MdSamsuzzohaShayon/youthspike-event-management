@@ -7,7 +7,7 @@ export interface ICommonMatchEvent{
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;
-  includeState: boolean;
+  includeStats: boolean;
   autoAssignLogic: string;
   rosterLock: string;
   timeout: number;

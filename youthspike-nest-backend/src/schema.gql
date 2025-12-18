@@ -225,7 +225,7 @@ type Match {
   netVariance: Float
   homeTeam: String
   autoAssign: Boolean
-  includeState: Boolean
+  includeStats: Boolean
   autoAssignLogic: String
   rosterLock: String
   tieBreaking: String
@@ -542,7 +542,7 @@ type CustomMatch {
   netVariance: Float
   homeTeam: String
   autoAssign: Boolean
-  includeState: Boolean
+  includeStats: Boolean
   autoAssignLogic: String
   rosterLock: String
   tieBreaking: String
@@ -1411,6 +1411,7 @@ input CreateMatchInput {
   tieBreaking: String
   homeTeam: String
   autoAssign: Boolean
+  includeStats: Boolean!
   autoAssignLogic: String
   rosterLock: String
   timeout: Int
@@ -1436,6 +1437,7 @@ input UpdateMatchInput {
   tieBreaking: String
   homeTeam: String
   autoAssign: Boolean
+  includeStats: Boolean
   autoAssignLogic: String
   rosterLock: String
   timeout: Int

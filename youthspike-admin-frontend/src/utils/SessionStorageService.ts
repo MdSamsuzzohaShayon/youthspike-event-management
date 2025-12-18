@@ -1,12 +1,7 @@
 class SessionStorageService {
-  /**
-   * Stores a value in sessionStorage
-   * @param key - Key under which value will be stored
-   * @param value - Value to store (can be any serializable data)
-   */
   setItem<T>(key: string, value: T): void {
     try {
-      if (typeof window === 'undefined') return; // Prevent SSR crash
+      if (typeof window === 'undefined') return; // SSR protection
 
       const serialized = JSON.stringify(value);
       window.sessionStorage.setItem(key, serialized);
@@ -15,14 +10,11 @@ class SessionStorageService {
     }
   }
 
-  /**
-   * Retrieves a value from sessionStorage
-   * @param key - Key to retrieve
-   * @returns The stored value (or null if not found / parsing fails)
-   */
   getItem<T>(key: string): T | null {
     try {
-      const item = sessionStorage.getItem(key);
+      if (typeof window === 'undefined') return null; // SSR protection
+
+      const item = window.sessionStorage.getItem(key);
       return item ? (JSON.parse(item) as T) : null;
     } catch (error) {
       console.error(`Failed to parse sessionStorage value for key: ${key}`, error);
@@ -30,36 +22,30 @@ class SessionStorageService {
     }
   }
 
-  /**
-   * Removes a value from sessionStorage
-   * @param key - Key to remove
-   */
   removeItem(key: string): void {
     try {
-      sessionStorage.removeItem(key);
+      if (typeof window === 'undefined') return; // SSR protection
+
+      window.sessionStorage.removeItem(key);
     } catch (error) {
       console.error(`Failed to remove sessionStorage key: ${key}`, error);
     }
   }
 
-  /**
-   * Clears all data from sessionStorage
-   */
   clear(): void {
     try {
-      sessionStorage.clear();
+      if (typeof window === 'undefined') return; // SSR protection
+
+      window.sessionStorage.clear();
     } catch (error) {
       console.error('Failed to clear sessionStorage', error);
     }
   }
 
-  /**
-   * Checks if a key exists in sessionStorage
-   * @param key - Key to check
-   * @returns true if exists, false otherwise
-   */
   hasKey(key: string): boolean {
-    return sessionStorage.getItem(key) !== null;
+    if (typeof window === 'undefined') return false; // SSR protection
+
+    return window.sessionStorage.getItem(key) !== null;
   }
 }
 

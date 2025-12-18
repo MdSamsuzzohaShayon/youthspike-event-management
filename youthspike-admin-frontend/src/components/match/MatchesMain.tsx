@@ -86,9 +86,10 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
   
 
   // Local state
-  const [isLoading, setIsLoading] = useState(false);
-  const [showMatchAddForm, setShowMatchAddForm] = useState(false);
-  const [selectedDivision, setSelectedDivision] = useState('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showMatchAddForm, setShowMatchAddForm] = useState<boolean>(false);
+  const [selectedDivision, setSelectedDivision] = useState<string>('');
+  const [matchList, setMatchList] = useState<IMatchExpRel[]>(matches);
 
   // Hooks
   const currentUser = useUser();
@@ -109,7 +110,7 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
     // Filter by division
     let filteredTeams = hasDivisionFilter ? teams.filter((team) => team?.division?.trim().toLowerCase() === normalizedDivision) : teams;
 
-    let filteredMatches = hasDivisionFilter ? matches.filter((match) => match?.division?.trim().toLowerCase() === normalizedDivision) : matches;
+    let filteredMatches = hasDivisionFilter ? matchList.filter((match) => match?.division?.trim().toLowerCase() === normalizedDivision) : matches;
 
     let filteredGroups = hasDivisionFilter ? groups.filter((group) => group?.division?.trim().toLowerCase() === normalizedDivision) : groups;
 
@@ -123,7 +124,7 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
       matches: filteredMatches,
       groups: filteredGroups,
     };
-  }, [selectedDivision, cachedUserFromCookie, teams, matches, groups]);
+  }, [selectedDivision, cachedUserFromCookie, teams, matchList, groups]);
 
   const { teams: divisionTeams, matches: divisionMatches, groups: divisionGroups } = filteredData;
 
@@ -154,10 +155,14 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
     (newMatch: IMatchExpRel) => {
       // Note: This mutates the original matches array
       // Consider using state management if this causes issues
-      matches.push(newMatch);
+      setMatchList((prev) => [...prev, newMatch]);
     },
     [matches],
   );
+
+
+  const refetch = useCallback(() => window.location.reload(), []);
+
 
   
 
@@ -165,6 +170,11 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
   const toggleMatchView = useCallback(() => {
     setShowMatchAddForm((prev) => !prev);
   }, []);
+
+  useEffect(() => {
+    setMatchList(matches);
+  }, [matches]);
+  
 
   if (isLoading) {
     return <Loader />;
@@ -230,7 +240,7 @@ function MatchesMain({ currEvent, matches, teams, groups }: MatchesMainProps) {
                 setIsLoading={setIsLoading}
                 matchList={divisionMatches}
                 teamList={teams}
-                refetchFunc={() => window.location.reload()}
+                refetchFunc={refetch}
                 groupList={divisionGroups}
               />
             ) : (

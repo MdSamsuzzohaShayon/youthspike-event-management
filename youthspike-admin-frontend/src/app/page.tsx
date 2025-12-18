@@ -6,9 +6,9 @@ import { UserRole } from '@/types/user';
 import { LDO_ID } from '@/utils/constant';
 import EventsMain from '@/components/event/EventsMain';
 import Loader from '@/components/elements/Loader';
-import { QueryRef } from '@apollo/client';
 import { GET_LDO } from '@/graphql/director';
 import { PreloadQuery } from '@/lib/client';
+import { QueryRef } from '@apollo/client/react';
 
 interface IEventsPageProps {
   searchParams: TParams;

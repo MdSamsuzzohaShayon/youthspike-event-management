@@ -126,6 +126,8 @@ export interface IToggleInputProps extends ITextCommon {
   value?: boolean;
   defaultValue?: boolean;
   handleInputChange: (e: React.SyntheticEvent) => void;
+  negative?: string;
+  positive?: string;
 }
 
 export interface ICheckboxInputProps {

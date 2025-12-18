@@ -206,7 +206,13 @@ export class PlayerQueries implements IPlayerQueries {
         this.matchesService.find(matchQuery),
       ]);
 
-      const matchIds = new Set(matches.map((m) => String(m._id)));
+      // const matchIds = new Set(matches.map((m) => String(m._id)));
+      const matchIds = new Set();
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        if(!match?.includeStats) continue;
+        matchIds.add(String(match._id));
+      }
 
       const teamIds = new Set<string>();
       if (teams.length > 0) {

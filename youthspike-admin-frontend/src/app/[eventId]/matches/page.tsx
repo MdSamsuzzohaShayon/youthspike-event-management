@@ -5,9 +5,9 @@ import { IEventWithMatchesResponse, TParams } from '@/types';
 import { PreloadQuery } from '@/lib/client';
 import { Suspense } from 'react';
 import Loader from '@/components/elements/Loader';
-import { QueryRef } from '@apollo/client';
 import { GET_EVENT_WITH_MATCHES } from '@/graphql/matches';
 import MatchesMainContainer from '@/components/match/MatchesMainContainer';
+import { QueryRef } from '@apollo/client/react';
 
 interface IMatchesPageProps {
   params: TParams;

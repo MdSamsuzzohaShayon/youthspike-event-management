@@ -121,3 +121,11 @@ export const getRankedPlayers = (pl: IPlayerExpRel[] /** pl = Player List */, ra
     .map((r) => ({ ...rankingMap.get(r.player._id)!, rank: r.rank })); // npl = new player list
   return npl
 }
+
+
+// Helper to check if a string is a valid MongoDB ObjectId
+export const isMongoId=(pathname: string) =>{
+  // ObjectId is 24 hex characters
+  const objectIdRegex = /^\/[a-f\d]{24}$/i;
+  return objectIdRegex.test(pathname);
+}

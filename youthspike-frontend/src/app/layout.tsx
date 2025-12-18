@@ -9,9 +9,9 @@ import Loader from '@/components/elements/Loader';
 import LdoProvider from '@/lib/LdoProvider';
 import MenuSwitcher from '@/components/layout/MenuSwitcher';
 import Message from '@/components/elements/Message';
-import { ApolloWrapper } from '@/lib/ApolloWrapper';
 import { cookies } from 'next/headers';
 import { ACCESS_CODE } from '@/utils/constant';
+import ApolloWrapper from '@/lib/ApolloWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 

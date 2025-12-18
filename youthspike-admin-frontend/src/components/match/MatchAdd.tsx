@@ -40,7 +40,7 @@ const initialAddMatch: IAddMatch = {
   streamUrl: '',
   timeout: 0,
   tieBreaking: ETieBreakingStrategy.TWO_POINTS_NET,
-  includeState: true,
+  includeStats: true,
 };
 
 function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
@@ -104,12 +104,16 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
 
   const handleToggleInput = (e: React.SyntheticEvent) => {
     e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    const name = inputEl.name as keyof IAddMatch;
+
     const state = update ? updateMatch : addMatch;
-    const newValue = !(state.autoAssign ?? false);
+    const currentValue = state[name] as boolean | undefined;
+    const newValue = !(currentValue ?? false);
     if (update) {
-      setUpdateMatch((prev) => ({ ...prev, autoAssign: newValue }));
+      setUpdateMatch((prev) => ({ ...prev, [name]: newValue }));
     } else {
-      setAddMatch((prev) => ({ ...prev, autoAssign: newValue }));
+      setAddMatch((prev) => ({ ...prev, [name]: newValue }));
     }
   };
 
@@ -268,6 +272,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
           <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
           <ToggleInput handleInputChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
+          <ToggleInput handleInputChange={handleToggleInput} name="includeStats" label="Include stats for this match in player stats" positive='Yes' negative='No' defaultValue={addMatch.includeStats} />
 
           <SelectInput
             key="select-autoAssignLogic"

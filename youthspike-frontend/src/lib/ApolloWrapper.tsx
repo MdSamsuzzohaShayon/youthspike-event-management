@@ -1,48 +1,50 @@
 'use client';
 
+import React from 'react';
 import {
-  ApolloNextAppProvider,
   ApolloClient,
   InMemoryCache,
-} from '@apollo/client-integration-nextjs';
-import { setContext } from '@apollo/client/link/context';
+  HttpLink,
+  ApolloLink,
+} from '@apollo/client';
 import { BACKEND_URL } from '@/utils/keys';
-import { getCookie } from '@/utils/cookie';
-import { HttpLink } from '@apollo/client';
+import { ApolloProvider } from '@apollo/client/react';
+import { getCookie } from '@/utils/clientCookie';
 
-function makeClient() {
-  // Authorization header
-  const authLink = setContext((_, { headers }) => {
-    const token = getCookie('token'); // Client-side only
-    return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : '',
-      },
-    };
-  });
+/**
+ * Auth middleware link
+ */
+const authLink = new ApolloLink((operation, forward) => {
+  const token = getCookie('token');
 
-  const httpLink = new HttpLink({
-    uri: BACKEND_URL, // Must be absolute
-    fetchOptions: {
-      // Customize fetch behavior here if needed
-      // cache: 'no-store', next: { revalidate: 0 }, etc.
+  operation.setContext(({ headers = {} }) => ({
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
     },
-  });
+  }));
 
-  return new ApolloClient({
-    cache: new InMemoryCache(),
-    link: authLink.concat(httpLink),
-    // devtools: {
-    //   enabled: typeof window !== "undefined", // ✅ replaces connectToDevTools
-    // },
-  });
+  return forward(operation);
+});
+
+/**
+ * HTTP link
+ */
+const httpLink = new HttpLink({
+  uri: BACKEND_URL,
+  credentials: 'include',
+});
+
+/**
+ * Apollo Client
+ */
+export const client = new ApolloClient({
+  link: ApolloLink.from([authLink, httpLink]),
+  cache: new InMemoryCache(),
+});
+
+function ApolloWrapper({ children }: React.PropsWithChildren) {
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
 }
 
-export function ApolloWrapper({ children }: React.PropsWithChildren) {
-  return (
-    <ApolloNextAppProvider makeClient={makeClient}>
-      {children}
-    </ApolloNextAppProvider>
-  );
-}
+export default ApolloWrapper;

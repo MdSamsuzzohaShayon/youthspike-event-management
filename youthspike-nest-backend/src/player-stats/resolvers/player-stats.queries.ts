@@ -120,6 +120,7 @@ export class PlayerStatsQueries {
         // 4.1️⃣ Fetch matches once
         const matchQuery: QueryFilter<Match> = {
           $or: [{ teamA: { $in: [...teamIds] } }, { teamB: { $in: [...teamIds] } }],
+          includeStats: true
         };
         if (group) {
           matchQuery.group = { $in: [...groupIds] };

@@ -9,7 +9,6 @@ import { ITeam } from "./team";
 import { IPlayer } from "./player";
 import { INetRelatives } from "./net";
 import { IRoundRelatives } from "./round";
-import { IServerReceiverSinglePlay } from "./serverReceiverOnNet";
 import { IPlayerStats } from "./playerStats";
 import { QueryRef } from "@apollo/client/react";
 

@@ -1,9 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getSystemDetails } from '../_requests/system';
+import { cookies } from 'next/headers';
 
 export default async function AdminPage() {
-  const systemDetail = await getSystemDetails();
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token");
+  const systemDetail = await getSystemDetails(token?.value || null);
 
   if (!systemDetail) notFound();
 

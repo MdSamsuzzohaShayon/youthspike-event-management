@@ -77,18 +77,18 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
    */
   const updateUrlParams = useCallback(
     (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(window.location.search);
+  
       Object.entries(updates).forEach(([key, value]) => {
-        if (!value) {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
+        if (!value) params.delete(key);
+        else params.set(key, value);
       });
+  
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [searchParams, router, pathname],
+    [router, pathname],
   );
+  
 
   /**
    * Keep URL in sync with filters and pagination

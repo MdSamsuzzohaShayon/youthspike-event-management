@@ -47,6 +47,9 @@ export class CreateMatchInput {
   @Field({ nullable: true })
   autoAssign?: boolean;
 
+  @Field({ nullable: false })
+  includeStats: boolean;
+
 
 
   @Field({ nullable: true })

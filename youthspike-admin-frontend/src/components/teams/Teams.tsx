@@ -12,6 +12,7 @@ interface ITeamProps {
 
 export default async function Teams({ params }: ITeamProps) {
   const { eventId } = await params;
+  
 
   if (!eventId) {
     const err = new Error('Event ID not provided.');

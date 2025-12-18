@@ -60,27 +60,46 @@ export class TeamQueries {
         this.eventService.findById(eventId),
         this.teamService.find({ event: eventId }),
         this.groupService.find({ event: eventId }),
-        this.playerService.find({ event: eventId }),
+        this.playerService.find({ events: eventId }),
       ]);
 
-      const updatePlayerPromises = [];
-      for (let i = 0; i < players.length; i++) {
-        if (!players[i]?.username) {
-          updatePlayerPromises.push(
+      /*
+      const updatePromises: Promise<any>[] = [];
+  
+      for (const player of players) {
+        if (!player.username) {
+          const username = this.playerService.playerUsername(
+            player.firstName + '2',
+          );
+  
+          // Update DB
+          updatePromises.push(
             this.playerService.updateOne(
-              { _id: players[i]._id },
-              { $set: { username: this.playerService.playerUsername(players[i].firstName + '2') } },
+              { _id: player._id },
+              { $set: { username } },
             ),
           );
+  
+          // Update in-memory object
+          player.username = username;
         }
       }
-      await Promise.all(updatePlayerPromises);
-      const newPlayers = await this.playerService.find({ event: eventId });
+  
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+      }
+        */
+
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of teams!',
-        data: { event: eventExist, teams, groups, players: newPlayers },
+        data: {
+          event: eventExist,
+          teams,
+          groups,
+          players, // already updated
+        },
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -225,6 +244,7 @@ export class TeamQueries {
       const team = await this.teamService.findById(teamId);
       const matchQuery: QueryFilter<Match> = {
         // $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
+        includeStats: true
       };
       if (team.group) {
         // matchQuery.group = team.group;

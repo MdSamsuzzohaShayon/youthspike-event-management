@@ -47,7 +47,7 @@ export const handleResponseCheck = async (
   responseData: any,
   setActErr?: React.Dispatch<React.SetStateAction<IError | null>>
 ) => {
-  console.error(responseData);
+  console.log(responseData);
   
   const successCode = responseData?.code >= 200 && responseData?.code < 300;
   if (!successCode) {

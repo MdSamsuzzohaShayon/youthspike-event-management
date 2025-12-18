@@ -54,7 +54,7 @@ function EventMain({ events }: IEventMainProps) {
     params.set('page', currentPage.toString());
 
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [filterParams, currentPage, router, pathname, searchParams]);
+  }, [filterParams, currentPage, router, pathname]); // searchParams
 
   useEffect(() => {
     updateQueryParams();
