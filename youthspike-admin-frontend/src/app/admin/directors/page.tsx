@@ -6,7 +6,7 @@ import { QueryRef } from '@apollo/client/react';
 import { GET_LDOS } from '@/graphql/director';
 import { IGetEventDirectorsQuery } from '@/types';
 
-
+export const dynamic = 'force-dynamic'; // 🔥 IMPORTANT
 
 export default async function DirectorsPage() {
   return (
