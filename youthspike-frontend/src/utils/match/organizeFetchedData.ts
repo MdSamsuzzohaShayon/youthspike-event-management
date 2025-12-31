@@ -35,6 +35,8 @@ import {
   IUser,
   ITeam,
   EServerPositionPair,
+  IMatchScore,
+  IRoundScore,
 } from "@/types";
 import LocalStorageService from "../LocalStorageService";
 // import { EActionProcess } from '@/types/room';
@@ -114,7 +116,6 @@ const organizeFetchedData = async ({
     serverReceiverOnNet, // Bound to net
     serverReceiverSinglePlay,
   } = matchData;
-  
 
   const CURRENT_NET_NUM = 1;
 
@@ -154,7 +155,6 @@ const organizeFetchedData = async ({
       profile: player.profile,
     }));
   };
-  
 
   const teamAPlayers = reformatPlayers(teamAF, teamAPlayersRanking);
   const teamBPlayers = reformatPlayers(teamBF, teamBPlayersRanking);
@@ -297,7 +297,8 @@ const organizeFetchedData = async ({
       })
     );
 
-    if (formattedNetsServerReceiver) dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
+    if (formattedNetsServerReceiver)
+      dispatch(setServerReceiversOnNet(formattedNetsServerReceiver));
 
     if (formattedServerReceiverSinglePlays)
       dispatch(setServerReceiverPlays(formattedServerReceiverSinglePlays));
@@ -308,31 +309,32 @@ const organizeFetchedData = async ({
         (sr) => sr.netId === selectedNet._id || sr.net === selectedNet._id
       );
       if (currServerReceiver) {
-        
         dispatch(setCurrentServerReceiver(currServerReceiver));
       } else {
-        dispatch(setCurrentServerReceiver({
-          match: matchData._id,
-          matchId: matchData._id,
-          mutate: 0,
-          play: 0,
-          net: selectedNet._id,
-          netId: selectedNet._id,
-          server: null,
-          receiver: null,
-          receivingPartner: null,
-          servingPartner: null,
-          serverId: null,
-          receiverId: null,
-          receivingPartnerId: null,
-          servingPartnerId: null,
-          room: room._id,
-          round: selectedRound._id,
-          roundId: selectedRound._id,
-          serverPositionPair: EServerPositionPair.PAIR_A_LEFT,
-          teamAScore: 0,
-          teamBScore: 0,
-        }));
+        dispatch(
+          setCurrentServerReceiver({
+            match: matchData._id,
+            matchId: matchData._id,
+            mutate: 0,
+            play: 0,
+            net: selectedNet._id,
+            netId: selectedNet._id,
+            server: null,
+            receiver: null,
+            receivingPartner: null,
+            servingPartner: null,
+            serverId: null,
+            receiverId: null,
+            receivingPartnerId: null,
+            servingPartnerId: null,
+            room: room._id,
+            round: selectedRound._id,
+            roundId: selectedRound._id,
+            serverPositionPair: EServerPositionPair.PAIR_A_LEFT,
+            teamAScore: 0,
+            teamBScore: 0,
+          })
+        );
       }
     }
   }
@@ -439,6 +441,8 @@ const organizeFetchedData = async ({
       opLocalTeamE: ETeam.teamA,
     });
   }
+
+  // Set Match Score
 };
 
 export default organizeFetchedData;

@@ -155,7 +155,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
 
   /** ✅ Team card reusable component - optimized with direct props */
   const TeamCard = React.memo(({ team, teamScore, teamE, won, penalty }: { team: ITeam; teamScore: number; teamE: ETeam; won: boolean, penalty: number }) => (
-    <div className={`flex items-center ${teamE === ETeam.teamA ? 'flex-row' : 'flex-row-reverse'} gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
+    <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`} className={`flex items-center ${teamE === ETeam.teamA ? 'flex-row' : 'flex-row-reverse'} gap-1 p-1 rounded-md ${won ? 'bg-green-600/20 border border-green-500' : ''}`}>
       <div className="flex-shrink-0">
         {team?.logo ? (
           <CldImage crop="fit" alt={team.name} width={100} height={100} className="w-12 h-12 object-contain" src={team.logo} />
@@ -169,16 +169,12 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
       <div className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl border ${won ? 'border-green-500 bg-green-600 text-white' : 'border-gray-400 bg-white text-black'}`}>
         <span className="text-xs font-bold">{teamScore + penalty}</span>
       </div>
-    </div>
+    </Link>
   ));
 
   TeamCard.displayName = 'TeamCard';
 
-  // const redirectSpectate=(e: React.SyntheticEvent)=>{
-  //   e.preventDefault();
-  //   router.push()
 
-  // }
 
  
   
@@ -221,6 +217,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
     () => (
       <div className={`px-2 md:px-3 py-1 md:py-2 ${statusColor} text-xs font-semibold uppercase flex justify-between items-center rounded-t`}>
         <span>{statusMessage}</span>
+        {match.description && <span>{match.description}</span>}
         {match.location && <span>{match.location}</span>}
         <span>{readDate(match.date)}</span>
       </div>

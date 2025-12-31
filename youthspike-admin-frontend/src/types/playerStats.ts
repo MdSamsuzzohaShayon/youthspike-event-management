@@ -108,3 +108,22 @@ export enum EPlayerStatType {
   DefensePercentage = 'defensePercentage',
   WinPercentage = 'winPercentage',
 }
+
+// Keys (To make url clean)
+export enum EStatsFilter {
+  MATCH = 'm', // Match
+  GAME = 'g', // game
+  TEAMMATE = 'tm', // teammate
+  CLUB = 'cb', 
+  VS_PLAYER = 'vp', 
+  CONFERENCE = 'ce', 
+  START_DATE = 'sd',
+  END_DATE = 'ed',
+}
+
+
+export enum EGroupType{
+  OVERALL = "OVERALL",
+  CONFERENCE = "CONFERENCE",
+  NON_CONFERENCE = "NON_CONFERENCE",
+}

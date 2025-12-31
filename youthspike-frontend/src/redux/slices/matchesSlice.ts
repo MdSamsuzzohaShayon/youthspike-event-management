@@ -1,18 +1,19 @@
 /* eslint-disable no-param-reassign */
-import { IMatchRelatives, ITeam, IPlayer } from '@/types';
-import { ETeamPlayer, INetRelatives } from '@/types/net';
-import { ETeam } from '@/types/team';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import {
+  IMatchRelatives,
+  ITeam,
+  IPlayer,
+  IMatchScore,
+  IRoundScore,
+} from "@/types";
+import { ETeamPlayer, INetRelatives } from "@/types/net";
+import { ETeam } from "@/types/team";
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
-interface ITeamScore {
-  teamATotalScore: number;
-  teamBTotalScore: number;
-  teamAPMScore: number; // plus minus score
-  teamBPMScore: number; // plus minus score
-}
 
-interface MatchesState extends ITeamScore {
+
+interface MatchesState  {
   match: IMatchRelatives;
   myTeam: null | ITeam;
   opTeam: null | ITeam;
@@ -32,28 +33,31 @@ interface MatchesState extends ITeamScore {
   outOfRange: string[];
   verifyLineup: boolean; // Temporary
   closePSCAvailable: boolean; // PSC = Player Score Card
+
+  matchScore: IMatchScore;
+  roundMap: Record<string, IRoundScore>;
 }
 
 const initialState: MatchesState = {
   match: {
-    _id: '',
-    teamA: '',
-    teamB: '',
-    event: '',
+    _id: "",
+    teamA: "",
+    teamB: "",
+    event: "",
     completed: false,
     date: new Date().toISOString(),
-    description: '',
-    location: '',
+    description: "",
+    location: "",
     numberOfNets: 0,
     numberOfRounds: 0,
-    division: '',
+    division: "",
     netVariance: 0,
-    homeTeam: '',
+    homeTeam: "",
     autoAssign: false,
-    autoAssignLogic: '',
-    rosterLock: '',
+    autoAssignLogic: "",
+    rosterLock: "",
     timeout: 0,
-    coachPassword: '',
+    coachPassword: "",
     rounds: [],
   },
 
@@ -77,15 +81,18 @@ const initialState: MatchesState = {
   outOfRange: [], // Net Variance
   closePSCAvailable: false,
 
-  // Score
-  teamATotalScore: 0,
-  teamBTotalScore: 0,
-  teamAPMScore: 0, // plus minus score
-  teamBPMScore: 0, // plus minus score
+
+  matchScore: {
+    teamAMPlusMinus: 0,
+    teamAMScore: 0,
+    teamBMPlusMinus: 0,
+    teamBMScore: 0,
+  },
+  roundMap: {},
 };
 
 export const matchesSlice = createSlice({
-  name: 'matches',
+  name: "matches",
   initialState,
   reducers: {
     setMatchInfo: (state, action: PayloadAction<IMatchRelatives>) => {
@@ -104,7 +111,10 @@ export const matchesSlice = createSlice({
     setOpPlayers: (state, action: PayloadAction<IPlayer[]>) => {
       state.opPlayers = action.payload;
     },
-    setTeamE: (state, action: PayloadAction<{ myTeamE: ETeam; opTeamE: ETeam }>) => {
+    setTeamE: (
+      state,
+      action: PayloadAction<{ myTeamE: ETeam; opTeamE: ETeam }>
+    ) => {
       state.myTeamE = action.payload.myTeamE;
       state.opTeamE = action.payload.opTeamE;
     },
@@ -145,25 +155,17 @@ export const matchesSlice = createSlice({
       state.closePSCAvailable = action.payload;
     },
 
-    // Team A & Team B Score
-    setTeamATotalScore: (state, action: PayloadAction<number>) => {
-      state.teamATotalScore = action.payload;
-    },
-    setTeamBTotalScore: (state, action: PayloadAction<number>) => {
-      state.teamBTotalScore = action.payload;
-    },
-    setTeamAPMScore: (state, action: PayloadAction<number>) => {
-      state.teamAPMScore = action.payload;
-    },
-    setTeamBPMScore: (state, action: PayloadAction<number>) => {
-      state.teamBPMScore = action.payload;
-    },
 
-    setTeamScore: (state, action: PayloadAction<ITeamScore>) => {
-      if (action.payload.teamATotalScore) state.teamATotalScore = action.payload.teamATotalScore;
-      if (action.payload.teamBTotalScore) state.teamBTotalScore = action.payload.teamBTotalScore;
-      if (action.payload.teamAPMScore) state.teamAPMScore = action.payload.teamAPMScore;
-      if (action.payload.teamBPMScore) state.teamBPMScore = action.payload.teamBPMScore;
+
+
+
+    //   matchScore: {teamAMPlusMinus: 0, teamAMScore: 0, teamBMPlusMinus: 0, teamBMScore: 0},
+    // roundMap: {},
+    setMatchScore: (state, action: PayloadAction<IMatchScore>) => {
+      state.matchScore = action.payload;
+    },
+    setRoundMap: (state, action: PayloadAction<Record<string, IRoundScore>>) => {
+      state.roundMap = action.payload;
     },
   },
 });
@@ -187,11 +189,8 @@ export const {
   setVerifyLineup,
   setclosePSCAvailable,
 
-  setTeamATotalScore,
-  setTeamBTotalScore,
-  setTeamAPMScore,
-  setTeamBPMScore,
-  setTeamScore
+  setMatchScore,
+  setRoundMap,
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

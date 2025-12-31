@@ -1,16 +1,26 @@
 import Teams from '@/components/teams/Teams';
-import { TParams } from '@/types';
+import { ITeamFilter } from '@/types';
 
-interface ITeamsPageProps{
-  params: TParams;
+interface ITeamsPageProps {
+  params: Promise<{ eventId: string }>;
+  searchParams: Promise<ITeamFilter>;
 }
 
-function TeamsPage({ params }: ITeamsPageProps) {
+async function TeamsPage({
+  params,
+  searchParams,
+}: ITeamsPageProps) {
+  const { eventId } = await params;
+  const {
+    search = "",
+    division = "",
+    group = "",
+  } = await searchParams;
   return (
-    <div className="team-main container mx-auto px-4 py-6 min-h-screen">
-      <Teams params={params} />
+    <div>
+      <Teams eventId={eventId} search={search} division={division} group={group} />
     </div>
-  );
+  )
 }
 
 export default TeamsPage;

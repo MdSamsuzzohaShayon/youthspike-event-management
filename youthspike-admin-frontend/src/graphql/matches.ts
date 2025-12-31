@@ -277,6 +277,87 @@ query GetMatches {
 
 `;
 
+const SEARCH_MATCHES = gql`
+query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
+  searchMatches(eventId: $eventId, filter: $filter) {
+    code
+    data {
+      event {
+        _id
+        name
+        logo
+        divisions
+        startDate
+        endDate
+        location
+        description
+      }
+      groups {
+        _id
+        name
+        division
+      }
+      ldo {
+        _id
+        name
+      }
+      matches {
+        _id
+        teamB
+        teamA
+        teamAP
+        teamBP
+        date
+        location
+        group
+        division
+        description
+        completed
+      }
+      nets {
+        _id
+        num
+        match
+        round
+        teamBPlayerA
+        teamBPlayerB
+        teamAPlayerA
+        teamAPlayerB
+        teamBScore
+        teamAScore
+        streamUrl
+        points
+      }
+      rounds {
+        _id
+        completed
+        firstPlacing
+        match
+        num
+        teamAScore
+        teamBScore
+        teamAProcess
+        teamBProcess
+      }
+      teams {
+        _id
+        name
+        num
+        division
+        matches
+        logo
+        group
+        active
+      }
+    }
+    code
+    message
+    success
+  }
+}
+`;
+
+
 /**
  * MUTATIONS
  * ===========================================================================================
@@ -327,4 +408,4 @@ mutation DeleteMatches($matchIds: [String!]!) {
 
 
 
-export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_RAW, GET_EVENT_WITH_MATCHES, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES, GET_A_MATCH_RAW, GET_MATCHES_MIN_RAW };
+export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_RAW, GET_EVENT_WITH_MATCHES, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES, GET_A_MATCH_RAW, GET_MATCHES_MIN_RAW, SEARCH_MATCHES };

@@ -44,13 +44,11 @@ export const elementSlice = createSlice({
     setMessage: (state, action: PayloadAction<IMessage | null>) => {
       state.message = action.payload;
     },
-    setSelectedColItem: (state, action: PayloadAction<EMenuTitle | null>) => {
-      state.selectedColItem = action.payload;
-    },
+
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setScreenSize, setIsLoading, setMessage, setSelectedColItem } = elementSlice.actions;
+export const { setScreenSize, setIsLoading, setMessage } = elementSlice.actions;
 
 export default elementSlice.reducer;

@@ -1,5 +1,4 @@
 // utils/playerStatsFilter.ts
-import TeamCard from "@/components/team/TeamCard";
 import {
   EGroupType,
   EStatsFilter,

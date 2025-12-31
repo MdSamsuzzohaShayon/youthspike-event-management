@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import { ETeam, IRoundRelatives, IMatchRelatives } from "@/types";
 import { screen } from "@/utils/constant";
-import { calcRoundScore } from "@/utils/scoreCalc";
 
 interface IPointsByRoundProps {
   dark: boolean;
@@ -17,25 +16,25 @@ export default function PointsByRound({
   screenWidth,
   currMatch,
 }: IPointsByRoundProps) {
-  const { myTeamE, opTeamE } = useAppSelector((s) => s.matches);
+  const { myTeamE, opTeamE, roundMap } = useAppSelector((s) => s.matches);
   const allNets = useAppSelector((s) => s.nets.nets);
 
   // --------- Layout Helpers ----------
   const boxSizeClass = screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8";
   const baseFlexDir = dark ? "flex-col" : "flex-col-reverse";
   const textColor = dark ? "text-white" : "text-black-logo";
+  const activeTeam = dark ? opTeamE : myTeamE;
 
   // --------- Determine Plus/Minus and Score for a Round ----------
   const renderRoundScore = useCallback(
     (round: IRoundRelatives) => {
-      const activeTeam = dark ? opTeamE : myTeamE;
+      const roundScore = roundMap[round._id];
+      if (!roundScore) return null;
 
-      const netsForRound = allNets.filter((n) => n.round === round._id);
-      const { score, plusMinusScore } = calcRoundScore(
-        netsForRound,
-        round,
-        activeTeam
-      );
+      const plusMinusScore =
+        activeTeam === ETeam.teamA
+          ? roundScore.teamARPlusMinus
+          : roundScore.teamBRPlusMinus;
 
       const plusMinusClass =
         plusMinusScore >= 0 ? "text-green-600" : "text-red-600";
@@ -51,12 +50,14 @@ export default function PointsByRound({
               dark ? "rounded-t-lg" : "rounded-b-lg"
             } flex justify-center items-center`}
           >
-            {score}
+            {activeTeam === ETeam.teamA
+              ? roundScore.teamARScore
+              : roundScore.teamBRScore}
           </p>
         </>
       );
     },
-    [allNets, myTeamE, opTeamE, dark]
+    [allNets, myTeamE, opTeamE, dark, roundMap]
   );
 
   // --------- Render Single Round Box ----------

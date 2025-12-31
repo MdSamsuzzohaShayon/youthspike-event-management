@@ -21,9 +21,9 @@ export async function MatchPage({ params }: IMatchPageProps) {
       }}
     >
       {(queryRef) => (
-        <Suspense fallback={<Loader />}>
-          <MatchMain queryRef={queryRef as QueryRef<{ getMatch: { data: IMatchExpRel } }>} />
-        </Suspense>
+        <MatchMain
+          queryRef={queryRef as QueryRef<{ getMatch: { data: IMatchExpRel } }>}
+        />
       )}
     </PreloadQuery>
   );

@@ -1,10 +1,10 @@
 /* eslint-disable import/no-cycle */
 import React from 'react';
 import { ICommonMatchEvent, IMatch, IMatchExpRel } from './match';
-import { EAssignStrategies, IError } from './elements';
+import { EAssignStrategies, IError, IResponse } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
-import { ICommonQuery, ILDO, ILDOItem } from './ldo';
+import { ILDO, ILDOItem } from './ldo';
 import { IGroup, IGroupExpRel } from './group';
 import { IPlayerStats, IProStats } from './playerStats';
 import { INetRelatives } from './net';
@@ -90,7 +90,7 @@ export interface IAllStats{
   stats: IPlayerStats[]
 }
 
-export interface IGetPlayerEventSettingsQuery extends ICommonQuery {
+export interface IGetPlayerEventSettingsQuery extends IResponse {
   data: {
     event?: IEvent;
     teams?: ITeam[];

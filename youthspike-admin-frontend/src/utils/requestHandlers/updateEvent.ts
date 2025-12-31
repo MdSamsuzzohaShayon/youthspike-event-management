@@ -122,8 +122,12 @@ export async function updateEventWithFiles({
   const response = await fetch(BACKEND_URL, {
     method: 'POST',
     body: formData,
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'apollo-require-preflight': 'true',
+    },
   });
+  
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);

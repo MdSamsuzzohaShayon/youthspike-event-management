@@ -1,41 +1,33 @@
-// React.js and Next.js
-
-// GraphQL, helpers, utils, types
-import { IEventWithMatchesResponse, TParams } from '@/types';
-import { PreloadQuery } from '@/lib/client';
 import { Suspense } from 'react';
+import { PreloadQuery } from '@/lib/client';
 import Loader from '@/components/elements/Loader';
-import { GET_EVENT_WITH_MATCHES } from '@/graphql/matches';
-import MatchesMainContainer from '@/components/match/MatchesMainContainer';
 import { QueryRef } from '@apollo/client/react';
+import { SEARCH_MATCHES } from '@/graphql/matches';
+import MatchesMainContainer from '@/components/match/MatchesMainContainer';
+import { ISearchFilter, ISearchLimitFilter, ISearchMatchResponse } from '@/types';
 
 interface IMatchesPageProps {
-  params: TParams;
+  params: Promise<{ eventId: string }>;
+  searchParams: Promise<ISearchFilter>;
 }
 
+export default async function MatchesPage({ params, searchParams }: IMatchesPageProps) {
+  const { eventId } = await params;
+  const { search = '', division = '', group = '', status = '' } = await searchParams;
+  
 
-async function MatchesPage({ params }: IMatchesPageProps) {
-  const pathParams = await params;
+  const initialFilter: Partial<ISearchLimitFilter> = {
+    limit: 30,
+    offset: 0,
+    search,
+    division,
+    group,
+    status,
+  };
 
   return (
-    <div className="container mx-auto px-4 min-h-screen">
-      <h1 className="mb-8 text-center">Matches</h1>
-      
-      <PreloadQuery
-        query={GET_EVENT_WITH_MATCHES}
-        variables={{ eventId: pathParams.eventId }}
-      >
-        {(queryRef) => (
-          <Suspense fallback={<Loader />}>
-            <MatchesMainContainer 
-              queryRef={queryRef as QueryRef<IEventWithMatchesResponse>} 
-              eventId={pathParams.eventId} 
-            />
-          </Suspense>
-        )}
-      </PreloadQuery>
-    </div>
+    <PreloadQuery query={SEARCH_MATCHES} variables={{ eventId, filter: initialFilter }}>
+      {(queryRef) => <MatchesMainContainer queryRef={queryRef as QueryRef<{ searchMatches: ISearchMatchResponse }>} eventId={eventId} initialSearchParams={{ search, division, group, status }} />}
+    </PreloadQuery>
   );
 }
-
-export default MatchesPage;

@@ -1,7 +1,7 @@
 import { ITeam } from "./team";
 import { IDocument } from "./document";
 import { IMatch } from "./match";
-import { IEvent } from "./event";
+import { IEvent, IEventExpRel } from "./event";
 import { IResponse } from "./elements";
 
 export enum EGroupRule {
@@ -40,4 +40,9 @@ export interface IGroupExpRel extends IGroup {
 export interface IGroupRes extends IResponse{
     data?: IGroupExpRel;
 }
+
+export interface IGetGroupsRespone extends IResponse{
+    data: IEventExpRel;
+}
+
 

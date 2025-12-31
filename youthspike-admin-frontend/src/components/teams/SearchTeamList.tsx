@@ -1,16 +1,17 @@
 import {
   IRoundRelatives,
-  ITeamCaptain,
+  ITeam,
   IMatch,
   ITeamScore,
   ETeam,
 } from "@/types";
 import { useMemo } from "react";
 import TeamRow from "./TeamRow";
-import { calcScore } from "@/utils/scoreCalc";
+import { calcScore } from "@/utils/calcScore";
+
 
 interface ITeamListProps {
-  teamList?: ITeamCaptain[];
+  teamList?: ITeam[];
   matchesByTeamId: Map<string, IMatch[]>;
   selectedGroup?: string;
 }
@@ -49,7 +50,7 @@ function SearchTeamList({
 
         
         
-        // @ts-ignore
+
         const {matchScore} = calcScore(match?.nets || [], (match?.rounds || []) as IRoundRelatives[]);
 
         const ts = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;

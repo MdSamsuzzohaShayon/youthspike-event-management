@@ -13,8 +13,8 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Loader from "../elements/Loader";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useSocket } from "@/lib/SocketProvider";
-import { calcRoundScore } from "@/utils/scoreCalc";
-import { setTeamScore } from "@/redux/slices/matchesSlice";
+import { calcScore } from "@/utils/scoreCalc";
+import { setMatchScore, setRoundMap } from "@/redux/slices/matchesSlice";
 import useMatchSocket from "@/hooks/match/useMatchSocket";
 import useNetMaps from "@/hooks/score-keeping/useNetMaps";
 import MatchPublicView from "../match/MatchPublicView";
@@ -161,41 +161,13 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
     }
   }, [match, organizeData]);
 
-  // Calculate points (keep your existing logic)
+
+
   useEffect(() => {
-    let teamATS = 0,
-      teamAPMS = 0,
-      teamBTS = 0,
-      teamBPMS = 0;
-
-    roundList.forEach((round) => {
-      const netList = allNets.filter((n) => n.round === round._id);
-      const { score: tas, plusMinusScore: tapms } = calcRoundScore(
-        netList,
-        round,
-        ETeam.teamA
-      );
-      teamATS += tas;
-      teamAPMS += tapms;
-
-      const { score: tbs, plusMinusScore: tbpms } = calcRoundScore(
-        netList,
-        round,
-        ETeam.teamB
-      );
-      teamBTS += tbs;
-      teamBPMS += tbpms;
-    });
-
-    dispatch(
-      setTeamScore({
-        teamATotalScore: teamATS,
-        teamBTotalScore: teamBTS,
-        teamBPMScore: teamBPMS,
-        teamAPMScore: teamAPMS,
-      })
-    );
-  }, [roundList, allNets, dispatch]);
+    const { matchScore, roundMap } = calcScore(allNets, roundList);
+    dispatch(setMatchScore(matchScore));
+    dispatch(setRoundMap(roundMap));
+  }, [allNets, roundList, dispatch]);
 
   if (error) {
     console.error("Error loading match:", error);

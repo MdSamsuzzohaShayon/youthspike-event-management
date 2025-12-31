@@ -30,7 +30,7 @@ export class UndoCheckInHandler {
       if (roundI === -1) throw new Error('Round not found with that round ID!');
 
       if (undoCheckIn.userRole === UserRole.captain || undoCheckIn.userRole === UserRole.co_captain) {
-        await this.validationHelper.validateCaptainCheckIn(undoCheckIn.userId);
+        await this.validationHelper.validateCaptainCheckIn(undoCheckIn.userId,  prevRoom.teamA, prevRoom.teamB);
       }
 
       const currRoundObj = { ...roundList[roundI] };

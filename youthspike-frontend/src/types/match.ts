@@ -101,6 +101,20 @@ export interface IMatch extends IMatchExpRel {
   status: EMatchStatus;
 }
 
+export interface IRoundScore {
+  teamARScore: number;
+  teamARPlusMinus: number;
+  teamBRScore: number;
+  teamBRPlusMinus: number;
+}
+
+export interface IMatchScore {
+  teamAMScore: number;
+  teamBMScore: number;
+  teamAMPlusMinus: number;
+  teamBMPlusMinus: number;
+}
+
 interface ISearchMatchData {
   event: IEvent;
   groups: IGroup[];

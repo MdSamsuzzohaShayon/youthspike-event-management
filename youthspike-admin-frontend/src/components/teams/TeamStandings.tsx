@@ -1,16 +1,16 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable react/require-default-props */
-import { IMatch, IMatchExpRel, IPlayer, ITeam } from '@/types';
+import { IMatch, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { ETeam, ITeamScore } from '@/types/team';
 import { tableVariant } from '@/utils/animation';
 import TeamRow from './TeamRow';
-import { calcMatchScore } from '@/utils/calcScore';
-
+import { calcMatchScore, calcScore } from '@/utils/calcScore';
 
 interface ITeamStandingsProps {
-  eventId: string;
+  nets?: INetRelatives[];
+  rounds?: IRoundRelatives[];
   teamList?: ITeam[];
   matchList?: IMatchExpRel[];
   selectedGroup?: string | null;
@@ -24,7 +24,7 @@ PSG
 
 */
 
-function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamStandingsProps) {
+function TeamStandings({ teamList, matchList, nets, rounds, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
 
   /**
@@ -36,15 +36,15 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
     if (matchList) {
       for (const match of matchList) {
         if (match.completed) {
-          if (match.teamA?._id) {
-            if (!map.has(match.teamA._id)) map.set(match.teamA._id, []);
-            // @ts-ignore
-            map.get(match.teamA._id)?.push(match);
+          if (match.teamA) {
+            const teamAId: string = typeof match.teamA === 'object' ? match.teamA._id : String(match.teamA);
+            if (!map.has(teamAId)) map.set(teamAId, []);
+            map.get(teamAId)?.push(match as IMatch);
           }
-          if (match.teamB?._id) {
-            if (!map.has(match.teamB._id)) map.set(match.teamB._id, []);
-            // @ts-ignore
-            map.get(match.teamB._id)?.push(match);
+          if (match.teamB) {
+            const teamBId: string = typeof match.teamB === 'object' ? match.teamB._id : String(match.teamB);
+            if (!map.has(teamBId)) map.set(teamBId, []);
+            map.get(teamBId)?.push(match as IMatch);
           }
         }
       }
@@ -52,6 +52,27 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
 
     return map;
   }, [matchList]);
+
+  const netsByMatch = useMemo(() => {
+    const map = new Map<string, INetRelatives[]>();
+    if (!nets) return map;
+    for (const net of nets) {
+      if (!map.has(net.match)) map.set(net.match, []);
+      map.get(net.match)?.push(net);
+    }
+    return map;
+  }, [nets]);
+
+  const roundsByMatch = useMemo(() => {
+    const map = new Map<string, IRoundRelatives[]>();
+    if (!rounds) return map;
+    for (const round of rounds) {
+      if (!map.has(round.match)) map.set(round.match, []);
+      map.get(round.match)?.push(round);
+    }
+    return map;
+  }, [rounds]);
+  
 
   /**
    * Calculate Team Scores
@@ -79,14 +100,22 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
       let totalNets = 0;
 
       for (const match of teamMatches) {
+        const teamAId: string = typeof match.teamA === 'object' ? match.teamA._id : String(match.teamA);
+        const isTeamA = teamAId === team._id;
+        // const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
+        const nets = netsByMatch?.get(match._id) || [];
+        const rounds = roundsByMatch?.get(match._id) || [];
+
         
-        const isTeamA = match.teamA._id === team._id;
-        // @ts-ignore
-        const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
         
 
+        const { matchScore } = calcScore(nets, rounds);
+
+        const teamScore = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+        const oponentScore = isTeamA ? matchScore.teamBMScore : matchScore.teamAMScore;
+
         totalMatchDiff += teamScore - oponentScore;
-        totalGameDiff += teamPlusMinus;
+        totalGameDiff += isTeamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
 
         if (teamScore > oponentScore) {
           teamRecord.overallWins += 1;
@@ -106,20 +135,20 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
     }
 
     setTeamScores(newTeamScores);
-  }, [teamList, matchesByTeam]);
+  }, [teamList, matchesByTeam, netsByMatch, roundsByMatch]);
 
   /**
    * Rank Teams
    */
   const sortedTeams = useMemo(() => {
     if (!teamList || teamScores.size === 0) return [];
-  
+
     return [...teamList].sort((teamA, teamB) => {
       const scoreA = teamScores.get(teamA._id);
       const scoreB = teamScores.get(teamB._id);
-  
+
       if (!scoreA || !scoreB) return 0;
-  
+
       if (selectedGroup) {
         // Sorting by Group Wins first
         // if (scoreA.groupWins !== scoreB.groupWins) {
@@ -127,7 +156,7 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
         // }
         // If Group Wins are tied, sort by Group Losses (lower group losses go up)
         if (scoreA.groupLoses !== scoreB.groupLoses) {
-          return scoreA.groupLoses - scoreB.groupLoses;  // Lower group losses go up
+          return scoreA.groupLoses - scoreB.groupLoses; // Lower group losses go up
         }
       } else {
         // Sorting by Overall Wins first
@@ -136,24 +165,23 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
         // }
         // If Overall Wins are tied, sort by Overall Losses (lower overall losses go up)
         if (scoreA.overallLoses !== scoreB.overallLoses) {
-          return scoreA.overallLoses - scoreB.overallLoses;  // Lower overall losses go up
+          return scoreA.overallLoses - scoreB.overallLoses; // Lower overall losses go up
         }
       }
-  
+
       // If the above criteria are tied, sort by matchAvgDiff (higher matchAvgDiff goes up)
       if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
         return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
       }
-  
+
       // If the matchAvgDiff is also tied, sort by gameAvgDiff (higher gameAvgDiff goes up)
       if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
         return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
       }
-  
-      return 0;  // If all criteria are equal, retain the original order
+
+      return 0; // If all criteria are equal, retain the original order
     });
-  }, [teamList, teamScores, selectedGroup]);  // Re-run when teamList, teamScores, or selectedGroup change
-  
+  }, [teamList, teamScores, selectedGroup]); // Re-run when teamList, teamScores, or selectedGroup change
 
   /**
    * Trigger Calculations on Dependency Changes
@@ -167,7 +195,7 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
       <div className="overflow-x-auto">
         <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
           <thead>
-            <tr className="bg-yellow-500 text-black font-semibold">
+            <tr className="bg-yellow-logo text-black font-semibold">
               <th className="py-3 px-2">Team</th>
               {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Overall</th>
@@ -177,7 +205,7 @@ function TeamStandings({ eventId, teamList, matchList, selectedGroup }: ITeamSta
           </thead>
           <tbody>
             {sortedTeams.map((team, index) => (
-              <TeamRow eventId={eventId} selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
+              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
             ))}
           </tbody>
         </motion.table>

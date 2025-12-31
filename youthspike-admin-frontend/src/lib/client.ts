@@ -1,33 +1,32 @@
 // lib/client.ts
-import { BACKEND_URL } from "@/utils/keys";
-import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
-import { registerApolloClient } from "@apollo/client-integration-nextjs";
-import { SetContextLink } from "@apollo/client/link/context";
-import { cookies } from "next/headers";
+import { BACKEND_URL } from '@/utils/keys';
+import { ApolloLink, HttpLink, from } from '@apollo/client';
+import { registerApolloClient, ApolloClient, InMemoryCache } from '@apollo/client-integration-nextjs';
+import { SetContextLink } from '@apollo/client/link/context';
+import { cookies } from 'next/headers';
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(() => {
-  // 🔐 Auth link (modern replacement for setContext)
-  const authLink = new SetContextLink(async (prevContext) => {
-    const cookieStore = await cookies(); // sync in App Router
-    const token = cookieStore.get("token")?.value;
-
+  // Middleware to attach token to each request
+  const authLink = new SetContextLink(async (prevContext, operation) => {
+    const cookieStore = await cookies(); // ✅ synchronous in Next.js server env
+    const token = cookieStore.get('token')?.value;
     return {
       headers: {
         ...prevContext.headers,
-        authorization: token ? `Bearer ${token}` : "",
+        authorization: `Bearer ${token}`,
       },
     };
   });
 
-  // 🌐 HTTP link
+  // HTTP connection to backend GraphQL
   const httpLink = new HttpLink({
     uri: BACKEND_URL,
-    fetch,
+    fetch, // ✅ use native fetch (works in Node + browser)
   });
 
   return new ApolloClient({
     cache: new InMemoryCache(),
-    // ✅ Modern chaining (no `from`)
-    link: authLink.concat(httpLink),
+    // link: from([authLink, httpLink]), // chain auth + http links
+    link: ApolloLink.from([authLink, httpLink]),
   });
 });

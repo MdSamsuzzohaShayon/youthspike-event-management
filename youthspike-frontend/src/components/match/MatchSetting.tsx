@@ -17,12 +17,10 @@ import {
   IUpdateMatchResponse,
 } from "@/types";
 import { readDate } from "@/utils/datetime";
-import { EMenuTitle, IColMenu } from "@/types/elements";
-import { setMessage, setSelectedColItem } from "@/redux/slices/elementSlice";
+import { setMessage } from "@/redux/slices/elementSlice";
 import { useLdoId } from "@/lib/LdoProvider";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import TeamInMatch from "../team/TeamInMatch";
-import CollapseContent from "./CollapseContent";
 import { EActionProcess } from "@/types/room";
 import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
@@ -631,7 +629,7 @@ function MatchSetting({
       {/* Floating Setting Button */}
       <button
         onClick={handleSettingOpen}
-        className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-yellow-500 hover:bg-yellow-400 text-black-logo p-3 rounded-full shadow-2xl shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-200 hover:scale-110 z-50 group"
+        className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-yellow-logo hover:bg-yellow-400 text-black-logo p-3 rounded-full shadow-2xl shadow-yellow-500/25 hover:shadow-yellow-500/40 transition-all duration-200 hover:scale-110 z-50 group"
         style={{ top: "47%" }}
       >
         <Image

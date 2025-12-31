@@ -8,12 +8,12 @@ import { useUser } from '@/lib/UserProvider';
 import { IEvent, IGetPlayerEventSettingsQuery } from '@/types';
 import { QueryRef, useReadQuery } from '@apollo/client/react';
 
-interface ISettingsMainProps {
+interface ISettingsMainContainerProps {
   queryRef: QueryRef<{ getPlayerEventSetting: IGetPlayerEventSettingsQuery }>;
   eventId: string;
 }
 
-const SettingsMain = ({ queryRef, eventId }: ISettingsMainProps) => {
+const SettingsMainContainer = ({ queryRef, eventId }: ISettingsMainContainerProps) => {
   // Hooks
   const user = useUser();
 
@@ -43,4 +43,4 @@ const SettingsMain = ({ queryRef, eventId }: ISettingsMainProps) => {
   );
 };
 
-export default SettingsMain;
+export default SettingsMainContainer;

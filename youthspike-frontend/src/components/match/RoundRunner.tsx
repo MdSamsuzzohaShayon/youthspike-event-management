@@ -39,7 +39,7 @@ function RoundRunner({
   // ===== Hooks =====
   const user = useUser();
   const socket = useSocket();
-  const { match, teamATotalScore, teamBTotalScore } = useAppSelector(
+  const { match, matchScore} = useAppSelector(
     (state) => state.matches
   );
   const currEvent = useAppSelector((state) => state.events.current);
@@ -72,7 +72,7 @@ function RoundRunner({
       isFinalRound &&
       currentRound?.completed &&
       match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND &&
-      teamATotalScore === teamBTotalScore
+      matchScore.teamAMScore === matchScore.teamBMScore
     ) {
       return (
         <AskOvertimeScore
@@ -138,8 +138,7 @@ function RoundRunner({
     otp,
     roundList,
     socket,
-    teamATotalScore,
-    teamBTotalScore,
+    matchScore,
     user,
   ]);
   useEffect(() => {

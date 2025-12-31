@@ -13,7 +13,6 @@ import Footer from '@/components/layout/Footer';
 import AdminMenu from '@/components/layout/AdminMenu';
 import Message from '@/components/elements/Message';
 import Loader from '@/components/elements/Loader';
-import LoadingPage from './loading';
 
 import './globals.css';
 import '../utils/polyfills';
@@ -63,14 +62,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <UserProvider>
                 <LdoProvider>
                   <ErrorProvider>
-                    <Suspense fallback={<LoadingPage />}>
-                      <Message />
-                      <AdminMenu />
-                      {children}
-                      <div className="mt-6">
-                        <Footer />
-                      </div>
-                    </Suspense>
+                    {/* Main content start  */}
+                    <Message />
+                    <AdminMenu />
+                    {children}
+                    <div className="mt-6">
+                      <Footer />
+                    </div>
+                    {/* Main content end  */}
+                    {/* <Suspense fallback={<LoadingPage />}>
+                    </Suspense> */}
                   </ErrorProvider>
                 </LdoProvider>
               </UserProvider>

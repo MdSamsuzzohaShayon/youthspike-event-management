@@ -5,6 +5,7 @@ import {
   IEvent,
   IGroup,
   IGroupRelatives,
+  IMatch,
   IMatchExpRel,
   INetRelatives,
   IPlayer,
@@ -19,8 +20,6 @@ import {
   TMutationFunction,
 } from '.';
 import { ApolloCache } from '@apollo/client';
-
-
 
 export interface ITeam {
   _id: string;
@@ -79,7 +78,6 @@ export interface IGetTeamDetailQuery extends IResponse {
   };
 }
 
-
 interface ITeamRoster {
   event: IEvent;
   players: IPlayer[];
@@ -89,7 +87,7 @@ interface ITeamRoster {
   playerRanking: IPlayerRankingExpRel;
 }
 
-export interface IGetTeamRosterResponse{
+export interface IGetTeamRosterResponse {
   code: number;
   success: boolean;
   message: string;
@@ -122,8 +120,13 @@ export interface IBaseTeamAction {
   teamAddCB?: (teamData: ITeam) => void;
 }
 
-
-
+export interface ITeamFilter {
+  search: string;
+  division: string;
+  group: string;
+  limit?: number;
+  offset?: number;
+}
 
 interface ITeamMatches {
   event: IEvent;
@@ -134,31 +137,51 @@ interface ITeamMatches {
   rounds: IRoundRelatives[];
 }
 
-export interface IGetTeamMatchesResponse{
+export interface IGetTeamMatchesResponse {
   code: number;
   success: boolean;
   message: string;
   data: ITeamMatches;
 }
 
+interface ISearchTeamData {
+  event: IEvent;
+  groups: IGroup[];
+  matches: IMatch[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+  teams: ITeam[];
+}
 
-export interface IUpdateTeamRes extends IResponse{
+export interface ISearchTeamResponse extends IResponse {
+  data: ISearchTeamData;
+}
+
+export interface IUpdateTeamRes extends IResponse {
   data?: ITeam;
 }
 
-export interface ITeamRes extends IUpdateTeamRes{}
+export interface ITeamRes extends IUpdateTeamRes {}
 
-export type TUpdateTeamFunction = useMutation.MutationFunction<{
-  updateTeam: IUpdateTeamRes;
-}, {
-  [x: string]: any;
-}, ApolloCache>;
+export type TUpdateTeamFunction = useMutation.MutationFunction<
+  {
+    updateTeam: IUpdateTeamRes;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
-export type TCreateTeamMutationFunction = useMutation.MutationFunction<{
-  createTeam: ITeamRes;
-}, {
-  [x: string]: any;
-}, ApolloCache>;
+export type TCreateTeamMutationFunction = useMutation.MutationFunction<
+  {
+    createTeam: ITeamRes;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
 export enum ETeam {
   teamA = 'teamA',

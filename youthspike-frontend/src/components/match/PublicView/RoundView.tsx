@@ -51,11 +51,8 @@ const RoundView = ({
 }: IRoundViewProps) => {
   const dispatch = useAppDispatch();
 
-  const teamATotalScore = useAppSelector(
-    (state) => state.matches.teamATotalScore
-  );
-  const teamBTotalScore = useAppSelector(
-    (state) => state.matches.teamBTotalScore
+  const matchScore = useAppSelector(
+    (state) => state.matches.matchScore
   );
 
   const roundIdToIndex = useMemo(() => {
@@ -141,14 +138,14 @@ const RoundView = ({
           teamId={teamA?._id || ""}
           name={teamA?.name || ""}
           teamLogo={teamA?.logo || null}
-          score={teamATotalScore}
+          score={matchScore.teamAMScore}
           penalty={match?.teamAP || 0}
         />
         <ScoreBox
           teamId={teamB?._id || ""}
           name={teamB?.name || ""}
           teamLogo={teamB?.logo || null}
-          score={teamBTotalScore}
+          score={matchScore.teamBMScore}
           penalty={match?.teamBP || 0}
         />
       </div>
@@ -196,7 +193,7 @@ const RoundView = ({
             teamId={teamA?._id || ""}
             name={teamA?.name || ""}
             teamLogo={teamA?.logo || null}
-            score={teamATotalScore}
+            score={matchScore.teamAMScore}
             penalty={match?.teamAP || 0}
           />
         </div>
@@ -221,7 +218,7 @@ const RoundView = ({
             teamId={teamB?._id || ""}
             name={teamB?.name || ""}
             teamLogo={teamB?.logo || null}
-            score={teamBTotalScore}
+            score={matchScore.teamBMScore}
             penalty={match?.teamBP || 0}
           />
         </div>

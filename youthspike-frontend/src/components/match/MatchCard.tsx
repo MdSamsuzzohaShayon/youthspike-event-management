@@ -1,6 +1,6 @@
 import { IMatch, IMatchExpRel, INetRelatives, IRoundRelatives } from "@/types";
 import { ETeam, ITeam } from "@/types/team";
-import { calcRoundScore } from "@/utils/scoreCalc";
+import { calcScore } from "@/utils/scoreCalc";
 import Link from "next/link";
 import React, { useCallback, useMemo } from "react";
 import { readDate } from "@/utils/datetime";
@@ -25,8 +25,6 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
   const router = useRouter();
-
-
 
   const handleCaptainView = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -60,22 +58,6 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     }, new Map<string, INetRelatives[]>());
   }, [allNets]);
 
-  /** ✅ Precompute team scores */
-  const teamScores = useMemo(() => {
-    return (roundList || []).reduce(
-      (scores, round) => {
-        if (!round?._id) return scores;
-        const roundNets = netsByRoundId.get(round._id) || [];
-        // @ts-ignore
-        scores.teamA += calcRoundScore(roundNets, round, ETeam.teamA).score;
-        // @ts-ignore
-        scores.teamB += calcRoundScore(roundNets, round, ETeam.teamB).score;
-        return scores;
-      },
-      { teamA: 0, teamB: 0 }
-    );
-  }, [roundList, netsByRoundId]);
-
   /** ✅ Determine match status */
   const statusMessage = useMemo(() => {
     return getMatchStatus(match as IMatch, roundList, allNets);
@@ -92,20 +74,19 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
     return "bg-gray-500";
   }, [statusMessage]);
 
-  console.log(match?.teamAP);
-  
 
   /** ✅ Team card reusable component */
   const TeamCard = useCallback(
     ({ team, teamType }: { team?: ITeam | null; teamType: ETeam }) => {
+      const { matchScore } = calcScore(allNets, roundList);
       const teamScore =
         teamType === ETeam.teamA
-          ? teamScores.teamA + ( match?.teamAP || 0)
-          : teamScores.teamB + ( match?.teamBP || 0);
+          ? matchScore.teamAMScore + (match?.teamAP || 0)
+          : matchScore.teamBMScore + (match?.teamBP || 0);
       const opponentScore =
         teamType === ETeam.teamA
-          ? teamScores.teamB + ( match?.teamBP || 0)
-          : teamScores.teamA + ( match?.teamAP || 0);
+          ? matchScore.teamBMScore + (match?.teamBP || 0)
+          : matchScore.teamAMScore + (match?.teamAP || 0);
       const won = teamScore > opponentScore && match?.completed;
 
       return (
@@ -156,7 +137,7 @@ function MatchCard({ match, roundList, allNets }: MatchCardProps) {
         </div>
       );
     },
-    [teamScores, match]
+    [roundList, allNets, match]
   );
 
   /** ✅ Reusable Action Buttons */

@@ -14,10 +14,13 @@ interface ILogoMatchScoreProps {
 }
 
 function LogoMatchScore({ dark, team, teamE, completed, penalty }: ILogoMatchScoreProps) {
-  const { teamATotalScore, teamBTotalScore } = useAppSelector((state) => state.matches);
+  const { matchScore } = useAppSelector((state) => state.matches);
 
-  const myS = teamE === ETeam.teamA ? teamATotalScore : teamBTotalScore;
-  const opS = teamE === ETeam.teamA ? teamBTotalScore : teamATotalScore;
+  const myS = teamE === ETeam.teamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+  const opS = teamE === ETeam.teamA ? matchScore.teamBMScore : matchScore.teamAMScore;
+  const plusMinus = teamE === ETeam.teamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+
+  
 
   return (
     <div className={`logo-match-score py-2 flex w-full ${dark ? 'text-white flex-col' : 'text-black-logo flex-col-reverse'} gap-1`}>
@@ -35,6 +38,7 @@ function LogoMatchScore({ dark, team, teamE, completed, penalty }: ILogoMatchSco
           </h3>
           <div className={`score-box w-3/6 border border-yellow p-2 ${myS > opS && completed ? 'bg-green-600 text-white' : ''} flex justify-center items-center text-center flex-col rounded-lg`}>
             <h3>{myS + penalty}</h3>
+            { plusMinus !== 0 && <p className={`text-xs ${plusMinus > 0 ? "text-white-500" : "text-red-500"}`}>{plusMinus}</p>}
           </div>
         </div>
       </div>

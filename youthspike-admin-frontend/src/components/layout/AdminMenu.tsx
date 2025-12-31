@@ -51,8 +51,7 @@ const AdminMenu = () => {
   // ===== Component Mount =====
   useEffect(() => {
     if (params.eventId) {
-      // @ts-ignore
-      setEventId(params.eventId);
+      setEventId(String(params.eventId));
     } else {
       setEventId(null);
     }

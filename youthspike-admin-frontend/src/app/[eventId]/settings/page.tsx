@@ -1,9 +1,7 @@
-import { IGetEventDirectorQuery, IGetPlayerEventSettingsQuery, TParams } from '@/types';
-import SettingsMain from '@/components/event/SettingsMain';
+import { IGetPlayerEventSettingsQuery, TParams } from '@/types';
+import SettingsMainContainer from '@/components/event/SettingsMainContainer';
 import { PreloadQuery } from '@/lib/client';
 import { GET_PLAYER_EVENT_SETTINGS } from '@/graphql/event';
-import { Suspense } from 'react';
-import Loader from '@/components/elements/Loader';
 import { QueryRef } from '@apollo/client/react';
 
 interface ISettingsPageProps {
@@ -21,11 +19,7 @@ async function SettingsPage({ params }: ISettingsPageProps) {
           eventId: pathParams.eventId,
         }}
       >
-        {(queryRef) => (
-          <Suspense fallback={<Loader />}>
-            <SettingsMain queryRef={queryRef as QueryRef<{ getPlayerEventSetting: IGetPlayerEventSettingsQuery }>} eventId={pathParams.eventId} />
-          </Suspense>
-        )}
+        {(queryRef) => <SettingsMainContainer queryRef={queryRef as QueryRef<{ getPlayerEventSetting: IGetPlayerEventSettingsQuery }>} eventId={pathParams.eventId} />}
       </PreloadQuery>
     </div>
   );

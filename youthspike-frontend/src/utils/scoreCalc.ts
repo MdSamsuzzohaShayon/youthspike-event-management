@@ -1,10 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 import {
   IMatchExpRel,
+  IMatchScore,
   INetRelatives,
   IPlayer,
   IPlayerRecord,
   IRoundRelatives,
+  IRoundScore,
   ITeam,
 } from "@/types";
 import { ETeam } from "@/types/team";
@@ -14,91 +16,91 @@ interface IReturnScore {
   plusMinusScore: number;
 }
 
-/**
- * Calculate the score and plus-minus for a specific team in a round.
- */
-function calcRoundScore(
-  findNets: INetRelatives[],
-  round: IRoundRelatives,
-  teamE: ETeam
-): IReturnScore {
-  let score = 0;
-  let plusMinusScore = 0;
-
-  // Calculate score
-  for (const net of findNets) {
-    const teamAScore = net.teamAScore || 0;
-    const teamBScore = net.teamBScore || 0;
-
-    if (teamE === ETeam.teamA && teamAScore > teamBScore) {
-      score += net.points;
-    } else if (teamE === ETeam.teamB && teamBScore > teamAScore) {
-      score += net.points;
-    }
-  }
-
-
-  const teamPoints =
-    teamE === ETeam.teamA ? round.teamAScore || 0 : round.teamBScore || 0;
-  const opponentPoints =
-    teamE === ETeam.teamA ? round.teamBScore || 0 : round.teamAScore || 0;
-
-  plusMinusScore = teamPoints - opponentPoints;
-
-  return { score, plusMinusScore };
-}
 
 /**
- * Calculate match scores for both teams with optimized filtering.
+ * Calculate match score and plus-minus for a specific team in a round.
  */
-function calcMatchScore(
-  roundList: IRoundRelatives[],
-  allNets: INetRelatives[],
-  teamE: ETeam
-): {
-  teamScore: number;
-  oponentScore: number;
-  teamPlusMinus: number;
-  oponentPlusMinus: number;
-} {
-  let teamScore = 0;
-  let oponentScore = 0;
-  let teamPlusMinus = 0;
-  let oponentPlusMinus = 0;
+const calcScore = (
+  nets: INetRelatives[],
+  rounds: IRoundRelatives[]
+): { roundMap: Record<string, IRoundScore>; matchScore: IMatchScore } => {
+  // Serialized round scores (no Map)
+  const roundMap: Record<string, IRoundScore> = {};
 
-  const oponentE = teamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+  let teamAMScore = 0;
+  let teamBMScore = 0;
+  let teamAMPlusMinus = 0;
+  let teamBMPlusMinus = 0;
 
-  // Pre-group nets by round ID to reduce filtering overhead
-  const netsByRound = new Map<string, INetRelatives[]>();
-  for (const net of allNets) {
-    // @ts-ignore
-    const roundId = net.round?._id || net.round;
-    if (!netsByRound.has(roundId)) {
-      netsByRound.set(roundId, []);
+  // Group nets by round
+  const netsByRound: Record<string, INetRelatives[]> = {};
+
+  for (const net of nets) {
+    const roundId = net.round;
+    if (!netsByRound[roundId]) {
+      netsByRound[roundId] = [];
     }
-    netsByRound.get(roundId)!.push(net);
+    netsByRound[roundId].push(net);
   }
 
-  for (const round of roundList) {
-    const netsOfRound = netsByRound.get(round._id) || [];
+  // Calculate scores
+  for (const round of rounds) {
+    const nets = netsByRound[round._id];
+    if (!nets) continue;
 
-    // Calculate team and opponent scores in one loop
-    const teamResult = calcRoundScore(netsOfRound, round, teamE);
-    const oponentResult = calcRoundScore(netsOfRound, round, oponentE);
+    let teamARScore = 0;
+    let teamBRScore = 0;
 
-    teamScore += teamResult.score;
-    teamPlusMinus += teamResult.plusMinusScore;
-    oponentScore += oponentResult.score;
-    oponentPlusMinus += oponentResult.plusMinusScore;
+    let teamATotal = 0;
+    let teamBTotal = 0;
+
+    for (const net of nets) {
+      const a = net.teamAScore ?? 0;
+      const b = net.teamBScore ?? 0;
+
+      if (a > b) teamARScore += net.points;
+      else if (b > a) teamBRScore += net.points;
+
+      teamATotal += a;
+      teamBTotal += b;
+    }
+
+    const diff = teamATotal - teamBTotal;
+    
+
+    const teamARPlusMinus = diff;
+    const teamBRPlusMinus = -diff;
+
+    roundMap[round._id] = {
+      teamARScore,
+      teamBRScore,
+      teamARPlusMinus,
+      teamBRPlusMinus,
+    };
+
+    teamAMScore += teamARScore;
+    teamBMScore += teamBRScore;
+    teamAMPlusMinus += diff ;
+    teamBMPlusMinus += (-diff);
   }
 
-  return {
-    teamScore,
-    oponentScore,
-    teamPlusMinus,
-    oponentPlusMinus,
+  // Final serialized match score
+  const matchScore: {
+    roundMap: Record<string, IRoundScore>;
+    matchScore: IMatchScore;
+  } = {
+    roundMap,
+    matchScore: {
+      teamAMScore,
+      teamBMScore,
+      teamAMPlusMinus,
+      teamBMPlusMinus,
+    },
   };
-}
+  return matchScore;
+};
+
+
 
 /**
  * Calculate the combined score of two players.
@@ -254,8 +256,7 @@ const calculatePlayerRecords = (
 };
 
 export {
-  calcRoundScore,
   calcPairScore,
-  calcMatchScore,
   calculatePlayerRecords,
+  calcScore
 };

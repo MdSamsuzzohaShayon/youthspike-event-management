@@ -98,10 +98,6 @@
 /* =============================== */
 @container round-net-view (max-width: 740px) {
 
-
-  .team-in-net {
-  }
-
   .net-in-round {
     width: 48%;
   }
@@ -149,8 +145,6 @@
   }
 
 
-  .team-in-net {
-  }
 
   .net-in-round {
     margin-top: 30px;
@@ -204,15 +198,6 @@
 
 /* Additional breakpoint for very small containers (equivalent to very small landscape) */
 @container round-net-view (max-width: 400px) {
-  .player-name {
-    /* font-size: 0.4rem !important;
-    line-height: 1;
-    padding: 0; */
-  }
-
-  .team-in-net {
-  }
-
   .net-team-score{
     font-size: 6rem;
   }
@@ -237,10 +222,6 @@
     height: 70px;
   }
 
-  .team-logo-wrapper-single{
-    /* width: 45px;
-    height: 45px; */
-  }
 
   .action-pt-img-single{
     height: 40px;
@@ -257,12 +238,6 @@
     font-size: 0.5rem;
   }
 
-  .team-in-net {
-  }
-
-  .net-in-round .top-side {
-    /* min-height: 80%; */
-  }
   .net-team-score{
     font-size: 4.5rem;
   }
@@ -308,7 +283,7 @@
   }
 
   .net-team-score{
-    font-size: 10rem;
+    font-size: 8rem;
   }
   .net-team-score-single{
     font-size: 12rem;

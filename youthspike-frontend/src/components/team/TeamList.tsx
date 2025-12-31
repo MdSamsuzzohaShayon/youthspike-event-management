@@ -6,7 +6,6 @@ import {
   ITeam,
 } from "@/types";
 import React, { useEffect, useMemo, useState } from "react";
-import { calcMatchScore } from "@/utils/scoreCalc";
 import { ETeam, ITeamScore } from "@/types/team";
 import TeamRow from "./TeamRow";
 import Pagination from "../elements/Pagination";
@@ -14,6 +13,7 @@ import {
   createNetMapByMatch,
   createRoundMapByMatch,
 } from "@/utils/match/mapByMatch";
+import { calcScore } from "@/utils/scoreCalc";
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -99,15 +99,10 @@ function TeamList({
    * Compute scores per team
    */
   const teamScores = useMemo(() => {
-
-
     const scores = new Map<string, ITeamScore>();
 
     for (const team of teamList) {
-
-
       const teamMatches = matchesByTeam.get(team._id) || [];
-
 
       const teamRecord: ITeamScore = {
         rank: 0,
@@ -125,28 +120,26 @@ function TeamList({
       let totalNets = 0;
 
       for (const match of teamMatches) {
-
-
         const isTeamA = match.teamA._id === team._id;
-
 
         // direct lookups instead of filter
         const roundList = roundMapByMatch.get(match._id) || [];
         const allNets = netMapByMatch.get(match._id) || [];
 
+        const { matchScore } = calcScore(allNets, roundList);
 
+        const ts = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+        const os = !isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+        const teamPlusMinus =
+          matchScore.teamAMPlusMinus > matchScore.teamBMPlusMinus
+            ? matchScore.teamAMPlusMinus
+            : matchScore.teamBMPlusMinus;
 
-        const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(
-          roundList,
-          allNets,
-          isTeamA ? ETeam.teamA : ETeam.teamB
-        );
-
+        const teamScore = ts + (isTeamA ? match?.teamAP || 0 : 0),
+          oponentScore = os + (isTeamA ? match?.teamBP || 0 : 0);
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;
-
-  
 
         if (teamScore > oponentScore) {
           teamRecord.overallWins++;
@@ -158,11 +151,9 @@ function TeamList({
             (match?.group?._id || match?.group)
           ) {
             teamRecord.groupWins++;
-
           }
         } else if (oponentScore > teamScore) {
           teamRecord.overallLoses++;
-
 
           if (
             match.group &&
@@ -172,10 +163,8 @@ function TeamList({
             (match?.group?._id || match?.group)
           ) {
             teamRecord.groupLoses++;
-
           }
         } else {
-
         }
 
         totalNets += match.nets.length;

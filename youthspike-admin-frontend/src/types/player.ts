@@ -1,4 +1,4 @@
-import { IEvent, IGroup, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam } from ".";
+import { IAllStats, IEvent, IGroup, IMatch, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam } from ".";
 import { IDocument } from "./document";
 
 /**
@@ -51,6 +51,16 @@ export interface IPlayerExpRel extends IDocument {
   cocaptainofteams: ITeam[] | null;
 }
 
+export interface IPlayerRecord extends IPlayer{
+  numOfGame: number;
+  running: number;
+  wins: number; // Number of games wins
+  losses: number; // Number of games loses
+  averagePointsDiff: number; // Points of wins os loses by how many points in each game on average
+  rank?: number | null;
+}
+
+
 export interface IPlayerAndTeamsResponse{
   getPlayerAndTeams: {
     code: number,
@@ -76,6 +86,23 @@ export interface IEventPlayersGroupsTeamsResponse {
     };
   };
 }
+
+interface ISearchPlayerData {
+  event: IEvent;
+  groups: IGroup[];
+  players: IPlayer[];
+  teams: ITeam[];
+  statsOfPlayer: IAllStats[];
+  matches: IMatch[];
+}
+
+export interface ISearchPlayerResponse {
+  code: number;
+  success: boolean;
+  message: string;
+  data: ISearchPlayerData;
+}
+
 
 export interface IPlayerRank extends IPlayerExpRel {
   rank?: number;

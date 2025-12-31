@@ -1,43 +1,38 @@
+// =========================
+// app/events/[eventId]/teams/page.tsx
+// =========================
+
 import { Suspense } from 'react';
 import { PreloadQuery } from '@/lib/client';
-import { GET_EVENT_WITH_TEAMS } from '@/graphql/teams';
-import TeamListMain from './TeamListMain';
 import Loader from '@/components/elements/Loader';
-import { IGetEventWithTeamsQuery, TParams } from '@/types';
 import { QueryRef } from '@apollo/client/react';
+import { ISearchLimitFilter, ISearchTeamResponse, ITeamFilter } from '@/types';
+import { SEARCH_TEAMS } from '@/graphql/teams';
+import TeamsContainer from '@/components/teams/TeamsContainer';
 
-interface ITeamProps {
-  params: TParams;
+interface ITeamsProps {
+  eventId: string;
+  search: string;
+  division: string;
+  group: string;
 }
 
-export default async function Teams({ params }: ITeamProps) {
-  const { eventId } = await params;
-  
-
-  if (!eventId) {
-    const err = new Error('Event ID not provided.');
-    err.name = 'Invalid parameters';
-    throw err;
-  }
+export default async function Teams({ division, eventId, group, search }: ITeamsProps) {
+  const initialFilter: Partial<ISearchLimitFilter> = {
+    limit: 30,
+    offset: 0,
+    search,
+    division,
+    group,
+  };
 
   return (
-    <div className="w-full">
-      <h1 className="text-4xl font-bold text-center text-white mb-6">
-        Team Management
-      </h1>
-
-      {/* Preload GraphQL query like in TeamSingleMain */}
-      <PreloadQuery query={GET_EVENT_WITH_TEAMS} variables={{ eventId }}>
-        {(queryRef) => (
-          <Suspense fallback={<Loader />}>
-            <TeamListMain
-              queryRef={
-                queryRef as QueryRef<{ getEventWithTeams: IGetEventWithTeamsQuery }>
-              }
-            />
-          </Suspense>
-        )}
-      </PreloadQuery>
-    </div>
+    <PreloadQuery query={SEARCH_TEAMS} variables={{ eventId, filter: initialFilter }}>
+      {(queryRef) => (
+        <Suspense fallback={<Loader />}>
+          <TeamsContainer queryRef={queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>} eventId={eventId} initialSearchParams={{ search, division, group }} />
+        </Suspense>
+      )}
+    </PreloadQuery>
   );
 }

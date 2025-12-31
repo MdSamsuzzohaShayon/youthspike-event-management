@@ -33,7 +33,8 @@ export class CheckInHandler {
 
       // Might have some error in here
       if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
-        await this.validationHelper.validateCaptainCheckIn(checkIn.userId);
+        
+        await this.validationHelper.validateCaptainCheckIn(checkIn.userId, prevRoom.teamA, prevRoom.teamB);
       }
 
       const {roundService} = this.gatewayService.getServices();

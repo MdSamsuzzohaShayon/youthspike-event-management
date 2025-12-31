@@ -1,9 +1,9 @@
-import { useMutation } from "@apollo/client/react";
-import { IGroup, IGroupExpRel, IGroupRelatives, INetRelatives, IResponse, IRoundRelatives, ITeam } from ".";
-import { ETieBreakingStrategy, IEventExpRel } from "./event";
-import { ApolloCache } from "@apollo/client";
+import { useMutation } from '@apollo/client/react';
+import { EGroupType, IGroup, IGroupExpRel, IGroupRelatives, ILDO, INetRelatives, IPlayer, IResponse, IRoundRelatives, ITeam } from '.';
+import { ETieBreakingStrategy, IEvent, IEventExpRel } from './event';
+import { ApolloCache } from '@apollo/client';
 
-export interface ICommonMatchEvent{
+export interface ICommonMatchEvent {
   netVariance: number;
   homeTeam: string;
   autoAssign: boolean;
@@ -18,7 +18,7 @@ export interface ICommonMatchEvent{
   fwango?: string | null;
 }
 
-export interface IDefaultMatch extends ICommonMatchEvent{
+export interface IDefaultMatch extends ICommonMatchEvent {
   division: string;
   extendedOvertime?: boolean;
   teamAP?: number; // Plus minus points of teamA
@@ -30,14 +30,13 @@ export interface IDefaultMatchProps extends IDefaultMatch {
   numberOfRounds: number;
 }
 
-
-interface IMatchBase extends Partial<IDefaultMatchProps>{
+interface IMatchBase extends Partial<IDefaultMatchProps> {
   date: string;
   event: string;
   completed: boolean;
 }
 
-export interface IAddMatch extends IDefaultMatch{
+export interface IAddMatch extends IDefaultMatch {
   date: string;
   event: string;
   teamA: string;
@@ -48,15 +47,16 @@ export interface IAddMatch extends IDefaultMatch{
   streamUrl?: string;
 }
 
-export interface IMatch extends IMatchBase{
+export interface IMatch extends IMatchBase {
   _id: string;
   teamA: ITeam;
   teamB: ITeam;
   group?: IGroupRelatives;
   nets: INetRelatives[];
+  rounds: IRoundRelatives[];
 }
 
-export interface IMatchRelatives extends IMatchBase{
+export interface IMatchRelatives extends IMatchBase {
   _id: string;
   teamA: string;
   teamB: string;
@@ -65,7 +65,7 @@ export interface IMatchRelatives extends IMatchBase{
   group?: string;
 }
 
-export interface IMatchExpRel extends IMatchBase{
+export interface IMatchExpRel extends IMatchBase {
   _id: string;
   teamA: ITeam;
   teamB: ITeam;
@@ -88,22 +88,73 @@ export interface IMatchAddProps {
   addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
+interface ISearchMatchData {
+  event: IEvent;
+  groups: IGroup[];
+  ldo: ILDO;
+  matches: IMatch[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+  teams: ITeam[];
+}
 
+export interface ISearchMatchResponse {
+  code: number;
+  success: boolean;
+  message: string;
+  data: ISearchMatchData;
+}
 
-
-
-export interface ICreateMatchData extends IResponse{
+export interface ICreateMatchData extends IResponse {
   data?: IMatchExpRel;
 }
 
-export type TMatchMutationFunction = useMutation.MutationFunction<{
-  updateMatch: IResponse;
-}, {
-  [x: string]: any;
-}, ApolloCache>;
+export type TMatchMutationFunction = useMutation.MutationFunction<
+  {
+    updateMatch: IResponse;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
 export enum EMatchStatus {
   COMPLETED = 'COMPLETED',
   IN_PROGRESS = 'IN_PROGRESS',
   NOT_STARTED = 'NOT_STARTED',
+  UPCOMING = 'UPCOMING',
+  SCHEDULED = 'SCHEDULED',
+  ASSIGNING = 'ASSIGNING',
+  LIVE = 'LIVE',
+}
+
+export interface ISearchFilter {
+  ce: EGroupType;
+  search: string;
+  division: string;
+  group: string;
+  matchFilter: string;
+  status: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface IRoundScore {
+  teamARScore: number;
+  teamARPlusMinus: number;
+  teamBRScore: number;
+  teamBRPlusMinus: number;
+}
+
+export interface IMatchScore {
+  teamAMScore: number;
+  teamBMScore: number;
+  teamAMPlusMinus: number;
+  teamBMPlusMinus: number;
+}
+
+export interface ISearchLimitFilter extends ISearchFilter {
+  limit: number;
+  offset: number;
 }

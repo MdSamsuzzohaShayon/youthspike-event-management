@@ -1,49 +1,50 @@
-import { IEventPlayersGroupsTeamsResponse, TParams } from '@/types';
-import { redirect } from 'next/navigation';
-import { PreloadQuery } from '@/lib/client';
-import { Suspense } from 'react';
-import Loader from '@/components/elements/Loader';
-import { GET_EVENT_PLAYERS_GROUPS_TEAMS } from '@/graphql/players'; // Adjust import path as needed
-import { getUserFromCookie } from '@/utils/serverCookie';
-import { cookies } from 'next/headers';
-import PlayersMainContainer from '@/components/player/PlayersMainContainer';
-import { QueryRef } from '@apollo/client/react';
+// =========================
+// app/players/page.tsx
+// =========================
+
+import { Suspense } from "react";
+import { PreloadQuery } from "@/lib/client";
+import Loader from "@/components/elements/Loader";
+import { QueryRef } from "@apollo/client/react";
+
+import { EGroupType, ISearchFilter, ISearchPlayerResponse } from "@/types";
+import PlayersMainContainer from "@/components/player/PlayersMainContainer";
+import { SEARCH_PLAYERS } from "@/graphql/players";
 
 interface IPlayersPageProps {
-  params: TParams;
+  params: Promise<{ eventId: string }>;
+  searchParams: Promise<ISearchFilter>;
 }
 
-
-async function PlayersPage({ params }: IPlayersPageProps) {
+// Player list -> http://localhost:3001/events/68afc5f30bf9dbb4ac0f69cb/players?search=alex+hart&limit=30
+// Player stats -> http://localhost:3001/players/68c428341a3dc4cfb835d29c
+export default async function PlayersPage({
+  params,
+  searchParams,
+}: IPlayersPageProps) {
   const { eventId } = await params;
-  const cookieStore = await cookies();
-  const userExist = await getUserFromCookie(cookieStore);
+  const { search = "", division = "", group = "" } = await searchParams;
 
-  // Handle authorization before PreloadQuery
-  if (!userExist) {
-    redirect('/api/logout');
-  }
+  const initialFilter: Partial<ISearchFilter> = {
+    search,
+    division,
+    group,
+    ce: EGroupType.CONFERENCE
+  };
 
   return (
-    <div className="container mx-auto px-4 min-h-screen">
-      <h1 className="mb-8 text-center">Roster</h1>
-      
-      <PreloadQuery
-        query={GET_EVENT_PLAYERS_GROUPS_TEAMS}
-        variables={{ eventId }}
-      >
-        {(queryRef) => (
-          <Suspense fallback={<Loader />}>
-            <PlayersMainContainer 
-              queryRef={queryRef as QueryRef<IEventPlayersGroupsTeamsResponse>}
-              eventId={eventId}
-              userExist={userExist}
-            />
-          </Suspense>
-        )}
-      </PreloadQuery>
-    </div>
+    <PreloadQuery
+      query={SEARCH_PLAYERS}
+      variables={{ eventId: eventId, filter: initialFilter }}
+    >
+      {(queryRef) => (
+        <Suspense fallback={<Loader />}>
+          <PlayersMainContainer
+            queryRef={queryRef as QueryRef<{ searchPlayers: ISearchPlayerResponse }>} // Replace with proper type
+            initialSearchParams={{ search, division, group }}
+          />
+        </Suspense>
+      )}
+    </PreloadQuery>
   );
 }
-
-export default PlayersPage;

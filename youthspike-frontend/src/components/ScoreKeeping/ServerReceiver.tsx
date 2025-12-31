@@ -79,8 +79,7 @@ export default function ServerReceiver({
     teamBPlayers,
     currMatch,
     myTeamE,
-    teamATotalScore,
-    teamBTotalScore,
+    matchScore,
     currRoom,
     teamA,
     teamB,
@@ -102,8 +101,7 @@ export default function ServerReceiver({
 
       currMatch: state.matches.match,
       myTeamE: state.matches.myTeamE,
-      teamATotalScore: state.matches.teamATotalScore,
-      teamBTotalScore: state.matches.teamBTotalScore,
+      matchScore: state.matches.matchScore,
 
       currRoom: state.rooms?.current,
 
@@ -493,7 +491,7 @@ export default function ServerReceiver({
     isFinalRound &&
     currRound?.completed &&
     currMatch.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND &&
-    teamATotalScore === teamBTotalScore
+    matchScore.teamAMScore === matchScore.teamBMScore
   ) {
     return (
       <div className="w-full">

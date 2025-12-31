@@ -6,13 +6,17 @@ import { border } from "@/utils/styles";
 import { ETeam } from "@/types/team";
 import { setOutOfRange, setShowTeamPlayers } from "@/redux/slices/matchesSlice";
 import MatchSetting from "./MatchSetting";
-import LogoMatchScore from "./LogoMatchScore";
-import PointsByRound from "./PointsByRound";
-import NetCard from "./NetCard";
-import AvailablePlayers from "../player/AvailablePlayers";
 import { setMessage } from "@/redux/slices/elementSlice";
-import { EMessage, INetRelatives } from "@/types";
+import { EMessage, IMatchScore, INetRelatives, IRoundScore } from "@/types";
 import { useRoundNavigation } from "@/hooks/useRoundNavigation";
+
+// Component
+import LogoMatchScore from "./LogoMatchScore";
+import NetCard from "./NetCard";
+import PointsByRound from "./PointsByRound";
+import AvailablePlayers from "../player/AvailablePlayers";
+
+
 
 function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   const dispatch = useAppDispatch();
@@ -38,6 +42,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     selectedNet,
     myTeamE,
     match,
+    roundMap
   } = useAppSelector((state) => state.matches);
   const currRoom = useAppSelector((state) => state.rooms.current);
 
@@ -64,6 +69,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     });
     return map;
   }, [allNets]);
+
 
   const { handleRoundChange } = useRoundNavigation({
     roundList,
@@ -184,7 +190,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             }
           />
           <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
-            {(Boolean(match.teamAP) || Boolean(match.teamAP) )&& (
+            {(Boolean(match.teamAP) || Boolean(match.teamBP)) && (
               <button
                 className={`single-r bg-white py-1 text-center cursor-pointer ${
                   screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"

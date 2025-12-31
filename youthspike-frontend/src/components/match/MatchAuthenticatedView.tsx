@@ -32,8 +32,6 @@ import SelectTeamDialog from "./SelectTeamDialog";
 
 interface IMatchAuthenticatedViewProps {
   currMatch: IMatchRelatives;
-  myS: number;
-  opS: number;
   myTeam: ITeam | null;
   opTeam: ITeam | null;
   teamA: ITeam | null;
@@ -47,8 +45,6 @@ interface IMatchAuthenticatedViewProps {
 
 function MatchAuthenticatedView({
   currMatch,
-  myS,
-  opS,
   myTeam,
   opTeam,
   teamA,
@@ -63,7 +59,10 @@ function MatchAuthenticatedView({
   const socket = useSocket();
   const user = useUser();
 
+
+  // Redux
   const { screenWidth } = useAppSelector((state) => state.elements);
+  const { matchScore } = useAppSelector((state) => state.matches);
   const {
     currentRoundNets: currRoundNets,
     nets: allNets,
@@ -138,6 +137,10 @@ function MatchAuthenticatedView({
   useEffect(() => {
     mainEl.current?.click();
   }, [mainEl]);
+
+
+  const myS = myTeamE === ETeam.teamA  ? matchScore.teamAMScore : matchScore.teamBMScore;
+  const opS = myTeamE === ETeam.teamB  ? matchScore.teamAMScore : matchScore.teamBMScore;
 
   return (
     <div className="relative bg-white text-black-logo" ref={mainEl}>
