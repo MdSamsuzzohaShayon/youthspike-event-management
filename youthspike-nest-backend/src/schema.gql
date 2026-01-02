@@ -740,6 +740,20 @@ type GetTeamstandingsResponse {
   data: Teamstandings
 }
 
+type TeamWithGroupsAndUnAssignedPlayers {
+  event: Event
+  team: CustomTeam
+  groups: [CustomGroup!]
+  players: [CustomPlayer!]
+}
+
+type GetTeamWithGroupsAndUnAssignedPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamWithGroupsAndUnAssignedPlayers
+}
+
 type GetMatchesResponse {
   code: Int!
   success: Boolean!
@@ -1046,6 +1060,19 @@ type GetEventDetailsResponse {
   data: EventDetails
 }
 
+type GroupsAndUnassignedPlayers {
+  event: Event
+  players: [CustomPlayer!]
+  groups: [CustomGroup!]
+}
+
+type GetEventWithGroupsAndUnassignedPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: GroupsAndUnassignedPlayers
+}
+
 type GetPlayerEventSettingResponse {
   code: Int!
   success: Boolean!
@@ -1234,6 +1261,7 @@ type Query {
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
   getEventDetails(eventId: String!, filter: EventFilterInput!): GetEventDetailsResponse!
+  getEventWithGroupsAndUnassignedPlayers(eventId: String!): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventId: String): GetTeamsResponse!
@@ -1244,6 +1272,7 @@ type Query {
   getTeamMatches(teamId: String!): GetTeamMatchesResponse!
   searchTeams(eventId: String!, filter: TeamSearchFilter): GetTeamSearchResponse!
   getTeamStandings(eventId: String!): GetTeamstandingsResponse!
+  getTeamWithGroupsAndUnassignedPlayers(eventId: String!, teamId: String!): GetTeamWithGroupsAndUnAssignedPlayersResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   searchMatches(eventId: String!, filter: SearchFilterInput): GetEventWithMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!

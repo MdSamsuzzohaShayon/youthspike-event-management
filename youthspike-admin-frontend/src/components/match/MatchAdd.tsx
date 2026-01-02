@@ -47,6 +47,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
+  
 
   // Local State
   const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
@@ -163,8 +164,6 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         matchId,
         updateMatch,
         showAddMatch,
-        router,
-        ldoIdUrl,
       });
     } else {
       await addMatchHandler({
@@ -175,10 +174,10 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         addMatch,
         currDivision,
         showAddMatch,
-        router,
         addMatchCB,
       });
     }
+    router.push(`/${eventId}/matches/${ldoIdUrl}`);
   };
 
   // Initialize state
@@ -189,8 +188,8 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
       ? {
           ...initialAddMatch,
           ...prevMatch,
-          teamA: prevMatch.teamA._id,
-          teamB: prevMatch.teamB._id,
+          teamA: prevMatch?.teamA?._id,
+          teamB: prevMatch?.teamB?._id,
           group: typeof prevMatch.group === 'object' ? prevMatch?.group?._id : prevMatch.group,
         }
       : {
@@ -295,9 +294,9 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
             <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
           )}
           <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={addMatch.timeout ?? ''} handleInputChange={handleNumInputChange} />
-          <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" value={addMatch.fwango || ''} />
+          <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
           <InputField key="field-streamUrl" type="text" handleInputChange={handleInputChange} label="Streaming Link" name="streamUrl" defaultValue={addMatch.streamUrl || ''} />
-          <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" value={addMatch.accessCode || ''} />
+          <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />
         </div>
       )}
 

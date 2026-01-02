@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, ITeamAdd, IGroup, IUpdateTeamRes, ITeamRes } from '@/types';
+import { IOption, IPlayer, ITeamAdd, IGroup, IUpdateTeamRes, ITeamRes, ITeam } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -12,11 +12,9 @@ import { divisionsToOptionList } from '@/utils/helper';
 import updateTeam from '@/utils/requestHandlers/updateTeam';
 import createTeam from '@/utils/requestHandlers/createTeam';
 import { useMutation } from '@apollo/client/react';
+import { useRouter } from 'next/navigation';
 
-interface IPrevTeam extends ITeamAdd {
-  _id: string;
-  group?: IGroup;
-}
+
 
 interface ITeamAddProps {
   eventId: string;
@@ -27,7 +25,7 @@ interface ITeamAddProps {
   divisions?: string;
   currDivision?: string;
   update?: boolean;
-  prevTeam?: IPrevTeam;
+  prevTeam?: ITeam;
 }
 
 const initialTeamState = {
@@ -43,8 +41,22 @@ const initialTeamState = {
 function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions }: ITeamAddProps) {
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
+  const router = useRouter();
 
-  const [teamState, setTeamState] = useState<ITeamAdd>(prevTeam ? prevTeam : initialTeamState);
+  // Helper function to transform ITeam to ITeamAdd format
+  const transformTeamToTeamAdd = (team: ITeam): ITeamAdd => ({
+    active: team.active,
+    name: team.name,
+    logo: team.logo ?? null,
+    event: eventId,
+    division: team.division,
+    players: [],
+    captain: team?.captain?._id || null,
+  });
+
+  const [teamState, setTeamState] = useState<ITeamAdd>(
+    prevTeam ? transformTeamToTeamAdd(prevTeam) : initialTeamState
+  );
   const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
   const [playerIdList, setPlayerIdList] = useState<string[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
@@ -70,7 +82,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     if (update) {
       success = await updateTeam({
         eventId,
-        prevTeam: prevTeam || null,
+        prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
         updateTeamState,
         setActErr,
         setIsLoading,
@@ -81,6 +93,14 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         setAvailablePlayers,
         setPlayerIdList,
       });
+      if (success) {
+        const formEl = e.target as HTMLFormElement;
+        formEl.reset();
+        handleClose(e);
+        // refetch();
+        // router.push(`/${eventId}/teams/${ldoIdUrl}`);
+        window.location.reload();
+      }
     } else {
       success = await createTeam({
         eventId,
@@ -95,15 +115,12 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         setAvailablePlayers,
         setPlayerIdList,
       });
+      if(success){
+        router.push(`/${eventId}/teams/${ldoIdUrl}`);
+      }
     }
 
-    if (success) {
-      const formEl = e.target as HTMLFormElement;
-      formEl.reset();
-      handleClose(e);
-      refetch();
-      // router.push(`/${eventId}/teams/${ldoIdUrl}`);
-    }
+    
   };
 
   const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
@@ -112,7 +129,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
     if (update) {
       success = await updateTeam({
         eventId,
-        prevTeam: prevTeam || null,
+        prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
         updateTeamState,
         setActErr,
         setIsLoading,
@@ -138,8 +155,9 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         setPlayerIdList,
       });
     }
-    // refetch(`/${eventId}/teams/new/${ldoIdUrl}`);
+
     window.location.reload();
+
   };
 
   const handleInputChange = (e: React.SyntheticEvent) => {
@@ -189,6 +207,8 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   useEffect(() => {
     setAvailablePlayers(players || []);
   }, [players]);
+  
+  
 
   return (
     <form onSubmit={handleTeamAdd} className="flex flex-col gap-2">
@@ -203,7 +223,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         handleSelect={handleInputChange}
         name="group"
         className="mt-6"
-        {...(prevTeam?.group ? { defaultValue: prevTeam.group._id } : {})}
+        {...(prevTeam?.group ? { defaultValue: prevTeam?.group?._id || String(prevTeam?.group) } : {})}
         optionList={
           teamState.division && teamState.division !== ''
             ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))

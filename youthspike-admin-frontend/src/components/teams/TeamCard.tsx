@@ -155,7 +155,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   const { activePlayers, inactivePlayers } = useMemo(() => {
     const active = [],
       inactive = [];
-    for (let i = 0; i < team.players.length; i++) {
+    for (let i = 0; i < (team?.players || []).length; i++) {
       const player = team.players[i];
       if (player.status === EPlayerStatus.ACTIVE) {
         active.push(player);
@@ -217,7 +217,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           transition={{ duration: 0.2 }}
         >
           <li>
-            <Link href={`/${eventId}/teams/${team._id}/update/${ldoIdUrl}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
               <Image src="/icons/edit.svg" alt="Edit" width={16} height={16} className="svg-white" />
               <span className="text-sm">Edit</span>
             </Link>
@@ -359,7 +359,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">
       {/* Mobile Layout */}
-      <div className="lg:hidden p-2">
+      <div className="md:hidden p-2">
         <HeaderSection />
         <TeamInfoSection />
         <CaptainSection />

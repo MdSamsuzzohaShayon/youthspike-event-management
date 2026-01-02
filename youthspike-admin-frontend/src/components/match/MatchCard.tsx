@@ -229,6 +229,9 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
   const teamAWon = teamScores.teamA > teamScores.teamB && match.completed;
   const teamBWon = teamScores.teamB > teamScores.teamA && match.completed;
 
+  // console.log(`/${eventId}/matches/${match._id}/${ldoIdUrl}`);
+  
+
   return (
     <div className="relative">
       {/* Mobile View */}

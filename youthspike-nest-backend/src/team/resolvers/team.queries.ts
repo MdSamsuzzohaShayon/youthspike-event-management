@@ -388,6 +388,29 @@ export class TeamQueries {
     }
   }
 
+  async getTeamWithGroupsAndUnassignedPlayers(eventId: string, teamId: string){
+    try {
+      const event = await this.eventService.findOne({_id: eventId});
+      if(!event) return AppResponse.notFound("Event");
+
+      // groups
+      // players
+      const [groups, players, team] = await Promise.all([
+        this.groupService.find({ event: eventId }),
+        this.playerService.find({ $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
+        this.teamService.findOne({_id: teamId})
+      ]);
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: "Getting event and team details",
+        data: {event, groups, players, team}
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
   async searchTeams(eventId: string, filter: TeamSearchFilter) {
     try {
       // event, teams, matches, nets, rounds
@@ -414,7 +437,6 @@ export class TeamQueries {
       const limit = filter?.limit ?? 30;
 
       const teams = await this.teamService.find(teamQuery, offset, limit);
-      // const teams = await this.teamService.find({_id: "68c56f96f50830d0fd04590e"});
 
       const matchIds = new Set<string>();
       for (const t of teams) {

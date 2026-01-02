@@ -7,7 +7,7 @@ import { LDO } from 'src/ldo/ldo.schema';
 import { PlayerStats, ProStats } from 'src/player-stats/player-stats.schema';
 import { Match } from 'src/match/match.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
-import { CustomTeam, EventMatches } from 'src/match/resolvers/match.response';
+import { CustomGroup, CustomTeam, EventMatches } from 'src/match/resolvers/match.response';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -83,6 +83,27 @@ export class PlayerEventSetting{
 export class GetEventDetailsResponse extends AppResponse<EventDetails> {
   @Field((_type) => EventDetails, { nullable: true })
   data?: EventDetails | null;
+}
+
+
+@ObjectType()
+export class GroupsAndUnassignedPlayers{
+  @Field((_type) => Event, { nullable: true })
+  event: Event;
+
+  @Field((_type) => [CustomPlayer], { nullable: true })
+  players?: CustomPlayer[];
+
+  @Field((_type) => [CustomGroup], { nullable: true })
+  groups?: CustomGroup[];
+}
+
+@ObjectType()
+export class GetEventWithGroupsAndUnassignedPlayersResponse extends AppResponse<GroupsAndUnassignedPlayers> {
+  @Field((_type) => GroupsAndUnassignedPlayers, { nullable: true })
+  data?: GroupsAndUnassignedPlayers | null;
+
+  
 }
 
 

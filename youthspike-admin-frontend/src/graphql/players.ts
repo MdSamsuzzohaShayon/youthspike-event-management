@@ -268,6 +268,8 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter) {
         name
         logo
         divisions
+        startDate
+        endDate
       }
       groups {
         _id

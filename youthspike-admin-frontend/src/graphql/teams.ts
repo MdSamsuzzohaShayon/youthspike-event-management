@@ -564,6 +564,71 @@ query GetTeams($eventId: String) {
 }
 `;
 
+const GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
+query GetTeamWithGroupsAndUnassignedPlayers($eventId: String!, $teamId: String!){
+  getTeamWithGroupsAndUnassignedPlayers(eventId:$eventId, teamId: $teamId){
+    code
+    success
+    message
+    data{
+      event{
+        _id
+        name
+        logo
+        divisions
+        startDate
+        endDate
+      }
+      team{
+        _id
+        name
+        logo
+        division
+        group
+      }
+      groups{
+        _id 
+        name
+        division
+      }
+      players{
+        _id
+        firstName
+        lastName
+        username
+      }
+    }
+  }
+}
+`;
+
+
+const GET_EVENT_WITH_TEAMS_LIGHT = gql`
+query GetEvent($eventId:String!){
+  getEvent(eventId: $eventId){
+    code
+    success
+    message
+    data{
+      _id
+      name
+      logo
+      startDate
+      endDate
+      active
+      divisions
+      teams{
+        _id
+        name
+        logo
+        division
+      }
+    }
+  }
+}
+
+`;
+
 
 const SEARCH_TEAMS = gql`
 query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
@@ -637,6 +702,7 @@ query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
         nets
         matches
         division
+        players
       }
     }
   }
@@ -831,5 +897,7 @@ export {
   GET_TEAM_ROSTER,
   GET_TEAM_MATCHES,
   GET_TEAMS,
+  GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS,
+  GET_EVENT_WITH_TEAMS_LIGHT,
   SEARCH_TEAMS
 };

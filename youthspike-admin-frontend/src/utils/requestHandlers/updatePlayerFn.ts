@@ -25,16 +25,12 @@ interface IUpdatePlayer {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerUpdate: Partial<IPlayerAdd>;
   prevPlayer: IPlayer | null;
-  eventId: string;
   uploadedProfile: React.RefObject<File | null>;
   updatePlayer: TMutationFunction;
-  router: AppRouterInstance;
-  ldoIdUrl: string;
-  refetch?: () => Promise<void>;
-  team: string | null;
+
 }
 
-async function updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer, eventId, uploadedProfile, updatePlayer, router, ldoIdUrl, refetch, team }: IUpdatePlayer) {
+async function updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer, uploadedProfile, updatePlayer }: IUpdatePlayer) {
   try {
     setIsLoading(true);
 
@@ -49,18 +45,20 @@ async function updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlaye
 
     const responseData = playerRes?.data?.updatePlayer;
     const success = await handleResponseCheck(responseData, setActErr);
-    if (!success) return;
+    // if (!success) return;
 
-    // if (refetch) await refetch();
-    if (responseData?.data) {
-      await handleRedirect(router, eventId, ldoIdUrl, team);
-      // router.push(` /${eventId}/players`)
-    }
+    // // if (refetch) await refetch();
+    // if (responseData?.data) {
+    //   await handleRedirect(router, eventId, ldoIdUrl, team);
+    //   // router.push(` /${eventId}/players`)
+    // }
+    return success;
   } catch (err) {
     console.error(err);
   } finally {
     setIsLoading(false);
   }
+  return false;
 }
 
 export default updatePlayerFn;

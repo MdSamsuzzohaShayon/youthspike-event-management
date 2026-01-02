@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SEARCH_MATCHES } from '@/graphql/matches';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { IMatch, IRoundRelatives, ISearchFilter, ISearchMatchResponse, ITeam, IGroup, INetRelatives, IEvent } from '@/types';
+import { IMatch, IRoundRelatives, ISearchFilter, ISearchMatchResponse, ITeam, IGroup, INetRelatives, IEvent, EFilterPage } from '@/types';
 import FilterContent from '../event/FilterContent';
 import SearchMatchList from './SearchMatchList';
 import EventNavigation from '../layout/EventNavigation';
@@ -53,9 +53,9 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   const [event, setEvent] = useState<IEvent | null>(null);
 
   // Loading states
-  const [hasMore, setHasMore] = useState(true);
-  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [isApplyingFilters, setIsApplyingFilters] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
 
   // Build query variables
   const buildQueryVariables = useCallback(
@@ -246,6 +246,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
         <EventNavigation event={event} />
       </div>
       <FilterContent
+        eventId={eventId}
         groups={groups}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
@@ -255,8 +256,11 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
         onClearFilters={handleClearFilters}
         hasUnsavedChanges={hasUnsavedChanges}
         hasActiveFilters={hasActiveFilters}
+        filterPage={EFilterPage.MATCHES}
         showStatus
       />
+
+      
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
@@ -289,7 +293,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
         <div className="match-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {enrichedMatches.length > 0 ? (
-              <SearchMatchList nets={nets} rounds={rounds} matchList={enrichedMatches as unknown as IMatch[]} />
+              <SearchMatchList eventId={eventId} matchList={enrichedMatches as unknown as IMatch[]} />
             ) : (
               <div className="text-center py-8 text-gray-400">No matches found matching your criteria.</div>
             )}

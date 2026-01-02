@@ -20,6 +20,7 @@ import {
   GetTeamSearchResponse,
   GetTeamsResponse,
   GetTeamstandingsResponse,
+  GetTeamWithGroupsAndUnAssignedPlayersResponse,
 } from './resolvers/team.response';
 import { TeamFields } from './resolvers/team.fields';
 import { TeamQueries } from './resolvers/team.queries';
@@ -35,8 +36,6 @@ export class TeamResolver {
     private readonly teamQueris: TeamQueries,
     private readonly teamMutations: TeamMutations,
   ) {}
-
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -76,7 +75,6 @@ export class TeamResolver {
     return this.teamMutations.deleteTeams(teamIds);
   }
 
-  
   /**
    * Queries
    */
@@ -119,6 +117,12 @@ export class TeamResolver {
   async getTeamStandings(@Args('eventId') eventId: string) {
     return this.teamQueris.getTeamStandings(eventId);
   }
+
+  @Query((_returns) => GetTeamWithGroupsAndUnAssignedPlayersResponse)
+  async getTeamWithGroupsAndUnassignedPlayers(@Args('eventId') eventId: string, @Args('teamId') teamId: string) {
+    return this.teamQueris.getTeamWithGroupsAndUnassignedPlayers(eventId, teamId);
+  }
+
   /**
    * POPULATE
    * ===============================================================================================
@@ -161,7 +165,7 @@ export class TeamResolver {
 
   @ResolveField()
   async event(@Parent() team: Team) {
-      return this.teamFields.event(team);
+    return this.teamFields.event(team);
   }
 
   @ResolveField()

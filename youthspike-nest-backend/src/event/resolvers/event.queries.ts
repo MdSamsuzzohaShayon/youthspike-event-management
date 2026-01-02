@@ -20,6 +20,7 @@ import {
   GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
+  GetEventWithGroupsAndUnassignedPlayersResponse,
   GetPlayerEventSettingResponse,
   PlayerStatsEntry,
   // PlayerStatsEntry,
@@ -172,7 +173,7 @@ export class EventQueries implements IEventQueries {
         this.sponsorService.find({ event: eventId }),
       ]);
 
-      if(!event) return AppResponse.notFound("Event");
+      if (!event) return AppResponse.notFound('Event');
 
       const mIds = matches.map((m) => String(m._id));
       let [rounds, nets] = await Promise.all([
@@ -181,7 +182,12 @@ export class EventQueries implements IEventQueries {
       ]);
 
       // --- Optimize player stats ---
-      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(players, nets , this.redisService, this.playerStatsService);
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(
+        players,
+        nets,
+        this.redisService,
+        this.playerStatsService,
+      );
 
       // Prepare response
       return {
@@ -224,7 +230,11 @@ export class EventQueries implements IEventQueries {
             teamA: String(typeof (n as any).teamA === 'object' ? ((n as any).teamA as any)._id : (n as any).teamA),
             teamB: String(typeof (n as any).teamB === 'object' ? ((n as any).teamB as any)._id : (n as any).teamB),
             serverReceiverOnNet: (n as any).serverReceiverOnNet
-              ? String(typeof (n as any).serverReceiverOnNet === 'object' ? (n as any).serverReceiverOnNet._id : (n as any).serverReceiverOnNet)
+              ? String(
+                  typeof (n as any).serverReceiverOnNet === 'object'
+                    ? (n as any).serverReceiverOnNet._id
+                    : (n as any).serverReceiverOnNet,
+                )
               : undefined,
             serverReceiverSinglePlay:
               (n as any).serverReceiverSinglePlay?.map((s: any) => String(typeof s === 'object' ? s._id : s)) || [],
@@ -242,7 +252,37 @@ export class EventQueries implements IEventQueries {
     }
   }
 
-  private async findMissingStats(players: any[], playerToNets: Record<string, Net[]>, redisByPlayer: Record<string, CustomPlayerStats[]>) {
+  async getEventWithGroupsAndUnassignedPlayers(eventId: string){
+    try {
+      // eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions
+      const event = await this.eventService.findOne({ _id: eventId });
+      if (!event) return AppResponse.notFound('Event');
+
+      const [groups, players] = await Promise.all([
+        this.groupService.find({ event: eventId }),
+        this.playerService.find({ $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
+        data: {
+          event,
+          groups,
+          players
+        }
+      }
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  private async findMissingStats(
+    players: any[],
+    playerToNets: Record<string, Net[]>,
+    redisByPlayer: Record<string, CustomPlayerStats[]>,
+  ) {
     const missingStatsQueries: any[] = [];
     players.forEach((player) => {
       const netsOfPlayer = playerToNets[player._id] || [];
@@ -257,8 +297,6 @@ export class EventQueries implements IEventQueries {
     const dbStatsResults = await Promise.all(missingStatsQueries);
     return dbStatsResults;
   }
-
-
 
   async getPlayerEventSetting(context: any, eventId: string): Promise<GetPlayerEventSettingResponse> {
     try {
@@ -288,10 +326,13 @@ export class EventQueries implements IEventQueries {
               ...playerExist,
               teams: playerExist.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
               captainofteams:
-                playerExist.captainofteams?.map((t: any) => (typeof t === 'object' ? t._id : t?.toString?.() || String(t))) || [],
+                playerExist.captainofteams?.map((t: any) =>
+                  typeof t === 'object' ? t._id : t?.toString?.() || String(t),
+                ) || [],
               cocaptainofteams:
-                playerExist.cocaptainofteams?.map((t: any) => (typeof t === 'object' ? t._id : t?.toString?.() || String(t))) ||
-                [],
+                playerExist.cocaptainofteams?.map((t: any) =>
+                  typeof t === 'object' ? t._id : t?.toString?.() || String(t),
+                ) || [],
             },
             teams: teams.map((t) => ({
               ...t,

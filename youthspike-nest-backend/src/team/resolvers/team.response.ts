@@ -287,3 +287,24 @@ export class GetTeamstandingsResponse extends AppResponse<Teamstandings> {
   @Field((_type) => Teamstandings, { nullable: true })
   data?: Teamstandings;
 }
+
+@ObjectType()
+class TeamWithGroupsAndUnAssignedPlayers{
+  @Field((_type) => Event, { nullable: true })
+  event: Event;
+
+  @Field((_type) => CustomTeam, { nullable: true })
+  team: CustomTeam;
+
+  @Field((_type) => [CustomGroup], { nullable: true })
+  groups: CustomGroup[];
+
+  @Field((_type) => [CustomPlayer], { nullable: true })
+  players: CustomPlayer[];
+}
+
+@ObjectType()
+export class GetTeamWithGroupsAndUnAssignedPlayersResponse extends AppResponse<TeamWithGroupsAndUnAssignedPlayers> {
+  @Field((_type) => TeamWithGroupsAndUnAssignedPlayers, { nullable: true })
+  data?: TeamWithGroupsAndUnAssignedPlayers;
+}

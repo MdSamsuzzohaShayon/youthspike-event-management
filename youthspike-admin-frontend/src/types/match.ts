@@ -98,16 +98,28 @@ interface ISearchMatchData {
   teams: ITeam[];
 }
 
-export interface ISearchMatchResponse {
-  code: number;
-  success: boolean;
-  message: string;
+export interface ISearchMatchResponse extends IResponse {
   data: ISearchMatchData;
+}
+
+// GET_AN_EVENT_WITH_TEAMS_AND_GROUPS
+export interface IGetEventWithTeamsAndGroupsResponse extends IResponse {
+  data: IEventExpRel;
+}
+
+export interface IGetEventWithGroupsAndUnassignedPlayersResponse extends IResponse {
+  data: {
+    event: IEvent,
+    groups: IGroup[];
+    players: IPlayer[];
+  }
 }
 
 export interface ICreateMatchData extends IResponse {
   data?: IMatchExpRel;
 }
+
+export interface IGetMatchResponse extends ICreateMatchData{}
 
 export type TMatchMutationFunction = useMutation.MutationFunction<
   {

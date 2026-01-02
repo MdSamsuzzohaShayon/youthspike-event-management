@@ -11,11 +11,9 @@ interface IUpdateMatchHandlerProps {
   matchId: string;
   updateMatch: Partial<IAddMatch>;
   showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-  router?: AppRouterInstance;
-  ldoIdUrl?: string;
 }
 
-export async function updateMatchHandler({ setActErr, setIsLoading, eventId, mutateMatch, matchId, updateMatch, showAddMatch, router, ldoIdUrl }: IUpdateMatchHandlerProps) {
+export async function updateMatchHandler({ setActErr, setIsLoading, eventId, mutateMatch, matchId, updateMatch, showAddMatch }: IUpdateMatchHandlerProps) {
   try {
     setIsLoading(true);
 
@@ -34,9 +32,9 @@ export async function updateMatchHandler({ setActErr, setIsLoading, eventId, mut
 
     if (success) {
       if (showAddMatch) showAddMatch(false);
-      if (router) {
-        router.push(`/${eventId}/matches/${ldoIdUrl || ''}`);
-      }
+      // if (router) {
+      //   router.push(`/${eventId}/matches/${ldoIdUrl || ''}`);
+      // }
     }
   } catch (error: any) {
     console.log(error);

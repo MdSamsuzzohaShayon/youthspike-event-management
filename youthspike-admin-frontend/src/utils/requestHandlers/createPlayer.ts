@@ -16,17 +16,10 @@ interface ICreatePlayer {
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerState: IPlayerAdd;
-  division?: string;
   eventId: string;
   uploadedProfile: React.RefObject<File | null>;
   addPlayer: IAddPlayer;
-  setPlayerState: React.Dispatch<React.SetStateAction<IPlayerAdd>>;
-  initialPlayerAdd: IPlayerAdd;
-  setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
-  router: AppRouterInstance;
-  e: React.SyntheticEvent;
-  ldoIdUrl: string;
-  team: string | null;
+  division?: string;
 }
 
 async function createPlayer({
@@ -36,14 +29,7 @@ async function createPlayer({
   division,
   eventId,
   uploadedProfile,
-  addPlayer,
-  setPlayerState,
-  initialPlayerAdd,
-  setAddPlayer,
-  router,
-  e,
-  ldoIdUrl,
-  team,
+  addPlayer
 }: ICreatePlayer) {
   try {
     setIsLoading(true);
@@ -64,27 +50,13 @@ async function createPlayer({
 
     const responseData = playerRes?.data?.createPlayer;
     const success = await handleResponseCheck(responseData, setActErr);
-    if (!success) return;
-
-    if (responseData?.data) {
-      // await handleRedirect(router, eventId, ldoIdUrl, team);
-      // setPlayerState(initialPlayerAdd);
-      // (e.target as HTMLFormElement).reset();
-      // if (setAddPlayer) setAddPlayer(false);
-
-      if (team) {
-        // fallback if referrer not available or external
-        router.push(`/${eventId}/teams/${team}/${ldoIdUrl}`);
-      } else {
-        // For players page
-        router.push(`/${eventId}/players/${ldoIdUrl}`);
-      }
-    }
+    return success;
   } catch (err) {
     console.error(err);
   } finally {
     setIsLoading(false);
   }
+  return false;
 }
 
 export default createPlayer;

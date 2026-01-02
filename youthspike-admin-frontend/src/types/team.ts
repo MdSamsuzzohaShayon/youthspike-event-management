@@ -3,6 +3,7 @@ import {
   IAllStats,
   IError,
   IEvent,
+  IEventExpRel,
   IGroup,
   IGroupRelatives,
   IMatch,
@@ -160,6 +161,22 @@ export interface ISearchTeamResponse extends IResponse {
 export interface IUpdateTeamRes extends IResponse {
   data?: ITeam;
 }
+
+export interface IGetTeamWithGroupsAndUnassignedPlayersResponse extends IResponse{
+  data?: {
+    team: ITeam;
+    event: IEvent;
+    players: IPlayer[];
+    groups: IGroup[];
+  }
+}
+
+export interface IGetEventWithTeamsResponse extends IResponse{
+  data: IEventExpRel;
+}
+
+
+
 
 export interface ITeamRes extends IUpdateTeamRes {}
 

@@ -23,12 +23,10 @@ function PlayerSelectInput(props: IPlayerSelectProps) {
       <ul className="flex flex-wrap items-center gap-2">
         {props.availablePlayers.map(
           (ap) =>
-            ap.teams?.length === 0 && (
               <li key={ap._id} className="flex gap-1 items-center">
                 <input type="checkbox" onChange={(e) => handleCheckboxChange(e, ap._id)} />
                 <span className="capitalize">{`${ap.firstName} ${ap.lastName}`}</span>
               </li>
-            ),
         )}
       </ul>
     </div>

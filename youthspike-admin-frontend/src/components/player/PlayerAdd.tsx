@@ -93,17 +93,16 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
     uploadedProfile.current = uploadedFile as File;
   }, []);
 
-  const handleAddPlayer = useCallback(
-    async (e: React.SyntheticEvent) => {
+  const handleAddPlayer = async (e: React.SyntheticEvent) => {
       e.preventDefault();
       if (update) {
-        updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, eventId, uploadedProfile, updatePlayer, router, ldoIdUrl, refetch, team: teamId });
+        const success = updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
+        window.location.reload();
       } else {
-        createPlayer({ setActErr, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer, setPlayerState, initialPlayerAdd, setAddPlayer, router, e, ldoIdUrl, team: teamId });
+        const success = createPlayer({ setActErr, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
+        router.push(`/${eventId}/players/${ldoIdUrl}`)
       }
-    },
-    [setIsLoading, setActErr, playerState, division, eventId, uploadedProfile, playerUpdate, prevPlayer, updatePlayer, ldoIdUrl, addPlayer, router, update],
-  );
+    };
 
   // Set initial state when editing
   useEffect(() => {

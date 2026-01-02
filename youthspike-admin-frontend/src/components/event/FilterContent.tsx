@@ -1,9 +1,14 @@
-import { IGroup, ISearchFilter } from "@/types";
-import React, { useMemo } from "react";
-import SelectInput from "../elements/forms/SelectInput";
-import InputField from "../elements/forms/InputField";
+import { EFilterPage, IGroup, ISearchFilter } from '@/types';
+import React, { useMemo } from 'react';
+import Link from 'next/link';
+import SelectInput from '../elements/forms/SelectInput';
+import InputField from '../elements/forms/InputField';
+import { useLdoId } from '@/lib/LdoProvider';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 interface IFilterContentProps {
+  eventId: string;
   divisions: string;
   groups: IGroup[];
   loading: boolean;
@@ -13,10 +18,18 @@ interface IFilterContentProps {
   onClearFilters: () => void;
   hasUnsavedChanges: boolean;
   hasActiveFilters: boolean;
+  filterPage: EFilterPage;
   showStatus?: boolean;
 }
 
+const pageLinks: Record<EFilterPage, string> = {
+  [EFilterPage.MATCHES]: 'matches/new',
+  [EFilterPage.TEAMS]: 'teams/new',
+  [EFilterPage.PLAYERS]: 'players/new',
+};
+
 function FilterContent({
+  eventId,
   divisions,
   groups,
   loading,
@@ -26,12 +39,14 @@ function FilterContent({
   onClearFilters,
   hasUnsavedChanges,
   hasActiveFilters,
+  filterPage,
   showStatus,
 }: IFilterContentProps) {
+  const { ldoIdUrl } = useLdoId();
   const divisionList = useMemo(() => {
     if (!divisions) return [];
     return [
-      ...divisions.split(",").map((div, i) => ({
+      ...divisions.split(',').map((div, i) => ({
         id: i + 1,
         value: div.trim(),
         label: div.trim().toUpperCase(),
@@ -40,13 +55,7 @@ function FilterContent({
   }, [divisions]);
 
   const filteredGroups = useMemo(() => {
-    const newGroups = filter.division
-      ? groups.filter(
-          (g) =>
-            g.division.trim().toLowerCase() ===
-            filter.division!.trim().toLowerCase()
-        )
-      : groups;
+    const newGroups = filter.division ? groups.filter((g) => g.division.trim().toLowerCase() === filter.division!.trim().toLowerCase()) : groups;
 
     const groupOptions = newGroups.map((g, i) => ({
       id: i + 1,
@@ -60,22 +69,28 @@ function FilterContent({
 
   const handleDivisionChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    updateFilter("division", inputEl.value);
+    updateFilter('division', inputEl.value);
+
+    if (inputEl.value) {
+      SessionStorageService.setItem(DIVISION, inputEl.value.trim());
+    } else {
+      SessionStorageService.removeItem(DIVISION);
+    }
   };
 
   const handleGroupChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    updateFilter("group", inputEl.value);
+    updateFilter('group', inputEl.value);
   };
 
   const handleStatusChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    updateFilter("status", inputEl.value);
+    updateFilter('status', inputEl.value);
   };
 
   const handleSearchChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
-    updateFilter("search", inputEl.value);
+    updateFilter('search', inputEl.value);
   };
 
   return (
@@ -90,46 +105,26 @@ function FilterContent({
     >
       <div className="grid grid-cols-2 gap-3 mb-3">
         {/* Division */}
-        <SelectInput
-          handleSelect={handleDivisionChange}
-          name="division"
-          optionList={divisionList}
-          label="Division"
-          value={filter.division}
-        />
+        <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} label="Division" value={filter.division} />
 
         {/* Group */}
-        <SelectInput
-          handleSelect={handleGroupChange}
-          name="group"
-          optionList={filteredGroups}
-          label="Group"
-          value={filter.group}
-        />
+        <SelectInput handleSelect={handleGroupChange} name="group" optionList={filteredGroups} label="Group" value={filter.group} />
       </div>
 
       {/* Search Input */}
       <div className="relative mb-3">
-        <InputField
-          name="search"
-          type="text"
-          defaultValue={filter.search || ""}
-          handleInputChange={handleSearchChange}
-        />
+        <InputField name="search" type="text" defaultValue={filter.search || ''} handleInputChange={handleSearchChange} />
       </div>
 
       {/* Status Filter */}
       {showStatus && (
         <div className="mb-4">
-          <label
-            htmlFor="matchStatus"
-            className="text-sm font-medium text-gray-300 mb-1 block"
-          >
+          <label htmlFor="matchStatus" className="text-sm font-medium text-gray-300 mb-1 block">
             Match Status
           </label>
           <select
             id="matchStatus"
-            value={filter.status || ""}
+            value={filter.status || ''}
             onChange={handleStatusChange}
             className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-sm text-white"
             disabled={loading}
@@ -158,27 +153,23 @@ function FilterContent({
               Applying...
             </>
           ) : (
-            "Apply Filters"
+            'Apply Filters'
           )}
         </button>
 
+        <Link href={`/${eventId}/${pageLinks[filterPage]}/${ldoIdUrl}`} className="btn-info">
+          New {filterPage === EFilterPage.MATCHES ? 'Match' : filterPage.slice(0, -1)}
+        </Link>
+
         {hasActiveFilters && (
-          <button
-            onClick={onClearFilters}
-            disabled={loading}
-            className="px-4 py-2 bg-gray-700 text-white font-semibold rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors"
-          >
+          <button onClick={onClearFilters} disabled={loading} className="px-4 py-2 bg-gray-700 text-white font-semibold rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors">
             Clear
           </button>
         )}
       </div>
 
       {/* Unsaved changes indicator */}
-      {hasUnsavedChanges && !loading && (
-        <div className="mt-2 text-sm text-yellow-400 text-center">
-          You have unsaved filter changes
-        </div>
-      )}
+      {hasUnsavedChanges && !loading && <div className="mt-2 text-sm text-yellow-400 text-center">You have unsaved filter changes</div>}
     </form>
   );
 }

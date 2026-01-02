@@ -26,6 +26,7 @@ import {
   GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
+  GetEventWithGroupsAndUnassignedPlayersResponse,
   GetPlayerEventSettingResponse,
 } from './resolvers/event.response';
 import { Player } from 'src/player/player.schema';
@@ -120,6 +121,13 @@ export class EventResolver {
   ) {
     // , @Args('filter') filter: EventFilterInput
     return this.eventQueries.getEventDetails(eventId, filter);
+  }
+  
+  @Query((__returns) => GetEventWithGroupsAndUnassignedPlayersResponse)
+  async getEventWithGroupsAndUnassignedPlayers(
+    @Args('eventId', { nullable: false }) eventId: string,
+  ) {
+    return this.eventQueries.getEventWithGroupsAndUnassignedPlayers(eventId);
   }
 
   @Query((__returns) => GetPlayerEventSettingResponse)

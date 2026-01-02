@@ -325,7 +325,7 @@ export class LdoResolver {
         const ldoEventIds = ldo.events.map((le) => le.toString());
         promisesToDelete.push(this.eventService.delete({ _id: { $in: ldoEventIds } }));
 
-        const events = await this.eventService.query({ _id: { $in: ldoEventIds } });
+        const events = await this.eventService.find({ _id: { $in: ldoEventIds } });
         if (events && events.length > 0) {
           for (const event of events) {
             // teams, players, matches
@@ -393,7 +393,7 @@ export class LdoResolver {
 
   @ResolveField()
   async events(@Parent() ldo: LDO) {
-    const events = await this.eventService.query({ ldo: ldo._id.toString() });
+    const events = await this.eventService.find({ ldo: ldo._id.toString() });
     return events;
   }
 }

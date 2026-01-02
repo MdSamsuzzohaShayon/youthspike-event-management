@@ -1,30 +1,14 @@
-"use client";
+'use client';
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client/react";
-import { useRouter } from "next/navigation";
-import {
-  ITeam,
-  IRoundRelatives,
-  ISearchFilter,
-  IGroup,
-  INetRelatives,
-  ISearchTeamResponse,
-  ITeamFilter,
-  IMatch,
-  IEvent,
-} from "@/types";
-import FilterContent from "../event/FilterContent";
-import SearchTeamList from "./SearchTeamList";
-import { SEARCH_TEAMS } from "@/graphql/teams";
-import TeamStandings from "./TeamStandings";
-import EventNavigation from "../layout/EventNavigation";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
+import { useRouter } from 'next/navigation';
+import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage } from '@/types';
+import FilterContent from '../event/FilterContent';
+import SearchTeamList from './SearchTeamList';
+import { SEARCH_TEAMS } from '@/graphql/teams';
+import TeamStandings from './TeamStandings';
+import EventNavigation from '../layout/EventNavigation';
 
 interface ITeamStandingsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -33,18 +17,14 @@ interface ITeamStandingsContainerProps {
 }
 
 const DEFAULT_FILTER_STATE: ITeamFilter = {
-  search: "",
-  division: "",
-  group: "",
+  search: '',
+  division: '',
+  group: '',
 };
 
 const PAGE_SIZE = 30;
 
-export default function TeamStandingsContainer({
-  queryRef,
-  eventId,
-  initialSearchParams,
-}: ITeamStandingsContainerProps) {
+export default function TeamStandingsContainer({ queryRef, eventId, initialSearchParams }: ITeamStandingsContainerProps) {
   const isInitial = useRef<boolean>(true);
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
@@ -83,25 +63,22 @@ export default function TeamStandingsContainer({
         group: filter.group || undefined,
       },
     }),
-    [eventId]
+    [eventId],
   );
 
   // Update all server data from response
-  const updateAllData = useCallback(
-    (responseData: { searchTeams: ISearchTeamResponse }) => {
-      const searchData = responseData?.searchTeams?.data;
-      if (!searchData) return;
+  const updateAllData = useCallback((responseData: { searchTeams: ISearchTeamResponse }) => {
+    const searchData = responseData?.searchTeams?.data;
+    if (!searchData) return;
 
-      setTeams(searchData.teams || []);
-      setNets(searchData.nets || []);
-      setMatches(searchData.matches || []);
-      setRounds(searchData.rounds || []);
-      setGroups(searchData.groups || []);
-      setEvent(searchData.event || null);
-      setHasMore((searchData.teams || []).length === PAGE_SIZE);
-    },
-    []
-  );
+    setTeams(searchData.teams || []);
+    setNets(searchData.nets || []);
+    setMatches(searchData.matches || []);
+    setRounds(searchData.rounds || []);
+    setGroups(searchData.groups || []);
+    setEvent(searchData.event || null);
+    setHasMore((searchData.teams || []).length === PAGE_SIZE);
+  }, []);
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
@@ -110,15 +87,15 @@ export default function TeamStandingsContainer({
         const result = await apolloClient.query({
           query: SEARCH_TEAMS,
           variables: buildQueryVariables(filter, offset),
-          fetchPolicy: "network-only",
+          fetchPolicy: 'network-only',
         });
         return result.data as { searchTeams: ISearchTeamResponse };
       } catch (error) {
-        console.error("Failed to fetch teams:", error);
+        console.error('Failed to fetch teams:', error);
         throw error;
       }
     },
-    [apolloClient, buildQueryVariables]
+    [apolloClient, buildQueryVariables],
   );
 
   // Apply filters
@@ -142,7 +119,7 @@ export default function TeamStandingsContainer({
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       router.replace(newUrl, { scroll: false });
     } catch (error) {
-      console.error("Failed to apply filters:", error);
+      console.error('Failed to apply filters:', error);
     } finally {
       setIsApplyingFilters(false);
     }
@@ -160,7 +137,7 @@ export default function TeamStandingsContainer({
       setAppliedFilter(clearedFilter);
       router.replace(window.location.pathname, { scroll: false });
     } catch (error) {
-      console.error("Failed to clear filters:", error);
+      console.error('Failed to clear filters:', error);
     }
   }, [executeSearchQuery, updateAllData, router]);
 
@@ -180,7 +157,7 @@ export default function TeamStandingsContainer({
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Failed to load more teams:", error);
+      console.error('Failed to load more teams:', error);
     } finally {
       setIsLoadingMore(false);
     }
@@ -244,11 +221,8 @@ export default function TeamStandingsContainer({
   };
 
   // UI state computations
-  const hasActiveFilters = Object.values(appliedFilter).some(
-    (value) => value !== ""
-  );
-  const hasUnsavedChanges =
-    JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
+  const hasActiveFilters = Object.values(appliedFilter).some((value) => value !== '');
+  const hasUnsavedChanges = JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && teams.length === 0;
 
@@ -259,8 +233,10 @@ export default function TeamStandingsContainer({
       </div>
 
       <FilterContent
+        eventId={eventId}
+        filterPage={EFilterPage.TEAMS}
         groups={groups}
-        divisions={event?.divisions ?? ""}
+        divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
         filter={localFilter}
         updateFilter={updateLocalFilter}
@@ -275,16 +251,13 @@ export default function TeamStandingsContainer({
         <div className="mb-4 p-3 bg-gray-800 rounded-md">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-300">
-              Active filters:{" "}
+              Active filters:{' '}
               {Object.entries(appliedFilter)
                 .filter(([_, value]) => value)
                 .map(([key, value]) => `${key}: ${value}`)
-                .join(", ")}
+                .join(', ')}
             </span>
-            <button
-              onClick={handleClearFilters}
-              className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
-            >
+            <button onClick={handleClearFilters} className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
               Clear all
             </button>
           </div>
@@ -306,9 +279,7 @@ export default function TeamStandingsContainer({
             {teams.length > 0 ? (
               <TeamStandings matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} />
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                No teams found teaming your criteria.
-              </div>
+              <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}
           </div>
 
@@ -326,18 +297,14 @@ export default function TeamStandingsContainer({
                     Loading...
                   </>
                 ) : (
-                  "Load More Teams"
+                  'Load More Teams'
                 )}
               </button>
             </div>
           )}
 
           {/* No more teams indicator */}
-          {!hasMore && teams.length > 0 && (
-            <div className="text-center py-4 text-gray-400 text-sm">
-              No more teams to load
-            </div>
-          )}
+          {!hasMore && teams.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more teams to load</div>}
         </div>
       )}
     </div>

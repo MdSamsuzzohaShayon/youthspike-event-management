@@ -1,6 +1,4 @@
-import { gql } from "@apollo/client";
-
-
+import { gql } from '@apollo/client';
 
 const roundResponse = `
 rounds {
@@ -88,7 +86,6 @@ const matchResponseWithRound = `
     ${matchResponse}
 `;
 
-
 /**
  * QUERIES
  * ===========================================================================================
@@ -105,7 +102,50 @@ const GET_A_MATCH_RAW = `
     }
   }
 `;
-const GET_A_MATCH = gql`${GET_A_MATCH_RAW}`;
+const GET_A_MATCH = gql`
+  ${GET_A_MATCH_RAW}
+`;
+
+const GET_A_MATCH_LIGHT = gql`
+  query GetMatch($matchId: String!) {
+    getMatch(matchId: $matchId) {
+      code
+      message
+      success
+      data {
+        _id
+        date
+        division
+        numberOfNets
+        numberOfRounds
+        netVariance
+        homeTeam
+        autoAssign
+        includeStats
+        autoAssignLogic
+        rosterLock
+        rosterLock
+        tieBreaking
+        timeout
+        location
+        accessCode
+        description
+        fwango
+        streamUrl
+        completed
+        extendedOvertime
+        teamAP
+        teamBP
+        event{
+          _id
+          name
+          location
+          startDate
+        }
+      }
+    }
+  }
+`;
 
 const GET_EVENT_WITH_MATCHES_RAW = `
 query GetEventWithMatches($eventId: String!) {
@@ -227,8 +267,9 @@ query GetEventWithMatches($eventId: String!) {
 }
 `;
 
-const GET_EVENT_WITH_MATCHES = gql`${GET_EVENT_WITH_MATCHES_RAW}`;
-
+const GET_EVENT_WITH_MATCHES = gql`
+  ${GET_EVENT_WITH_MATCHES_RAW}
+`;
 
 const GET_MATCHES_MIN_RAW = `
 query GetMatches {
@@ -278,85 +319,84 @@ query GetMatches {
 `;
 
 const SEARCH_MATCHES = gql`
-query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
-  searchMatches(eventId: $eventId, filter: $filter) {
-    code
-    data {
-      event {
-        _id
-        name
-        logo
-        divisions
-        startDate
-        endDate
-        location
-        description
+  query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
+    searchMatches(eventId: $eventId, filter: $filter) {
+      code
+      data {
+        event {
+          _id
+          name
+          logo
+          divisions
+          startDate
+          endDate
+          location
+          description
+        }
+        groups {
+          _id
+          name
+          division
+        }
+        ldo {
+          _id
+          name
+        }
+        matches {
+          _id
+          teamB
+          teamA
+          teamAP
+          teamBP
+          date
+          location
+          group
+          division
+          description
+          completed
+        }
+        nets {
+          _id
+          num
+          match
+          round
+          teamBPlayerA
+          teamBPlayerB
+          teamAPlayerA
+          teamAPlayerB
+          teamBScore
+          teamAScore
+          streamUrl
+          points
+        }
+        rounds {
+          _id
+          completed
+          firstPlacing
+          match
+          num
+          teamAScore
+          teamBScore
+          teamAProcess
+          teamBProcess
+        }
+        teams {
+          _id
+          name
+          num
+          division
+          matches
+          logo
+          group
+          active
+        }
       }
-      groups {
-        _id
-        name
-        division
-      }
-      ldo {
-        _id
-        name
-      }
-      matches {
-        _id
-        teamB
-        teamA
-        teamAP
-        teamBP
-        date
-        location
-        group
-        division
-        description
-        completed
-      }
-      nets {
-        _id
-        num
-        match
-        round
-        teamBPlayerA
-        teamBPlayerB
-        teamAPlayerA
-        teamAPlayerB
-        teamBScore
-        teamAScore
-        streamUrl
-        points
-      }
-      rounds {
-        _id
-        completed
-        firstPlacing
-        match
-        num
-        teamAScore
-        teamBScore
-        teamAProcess
-        teamBProcess
-      }
-      teams {
-        _id
-        name
-        num
-        division
-        matches
-        logo
-        group
-        active
-      }
+      code
+      message
+      success
     }
-    code
-    message
-    success
   }
-}
 `;
-
 
 /**
  * MUTATIONS
@@ -376,36 +416,45 @@ mutation CreateMatch($input: CreateMatchInput!) {
 `;
 
 const UPDATE_MATCH = gql`
-mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
-  updateMatch(input: $input, matchId: $matchId) {
-    code
-    success
-    message
+  mutation UpdateMatch($input: UpdateMatchInput!, $matchId: String!) {
+    updateMatch(input: $input, matchId: $matchId) {
+      code
+      success
+      message
+    }
   }
-}
 `;
 
-
 const DELETE_MATCH = gql`
-mutation DeleteMatch($matchId: String!) {
-  deleteMatch(matchId: $matchId) {
-    code
-    message
-    success
+  mutation DeleteMatch($matchId: String!) {
+    deleteMatch(matchId: $matchId) {
+      code
+      message
+      success
+    }
   }
-}
 `;
 
 const DELETE_MATCHES = gql`
-mutation DeleteMatches($matchIds: [String!]!) {
-  deleteMatches(matchIds: $matchIds) {
-    code
-    success
-    message
+  mutation DeleteMatches($matchIds: [String!]!) {
+    deleteMatches(matchIds: $matchIds) {
+      code
+      success
+      message
+    }
   }
-}
 `;
 
-
-
-export { CREATE_MATCH, GET_EVENT_WITH_MATCHES_RAW, GET_EVENT_WITH_MATCHES, GET_A_MATCH, UPDATE_MATCH, DELETE_MATCH, DELETE_MATCHES, GET_A_MATCH_RAW, GET_MATCHES_MIN_RAW, SEARCH_MATCHES };
+export {
+  CREATE_MATCH,
+  GET_EVENT_WITH_MATCHES_RAW,
+  GET_EVENT_WITH_MATCHES,
+  GET_A_MATCH,
+  UPDATE_MATCH,
+  DELETE_MATCH,
+  DELETE_MATCHES,
+  GET_A_MATCH_RAW,
+  GET_MATCHES_MIN_RAW,
+  SEARCH_MATCHES,
+  GET_A_MATCH_LIGHT,
+};

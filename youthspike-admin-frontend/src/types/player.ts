@@ -96,10 +96,7 @@ interface ISearchPlayerData {
   matches: IMatch[];
 }
 
-export interface ISearchPlayerResponse {
-  code: number;
-  success: boolean;
-  message: string;
+export interface ISearchPlayerResponse extends IResponse{
   data: ISearchPlayerData;
 }
 

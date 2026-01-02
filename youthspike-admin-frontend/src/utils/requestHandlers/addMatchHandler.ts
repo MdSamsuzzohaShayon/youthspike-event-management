@@ -19,11 +19,10 @@ interface IAddMatchHandlerProps {
   addMatch: IAddMatch;
   currDivision?: string;
   showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
-  router?: AppRouterInstance;
   addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
-async function addMatchHandler({ setActErr, setIsLoading, eventId, createMatch, addMatch, currDivision, showAddMatch, router, addMatchCB }: IAddMatchHandlerProps) {
+async function addMatchHandler({ setActErr, setIsLoading, eventId, createMatch, addMatch, currDivision, showAddMatch, addMatchCB }: IAddMatchHandlerProps) {
   try {
     setIsLoading(true);
 

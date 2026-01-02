@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 const eventResponse = `
 _id
@@ -80,7 +80,6 @@ const GET_EVENTS = gql`
   }
 `;
 
-
 const GET_AN_EVENT_RAW = `
 query GetEvent($eventId: String!) {
   getEvent(eventId: $eventId) {
@@ -94,100 +93,202 @@ query GetEvent($eventId: String!) {
 }
 `;
 
-
 const GET_AN_EVENT = gql`
   ${GET_AN_EVENT_RAW}
 `;
 
-
 const GET_PLAYER_EVENT_SETTINGS = gql`
-query GetPlayerEventSetting($eventId: String) {
-  getPlayerEventSetting(eventId: $eventId) {
+  query GetPlayerEventSetting($eventId: String) {
+    getPlayerEventSetting(eventId: $eventId) {
+      code
+      message
+      success
+      data {
+        event {
+          _id
+          name
+          logo
+          startDate
+          endDate
+          active
+          autoAssign
+          autoAssignLogic
+          coachPassword
+          divisions
+          homeTeam
+          description
+          location
+          accessCode
+          nets
+          rounds
+          netVariance
+          rosterLock
+          timeout
+          fwango
+          tieBreaking
+          defaultSponsor
+        }
+        ldo {
+          _id
+          name
+          logo
+        }
+        sponsors {
+          _id
+          company
+          logo
+        }
+        teams {
+          _id
+          name
+          division
+        }
+        multiplayer {
+          _id
+          acePercentage
+          defensiveConversionPercentage
+          hittingPercentage
+          receivingPercentage
+          servingPercentage
+          settingPercentage
+        }
+        weight {
+          _id
+          acePercentage
+          defensiveConversionPercentage
+          hittingPercentage
+          receivingPercentage
+          servingPercentage
+          settingPercentage
+        }
+        stats {
+          _id
+          acePercentage
+          defensiveConversionPercentage
+          hittingPercentage
+          receivingPercentage
+          servingPercentage
+          settingPercentage
+        }
+        player {
+          _id
+          firstName
+          lastName
+          email
+          division
+          phone
+          profile
+          username
+        }
+      }
+    }
+  }
+`;
+
+const GET_AN_EVENT_WITH_TEAMS_AND_GROUPS = gql`
+  query GetEvent($eventId: String!) {
+    getEvent(eventId: $eventId) {
+      code
+      message
+      success
+      data {
+        _id
+        name
+        logo
+        divisions
+        startDate
+        endDate
+        location
+        description
+        divisions
+        netVariance
+        nets
+        rounds
+        rosterLock
+        fwango
+        homeTeam
+        autoAssign
+        autoAssignLogic
+        tieBreaking
+        accessCode
+        timeout
+        multiplayer{
+          _id
+          servingPercentage
+          acePercentage
+          receivingPercentage
+          hittingPercentage
+          settingPercentage 
+          defensiveConversionPercentage
+          __typename
+        }
+        weight{
+          _id
+          servingPercentage
+          acePercentage
+          receivingPercentage
+          hittingPercentage
+          settingPercentage 
+          defensiveConversionPercentage
+          __typename
+        }
+        teams {
+          _id
+          logo
+          name
+          division
+        }
+        groups {
+          _id
+          name
+          division
+          teams {
+            _id
+            logo
+            name
+            division
+          }
+        }
+      }
+    }
+  }
+`;
+
+const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
+query GetEventWithGroupsAndUnassignedPlayers($eventId: String!) {
+  getEventWithGroupsAndUnassignedPlayers(eventId: $eventId) {
     code
-    message
     success
+    message
     data {
       event {
         _id
         name
+        divisions
         logo
         startDate
         endDate
         active
-        autoAssign
-        autoAssignLogic
-        coachPassword
-        divisions
-        homeTeam
-        description
-        location
-        accessCode
-        nets
-        rounds
-        netVariance
-        rosterLock
-        timeout
+        sendCredentials
+        playerLimit
         fwango
-        tieBreaking
-        defaultSponsor
       }
-      ldo {
-        _id
-        name
-        logo
-      }
-      sponsors {
-        _id
-        company
-        logo
-      }
-      teams {
-        _id
-        name
-        division
-      }
-      multiplayer {
-        _id
-        acePercentage
-        defensiveConversionPercentage
-        hittingPercentage
-        receivingPercentage
-        servingPercentage
-        settingPercentage
-      }
-      weight {
-        _id
-        acePercentage
-        defensiveConversionPercentage
-        hittingPercentage
-        receivingPercentage
-        servingPercentage
-        settingPercentage
-      }
-      stats {
-        _id
-        acePercentage
-        defensiveConversionPercentage
-        hittingPercentage
-        receivingPercentage
-        servingPercentage
-        settingPercentage
-      }
-      player {
+      players {
         _id
         firstName
         lastName
-        email
-        division
-        phone
-        profile
         username
+        division
+      }
+      groups {
+        _id
+        name
+        division
+        active
       }
     }
   }
 }
-
-
 `;
 
 /**
@@ -207,7 +308,9 @@ mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventI
 }
 `;
 
-const ADD_EVENT = gql`${ADD_EVENT_RAW}`;
+const ADD_EVENT = gql`
+  ${ADD_EVENT_RAW}
+`;
 
 const UPDATE_EVENT_RAW = `
 mutation UpdateEvent(
@@ -235,7 +338,9 @@ mutation UpdateEvent(
 }
 `;
 
-const UPDATE_EVENT = gql`${UPDATE_EVENT_RAW}`;
+const UPDATE_EVENT = gql`
+  ${UPDATE_EVENT_RAW}
+`;
 
 const CLONE_EVENT = gql`
   mutation CloneEvent($eventId: String!) {
@@ -250,43 +355,57 @@ const CLONE_EVENT = gql`
   }
 `;
 
-
 const DELETE_AN_EVENT = gql`
-mutation DeleteEvent($eventId: String!) {
-  deleteEvent(eventId: $eventId) {
-    code
-    message
-    success
+  mutation DeleteEvent($eventId: String!) {
+    deleteEvent(eventId: $eventId) {
+      code
+      message
+      success
+    }
   }
-}
 `;
 
-
-const SEND_CREDENTIALS= gql`
-mutation SendCredentials($eventId: String!, $teamIds: [String!], $captain: String, $coCaptain: String) {
-  sendCredentials(eventId: $eventId, teamIds: $teamIds, captain: $captain, co_captain: $coCaptain) {
-    code
-    message
-    success
+const SEND_CREDENTIALS = gql`
+  mutation SendCredentials($eventId: String!, $teamIds: [String!], $captain: String, $coCaptain: String) {
+    sendCredentials(eventId: $eventId, teamIds: $teamIds, captain: $captain, co_captain: $coCaptain) {
+      code
+      message
+      success
+    }
   }
-}
 `;
 
 const EXPORT_PLAYERS = gql`
-mutation ExportPlayers($eventId: String!) {
-  exportPlayers(eventId: $eventId) {
-    code
-    message
-    success
-    data {
-      division
-      matches
-      name
-      team
-      username
+  mutation ExportPlayers($eventId: String!) {
+    exportPlayers(eventId: $eventId) {
+      code
+      message
+      success
+      data {
+        division
+        matches
+        name
+        team
+        username
+      }
     }
   }
-}
 `;
 
-export { GET_EVENTS, GET_EVENTS_MIN_RAW, GET_PLAYER_EVENT_SETTINGS, ADD_EVENT, ADD_EVENT_RAW, UPDATE_EVENT, UPDATE_EVENT_RAW, CLONE_EVENT, GET_AN_EVENT, EXPORT_PLAYERS, GET_AN_EVENT_RAW, DELETE_AN_EVENT, SEND_CREDENTIALS };
+export {
+  GET_EVENTS,
+  GET_EVENTS_MIN_RAW,
+  GET_PLAYER_EVENT_SETTINGS,
+  ADD_EVENT,
+  ADD_EVENT_RAW,
+  UPDATE_EVENT,
+  UPDATE_EVENT_RAW,
+  CLONE_EVENT,
+  GET_AN_EVENT,
+  EXPORT_PLAYERS,
+  GET_AN_EVENT_RAW,
+  DELETE_AN_EVENT,
+  SEND_CREDENTIALS,
+  GET_AN_EVENT_WITH_TEAMS_AND_GROUPS,
+  GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS
+};

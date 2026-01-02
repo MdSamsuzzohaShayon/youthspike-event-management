@@ -210,6 +210,12 @@ export interface ICheckedInput {
   checked: boolean;
 }
 
+export enum EFilterPage{
+  MATCHES = "matches",
+  TEAMS = "teams",
+  PLAYERS = "players",
+}
+
 export type TMutationFunction = useMutation.MutationFunction<
   unknown,
   {

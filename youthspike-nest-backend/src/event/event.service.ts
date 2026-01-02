@@ -9,17 +9,12 @@ import { Types } from 'mongoose';
 export class EventService {
   constructor(@InjectModel(Event.name) private eventModel: Model<Event>) {}
 
-  async query(query: any) {
-    return this.eventModel.find(query).sort({
-      updatedAt: -1,
-    });
-  }
 
   async findById(id: string) {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    return this.eventModel.findById(id);
+    return this.eventModel.findById(id).lean();
   }
 
   async findByName(name: string) {

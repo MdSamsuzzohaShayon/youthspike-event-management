@@ -176,3 +176,18 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
 
   return aggregated;
 };
+
+
+/**
+ * Filters items by division (case-insensitive).
+ */
+export function filterByDivision<T extends { division: string }>(
+  items: T[],
+  division: string
+): T[] {
+  const normalizedDivision = division.toLowerCase();
+  return items.filter(
+    (item) => item.division.toLowerCase() === normalizedDivision
+  );
+}
+

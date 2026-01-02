@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryRef, useReadQuery, useApolloClient } from '@apollo/client/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import FilterContent from '../event/FilterContent';
-import { ISearchFilter, IGroup, ISearchPlayerResponse, IPlayer, ITeam, IAllStats, IPlayerStats, IEvent, EGroupType, IPlayerExpRel } from '@/types';
+import { ISearchFilter, IGroup, ISearchPlayerResponse, IPlayer, ITeam, IAllStats, IPlayerStats, IEvent, EGroupType, IPlayerExpRel, EFilterPage } from '@/types';
 import { SEARCH_PLAYERS } from '@/graphql/players';
 import PlayerList from './PlayerList';
 import PlayerSearchList from './PlayerSearchList';
@@ -103,6 +103,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     },
     [appliedFilter.limit],
   );
+  
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
@@ -280,6 +281,8 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
       {/* Filters */}
       <FilterContent
+        eventId={event?._id || ''}
+        filterPage={EFilterPage.PLAYERS}
         groups={groups}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}

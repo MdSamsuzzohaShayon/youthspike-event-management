@@ -7,11 +7,10 @@ import { useError } from '@/lib/ErrorProvider';
 
 interface IMatchListProps {
   matchList?: IMatch[];
-  nets: INetRelatives[];
-  rounds: IRoundRelatives[];
+  eventId: string;
 }
 
-function SearchMatchList({ matchList = [] }: IMatchListProps) {
+function SearchMatchList({ matchList = [], eventId }: IMatchListProps) {
   const { setActErr } = useError();
 
   const sortedMatches = useMemo(() => {
@@ -70,7 +69,7 @@ function SearchMatchList({ matchList = [] }: IMatchListProps) {
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
       {sortedMatches.map((match, i) => (
-        <MatchCard key={`${match?._id}-${i}`} match={match} eventId="" handleSelectMatch={() => {}} isChecked={false} setActErr={setActErr} sl={i + 1} />
+        <MatchCard key={`${match?._id}-${i}`} match={match} eventId={eventId} handleSelectMatch={() => {}} isChecked={false} setActErr={setActErr} sl={i + 1} />
       ))}
     </div>
   );

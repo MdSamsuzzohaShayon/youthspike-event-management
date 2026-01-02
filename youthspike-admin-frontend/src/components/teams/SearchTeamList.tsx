@@ -1,164 +1,314 @@
-import {
-  IRoundRelatives,
-  ITeam,
-  IMatch,
-  ITeamScore,
-  ETeam,
-} from "@/types";
-import { useMemo } from "react";
-import TeamRow from "./TeamRow";
-import { calcScore } from "@/utils/calcScore";
+import React, { useMemo, useRef, useState } from 'react';
+import { ICheckedInput, IError, IEvent, IGroup, IResponse, ITeam } from '@/types';
+import TeamCard from './TeamCard';
+import Image from 'next/image';
+import { imgSize } from '@/utils/style';
+import { handleError } from '@/utils/handleError';
+import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
+import { SEND_CREDENTIALS } from '@/graphql/event';
+import SelectInput from '../elements/forms/SelectInput';
+import { UPDATE_GROUP } from '@/graphql/group';
+import { AnimatePresence, motion } from 'motion/react';
+import { menuVariants } from '@/utils/animation';
+import { useError } from '@/lib/ErrorProvider';
+import Pagination from '../elements/Pagination';
+import { useMutation } from '@apollo/client/react';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
-
-interface ITeamListProps {
-  teamList?: ITeam[];
-  matchesByTeamId: Map<string, IMatch[]>;
-  selectedGroup?: string;
+interface IProps {
+  eventId: string;
+  teamList: ITeam[];
+  groupList: IGroup[];
+  eventList?: IEvent[];
+  refetchFunc?: () => void;
 }
 
-function SearchTeamList({
-  teamList = [],
-  matchesByTeamId,
-  selectedGroup,
-}: ITeamListProps) {
-  const teamScores = useMemo(() => {
-    const scores = new Map<string, ITeamScore>();
+const ITEMS_PER_PAGE = 20;
 
-    for (const team of teamList) {
-      const teamMatches = matchesByTeamId.get(team._id) || [];
+function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }: IProps) {
 
-      const teamRecord: ITeamScore = {
-        rank: 0,
-        totalMatches: 0,
-        overallWins: 0,
-        overallLoses: 0,
-        groupWins: 0,
-        groupLoses: 0,
-        matchAvgDiff: 0,
-        gameAvgDiff: 0,
-      };
+  // Hook
+  const { setActErr } = useError();
 
-      let totalMatchDiff = 0;
-      let totalGameDiff = 0;
-      let totalNets = 0;
+  // References
+  const cngGroupEl = useRef<HTMLDialogElement | null>(null);
 
-      for (const match of teamMatches) {
-        if (!match.completed) continue;
-        const teamId: string =
-          typeof match.teamA == "object" ? match.teamA._id : match.teamA;
-        const isTeamA = teamId === team._id;
 
-        
-        
+  // Local State
+  const [showFilter, setShowFilter] = useState<boolean>(false);
+  const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
+  const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
+  const [filteredGroupId, setFilteredGroupId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-        const {matchScore} = calcScore(match?.nets || [], (match?.rounds || []) as IRoundRelatives[]);
+  // Mutations
+  const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
+  const [deleteMultipleTeams] = useMutation<{deleteTeams: IResponse}>(DELETE_MULTIPLE_TEAMS);
+  const [updateGroup] = useMutation(UPDATE_GROUP);
 
-        const ts = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
-        const os = !isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
-        const teamPlusMinus = matchScore.teamAMPlusMinus > matchScore.teamBMPlusMinus ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+  // eslint-disable-next-line no-unused-vars
+  const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
+    e.preventDefault();
 
-        const teamScore = ts + (isTeamA ? match?.teamAP || 0 : 0),
-          oponentScore = os + (isTeamA ? match?.teamBP || 0 : 0);
+    setFilteredGroupId(groupId);
+    setShowFilter(false);
+    setShowBulkAction(false);
+  };
 
-        totalMatchDiff += teamScore - oponentScore;
-        totalGameDiff += teamPlusMinus;
+  // ===== Bulk Actions =====
+  const handleCheckedTeam = (e: React.SyntheticEvent, teamId: string) => {
+    const inputEl = e.target as HTMLInputElement;
+    const newCheckedItems: Map<string, boolean> = new Map(checkedTeams);
+    if (inputEl.checked) {
+      newCheckedItems.set(teamId, true);
+    } else {
+      newCheckedItems.set(teamId, false);
+    }
+    setCheckedTeams(newCheckedItems);
+  };
 
-        if (teamScore > oponentScore) {
-          teamRecord.overallWins++;
+  const handleCheckAllToggle = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    const newCheckedItems: Map<string, boolean> = new Map();
+    if (inputEl.checked) {
+      teamList.forEach((t) => {
+        newCheckedItems.set(t._id, true);
+      });
+      setCheckedTeams(newCheckedItems);
+    } else {
+      setCheckedTeams(new Map());
+    }
+  };
 
-          if (
-            match.group &&
-            String(match.group) !== "" &&
-            String(match.group) !== "undefined" &&
-            (match?.group?._id || match?.group)
-          ) {
-            teamRecord.groupWins++;
-          }
-        } else if (oponentScore > teamScore) {
-          teamRecord.overallLoses++;
+  const handleShowBulk = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setShowBulkAction(!showBulkAction);
+  };
 
-          if (
-            match.group &&
-            String(match.group) !== "" &&
-            String(match.group) !== "undefined" &&
-            String(match.group) !== undefined &&
-            (match?.group?._id || match?.group)
-          ) {
-            teamRecord.groupLoses++;
-          }
-        } else {
-        }
+  const handleBulkDelete = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
 
-        totalNets += match.nets.length;
-      }
+    if (checkedTeams.size <= 0) return;
+    try {
+      setIsLoading(true);
+      const checkedTeamIds = Array.from(checkedTeams)
+        .filter(([_, isChecked]) => isChecked) // Filter for checked items
+        .map(([teamId]) => teamId); // Map to just the team IDs
+      const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
+      const success = await handleResponseCheck(response.data?.deleteTeams, setActErr );
+      if (success && refetchFunc) await refetchFunc();
+    } catch (error: any) {
+      handleError({ error, setActErr });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      teamRecord.totalMatches = teamMatches.length;
-      teamRecord.matchAvgDiff = teamMatches.length
-        ? totalMatchDiff / teamMatches.length
-        : 0;
-      teamRecord.gameAvgDiff = totalNets ? totalGameDiff / totalNets : 0;
-      scores.set(team._id, teamRecord);
+  const handleBulkCredentials = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
+
+    // Send captain credentials to the captain and co captain credentials to co captain
+    try {
+      setIsLoading(true);
+      await sendCredentials({ variables: { eventId, teamIds: [...checkedTeamIds] } });
+      if (refetchFunc) await refetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleShowChangeGroup = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
+    if (checkedTeamIds.length === 0) {
+      return setActErr({ message: 'You must select a few teams and do this action', success: false });
     }
 
-    return scores;
-  }, [teamList, matchesByTeamId, selectedGroup]);
+    setShowBulkAction(false);
+    setShowFilter(false);
+    if (cngGroupEl.current) {
+      cngGroupEl.current.showModal();
+    }
+  };
 
-  const sortedTeams = useMemo(() => {
-    if (!teamList.length || !teamScores.size) return [];
+  const handleBulkChangeGroup = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (cngGroupEl.current) {
+      cngGroupEl.current.close();
+    }
+    const inputEl = e.target as HTMLInputElement;
 
-    const sortedList = [...teamList].sort((teamA, teamB) => {
-      const scoreA = teamScores.get(teamA._id)!;
-      const scoreB = teamScores.get(teamB._id)!;
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
 
-      if (selectedGroup) {
-        // group-based ranking
-        if (scoreA.groupLoses !== scoreB.groupLoses) {
-          return scoreA.groupLoses - scoreB.groupLoses;
-        }
-      }
-      if (scoreA.overallLoses !== scoreB.overallLoses) {
-        return scoreA.overallLoses - scoreB.overallLoses;
-      }
+    // console.log({ groupId: inputEl.value, checkedTeamIds });
 
-      // tiebreakers
-      if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
-        return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
-      }
-      if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
-        return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
-      }
-      return 0;
-    });
+    // Send captain credentials to the captain and co captain credentials to co captain
+    try {
+      setIsLoading(true);
+      await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } });
+      if (refetchFunc) await refetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    return sortedList;
-  }, [teamList, teamScores, selectedGroup]);
+  const handleBulkMoveTeam = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const checkedTeamIds = Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId); // Map to just the team IDs
+
+    // Send captain credentials to the captain and co captain credentials to co captain
+    try {
+      setIsLoading(true);
+      if (refetchFunc) await refetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
+    try {
+      setIsLoading(true);
+      await sendCredentials({ variables: { eventId, teamIds: [teamId] } });
+      if (refetchFunc) await refetchFunc();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
 
   return (
-    <div className="teamList w-full flex flex-col gap-y-4">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden">
-          <thead>
-            <tr className="bg-yellow-logo text-black font-semibold">
-              <th className="py-3 px-2">Team</th>
-              {selectedGroup && <th className="py-3 px-2">Group Record</th>}
-              <th className="py-3 px-2">Overall</th>
-              <th className="py-3 px-2">Match PT DIFF/AVG</th>
-              <th className="py-3 px-2">GM PT DIFF/AVG</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedTeams.map((team, index) => (
-              <TeamRow
-                key={team._id}
-                selectedGroup={selectedGroup}
-                team={team}
-                teamScores={teamScores.get(team._id)}
-                index={index}
-              />
-            ))}
-          </tbody>
-        </table>
+    <div className="team-list w-full">
+      <div className="action-section flex justify-between mb-4">
+        <div className="input-group relative flex items-center gap-2 justify-between">
+          <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
+          <label htmlFor="bulk-action">Bulk Action</label>
+          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role="presentation" onClick={handleShowBulk} />
+          {/* Bulk Action start  */}
+          <AnimatePresence>
+            {showBulkAction && (
+              <motion.ul
+                className="absolute z-10 left-12 top-6 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+                variants={menuVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.2 }}
+              >
+                {/* <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkDelete}>
+                  <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} />
+                  delete
+                </li> */}
+                <li
+                  role="presentation"
+                  className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+                  onClick={handleBulkCredentials}
+                >
+                  <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
+                  Send Credentials
+                </li>
+                <li
+                  role="presentation"
+                  className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+                  onClick={handleShowChangeGroup}
+                >
+                  <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
+                  Change Group
+                </li>
+
+                <li role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center" onClick={handleBulkMoveTeam}>
+                  <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
+                  Move team
+                </li>
+              </motion.ul>
+            )}
+          </AnimatePresence>
+          {/* Bulk Action end  */}
+        </div>
+        <div className="input-group relative ">
+          <div className="button flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
+            <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : 'Group'}</p>
+            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+          </div>
+
+          {/* Filter Action Start  */}
+          <AnimatePresence>
+            {showFilter && (
+              <motion.ul
+                className="absolute z-10 top-7 right-3 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+                variants={menuVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.2 }}
+              >
+                <li key={'all'} role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleGroupFilter(e, null)}>
+                  All
+                </li>
+                {groupList.map((g, gI) => (
+                  <li key={gI} role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleGroupFilter(e, g._id)}>
+                    {g.name}
+                  </li>
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+          {/* Filter Action End  */}
+        </div>
       </div>
+      <div className="team-list-card grid grid-cols-1 lg:grid-cols-2 gap-2">
+        {teamList.map((team) => {
+          if (!filteredGroupId || team.group?._id === filteredGroupId || String(team.group) === filteredGroupId) {
+            return (
+              <TeamCard
+                key={team._id}
+                team={team}
+                eventId={eventId}
+                eventList={eventList || []}
+                groupList={groupList}
+                setIsLoading={setIsLoading}
+                isChecked={checkedTeams.get(team._id) ?? false}
+                refetchFunc={refetchFunc}
+                handleSendCredential={handleSendCredential}
+                handleCheckedTeam={handleCheckedTeam}
+              />
+            );
+          }
+          return null;
+        })}
+      </div>
+
+
+      <dialog ref={cngGroupEl} className="modal-dialog">
+        <h3>Change Group</h3>
+        {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
+        <SelectInput
+          name="group"
+          optionList={groupList.map((g, gI) => ({
+            id: gI + 1,
+            value: g._id,
+            text: g.name,
+          }))}
+          handleSelect={handleBulkChangeGroup}
+        />
+      </dialog>
     </div>
   );
 }

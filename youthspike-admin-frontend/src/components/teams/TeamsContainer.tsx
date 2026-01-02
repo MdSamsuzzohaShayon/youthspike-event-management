@@ -3,11 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
-import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent } from '@/types';
+import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage } from '@/types';
 import FilterContent from '../event/FilterContent';
 import { SEARCH_TEAMS } from '@/graphql/teams';
 import SearchTeamList from './SearchTeamList';
 import EventNavigation from '../layout/EventNavigation';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { DIVISION } from '@/utils/constant';
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -58,7 +60,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         limit: PAGE_SIZE,
         offset,
         search: filter.search || undefined,
-        division: filter.division || undefined,
+        division: filter.division || SessionStorageService.getItem(DIVISION) || undefined,
         group: filter.group || undefined,
       },
     }),
@@ -233,6 +235,8 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       </div>
 
       <FilterContent
+        eventId={eventId}
+        filterPage={EFilterPage.TEAMS}
         groups={groups}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
@@ -274,8 +278,9 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       {!showInitialLoading && (
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
+          {/* teamList, groupList, eventId, eventList, setIsLoading, refetchFunc */}
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} matchesByTeamId={matchesByTeamId} selectedGroup={appliedFilter?.group} />
+              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} eventId={eventId} eventList={[]}  />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}
