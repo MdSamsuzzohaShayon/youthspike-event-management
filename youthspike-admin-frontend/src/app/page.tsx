@@ -27,6 +27,7 @@ export async function EventsPage({ searchParams }: IEventsPageProps) {
 
   let directorId: string | null = null;
 
+  // If this is an admin user get ldo, if id not found redirect to admin page
   if (userContext.info?.role === UserRole.admin) {
     directorId = resolvedParams[LDO_ID] as string;
 

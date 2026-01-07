@@ -2,7 +2,9 @@ import { EEventPeriod } from '@/types/event';
 
 // Check - readDatetime, readTime, validateMatchDatetime
 // Array of month names
-const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthNames: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// Create an array of month names
+const monthNamesShort: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function validateMatchDatetime(isoString: string | null): EEventPeriod {
   if (!isoString || isoString === '') return EEventPeriod.PAST;
@@ -140,4 +142,4 @@ function getLocalDateTimeISO(): string {
 }
 
 
-export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString, getLocalDateTimeISO };
+export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString, getLocalDateTimeISO, monthNamesShort };

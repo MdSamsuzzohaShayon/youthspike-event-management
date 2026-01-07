@@ -70,7 +70,7 @@ export class UserService {
   }
 
   async findOne(filter: QueryFilter<User>) {
-    return this.userModel.findOne(filter);
+    return this.userModel.findOne(filter).lean();
   }
 
   async find(filter: QueryFilter<User>) {
@@ -83,32 +83,7 @@ export class UserService {
     return user;
   }
 
-  async login(email: string, password: string): Promise<{ user: User; token: string }> {
-    const existingUser: any = await this.userModel.findOne({ email });
-    if (!existingUser) throw this.invalidCredentials;
-    const passwordFromUser = existingUser.password;
-    const passwordMatched = await bcrypt.compare(password, passwordFromUser);
-    if (!passwordMatched) throw this.invalidCredentials;
 
-    const userObj = { ...existingUser._doc };
-    delete userObj.password;
-
-    if (userObj.role === UserRole.captain && userObj.captainplayer) {
-      // const player = await this.playerService.findById(userObj.captainplayer.toString());
-      const teamWithCaptain = await this.teamService.findOne({ captain: userObj.captainplayer.toString() });
-      if (teamWithCaptain) {
-        userObj.event = teamWithCaptain.event;
-      }
-      delete userObj.captainplayer;
-    }
-
-    const token = await this.jwtService.sign({ _id: existingUser._id, email: existingUser.email, role: userObj.role });
-
-    return {
-      token,
-      user: userObj,
-    };
-  }
 
   async createOrUpdate(user: User | Record<string, any>, id?: string) {
     if (id) {

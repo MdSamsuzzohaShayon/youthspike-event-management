@@ -140,7 +140,7 @@ function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
       <AnimatePresence>
         {actionOpen && (
           <motion.ul
-            className="absolute z-10 right-6 top-12 w-48 bg-gray-100 bg-gray-900 text-gray-800 text-gray-200 rounded-md shadow-lg overflow-hidden"
+            className="absolute z-10 right-6 top-12 w-48 bg-gray-900 text-gray-200 rounded-md shadow-lg overflow-hidden"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
@@ -148,7 +148,7 @@ function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
             transition={{ duration: 0.2 }}
           >
             <li className="px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer">
-              <Link href={`/${params.eventId}/groups/${group._id}/update/${ldoIdUrl}`}>
+              <Link href={`/${params.eventId}/groups/${group._id}/${ldoIdUrl}`}>
                 Edit Group
               </Link>
             </li>

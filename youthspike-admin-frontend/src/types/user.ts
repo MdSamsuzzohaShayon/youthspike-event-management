@@ -1,4 +1,5 @@
 import { IDocument } from "./document";
+import { IResponse } from "./elements";
 
 /**
  * User Roles
@@ -54,9 +55,15 @@ export interface IDirectorItem {
   captainplayer: string | null;
 }
 
-
+interface IUserEvent extends IUser{
+  event?: string;
+}
 
 export interface IUserContext {
   token: string | null;
-  info: IUser | null;
+  info: IUserEvent | null;
+}
+
+export interface ILoginResponse extends IResponse{
+  data: IUserContext;
 }

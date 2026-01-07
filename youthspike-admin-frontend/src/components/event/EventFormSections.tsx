@@ -87,7 +87,7 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
       <SelectInput name="tieBreaking" optionList={tieBreakingRules} defaultValue={eventState.tieBreaking} handleSelect={onSelectChange} label="Tie breaking strategy" />
 
       <ToggleInput handleInputChange={onToggleChange} name="autoAssign" label="Auto assign when clock runs out" defaultValue={eventState.autoAssign} />
-      <ToggleInput handleInputChange={onToggleChange} name="includeState" label="Include the match into player stats" defaultValue={eventState.includeState} />
+      <ToggleInput handleInputChange={onToggleChange} name="includeState" label="Include the match into player stats" defaultValue={eventState.includeStats} />
 
       <SelectInput name="autoAssignLogic" optionList={assignStrategies} handleSelect={onSelectChange} label="Which auto assign logic when clock runs out?" defaultValue={eventState.autoAssignLogic} />
 

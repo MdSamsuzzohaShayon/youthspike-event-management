@@ -8,8 +8,9 @@ import useClickOutside from '../../hooks/useClickOutside';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
+import { monthNamesShort } from '@/utils/datetime';
 
-interface IEventCardProps {
+interface IProps {
   event: IEvent;
   copyEvent: (e: React.SyntheticEvent, eventId: string) => void;
   deleteEvent: (e: React.SyntheticEvent, eventId: string) => void;
@@ -17,10 +18,9 @@ interface IEventCardProps {
   sendCredentials: (eventId: string) => void;
 }
 
-// Create an array of month names
-const monthNames: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function EventCard({ event, copyEvent, deleteEvent, sendCredentials, handleExportPlayers }: IEventCardProps) {
+
+function EventCard({ event, copyEvent, deleteEvent, handleExportPlayers,  sendCredentials }: IProps) {
   const { ldoIdUrl } = useLdoId();
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
@@ -117,8 +117,8 @@ function EventCard({ event, copyEvent, deleteEvent, sendCredentials, handleExpor
         <div className="text-box text-center">
           <h3 className="text-lg font-bold mb-0">{event.name}</h3>
           <p style={{ fontSize: '0.7rem' }}>
-            {`${monthNames[new Date(event.startDate).getMonth()]} ${new Date(event.startDate).getDate()}, ${new Date(event.startDate).getFullYear()} `} -{' '}
-            {`${monthNames[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}
+            {`${monthNamesShort[new Date(event.startDate).getMonth()]} ${new Date(event.startDate).getDate()}, ${new Date(event.startDate).getFullYear()} `} -{' '}
+            {`${monthNamesShort[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}
           </p>
           <p>{event.description}</p>
           <p>{event.location}</p>

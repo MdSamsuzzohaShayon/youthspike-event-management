@@ -2,10 +2,10 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useUser } from '@/lib/UserProvider';
-import { CLONE_EVENT, DELETE_AN_EVENT, EXPORT_PLAYERS, SEND_CREDENTIALS } from '@/graphql/event';
+import { DELETE_AN_EVENT, EXPORT_PLAYERS, SEND_CREDENTIALS } from '@/graphql/event';
 import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
-import { IEvent, IEventExpRel, IGetEventDirectorQuery, IOption, IPlayer, IResponse } from '@/types';
+import { IEvent, IGetEventDirectorQuery, IOption, IPlayer, IResponse } from '@/types';
 import { redirect, useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ import EventFilterDialog from './EventFilterDialog';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
+import CloneEventDialog from './CloneEventDialog';
 
 const itemList: IOption[] = [
   { id: 1, text: 'Upcoming', value: 'upcoming' },
@@ -24,20 +25,14 @@ const itemList: IOption[] = [
   { id: 4, text: 'Orlando', value: 'orlando' },
 ];
 
-
-interface IPlayerExport extends Pick<IPlayer, 'username' | 'division'>{
+interface IPlayerExport extends Pick<IPlayer, 'username' | 'division'> {
   name: string;
   team: string | null;
   matches: string[];
 }
 
-interface IExportData extends IResponse{
+interface IExportData extends IResponse {
   data?: IPlayerExport[];
-}
-
-
-interface ICloneEventData extends IResponse{
-  data?: IEventExpRel;
 }
 
 
@@ -45,19 +40,20 @@ interface IEventsMainProps {
   queryRef: QueryRef<{ getEventDirector: IGetEventDirectorQuery }>;
 }
 
-
-
 function EventsMain({ queryRef }: IEventsMainProps) {
   // Hooks
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
+  
 
   // Local States
   const [filteredItems, setFilteredItems] = useState<IOption[]>([]);
   const filterListEl = useRef<HTMLDialogElement | null>(null);
+  const copyEventEl = useRef<HTMLDialogElement | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedEvent, setSelectedEvent] = useState<null | IEvent>(null);
 
   // Read query data from Apollo (Suspense friendly)
   const { data, error } = useReadQuery(queryRef);
@@ -69,10 +65,9 @@ function EventsMain({ queryRef }: IEventsMainProps) {
   const events = data?.getEventDirector?.data?.events ?? [];
 
   // GraphQL Queries
-  const [cloneEvent] = useMutation<{cloneEvent: ICloneEventData}>(CLONE_EVENT);
-  const [deleteEvent] = useMutation<{deleteEvent: IResponse}>(DELETE_AN_EVENT);
-  const [sendCredentials] = useMutation<{sendCredentials: IResponse}>(SEND_CREDENTIALS);
-  const [exportPlayers] = useMutation<{exportPlayers: IExportData}>(EXPORT_PLAYERS);
+  const [deleteEvent] = useMutation<{ deleteEvent: IResponse }>(DELETE_AN_EVENT);
+  const [sendCredentials] = useMutation<{ sendCredentials: IResponse }>(SEND_CREDENTIALS);
+  const [exportPlayers] = useMutation<{ exportPlayers: IExportData }>(EXPORT_PLAYERS);
 
   // Events handle
   const handleFilter = (e: React.SyntheticEvent) => {
@@ -115,7 +110,7 @@ function EventsMain({ queryRef }: IEventsMainProps) {
       // ---- GENERATE CSV ---- //
       const csvRows: string[] = [];
       const headers = ['Name', 'Username', 'Division', 'Team', 'Matches'];
-      csvRows.push(headers.join(',')); 
+      csvRows.push(headers.join(','));
 
       playerList.forEach((player: IPlayerExport) => {
         const row = [`"${player.name || ''}"`, `"${player.username || ''}"`, `"${player.division || ''}"`, `"${player.team || ''}"`, `"${(player.matches || []).join('; ')}"`];
@@ -159,11 +154,19 @@ function EventsMain({ queryRef }: IEventsMainProps) {
    */
   const handleCopyEvent = async (e: React.SyntheticEvent, eventId: string) => {
     e.preventDefault();
-    const eventResponse = await cloneEvent({ variables: { eventId } });
-    if (eventResponse.data?.cloneEvent.success !== true) {
-      return setActErr({ code: eventResponse.data?.cloneEvent.code, message: eventResponse.data?.cloneEvent.message, success: false });
+    let eventExist = null;
+    for (const event of events) {
+      if (event._id === eventId) {
+        eventExist = event;
+        break;
+      }
     }
-    return router.push(`/${eventResponse?.data?.cloneEvent?.data?._id || ""}/settings/${ldoIdUrl}`);
+    setSelectedEvent(eventExist || null);
+    if (eventExist) {
+      copyEventEl.current?.showModal();
+    }
+
+
   };
 
   const handleDeleteEvent = async (e: React.SyntheticEvent, eventId: string) => {
@@ -234,9 +237,11 @@ function EventsMain({ queryRef }: IEventsMainProps) {
         {events &&
           events.length > 0 &&
           events.map((event: IEvent) => (
-            <EventCard key={event._id} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} event={event} handleExportPlayers={handleExportPlayers} />
+            <EventCard key={event._id} event={event} copyEvent={handleCopyEvent} deleteEvent={handleDeleteEvent} sendCredentials={handleSendCredentials} handleExportPlayers={handleExportPlayers} />
           ))}
       </div>
+
+      <CloneEventDialog copyEventEl={copyEventEl} event={selectedEvent} setActErr={setActErr} />
 
       <EventFilterDialog filterListEl={filterListEl} itemList={itemList} onClose={handleClose} onSelectItem={handleSelectItem} />
     </React.Fragment>

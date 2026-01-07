@@ -91,8 +91,8 @@ export class EventResolver {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => CreateOrUpdateEventResponse)
-  async cloneEvent(@Args({ name: 'eventId', type: () => String }) eventId: string, @Context() context: any) {
-    return this.eventMutations.cloneEvent(eventId, context);
+  async cloneEvent(@Args({ name: 'eventId', type: () => String }) eventId: string, @Args('updateInput') updateInput: UpdateEventInput) {
+    return this.eventMutations.cloneEvent(eventId, updateInput);
   }
 
   // Temporary

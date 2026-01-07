@@ -33,30 +33,6 @@ export class PlayerService {
   }
 
   async createMany(playerListInput) {
-    // const uniqueEmail: string[] = [];
-    // const playerDocs = [];
-
-    // for (const p of playerListInput) {
-    //   if (
-    //     p.firstName &&
-    //     p.lastName &&
-    //     p.email &&
-    //     p.firstName !== '' &&
-    //     p.lastName !== '' &&
-    //     p.email !== '' &&
-    //     !uniqueEmail.includes(p.email)
-    //   ) {
-    //     playerDocs.push(p);
-    //     uniqueEmail.push(p.email);
-    //   }
-    // }
-
-    // const playerList = await this.playerModel.find({ email: { $in: uniqueEmail } });
-    // for (let i = 0; i < playerList.length; i++) {
-    //   const findIndex = playerDocs.findIndex((pd) => pd.email === playerList[i].email);
-    //   if (findIndex) playerDocs.splice(findIndex, 1);
-    // }
-
     return this.playerModel.insertMany(playerListInput);
   }
 

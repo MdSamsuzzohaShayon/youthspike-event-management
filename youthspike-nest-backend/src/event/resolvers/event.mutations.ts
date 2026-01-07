@@ -18,8 +18,10 @@ import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
 import { tokenToUser } from 'src/utils/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
-import { CreateEventBody, UpdateEventBody } from './event.input';
+import { CreateEventBody, UpdateEventBody, UpdateEventInput } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
+import { Team } from 'src/team/team.schema';
+import { Player } from 'src/player/player.schema';
 
 @Injectable()
 export class EventMutations implements IEventMutations {
@@ -331,72 +333,71 @@ export class EventMutations implements IEventMutations {
     }
   }
 
-  async cloneEvent(eventId: string, context: any): Promise<CreateOrUpdateEventResponse> {
+  async cloneEvent(eventId: string, updateInput: UpdateEventInput): Promise<CreateOrUpdateEventResponse> {
     /**
-     * TODO:
-     * Step-1: Check user role
-     * Step-2: If user is admin let him allow any event he wants
-     * Step-3: If user is admin create a new ldo user and assign him to new event
-     * Step-4: If user is director let him allow to clone only those events which he has created
+     * Same players, logos, teams
+     * No matches and no groups
      */
     try {
-      // Get User
-      const secret = this.configService.get<string>('JWT_SECRET');
-      const userPayload = tokenToUser(context, secret);
-      const loggedUser = await this.userService.findById(userPayload._id);
-      if (!loggedUser) return AppResponse.unauthorized();
+      /*
+      // This is the event we are cloning
+      const event = await this.eventService.findOne({ _id: eventId });
+      if (!event) return AppResponse.notFound('Event not found!');
 
-      // Role Check
-      let findEvent = null;
-      if (loggedUser.role === UserRole.director) {
-        findEvent = await this.eventService.findOne({ $and: [{ _id: eventId }, { directorId: userPayload._id }] });
-      } else if (loggedUser.role === UserRole.admin) {
-        findEvent = await this.eventService.findById(eventId);
+      let [players, teams] = await Promise.all([
+        this.playerService.find({ events: eventId }),
+        this.teamService.find({ event: eventId }),
+      ]);
+
+      const prevEventObj = { ...event };
+      delete prevEventObj._id;
+      delete prevEventObj.multiplayer;
+      delete prevEventObj.weight;
+      prevEventObj.players = [];
+      prevEventObj.teams = [];
+      prevEventObj.matches = [];
+      prevEventObj.groups = [];
+      prevEventObj.sponsors = [];
+      prevEventObj.location = updateInput?.location || 'USA';
+      const newEvent = await this.eventService.create({ ...prevEventObj, ...updateInput });
+
+      // Check relationship
+
+      // Create players
+      const organizedPlayers = [];
+      for (let i = 0; i < players.length; i += 1) {
+        const player = { ...players[i] };
+        delete player._id;
+        player.username = this.playerService.playerUsername(`${player.firstName}`);
+        player.serverReceiverOnNet = [];
+        player.serverReceiverSinglePlay = [];
+        // player.events = [newEvent._id];
+        organizedPlayers.push(player);
       }
-      if (!findEvent) return AppResponse.notFound(findEvent.name);
+      const createdPlayers = await this.playerService.createMany(organizedPlayers);
 
-      const playerIds = findEvent.players;
+      // Create maps
+      const teamMap = new Map<string, Team>();
+      const playersByTeamMap = new Map<string, Player[]>();
+      const unassignedPlayers: Player[] = [];
+      // For preparing for teams use created players
+      for (const createdPlayer of createdPlayers) {
+        const player = createdPlayer.toObject ? createdPlayer.toObject() : createdPlayer;
+        if (player.teams.length > 0) {
+          for (const teamId of player.teams) {
+            // Initialize array if not exists
+            if (!playersByTeamMap.has(teamId)) {
+              playersByTeamMap.set(teamId, []);
+            }
 
-      // Event Clone
-      const eventObj = { ...findEvent._doc, teams: [], sponsors: [], players: playerIds };
-      eventObj.name = eventObj.name + ' Clone';
-      delete eventObj._id;
-      const clonedEvent = await this.eventService.create(eventObj);
-
-      await this.playerService.updateMany({ _id: { $in: playerIds } }, { $push: { events: clonedEvent._id } });
-
-      // teams
-      const teamIds = findEvent.teams;
-      const findTeams = await this.teamService.find({ _id: { $in: teamIds } });
-      const teamObjList = [];
-      for (const team of findTeams) {
-        const teamObj = { ...team, name: team.name, active: true, event: clonedEvent._id };
-        delete teamObj._id;
-        teamObjList.push(teamObj);
+            // Push player into team bucket
+            playersByTeamMap.get(teamId)!.push(player);
+          }
+        } else {
+          unassignedPlayers.push();
+        }
       }
-      const newTeams = await this.teamService.insertMany(teamObjList);
-      const newTeamIds = newTeams.map((t) => t._id);
-
-      // sponsors
-      const sponsorIds = findEvent.sponsors;
-      const sponsorsExist = await this.sponsorService.find({ _id: { $in: sponsorIds } });
-      const sponsorObjList = [];
-      for (const sponsor of sponsorsExist) {
-        const sponsorObj = { ...sponsor, company: sponsor.company, logo: sponsor.logo, event: clonedEvent._id };
-        delete sponsorObj._id;
-        sponsorObjList.push(sponsorObj);
-      }
-      const newSponsors = await this.sponsorService.insertMany(sponsorObjList);
-      const newSponsorIds = newSponsors.map((t) => t._id);
-
-      await this.eventService.updateOne({ _id: clonedEvent._id }, { teams: newTeamIds, sponsors: newSponsorIds });
-
-      return {
-        data: clonedEvent,
-        success: true,
-        message: 'Event has been cloned successfully.',
-        code: HttpStatus.CREATED,
-      };
+        */
     } catch (error) {
       return AppResponse.handleError(error);
     }
@@ -463,31 +464,26 @@ export class EventMutations implements IEventMutations {
     }
   }
 
+  async updateEventCache(eventId: string) {
+    try {
+      const event = await this.eventService.findOne({ _id: eventId });
+      if (!event) throw new Error('No event found');
 
-  async updateEventCache(eventId: string){
-    try {      
-      const event = await this.eventService.findOne({_id: eventId});
-      if(!event) throw new Error("No event found");
-      
-      const matches = await this.matchService.find({event: event._id});
-      if(matches.length === 0)throw new Error("No match created");
-
+      const matches = await this.matchService.find({ event: event._id });
+      if (matches.length === 0) throw new Error('No match created');
 
       for (const match of matches) {
-        if(match.completed){
+        if (match.completed) {
           // this.scoreKeeperHelper.loadNetAction(body.net, body.room)
           // const nets = await this.scoreKeeperHelper.loadNetAction(body.net, body.room);
-
-          // server receiver 
+          // server receiver
           // Player stats
           // play stats
-          
         }
       }
     } catch (err) {
       console.error(err);
       return AppResponse.handleError(err);
     }
-    
   }
 }

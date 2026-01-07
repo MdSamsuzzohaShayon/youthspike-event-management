@@ -16,8 +16,6 @@ export enum EPlayerStatus {
   'INACTIVE' = 'INACTIVE',
 }
 
-
-
 registerEnumType(EPlayerStatus, {
   name: 'EPlayerStatus',
 });
@@ -100,8 +98,8 @@ export class Player extends AppDocument {
   playerstats?: PlayerStats[] | string[];
 
   // Current
-  @Field((_type) => [ServerReceiverOnNet], { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' })
+  @Field(() => [ServerReceiverOnNet], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverOnNet' }], default: [] })
   serverReceiverOnNet?: ServerReceiverOnNet[] | string[];
 
   // Each iteam

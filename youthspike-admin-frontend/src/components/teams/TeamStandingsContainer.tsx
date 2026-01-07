@@ -289,7 +289,7 @@ export default function TeamStandingsContainer({ queryRef, eventId, initialSearc
               <button
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
+                className="btn-info"
               >
                 {isLoadingMore ? (
                   <>

@@ -48,7 +48,7 @@ class LoginResponseData {
   token: string;
 
   @Field()
-  user: LoginUser;
+  info: LoginUser;
 }
 
 
@@ -84,7 +84,7 @@ export class UserResolver {
   ): Promise<LoginResponse> {
     try {
       // 1️⃣ Find user by email (case-insensitive)
-      let existingUser: any = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
+      let existingUser = await this.userService.findOne({ email: { $regex: new RegExp(email, 'i') } });
 
       // 2️⃣ If no user exists, try to create one from player data
       if (!existingUser) {
@@ -110,7 +110,7 @@ export class UserResolver {
       if (!passwordMatched) return AppResponse.invalidCredentials();
 
       // 4️⃣ Prepare user object (without password)
-      const userObj = { ...existingUser._doc };
+      const userObj: any = { ...existingUser };
       delete userObj.password;
 
       /**
@@ -132,7 +132,7 @@ export class UserResolver {
           code: HttpStatus.ACCEPTED,
           success: true,
           message: 'Token issued successfully for admin/director',
-          data: { token, user: userObj },
+          data: { token, info: userObj },
         };
       }
 
@@ -143,9 +143,9 @@ export class UserResolver {
        * - Query team only once
        */
       let playerId: string | null = null;
-      if (userObj.role === UserRole.captain) playerId = userObj.captainplayer;
-      else if (userObj.role === UserRole.co_captain) playerId = userObj.cocaptainplayer;
-      else if (userObj.role === UserRole.player) playerId = userObj.player;
+      if (userObj.role === UserRole.captain) playerId = String(userObj.captainplayer);
+      else if (userObj.role === UserRole.co_captain) playerId = String(userObj.cocaptainplayer);
+      else if (userObj.role === UserRole.player) playerId = String(userObj.player);
 
       let teamExist = null;
       if (playerId) {
@@ -174,7 +174,7 @@ export class UserResolver {
       }
 
       // Attach team/event info to user
-      userObj.event = playerExist.events?.[0]?.toString();
+      userObj.event = playerExist?.events ? String(playerExist.events[0]) : null;
       userObj.team = teamExist.name;
       userObj.teamLogo = teamExist.logo;
 
@@ -183,7 +183,7 @@ export class UserResolver {
        * -------------------------------------------------------
        * - Only runs if player has event + passcode was provided
        */
-      if (playerId && userObj.event) {
+      if (playerId && userObj) {
         const eventExist = await this.eventService.findById(userObj.event);
         if (eventExist?.ldo) {
           const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
@@ -216,7 +216,7 @@ export class UserResolver {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A token has been issued successfully, you can authenticate with this!',
-        data: { token, user: userObj },
+        data: { token, info: userObj },
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -228,7 +228,7 @@ export class UserResolver {
     try {
       const userExist: any = await this.userService.findById(userId);
       if (!userExist) return AppResponse.notFound('User');
-      const userObj = { ...userExist._doc };
+      const userObj = { ...userExist };
       delete userObj.password;
       return {
         code: HttpStatus.OK,

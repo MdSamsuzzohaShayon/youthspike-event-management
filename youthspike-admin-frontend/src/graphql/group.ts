@@ -53,6 +53,9 @@ const GET_EVENT_WITH_GROUP_RAW = `
         _id
         divisions
         name
+        location
+        startDate
+        endDate
         teams {
             _id
             name
@@ -128,6 +131,10 @@ query GetGroup($groupId: String!) {
       event {
         _id
         divisions
+        startDate
+        endDate
+        location
+        description
       }
     }
   }

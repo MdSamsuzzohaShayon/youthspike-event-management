@@ -291,7 +291,6 @@ export class MatchMutations {
       createPromises.push(this.matchService.updateOne({ _id: newMatch._id }, { nets: netIds, rounds: roundIds }));
 
       await Promise.all(createPromises);
-      await this.eventService.findOne({ _id: input.event });
 
       return {
         data: newMatch,

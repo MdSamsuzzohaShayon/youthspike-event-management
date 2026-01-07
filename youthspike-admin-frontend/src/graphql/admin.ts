@@ -8,7 +8,7 @@ const LOGIN_USER_RAW = `
       message
       data {
         token
-        user {
+        info {
           _id
           firstName
           lastName

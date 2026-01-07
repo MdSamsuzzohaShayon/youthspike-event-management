@@ -23,7 +23,7 @@ export class EventService {
   }
 
   async findOne(filter: QueryFilter<Event>) {
-    return this.eventModel.findOne(filter);
+    return this.eventModel.findOne(filter).lean();
   }
 
   async find(filter: QueryFilter<Event>) {

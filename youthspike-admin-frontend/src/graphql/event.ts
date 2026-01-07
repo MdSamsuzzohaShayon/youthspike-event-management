@@ -212,23 +212,23 @@ const GET_AN_EVENT_WITH_TEAMS_AND_GROUPS = gql`
         tieBreaking
         accessCode
         timeout
-        multiplayer{
+        multiplayer {
           _id
           servingPercentage
           acePercentage
           receivingPercentage
           hittingPercentage
-          settingPercentage 
+          settingPercentage
           defensiveConversionPercentage
           __typename
         }
-        weight{
+        weight {
           _id
           servingPercentage
           acePercentage
           receivingPercentage
           hittingPercentage
-          settingPercentage 
+          settingPercentage
           defensiveConversionPercentage
           __typename
         }
@@ -255,40 +255,40 @@ const GET_AN_EVENT_WITH_TEAMS_AND_GROUPS = gql`
 `;
 
 const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
-query GetEventWithGroupsAndUnassignedPlayers($eventId: String!) {
-  getEventWithGroupsAndUnassignedPlayers(eventId: $eventId) {
-    code
-    success
-    message
-    data {
-      event {
-        _id
-        name
-        divisions
-        logo
-        startDate
-        endDate
-        active
-        sendCredentials
-        playerLimit
-        fwango
-      }
-      players {
-        _id
-        firstName
-        lastName
-        username
-        division
-      }
-      groups {
-        _id
-        name
-        division
-        active
+  query GetEventWithGroupsAndUnassignedPlayers($eventId: String!) {
+    getEventWithGroupsAndUnassignedPlayers(eventId: $eventId) {
+      code
+      success
+      message
+      data {
+        event {
+          _id
+          name
+          divisions
+          logo
+          startDate
+          endDate
+          active
+          sendCredentials
+          playerLimit
+          fwango
+        }
+        players {
+          _id
+          firstName
+          lastName
+          username
+          division
+        }
+        groups {
+          _id
+          name
+          division
+          active
+        }
       }
     }
   }
-}
 `;
 
 /**
@@ -343,13 +343,17 @@ const UPDATE_EVENT = gql`
 `;
 
 const CLONE_EVENT = gql`
-  mutation CloneEvent($eventId: String!) {
-    cloneEvent(eventId: $eventId) {
+  mutation CloneEvent($eventId: String!, $updateInput: UpdateEventInput!) {
+    cloneEvent(eventId: $eventId, updateInput: $updateInput) {
       code
       success
       message
       data {
-        ${eventResponse}
+        _id
+        name
+        logo
+        startDate
+        endDate
       }
     }
   }
@@ -407,5 +411,5 @@ export {
   DELETE_AN_EVENT,
   SEND_CREDENTIALS,
   GET_AN_EVENT_WITH_TEAMS_AND_GROUPS,
-  GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS
+  GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS,
 };

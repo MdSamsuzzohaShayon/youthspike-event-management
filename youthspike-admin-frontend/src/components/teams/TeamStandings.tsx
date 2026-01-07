@@ -72,7 +72,6 @@ function TeamStandings({ teamList, matchList, nets, rounds, selectedGroup }: ITe
     }
     return map;
   }, [rounds]);
-  
 
   /**
    * Calculate Team Scores
@@ -98,6 +97,7 @@ function TeamStandings({ teamList, matchList, nets, rounds, selectedGroup }: ITe
       let totalMatchDiff = 0;
       let totalGameDiff = 0;
       let totalNets = 0;
+      let totalGroupMatches = 0;
 
       for (const match of teamMatches) {
         const teamAId: string = typeof match.teamA === 'object' ? match.teamA._id : String(match.teamA);
@@ -106,30 +106,35 @@ function TeamStandings({ teamList, matchList, nets, rounds, selectedGroup }: ITe
         const nets = netsByMatch?.get(match._id) || [];
         const rounds = roundsByMatch?.get(match._id) || [];
 
-        
-        
-
         const { matchScore } = calcScore(nets, rounds);
+        const matchGroupId: string | null = match?.group?._id || String(match?.group) || null;
 
         const teamScore = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
         const oponentScore = isTeamA ? matchScore.teamBMScore : matchScore.teamAMScore;
 
-        totalMatchDiff += teamScore - oponentScore;
-        totalGameDiff += isTeamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+        if (!selectedGroup || (selectedGroup && selectedGroup === matchGroupId)) {
+          totalGroupMatches += 1;
+          totalMatchDiff += teamScore - oponentScore;
+          totalGameDiff += isTeamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+          totalNets += match.nets.length;
+        }
 
         if (teamScore > oponentScore) {
+          // It will not affect group
           teamRecord.overallWins += 1;
-          if (match?.group?._id) teamRecord.groupWins += 1;
+          if (matchGroupId && matchGroupId === selectedGroup) teamRecord.groupWins += 1;
         } else if (oponentScore > teamScore) {
+          // It will not affect group
           teamRecord.overallLoses += 1;
-          if (match?.group?._id) teamRecord.groupLoses += 1;
+          if (matchGroupId && matchGroupId === selectedGroup) teamRecord.groupLoses += 1;
         }
-        totalNets += match.nets.length;
       }
 
       teamRecord.totalMatches = teamMatches.length;
-      teamRecord.matchAvgDiff = teamMatches.length ? totalMatchDiff / teamMatches.length : 0;
-      teamRecord.gameAvgDiff = teamMatches.length ? totalGameDiff / totalNets : 0;
+
+      // Only for group records
+      teamRecord.matchAvgDiff = totalGroupMatches > 0 ? totalMatchDiff / totalGroupMatches : 0;
+      teamRecord.gameAvgDiff = totalGroupMatches > 0 ? totalGameDiff / totalNets : 0;
 
       newTeamScores.set(team._id, teamRecord);
     }
@@ -189,6 +194,8 @@ function TeamStandings({ teamList, matchList, nets, rounds, selectedGroup }: ITe
   useEffect(() => {
     calculateTeamScore();
   }, [calculateTeamScore]);
+
+  console.log({ selectedGroup });
 
   return (
     <div className="teamList w-full flex flex-col rounded-lg shadow-lg">

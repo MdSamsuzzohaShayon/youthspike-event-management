@@ -385,7 +385,7 @@ type LoginUser {
 
 type LoginResponseData {
   token: String!
-  user: LoginUser!
+  info: LoginUser!
 }
 
 type LoginResponse {
@@ -1359,7 +1359,7 @@ type Mutation {
   updateUser(userId: String!, updateInput: UpdateUser!, profile: Upload): UserResponse!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, multiplayerInput: ProStatsInput, weightInput: ProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
   updateEvent(sponsorsInput: [EventSponsorInput!]!, updateInput: UpdateEventInput!, eventId: String!, sponsorsStringInput: [EventSponsorStringInput!], multiplayerInput: UpdateProStatsInput, weightInput: UpdateProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
-  cloneEvent(eventId: String!): CreateOrUpdateEventResponse!
+  cloneEvent(eventId: String!, updateInput: UpdateEventInput!): CreateOrUpdateEventResponse!
   updateEventCache(eventId: String!): CreateOrUpdateEventResponse!
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!

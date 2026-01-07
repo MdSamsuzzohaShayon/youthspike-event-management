@@ -18,20 +18,22 @@ function TeamUpdateContainer({ eventId, queryRef }: IProps) {
     throw new Error('Team not found');
   }
 
-  const {event, team, groups, players} = teamData;
+  const { event, team, groups, players } = teamData;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // Event, teams, groups
 
   // const groupList = groups.filter((g)=> g.division.toLowerCase() === team.division);
-  
 
-  return <div>
-    <div className="navigation my-8">
+  return (
+    <div>
+      <div className="navigation my-8">
         <EventNavigation event={event as unknown as IEvent} />
       </div>
       <h1>Update Team</h1>
-    {teamData && <TeamAdd groupList={groups} prevTeam={team} eventId={eventId} setIsLoading={setIsLoading} update players={players} handleClose={()=>{}}  />}</div>;
+      {teamData && <TeamAdd groupList={groups} prevTeam={team} eventId={eventId} setIsLoading={setIsLoading} update players={players} handleClose={() => {}} />}
+    </div>
+  );
 }
 
 export default TeamUpdateContainer;
