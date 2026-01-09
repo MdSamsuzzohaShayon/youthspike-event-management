@@ -10,6 +10,8 @@ import SearchTeamList from './SearchTeamList';
 import EventNavigation from '../layout/EventNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
+import MultiPlayerAddDialog from './MultiPlayerAddDialog';
+import { divisionsToOptionList } from '@/utils/helper';
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -48,9 +50,10 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const [event, setEvent] = useState<IEvent | null>(null);
 
   // Loading states
-  const [hasMore, setHasMore] = useState(true);
-  const [isApplyingFilters, setIsApplyingFilters] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [isApplyingFilters, setIsApplyingFilters] = useState<boolean>(false);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const importerEl = useRef<HTMLDialogElement | null>(null);
 
   // Build query variables
   const buildQueryVariables = useCallback(
@@ -98,6 +101,10 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     },
     [apolloClient, buildQueryVariables],
   );
+
+  const divivionList = useMemo(() => {
+    return event?.divisions ? divisionsToOptionList(event?.divisions) : [];
+  }, [event?.divisions]);
 
   // Apply filters
   const handleApplyFilters = useCallback(async () => {
@@ -149,7 +156,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     try {
       const offset = teams.length;
       const responseData = await executeSearchQuery(appliedFilter, offset);
-      // @ts-ignore
       const newTeams = responseData?.searchTeams?.data?.teams || [];
 
       if (newTeams.length > 0) {
@@ -172,50 +178,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       isInitial.current = false;
     }
   }, [initialData, updateAllData]);
-
-  const roundsByMatchId = useMemo(() => {
-    const map = new Map<string, IRoundRelatives[]>();
-    rounds.forEach((round) => {
-      if (round?.match) {
-        const existingRounds = map.get(round.match) || [];
-        map.set(round.match, [...existingRounds, round]);
-      }
-    });
-    return map;
-  }, [rounds]);
-
-  const netsByMatchId = useMemo(() => {
-    const map = new Map<string, INetRelatives[]>();
-    nets.forEach((n) => {
-      if (n?.match) {
-        const existingNets = map.get(n.match) || [];
-        map.set(n.match, [...existingNets, n]);
-      }
-    });
-    return map;
-  }, [nets]);
-
-  // Optimized data lookups
-  const matchesByTeamId = useMemo(() => {
-    const matchList = matches.map((m) => ({
-      ...m,
-      rounds: roundsByMatchId.get(m._id) || [],
-      nets: netsByMatchId.get(m._id) || [],
-    }));
-
-    const map = new Map<string, IMatch[]>();
-    matchList.forEach((m) => {
-      if (m.teamA) {
-        const existingMatches = map.get(String(m.teamA)) || [];
-        map.set(String(m.teamA), [...existingMatches, m as unknown as IMatch]);
-      }
-      if (m.teamB) {
-        const existingMatches = map.get(String(m.teamB)) || [];
-        map.set(String(m.teamB), [...existingMatches, m as unknown as IMatch]);
-      }
-    });
-    return map;
-  }, [matches, roundsByMatchId, netsByMatchId]);
 
   // Update local filter
   const updateLocalFilter = (key: string, value: string) => {
@@ -248,6 +210,17 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         hasActiveFilters={hasActiveFilters}
       />
 
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          importerEl.current?.showModal();
+        }}
+        className="btn-info text-center"
+      >
+        Import Teams
+      </button>
+
       {/* Active filters indicator */}
       {hasActiveFilters && (
         <div className="mb-4 p-3 bg-gray-800 rounded-md">
@@ -278,9 +251,9 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       {!showInitialLoading && (
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
-          {/* teamList, groupList, eventId, eventList, setIsLoading, refetchFunc */}
+            {/* teamList, groupList, eventId, eventList, setIsLoading, refetchFunc */}
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} eventId={eventId} eventList={[]}  />
+              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} eventId={eventId} eventList={[]} />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}
@@ -310,6 +283,8 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
           {!hasMore && teams.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more teams to load</div>}
         </div>
       )}
+
+      <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerEl={importerEl} setIsLoading={() => {}} />
     </div>
   );
 }

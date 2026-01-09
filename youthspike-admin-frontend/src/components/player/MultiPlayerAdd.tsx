@@ -1,121 +1,190 @@
+'use client';
+
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  FormEvent,
+  ChangeEvent,
+} from 'react';
+import { useRouter } from 'next/navigation';
+
 import { CREATE_MULTIPLE_PLAYERS_RAW } from '@/graphql/players';
 import { IOption } from '@/types';
 import { BACKEND_URL } from '@/utils/keys';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
-import SelectInput from '../elements/forms/SelectInput';
-import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
-import { handleError } from '@/utils/handleError';
 import { getCookie } from '@/utils/clientCookie';
-import FileInput from '../elements/forms/FileInput';
+import { handleError } from '@/utils/handleError';
+import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
-interface IMultiPlayerAddProps {
+import { useLdoId } from '@/lib/LdoProvider';
+import { useError } from '@/lib/ErrorProvider';
+
+import FileInput from '../elements/forms/FileInput';
+import SelectInput from '../elements/forms/SelectInput';
+
+/* -------------------------------------------------------------------------- */
+/*                                  Types                                     */
+/* -------------------------------------------------------------------------- */
+
+interface MultiPlayerAddProps {
   eventId: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   closeDialog: () => void;
   divisionList: IOption[];
 }
 
-// Define the type for the Apollo Client instance
+type AllowedFileExtension = 'csv' | 'xlsx';
 
-function MultiPlayerAdd({ eventId, setIsLoading, closeDialog, divisionList }: IMultiPlayerAddProps) {
+/* -------------------------------------------------------------------------- */
+/*                              Helper Functions                               */
+/* -------------------------------------------------------------------------- */
+
+const isValidFileType = (file: File): boolean => {
+  const allowedExtensions: AllowedFileExtension[] = ['csv', 'xlsx'];
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  return !!extension && allowedExtensions.includes(extension as AllowedFileExtension);
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Main Component                                 */
+/* -------------------------------------------------------------------------- */
+
+function MultiPlayerAdd({
+  eventId,
+  setIsLoading,
+  closeDialog,
+  divisionList,
+}: MultiPlayerAddProps) {
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
 
-  const uploadFileEl = useRef<File | null>(null);
+  const uploadedFileRef = useRef<File | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<string>('');
 
-  const handleDivisionChange = (e: React.SyntheticEvent) => {
+  /* --------------------------- Event Handlers ------------------------------ */
+
+  const handleDivisionChange = useCallback(
+    (e: React.SyntheticEvent) => {
+      const inputEl = e.target as HTMLInputElement;
+      setSelectedDivision(inputEl.value);
+    },
+    [],
+  );
+
+  const handleFileChange = useCallback(
+    (e: React.SyntheticEvent) => {
+      const inputEl = e.target as HTMLInputElement;
+      const file = inputEl.files?.[0];
+      if (!file) return;
+
+      if (!isValidFileType(file)) {
+        alert('Invalid file type. Please select a CSV or XLSX file.');
+        inputEl.value = '';
+        return;
+      }
+
+      uploadedFileRef.current = file;
+    },
+    [],
+  );
+
+  const handleUploadMultiPlayers = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const inputEl = e.target as HTMLInputElement;
-    setSelectedDivision(inputEl.value);
-  };
 
-  const handleFileChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLInputElement;
-    const selectedFile = inputEl.files?.[0];
-
-    if (!selectedFile) return;
-
-    
-    const allowedFileTypes = ['csv', 'xlsx'];
-    const fileName = selectedFile.name.toLowerCase();
-    const fileExtension = fileName.split('.').pop();
-    // @ts-ignore
-    if (!allowedFileTypes.includes(fileExtension)) {
-      alert('Invalid file type. Please select a CSV or XLSX file.');
-      inputEl.value = ''; // Clear the input
+    if (!selectedDivision || !uploadedFileRef.current) {
+      setActErr({ code: 400, message: 'Division and file are required.' });
       return;
     }
 
-    uploadFileEl.current = selectedFile;
-  };
+    setIsLoading(true);
 
-  const handleUploadMultiPlayers = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
     try {
-      setIsLoading(true);
-      if (selectedDivision === '') return;
-      // Add logic for handling the upload
-      if (!uploadFileEl.current || !uploadFileEl.current) {
-        console.error("No file has been selected");
-        return;
-      };
       const formData = new FormData();
+
       formData.set(
         'operations',
         JSON.stringify({
           query: CREATE_MULTIPLE_PLAYERS_RAW,
-          variables: { eventId: eventId, uploadedFile: null, division: selectedDivision },
+          variables: {
+            eventId,
+            uploadedFile: null,
+            division: selectedDivision,
+          },
         }),
       );
 
       formData.set('map', JSON.stringify({ '0': ['variables.uploadedFile'] }));
-      formData.set('0', uploadFileEl.current);
-      const token = getCookie('token');
-      const response = await fetch(BACKEND_URL, { method: 'POST', body: formData, headers: { Authorization: `Bearer ${token}` } });
-      console.log({ response });
+      formData.set('0', uploadedFileRef.current);
 
-      const jsonRes = await response.json();
-      const success = await handleResponseCheck(jsonRes?.data?.createMultiPlayers, setActErr );
-      if (success) {
-        await router.push(`/${eventId}/teams/${ldoIdUrl}`);
-        if (jsonRes?.data?.createMultiPlayers?.code !== 201) {
-          setActErr({ code: jsonRes.data.createMultiPlayers.code, message: 'Some email already registered with players!' });
-        }
-        window.location.reload();
-        closeDialog();
+      const token = getCookie('token');
+
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'apollo-require-preflight': 'true',
+        },
+      });
+
+      const responseJson = await response.json();
+
+      const success = await handleResponseCheck(
+        responseJson?.data?.createMultiPlayers,
+        setActErr,
+      );
+
+      if (!success) return;
+
+      await router.push(`/${eventId}/teams/${ldoIdUrl}`);
+
+      if (responseJson?.data?.createMultiPlayers?.code !== 201) {
+        setActErr({
+          code: responseJson.data.createMultiPlayers.code,
+          message: 'Some email already registered with players!',
+        });
       }
-    } catch (error: any) {
+
+      window.location.reload();
       closeDialog();
-      console.log(error);
+    } catch (error) {
+      closeDialog();
       handleError({ error, setActErr });
     } finally {
       setIsLoading(false);
     }
   };
 
+  /* ------------------------------ Effects ---------------------------------- */
+
   useEffect(() => {
-    const division = SessionStorageService.getItem(DIVISION);
-    if (division) {
-      setSelectedDivision(division as string);
+    const storedDivision = SessionStorageService.getItem(DIVISION);
+    if (storedDivision) {
+      setSelectedDivision(storedDivision as string);
     }
   }, []);
 
+  /* ------------------------------ Render ----------------------------------- */
+
   return (
     <form onSubmit={handleUploadMultiPlayers}>
-      {/* <div className="input-group w-full">
-                <label htmlFor="multiplayers">Players file (CSV or XLSX)</label>
-                <input type="file" ref={uploadFileEl} className='form-control w-full' onChange={handleInputChange} />
-            </div> */}
-      <FileInput handleFileChange={handleFileChange} name="player" label="Players file (CSV or XLSX)" />
-      <SelectInput key="multi-player-add-select" handleSelect={handleDivisionChange} name="division" optionList={divisionList} defaultValue={selectedDivision} />
+      <FileInput
+        name="player"
+        label="Players file (CSV or XLSX)"
+        handleFileChange={handleFileChange}
+      />
+
+      <SelectInput
+        name="division"
+        optionList={divisionList}
+        handleSelect={handleDivisionChange}
+        defaultValue={selectedDivision}
+      />
+
       <div className="input-group mt-4">
         <button type="submit" className="btn-info">
           Upload

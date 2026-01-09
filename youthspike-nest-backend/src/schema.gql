@@ -1214,7 +1214,7 @@ input CreateEventInput {
   netVariance: Int!
   homeTeam: String
   autoAssign: Boolean
-  includeState: Boolean = true
+  includeStats: Boolean = true
   autoAssignLogic: String
   tieBreaking: String
   rosterLock: String
@@ -1241,7 +1241,7 @@ input UpdateEventInput {
   netVariance: Int
   homeTeam: String
   autoAssign: Boolean
-  includeState: Boolean = true
+  includeStats: Boolean = true
   autoAssignLogic: String
   tieBreaking: String
   rosterLock: String

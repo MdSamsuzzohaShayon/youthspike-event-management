@@ -88,7 +88,7 @@ export class CreateEventInput {
   autoAssign: boolean;
 
   @Field({ nullable: true, defaultValue: true })
-  includeState: boolean;
+  includeStats: boolean;
 
   @Field({ nullable: true })
   autoAssignLogic: string;
