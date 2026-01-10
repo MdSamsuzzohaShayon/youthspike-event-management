@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { GatewayService } from '../gateway.service';
-import { EActionProcess } from 'src/round/round.schema';
 import { JwtService } from '@nestjs/jwt';
 import { Team } from 'src/team/team.schema';
 

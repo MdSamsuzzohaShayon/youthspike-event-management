@@ -117,10 +117,11 @@ export class PlayerResolver {
 
   @Query((_returns) => PlayersSearchResponse)
   async searchPlayers(
+    @Context() context: any,
     @Args('eventId', { nullable: false }) eventId: string,
     @Args('filter', { nullable: true }) filter: PlayerSearchFilter,
   ) {
-    return this.playerQueries.searchPlayers(eventId, filter);
+    return this.playerQueries.searchPlayers(context, eventId, filter);
   }
 
   /**

@@ -76,8 +76,8 @@ export class MatchResolver {
   }
 
   @Query((_returns) => GetEventWithMatchesResponse)
-  async searchMatches(@Args('eventId') eventId: string, @Args('filter', { nullable: true }) filter: SearchFilterInput) {
-    return this.matchQueries.searchMatches( eventId, filter)
+  async searchMatches(@Context() context: any, @Args('eventId') eventId: string, @Args('filter', { nullable: true }) filter: SearchFilterInput) {
+    return this.matchQueries.searchMatches(context, eventId, filter)
   }
 
   @Query((_returns) => GetEventWithMatchesResponse)

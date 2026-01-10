@@ -155,14 +155,35 @@ export class PlayerQueries implements IPlayerQueries {
     }
   }
 
-  async searchPlayers(eventId: string, filter: PlayerSearchFilter) {
+  async searchPlayers(context: any, eventId: string, filter: PlayerSearchFilter) {
     try {
       const playerQuery: QueryFilter<Player> = {};
       const teamQuery: QueryFilter<Team> = { event: eventId };
       const groupQuery: QueryFilter<Group> = { event: eventId };
       const matchQuery: QueryFilter<Match> = { event: eventId };
 
-      // By default select conference
+      // Return any one of them between player and event
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get user
+      const loggedUser = await this.userService.findById(userPayload?._id);
+
+      // If logged in as captain or co-captain
+      if (loggedUser?.captainplayer || loggedUser?.cocaptainplayer) {
+        let teamOfCaptain = null;
+
+        if (loggedUser.captainplayer) {
+          teamOfCaptain = await this.teamService.findOne({ captain: loggedUser.captainplayer });
+        }
+        if (loggedUser.cocaptainplayer) {
+          teamOfCaptain = await this.teamService.findOne({ cocaptain: loggedUser.cocaptainplayer });
+        }
+        if (!teamOfCaptain) {
+          return AppResponse.notFound('Team');
+        }
+        playerQuery.teams = { $in: [teamOfCaptain?._id]};
+      }
 
       if (eventId) {
         playerQuery.events = { $in: [eventId] };
@@ -210,7 +231,7 @@ export class PlayerQueries implements IPlayerQueries {
       const matchIds = new Set();
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i];
-        if(!match?.includeStats) continue;
+        if (!match?.includeStats) continue;
         matchIds.add(String(match._id));
       }
 

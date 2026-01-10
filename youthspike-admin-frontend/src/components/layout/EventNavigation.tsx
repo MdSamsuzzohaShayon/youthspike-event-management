@@ -18,6 +18,8 @@ interface UserRoleFlags {
   isDirector: boolean;
   isPlayer: boolean;
   isAdminOrDirector: boolean;
+  isCaptain: boolean;
+  isCoCaptain: boolean;
 }
 
 interface NavigationItem {
@@ -160,7 +162,7 @@ const NavigationBar = ({
   ldoIdUrl: string; 
   userRoleFlags: UserRoleFlags;
 }) => {
-  const { isPlayer, isAdmin } = userRoleFlags;
+  const { isPlayer, isAdmin, isCaptain, isCoCaptain, isAdminOrDirector } = userRoleFlags;
   
   const navigationItems: NavigationItem[] = [
     {
@@ -171,12 +173,12 @@ const NavigationBar = ({
     {
       label: 'Teams',
       href: `/${eventId}/teams/${ldoIdUrl}`,
-      shouldShow: !isPlayer
+      shouldShow: !isPlayer && !isCaptain && !isCoCaptain
     },
     {
       label: 'Groups',
       href: `/${eventId}/groups/${ldoIdUrl}`,
-      shouldShow: !isPlayer
+      shouldShow: !isPlayer && !isCaptain && !isCoCaptain
     },
     {
       label: 'Team Standings',
@@ -191,7 +193,7 @@ const NavigationBar = ({
     {
       label: 'Account',
       href: `/account`,
-      shouldShow: true // Always show for all users
+      shouldShow: isAdminOrDirector // Always show for all users
     },
     {
       label: 'Matches',
@@ -240,7 +242,9 @@ function EventNavigation({ event }: IProps) {
         isAdmin: false,
         isDirector: false,
         isPlayer: false,
-        isAdminOrDirector: false
+        isAdminOrDirector: false,
+        isCaptain: false,
+        isCoCaptain: false,
       };
     }
 
@@ -248,13 +252,18 @@ function EventNavigation({ event }: IProps) {
     const isAdmin = userRole === UserRole.admin;
     const isDirector = userRole === UserRole.director;
     const isPlayer = userRole === UserRole.player;
+    const isCaptain = userRole === UserRole.captain;
+    const isCoCaptain = userRole === UserRole.co_captain;
     const isAdminOrDirector = isAdmin || isDirector;
 
     return {
       isAdmin,
       isDirector,
       isPlayer,
-      isAdminOrDirector
+      isAdminOrDirector,
+      isCaptain,
+      isCoCaptain
+      
     };
   }, [user]);
 

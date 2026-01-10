@@ -26,7 +26,7 @@ export class TeamService {
   }
 
   async findOne(filter: QueryFilter<Team>) {
-    return this.teamModel.findOne(filter);
+    return this.teamModel.findOne(filter).lean();
   }
 
 

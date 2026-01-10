@@ -77,11 +77,18 @@ export class MatchQueries {
     }
   }
 
-  async searchMatches(eventId: string, filter: SearchFilterInput) {
+  async searchMatches(context: any, eventId: string, filter: SearchFilterInput) {
     try {
       // Fetch event
       const event = await this.eventService.findOne({ _id: eventId });
       if (!event) return AppResponse.notFound('Event');
+
+      // Return any one of them between player and event
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get user
+      const loggedUser = await this.userService.findById(userPayload?._id);
 
       // Fetch groups + ldo in parallel
       const [ldo, groups] = await Promise.all([
@@ -93,6 +100,23 @@ export class MatchQueries {
       const matchFilter: QueryFilter<Match> = { event: eventId };
 
       let searchFound = false;
+
+
+      // If logged in as captain or co-captain
+      if (loggedUser?.captainplayer || loggedUser?.cocaptainplayer) {
+        let teamOfCaptain = null;
+
+        if (loggedUser.captainplayer) {
+          teamOfCaptain = await this.teamService.findOne({ captain: loggedUser.captainplayer });
+        }
+        if (loggedUser.cocaptainplayer) {
+          teamOfCaptain = await this.teamService.findOne({ cocaptain: loggedUser.cocaptainplayer });
+        }
+        if (!teamOfCaptain) {
+          return AppResponse.notFound('Team');
+        }
+        matchFilter.$or = [{ teamA: String(teamOfCaptain._id) }, { teamB: String(teamOfCaptain._id) }];
+      }
 
       // Team filter (case-insensitive exact match)
       if (filter?.search) {

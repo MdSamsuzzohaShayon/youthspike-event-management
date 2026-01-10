@@ -32,10 +32,10 @@ export class CheckInHandler {
       if (roundI === -1) throw new Error('Round not found with that round ID!');
 
       // Might have some error in here
-      if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
+      // if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
         
-        await this.validationHelper.validateCaptainCheckIn(checkIn.userId, prevRoom.teamA, prevRoom.teamB);
-      }
+      //   await this.validationHelper.validateCaptainCheckIn(checkIn.userId, prevRoom.teamA, prevRoom.teamB);
+      // }
 
       const {roundService} = this.gatewayService.getServices();
 
