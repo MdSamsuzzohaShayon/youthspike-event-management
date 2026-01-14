@@ -193,50 +193,6 @@ export default function TeamsContainer({
     }
   }, [initialData, updateAllData]);
 
-  const roundsByMatchId = useMemo(() => {
-    const map = new Map<string, IRoundRelatives[]>();
-    rounds.forEach((round) => {
-      if (round?.match) {
-        const existingRounds = map.get(round.match) || [];
-        map.set(round.match, [...existingRounds, round]);
-      }
-    });
-    return map;
-  }, [rounds]);
-
-  const netsByMatchId = useMemo(() => {
-    const map = new Map<string, INetRelatives[]>();
-    nets.forEach((n) => {
-      if (n?.match) {
-        const existingNets = map.get(n.match) || [];
-        map.set(n.match, [...existingNets, n]);
-      }
-    });
-    return map;
-  }, [nets]);
-
-  // Optimized data lookups
-  const matchesByTeamId = useMemo(() => {
-    const matchList = matches.map((m) => ({
-      ...m,
-      rounds: roundsByMatchId.get(m._id) || [],
-      nets: netsByMatchId.get(m._id) || [],
-    }));
-
-    const map = new Map<string, IMatch[]>();
-    matchList.forEach((m) => {
-      if (m.teamA) {
-        const existingMatches = map.get(String(m.teamA)) || [];
-        map.set(String(m.teamA), [...existingMatches, m as unknown as IMatch]);
-      }
-      if (m.teamB) {
-        const existingMatches = map.get(String(m.teamB)) || [];
-        map.set(String(m.teamB), [...existingMatches, m as unknown as IMatch]);
-      }
-    });
-    return map;
-  }, [matches, roundsByMatchId, netsByMatchId]);
-
   // Update local filter
   const updateLocalFilter = (key: string, value: string) => {
     setLocalFilter((prev) => ({ ...prev, [key]: value }));
@@ -299,11 +255,12 @@ export default function TeamsContainer({
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {teams.length > 0 ? (
-              <SearchTeamList
-                teamList={teams as unknown as ITeamCaptain[]}
-                matchesByTeamId={matchesByTeamId}
-                selectedGroup={appliedFilter?.group}
-              />
+              // <SearchTeamList
+              //   teamList={teams as unknown as ITeamCaptain[]}
+              //   matchesByTeamId={matchesByTeamId}
+              //   selectedGroup={appliedFilter?.group}
+              // />
+              <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} />
             ) : (
               <div className="text-center py-8 text-gray-400">
                 No teams found teaming your criteria.

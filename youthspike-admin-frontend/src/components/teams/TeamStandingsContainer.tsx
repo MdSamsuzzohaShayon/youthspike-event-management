@@ -5,7 +5,6 @@ import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
 import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage } from '@/types';
 import FilterContent from '../event/FilterContent';
-import SearchTeamList from './SearchTeamList';
 import { SEARCH_TEAMS } from '@/graphql/teams';
 import TeamStandings from './TeamStandings';
 import EventNavigation from '../layout/EventNavigation';

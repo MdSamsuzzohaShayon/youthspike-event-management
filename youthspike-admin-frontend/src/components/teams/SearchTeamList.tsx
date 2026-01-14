@@ -11,7 +11,6 @@ import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorProvider';
-import Pagination from '../elements/Pagination';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 

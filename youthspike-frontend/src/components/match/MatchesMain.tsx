@@ -230,12 +230,24 @@ export default function MatchesMain({
 
   // Enrich matches with related data
   const enrichedMatches = useMemo(() => {
-    return matches.map((match) => {
+    const result = [];
+
+    for (let i = 0; i < matches.length; i += 1) {
+      const match = matches[i];
+
+      if(localFilter?.group && localFilter?.group !== String(match.group)){
+        continue;
+      }
+
       const matchRounds = roundsByMatchId.get(match._id) || [];
-      const matchNets = normalizedNets.filter(
-        (net) =>
-          net.round && matchRounds.some((round) => round._id === net.round)
-      );
+
+      const matchNets = [];
+      for (let j = 0; j < normalizedNets.length; j += 1) {
+        const net = normalizedNets[j];
+        if (net.round && matchRounds.some((round) => round._id === net.round)) {
+          matchNets.push(net);
+        }
+      }
 
       const teamA =
         typeof match.teamA === "string"
@@ -247,14 +259,16 @@ export default function MatchesMain({
           ? teamById.get(match.teamB)
           : match.teamB;
 
-      return {
+      result.push({
         ...match,
         teamA: teamA as ITeamCaptain,
         teamB: teamB as ITeamCaptain,
         rounds: matchRounds,
         nets: matchNets,
-      };
-    });
+      });
+    }
+
+    return result;
   }, [matches, teamById, roundsByMatchId, normalizedNets]);
 
   // Update local filter

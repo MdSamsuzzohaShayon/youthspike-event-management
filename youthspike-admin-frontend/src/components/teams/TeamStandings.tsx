@@ -195,7 +195,7 @@ function TeamStandings({ teamList, matchList, nets, rounds, selectedGroup }: ITe
     calculateTeamScore();
   }, [calculateTeamScore]);
 
-  console.log({ selectedGroup });
+
 
   return (
     <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
