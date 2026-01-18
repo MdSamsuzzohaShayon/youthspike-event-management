@@ -61,14 +61,11 @@ export interface IPlayerRecord extends IPlayer{
 }
 
 
-export interface IPlayerAndTeamsResponse{
-  getPlayerAndTeams: {
-    code: number,
-    message: string;
-    data: {
-      player: IPlayer;
-      teams: ITeam[];
-    };
+export interface IPlayerAndTeamsResponse extends IResponse{
+  data: {
+    player: IPlayer;
+    teams: ITeam[];
+    event: IEvent;
   };
 }
 
@@ -97,7 +94,12 @@ interface ISearchPlayerData {
 }
 
 export interface ISearchPlayerResponse extends IResponse{
-  data: ISearchPlayerData;
+  data: {
+    event: IEvent;
+    groups: IGroup[];
+    players: IPlayer[];
+    teams: ITeam[];
+  };
 }
 
 

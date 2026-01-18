@@ -1,7 +1,7 @@
 // components/team/TeamRosterContainer.tsx
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useQuery, useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
 import { IPlayer, IMatch, IAllStats, IGetTeamRosterResponse, ITeam } from '@/types';
@@ -14,6 +14,8 @@ import { FRONTEND_URL } from '@/utils/keys';
 import { useLdoId } from '@/lib/LdoProvider';
 import TeamNavigation from './TeamNavigation';
 import { GET_TEAMS } from '@/graphql/teams';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { TEAM } from '@/utils/constant';
 
 interface TeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -38,8 +40,10 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
 
 
   const teamList = useMemo(()=>{
+    // @ts-ignore
     return (teamsData?.getTeams?.data || []) as ITeam[];
   }, [teamsData]);
+  
   const playerList = useMemo(() => {
     if (!players?.length || !rankings?.length) return [];
 
@@ -70,6 +74,16 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   }
 
   const pathname = usePathname();
+
+
+  useEffect(()=>{
+    if(team){
+        SessionStorageService.setItem(TEAM, team._id);
+    }else{
+        SessionStorageService.removeItem(TEAM);
+    }
+    
+  }, [team]);
 
   return (
     <div className="min-h-screen bg-gray-900 pb-4">

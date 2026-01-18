@@ -1,73 +1,7 @@
 import { gql } from "@apollo/client";
 
-const GET_PLAYER_AND_TEAMS_RAW = `
-query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
-  getPlayerAndTeams(playerId: $playerId, eventId: $eventId) {
-    code
-    success
-    message
-    data {
-      player {
-        _id
-        firstName
-        teams
-        lastName
-        username
-        email
-        status
-        profile
-        phone
-        division
-      }
-      teams {
-        _id
-        name
-        logo
-        division
-        active
-        rankLock
-        players
-        group
-        captain
-        cocaptain
-      }
-    }
-  }
-}
-`;
-
-const playerResponse = `
-  _id
-  firstName
-  lastName
-  username
-  profile
-  email
-  status
-  phone
-  division
-  teams {
-    _id
-    name
-  }
-`;
-
-const GET_A_PLAYER_RAW = `
-query GetPlayer($playerId: String!) {
-  getPlayer(playerId: $playerId) {
-    code
-    message
-    success
-    data {
-      ${playerResponse}
-    }
-  }
-}
-`;
-
-
 const SEARCH_PLAYER_STATS = gql`
-query SearchPlayerStats($eventId: String!, $filter: PlayerStatsSearchFilter) {
+query SearchPlayerStats($eventId: String!, $filter: PlayerSearchFilter) {
   searchPlayerStats(eventId: $eventId, filter: $filter) {
     code
     message
@@ -78,6 +12,8 @@ query SearchPlayerStats($eventId: String!, $filter: PlayerStatsSearchFilter) {
         name
         logo
         divisions
+        startDate
+        endDate
       }
       groups {
         _id
@@ -147,4 +83,4 @@ query SearchPlayerStats($eventId: String!, $filter: PlayerStatsSearchFilter) {
 
 `;
 
-export { GET_PLAYER_AND_TEAMS_RAW, GET_A_PLAYER_RAW, SEARCH_PLAYER_STATS };
+export { SEARCH_PLAYER_STATS };

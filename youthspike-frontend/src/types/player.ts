@@ -1,6 +1,6 @@
 import { ITeam } from "./team";
 import { IDocument } from "./document";
-import { IAllStats, IEvent, IGroup, IMatch } from ".";
+import { IAllStats, IEvent, IGroup, IMatch, IResponse } from ".";
 
 /**
  * Player Status
@@ -57,9 +57,6 @@ interface ISearchPlayerData {
   matches: IMatch[];
 }
 
-export interface ISearchPlayerResponse {
-  code: number;
-  success: boolean;
-  message: string;
+export interface ISearchPlayerStatsResponse extends IResponse{
   data: ISearchPlayerData;
 }

@@ -60,29 +60,37 @@ query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
     success
     message
     data {
+      event {
+        _id
+        name
+        divisions
+        logo
+        startDate
+        endDate
+        active
+        sendCredentials
+        playerLimit
+        fwango
+      }
       player {
         _id
         firstName
-        teams
         lastName
+        name
         username
         email
         status
         profile
         phone
         division
+        teams
       }
       teams {
         _id
         name
-        logo
+        name
         division
-        active
-        rankLock
-        players
-        group
-        captain
-        cocaptain
+        num
       }
     }
   }
@@ -257,88 +265,49 @@ const GET_EVENT_WITH_PLAYERS = gql`
 
 
 const SEARCH_PLAYERS = gql`
-query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter) {
+query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter!) {
   searchPlayers(eventId: $eventId, filter: $filter) {
     code
-    message
     success
+    message
     data {
-      event {
+      event{
         _id
         name
         logo
-        divisions
         startDate
         endDate
+        divisions
+        description
+        location
       }
-      groups {
+      groups{
         _id
         name
-        active
         division
+        rule
       }
       players {
         _id
-        email
         firstName
         lastName
         username
-        teams
+        status
         profile
-      }
-      statsOfPlayer {
-        playerId
-        stats {
-          _id
-          break
-          broken
-          cleanHits
-          cleanSets
-          defensiveConversion
-          defensiveOpportunity
-          match
-          hittingOpportunity
-          matchPlayed
-          net
-          noTouchAcedCount
-          player
-          receivedCount
-          receiverOpportunity
-          serveAce
-          serveCompletionCount
-          serveOpportunity
-          servingAceNoTouch
-          settingOpportunity
-        }
+        division
+        teams
       }
       teams {
         _id
-        logo
-        group
         name
+        logo
         division
-        captain
-      }
-      matches {
-        _id
-        group
-        completed
-        date
-        description
-        division
-        location
-        nets
-        rounds
-        teamA
-        teamB
+        players
       }
     }
   }
 }
-
-
 `;
-
 /**
  * Mutations
  * =======================================================================================

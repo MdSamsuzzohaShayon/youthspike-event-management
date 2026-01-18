@@ -1,7 +1,7 @@
 // components/team/TeamMatchesContainer.tsx
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
 import { IGetTeamMatchesResponse, INetRelatives, IRoundRelatives, ITeam } from '@/types';
@@ -12,6 +12,8 @@ import { useLdoId } from '@/lib/LdoProvider';
 import MatchCard from '../match/MatchCard';
 import { useError } from '@/lib/ErrorProvider';
 import TeamNavigation from './TeamNavigation';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { TEAM } from '@/utils/constant';
 
 interface TeamMatchesContainerProps {
   queryRef: QueryRef<{ getTeamMatches: IGetTeamMatchesResponse }>;
@@ -99,6 +101,15 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   if (!team) {
     return <div>Team not found</div>;
   }
+
+  useEffect(()=>{
+    if(team){
+        SessionStorageService.setItem(TEAM, team._id);
+    }else{
+        SessionStorageService.removeItem(TEAM);
+    }
+    
+  }, [team]);
 
   return (
     <div className="min-h-screen bg-gray-900 pb-4">

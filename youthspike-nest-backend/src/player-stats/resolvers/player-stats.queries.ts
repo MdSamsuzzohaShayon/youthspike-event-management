@@ -15,8 +15,14 @@ import { Net } from 'src/net/net.schema';
 import { Round } from 'src/round/round.schema';
 import { CustomPlayerStats } from './player-stats.response';
 import { Player } from 'src/player/player.schema';
-import { playerKey } from 'src/utils/helper';
+import { playerKey, tokenToUser } from 'src/utils/helper';
 import { QueryFilter, QueryOptions } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
+import { UserService } from 'src/user/user.service';
+import { EGroupType, PlayerSearchFilter } from 'src/player/resolvers/player.input';
+import { Group } from 'src/group/group.schema';
+import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
+import { PlayerStatsSearchFilter } from './player-stats.input';
 
 @Injectable()
 export class PlayerStatsQueries {
@@ -30,6 +36,9 @@ export class PlayerStatsQueries {
     private readonly eventService: EventService,
     private readonly roundService: RoundService,
     private readonly groupService: GroupService,
+    private readonly matchesService: MatchService,
+    private readonly configService: ConfigService,
+    private readonly userService: UserService,
   ) {}
 
   async getPlayerStats(playerId: string) {
@@ -231,6 +240,141 @@ export class PlayerStatsQueries {
           oponents,
           players,
           groups,
+        },
+      };
+    } catch (error) {
+      return AppResponse.handleError(error);
+    }
+  }
+
+  async searchPlayerStats(context: any, eventId: string, filter: PlayerStatsSearchFilter) {
+    try {
+      const playerQuery: QueryFilter<Player> = {};
+      const teamQuery: QueryFilter<Team> = { event: eventId };
+      const groupQuery: QueryFilter<Group> = { event: eventId };
+      const matchQuery: QueryFilter<Match> = { event: eventId };
+
+      // Return any one of them between player and event
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get user
+      const loggedUser = await this.userService.findById(userPayload?._id);
+
+      // If logged in as captain or co-captain
+      if (loggedUser?.captainplayer || loggedUser?.cocaptainplayer) {
+        let teamOfCaptain = null;
+
+        if (loggedUser.captainplayer) {
+          teamOfCaptain = await this.teamService.findOne({ captain: loggedUser.captainplayer });
+        }
+        if (loggedUser.cocaptainplayer) {
+          teamOfCaptain = await this.teamService.findOne({ cocaptain: loggedUser.cocaptainplayer });
+        }
+        if (!teamOfCaptain) {
+          return AppResponse.notFound('Team');
+        }
+        playerQuery.teams = { $in: [teamOfCaptain?._id]};
+      }
+
+      if (eventId) {
+        playerQuery.events = { $in: [eventId] };
+      }
+      if (filter?.division) {
+        playerQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
+        teamQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') }; // This will be case insensative
+        matchQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
+      }
+      if (filter?.group) {
+        teamQuery.group = filter.group;
+        matchQuery.group = filter.group;
+        // If there is a group then show matches for a player according to group
+      }
+
+      if (filter?.search) {
+        //Check for multiple words
+        const words = filter.search.split(' ');
+
+        if (words.length > 1) {
+          playerQuery.firstName = { $regex: new RegExp(words[0].trim(), 'i') };
+          playerQuery.lastName = { $regex: new RegExp(words[1].trim(), 'i') };
+        } else {
+          playerQuery.$or = [
+            { firstName: { $regex: new RegExp(filter.search, 'i') } },
+            { lastName: { $regex: new RegExp(filter.search, 'i') } },
+            { username: { $regex: new RegExp(filter.search, 'i') } },
+          ];
+        }
+      }
+
+      if (filter?.ce === EGroupType.CONFERENCE) {
+        // teamQuery.group = { $ne: null };
+        matchQuery.group = { $ne: null };
+      }
+
+      const [event, groups, teams, matches] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find(groupQuery),
+        this.teamService.find(teamQuery),
+        this.matchesService.find(matchQuery),
+      ]);
+
+      // const matchIds = new Set(matches.map((m) => String(m._id)));
+      const matchIds = new Set();
+      for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        if (!match?.includeStats) continue;
+        matchIds.add(String(match._id));
+      }
+
+      const teamIds = new Set<string>();
+      if (teams.length > 0) {
+        for (let i = 0; i < teams.length; i += 1) {
+          teamIds.add(String(teams[i]._id));
+        }
+      }
+
+      if (filter?.group) {
+        // Get all teams in that group
+        playerQuery.teams = { $in: [...teamIds] };
+      }
+
+      const players = await this.playerService.find(playerQuery, filter?.limit || 30, filter?.offset || 0);
+
+      const playerIds = players.map((p) => String(p._id));
+
+      let nets = await this.netService.find({
+        $or: [
+          { teamAPlayerA: { $in: playerIds } },
+          { teamAPlayerB: { $in: playerIds } },
+          { teamBPlayerA: { $in: playerIds } },
+          { teamBPlayerB: { $in: playerIds } },
+        ],
+      });
+
+      nets = nets.filter((n) => matchIds.has(String(n.match)));
+
+      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(
+        players,
+        nets,
+        this.redisService,
+        this.playerStatsService,
+      );
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of players!',
+        data: {
+          players,
+          groups,
+          event,
+          teams,
+          matches,
+          statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
+            playerId,
+            stats,
+          })),
         },
       };
     } catch (error) {

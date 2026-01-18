@@ -845,6 +845,39 @@ type PlayersResponse {
   data: [Player!]
 }
 
+type SearchPlayers {
+  _id: String
+  firstName: String!
+  lastName: String!
+  name: String!
+  username: String!
+  email: String
+  status: EPlayerStatus!
+  profile: String
+  phone: String
+  division: String!
+  events: [Event!]
+  teams: [CustomTeam!]!
+  prevteams: [Team!]
+  captainofteams: [Team!]
+  cocaptainofteams: [Team!]
+  captainuser: User
+  cocaptainuser: User
+  playerstats: [PlayerStats!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  event: Event!
+  groups: [CustomGroup!]!
+  players: [CustomPlayer!]!
+}
+
+type SearchPlayersResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: SearchPlayers
+}
+
 type CustomPlayer {
   _id: String
   firstName: String!
@@ -900,23 +933,8 @@ type GetEventWithPlayersResponse {
   data: EventWithPlayers
 }
 
-type PlayersSearch {
-  event: Event!
-  players: [CustomPlayer!]!
-  groups: [CustomGroup!]!
-  teams: [CustomTeam!]!
-  matches: [CustomMatch!]!
-  statsOfPlayer: [PlayerStatsEntry!]!
-}
-
-type PlayersSearchResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: PlayersSearch
-}
-
 type PlayerAndTeams {
+  event: Event!
   player: CustomPlayer
   teams: [CustomTeam!]
 }
@@ -1001,6 +1019,22 @@ type PlayerWithStatsResponse {
   success: Boolean!
   message: String
   data: PlayerStatsDetails
+}
+
+type PlayersSearch {
+  event: Event!
+  players: [CustomPlayer!]!
+  groups: [CustomGroup!]!
+  teams: [CustomTeam!]!
+  matches: [CustomMatch!]!
+  statsOfPlayer: [PlayerStatsEntry!]!
+}
+
+type PlayersStatsSearchResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: PlayersSearch
 }
 
 type CreateOrUpdateEventResponse {
@@ -1287,12 +1321,13 @@ type Query {
   getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
   getPlayers(eventId: String): PlayersResponse!
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
-  searchPlayers(eventId: String!, filter: PlayerSearchFilter): PlayersSearchResponse!
+  searchPlayers(eventId: String!, filter: PlayerSearchFilter): SearchPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
   getPlayersStats: PlayersStatsResponse!
   getPlayerWithStats(playerId: String!, group: Boolean): PlayerWithStatsResponse!
+  searchPlayerStats(eventId: String!, filter: PlayerStatsSearchFilter): PlayersStatsSearchResponse!
 }
 
 input EventFilterInput {
@@ -1346,6 +1381,14 @@ input SearchFilterInput {
 }
 
 input PlayerSearchFilter {
+  search: String
+  division: String
+  group: String
+  limit: Int = 30
+  offset: Int = 0
+}
+
+input PlayerStatsSearchFilter {
   ce: String
   search: String
   division: String

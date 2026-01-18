@@ -1,13 +1,12 @@
 // components/player/PlayersMainContainer.tsx
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryRef, useReadQuery, useApolloClient } from '@apollo/client/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import FilterContent from '../event/FilterContent';
-import { ISearchFilter, IGroup, ISearchPlayerResponse, IPlayer, ITeam, IAllStats, IPlayerStats, IEvent, EGroupType, IPlayerExpRel, EFilterPage } from '@/types';
+import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupType, EFilterPage, IGroup } from '@/types';
 import { SEARCH_PLAYERS } from '@/graphql/players';
-import PlayerList from './PlayerList';
 import PlayerSearchList from './PlayerSearchList';
 import EventNavigation from '../layout/EventNavigation';
 
@@ -41,10 +40,12 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   // Server data state
   const [serverData, setServerData] = useState<ISearchPlayerResponse['data'] | null>(null);
   const [allPlayers, setAllPlayers] = useState<IPlayer[]>([]);
-  const [playerStatsMap, setPlayerStatsMap] = useState<Map<string, IPlayerStats[]>>(new Map());
-  const [teamMap, setTeamMap] = useState<Map<string, ITeam>>(new Map());
-  const [groups, setGroups] = useState<IGroup[]>([]);
+  const [teamList, setTeamList] = useState<ITeam[]>([]);
+  const [groupList, setGroupList] = useState<IGroup[]>([]);
+  // const [teamMap, setTeamMap] = useState<Map<string, ITeam>>(new Map());
   const [event, setEvent] = useState<IEvent | null>(null);
+
+  
 
   // Filter and pagination states
   const [localFilter, setLocalFilter] = useState<IFilterState>({
@@ -79,31 +80,19 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     (searchData: ISearchPlayerResponse['data']) => {
       if (!searchData) return;
 
-      // Create player stats Map
-      const statsMap = new Map<string, IPlayerStats[]>();
-      searchData.statsOfPlayer?.forEach(({ playerId, stats }) => {
-        statsMap.set(playerId, stats);
-      });
-
-      // Create team Map
-      const teamsMap = new Map<string, ITeam>();
-      searchData.teams?.forEach((team) => {
-        teamsMap.set(team._id, team);
-      });
-
       setAllPlayers(searchData.players || []);
-      setPlayerStatsMap(statsMap);
-      setTeamMap(teamsMap);
-      setGroups(searchData.groups || []);
+      setTeamList(searchData.teams || []);
+      setGroupList(searchData.groups || []);
+      setEvent(searchData.event);
       setServerData(searchData);
-      setEvent(searchData.event || null);
+      
 
       // Check if there are more players to load
       setHasMorePlayers(searchData.players.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
     },
     [appliedFilter.limit],
   );
-  
+
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
@@ -114,7 +103,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
           variables: buildQueryVariables(filter, offset),
           fetchPolicy: 'network-only',
         });
-        return (result.data as { searchPlayers: ISearchPlayerResponse }).searchPlayers;
+        return (result.data as { searchPlayerStats: ISearchPlayerResponse }).searchPlayerStats;
       } catch (error) {
         console.error('Failed to fetch players:', error);
         throw error;
@@ -165,19 +154,8 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
         setAllPlayers((prev) => [...prev, ...newPlayers]);
         setCurrentOffset(newOffset);
 
-        // Update stats Map with new players' stats
-        const newStatsMap = new Map(playerStatsMap);
-        response.data.statsOfPlayer?.forEach(({ playerId, stats }) => {
-          newStatsMap.set(playerId, stats);
-        });
-        setPlayerStatsMap(newStatsMap);
-
-        // Update team Map with new teams
-        const newTeamMap = new Map(teamMap);
-        response.data.teams?.forEach((team) => {
-          newTeamMap.set(team._id, team);
-        });
-        setTeamMap(newTeamMap);
+        setTeamList(response.data.teams || []);
+        setGroupList(response.data.groups || []);
 
         // Check if there are more players
         setHasMorePlayers(newPlayers.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
@@ -189,7 +167,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMorePlayers, isLoadingMore, currentOffset, appliedFilter, executeSearchQuery, playerStatsMap, teamMap]);
+  }, [hasMorePlayers, isLoadingMore, currentOffset, appliedFilter, executeSearchQuery]);
 
   // Clear filters
   const handleClearFilters = useCallback(async () => {
@@ -262,16 +240,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     [allPlayers, currentOffset, appliedFilter.limit],
   );
 
-  const activeFilterString = useMemo(() => {
-    let text = '';
-    if (appliedFilter.division) text += `Division: ${appliedFilter.division}, `;
-    if (appliedFilter.group) {
-      const group = groups.find((g) => g._id === appliedFilter.group);
-      if (group) text += `Group: ${group.name}, `;
-    }
-    if (appliedFilter.search) text += `Search: ${appliedFilter.search}`;
-    return text;
-  }, [groups, appliedFilter]);
+
 
   return (
     <div className="animate-fade-in">
@@ -283,7 +252,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       <FilterContent
         eventId={event?._id || ''}
         filterPage={EFilterPage.PLAYERS}
-        groups={groups}
+        groups={[]}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
         filter={localFilter}
@@ -306,7 +275,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
               {appliedFilter.group &&
                 (() => {
-                  const group = groups.find((g) => g._id === appliedFilter.group);
+                  const group = groupList.find((g) => g._id === appliedFilter.group);
                   return group && <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">Group: {group.name}</span>;
                 })()}
 
@@ -334,7 +303,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       {/* Players List */}
       {!isApplyingFilters && (
         <div className="w-full player-standings">
-          <PlayerSearchList playerList={displayedPlayers} matchList={serverData?.matches || []} playerStatsMap={playerStatsMap} teamMap={teamMap} />
+          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} eventId={event?._id || ""} />
         </div>
       )}
 

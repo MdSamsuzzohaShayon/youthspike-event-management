@@ -15,7 +15,7 @@ class SessionStorageService {
       if (typeof window === 'undefined') return null; // SSR protection
 
       const item = window.sessionStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : null;
+      return item && item !== "null" ? (JSON.parse(item) as T) : null;
     } catch (error) {
       console.error(`Failed to parse sessionStorage value for key: ${key}`, error);
       return null;

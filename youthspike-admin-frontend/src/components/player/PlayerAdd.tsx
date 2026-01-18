@@ -20,12 +20,11 @@ import createPlayer from '@/utils/requestHandlers/createPlayer';
 import { DIVISION, TEAM } from '@/utils/constant';
 import { useMutation } from '@apollo/client/react';
 
-interface IPlayerAddProps {
+interface IProps {
   eventId: string;
   teamList: ITeam[];
   division?: string;
   prevPlayer?: IPlayer | null;
-  setAddPlayer?: React.Dispatch<React.SetStateAction<boolean>>;
   update?: boolean;
 }
 
@@ -42,7 +41,7 @@ const initialPlayerAdd: IPlayerAdd = {
   division: '',
 };
 
-function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, division }: IPlayerAddProps) {
+function PlayerAdd({ eventId, update, prevPlayer, teamList, division }: IProps) {
   const router = useRouter();
   const user = useUser();
   const searchParams = useSearchParams();
@@ -59,9 +58,6 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
   const [isLoading, setIsLoading] = useState(false);
   const [teamId, setTeamId] = useState<string | null>(null);
 
-  const refetch = async () => {
-    window.location.reload();
-  };
 
   // Unified field updater
   const handleFieldChange = useCallback(
@@ -96,11 +92,15 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
   const handleAddPlayer = async (e: React.SyntheticEvent) => {
       e.preventDefault();
       if (update) {
-        const success = updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
-        window.location.reload();
+        updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
       } else {
-        const success = createPlayer({ setActErr, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
-        router.push(`/${eventId}/players/${ldoIdUrl}`)
+        createPlayer({ setActErr, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
+      }
+
+      if(teamId){
+        router.push(`/teams/${teamId}/roster/${ldoIdUrl}`);
+      }else{
+        router.push(`/${eventId}/players/${ldoIdUrl}`);
       }
     };
 
@@ -128,7 +128,7 @@ function PlayerAdd({ eventId, update, prevPlayer, setAddPlayer, teamList, divisi
       ...(SessionStorageService.getItem(DIVISION) ? { division: SessionStorageService.getItem(DIVISION)! } : {}),
     }));
 
-    setTeamId(String(team) || null);
+    setTeamId(team as string || null);
   }, []);
 
   // Set director id

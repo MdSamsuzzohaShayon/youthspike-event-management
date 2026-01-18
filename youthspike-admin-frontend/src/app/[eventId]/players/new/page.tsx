@@ -7,7 +7,7 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { IGetEventWithTeamsResponse, ISearchPlayerResponse } from "@/types";
+import { IGetEventWithTeamsResponse } from "@/types";
 import { GET_EVENT_WITH_TEAMS_LIGHT } from "@/graphql/teams";
 import PlayerAddContainer from "@/components/player/PlayerAddContainer";
 

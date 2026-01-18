@@ -14,13 +14,14 @@ import {
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   PlayersResponse,
-  PlayersSearchResponse,
+  SearchPlayersResponse,
 } from './resolvers/player.response';
 import { PlayerMutations } from './resolvers/player.mutations';
 import { PlayerQueries } from './resolvers/player.queries';
 import { PlayerFields } from './resolvers/player.fields';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+import { PlayerStatsSearchFilter } from 'src/player-stats/resolvers/player-stats.input';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @Resolver((_of) => Player) // Specify the object type for the resolver
@@ -115,7 +116,7 @@ export class PlayerResolver {
     return this.playerQueries.getEventWithPlayers(context, eventId);
   }
 
-  @Query((_returns) => PlayersSearchResponse)
+  @Query((_returns) => SearchPlayersResponse)
   async searchPlayers(
     @Context() context: any,
     @Args('eventId', { nullable: false }) eventId: string,
@@ -123,6 +124,8 @@ export class PlayerResolver {
   ) {
     return this.playerQueries.searchPlayers(context, eventId, filter);
   }
+
+
 
   /**
    * POPULATE
@@ -162,4 +165,6 @@ export class PlayerResolver {
   async cocaptainuser(@Parent() player: Player): Promise<User | null> {
     return this.playerFields.cocaptainuser(player);
   }
+
+  
 }

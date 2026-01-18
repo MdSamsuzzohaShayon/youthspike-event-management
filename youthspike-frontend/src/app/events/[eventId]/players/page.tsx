@@ -7,9 +7,9 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { EGroupType, ISearchFilter, ISearchPlayerResponse } from "@/types";
+import { EGroupType, ISearchFilter, ISearchPlayerStatsResponse } from "@/types";
 import PlayersMain from "@/components/player/PlayersMain";
-import { SEARCH_PLAYERS } from "@/graphql/player";
+import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 
 interface IPlayersPageProps {
   params: Promise<{ eventId: string }>;
@@ -34,13 +34,13 @@ export default async function PlayersPage({
 
   return (
     <PreloadQuery
-      query={SEARCH_PLAYERS}
+      query={SEARCH_PLAYER_STATS}
       variables={{ eventId: eventId, filter: initialFilter }}
     >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <PlayersMain
-            queryRef={queryRef as QueryRef<{ searchPlayers: ISearchPlayerResponse }>} // Replace with proper type
+            queryRef={queryRef as QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>} // Replace with proper type
             initialSearchParams={{ search, division, group }}
           />
         </Suspense>

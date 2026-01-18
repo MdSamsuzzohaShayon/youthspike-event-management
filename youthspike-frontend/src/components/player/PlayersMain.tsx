@@ -8,19 +8,19 @@ import FilterContent from "../event/FilterContent";
 import {
   ISearchFilter,
   IGroup,
-  ISearchPlayerResponse,
   IPlayer,
   ITeam,
   IAllStats,
   IPlayerStats,
   IEvent,
   EGroupType,
+  ISearchPlayerStatsResponse,
 } from "@/types";
-import { SEARCH_PLAYERS } from "@/graphql/player";
+import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
 
 interface PlayersMainProps {
-  queryRef: QueryRef<{ searchPlayers: ISearchPlayerResponse }>;
+  queryRef: QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>;
   initialSearchParams: Partial<ISearchFilter>;
 }
 
@@ -52,7 +52,7 @@ export default function PlayersMain({
 
   // Server data state
   const [serverData, setServerData] = useState<
-    ISearchPlayerResponse["data"] | null
+  ISearchPlayerStatsResponse["data"] | null
   >(null);
   const [allPlayers, setAllPlayers] = useState<IPlayer[]>([]);
   const [playerStatsMap, setPlayerStatsMap] = useState<
@@ -78,7 +78,7 @@ export default function PlayersMain({
   // Build query variables
   const buildQueryVariables = useCallback(
     (filter: IFilterState, offset: number = 0) => ({
-      eventId: initialData?.searchPlayers.data.event._id,
+      eventId: initialData?.searchPlayerStats.data.event._id,
       filter: {
         search: filter.search || undefined,
         division: filter.division || undefined,
@@ -92,7 +92,7 @@ export default function PlayersMain({
 
   // Transform server data into usable maps
   const transformServerData = useCallback(
-    (searchData: ISearchPlayerResponse["data"]) => {
+    (searchData: ISearchPlayerStatsResponse["data"]) => {
       if (!searchData) return;
 
       // Create player stats Map
@@ -128,12 +128,12 @@ export default function PlayersMain({
     async (filter: IFilterState, offset: number = 0) => {
       try {
         const result = await apolloClient.query({
-          query: SEARCH_PLAYERS,
+          query: SEARCH_PLAYER_STATS,
           variables: buildQueryVariables(filter, offset),
           fetchPolicy: "network-only",
         });
-        return (result.data as { searchPlayers: ISearchPlayerResponse })
-          .searchPlayers;
+        return (result.data as { searchPlayerStats: ISearchPlayerStatsResponse })
+          .searchPlayerStats;
       } catch (error) {
         console.error("Failed to fetch players:", error);
         throw error;
@@ -270,8 +270,8 @@ export default function PlayersMain({
 
   // Initialize with preloaded data
   useEffect(() => {
-    if (initialData?.searchPlayers) {
-      transformServerData(initialData.searchPlayers.data);
+    if (initialData?.searchPlayerStats) {
+      transformServerData(initialData.searchPlayerStats.data);
     }
   }, [initialData, transformServerData]);
 

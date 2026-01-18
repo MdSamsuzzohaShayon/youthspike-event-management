@@ -95,14 +95,12 @@ export enum EGroupType{
 
 @InputType()
 export class PlayerSearchFilter {
-  @Field({ nullable: true })
-  ce?: EGroupType; // team, description, location
-  
-  @Field({ nullable: true })
-  search?: string; // team, description, location
 
   @Field({ nullable: true })
-  division?: string; // 
+  search?: string; // firstName, lastName, username
+
+  @Field({ nullable: true })
+  division?: string; 
 
   @Field({ nullable: true })
   group?: string;

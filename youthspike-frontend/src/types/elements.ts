@@ -207,3 +207,9 @@ export enum ETeamType {
   TEAM_A = "teamA",
   TEAM_B = "teamB",
 }
+
+export interface IResponse {
+  success: boolean;
+  code: number;
+  message: string;
+}

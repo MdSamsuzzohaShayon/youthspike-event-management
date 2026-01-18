@@ -21,9 +21,6 @@ function TeamUpdateContainer({ eventId, queryRef }: IProps) {
   const { event, team, groups, players } = teamData;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // Event, teams, groups
-
-  // const groupList = groups.filter((g)=> g.division.toLowerCase() === team.division);
 
   return (
     <div>

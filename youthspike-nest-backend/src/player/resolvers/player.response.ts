@@ -4,8 +4,6 @@ import { Player } from '../player.schema';
 import { Event } from 'src/event/event.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
-import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
-import { CustomMatch } from 'src/team/resolvers/team.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {
@@ -17,6 +15,27 @@ export class PlayerResponse extends AppResponse<Player> {
 export class PlayersResponse extends AppResponse<Player[]> {
   @Field((_type) => [Player], { nullable: true })
   data?: Player[];
+}
+
+@ObjectType()
+export class SearchPlayers extends Player {
+  @Field((_type) => Event, { nullable: false })
+  event: Event;
+
+  @Field((_type) => [CustomGroup], { nullable: false })
+  groups: CustomGroup[];
+
+  @Field((_type) => [CustomTeam], { nullable: false })
+  teams: CustomTeam[];
+
+  @Field((_type) => [CustomPlayer], { nullable: false })
+  players: CustomPlayer[];
+}
+
+@ObjectType()
+export class SearchPlayersResponse extends AppResponse<SearchPlayers> {
+  @Field((_type) => SearchPlayers, { nullable: true })
+  data?: SearchPlayers;
 }
 
 @ObjectType()
@@ -80,35 +99,13 @@ export class GetEventWithPlayersResponse extends AppResponse<EventWithPlayers> {
   data?: EventWithPlayers;
 }
 
-@ObjectType()
-export class PlayersSearch {
-  @Field((_type) => Event, { nullable: false })
-  event: Event;
 
-  @Field((_type) => [CustomPlayer], { nullable: false })
-  players: CustomPlayer[];
-
-  @Field((_type) => [CustomGroup], { nullable: false })
-  groups: CustomGroup[];
-
-  @Field((_type) => [CustomTeam], { nullable: false })
-  teams: CustomTeam[];
-
-  @Field((_type) => [CustomMatch], { nullable: false })
-  matches: CustomMatch;
-
-  @Field(() => [PlayerStatsEntry])
-  statsOfPlayer: PlayerStatsEntry[];
-}
-
-@ObjectType()
-export class PlayersSearchResponse extends AppResponse<PlayersSearch> {
-  @Field((_type) => PlayersSearch, { nullable: true })
-  data?: PlayersSearch;
-}
 
 @ObjectType()
 export class PlayerAndTeams {
+  @Field((_type) => Event, { nullable: false })
+  event: Event;
+
   @Field((_type) => CustomPlayer, { nullable: true })
   player?: CustomPlayer;
 

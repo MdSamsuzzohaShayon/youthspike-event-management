@@ -17,6 +17,7 @@ import {
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   CustomPlayer,
+  SearchPlayersResponse,
 } from './player.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 import { EGroupType, PlayerSearchFilter } from './player.input';
@@ -39,12 +40,9 @@ export class PlayerQueries implements IPlayerQueries {
     private playerService: PlayerService,
     private userService: UserService,
     private groupService: GroupService,
-    private netService: NetService,
     private playerRankingService: PlayerRankingService,
-    private playerStatsService: PlayerStatsService,
-    private redisService: RedisService,
-    private matchesService: MatchService,
-  ) {}
+
+  ) { }
 
   async getEventWithPlayers(context: any, eventId: string): Promise<GetEventWithPlayersResponse> {
     try {
@@ -159,15 +157,23 @@ export class PlayerQueries implements IPlayerQueries {
     try {
       const playerQuery: QueryFilter<Player> = {};
       const teamQuery: QueryFilter<Team> = { event: eventId };
-      const groupQuery: QueryFilter<Group> = { event: eventId };
-      const matchQuery: QueryFilter<Match> = { event: eventId };
 
       // Return any one of them between player and event
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
 
+      
+
       // Get user
-      const loggedUser = await this.userService.findById(userPayload?._id);
+      const [loggedUser, event, groups] = await Promise.all([
+        this.userService.findById(userPayload?._id),
+        this.eventService.findOne({_id: eventId}),
+        this.groupService.find({event: eventId})
+      ]);
+
+      if(!event){
+        return AppResponse.notFound("Event");
+      }
 
       // If logged in as captain or co-captain
       if (loggedUser?.captainplayer || loggedUser?.cocaptainplayer) {
@@ -182,7 +188,7 @@ export class PlayerQueries implements IPlayerQueries {
         if (!teamOfCaptain) {
           return AppResponse.notFound('Team');
         }
-        playerQuery.teams = { $in: [teamOfCaptain?._id]};
+        playerQuery.teams = { $in: [teamOfCaptain?._id] };
       }
 
       if (eventId) {
@@ -191,11 +197,9 @@ export class PlayerQueries implements IPlayerQueries {
       if (filter?.division) {
         playerQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
         teamQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') }; // This will be case insensative
-        matchQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
       }
       if (filter?.group) {
         teamQuery.group = filter.group;
-        matchQuery.group = filter.group;
         // If there is a group then show matches for a player according to group
       }
 
@@ -215,84 +219,53 @@ export class PlayerQueries implements IPlayerQueries {
         }
       }
 
-      if (filter?.ce === EGroupType.CONFERENCE) {
-        // teamQuery.group = { $ne: null };
-        matchQuery.group = { $ne: null };
-      }
 
-      const [event, groups, teams, matches] = await Promise.all([
-        this.eventService.findOne({ _id: eventId }),
-        this.groupService.find(groupQuery),
-        this.teamService.find(teamQuery),
-        this.matchesService.find(matchQuery),
-      ]);
-
-      // const matchIds = new Set(matches.map((m) => String(m._id)));
-      const matchIds = new Set();
-      for (let i = 0; i < matches.length; i++) {
-        const match = matches[i];
-        if (!match?.includeStats) continue;
-        matchIds.add(String(match._id));
-      }
-
-      const teamIds = new Set<string>();
-      if (teams.length > 0) {
-        for (let i = 0; i < teams.length; i += 1) {
-          teamIds.add(String(teams[i]._id));
-        }
-      }
-
+      let teams = [];
       if (filter?.group) {
+        teams = await this.teamService.find(teamQuery);
+
+        const teamIds = new Set<string>();
+        if (teams.length > 0) {
+          for (let i = 0; i < teams.length; i += 1) {
+            teamIds.add(String(teams[i]._id));
+          }
+        }
         // Get all teams in that group
         playerQuery.teams = { $in: [...teamIds] };
       }
 
       const players = await this.playerService.find(playerQuery, filter?.limit || 30, filter?.offset || 0);
 
-      const playerIds = players.map((p) => String(p._id));
+      if (!filter?.group) {
+        const teamIds = new Set<string>();
+        for (const player of players) {
+          if (player?.teams && player?.teams.length > 0) {
+            for (const team of player?.teams) {
+              teamIds.add(String(team));
+            }
+          }
 
-      let nets = await this.netService.find({
-        $or: [
-          { teamAPlayerA: { $in: playerIds } },
-          { teamAPlayerB: { $in: playerIds } },
-          { teamBPlayerA: { $in: playerIds } },
-          { teamBPlayerB: { $in: playerIds } },
-        ],
-      });
-
-      nets = nets.filter((n) => matchIds.has(String(n.match)));
-
-      const statsOfPlayer: Record<string, CustomPlayerStats[]> = await getStatsOfPlayers(
-        players,
-        nets,
-        this.redisService,
-        this.playerStatsService,
-      );
+        }
+        teams = await this.teamService.find({ _id: [...teamIds] });
+      }
 
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of players!',
-        data: {
-          players,
-          groups,
-          event,
-          teams,
-          matches,
-          statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
-            playerId,
-            stats,
-          })),
-        },
+        data: { event, groups, players, teams },
       };
     } catch (error) {
       return AppResponse.handleError(error);
     }
   }
 
+
+
   async getPlayerAndTeams(playerId: string, eventId: string): Promise<GetPlayerAndTeamsResponse> {
     try {
-      const [player, teams] = await Promise.all([
+      const [event, player, teams] = await Promise.all([
+        this.eventService.findOne({ _id: eventId }),
         this.playerService.findById(playerId.toString()),
         this.teamService.find({ event: eventId }),
       ]);
@@ -328,7 +301,7 @@ export class PlayerQueries implements IPlayerQueries {
         code: HttpStatus.OK,
         success: true,
         message: 'Get one player and all teams of an event!',
-        data: { player: normalizedPlayer, teams: normalizedTeams },
+        data: { player: normalizedPlayer, teams: normalizedTeams, event },
       };
     } catch (error) {
       return AppResponse.handleError(error);

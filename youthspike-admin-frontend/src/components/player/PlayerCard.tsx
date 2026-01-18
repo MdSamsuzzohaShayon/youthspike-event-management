@@ -25,12 +25,12 @@ import DeletePlayerDialog from './DeletePlayerDialog';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
-interface IPlayerCardProps {
+interface IProps {
   player: IPlayerRank;
   eventId: string;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isChecked: boolean;
   handleSelectPlayer: (e: React.SyntheticEvent, _id: string) => void;
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
   rankControls?: boolean;
   divisionList?: IOption[];
@@ -40,7 +40,7 @@ interface IPlayerCardProps {
   rank?: number | null;
 }
 
-export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, eventId, rankControls }: IPlayerCardProps) {
+export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, eventId, rankControls }: IProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -50,6 +50,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
 
   const dialogEl = useRef<HTMLDialogElement | null>(null);
   const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
+  
 
   const { setActErr } = useError();
   const user = useUser();
@@ -75,7 +76,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     async (input: { captain?: string; cocaptain?: string }) => {
       setActionOpen((prev) => !prev);
       try {
-        setIsLoading(true);
+        if(setIsLoading)setIsLoading(true);
         if (teamId && eventId) {
           const response = await mutateTeam({ variables: { input, teamId, eventId } });
           const success = await handleResponseCheck(response.data?.updateTeam, setActErr);
@@ -85,7 +86,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       } catch (error: any) {
         handleError({ error, setActErr });
       } finally {
-        setIsLoading(false);
+        if(setIsLoading)setIsLoading(false);
       }
     },
     [teamId, eventId, mutateTeam, setActErr, setIsLoading],
@@ -143,7 +144,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       e.preventDefault();
       try {
         setActionOpen((prev) => !prev);
-        setIsLoading(true);
+        if(setIsLoading)setIsLoading(true);
         const response = await deleteAPlayer({ variables: { playerId } });
         const success = await handleResponseCheck(response.data?.deletePlayer, setActErr);
         if (!success) return;
@@ -155,7 +156,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       } catch (error: any) {
         handleError({ error, setActErr });
       } finally {
-        setIsLoading(false);
+        if(setIsLoading)setIsLoading(false);
       }
     },
     [deleteAPlayer, setActErr, refetchFunc, client, setIsLoading],

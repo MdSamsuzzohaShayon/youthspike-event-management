@@ -13,7 +13,7 @@ import { SEARCH_PLAYERS } from "@/graphql/players";
 
 interface IPlayersPageProps {
   params: Promise<{ eventId: string }>;
-  searchParams: Promise<ISearchFilter>;
+  searchParams: Promise<Omit<ISearchFilter, 'ce'>>;
 }
 
 // Player list -> http://localhost:3001/events/68afc5f30bf9dbb4ac0f69cb/players?search=alex+hart&limit=30
@@ -25,11 +25,10 @@ export default async function PlayersPage({
   const { eventId } = await params;
   const { search = "", division = "", group = "" } = await searchParams;
 
-  const initialFilter: Partial<ISearchFilter> = {
+  const initialFilter: Partial<Omit<ISearchFilter, 'ce'>> = {
     search,
     division,
     group,
-    ce: EGroupType.CONFERENCE
   };
 
   return (
