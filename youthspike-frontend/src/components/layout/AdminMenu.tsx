@@ -134,7 +134,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
           <div className="user-info text-center mb-8">
             <Link
               onClick={() => setIsMenuOpen(false)}
-              href={ADMIN_FRONTEND_URL}
+              href={`/${ADMIN_FRONTEND_URL}/${ldoIdUrl}`}
             >
               <Image
                 height={100}
@@ -160,7 +160,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
               <li className="text-lg capitalize transition-transform duration-200 hover:translate-x-1">
                 <Link
                   onClick={() => setIsMenuOpen(false)}
-                  href={ADMIN_FRONTEND_URL}
+                  href={`${ADMIN_FRONTEND_URL}`}
                   className="flex items-center text-yellow hover:text-yellow-500 transition-all"
                 >
                   <Image

@@ -67,7 +67,7 @@ function NetCard({ net, screenWidth, boardHeight, currRoom }: INetCardProps) {
   return (
     <div
       className="net-detail w-full h-full relative flex justify-center items-center flex-col"
-      style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
+      // style={{ minHeight: `${boardHeight + EXTRA_HEIGHT}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

@@ -2,7 +2,7 @@
 
 import { useReadQuery, QueryRef, useQuery } from "@apollo/client/react";
 import {
-  EMessage, ETeam,
+  EMessage,
   IMatchExpRel
 } from "@/types";
 import LocalStorageService from "@/utils/LocalStorageService";
@@ -24,121 +24,384 @@ import { FRONTEND_URL } from "@/utils/keys";
 import Image from "next/image";
 import Link from "next/link";
 
+// ============================================================================
+// Types
+// ============================================================================
+
 interface IMatchScoreBoardProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
   matchId: string;
 }
 
-export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
-  // Use both the initial queryRef and useQuery for refreshing
-  const { data: initialData, error: initialError } = useReadQuery(queryRef);
+interface IMatchData {
+  getMatch: { data: IMatchExpRel };
+}
 
-  // Additional useQuery for manual refreshing
+// ============================================================================
+// Sub-Components
+// ============================================================================
+
+const HeaderTitle = () => (
+  <div className="flex-1 text-center lg:text-left">
+    <div className="inline-flex flex-col items-center lg:items-start">
+      {/* Decorative dots */}
+      <div className="flex items-center space-x-3 mb-2">
+        <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
+        <div
+          className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
+          style={{ animationDelay: "0.2s" }}
+        ></div>
+        <div
+          className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"
+          style={{ animationDelay: "0.4s" }}
+        ></div>
+      </div>
+
+      <h1 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 tracking-tight">
+        MATCH VIEW
+      </h1>
+
+      {/* Live status indicator */}
+      <div className="flex items-center space-x-2 mt-3">
+        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+        <span className="text-sm text-gray-300 font-medium tracking-wide">
+          LIVE SCORING ACTIVE
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+interface IRefreshControlsProps {
+  lastRefreshed: Date;
+  isLoading: boolean;
+  isAutoRefresh: boolean;
+  streamUrl?: string;
+  onRefresh: () => void;
+  onToggleAutoRefresh: () => void;
+}
+
+const RefreshControls = ({
+  lastRefreshed,
+  isLoading,
+  isAutoRefresh,
+  streamUrl,
+  onRefresh,
+  onToggleAutoRefresh,
+}: IRefreshControlsProps) => (
+  <div className="flex flex-col justify-start items-start mt-2 gap-2">
+    <div className="text-sm text-gray-300 font-medium tracking-wide">
+      Last updated: {lastRefreshed.toLocaleTimeString()}
+      {isLoading && (
+        <span className="ml-2 text-blue-500">Refreshing...</span>
+      )}
+    </div>
+    <div className="flex gap-2">
+      {streamUrl && (
+        <Link
+          href={streamUrl}
+          className="btn-info"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            src="/icons/live.svg"
+            height={20}
+            width={20}
+            className="w-18 svg-black"
+            alt="live-icon"
+          />
+        </Link>
+      )}
+      <button
+        onClick={onRefresh}
+        disabled={isLoading}
+        className="btn-info flex items-center justify-center gap-x-2"
+        aria-label="Refresh match data"
+      >
+        <Image
+          src="/icons/refresh.svg"
+          height={20}
+          width={20}
+          className="w-4 svg-black"
+          alt="refresh-icon"
+        />
+        Refresh Now
+      </button>
+      <button
+        onClick={onToggleAutoRefresh}
+        className={`${isAutoRefresh ? "btn-success" : "btn-secondary"
+          } flex items-center justify-center gap-x-2`}
+        aria-label={`Auto refresh is ${isAutoRefresh ? "on" : "off"}`}
+      >
+        <Image
+          src={isAutoRefresh ? "/icons/sync.svg" : "/icons/no-sync.svg"}
+          height={20}
+          width={20}
+          className="w-4 svg-black"
+          alt={`${isAutoRefresh ? "sync" : "no-sync"}-icon`}
+        />
+        {isAutoRefresh ? "ON" : "OFF"}
+      </button>
+    </div>
+  </div>
+);
+
+interface IQRCodeSectionProps {
+  matchId: string;
+}
+
+const QRCodeSection = ({ matchId }: IQRCodeSectionProps) => (
+  <div className="flex flex-col items-center space-y-4">
+    <div className="relative group">
+      {/* Glow effect */}
+      <div className="absolute inset-0 bg-yellow-400 rounded-2xl blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+
+      {/* QR Code container */}
+      <div className="relative bg-white p-3 rounded-xl shadow-2xl border-2 border-yellow-400/50 transform group-hover:scale-105 transition-transform duration-300">
+        <div className="w-20 md:w-28 aspect-square">
+          <QRCode
+            value={`${FRONTEND_URL}/matches/${matchId}/scoreboard`}
+          />
+        </div>
+
+        {/* Corner accents */}
+        <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-yellow-400 rounded-tl-lg"></div>
+        <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-yellow-400 rounded-tr-lg"></div>
+        <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-yellow-400 rounded-bl-lg"></div>
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-yellow-400 rounded-br-lg"></div>
+      </div>
+    </div>
+
+    {/* Label */}
+    <div className="text-center">
+      <p className="text-xs text-gray-300 font-semibold tracking-wide uppercase">
+        Scan to Follow
+      </p>
+      <p className="text-[10px] text-gray-400 mt-1">Live Scoreboard</p>
+    </div>
+  </div>
+);
+
+interface IFullscreenButtonProps {
+  isFullscreen: boolean;
+  isExpandedScreen: boolean;
+  onToggle: () => void;
+  onExpandedToggle: () => void;
+}
+
+const FullscreenButton = ({ isFullscreen, isExpandedScreen, onToggle, onExpandedToggle }: IFullscreenButtonProps) => (
+  <div className="flex items-center justify-center lg:justify-end">
+    <div className="relative group">
+      <button
+        onClick={onToggle}
+        className="relative flex items-center justify-center w-12 h-12 bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400/30 rounded-xl transition-all duration-300 group-hover:border-yellow-400 group-hover:shadow-lg group-hover:shadow-yellow-400/20"
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        <div className="relative w-6 h-6">
+          <Image
+            role="presentation"
+            className="w-full h-full filter brightness-0 invert transition-transform duration-300 group-hover:scale-110"
+            src={isFullscreen ? "/icons/minimize.svg" : "/icons/maximize.svg"}
+            width={24}
+            height={24}
+            alt={isFullscreen ? "Minimize" : "Maximize"}
+          />
+        </div>
+
+        {/* Tooltip */}
+        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+          {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+        </div>
+      </button>
+      <button
+        onClick={onExpandedToggle}
+        className="relative flex items-center justify-center w-12 h-12 bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400/30 rounded-xl transition-all duration-300 group-hover:border-yellow-400 group-hover:shadow-lg group-hover:shadow-yellow-400/20"
+        aria-label={isExpandedScreen ? "Exit Expanded fullscreen" : "Enter Expandedfullscreen"}
+      >
+        <div className="relative w-6 h-6">
+          <Image
+            role="presentation"
+            className="w-full h-full filter brightness-0 invert transition-transform duration-300 group-hover:scale-110"
+            src={isExpandedScreen ? "/icons/minimize.svg" : "/icons/expand.svg"}
+            width={24}
+            height={24}
+            alt={isExpandedScreen ? "Minimize" : "Maximize"}
+          />
+        </div>
+
+        {/* Tooltip */}
+        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+          {isExpandedScreen ? "Exit Expanded Fullscreen" : "Enter Expanded Fullscreen"}
+          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+        </div>
+      </button>
+    </div>
+  </div>
+);
+
+const HeaderBackground = () => (
+  <>
+    <div className="absolute inset-0 bg-gradient-to-r from-black via-gray-900 to-yellow-900/20 rounded-2xl shadow-2xl"></div>
+    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/0 via-yellow-400/30 to-yellow-400/0 animate-pulse-slow"></div>
+  </>
+);
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const AUTO_REFRESH_INTERVAL = 60000; // 60 seconds
+
+// ============================================================================
+// Main Component
+// ============================================================================
+
+export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
+  // ============================================================================
+  // Data Fetching
+  // ============================================================================
+
+  const { data: initialData, error: initialError } = useReadQuery(queryRef);
   const {
     data: refreshedData,
     error: refreshError,
     refetch,
-    loading,
-  } = useQuery(GET_MATCH_DETAIL, {
+    loading: isRefreshing,
+  } = useQuery<IMatchData>(GET_MATCH_DETAIL, {
     variables: { matchId },
-    skip: true, // Don't execute immediately, we'll use refetch
+    skip: true,
     notifyOnNetworkStatusChange: true,
   });
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
-  const [isAutoRefresh, setIsAutoRefresh] = useState(true);
-  const [fullscreen, setFullscreen] = useState(false);
+  const matchData = (refreshedData || initialData) as IMatchData;
+  const fetchError = refreshError || initialError;
+  const match = useMemo(() => matchData?.getMatch?.data, [matchData]);
 
-  // Use refreshed data if available, otherwise use initial data
-  const data = (refreshedData || initialData) as {
-    getMatch: { data: IMatchExpRel };
-  };
-  const error = refreshError || initialError;
+  // ============================================================================
+  // Redux & Socket
+  // ============================================================================
 
   const dispatch = useAppDispatch();
   const socket = useSocket();
 
-  // Selectors (keep your existing selectors)
   const { teamA, teamB } = useAppSelector((state) => state.teams);
-  const { current: currRound, roundList } = useAppSelector(
-    (state) => state.rounds
-  );
+  const { current: currentRound, roundList } = useAppSelector((state) => state.rounds);
   const {
-    currentRoundNets: currRoundNets,
+    currentRoundNets,
     nets: allNets,
-    currNetNum,
+    currNetNum: currentNetNumber,
   } = useAppSelector((state) => state.nets);
   const {
     serverReceiverPlays,
     serverReceiversOnNet,
-    currentServerReceiver: currServerReceiver,
+    currentServerReceiver,
   } = useAppSelector((state) => state.serverReceiverOnNets);
-  const { match: currMatch } = useAppSelector((state) => state.matches);
+  const { match: currentMatch } = useAppSelector((state) => state.matches);
 
-  const netByNum = useNetMaps(currRoundNets);
+  const netByNumber = useNetMaps(currentRoundNets);
+
+  // ============================================================================
+  // Local State
+  // ============================================================================
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [lastRefreshedTime, setLastRefreshedTime] = useState<Date>(new Date());
+  const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] = useState<boolean>(true);
+  const [isFullscreenMode, setIsFullscreenMode] = useState<boolean>(false);
+  const [isExpandedMode, setIsExpandedMode] = useState<boolean>(false);
+
+  // ============================================================================
+  // Socket Connection
+  // ============================================================================
 
   useMatchSocket({
-    currNetNum,
-    netByNum,
+    currNetNum: currentNetNumber,
+    netByNum: netByNumber,
     socket,
-    match: currMatch,
+    match: currentMatch,
     teamA: teamA || null,
     teamB: teamB || null,
     allNets,
-    currRound,
-    currRoundNets,
+    currRound: currentRound,
+    currRoundNets: currentRoundNets,
     roundList,
     serverReceiversOnNet,
     serverReceiverPlays,
-    currServerReceiver,
+    currServerReceiver: currentServerReceiver,
   });
 
-  // Memoize the match data
-  const match = useMemo(() => data?.getMatch?.data, [data]);
+  // ============================================================================
+  // Handlers
+  // ============================================================================
 
-  // Refresh function
-  const handleRefresh = useCallback(async () => {
+  const handleManualRefresh = useCallback(async () => {
     try {
       await refetch();
-      setLastRefreshed(new Date());
+      setLastRefreshedTime(new Date());
       console.info("Match data refreshed at:", new Date().toLocaleTimeString());
     } catch (error) {
       console.error("Failed to refresh match data:", error);
     }
   }, [refetch]);
 
-  const toggleFullscreen = () => {
+  const toggleFullscreenMode = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
-      setFullscreen(true);
+      setIsFullscreenMode(true);
     } else {
       document.exitFullscreen();
-      setFullscreen(false);
+      setIsFullscreenMode(false);
     }
-  };
+  }, []);
 
-  // Auto-refresh every 1 minute
+  const toggleExpandedScreenMode = useCallback(() => {
+    // Change an few class name
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen();
+      setIsExpandedMode(true);
+    } else {
+      document.exitFullscreen();
+      setIsExpandedMode(false);
+    }
+  }, [])
+
+  const toggleAutoRefresh = useCallback(() => {
+    setIsAutoRefreshEnabled((prev) => !prev);
+  }, []);
+
+  // ============================================================================
+  // Effects
+  // ============================================================================
+
+  // Auto-refresh interval
   useEffect(() => {
-    if (!isAutoRefresh) return;
+    if (!isAutoRefreshEnabled) return;
 
-    const interval = setInterval(handleRefresh, 60000); // 60 seconds
+    const intervalId = setInterval(handleManualRefresh, AUTO_REFRESH_INTERVAL);
+    return () => clearInterval(intervalId);
+  }, [isAutoRefreshEnabled, handleManualRefresh]);
 
-    return () => clearInterval(interval);
-  }, [isAutoRefresh, handleRefresh]);
+  // Organize match data
+  useEffect(() => {
+    const organizeMatchData = async () => {
+      if (!match?.event?._id) {
+        dispatch(
+          setMessage({
+            type: EMessage.ERROR,
+            message: "Cannot find any event"
+          })
+        );
+        return;
+      }
 
-  // Organize data only when necessary
-  const organizeData = useCallback(async () => {
-    if (!match?.event?._id) {
-      dispatch(
-        setMessage({ type: EMessage.ERROR, message: "Can not find any event" })
-      );
-      return;
-    }
+      if (!match._id) {
+        console.warn("No match ID found, skipping data organization");
+        return;
+      }
 
-    const userDetail = getUserFromCookie();
-
-    if (match?._id) {
+      const userDetail = getUserFromCookie();
       await organizeFetchedData({
         matchData: match,
         token: userDetail.token,
@@ -146,31 +409,30 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
         matchId: match._id,
         dispatch,
       });
-    } else {
-      console.warn("No match ID found, skipping data organization");
-    }
-  }, [match, dispatch]);
+    };
 
-  // Organize fetched data when match changes
-  useEffect(() => {
     if (match) {
-      organizeData();
+      organizeMatchData();
     }
+
     if (match?.event?._id) {
       LocalStorageService.setEvent(match.event._id);
     }
-  }, [match, organizeData]);
+  }, [match, dispatch]);
 
-
-
+  // Calculate and update scores
   useEffect(() => {
     const { matchScore, roundMap } = calcScore(allNets, roundList);
     dispatch(setMatchScore(matchScore));
     dispatch(setRoundMap(roundMap));
   }, [allNets, roundList, dispatch]);
 
-  if (error) {
-    console.error("Error loading match:", error);
+  // ============================================================================
+  // Render Guards
+  // ============================================================================
+
+  if (fetchError) {
+    console.error("Error loading match:", fetchError);
     return <div className="text-red-500">Error loading match details</div>;
   }
 
@@ -178,197 +440,84 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
     return <Loader />;
   }
 
+  // ============================================================================
+  // Render
+  // ============================================================================
+
   return (
     <div
       ref={containerRef}
-      className={`min-h-screen container px-4 mx-auto ${
-        fullscreen ? "fixed inset-0 z-50 overflow-auto" : ""
-      }`}
+      className={`min-h-screen container px-4 mx-auto ${isFullscreenMode ? "fixed inset-0 z-50 overflow-auto" : ""
+        }`}
     >
       {/* Header Controls */}
-      <div className="relative mb-8">
-        {/* Background with gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-gray-900 to-yellow-900/20 rounded-2xl shadow-2xl"></div>
+      {!isExpandedMode && (
+        <div className="relative mb-8">
+          <HeaderBackground />
 
-        {/* Animated border effect */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/0 via-yellow-400/30 to-yellow-400/0 animate-pulse-slow"></div>
-
-        <div className="relative flex flex-col lg:flex-row items-center justify-between p-6 lg:p-8 space-y-6 lg:space-y-0">
-          {/* Main Title Section */}
-          <div className="flex-1 text-center lg:text-left">
-            <div className="inline-flex flex-col items-center lg:items-start">
-              {/* Decorative elements */}
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-yellow-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-                <div
-                  className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.4s" }}
-                ></div>
-              </div>
-
-              <h1 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 tracking-tight">
-                MATCH VIEW
-              </h1>
-
-              {/* Subtle status indicator */}
-              <div className="flex items-center space-x-2 mt-3">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-300 font-medium tracking-wide">
-                  LIVE SCORING ACTIVE
-                </span>
-              </div>
-            </div>
-            {/* Refresh Control Panel */}
-            <div className="flex flex-col justify-start items-start mt-2 gap-2">
-              <div className="text-sm text-gray-300 font-medium tracking-wide">
-                Last updated: {lastRefreshed.toLocaleTimeString()}
-                {loading && (
-                  <span className="ml-2 text-blue-500">Refreshing...</span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {match?.streamUrl && match?.streamUrl !== "" && (
-                  <Link
-                    href={match?.streamUrl}
-                    className="btn-info"
-                    target="_blank"
-                  >
-                    <Image
-                      src="/icons/live.svg"
-                      height={20}
-                      width={20}
-                      className="w-18 svg-black"
-                      alt="live-icon"
-                    />
-                  </Link>
-                )}
-                <button
-                  onClick={handleRefresh}
-                  disabled={loading}
-                  className="btn-info flex items-center justify-center gap-x-2"
-                >
-                  <Image
-                    src="/icons/refresh.svg"
-                    height={20}
-                    width={20}
-                    className="w-4 svg-black"
-                    alt="refresh-icon"
-                  />
-                  Refresh Now
-                </button>
-                <button
-                  onClick={() => setIsAutoRefresh(!isAutoRefresh)}
-                  className={`${
-                    isAutoRefresh ? "btn-success" : "btn-secondary"
-                  } flex items-center justify-center gap-x-2`}
-                >
-                  {isAutoRefresh ? (
-                    <Image
-                      src="/icons/sync.svg"
-                      height={20}
-                      width={20}
-                      className="w-4 svg-black"
-                      alt="sync-icon"
-                    />
-                  ) : (
-                    <Image
-                      src="/icons/no-sync.svg"
-                      height={20}
-                      width={20}
-                      className="w-4 svg-black"
-                      alt="no-sync-icon"
-                    />
-                  )}
-                  : {isAutoRefresh ? "ON" : "OFF"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* QR Code Section */}
-          <div className="flex flex-col items-center space-y-4">
-            {/* QR Code Container with enhanced styling */}
-            <div className="relative group">
-              {/* Glow effect on hover */}
-              <div className="absolute inset-0 bg-yellow-400 rounded-2xl blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-
-              {/* QR Code with border animation */}
-              <div className="relative bg-white p-3 rounded-xl shadow-2xl border-2 border-yellow-400/50 transform group-hover:scale-105 transition-transform duration-300">
-                <div className="w-20 md:w-28 aspect-square">
-                  <QRCode
-                    value={`${FRONTEND_URL}/matches/${matchId}/scoreboard`}
-                  />
-                </div>
-
-                {/* Animated corner accents */}
-                <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-yellow-400 rounded-tl-lg"></div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-yellow-400 rounded-tr-lg"></div>
-                <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-yellow-400 rounded-bl-lg"></div>
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-yellow-400 rounded-br-lg"></div>
-              </div>
+          <div className="relative flex flex-col lg:flex-row items-center justify-between p-6 lg:p-8 space-y-6 lg:space-y-0">
+            <div className="flex-1">
+              <HeaderTitle />
+              <RefreshControls
+                lastRefreshed={lastRefreshedTime}
+                isLoading={isRefreshing}
+                isAutoRefresh={isAutoRefreshEnabled}
+                streamUrl={match?.streamUrl || undefined}
+                onRefresh={handleManualRefresh}
+                onToggleAutoRefresh={toggleAutoRefresh}
+              />
             </div>
 
-            {/* QR Code label */}
-            <div className="text-center">
-              <p className="text-xs text-gray-300 font-semibold tracking-wide uppercase">
-                Scan to Follow
-              </p>
-              <p className="text-[10px] text-gray-400 mt-1">Live Scoreboard</p>
-            </div>
-          </div>
-
-          {/* Controls Section */}
-          <div className="flex items-center justify-center lg:justify-end">
-            <div className="relative group">
-              {/* Button with enhanced styling */}
-              <button
-                onClick={toggleFullscreen}
-                className="relative flex items-center justify-center w-12 h-12 bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400/30 rounded-xl transition-all duration-300 group-hover:border-yellow-400 group-hover:shadow-lg group-hover:shadow-yellow-400/20"
-                aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              >
-                {/* Icon container */}
-                <div className="relative w-6 h-6">
-                  <Image
-                    role="presentation"
-                    className="w-full h-full filter brightness-0 invert transition-transform duration-300 group-hover:scale-110"
-                    src={
-                      fullscreen ? "/icons/minimize.svg" : "/icons/maximize.svg"
-                    }
-                    width={24}
-                    height={24}
-                    alt={fullscreen ? "Minimize" : "Maximize"}
-                  />
-                </div>
-
-                {/* Tooltip */}
-                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
-                  {fullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
-                </div>
-              </button>
-            </div>
+            <QRCodeSection matchId={matchId} />
+            <FullscreenButton
+              isFullscreen={isFullscreenMode}
+              isExpandedScreen={isExpandedMode}
+              onToggle={toggleFullscreenMode}
+              onExpandedToggle={toggleExpandedScreenMode}
+            />
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content */}
       <MatchPublicView
-        currRound={currRound}
-        currRoundNets={currRoundNets}
+        currRound={currentRound}
+        currRoundNets={currentRoundNets}
         nets={allNets}
         roundList={roundList}
         teamA={teamA || null}
         teamB={teamB || null}
         serverReceiversOnNet={serverReceiversOnNet}
-        currServerReceiver={currServerReceiver}
+        currServerReceiver={currentServerReceiver}
         matchId={match._id}
         serverReceiverPlays={serverReceiverPlays}
         currMatch={match}
       />
+
+      {isExpandedMode && (
+        <button
+          onClick={toggleExpandedScreenMode}
+          className="relative flex items-center justify-center w-12 h-12 bg-gray-800 hover:bg-gray-700 border-2 border-yellow-400/30 rounded-xl transition-all duration-300 group-hover:border-yellow-400 group-hover:shadow-lg group-hover:shadow-yellow-400/20"
+          aria-label={isExpandedMode ? "Exit Expanded fullscreen" : "Enter Expandedfullscreen"}
+        >
+          <div className="relative w-6 h-6">
+            <Image
+              role="presentation"
+              className="w-full h-full filter brightness-0 invert transition-transform duration-300 group-hover:scale-110"
+              src={isExpandedMode ? "/icons/minimize.svg" : "/icons/expand.svg"}
+              width={24}
+              height={24}
+              alt={isExpandedMode ? "Minimize" : "Maximize"}
+            />
+          </div>
+
+          {/* Tooltip */}
+          <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
+            {isExpandedMode ? "Exit Expanded Fullscreen" : "Enter Expanded Fullscreen"}
+            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
+          </div>
+        </button>
+      )}
     </div>
   );
 }

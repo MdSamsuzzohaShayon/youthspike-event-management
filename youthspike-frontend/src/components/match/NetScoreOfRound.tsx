@@ -113,11 +113,9 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       roundList.map((round, i) => (
         <button
           key={round._id}
-          className={`single-r ${
-            round._id === currentRound?._id ? "bg-yellow-logo" : "bg-white"
-          } py-1 text-center cursor-pointer ${
-            screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
-          } rounded-t-lg`}
+          className={`single-r ${round._id === currentRound?._id ? "bg-yellow-logo" : "bg-white"
+            } py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
+            } rounded-t-lg`}
           type="button"
           onClick={(e) => handleRoundChangeClick(e, round._id)}
         >
@@ -140,6 +138,10 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       return (
         <div
           id="left-drop-down"
+          style={{
+            minHeight: `${(screenWidth > screen.xs ? 500 : 450) + EXTRA_HEIGHT
+              }px`,
+          }}
           className={`drop-down-select w-3/6 overflow-y-scroll text-black-logo bg-white border ${border.light}`}
         >
           <Image
@@ -150,15 +152,21 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             className="svg-black mx-2 mt-2 cursor-pointer"
             onClick={handleClosePlayers}
           />
-          <div className="px-2 w-full" style={{ minHeight: "fit-content" }}>
-            <h3>Selected Net {selectedNet?.num}</h3>
-            <AvailablePlayers
-              availablePlayerIds={availablePlayerIds}
-              currentRound={currentRound}
-              myPlayers={myPlayers}
-              disabledPlayerIds={disabledPlayerIds}
-            />
+          <div className="flex flex-col flex-1 justify-center px-2 w-full">
+            <div>
+              <h3 className="text-center mb-2">
+                Selected Net {selectedNet?.num}
+              </h3>
+
+              <AvailablePlayers
+                availablePlayerIds={availablePlayerIds}
+                currentRound={currentRound}
+                myPlayers={myPlayers}
+                disabledPlayerIds={disabledPlayerIds}
+              />
+            </div>
           </div>
+
         </div>
       );
     }
@@ -167,13 +175,11 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
       <div
         id="left-round-detail"
         style={{
-          minHeight: `${
-            (screenWidth > screen.xs ? 600 : 450) + EXTRA_HEIGHT
-          }px`,
+          minHeight: `${(screenWidth > screen.xs ? 500 : 450) + EXTRA_HEIGHT
+            }px`,
         }}
-        className={`round-detail relative border ${border.light} ${
-          screenWidth > screen.xs ? "w-3/12" : "w-3/6"
-        }`}
+        className={`round-detail relative border ${border.light} ${screenWidth > screen.xs ? "w-3/12" : "w-3/6"
+          }`}
       >
         <div
           id="left-top"
@@ -192,9 +198,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
             {(Boolean(match.teamAP) || Boolean(match.teamBP)) && (
               <button
-                className={`single-r bg-white py-1 text-center cursor-pointer ${
-                  screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
-                } rounded-t-lg`}
+                className={`single-r bg-white py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
+                  } rounded-t-lg`}
                 type="button"
                 onClick={(e) => e.preventDefault()}
               >
@@ -268,9 +273,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     () => (
       <div
         id="right-net-card"
-        className={`right-side net-card-wrapper border ${border.light} flex ${
-          screenWidth > screen.xs ? "w-9/12" : "w-3/6"
-        }`}
+        className={`right-side net-card-wrapper border ${border.light} flex ${screenWidth > screen.xs ? "w-9/12" : "w-3/6"
+          }`}
       >
         {screenWidth > screen.xs ? (
           currentRoundNets.map((net) => (
@@ -306,6 +310,8 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
   return (
     <div className="net-score h-full container px-4 mx-auto flex justify-between gap-1 text relative">
       {leftSideContent}
+
+      {/* Left side ends  */}
       <MatchSetting
         match={match}
         myTeam={myTeam}

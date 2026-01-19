@@ -42,7 +42,6 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   const [allPlayers, setAllPlayers] = useState<IPlayer[]>([]);
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
-  // const [teamMap, setTeamMap] = useState<Map<string, ITeam>>(new Map());
   const [event, setEvent] = useState<IEvent | null>(null);
 
   
@@ -92,18 +91,25 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     },
     [appliedFilter.limit],
   );
-
+  
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
     async (filter: IFilterState, offset: number = 0) => {
       try {
-        const result = await apolloClient.query({
+        const result = await apolloClient.query<{ searchPlayers: ISearchPlayerResponse }>({
           query: SEARCH_PLAYERS,
           variables: buildQueryVariables(filter, offset),
           fetchPolicy: 'network-only',
         });
-        return (result.data as { searchPlayerStats: ISearchPlayerResponse }).searchPlayerStats;
+
+        if (!result.data) {
+          console.error(result);
+          
+          throw new Error('No data returned from query');
+        }
+
+        return result.data.searchPlayers;
       } catch (error) {
         console.error('Failed to fetch players:', error);
         throw error;
@@ -119,6 +125,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
     try {
       const response = await executeSearchQuery(localFilter, 0);
+      
       transformServerData(response.data);
       setAppliedFilter(localFilter);
 
@@ -252,7 +259,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       <FilterContent
         eventId={event?._id || ''}
         filterPage={EFilterPage.PLAYERS}
-        groups={[]}
+        groups={groupList}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
         filter={localFilter}
