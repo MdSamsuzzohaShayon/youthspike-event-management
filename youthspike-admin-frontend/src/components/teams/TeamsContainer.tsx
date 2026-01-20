@@ -253,7 +253,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
           <div className="grid gap-4">
             {/* teamList, groupList, eventId, eventList, setIsLoading, refetchFunc */}
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} eventId={eventId} eventList={[]} />
+              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={event} />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}

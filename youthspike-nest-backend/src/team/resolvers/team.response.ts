@@ -14,8 +14,8 @@ import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 
 @ObjectType()
 export class CreateOrUpdateTeamResponse extends AppResponse<Team> {
-  @Field((__type) => Team, { nullable: true })
-  data?: Team;
+  @Field((__type) => CustomTeam, { nullable: true })
+  data?: CustomTeam;
 }
 
 @ObjectType()

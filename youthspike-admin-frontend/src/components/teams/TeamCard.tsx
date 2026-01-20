@@ -1,13 +1,9 @@
-import { useUser } from '@/lib/UserProvider';
-import { EPlayerStatus, IEvent, IGroup, IOption, ITeam } from '@/types';
-import { UserRole } from '@/types/user';
+import { EPlayerStatus, IGroup, ITeam } from '@/types';
 import Link from 'next/link';
-import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
-import { useRouter } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
-import { cardHeight } from '@/utils/style';
 import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
@@ -20,94 +16,38 @@ import TextImg from '../elements/TextImg';
 import { useMutation } from '@apollo/client/react';
 
 interface ITeamCardProps {
-  eventId: string;
   team: ITeam;
-  eventList: IEvent[];
+  eventId: string;
   groupList: IGroup[];
   isChecked: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
+  handleMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
   refetchFunc?: () => void;
 }
 
-interface ITeamMove {
-  event: string;
-  division: string;
-}
 
-function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading, handleCheckedTeam, handleSendCredential, refetchFunc }: ITeamCardProps) {
-  const user = useUser();
-  const router = useRouter();
+
+function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, handleSendCredential, handleMoveTeamOpen, refetchFunc }: ITeamCardProps) {
   const { ldoIdUrl } = useLdoId();
 
   const actionEl = useRef<null | HTMLUListElement>(null);
   const deleteEl = useRef<HTMLDialogElement | null>(null);
 
   const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const [openMoveTeam, setOpenMoveTeam] = useState<boolean>(false);
-  const [eventOptions, setEventOptions] = useState<IOption[]>([]);
-  const [divisionOptions, setDivisionOptions] = useState<IOption[]>([]);
-  const [cardResponsiveH, setCardResponsiveH] = useState<CSSProperties>({ height: cardHeight });
-  const [moveTeam, setMoveTeam] = useState<ITeamMove>({ event: '', division: '' });
 
-  const [moveTeamMutation] = useMutation(UPDATE_TEAM);
+
+
   const [deleteTeam] = useMutation(DELETE_TEAM);
   const [updateGroup] = useMutation(UPDATE_GROUP);
 
   useClickOutside(actionEl, () => setActionOpen(false));
 
   // Common handlers
-  const handleSelectChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
-    setMoveTeam((prev) => ({ ...prev, [inputEl.name]: inputEl.value }));
-  };
 
-  const handleEventChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
-    setMoveTeam((prev) => ({ ...prev, [inputEl.name]: inputEl.value }));
-
-    if (!inputEl.value) {
-      setDivisionOptions([]);
-      return;
-    }
-
-    const findEvent = eventList.find((evt) => evt._id === inputEl.value);
-    if (findEvent) {
-      const divisions = findEvent.divisions
-        .split(',')
-        .filter((div) => div.trim().toLowerCase() !== '')
-        .map((div, index) => ({
-          id: index + 1,
-          text: div.trim().toLowerCase(),
-          value: div.trim(),
-        }));
-      setDivisionOptions(divisions);
-    }
-  };
 
   const toggleActionMenu = () => setActionOpen((prev) => !prev);
-  const toggleMoveTeam = () => setOpenMoveTeam((prev) => !prev);
 
-  const handleMenuAction = (e: React.SyntheticEvent, action: 'edit' | 'move' | 'send' | 'delete') => {
-    e.preventDefault();
-    setActionOpen(false);
-
-    switch (action) {
-      case 'edit':
-        router.push(`/${eventId}/teams/${team._id}/update/${ldoIdUrl}`);
-        break;
-      case 'move':
-        setOpenMoveTeam(true);
-        break;
-      case 'send':
-        handleSendCredential(e, team._id);
-        break;
-      case 'delete':
-        deleteEl.current?.showModal();
-        break;
-    }
-  };
 
   const handleGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -124,22 +64,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     }
   };
 
-  const handleMoveTeam = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    try {
-      setIsLoading(true);
-      if (moveTeam.event && moveTeam.division) {
-        await moveTeamMutation({
-          variables: { eventId, input: { division: moveTeam.division, event: moveTeam.event }, teamId: team._id },
-        });
-        if (refetchFunc) await refetchFunc();
-      }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   const handleDeleteTeam = async (e: React.SyntheticEvent, teamId: string) => {
     e.preventDefault();
@@ -166,17 +91,9 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
     return { activePlayers: active, inactivePlayers: inactive };
   }, [team]);
 
-  // Effects
-  useEffect(() => {
-    if (eventList?.length) {
-      const options = eventList.map((e, index) => ({ id: index + 1, text: e.name, value: e._id }));
-      setEventOptions(options);
-    }
-  }, [eventList]);
 
-  useEffect(() => {
-    setCardResponsiveH(openMoveTeam ? { minHeight: cardHeight } : { height: cardHeight });
-  }, [openMoveTeam]);
+
+
 
   // Derived values
   const filteredGroups = groupList
@@ -224,10 +141,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
           </li>
 
           <li
-            onClick={(e) => {
-              setActionOpen(false);
-              setOpenMoveTeam(true);
-            }}
+            onClick={(e) => handleMoveTeamOpen(e, team)}
             className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
           >
             <Image src="/icons/move.svg" alt="Move Team" width={16} height={16} className="svg-white" />
@@ -333,28 +247,6 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
       </div>
     );
 
-  const MoveTeamSection = () =>
-    openMoveTeam &&
-    user?.info &&
-    (user.info.role === UserRole.admin || user.info.role === UserRole.director) && (
-      <div className="border-t border-gray-700 bg-gray-750 p-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-semibold text-white">Move Team to Another Event</h4>
-            <button type="button" className="text-gray-400 hover:text-white transition-colors" onClick={toggleMoveTeam}>
-              <Image width={20} height={20} src="/icons/close.svg" alt="close-button" className="svg-white" />
-            </button>
-          </div>
-          <form className="grid grid-cols-1 md:grid-cols-3 gap-4" onSubmit={handleMoveTeam}>
-            <SelectInput handleSelect={handleEventChange} name="event" optionList={eventOptions} />
-            <SelectInput handleSelect={handleSelectChange} name="division" optionList={divisionOptions} />
-            <button className="btn-info w-full md:w-auto px-6 py-2" type="submit">
-              Move Team
-            </button>
-          </form>
-        </div>
-      </div>
-    );
 
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">
@@ -445,7 +337,7 @@ function TeamCard({ team, eventId, eventList, groupList, isChecked, setIsLoading
         </div>
       </div>
 
-      <MoveTeamSection />
+
       <DeleteConfirmDialog deleteEl={deleteEl} handleDeleteTeam={handleDeleteTeam} team={team} />
     </div>
   );

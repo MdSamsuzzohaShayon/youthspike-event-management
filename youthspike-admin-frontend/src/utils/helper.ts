@@ -191,3 +191,17 @@ export function filterByDivision<T extends { division: string }>(
   );
 }
 
+export function updateItemByIdMutable<T extends { _id: string }>(
+  items: T[],
+  updatedItem: Partial<T> & { _id: string }
+): T[] {
+  const index = items.findIndex(
+    (item) => item._id === updatedItem._id
+  );
+
+  if (index === -1) return items;
+
+  items[index] = { ...items[index], ...updatedItem };
+  return items;
+}
+

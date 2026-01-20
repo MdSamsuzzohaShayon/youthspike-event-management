@@ -13,7 +13,7 @@ export class TeamService {
 
   async findById(teamId: string): Promise<Team | null> {
     try {
-      return await this.teamModel.findById(teamId).exec();
+      return await this.teamModel.findById(teamId).lean();
     } catch (error) {
       console.error('Error finding team by ID:', error);
       throw error;

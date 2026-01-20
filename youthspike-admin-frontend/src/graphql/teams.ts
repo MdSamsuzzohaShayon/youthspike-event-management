@@ -743,24 +743,10 @@ const UPDATE_TEAM_RAW = `
         active
         name
         logo
-        captain {
-          _id
-          email
-          firstName
-          lastName
-          captainuser {
-            _id
-            firstName
-            lastName
-            email
-          }
-        }
-        cocaptain {
-          _id
-          email
-          firstName
-          lastName
-        }
+        captain 
+        cocaptain 
+        division
+        group
       }
     }
   }

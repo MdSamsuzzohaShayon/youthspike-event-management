@@ -29,7 +29,7 @@ export class TeamMutations {
     private netService: NetService,
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
 
 
 
@@ -153,11 +153,23 @@ export class TeamMutations {
       }
 
       await Promise.all(promiseOperations);
+      
+      // Convert Team to CustomTeam format
+      const customTeam = {
+        ...newTeam,
+        matches: (newTeam.matches || []).map((m: any) => m?.toString?.() || String(m)),
+        nets: (newTeam.nets || []).map((n: any) => n?.toString?.() || String(n)),
+        players: (newTeam.players || []).map((p: any) => p?.toString?.() || String(p)),
+        captain: newTeam.captain ? String(newTeam.captain) : undefined,
+        cocaptain: newTeam.cocaptain ? String(newTeam.cocaptain) : undefined,
+        group: newTeam.group ? String(newTeam.group) : undefined,
+      };
+      
       return {
         code: HttpStatus.CREATED,
         success: true,
         message: 'A team has been created successfully',
-        data: newTeam,
+        data: customTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -166,7 +178,7 @@ export class TeamMutations {
 
   async updateTeam(
     input: UpdateTeamInput,
-   teamId: string,
+    teamId: string,
     eventId: string,
     logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateTeamResponse> {
@@ -335,11 +347,26 @@ export class TeamMutations {
 
       await Promise.all(updatePromises);
       const updatedTeam = await this.teamService.findById(teamId);
+      if (!updatedTeam) {
+        return AppResponse.notFound('Team');
+      }
+      
+      // Convert Team to CustomTeam format
+      const customTeam = {
+        ...updatedTeam,
+        matches: (updatedTeam.matches || []).map((m: any) => m?.toString?.() || String(m)),
+        nets: (updatedTeam.nets || []).map((n: any) => n?.toString?.() || String(n)),
+        players: (updatedTeam.players || []).map((p: any) => p?.toString?.() || String(p)),
+        captain: updatedTeam.captain ? String(updatedTeam.captain) : undefined,
+        cocaptain: updatedTeam.cocaptain ? String(updatedTeam.cocaptain) : undefined,
+        group: updatedTeam.group ? String(updatedTeam.group) : undefined,
+      };
+      
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A team has been updated successfully',
-        data: updatedTeam,
+        data: customTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -445,5 +472,5 @@ export class TeamMutations {
       return AppResponse.handleError(err);
     }
   }
-  
+
 }

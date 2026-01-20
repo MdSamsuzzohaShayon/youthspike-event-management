@@ -1,10 +1,10 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { ICheckedInput, IError, IEvent, IGroup, IResponse, ITeam } from '@/types';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ICheckedInput, IError, IEvent, IGroup, IOption, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
-import { DELETE_MULTIPLE_TEAMS } from '@/graphql/teams';
+import { DELETE_MULTIPLE_TEAMS, UPDATE_TEAM } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
@@ -13,89 +13,294 @@ import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/ErrorProvider';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { divisionsToOptionList, updateItemByIdMutable } from '@/utils/helper';
+import Loader from '../elements/Loader';
 
 interface IProps {
-  eventId: string;
+  event: IEvent | null;
   teamList: ITeam[];
   groupList: IGroup[];
-  eventList?: IEvent[];
   refetchFunc?: () => void;
 }
 
-const ITEMS_PER_PAGE = 20;
+interface ITeamUpdateResponse extends IResponse {
+  data: ITeam;
+}
 
-function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }: IProps) {
+// Sub-component: Bulk Action Menu
+interface BulkActionMenuProps {
+  isVisible: boolean;
+  onBulkCredentials: (e: React.SyntheticEvent) => void;
+  onShowChangeGroup: (e: React.SyntheticEvent) => void;
+  onBulkMoveTeam: (e: React.SyntheticEvent) => void;
+}
 
-  // Hook
+const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
+  isVisible,
+  onBulkCredentials,
+  onShowChangeGroup,
+  onBulkMoveTeam,
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.ul
+        className="absolute z-10 left-12 top-6 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+        variants={menuVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ duration: 0.2 }}
+      >
+        <li
+          role="presentation"
+          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+          onClick={onBulkCredentials}
+        >
+          <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
+          Send Credentials
+        </li>
+        <li
+          role="presentation"
+          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+          onClick={onShowChangeGroup}
+        >
+          <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
+          Change Group
+        </li>
+        <li
+          role="presentation"
+          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+          onClick={onBulkMoveTeam}
+        >
+          <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
+          Move team
+        </li>
+      </motion.ul>
+    </AnimatePresence>
+  );
+};
+
+// Sub-component: Group Filter Menu
+interface GroupFilterMenuProps {
+  isVisible: boolean;
+  groupList: IGroup[];
+  selectedGroupId: string | null;
+  onGroupFilter: (e: React.SyntheticEvent, groupId: string | null) => void;
+}
+
+const GroupFilterMenu: React.FC<GroupFilterMenuProps> = ({
+  isVisible,
+  groupList,
+  selectedGroupId,
+  onGroupFilter,
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.ul
+        className="absolute z-10 top-7 right-3 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+        variants={menuVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ duration: 0.2 }}
+      >
+        <li
+          key="all"
+          role="presentation"
+          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+          onClick={(e) => onGroupFilter(e, null)}
+        >
+          All
+        </li>
+        {groupList.map((group, index) => (
+          <li
+            key={index}
+            role="presentation"
+            className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+            onClick={(e) => onGroupFilter(e, group._id)}
+          >
+            {group.name}
+          </li>
+        ))}
+      </motion.ul>
+    </AnimatePresence>
+  );
+};
+
+// Sub-component: Move Team Dialog
+interface IMoveTeamDialogProps {
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
+  selectedTeam: ITeam | null;
+  divisionOptions: IOption[];
+  groupOptions: IOption[];
+  onTeamUpdateChange: (e: React.SyntheticEvent) => void;
+  onMoveTeam: (e: React.SyntheticEvent) => void;
+  onClose: () => void;
+}
+
+const MoveTeamDialog: React.FC<IMoveTeamDialogProps> = ({
+  dialogRef,
+  selectedTeam,
+  divisionOptions,
+  groupOptions,
+  onTeamUpdateChange,
+  onMoveTeam,
+  onClose,
+}) => {
+  return (
+    <dialog ref={dialogRef} className="modal-dialog">
+      <div className="p-4">
+        <button
+          type="button"
+          className="text-gray-400 hover:text-white transition-colors"
+          onClick={onClose}
+        >
+          <Image width={20} height={20} src="/icons/close.svg" alt="close-button" className="svg-white" />
+        </button>
+        <h4 className="text-lg font-semibold text-white">Move Team - {selectedTeam?.name}</h4>
+        <form className="flex flex-col gap-2" onSubmit={onMoveTeam}>
+          <SelectInput
+            handleSelect={onTeamUpdateChange}
+            name="division"
+            optionList={divisionOptions}
+            defaultValue={selectedTeam?.division}
+          />
+          <SelectInput
+            name="group"
+            optionList={groupOptions}
+            handleSelect={onTeamUpdateChange}
+            defaultValue={typeof selectedTeam?.group === 'object' ? selectedTeam?.group._id : selectedTeam?.group}
+          />
+          <div className="actions flex gap-x-2 w-full justify-start items-center">
+            <button className="btn-info" type="submit">
+              Move Team
+            </button>
+            <button className="btn-danger" type="button" onClick={onClose}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+  );
+};
+
+// Sub-component: Change Group Dialog
+interface IChangeGroupDialogProps {
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
+  groupList: IGroup[];
+  onBulkChangeGroup: (e: React.SyntheticEvent) => void;
+}
+
+const ChangeGroupDialog: React.FC<IChangeGroupDialogProps> = ({
+  dialogRef,
+  groupList,
+  onBulkChangeGroup,
+}) => {
+  const groupOptions = useMemo(
+    () =>
+      groupList.map((group, index) => ({
+        id: index + 1,
+        value: group._id,
+        text: group.name,
+      })),
+    [groupList]
+  );
+
+  return (
+    <dialog ref={dialogRef} className="modal-dialog">
+      <h3>Change Group</h3>
+      <SelectInput name="group" optionList={groupOptions} handleSelect={onBulkChangeGroup} />
+    </dialog>
+  );
+};
+
+// Main Component
+function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
+  if (!event) {
+    throw new Error('Event not found!');
+  }
+
+  // Hooks
   const { setActErr } = useError();
 
   // References
-  const cngGroupEl = useRef<HTMLDialogElement | null>(null);
-
+  const changeGroupDialogRef = useRef<HTMLDialogElement | null>(null);
+  const moveTeamDialogRef = useRef<HTMLDialogElement | null>(null);
 
   // Local State
-  const [showFilter, setShowFilter] = useState<boolean>(false);
-  const [showBulkAction, setShowBulkAction] = useState<boolean>(false);
-  const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
-  const [filteredGroupId, setFilteredGroupId] = useState<string | null>(null);
+  const [isFilterMenuVisible, setIsFilterMenuVisible] = useState<boolean>(false);
+  const [isBulkActionMenuVisible, setIsBulkActionMenuVisible] = useState<boolean>(false);
+  const [checkedTeamsMap, setCheckedTeamsMap] = useState<Map<string, boolean>>(new Map());
+  const [selectedGroupIdFilter, setSelectedGroupIdFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedTeamForMove, setSelectedTeamForMove] = useState<ITeam | null>(null);
+  const [teamUpdateInput, setTeamUpdateInput] = useState<Partial<Pick<ITeam, 'division' | 'group'>>>({});
+  const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList);
 
   // Mutations
-  const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
-  const [deleteMultipleTeams] = useMutation<{deleteTeams: IResponse}>(DELETE_MULTIPLE_TEAMS);
-  const [updateGroup] = useMutation(UPDATE_GROUP);
+  const [sendCredentialsMutation, { data, error }] = useMutation(SEND_CREDENTIALS);
+  const [deleteMultipleTeamsMutation] = useMutation<{ deleteTeams: IResponse }>(DELETE_MULTIPLE_TEAMS);
+  const [updateGroupMutation] = useMutation(UPDATE_GROUP);
+  const [moveTeamMutation] = useMutation<{ updateTeam: ITeamUpdateResponse }>(UPDATE_TEAM);
 
-  // eslint-disable-next-line no-unused-vars
-  const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
+  // Utility: Extract checked team IDs
+  const getCheckedTeamIds = (): string[] => {
+    return Array.from(checkedTeamsMap)
+      .filter(([_, isChecked]) => isChecked)
+      .map(([teamId]) => teamId);
+  };
+
+  // Handlers: Filter
+  const handleGroupFilterSelection = (e: React.SyntheticEvent, groupId: string | null): void => {
     e.preventDefault();
-
-    setFilteredGroupId(groupId);
-    setShowFilter(false);
-    setShowBulkAction(false);
+    setSelectedGroupIdFilter(groupId);
+    setIsFilterMenuVisible(false);
+    setIsBulkActionMenuVisible(false);
   };
 
-  // ===== Bulk Actions =====
-  const handleCheckedTeam = (e: React.SyntheticEvent, teamId: string) => {
-    const inputEl = e.target as HTMLInputElement;
-    const newCheckedItems: Map<string, boolean> = new Map(checkedTeams);
-    if (inputEl.checked) {
-      newCheckedItems.set(teamId, true);
-    } else {
-      newCheckedItems.set(teamId, false);
-    }
-    setCheckedTeams(newCheckedItems);
+  // Handlers: Checkbox
+  const handleTeamCheckboxToggle = (e: React.SyntheticEvent, teamId: string): void => {
+    const inputElement = e.target as HTMLInputElement;
+    const updatedCheckedTeams = new Map(checkedTeamsMap);
+    updatedCheckedTeams.set(teamId, inputElement.checked);
+    setCheckedTeamsMap(updatedCheckedTeams);
   };
 
-  const handleCheckAllToggle = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLInputElement;
-    const newCheckedItems: Map<string, boolean> = new Map();
-    if (inputEl.checked) {
-      teamList.forEach((t) => {
-        newCheckedItems.set(t._id, true);
+  const handleSelectAllCheckboxToggle = (e: React.SyntheticEvent): void => {
+    const inputElement = e.target as HTMLInputElement;
+    const updatedCheckedTeams = new Map<string, boolean>();
+
+    if (inputElement.checked) {
+      teamList.forEach((team) => {
+        updatedCheckedTeams.set(team._id, true);
       });
-      setCheckedTeams(newCheckedItems);
-    } else {
-      setCheckedTeams(new Map());
     }
+
+    setCheckedTeamsMap(updatedCheckedTeams);
   };
 
-  const handleShowBulk = (e: React.SyntheticEvent) => {
+  // Handlers: Bulk Action Menu
+  const handleBulkActionMenuToggle = (e: React.SyntheticEvent): void => {
     e.preventDefault();
-    setShowBulkAction(!showBulkAction);
+    setIsBulkActionMenuVisible(!isBulkActionMenuVisible);
   };
 
-  const handleBulkDelete = async (e: React.SyntheticEvent) => {
+  const handleBulkDeleteTeams = async (e: React.SyntheticEvent): Promise<void> => {
     e.preventDefault();
 
-    if (checkedTeams.size <= 0) return;
+    const checkedTeamIds = getCheckedTeamIds();
+    if (checkedTeamIds.length === 0) return;
+
     try {
       setIsLoading(true);
-      const checkedTeamIds = Array.from(checkedTeams)
-        .filter(([_, isChecked]) => isChecked) // Filter for checked items
-        .map(([teamId]) => teamId); // Map to just the team IDs
-      const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
-      const success = await handleResponseCheck(response.data?.deleteTeams, setActErr );
-      if (success && refetchFunc) await refetchFunc();
+      const response = await deleteMultipleTeamsMutation({ variables: { teamIds: checkedTeamIds } });
+      const isSuccessful = await handleResponseCheck(response.data?.deleteTeams, setActErr);
+      if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error: any) {
       handleError({ error, setActErr });
     } finally {
@@ -103,16 +308,13 @@ function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }
     }
   };
 
-  const handleBulkCredentials = async (e: React.SyntheticEvent) => {
+  const handleBulkSendCredentials = async (e: React.SyntheticEvent): Promise<void> => {
     e.preventDefault();
-    const checkedTeamIds = Array.from(checkedTeams)
-      .filter(([_, isChecked]) => isChecked) // Filter for checked items
-      .map(([teamId]) => teamId); // Map to just the team IDs
+    const checkedTeamIds = getCheckedTeamIds();
 
-    // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
-      await sendCredentials({ variables: { eventId, teamIds: [...checkedTeamIds] } });
+      await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
       if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
@@ -121,39 +323,31 @@ function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }
     }
   };
 
-  const handleShowChangeGroup = (e: React.SyntheticEvent) => {
+  const handleShowChangeGroupDialog = (e: React.SyntheticEvent): void => {
     e.preventDefault();
-    const checkedTeamIds = Array.from(checkedTeams)
-      .filter(([_, isChecked]) => isChecked) // Filter for checked items
-      .map(([teamId]) => teamId); // Map to just the team IDs
+    const checkedTeamIds = getCheckedTeamIds();
+
     if (checkedTeamIds.length === 0) {
       return setActErr({ message: 'You must select a few teams and do this action', success: false });
     }
 
-    setShowBulkAction(false);
-    setShowFilter(false);
-    if (cngGroupEl.current) {
-      cngGroupEl.current.showModal();
-    }
+    setIsBulkActionMenuVisible(false);
+    setIsFilterMenuVisible(false);
+    changeGroupDialogRef.current?.showModal();
   };
 
-  const handleBulkChangeGroup = async (e: React.SyntheticEvent) => {
+  const handleBulkChangeGroup = async (e: React.SyntheticEvent): Promise<void> => {
     e.preventDefault();
-    if (cngGroupEl.current) {
-      cngGroupEl.current.close();
-    }
-    const inputEl = e.target as HTMLInputElement;
+    changeGroupDialogRef.current?.close();
 
-    const checkedTeamIds = Array.from(checkedTeams)
-      .filter(([_, isChecked]) => isChecked) // Filter for checked items
-      .map(([teamId]) => teamId); // Map to just the team IDs
+    const inputElement = e.target as HTMLInputElement;
+    const checkedTeamIds = getCheckedTeamIds();
 
-    // console.log({ groupId: inputEl.value, checkedTeamIds });
-
-    // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
-      await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } });
+      await updateGroupMutation({
+        variables: { updateInput: { _id: inputElement.value, teams: checkedTeamIds } },
+      });
       if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
@@ -162,13 +356,10 @@ function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }
     }
   };
 
-  const handleBulkMoveTeam = async (e: React.SyntheticEvent) => {
+  const handleBulkMoveTeams = async (e: React.SyntheticEvent): Promise<void> => {
     e.preventDefault();
-    const checkedTeamIds = Array.from(checkedTeams)
-      .filter(([_, isChecked]) => isChecked) // Filter for checked items
-      .map(([teamId]) => teamId); // Map to just the team IDs
+    const checkedTeamIds = getCheckedTeamIds();
 
-    // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
       if (refetchFunc) await refetchFunc();
@@ -179,10 +370,11 @@ function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }
     }
   };
 
-  const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
+  // Handlers: Individual Team Actions
+  const handleSendSingleTeamCredential = async (e: React.SyntheticEvent, teamId: string): Promise<void> => {
     try {
       setIsLoading(true);
-      await sendCredentials({ variables: { eventId, teamIds: [teamId] } });
+      await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
       if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
@@ -191,123 +383,186 @@ function SearchTeamList({ teamList, groupList, eventId, eventList, refetchFunc }
     }
   };
 
+  const handleOpenMoveTeamDialog = (e: React.SyntheticEvent, team: ITeam): void => {
+    e.preventDefault();
+    setSelectedTeamForMove(team);
+    moveTeamDialogRef.current?.showModal();
+  };
 
+  const handleTeamUpdateInputChange = (e: React.SyntheticEvent): void => {
+    e.preventDefault();
+    const inputElement = e.target as HTMLInputElement;
+    setTeamUpdateInput((previousInput) => ({ ...previousInput, [inputElement.name]: inputElement.value }));
+  };
+
+
+
+  const handleMoveTeamSubmit = async (e: React.SyntheticEvent): Promise<void> => {
+    e.preventDefault();
+
+    try {
+      setIsLoading(true);
+      moveTeamDialogRef.current?.close();
+      const response = await moveTeamMutation({
+        variables: { input: { ...teamUpdateInput }, teamId: selectedTeamForMove?._id, eventId: event._id },
+      });
+      const isSuccessful = await handleResponseCheck(response.data?.updateTeam, setActErr);
+      if (isSuccessful && refetchFunc) {
+        await refetchFunc();
+
+        if (response.data?.updateTeam.data) {
+          const updatedList = updateItemByIdMutable(filteredTeamList, response.data?.updateTeam.data);
+          setFilteredTeamList(updatedList)
+        }
+
+      }
+    } catch (error) {
+      console.error(error);
+      handleError({ error, setActErr });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGroupChange = async (e: React.SyntheticEvent): Promise<void> => {
+    // Implementation pending
+  };
+
+  // Memoized Values
+  const divisionOptionsList = useMemo(() => {
+    return divisionsToOptionList(event?.divisions || '');
+  }, [event]);
+
+  const groupOptionsList = useMemo(() => {
+    const options: IOption[] = [];
+
+    for (let i = 0; i < groupList.length; i += 1) {
+      const group = groupList[i];
+
+      if (!teamUpdateInput?.division) {
+        options.push({ id: i + 1, value: group._id, text: group.name });
+        continue;
+      }
+
+      if (group.division.toLowerCase() === teamUpdateInput.division.toLowerCase()) {
+        options.push({ id: i + 1, value: group._id, text: group.name });
+      }
+    }
+
+    return options;
+  }, [groupList, teamUpdateInput]);
+
+  // const filteredTeamList = useMemo(() => {
+  //   return teamList.filter((team) => {
+  //     if (!selectedGroupIdFilter) return true;
+  //     return team.group?._id === selectedGroupIdFilter || String(team.group) === selectedGroupIdFilter;
+  //   });
+  // }, [teamList, selectedGroupIdFilter]);
+
+  const selectedGroupName = useMemo(() => {
+    return selectedGroupIdFilter ? groupList.find((group) => group._id === selectedGroupIdFilter)?.name : 'Group';
+  }, [selectedGroupIdFilter, groupList]);
+
+
+  useEffect(() => {
+    const filteredTeams = teamList.filter((team) => {
+      if (!selectedGroupIdFilter) return true;
+
+      return (
+        team.group?._id === selectedGroupIdFilter ||
+        String(team.group) === selectedGroupIdFilter
+      );
+    });
+
+    setFilteredTeamList(filteredTeams);
+  }, [teamList, selectedGroupIdFilter]);
 
   return (
     <div className="team-list w-full">
+      {isLoading && <Loader />}
+
+      {/* Action Section */}
       <div className="action-section flex justify-between mb-4">
+        {/* Bulk Action Control */}
         <div className="input-group relative flex items-center gap-2 justify-between">
-          <input onClick={handleCheckAllToggle} type="checkbox" name="bulkaction" id="bulk-action" />
+          <input onClick={handleSelectAllCheckboxToggle} type="checkbox" name="bulkaction" id="bulk-action" />
           <label htmlFor="bulk-action">Bulk Action</label>
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" role="presentation" onClick={handleShowBulk} />
-          {/* Bulk Action start  */}
-          <AnimatePresence>
-            {showBulkAction && (
-              <motion.ul
-                className="absolute z-10 left-12 top-6 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
-                variants={menuVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.2 }}
-              >
-                {/* <li role="presentation" className='capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center' onClick={handleBulkDelete}>
-                  <Image className="svg-white" src="/icons/delete.svg" alt="Delete" width={16} height={16} />
-                  delete
-                </li> */}
-                <li
-                  role="presentation"
-                  className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
-                  onClick={handleBulkCredentials}
-                >
-                  <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
-                  Send Credentials
-                </li>
-                <li
-                  role="presentation"
-                  className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
-                  onClick={handleShowChangeGroup}
-                >
-                  <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
-                  Change Group
-                </li>
-
-                <li role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center" onClick={handleBulkMoveTeam}>
-                  <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
-                  Move team
-                </li>
-              </motion.ul>
-            )}
-          </AnimatePresence>
-          {/* Bulk Action end  */}
+          <Image
+            width={imgSize.logo}
+            height={imgSize.logo}
+            src="/icons/dropdown.svg"
+            alt="dropdown"
+            className="w-6 svg-white"
+            role="presentation"
+            onClick={handleBulkActionMenuToggle}
+          />
+          <BulkActionMenu
+            isVisible={isBulkActionMenuVisible}
+            onBulkCredentials={handleBulkSendCredentials}
+            onShowChangeGroup={handleShowChangeGroupDialog}
+            onBulkMoveTeam={handleBulkMoveTeams}
+          />
         </div>
-        <div className="input-group relative ">
-          <div className="button flex items-center gap-2 justify-between" role="presentation" onClick={() => setShowFilter((prevState) => !prevState)}>
-            <p>{filteredGroupId ? groupList.find((g) => g._id === filteredGroupId)?.name : 'Group'}</p>
-            <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dropdown.svg" alt="dropdown" className="w-6 svg-white" />
+
+        {/* Group Filter Control */}
+        <div className="input-group relative">
+          <div
+            className="button flex items-center gap-2 justify-between"
+            role="presentation"
+            onClick={() => setIsFilterMenuVisible((previous) => !previous)}
+          >
+            <p>{selectedGroupName}</p>
+            <Image
+              width={imgSize.logo}
+              height={imgSize.logo}
+              src="/icons/dropdown.svg"
+              alt="dropdown"
+              className="w-6 svg-white"
+            />
           </div>
-
-          {/* Filter Action Start  */}
-          <AnimatePresence>
-            {showFilter && (
-              <motion.ul
-                className="absolute z-10 top-7 right-3 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
-                variants={menuVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ duration: 0.2 }}
-              >
-                <li key={'all'} role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleGroupFilter(e, null)}>
-                  All
-                </li>
-                {groupList.map((g, gI) => (
-                  <li key={gI} role="presentation" className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleGroupFilter(e, g._id)}>
-                    {g.name}
-                  </li>
-                ))}
-              </motion.ul>
-            )}
-          </AnimatePresence>
-          {/* Filter Action End  */}
+          <GroupFilterMenu
+            isVisible={isFilterMenuVisible}
+            groupList={groupList}
+            selectedGroupId={selectedGroupIdFilter}
+            onGroupFilter={handleGroupFilterSelection}
+          />
         </div>
       </div>
+
+      {/* Team Cards Grid */}
       <div className="team-list-card grid grid-cols-1 lg:grid-cols-2 gap-2">
-        {teamList.map((team) => {
-          if (!filteredGroupId || team.group?._id === filteredGroupId || String(team.group) === filteredGroupId) {
-            return (
-              <TeamCard
-                key={team._id}
-                team={team}
-                eventId={eventId}
-                eventList={eventList || []}
-                groupList={groupList}
-                setIsLoading={setIsLoading}
-                isChecked={checkedTeams.get(team._id) ?? false}
-                refetchFunc={refetchFunc}
-                handleSendCredential={handleSendCredential}
-                handleCheckedTeam={handleCheckedTeam}
-              />
-            );
-          }
-          return null;
-        })}
+        {filteredTeamList.map((team) => (
+          <TeamCard
+            key={team._id}
+            team={team}
+            eventId={event._id}
+            groupList={groupList}
+            isChecked={checkedTeamsMap.get(team._id) ?? false}
+            refetchFunc={refetchFunc}
+            handleSendCredential={handleSendSingleTeamCredential}
+            handleMoveTeamOpen={handleOpenMoveTeamDialog}
+            handleCheckedTeam={handleTeamCheckboxToggle}
+          />
+        ))}
       </div>
 
+      {/* Move Team Dialog */}
+      <MoveTeamDialog
+        dialogRef={moveTeamDialogRef}
+        selectedTeam={selectedTeamForMove}
+        divisionOptions={divisionOptionsList}
+        groupOptions={groupOptionsList}
+        onTeamUpdateChange={handleTeamUpdateInputChange}
+        onMoveTeam={handleMoveTeamSubmit}
+        onClose={() => moveTeamDialogRef.current?.close()}
+      />
 
-      <dialog ref={cngGroupEl} className="modal-dialog">
-        <h3>Change Group</h3>
-        {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
-        <SelectInput
-          name="group"
-          optionList={groupList.map((g, gI) => ({
-            id: gI + 1,
-            value: g._id,
-            text: g.name,
-          }))}
-          handleSelect={handleBulkChangeGroup}
-        />
-      </dialog>
+      {/* Change Group Dialog */}
+      <ChangeGroupDialog
+        dialogRef={changeGroupDialogRef}
+        groupList={groupList}
+        onBulkChangeGroup={handleBulkChangeGroup}
+      />
     </div>
   );
 }
