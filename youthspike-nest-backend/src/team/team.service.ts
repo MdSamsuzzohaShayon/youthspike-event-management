@@ -47,13 +47,22 @@ export class TeamService {
     return query.lean().exec();
   }
 
+  // async create(team: Team) {
+  //   const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
+  //   const lastTeamNum: number = lastTeam?.num || 1;
+
+  //   return this.teamModel.create({
+  //     ...team,
+  //     active: true,
+  //     num: lastTeamNum + 1,
+  //   });
+  // }
   async create(team: Team) {
     const lastTeam = await this.teamModel.findOne({}, {}, { sort: { _id: -1 } });
     const lastTeamNum: number = lastTeam?.num || 1;
 
     return this.teamModel.create({
       ...team,
-      active: true,
       num: lastTeamNum + 1,
     });
   }

@@ -152,11 +152,13 @@ export class TeamMutations {
         );
       }
 
-      await Promise.all(promiseOperations);
-      
+      const [createdTeam, ...promises] = await Promise.all([this.teamService.findOne({ _id: newTeam._id }),
+      ...promiseOperations]);
+
+
       // Convert Team to CustomTeam format
       const customTeam = {
-        ...newTeam,
+        ...createdTeam,
         matches: (newTeam.matches || []).map((m: any) => m?.toString?.() || String(m)),
         nets: (newTeam.nets || []).map((n: any) => n?.toString?.() || String(n)),
         players: (newTeam.players || []).map((p: any) => p?.toString?.() || String(p)),
@@ -164,7 +166,7 @@ export class TeamMutations {
         cocaptain: newTeam.cocaptain ? String(newTeam.cocaptain) : undefined,
         group: newTeam.group ? String(newTeam.group) : undefined,
       };
-      
+
       return {
         code: HttpStatus.CREATED,
         success: true,
@@ -192,11 +194,23 @@ export class TeamMutations {
 
       const updatePromises = [];
       const teamObj: any = { ...input };
+
+      // ===== Update division =====
       if (teamObj.division) {
         const newDivision = teamObj.division.toString().trim().toLowerCase();
         teamObj.division = newDivision;
         updatePromises.push(
           this.playerService.updateMany({ teams: { $in: [teamExist._id] } }, { $set: { division: newDivision } }),
+        );
+      }
+
+      // ===== Update group =====
+      if (teamObj.group && String(teamObj?.group) !== String(teamExist?.group)) {
+        updatePromises.push(
+          this.groupService.updateOne({ _id: teamExist._id }, { $pull: { teams: teamExist._id } }),
+        );
+        updatePromises.push(
+          this.groupService.updateOne({ _id: teamObj.group }, { $addToSet: { teams: teamExist._id } }),
         );
       }
 
@@ -350,7 +364,7 @@ export class TeamMutations {
       if (!updatedTeam) {
         return AppResponse.notFound('Team');
       }
-      
+
       // Convert Team to CustomTeam format
       const customTeam = {
         ...updatedTeam,
@@ -361,7 +375,7 @@ export class TeamMutations {
         cocaptain: updatedTeam.cocaptain ? String(updatedTeam.cocaptain) : undefined,
         group: updatedTeam.group ? String(updatedTeam.group) : undefined,
       };
-      
+
       return {
         code: HttpStatus.ACCEPTED,
         success: true,

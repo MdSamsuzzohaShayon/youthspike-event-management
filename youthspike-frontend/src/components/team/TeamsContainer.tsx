@@ -234,7 +234,7 @@ export default function TeamsContainer({
             </span>
             <button
               onClick={handleClearFilters}
-              className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
+              className="text-sm text-yellow-logo hover:text-yellow-logo transition-colors"
             >
               Clear all
             </button>
@@ -245,7 +245,7 @@ export default function TeamsContainer({
       {/* Loading state */}
       {showInitialLoading && (
         <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-yellow-logo border-t-transparent rounded-full animate-spin" />
           <span className="ml-2 text-gray-300">Loading teams...</span>
         </div>
       )}
@@ -274,7 +274,7 @@ export default function TeamsContainer({
               <button
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
+                className="flex items-center px-6 py-3 rounded-full bg-yellow-logo text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
               >
                 {isLoadingMore ? (
                   <>

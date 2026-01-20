@@ -16,6 +16,7 @@ import TeamAdd from './TeamAdd';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import { divisionsToOptionList, filterByDivision } from '@/utils/helper';
+import Loader from '../elements/Loader';
 
 interface TeamAddContainerProps {
   queryRef: QueryRef<{
@@ -49,8 +50,8 @@ function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
     return filterByDivision(eventData.players, selectedDivision);
   }, [eventData.players, selectedDivision]);
 
-//   console.log({filteredPlayers, players: eventData.players});
-  
+  //   console.log({filteredPlayers, players: eventData.players});
+
 
   const filteredGroups = useMemo<IGroup[]>(() => {
     if (!selectedDivision) return eventData.groups;
@@ -84,8 +85,12 @@ function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
   const handleClose = (e: React.SyntheticEvent) => {
     e.preventDefault();
   };
+  
+  
 
   // -------------------- Render --------------------
+
+  if (isLoading) return <Loader />
   return (
     <div>
       <div className="navigation my-8">

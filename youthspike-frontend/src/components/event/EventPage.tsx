@@ -21,7 +21,7 @@ async function EventPage() {
         </div>
 
         {/* Heading */}
-        <h1 className="text-4xl font-bold text-center mt-8 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">Events</h1>
+        <h1 className="text-4xl font-bold text-center mt-8 text-yellow-logo bg-clip-text text-transparent">Events</h1>
 
         <EventMain events={eventsData} />
       </div>

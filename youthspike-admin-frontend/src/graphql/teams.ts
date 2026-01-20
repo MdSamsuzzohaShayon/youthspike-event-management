@@ -58,12 +58,12 @@ const teamResponse = `
         _id
         name
       }
-      captainuser {
-        _id
-        firstName
-        lastName
-        email
-      }
+    captainuser {
+      _id
+      firstName
+      lastName
+      email
+    }
     }
 `;
 
@@ -722,7 +722,13 @@ const ADD_TEAM_RAW = `
       success
       message
       data {
-        ${teamResponse}
+        _id
+        active
+        name
+        logo
+        division
+        sendCredentials
+        num
       }
     }
   }

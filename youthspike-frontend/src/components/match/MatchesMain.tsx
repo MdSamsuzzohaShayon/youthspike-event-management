@@ -352,7 +352,7 @@ export default function MatchesMain({
               <button
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
+                className="flex items-center px-6 py-3 rounded-full bg-yellow-logo text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
               >
                 {isLoadingMore ? (
                   <>

@@ -14,7 +14,9 @@ export default async function NewTeamPage({ params }: IProps) {
 
   return (
     <PreloadQuery query={GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS} variables={{ eventId }}>
-      {(queryRef) => <TeamAddContainer queryRef={queryRef as QueryRef<{ getEventWithGroupsAndUnassignedPlayers: IGetEventWithGroupsAndUnassignedPlayersResponse }>} eventId={eventId} />}
+      {(queryRef) => <TeamAddContainer
+        queryRef={queryRef as QueryRef<{ getEventWithGroupsAndUnassignedPlayers: IGetEventWithGroupsAndUnassignedPlayersResponse }>}
+        eventId={eventId} />}
     </PreloadQuery>
   );
 }

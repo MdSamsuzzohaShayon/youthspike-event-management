@@ -28,11 +28,11 @@ async function uploadTeamData(
       const res = await fetch(BACKEND_URL, {
         method: 'POST',
         body: formData,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, 'apollo-require-preflight': 'true' },
       });
   
       const jsonRes = await res.json();
-      return jsonRes?.updateTeam || jsonRes?.createTeam || null;
+      return jsonRes?.data?.updateTeam || jsonRes?.data?.createTeam || null;
     }
   
     return null;

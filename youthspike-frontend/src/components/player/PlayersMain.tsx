@@ -347,7 +347,7 @@ export default function PlayersMain({
 
               {/* Render filter tags */}
               {appliedFilter.division && (
-                <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">
+                <span className="px-3 py-1 bg-gray-800 text-yellow-logo text-xs rounded-full border border-gray-700 shadow-sm">
                   Division: {appliedFilter.division}
                 </span>
               )}
@@ -359,7 +359,7 @@ export default function PlayersMain({
                   );
                   return (
                     group && (
-                      <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">
+                      <span className="px-3 py-1 bg-gray-800 text-yellow-logo text-xs rounded-full border border-gray-700 shadow-sm">
                         Group: {group.name}
                       </span>
                     )
@@ -367,7 +367,7 @@ export default function PlayersMain({
                 })()}
 
               {appliedFilter.search && (
-                <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">
+                <span className="px-3 py-1 bg-gray-800 text-yellow-logo text-xs rounded-full border border-gray-700 shadow-sm">
                   Search: {appliedFilter.search}
                 </span>
               )}
@@ -396,7 +396,7 @@ export default function PlayersMain({
       {/* Loading state for initial load */}
       {isApplyingFilters && allPlayers.length === 0 && (
         <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-yellow-logo border-t-transparent rounded-full animate-spin" />
           <span className="ml-2 text-gray-300">Loading players...</span>
         </div>
       )}
@@ -419,7 +419,7 @@ export default function PlayersMain({
           <button
             onClick={handleLoadMore}
             disabled={isLoadingMore}
-            className="px-6 py-2 bg-yellow-500 text-gray-900 rounded-md hover:bg-yellow-400 disabled:bg-yellow-700 disabled:cursor-not-allowed transition-colors font-medium"
+            className="px-6 py-2 bg-yellow-logo text-gray-900 rounded-md hover:bg-yellow-logo disabled:bg-yellow-700 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {isLoadingMore ? (
               <span className="flex items-center">

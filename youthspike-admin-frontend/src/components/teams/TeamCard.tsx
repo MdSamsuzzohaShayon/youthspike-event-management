@@ -1,7 +1,6 @@
-import { EPlayerStatus, IGroup, ITeam } from '@/types';
+import { EPlayerStatus, IGroup, IOption, ITeam } from '@/types';
 import Link from 'next/link';
-import React, { useMemo, useRef, useState } from 'react';
-import { DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
 import useClickOutside from '../../hooks/useClickOutside';
@@ -11,7 +10,6 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import DeleteConfirmDialog from './DeleteConfirmDialog';
 import TextImg from '../elements/TextImg';
 import { useMutation } from '@apollo/client/react';
 
@@ -23,25 +21,24 @@ interface ITeamCardProps {
   handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
   handleMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
-  refetchFunc?: () => void;
+  handleDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
 }
 
 
 
-function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, handleSendCredential, handleMoveTeamOpen, refetchFunc }: ITeamCardProps) {
+function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, handleSendCredential, handleMoveTeamOpen, handleDeleteTeamOpen }: ITeamCardProps) {
+  // Hooks
   const { ldoIdUrl } = useLdoId();
-
-  const actionEl = useRef<null | HTMLUListElement>(null);
-  const deleteEl = useRef<HTMLDialogElement | null>(null);
-
-  const [actionOpen, setActionOpen] = useState<boolean>(false);
-
-
-
-  const [deleteTeam] = useMutation(DELETE_TEAM);
   const [updateGroup] = useMutation(UPDATE_GROUP);
 
-  useClickOutside(actionEl, () => setActionOpen(false));
+  // References
+  const actionEl = useRef<null | HTMLUListElement>(null);
+  const [actionOpen, setActionOpen] = useState<boolean>(false);
+
+  // Local State
+  const [selectedGroup, setSelectedGroup] = useState<string>(
+    team.group?.toString() || ''
+  );
 
   // Common handlers
 
@@ -52,29 +49,30 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
   const handleGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
+    const newGroupId = inputEl.value;
+
+    // ✅ Update UI immediately
+    setSelectedGroup(newGroupId);
+
     try {
       await updateGroup({
         variables: {
-          updateInput: { _id: inputEl.value, teams: [team._id] },
+          updateInput: { _id: newGroupId, teams: [team._id] },
           eventId,
         },
       });
     } catch (error) {
       console.log(error);
+
+      // ❌ rollback on error
+      setSelectedGroup(team.group?.toString() || '');
     }
   };
 
 
 
-  const handleDeleteTeam = async (e: React.SyntheticEvent, teamId: string) => {
-    e.preventDefault();
-    try {
-      await deleteTeam({ variables: { teamId } });
-      if (refetchFunc) await refetchFunc();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+
+
 
   // const playerCount = team?.players?.length || 0;
   const { activePlayers, inactivePlayers } = useMemo(() => {
@@ -96,15 +94,31 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
 
 
   // Derived values
-  const filteredGroups = groupList
-    .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase())
-    .map((g, index) => ({
-      id: index + 1,
-      value: g._id,
-      text: g.name,
-    }));
+  const filteredGroups = useMemo(() => {
+    const teamDivision = team.division.trim().toUpperCase();
+
+    let id = 1;
+
+    return [...groupList].reduce<IOption[]>(
+      (acc, g) => {
+        if (g.division.trim().toUpperCase() === teamDivision) {
+          acc.push({
+            id: id++,
+            value: g._id,
+            text: g.name,
+          });
+        }
+        return acc;
+      },
+      []
+    );
+  }, [groupList, team.division]);
 
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
+
+  useEffect(() => {
+    setSelectedGroup(team.group?.toString() || '');
+  }, [team.group]);
 
   // Reusable components
   const TeamLogo = () =>
@@ -160,11 +174,9 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
           </li>
 
           <li
-            onClick={(e) => {
-              setActionOpen(false);
-              deleteEl.current?.showModal();
-            }}
+            onClick={(e) => handleDeleteTeamOpen(e, team)}
             className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+            role="presentation"
           >
             <Image src="/icons/delete.svg" alt="Delete" width={16} height={16} className="svg-white" />
             <span className="text-sm">Delete</span>
@@ -224,7 +236,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
       <div className="flex-1 min-w-0">
         <h3 className="text-xs font-semibold text-white truncate">{team.name}</h3>
         <div className="mt-1">
-          <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+          <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} value={selectedGroup} />
         </div>
       </div>
     </div>
@@ -276,7 +288,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
               <div className="">
                 <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
                 <div className="w-full md:w-4/6">
-                  <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} defaultValue={team.group?.toString() || ''} />
+                  <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} value={selectedGroup} />
                 </div>
               </div>
             </div>
@@ -338,7 +350,6 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
       </div>
 
 
-      <DeleteConfirmDialog deleteEl={deleteEl} handleDeleteTeam={handleDeleteTeam} team={team} />
     </div>
   );
 }

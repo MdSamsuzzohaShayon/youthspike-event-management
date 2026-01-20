@@ -4,7 +4,7 @@ import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
-import { DELETE_MULTIPLE_TEAMS, UPDATE_TEAM } from '@/graphql/teams';
+import { DELETE_MULTIPLE_TEAMS, DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
@@ -142,6 +142,8 @@ interface IMoveTeamDialogProps {
   onClose: () => void;
 }
 
+
+
 const MoveTeamDialog: React.FC<IMoveTeamDialogProps> = ({
   dialogRef,
   selectedTeam,
@@ -219,6 +221,34 @@ const ChangeGroupDialog: React.FC<IChangeGroupDialogProps> = ({
   );
 };
 
+interface IDeleteConfirmDialogProps {
+  deleteDialogRef: React.RefObject<HTMLDialogElement | null>;
+  selectedTeam: ITeam | null;
+  handleDeleteTeam: (e: React.SyntheticEvent, teamId: string) => void;
+}
+
+const DeleteConfirmDialog: React.FC<IDeleteConfirmDialogProps> = ({ deleteDialogRef, selectedTeam, handleDeleteTeam }) => {
+  return (
+    <dialog ref={deleteDialogRef} className="modal-dialog p-4">
+      <div className="flex flex-col gap-y-2">
+        <h4>Delete Team</h4>
+        <p className="text-yellow-100/90">Are your sure you want to delete the team?</p>
+        <p>Team: {selectedTeam?.name}</p>
+        <div className="buttons flex w-full justify-start gap-x-2 items-center">
+          <div className="btn-info" onClick={(e) => handleDeleteTeam(e, selectedTeam?._id || "")}>
+            Confirm
+          </div>
+          <div className="btn-danger" onClick={(e) => deleteDialogRef.current?.close()}>
+            Cancel
+          </div>
+        </div>
+      </div>
+    </dialog>
+  );
+};
+
+
+
 // Main Component
 function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
   if (!event) {
@@ -231,6 +261,7 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
   // References
   const changeGroupDialogRef = useRef<HTMLDialogElement | null>(null);
   const moveTeamDialogRef = useRef<HTMLDialogElement | null>(null);
+  const deleteDialogRef = useRef<HTMLDialogElement | null>(null);
 
   // Local State
   const [isFilterMenuVisible, setIsFilterMenuVisible] = useState<boolean>(false);
@@ -239,6 +270,7 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
   const [selectedGroupIdFilter, setSelectedGroupIdFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedTeamForMove, setSelectedTeamForMove] = useState<ITeam | null>(null);
+  const [selectedTeamForDelete, setSelectedTeamForDelete] = useState<ITeam | null>(null);
   const [teamUpdateInput, setTeamUpdateInput] = useState<Partial<Pick<ITeam, 'division' | 'group'>>>({});
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList);
 
@@ -247,6 +279,7 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
   const [deleteMultipleTeamsMutation] = useMutation<{ deleteTeams: IResponse }>(DELETE_MULTIPLE_TEAMS);
   const [updateGroupMutation] = useMutation(UPDATE_GROUP);
   const [moveTeamMutation] = useMutation<{ updateTeam: ITeamUpdateResponse }>(UPDATE_TEAM);
+  const [deleteTeam] = useMutation<{ deleteTeam: ITeamUpdateResponse }>(DELETE_TEAM);
 
   // Utility: Extract checked team IDs
   const getCheckedTeamIds = (): string[] => {
@@ -389,6 +422,12 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
     moveTeamDialogRef.current?.showModal();
   };
 
+  const handleDeleteTeamOpen = (e: React.SyntheticEvent, team: ITeam): void => {
+    e.preventDefault();
+    setSelectedTeamForDelete(team);
+    deleteDialogRef.current?.showModal();
+  };
+
   const handleTeamUpdateInputChange = (e: React.SyntheticEvent): void => {
     e.preventDefault();
     const inputElement = e.target as HTMLInputElement;
@@ -407,18 +446,40 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
         variables: { input: { ...teamUpdateInput }, teamId: selectedTeamForMove?._id, eventId: event._id },
       });
       const isSuccessful = await handleResponseCheck(response.data?.updateTeam, setActErr);
-      if (isSuccessful && refetchFunc) {
-        await refetchFunc();
-
+      if (isSuccessful) {
         if (response.data?.updateTeam.data) {
           const updatedList = updateItemByIdMutable(filteredTeamList, response.data?.updateTeam.data);
           setFilteredTeamList(updatedList)
         }
 
+        setSelectedTeamForMove(null)
+
       }
     } catch (error) {
       console.error(error);
       handleError({ error, setActErr });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteTeam = async (e: React.SyntheticEvent, teamId: string) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      deleteDialogRef.current?.close();
+      const response = await deleteTeam({ variables: { teamId } });
+      const isSuccessful = await handleResponseCheck(response.data?.deleteTeam, setActErr);
+      if (isSuccessful) {
+        if (response.data?.deleteTeam) {
+          const updatedList = filteredTeamList.filter(t => t._id !== selectedTeamForDelete?._id)
+          setFilteredTeamList(updatedList)
+        }
+        setSelectedTeamForDelete(null);
+
+      }
+    } catch (error) {
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -477,10 +538,10 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
     setFilteredTeamList(filteredTeams);
   }, [teamList, selectedGroupIdFilter]);
 
+  if (isLoading) return <Loader />;
+
   return (
     <div className="team-list w-full">
-      {isLoading && <Loader />}
-
       {/* Action Section */}
       <div className="action-section flex justify-between mb-4">
         {/* Bulk Action Control */}
@@ -538,13 +599,15 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
             eventId={event._id}
             groupList={groupList}
             isChecked={checkedTeamsMap.get(team._id) ?? false}
-            refetchFunc={refetchFunc}
             handleSendCredential={handleSendSingleTeamCredential}
             handleMoveTeamOpen={handleOpenMoveTeamDialog}
             handleCheckedTeam={handleTeamCheckboxToggle}
+            handleDeleteTeamOpen={handleDeleteTeamOpen}
           />
         ))}
       </div>
+
+      <DeleteConfirmDialog deleteDialogRef={deleteDialogRef} handleDeleteTeam={handleDeleteTeam} selectedTeam={selectedTeamForDelete} />
 
       {/* Move Team Dialog */}
       <MoveTeamDialog

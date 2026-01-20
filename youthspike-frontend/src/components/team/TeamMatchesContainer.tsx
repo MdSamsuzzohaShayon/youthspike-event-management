@@ -55,9 +55,6 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
     return <div>Team not found</div>;
   }
 
-  const isRosterPage = pathname === `/teams/${teamId}/roster`;
-  const isMatchesPage = pathname === `/teams/${teamId}/matches`;
-
   return (
     <div className="min-h-screen bg-gray-900 pb-4">
       {/* Header Section */}

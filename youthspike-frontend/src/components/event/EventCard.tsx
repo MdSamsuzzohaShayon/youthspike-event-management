@@ -16,11 +16,11 @@ function EventCard({ event }: IEventCardProps) {
   return (
     <div className="box p-6 bg-gray-800 hover:shadow-2xl transition-shadow duration-300">
       <div className="img-wrapper flex justify-center items-center mb-4">
-        {event.logo ? <CldImage crop="fit" alt={event.name} width="200" height="200" className="w-24 h-24 object-cover object-center rounded-full border-4 border-yellow-400 shadow-lg"  src={event.logo} /> 
+        {event.logo ? <CldImage crop="fit" alt={event.name} width="200" height="200" className="w-24 h-24 object-cover object-center rounded-full border-4 border-yellow-logo shadow-lg"  src={event.logo} /> 
         : <TextImg className="w-24 h-24 object-cover rounded-full border-4 border-yellow-400 shadow-lg" fullText={event.name} />}
       </div>
       <div className="text-box text-center">
-        <h3 className="text-2xl font-semibold text-yellow-400 mb-2">{event.name}</h3>
+        <h3 className="text-2xl font-semibold text-yellow-logo mb-2">{event.name}</h3>
         <p className="text-sm text-gray-300 mb-2">
           {readDate(event.startDate)} - {readDate(event.endDate)}
         </p>
