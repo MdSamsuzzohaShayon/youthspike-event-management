@@ -131,4 +131,4 @@ You need to do:
   2. Maintain the existing color scheme (black, white, and yellow) while ensuring a clean, modern, and professional appearance. 
   3. Incorporate gradients or subtle animations if they enhance the visual appeal. 
   4. Follow modern UI/UX design principles to make the layout highly responsive, accessible, and engaging on all devices. 
-  5. ally, convert the design into well-structured, production-ready JSX code with proper Tailwind class organization.
+  5. Additionally, convert the design into well-structured, production-ready JSX code with proper Tailwind class organization.

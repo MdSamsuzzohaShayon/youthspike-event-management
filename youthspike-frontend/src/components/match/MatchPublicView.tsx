@@ -14,7 +14,7 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import { useSearchParams } from "next/navigation";
 import NetInRound from "./PublicView/NetInRound";
 
-interface IMatchPublicViewProps {
+interface IProps {
   nets: INetRelatives[];
   currRound: IRoundRelatives | null;
   roundList: IRoundRelatives[];
@@ -26,6 +26,7 @@ interface IMatchPublicViewProps {
   matchId: string;
   serverReceiverPlays: IServerReceiverSinglePlay[];
   currMatch: IMatchExpRel;
+  isExpandedMode: boolean;
 }
 
 function MatchPublicView({
@@ -40,7 +41,8 @@ function MatchPublicView({
   matchId,
   serverReceiverPlays,
   currMatch,
-}: IMatchPublicViewProps) {
+  isExpandedMode,
+}: IProps) {
   const searchParams = useSearchParams();
   const [view, setView] = useState<EView>(() => {
     const match = LocalStorageService.getMatch(matchId);
@@ -174,6 +176,7 @@ function MatchPublicView({
           view={view}
           playerMap={playerMap}
           playMapByNet={playMapByNet}
+          isExpandedMode={isExpandedMode}
         />
       )}
       {view === EView.NET && selectedNet && (

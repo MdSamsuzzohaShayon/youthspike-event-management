@@ -23,7 +23,7 @@ import { UPDATE_NET } from "@/graphql/net";
 import StreamUrlDialog from "@/components/elements/Dialog/StreamUrlDialog";
 import { setMessage } from "@/redux/slices/elementSlice";
 
-interface NetInRoundProps {
+interface IProps {
   net: INetRelatives;
   teamA: ITeam | null;
   teamB: ITeam | null;
@@ -37,7 +37,7 @@ interface NetInRoundProps {
 
 const PRESSING_TIME = 1000; // 1 second
 
-const NetInRound: React.FC<NetInRoundProps> = ({
+const NetInRound: React.FC<IProps> = ({
   net,
   teamA,
   teamB,

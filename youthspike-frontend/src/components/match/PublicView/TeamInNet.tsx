@@ -105,8 +105,8 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                   className={`w-full h-full object-cover object-center border rounded-lg ${
                     teamE === ETeam.teamA ? "border-white" : "border-red-300"
                   }`}
-                  height={120}
-                  width={120}
+                  height={200}
+                  width={200}
                   src={playerA.profile}
                   alt={playerA.firstName}
                 />
@@ -157,8 +157,8 @@ const TeamInNet: React.FC<ITeamInNetProps> = ({
                 src={team.logo}
                 alt={team.name}
                 className="w-full"
-                height={120}
-                width={120}
+                height={200}
+                width={200}
               />
             ) : (
               <TextImg className="w-full" fullText={team.name} />

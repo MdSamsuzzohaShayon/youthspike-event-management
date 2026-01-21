@@ -20,7 +20,7 @@ import ScoreBox from "./ScoreBox";
 import NetInRound from "./NetInRound";
 import RoundSelector from "./RoundSelector";
 
-interface IRoundViewProps {
+interface IProps {
   roundList: IRoundRelatives[];
   allNets: INetRelatives[];
   match: IMatchExpRel;
@@ -33,6 +33,7 @@ interface IRoundViewProps {
   view: EView;
   playerMap: Map<string, IPlayer>;
   playMapByNet: Map<string, IServerReceiverSinglePlay[]>;
+  isExpandedMode: boolean;
 }
 
 const RoundView = ({
@@ -48,7 +49,8 @@ const RoundView = ({
   view,
   playerMap,
   playMapByNet,
-}: IRoundViewProps) => {
+  isExpandedMode
+}: IProps) => {
   const dispatch = useAppDispatch();
 
   const matchScore = useAppSelector(
@@ -125,7 +127,7 @@ const RoundView = ({
   );
 
   return (
-    <div className="round-view w-full">
+    <div className={`${isExpandedMode ? "round-view-expanded" : "round-view" } w-full`}>
       <div className="round-selector w-full">
         <RoundSelector
           currRound={currRound}

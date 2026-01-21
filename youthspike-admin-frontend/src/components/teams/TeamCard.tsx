@@ -199,7 +199,8 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
         <div className="flex flex-col md:flew-row items-center justify-center text-sm text-gray-300 bg-gray-700 px-3 py-1.5 rounded-lg">
           <span className="mr-2">Players:</span>
           <span className="font-medium">
-            {activePlayers.length} / {activePlayers.length + inactivePlayers.length}
+            {/* {activePlayers.length} / {activePlayers.length + inactivePlayers.length} */}
+            {activePlayers.length + inactivePlayers.length}
           </span>
         </div>
       </div>
@@ -328,7 +329,8 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
           <div className="flex items-center text-sm text-gray-300">
             <span className="mr-2">Players:</span>
             <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">
-              {activePlayers.length} / {activePlayers.length + inactivePlayers.length}
+              {/* {activePlayers.length} / {activePlayers.length + inactivePlayers.length} */}
+              {activePlayers.length + inactivePlayers.length}
             </span>
           </div>
           <Image

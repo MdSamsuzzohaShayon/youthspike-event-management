@@ -492,6 +492,7 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
         matchId={match._id}
         serverReceiverPlays={serverReceiverPlays}
         currMatch={match}
+        isExpandedMode={isExpandedMode}
       />
 
       {isExpandedMode && (

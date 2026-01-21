@@ -133,6 +133,14 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     }
   }, [localFilter, executeSearchQuery, updateAllData, router]);
 
+  const groupMap = useMemo(() => {
+    const map = new Map<string, IGroup>();
+    for (const group of groups) {
+      map.set(group._id, group);
+    }
+    return map;
+  }, [groups])
+
   // Clear filters
   const handleClearFilters = useCallback(async () => {
     const clearedFilter = { ...DEFAULT_FILTER_STATE };
@@ -226,11 +234,11 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         <div className="mb-4 p-3 bg-gray-800 rounded-md">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-300">
-              Active filters:{' '}
-              {Object.entries(appliedFilter)
-                .filter(([_, value]) => value)
+              Active filters: {Object.entries(appliedFilter)
+                .filter(([key, value]) => key !== 'group' && value)
                 .map(([key, value]) => `${key}: ${value}`)
                 .join(', ')}
+              {appliedFilter?.group && groupMap.has(appliedFilter?.group) && <span>{groupMap.get(appliedFilter?.group)?.name}</span>}
             </span>
             <button onClick={handleClearFilters} className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
               Clear all
@@ -251,7 +259,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       {!showInitialLoading && (
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
-            {/* teamList, groupList, eventId, eventList, setIsLoading, refetchFunc */}
             {teams.length > 0 ? (
               <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={event} />
             ) : (
@@ -265,7 +272,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
               <button
                 onClick={handleLoadMore}
                 disabled={isLoading}
-                className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
+                className="btn-info"
               >
                 {isLoadingMore ? (
                   <>
@@ -284,7 +291,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         </div>
       )}
 
-      <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerEl={importerEl} setIsLoading={() => {}} />
+      <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerEl={importerEl} setIsLoading={() => { }} />
     </div>
   );
 }

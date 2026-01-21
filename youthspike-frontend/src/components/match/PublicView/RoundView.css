@@ -1,3 +1,14 @@
+.round-view-expanded {
+  /* element.style {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+} */
+
+  @apply h-screen flex flex-col justify-around;
+}
+
 /* Define the container */
 .round-net-view {
   container-type: inline-size;
@@ -10,11 +21,11 @@
   width: 48%;
 }
 
-.plus-one{
+.plus-one {
   font-size: 2rem;
 }
 
-.plus-one-single{
+.plus-one-single {
   font-size: 2rem;
 }
 
@@ -24,7 +35,7 @@
   display: none;
 }
 
-.two-nets-row{
+.two-nets-row {
   margin-top: 10px;
 }
 
@@ -34,49 +45,65 @@
 
 
 /* Wrapping round score  */
-.score-wrapper-single{
+.score-wrapper-single {
   min-width: 140px;
   height: 100px;
 }
-.score-wrapper{
+
+.score-wrapper {
   min-width: 90px;
   height: 72px;
 }
 
 /* // Base  */
-.team-score-in-round{
+.team-score-in-round {
   font-family: "Anton", sans-serif;
   font-weight: 900;
   font-style: normal;
   line-height: 1;
 }
+
 /* For round view  */
-.net-team-score{
+.net-team-score {
   font-size: 4rem;
 }
 
 /* For new view  */
-.net-team-score-single{
+.net-team-score-single {
   font-size: 8rem;
 }
 
-.image-container{
+.round-view-expanded .net-team-score {
+  line-height: 1 ;
+}
+
+.image-container {
   height: 60px;
 }
-.image-container-single{
+
+.image-container-single {
   height: 300px;
 }
-.action-player-img{
+
+.round-view-expanded .image-container {
+  height: 120px;
+}
+
+.round-view-expanded .image-container-single {
+  height: 500px;
+}
+
+.action-player-img {
   height: 60px;
 }
 
 
-.action-pt-img{
+.action-pt-img {
   height: 45px;
   width: 45px;
 }
 
-.action-pt-img-single{
+.action-pt-img-single {
   height: 80px;
   width: 80px;
 }
@@ -84,12 +111,16 @@
 
 
 
-.team-score-point{
+.team-score-point {
   font-family: "Anton", sans-serif;
   font-weight: 900;
   font-style: normal;
   line-height: 0.8;
   font-size: 7rem;
+}
+.round-view-expanded .team-score-point{
+  font-size: 14rem;
+  line-height: 1;
 }
 
 
@@ -106,33 +137,37 @@
     width: 30%;
   }
 
-  .net-team-score{
+  .net-team-score {
     font-size: 4.5rem;
   }
 
-  .image-container{
+  .image-container {
     height: 45px;
   }
-  .image-container-single{
+
+
+  .image-container-single {
     height: 90px;
   }
-  .action-pt-img{
+
+  .action-pt-img {
     height: 30px;
     width: 30px;
   }
 
-  .plus-one{
+  .plus-one {
     font-size: 1rem;
   }
-  .plus-one-single{
+
+  .plus-one-single {
     font-size: 1.5rem;
   }
-  
 
-  .team-score-point{
+
+  .team-score-point {
     font-size: 3rem;
   }
-  
+
 
 }
 
@@ -159,75 +194,90 @@
   .team-score-poietrat {
     display: flex;
   }
-  .net-team-score{
+
+  .net-team-score {
     font-size: 6rem;
   }
-  .net-team-score-single{
+
+  .net-team-score-single {
     font-size: 4.5rem;
   }
 
-  .image-container{
-    height: 60px;
-  }
-  .image-container-single{
+  .image-container {
     height: 60px;
   }
 
-  .score-wrapper{
+  .round-view-expanded .image-container {
+    height: 120px;
+  }
+
+  .image-container-single {
+    height: 60px;
+  }
+
+  .round-view-expanded .image-container-single {
+    height: 120px;
+  }
+
+  .score-wrapper {
     min-width: 110px;
     height: 80px;
   }
 
-  .score-wrapper-single{
+  .score-wrapper-single {
     min-width: 90px;
     height: 70px;
   }
 
 
-  .action-pt-img-single{
+  .action-pt-img-single {
     height: 40px;
     min-width: 40px;
   }
 
-  .plus-one-single{
+  .plus-one-single {
     font-size: 1rem;
   }
-  
+
 
 }
 
 /* Additional breakpoint for very small containers (equivalent to very small landscape) */
 @container round-net-view (max-width: 400px) {
-  .net-team-score{
+  .net-team-score {
     font-size: 6rem;
   }
-  .net-team-score-single{
+
+  .net-team-score-single {
     font-size: 4.5rem;
   }
 
-  .image-container{
-    height: 60px;
-  }
-  .image-container-single{
+  .image-container {
     height: 60px;
   }
 
-  .score-wrapper{
+
+  .image-container-single {
+    height: 60px;
+  }
+
+  .score-wrapper {
     min-width: 110px;
     height: 80px;
   }
 
-  .score-wrapper-single{
+  .score-wrapper-single {
     min-width: 90px;
     height: 70px;
   }
 
 
-  .action-pt-img-single{
+  .action-pt-img-single {
     height: 40px;
     width: 40px;
   }
-  .plus-one-single{
+
+  .plus-one-single {
     font-size: 1rem;
   }
 }
@@ -238,38 +288,55 @@
     font-size: 0.5rem;
   }
 
-  .net-team-score{
+  .net-team-score {
     font-size: 4.5rem;
   }
-  .image-container{
+
+  .image-container {
     height: 45px;
   }
-  .image-container-single{
+
+  .round-view-expanded .image-container {
     height: 90px;
   }
-  .action-pt-img{
+
+  .image-container-single {
+    height: 90px;
+  }
+
+  .round-view-expanded .image-container-single {
+    height: 180px;
+  }
+
+  .action-pt-img {
     height: 30px;
     width: 30px;
   }
 
 
-  .plus-one{
+  .plus-one {
     font-size: 1rem;
   }
-  .plus-one-single{
+
+  .plus-one-single {
     font-size: 1.5rem;
   }
 
-  .team-score-point{
+  .team-score-point {
     font-size: 3rem;
+  }
+
+  .round-view-expanded .team-score-point{
+    font-size: 6rem;
   }
 }
 
 /* Large screens */
 @container round-net-view (min-width: 1025px) {
-  .two-nets-row{
+  .two-nets-row {
     margin-top: 20px;
   }
+
   .player-name {
     font-size: 0.8rem;
   }
@@ -278,33 +345,49 @@
   .image-container {
     height: 100px;
   }
-  .image-container-single{
+  .round-view-expanded .image-container {
+    height: 200px;
+  }
+
+  .image-container-single {
     height: 250px;
   }
 
-  .net-team-score{
+  .round-view-expanded .image-container-single {
+    height: 500px;
+  }
+
+  .net-team-score {
     font-size: 8rem;
   }
-  .net-team-score-single{
+
+  .net-team-score-single {
     font-size: 12rem;
   }
-  .server-receiver-text{
+
+  .server-receiver-text {
     font-size: 2rem;
   }
 
-  .score-wrapper{
+  .score-wrapper {
     min-width: 200px;
     height: 130px;
   }
-  .score-wrapper-single{
+
+  .score-wrapper-single {
     min-width: 250px;
     height: 220px;
   }
 
 
 
-  .plus-one-single{
+  .plus-one-single {
     font-size: 3rem;
   }
-  
+
+  .round-view-expanded .team-score-point{
+    font-size: 14rem;
+
+  }
+
 }

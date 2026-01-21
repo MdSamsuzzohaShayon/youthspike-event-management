@@ -1,6 +1,4 @@
-import QRCode from "@/components/elements/QRCode.tsx";
 import TextImg from "@/components/elements/TextImg";
-import { FRONTEND_URL } from "@/utils/keys";
 import { CldImage } from "next-cloudinary";
 import Link from "next/link";
 
