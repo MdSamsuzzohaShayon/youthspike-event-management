@@ -50,16 +50,19 @@ const AdminMenu = () => {
 
   // ===== Component Mount =====
   useEffect(() => {
-    if (params.eventId) {
-      setEventId(String(params.eventId));
-    } else {
-      setEventId(null);
-    }
+
+
+    let eventId: any = params?.eventId || null;
     const userDetail = getUserFromCookie();
 
     if (userDetail && userDetail.token) {
       setUser(userDetail);
     }
+
+    if (!eventId) {
+      eventId = userDetail?.info?.event || null;
+    }
+    setEventId(eventId);
   }, [params, router, pathname]);
 
   // Lock the body scroll when the menu is open
@@ -166,7 +169,7 @@ const AdminMenu = () => {
                       </React.Fragment>
                     ))}
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link onClick={() => setIsMenuOpen(false)} href={(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && user.info.teamId ? `/teams/${user.info.teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                       <img src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
                       Roster
                     </Link>

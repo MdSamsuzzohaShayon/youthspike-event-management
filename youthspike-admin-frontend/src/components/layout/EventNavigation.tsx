@@ -31,14 +31,14 @@ interface NavigationItem {
 // Sub-component: EventLogo
 const EventLogo = ({ event }: { event: IEvent }) => (
   <div className="relative group">
-    <div className="absolute -inset-1 blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"/>
+    <div className="absolute -inset-1 blur opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
     {event.logo ? (
-      <CldImage 
-        src={event.logo} 
-        alt={event.name} 
-        className="relative w-10" 
-        height={40} 
-        width={40} 
+      <CldImage
+        src={event.logo}
+        alt={event.name}
+        className="relative w-10"
+        height={40}
+        width={40}
       />
     ) : (
       <div className="relative">
@@ -49,37 +49,37 @@ const EventLogo = ({ event }: { event: IEvent }) => (
 );
 
 // Sub-component: InfoWithIcon
-const InfoWithIcon = ({ 
-  iconSrc, 
-  alt, 
+const InfoWithIcon = ({
+  iconSrc,
+  alt,
   text,
   className = '',
   textClassName = ''
-}: { 
-  iconSrc: string; 
-  alt: string; 
+}: {
+  iconSrc: string;
+  alt: string;
   text: string;
   className?: string;
   textClassName?: string;
 }) => (
   <div className={`flex items-center gap-1 ${className}`}>
-    <Image 
-      height={12} 
-      width={12} 
-      className="w-3 h-3 svg-white" 
-      src={iconSrc} 
-      alt={alt} 
+    <Image
+      height={12}
+      width={12}
+      className="w-3 h-3 svg-white"
+      src={iconSrc}
+      alt={alt}
     />
     <span className={textClassName}>{text}</span>
   </div>
 );
 
 // Sub-component: NavigationLink
-const NavigationLink = ({ 
-  href, 
-  label 
-}: { 
-  href: string; 
+const NavigationLink = ({
+  href,
+  label
+}: {
+  href: string;
   label: string;
 }) => (
   <Link href={href} className="group relative block">
@@ -98,7 +98,7 @@ const EventHeader = ({ event }: { event: IEvent }) => (
   <div className="px-4 py-3 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <EventLogo event={event} />
-      
+
       <div className="min-w-0">
         <h2 className="text-lg font-bold text-white">{event.name}</h2>
         {event.location && (
@@ -139,12 +139,12 @@ const QuickInfoBar = ({ event }: { event: IEvent }) => (
       />
 
       <div className="sm:hidden flex items-center gap-1 text-yellow-logo ml-auto">
-        <Image 
-          height={12} 
-          width={12} 
-          className="w-3 h-3 svg-white" 
-          src="/icons/clock.svg" 
-          alt="date" 
+        <Image
+          height={12}
+          width={12}
+          className="w-3 h-3 svg-white"
+          src="/icons/clock.svg"
+          alt="date"
         />
         <span className="text-[10px]">{readDate(event.startDate)}</span>
       </div>
@@ -153,17 +153,19 @@ const QuickInfoBar = ({ event }: { event: IEvent }) => (
 );
 
 // Sub-component: NavigationBar
-const NavigationBar = ({ 
-  eventId, 
-  ldoIdUrl, 
-  userRoleFlags 
-}: { 
-  eventId: string; 
-  ldoIdUrl: string; 
+const NavigationBar = ({
+  eventId,
+  ldoIdUrl,
+  userRoleFlags,
+  teamId
+}: {
+  eventId: string;
+  ldoIdUrl: string;
   userRoleFlags: UserRoleFlags;
+  teamId: string | null
 }) => {
   const { isPlayer, isAdmin, isCaptain, isCoCaptain, isAdminOrDirector } = userRoleFlags;
-  
+
   const navigationItems: NavigationItem[] = [
     {
       label: 'Settings',
@@ -187,7 +189,7 @@ const NavigationBar = ({
     },
     {
       label: 'Roster',
-      href: `/${eventId}/players/${ldoIdUrl}`,
+      href: (isCaptain || isCoCaptain) && teamId ? `/teams/${teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`,
       shouldShow: true // Always show for all users
     },
     {
@@ -263,7 +265,7 @@ function EventNavigation({ event }: IProps) {
       isAdminOrDirector,
       isCaptain,
       isCoCaptain
-      
+
     };
   }, [user]);
 
@@ -275,12 +277,13 @@ function EventNavigation({ event }: IProps) {
     <div className="min-h-fit border-b border-yellow-500/20 shadow-2xl">
       <EventHeader event={event} />
       <QuickInfoBar event={event} />
-      <NavigationBar 
-        eventId={event._id} 
-        ldoIdUrl={ldoIdUrl} 
-        userRoleFlags={userRoleFlags} 
+      <NavigationBar
+        eventId={event._id}
+        ldoIdUrl={ldoIdUrl}
+        userRoleFlags={userRoleFlags}
+        teamId={user?.info?.teamId || null}
       />
-      
+
       <div className="sm:hidden px-4 py-1 flex justify-center">
         <div className="w-8 h-[2px]"></div>
       </div>

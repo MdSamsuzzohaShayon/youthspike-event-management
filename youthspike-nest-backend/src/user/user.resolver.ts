@@ -33,6 +33,9 @@ class LoginUser extends UserBase {
   teamLogo?: string;
 
   @Field((type) => String, { nullable: true })
+  teamId?: string;
+
+  @Field((type) => String, { nullable: true })
   captainplayer?: string;
 
   @Field((type) => String, { nullable: true })
@@ -177,6 +180,9 @@ export class UserResolver {
       userObj.event = playerExist?.events ? String(playerExist.events[0]) : null;
       userObj.team = teamExist.name;
       userObj.teamLogo = teamExist.logo;
+      if(userObj.role === UserRole.captain || userObj.role === UserRole.co_captain){
+        userObj.teamId = teamExist._id;
+      }
 
       /**
        * PASSCODE MATCHING (unchanged but optimized)

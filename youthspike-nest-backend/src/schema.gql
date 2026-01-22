@@ -381,6 +381,7 @@ type LoginUser {
   event: String
   team: String
   teamLogo: String
+  teamId: String
 }
 
 type LoginResponseData {

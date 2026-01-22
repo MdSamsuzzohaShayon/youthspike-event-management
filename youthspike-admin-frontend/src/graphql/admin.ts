@@ -15,6 +15,7 @@ const LOGIN_USER_RAW = `
           role
           team
           teamLogo
+          teamId
           email
           passcode
           event
