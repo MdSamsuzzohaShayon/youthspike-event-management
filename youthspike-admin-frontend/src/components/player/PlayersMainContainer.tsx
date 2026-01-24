@@ -9,6 +9,7 @@ import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupTyp
 import { SEARCH_PLAYERS } from '@/graphql/players';
 import PlayerSearchList from './PlayerSearchList';
 import EventNavigation from '../layout/EventNavigation';
+import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface PlayersMainContainerProps {
   queryRef: QueryRef<{ searchPlayers: ISearchPlayerResponse }>;
@@ -272,31 +273,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
-        <div className="mb-4 p-4 bg-gray-900 border border-gray-700 rounded-xl shadow-md">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-400 font-medium">Active Filters:</span>
-
-              {/* Render filter tags */}
-              {appliedFilter.division && <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">Division: {appliedFilter.division}</span>}
-
-              {appliedFilter.group &&
-                (() => {
-                  const group = groupList.find((g) => g._id === appliedFilter.group);
-                  return group && <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">Group: {group.name}</span>;
-                })()}
-
-              {appliedFilter.search && <span className="px-3 py-1 bg-gray-800 text-yellow-300 text-xs rounded-full border border-gray-700 shadow-sm">Search: {appliedFilter.search}</span>}
-
-              {/* If no filters */}
-              {!appliedFilter.division && !appliedFilter.group && !appliedFilter.search && <span className="text-xs text-gray-500 italic">No active filters</span>}
-            </div>
-
-            <button onClick={handleClearFilters} disabled={isApplyingFilters} className="btn-danger">
-              Clear All
-            </button>
-          </div>
-        </div>
+        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groupList} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
       )}
 
       {/* Loading state for initial load */}

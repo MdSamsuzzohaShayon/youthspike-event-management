@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import DateInput from '../elements/forms/DateInput';
-import { IAddMatch, ICreateMatchData, IEventExpRel, IGroupExpRel, IMatchAddProps, IMatchExpRel, ITeam } from '@/types';
+import { IAddMatch, ICreateMatchData, IMatchAddProps, } from '@/types';
 import SelectInput from '../elements/forms/SelectInput';
 import ToggleInput from '../elements/forms/ToggleInput';
 import { CREATE_MATCH, UPDATE_MATCH } from '@/graphql/matches';
@@ -47,7 +47,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const { setActErr } = useError();
-  
+
 
   // Local State
   const [addMatch, setAddMatch] = useState<IAddMatch>(initialAddMatch);
@@ -56,8 +56,8 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   const [expanded, setExpanded] = useState<boolean>(false);
 
   // GraphQL
-  const [createMatch] = useMutation<{createMatch: ICreateMatchData}>(CREATE_MATCH);
-  const [mutateMatch] = useMutation<{updateMatch: IResponse}>(UPDATE_MATCH);
+  const [createMatch] = useMutation<{ createMatch: ICreateMatchData }>(CREATE_MATCH);
+  const [mutateMatch] = useMutation<{ updateMatch: IResponse }>(UPDATE_MATCH);
 
   // Memoized derived state
   const filteredTeamList = useMemo(() => {
@@ -78,16 +78,16 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
       stateSetter: React.Dispatch<React.SetStateAction<IAddMatch>> | React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>,
       transformer?: (value: string) => T,
     ) =>
-    (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      const inputEl = e.target as HTMLInputElement;
-      const value = transformer ? transformer(inputEl.value) : inputEl.value;
-      if (isUpdate) {
-        (stateSetter as React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>)((prev) => ({ ...prev, [inputEl.name]: value }));
-      } else {
-        (stateSetter as React.Dispatch<React.SetStateAction<IAddMatch>>)((prev) => ({ ...prev, [inputEl.name]: value }));
-      }
-    };
+      (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        const inputEl = e.target as HTMLInputElement;
+        const value = transformer ? transformer(inputEl.value) : inputEl.value;
+        if (isUpdate) {
+          (stateSetter as React.Dispatch<React.SetStateAction<Partial<IAddMatch>>>)((prev) => ({ ...prev, [inputEl.name]: value }));
+        } else {
+          (stateSetter as React.Dispatch<React.SetStateAction<IAddMatch>>)((prev) => ({ ...prev, [inputEl.name]: value }));
+        }
+      };
 
   const handleInputChange = createChangeHandler(!!update, update ? setUpdateMatch : setAddMatch);
 
@@ -186,28 +186,28 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
 
     const mObj = prevMatch
       ? {
-          ...initialAddMatch,
-          ...prevMatch,
-          teamA: prevMatch?.teamA?._id,
-          teamB: prevMatch?.teamB?._id,
-          group: typeof prevMatch.group === 'object' ? prevMatch?.group?._id : prevMatch.group,
-        }
+        ...initialAddMatch,
+        ...prevMatch,
+        teamA: prevMatch?.teamA?._id,
+        teamB: prevMatch?.teamB?._id,
+        group: typeof prevMatch.group === 'object' ? prevMatch?.group?._id : prevMatch.group,
+      }
       : {
-          ...initialAddMatch,
-          numberOfRounds: eventData!.rounds,
-          numberOfNets: eventData!.nets,
-          date: eventData!.startDate,
-          netVariance: eventData!.netVariance,
-          autoAssign: eventData!.autoAssign,
-          timeout: eventData!.timeout,
-          rosterLock: eventData!.rosterLock,
-          homeTeam: eventData!.homeTeam,
-          description: eventData!.description,
-          location: eventData!.location,
-          accessCode: eventData!.accessCode,
-          tieBreaking: eventData!.tieBreaking,
-          fwango: eventData!.fwango
-        };
+        ...initialAddMatch,
+        numberOfRounds: eventData!.rounds,
+        numberOfNets: eventData!.nets,
+        date: eventData!.startDate,
+        netVariance: eventData!.netVariance,
+        autoAssign: eventData!.autoAssign,
+        timeout: eventData!.timeout,
+        rosterLock: eventData!.rosterLock,
+        homeTeam: eventData!.homeTeam,
+        description: eventData!.description,
+        location: eventData!.location,
+        accessCode: eventData!.accessCode,
+        tieBreaking: eventData!.tieBreaking,
+        fwango: eventData!.fwango
+      };
 
     setAddMatch(mObj);
   }, [eventData, prevMatch]);
@@ -232,7 +232,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         {!update && <SelectInput key="select-group" handleSelect={handleGroupChange} name="group" label="Conference (Group)" defaultValue={addMatch.division} optionList={groupOptions} />}
         {selectedGroup &&
           (filteredTeamList.length > 0 ? (
-            <TeamSelector handleNumInputChange={handleNumInputChange} teamList={filteredTeamList} setAddMatch={setAddMatch} />
+            <TeamSelector teamList={filteredTeamList} setAddMatch={setAddMatch} />
           ) : (
             <span className="text-yellow-logo">No team in the group, try selecting another group!</span>
           ))}
@@ -255,7 +255,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
             required={!update}
             label="Number of nets"
             name="numberOfNets"
-            value={addMatch.numberOfNets ?? ''}
+            value={String(addMatch.numberOfNets)}
             handleInputChange={handleNumInputChange}
           />
           <InputField
@@ -264,10 +264,10 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
             required={!update}
             label="Number of rounds"
             name="numberOfRounds"
-            value={addMatch.numberOfRounds ?? ''}
+            value={String(addMatch.numberOfRounds)}
             handleInputChange={handleNumInputChange}
           />
-          <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={addMatch.netVariance ?? ''} handleInputChange={handleNumInputChange} />
+          <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={String(addMatch.netVariance)} handleInputChange={handleNumInputChange} />
           <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
           <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
           <ToggleInput handleInputChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
@@ -293,7 +293,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
             <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
           )}
-          <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={addMatch.timeout ?? ''} handleInputChange={handleNumInputChange} />
+          <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={String(addMatch.timeout)} handleInputChange={handleNumInputChange} />
           <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
           <InputField key="field-streamUrl" type="text" handleInputChange={handleInputChange} label="Streaming Link" name="streamUrl" defaultValue={addMatch.streamUrl || ''} />
           <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />

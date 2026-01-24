@@ -23,6 +23,7 @@ import {
 import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
 import SearchTeamList from "./SearchTeamList";
+import ActiveFiltersBar from "../event/ActiveFiltersBar";
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -223,23 +224,7 @@ export default function TeamsContainer({
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
-        <div className="mb-4 p-3 bg-gray-800 rounded-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-300">
-              Active filters:{" "}
-              {Object.entries(appliedFilter)
-                .filter(([_, value]) => value)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join(", ")}
-            </span>
-            <button
-              onClick={handleClearFilters}
-              className="text-sm text-yellow-logo hover:text-yellow-logo transition-colors"
-            >
-              Clear all
-            </button>
-          </div>
-        </div>
+        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
       )}
 
       {/* Loading state */}

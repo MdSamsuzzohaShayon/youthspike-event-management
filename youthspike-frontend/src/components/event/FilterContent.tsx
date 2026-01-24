@@ -1,4 +1,4 @@
-import { IGroup, ISearchFilter } from "@/types";
+import { EGroupRule, EGroupType, IGroup, ISearchFilter } from "@/types";
 import React, { useMemo } from "react";
 import SelectInput from "../elements/SelectInput";
 import InputField from "../elements/InputField";
@@ -44,9 +44,10 @@ function FilterContent({
       ? groups.filter(
           (g) =>
             g.division.trim().toLowerCase() ===
-            filter.division!.trim().toLowerCase()
+            filter.division!.trim().toLowerCase() 
+            && g.active
         )
-      : groups;
+      : groups.filter(g => g.active);
 
     const groupOptions = newGroups.map((g, i) => ({
       id: i + 1,

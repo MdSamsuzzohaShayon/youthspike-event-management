@@ -47,12 +47,10 @@
 /* Wrapping round score  */
 .score-wrapper-single {
   min-width: 140px;
-  height: 100px;
 }
 
 .score-wrapper {
   min-width: 90px;
-  height: 72px;
 }
 
 /* // Base  */
@@ -74,7 +72,11 @@
 }
 
 .round-view-expanded .net-team-score {
-  line-height: 1 ;
+  font-size: 8rem;
+}
+
+.round-view-expanded .net-team-score-single {
+  font-size: 16rem;
 }
 
 .image-container {
@@ -86,11 +88,11 @@
 }
 
 .round-view-expanded .image-container {
-  height: 120px;
+  height: 100px;
 }
 
 .round-view-expanded .image-container-single {
-  height: 500px;
+  height: 400px;
 }
 
 .action-player-img {
@@ -140,6 +142,10 @@
   .net-team-score {
     font-size: 4.5rem;
   }
+  
+  .round-view-expanded .net-team-score {
+    font-size: 6.5rem;
+  }
 
   .image-container {
     height: 45px;
@@ -165,7 +171,7 @@
 
 
   .team-score-point {
-    font-size: 3rem;
+    font-size: 6rem;
   }
 
 
@@ -203,12 +209,16 @@
     font-size: 4.5rem;
   }
 
+  .round-view-expanded .net-team-score {
+    font-size: 6.5rem;
+  }
+
   .image-container {
     height: 60px;
   }
 
   .round-view-expanded .image-container {
-    height: 120px;
+    height: 100px;
   }
 
   .image-container-single {
@@ -216,17 +226,15 @@
   }
 
   .round-view-expanded .image-container-single {
-    height: 120px;
+    height: 100px;
   }
 
   .score-wrapper {
     min-width: 110px;
-    height: 80px;
   }
 
   .score-wrapper-single {
     min-width: 90px;
-    height: 70px;
   }
 
 
@@ -240,11 +248,19 @@
   }
 
 
+  .team-score-point {
+    font-size: 6rem;
+  }
+
 }
 
 /* Additional breakpoint for very small containers (equivalent to very small landscape) */
 @container round-net-view (max-width: 400px) {
   .net-team-score {
+    font-size: 6rem;
+  }
+
+  .round-view-expanded .net-team-score {
     font-size: 6rem;
   }
 
@@ -263,12 +279,10 @@
 
   .score-wrapper {
     min-width: 110px;
-    height: 80px;
   }
 
   .score-wrapper-single {
     min-width: 90px;
-    height: 70px;
   }
 
 
@@ -279,6 +293,10 @@
 
   .plus-one-single {
     font-size: 1rem;
+  }
+
+  .team-score-point {
+    font-size: 6rem;
   }
 }
 
@@ -292,12 +310,16 @@
     font-size: 4.5rem;
   }
 
+  .round-view-expanded .net-team-score {
+    font-size: 9rem;
+  }
+
   .image-container {
     height: 45px;
   }
 
   .round-view-expanded .image-container {
-    height: 90px;
+    height: 70px;
   }
 
   .image-container-single {
@@ -305,7 +327,7 @@
   }
 
   .round-view-expanded .image-container-single {
-    height: 180px;
+    height: 150px;
   }
 
   .action-pt-img {
@@ -323,11 +345,11 @@
   }
 
   .team-score-point {
-    font-size: 3rem;
+    font-size: 7rem;
   }
 
   .round-view-expanded .team-score-point{
-    font-size: 6rem;
+    font-size: 14rem;
   }
 }
 
@@ -346,7 +368,7 @@
     height: 100px;
   }
   .round-view-expanded .image-container {
-    height: 200px;
+    height: 150px;
   }
 
   .image-container-single {
@@ -354,11 +376,14 @@
   }
 
   .round-view-expanded .image-container-single {
-    height: 500px;
+    height: 400px;
   }
 
   .net-team-score {
     font-size: 8rem;
+  }
+  .round-view-expanded .net-team-score {
+    font-size: 16rem;
   }
 
   .net-team-score-single {
@@ -371,12 +396,10 @@
 
   .score-wrapper {
     min-width: 200px;
-    height: 130px;
   }
 
   .score-wrapper-single {
     min-width: 250px;
-    height: 220px;
   }
 
 
@@ -386,7 +409,7 @@
   }
 
   .round-view-expanded .team-score-point{
-    font-size: 14rem;
+    font-size: 24rem;
 
   }
 

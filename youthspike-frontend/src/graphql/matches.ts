@@ -188,6 +188,7 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         _id
         name
         division
+        active
       }
       ldo {
         _id

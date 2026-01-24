@@ -12,6 +12,7 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 import { divisionsToOptionList } from '@/utils/helper';
+import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -231,20 +232,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
-        <div className="mb-4 p-3 bg-gray-800 rounded-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-300">
-              Active filters: {Object.entries(appliedFilter)
-                .filter(([key, value]) => key !== 'group' && value)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join(', ')}
-              {appliedFilter?.group && groupMap.has(appliedFilter?.group) && <span>{groupMap.get(appliedFilter?.group)?.name}</span>}
-            </span>
-            <button onClick={handleClearFilters} className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
-              Clear all
-            </button>
-          </div>
-        </div>
+        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
       )}
 
       {/* Loading state */}

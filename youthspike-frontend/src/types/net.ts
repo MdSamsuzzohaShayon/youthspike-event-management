@@ -1,4 +1,5 @@
 // eslint-disable-next-line import/no-cycle
+import { IResponse } from './elements';
 import { EActionProcess } from './room';
 
 // eslint-disable-next-line no-shadow
@@ -73,6 +74,15 @@ interface INetPlayers {
   teamAPlayerB: string | null;
   teamBPlayerA: string | null;
   teamBPlayerB: string | null;
+}
+
+interface INetResponse extends IResponse{
+    data: INetRelatives;
+
+}
+
+export interface IUpdateNetResponse {
+  updateNet: INetResponse;
 }
 
 // eslint-disable-next-line no-shadow

@@ -16,6 +16,7 @@ import {
   INetRelatives,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
+import ActiveFiltersBar from "../event/ActiveFiltersBar";
 
 interface MatchesMainProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
@@ -302,23 +303,7 @@ export default function MatchesMain({
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
-        <div className="mb-4 p-3 bg-gray-800 rounded-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-300">
-              Active filters:{" "}
-              {Object.entries(appliedFilter)
-                .filter(([_, value]) => value)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join(", ")}
-            </span>
-            <button
-              onClick={handleClearFilters}
-              className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
-            >
-              Clear all
-            </button>
-          </div>
-        </div>
+        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
       )}
 
       {/* Loading state */}

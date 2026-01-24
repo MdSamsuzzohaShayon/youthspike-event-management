@@ -237,11 +237,18 @@ const GET_AN_EVENT_WITH_TEAMS_AND_GROUPS = gql`
           logo
           name
           division
+          players{
+            _id
+            firstName
+            lastName
+            status
+          }
         }
         groups {
           _id
           name
           division
+          active
           teams {
             _id
             logo

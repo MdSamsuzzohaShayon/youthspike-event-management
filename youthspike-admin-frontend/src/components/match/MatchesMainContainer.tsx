@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SEARCH_MATCHES } from '@/graphql/matches';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { IMatch, IRoundRelatives, ISearchFilter, ISearchMatchResponse, ITeam, IGroup, INetRelatives, IEvent, EFilterPage } from '@/types';
 import FilterContent from '../event/FilterContent';
 import SearchMatchList from './SearchMatchList';
 import EventNavigation from '../layout/EventNavigation';
 import { useAuthGuard } from '@/hooks/auth/useAuthGuard';
+import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface MatchesMainProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
@@ -269,20 +270,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
-        <div className="mb-4 p-3 bg-gray-800 rounded-md">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-300">
-              Active filters:{' '}
-              {Object.entries(appliedFilter)
-                .filter(([_, value]) => value)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join(', ')}
-            </span>
-            <button onClick={handleClearFilters} className="text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
-              Clear all
-            </button>
-          </div>
-        </div>
+        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
       )}
 
       {/* Loading state */}

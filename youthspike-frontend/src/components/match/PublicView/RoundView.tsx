@@ -152,6 +152,8 @@ const RoundView = ({
         />
       </div>
 
+      <div className="h-4" />
+
       {/* First row  */}
       <div className="two-nets-row w-full flex justify-between items-stretch flex-wrap gap-3 md:gap-4">
         {/* In this row there will be 2 nets */}

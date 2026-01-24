@@ -15,6 +15,7 @@ interface IMatchAddContainerProps {
   eventId: string;
 }
 
+// East Conference Pro
 function MatchAddContainer({ queryRef, eventId }: IMatchAddContainerProps) {
   const { data } = useReadQuery(queryRef);
   // Event, teams, groups
@@ -52,6 +53,7 @@ function MatchAddContainer({ queryRef, eventId }: IMatchAddContainerProps) {
       if (currDivision && currDivision !== '' && group.division !== currDivision) {
         continue;
       }
+      if(!group?.active) continue;
       gl.push(group);
     }
     return { teamList: tl, groupList: gl };

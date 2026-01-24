@@ -373,7 +373,27 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
 
   // ============================================================================
   // Effects
-  // ============================================================================
+  // ========================================================
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFullscreen = !!document.fullscreenElement;
+  
+      setIsFullscreenMode(isFullscreen);
+  
+      // If fullscreen exited, expanded mode must also exit
+      if (!isFullscreen) {
+        setIsExpandedMode(false);
+      }
+    };
+  
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+  
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+  
 
   // Auto-refresh interval
   useEffect(() => {

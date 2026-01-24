@@ -66,7 +66,7 @@ function GroupAddSidebar({ eventId, divisionList, groupList }: IGroupAddSidebarP
             >
                 <h2 className="text-2xl font-semibold mb-6">Group List</h2>
                 {groupList.length > 0 ? (
-                    <GroupList currDivision={currDivision} groupList={groupList} setIsLoading={setIsLoading} divisionList={divisionList} />
+                    <GroupList currentDivision={currDivision} groupList={groupList} setIsLoading={setIsLoading} divisionList={divisionList} />
                 ) : (
                     <p className="text-gray-300">No groups found for this division.</p>
                 )}
