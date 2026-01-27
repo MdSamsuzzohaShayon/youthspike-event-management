@@ -29,6 +29,8 @@ const SettingsMainContainer = ({ queryRef, eventId }: ISettingsMainContainerProp
     if (sponsors) eventObj.sponsors = sponsors;
   }
 
+
+
   return (
     <div className="event-player-action mb-10">
       <h1 className="text-3xl font-bold text-center mb-8">

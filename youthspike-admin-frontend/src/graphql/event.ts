@@ -205,6 +205,7 @@ const GET_AN_EVENT_WITH_TEAMS_AND_GROUPS = gql`
         nets
         rounds
         rosterLock
+        tieBreaking
         fwango
         homeTeam
         autoAssign

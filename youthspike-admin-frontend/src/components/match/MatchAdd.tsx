@@ -206,11 +206,14 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
         location: eventData!.location,
         accessCode: eventData!.accessCode,
         tieBreaking: eventData!.tieBreaking,
-        fwango: eventData!.fwango
+        fwango: eventData!.fwango,
       };
+      
 
     setAddMatch(mObj);
   }, [eventData, prevMatch]);
+  
+
 
   // Memoized group options
   const groupOptions = useMemo(() => {

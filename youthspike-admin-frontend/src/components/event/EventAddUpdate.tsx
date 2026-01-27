@@ -31,6 +31,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
   const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState<boolean>(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
+  
 
   const {
     eventState,
@@ -53,11 +54,13 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     handleSponsorRemove,
     handleDefaultSponsorToggle,
     handleLogoChange,
+    handleSelectChange,
     setEventState,
     setUpdateEvent,
     initialEvent,
     initialProStats,
   } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +143,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
         eventId={eventId || null}
         setEventState={setEventState}
         setUpdateEvent={setUpdateEvent}
+        onSelectChange={handleSelectChange}
       />
 
       <div className="w-full flex flex-col">

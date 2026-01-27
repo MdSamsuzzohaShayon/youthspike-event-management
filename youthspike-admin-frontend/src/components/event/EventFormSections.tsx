@@ -64,11 +64,11 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
 
       <DateInput label="End Date" name="endDate" handleDateChange={onDateChange} defaultValue={eventState.endDate} required={!update} />
 
-      <InputField required={!update} name="nets" type="number" handleInputChange={onNumberChange} label="Number of nets" defaultValue={eventState.nets} />
+      <InputField required={!update} name="nets" type="number" handleInputChange={onNumberChange} label="Number of nets" defaultValue={String(eventState.nets)} />
 
-      <InputField required={!update} name="rounds" type="number" handleInputChange={onNumberChange} label="Number of rounds" defaultValue={eventState.rounds} />
+      <InputField required={!update} name="rounds" type="number" handleInputChange={onNumberChange} label="Number of rounds" defaultValue={String(eventState.rounds)} />
 
-      <InputField required={!update} name="netVariance" type="number" handleInputChange={onNumberChange} label="Net Variance" defaultValue={eventState.netVariance} />
+      <InputField required={!update} name="netVariance" type="number" handleInputChange={onNumberChange} label="Net Variance" defaultValue={String(eventState.netVariance)} />
 
       <InputField name="fwango" type="text" label="Fwango Link" handleInputChange={onInputChange} defaultValue={eventState.fwango || ''} />
 
@@ -97,7 +97,7 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
         <DateTimeInput name="rosterLockDate" label="Set a time for locking roster ranking!" required={!update} handleDateChange={onDateChange} />
       )}
 
-      <InputField name="timeout" type="number" handleInputChange={onNumberChange} label="Sub Clock (in minutes)" defaultValue={eventState.timeout} />
+      <InputField name="timeout" type="number" handleInputChange={onNumberChange} label="Sub Clock (in minutes)" defaultValue={String(eventState.timeout)} />
 
       <InputField name="coachPassword" type="password" label="Coach Password" required={!update} handleInputChange={onInputChange} defaultValue={eventState.coachPassword} />
       <TextareaInput name="description" label="Description" required={!update} handleInputChange={onInputChange} defaultValue={eventState.description} />
@@ -105,7 +105,6 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
 
       <InputField
         type="text"
-        tooltip="For scorekeeper, access code are needed to change the score!"
         name="accessCode"
         label="Access Code"
         handleInputChange={onInputChange}

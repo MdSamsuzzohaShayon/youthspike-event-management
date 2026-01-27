@@ -50,6 +50,8 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
   const [updateMultiplayer, setUpdateMultiplayer] = useState<Partial<IProStatsAdd>>({});
   const [updateWeight, setUpdateWeight] = useState<Partial<IProStatsAdd>>({});
   const [updateStats, setUpdateStats] = useState<Partial<IProStatsAdd>>({});
+
+  
  
   const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(
     prevEvent && 'sponsors' in prevEvent && Array.isArray(prevEvent.sponsors) ? 
@@ -75,6 +77,12 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     if (!isNaN(intVal)) {
       updateFormState(name, intVal);
     }
+  };
+
+  const handleSelectChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    const { name, value } = inputEl;
+    updateFormState(name, value);
   };
 
   const handleDateChange = (name: string, value: string) => {
@@ -140,6 +148,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     handleSponsorRemove,
     handleDefaultSponsorToggle,
     handleLogoChange,
+    handleSelectChange,
     setEventState,
     setUpdateEvent,
     initialEvent,
