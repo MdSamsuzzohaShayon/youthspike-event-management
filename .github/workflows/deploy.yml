@@ -67,4 +67,9 @@ jobs:
       # 4️⃣ Build and run Docker Compose
       - name: Deploy Docker Compose
         run: |
-          ssh shayon@${{ secrets.YS_FRONTEND_VPS_IP }} "cd ~/youthspike-frontend && docker compose pull && docker compose up -d --build"
+          ssh shayon@${{ secrets.YS_FRONTEND_VPS_IP }} "
+            cd ~/youthspike-frontend &&
+            docker compose pull &&
+            docker compose up -d --build --remove-orphans &&
+            docker ps
+          "

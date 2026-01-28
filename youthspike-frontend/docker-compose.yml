@@ -1,11 +1,42 @@
+version: "3.9"
+
 services:
-  ys_frontend:
+  ys_frontend_1:
     build: .
-    container_name: ys_frontend_app
     env_file:
       - .env
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3001:3001"
     environment:
       NODE_ENV: production
+    ports:
+      - "127.0.0.1:3001:3001"
+
+  ys_frontend_2:
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3002:3001"
+
+  ys_frontend_3:
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3003:3001"
+
+  ys_frontend_4:
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3004:3001"
