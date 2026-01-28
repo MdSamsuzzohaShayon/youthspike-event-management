@@ -21,6 +21,8 @@ import { PlayerRankingService } from 'src/player-ranking/player-ranking.service'
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus } from 'src/player/player.schema';
 import { EActionProcess } from 'src/round/round.schema';
+import { Team } from 'src/team/team.schema';
+import { LDO } from 'src/ldo/ldo.schema';
 
 // IMatchQueries
 
@@ -77,11 +79,13 @@ export class MatchQueries {
     }
   }
 
-  async searchMatches(context: any, eventId: string, filter: SearchFilterInput) {
+  async searchMatches(context: any, filter: SearchFilterInput, eventId?: string,) {
     try {
       // Fetch event
-      const event = await this.eventService.findOne({ _id: eventId });
-      if (!event) return AppResponse.notFound('Event');
+      let event = null;
+      if(eventId){
+        event = await this.eventService.findOne({ _id: eventId });
+      }
 
       // Return any one of them between player and event
       const secret = this.configService.get<string>('JWT_SECRET');
@@ -91,13 +95,20 @@ export class MatchQueries {
       const loggedUser = await this.userService.findById(userPayload?._id);
 
       // Fetch groups + ldo in parallel
-      const [ldo, groups] = await Promise.all([
-        this.ldoService.findByDirectorId(String(event.ldo)),
-        this.groupService.find({ event: eventId }),
-      ]);
+      let ldo: LDO | null = null;
+      let groups = [];
+
+      if(eventId){
+        ldo = await this.ldoService.findByDirectorId(String(event.ldo))
+        groups = await this.groupService.find({ event: eventId });
+      }
 
       // Build match filter
-      const matchFilter: QueryFilter<Match> = { event: eventId };
+      const matchFilter: QueryFilter<Match> = {  };
+
+      if(eventId){
+        matchFilter.event = eventId;
+      }
 
       let searchFound = false;
 
@@ -161,15 +172,17 @@ export class MatchQueries {
 
       for (const m of matches) {
         matchIds.add(m._id);
-        if (m.teamA) teamIds.add(m.teamA as string);
-        if (m.teamB) teamIds.add(m.teamB as string);
+        if (m.teamA) teamIds.add(String(m.teamA));
+        if (m.teamB) teamIds.add(String(m.teamB));
       }
 
       // Fetch related entities in parallel
+      const teamFilter: QueryFilter<Team> = eventId ? {event: eventId} : {};
+
       const [nets, rounds, teams] = await Promise.all([
         this.netService.find({ match: { $in: [...matchIds] } }),
         this.roundService.find({ match: { $in: [...matchIds] } }),
-        this.teamService.find({ event: eventId }), // { _id: { $in: [...teamIds] } }
+        this.teamService.find(teamFilter), 
       ]);
 
       if (filter?.status) {

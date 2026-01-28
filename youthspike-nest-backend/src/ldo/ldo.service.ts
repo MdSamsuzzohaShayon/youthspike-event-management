@@ -52,7 +52,7 @@ export class LdoService {
     return result;
   }
 
-  async findByDirectorId(dId: string) {
+  async findByDirectorId(dId: string): Promise<LDO> {
     return this.ldoModel.findOne({
       $or: [{ director: dId.toString() }, { _id: dId.toString() }],
     });

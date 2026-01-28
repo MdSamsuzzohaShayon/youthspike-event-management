@@ -816,13 +816,13 @@ type CustomGroup {
 }
 
 type EventMatches {
-  event: Event!
   matches: [CustomMatch!]!
   teams: [CustomTeam!]!
-  ldo: LDO!
   groups: [CustomGroup!]!
   nets: [CustomNet!]!
   rounds: [CustomRound!]!
+  event: Event
+  ldo: LDO
 }
 
 type GetEventWithMatchesResponse {
@@ -1065,13 +1065,13 @@ type PlayerStatsEntry {
 }
 
 type EventDetails {
-  event: Event!
   matches: [CustomMatch!]!
   teams: [CustomTeam!]!
-  ldo: LDO!
   groups: [CustomGroup!]!
   nets: [CustomNet!]!
   rounds: [CustomRound!]!
+  event: Event
+  ldo: LDO
   players: [CustomPlayer!]!
   sponsors: [Sponsor!]!
   statsOfPlayer: [PlayerStatsEntry!]!
@@ -1309,7 +1309,7 @@ type Query {
   getTeamStandings(eventId: String!): GetTeamstandingsResponse!
   getTeamWithGroupsAndUnassignedPlayers(eventId: String!, teamId: String!): GetTeamWithGroupsAndUnAssignedPlayersResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
-  searchMatches(eventId: String!, filter: SearchFilterInput): GetEventWithMatchesResponse!
+  searchMatches(filter: SearchFilterInput, eventId: String): GetEventWithMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
   getRounds(matchId: String!): GetRoundsResponse!

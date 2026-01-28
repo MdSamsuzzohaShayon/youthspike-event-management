@@ -24,7 +24,7 @@ export class MatchResolver {
     private readonly matchFields: MatchFields,
     private readonly matchQueries: MatchQueries,
     private readonly matchMutations: MatchMutations,
-  ) {}
+  ) { }
 
   async deleteSingle(matchExist: Match) {
     return this.matchMutations.deleteSingle(matchExist);
@@ -41,7 +41,7 @@ export class MatchResolver {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain , UserRole.co_captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
   @Mutation((_returns) => GetMatchResponse)
   async updateMatch(@Args('input') input: UpdateMatchInput, @Args('matchId') matchId: string) {
     return this.matchMutations.updateMatch(input, matchId);
@@ -76,8 +76,8 @@ export class MatchResolver {
   }
 
   @Query((_returns) => GetEventWithMatchesResponse)
-  async searchMatches(@Context() context: any, @Args('eventId') eventId: string, @Args('filter', { nullable: true }) filter: SearchFilterInput) {
-    return this.matchQueries.searchMatches(context, eventId, filter)
+  async searchMatches(@Context() context: any, @Args('filter', { nullable: true }) filter: SearchFilterInput, @Args('eventId', { nullable: true }) eventId?: string) {
+    return this.matchQueries.searchMatches(context, filter, eventId)
   }
 
   @Query((_returns) => GetEventWithMatchesResponse)

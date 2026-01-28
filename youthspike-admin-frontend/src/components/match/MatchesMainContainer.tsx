@@ -13,8 +13,8 @@ import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface MatchesMainProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
-  eventId: string;
   initialSearchParams: Partial<ISearchFilter>;
+  eventId?: string;
 }
 
 interface FilterState {
@@ -66,7 +66,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   // Build query variables
   const buildQueryVariables = useCallback(
     (filter: FilterState, offset: number = 0) => ({
-      eventId,
+      ...(eventId ? { eventId } : {}),
       filter: {
         limit: PAGE_SIZE,
         offset,
@@ -78,6 +78,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
     }),
     [eventId],
   );
+  
 
   // Update all server data from response
   const updateAllData = useCallback((responseData: { searchMatches: ISearchMatchResponse }) => {
@@ -252,7 +253,6 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
         <EventNavigation event={event} />
       </div>
       <FilterContent
-        eventId={eventId}
         groups={groups}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
@@ -264,6 +264,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
         hasActiveFilters={hasActiveFilters}
         filterPage={EFilterPage.MATCHES}
         showStatus
+        eventId={eventId}
       />
 
       

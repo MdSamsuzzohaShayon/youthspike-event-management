@@ -319,8 +319,8 @@ query GetMatches {
 `;
 
 const SEARCH_MATCHES = gql`
-  query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
-    searchMatches(eventId: $eventId, filter: $filter) {
+  query SearchMatches($filter: SearchFilterInput, $eventId: String) {
+    searchMatches(filter: $filter, eventId: $eventId) {
       code
       data {
         event {

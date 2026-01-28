@@ -71,8 +71,6 @@ export class CustomGroup extends Group {
 @ObjectType()
 export class EventMatches {
   // event, matches, teams, ldo, groups
-  @Field((_type) => Event, { nullable: false })
-  event: Event;
 
   @Field((_type) => [CustomMatch], { nullable: false })
   matches: CustomMatch[];
@@ -80,8 +78,7 @@ export class EventMatches {
   @Field((_type) => [CustomTeam], { nullable: false })
   teams: CustomTeam[];
 
-  @Field((_type) => LDO, { nullable: false })
-  ldo: LDO;
+
 
   @Field((_type) => [CustomGroup], { nullable: false })
   groups: CustomGroup[];
@@ -91,6 +88,14 @@ export class EventMatches {
 
   @Field((_type) => [CustomRound], { nullable: false })
   rounds: CustomRound[];
+
+
+  @Field((_type) => Event, { nullable: true })
+  event?: Event;
+
+  @Field((_type) => LDO, { nullable: true })
+  ldo?: LDO;
+
 }
 
 

@@ -263,6 +263,8 @@ export class TeamQueries {
         this.eventService.findOne({ _id: team.event }),
       ]);
 
+      const eventId = String(team.event);
+
       // Attributes of matches
       const matchIds = new Set(matches.map((m) => String(m._id)));
       const [nets, rankings] = await Promise.all([

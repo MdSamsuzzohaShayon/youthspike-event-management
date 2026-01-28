@@ -270,7 +270,10 @@ function EventNavigation({ event }: IProps) {
   }, [user]);
 
   if (!event) {
-    return <p className="text-white p-4">No event found!</p>;
+    console.warn("There are no event!");
+    
+    
+    return null;
   }
 
   return (

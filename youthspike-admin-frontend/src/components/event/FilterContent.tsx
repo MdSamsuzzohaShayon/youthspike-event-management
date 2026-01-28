@@ -8,7 +8,8 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 
 interface IFilterContentProps {
-  eventId: string;
+  // This is optional because we can search for all matches, not just matches of a specific event
+  eventId?: string;
   divisions: string;
   groups: IGroup[];
   loading: boolean;
@@ -29,7 +30,6 @@ const pageLinks: Record<EFilterPage, string> = {
 };
 
 function FilterContent({
-  eventId,
   divisions,
   groups,
   loading,
@@ -41,6 +41,7 @@ function FilterContent({
   hasActiveFilters,
   filterPage,
   showStatus,
+  eventId,
 }: IFilterContentProps) {
   const { ldoIdUrl } = useLdoId();
   const divisionList = useMemo(() => {
@@ -156,9 +157,11 @@ function FilterContent({
           )}
         </button>
 
-        <Link href={`/${eventId}/${pageLinks[filterPage]}/${ldoIdUrl}`} className="btn-info">
-          New {filterPage === EFilterPage.MATCHES ? 'Match' : filterPage.slice(0, -1)}
-        </Link>
+        {eventId &&
+          <Link href={`/${eventId}/${pageLinks[filterPage]}/${ldoIdUrl}`} className="btn-info">
+            New {filterPage === EFilterPage.MATCHES ? 'Match' : filterPage.slice(0, -1)}
+          </Link>
+        }
 
         {hasActiveFilters && (
           <button onClick={onClearFilters} disabled={loading} className="px-4 py-2 bg-gray-700 text-white font-semibold rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors">

@@ -1,16 +1,14 @@
 // components/team/TeamRosterContainer.tsx
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
-import { IPlayer, IMatch, IAllStats, IGetTeamRosterResponse, ITeam } from '@/types';
-import Link from 'next/link';
+import { IPlayer, IGetTeamRosterResponse, ITeam } from '@/types';
 import { CldImage } from 'next-cloudinary';
 import TextImg from '../elements/TextImg';
 import { notFound, usePathname } from 'next/navigation';
 import RosterWrapper from './RosterWrapper';
-import { FRONTEND_URL } from '@/utils/keys';
 import { useLdoId } from '@/lib/LdoProvider';
 import TeamNavigation from './TeamNavigation';
 import { GET_TEAMS } from '@/graphql/teams';
@@ -33,8 +31,11 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
 
   const { team, players, rankings, event, playerRanking } = data.getTeamRoster.data;
 
+  console.log({event});
+  
+
   const { data: teamsData, loading, error } = useQuery(GET_TEAMS, {
-    variables: { eventId: event._id },
+    variables: { eventId: event?._id },
     fetchPolicy: "cache-first",   // default
   });
 
@@ -56,8 +57,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
       if (rankingIds.has(p._id)) {
         result.push({
           ...p,
-          // @ts-ignore
-          teams: [team],
+          teams: [team as unknown as string],
         });
       }
     }
@@ -105,7 +105,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
         </div>
 
         {/* Navigation */}
-        <TeamNavigation eventId={event._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
+        <TeamNavigation eventId={event?._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
       </div>
 
       {/* Page Content */}

@@ -1,27 +1,30 @@
-import React from 'react';
-import { notFound } from 'next/navigation';
-import { getMatchesMin } from '../_requests/matches';
-import MatchTable from '@/components/match/MatchTable';
+import { PreloadQuery } from '@/lib/client';
+import { QueryRef } from '@apollo/client/react';
+import { SEARCH_MATCHES } from '@/graphql/matches';
+import MatchesMainContainer from '@/components/match/MatchesMainContainer';
+import { ISearchFilter, ISearchLimitFilter, ISearchMatchResponse } from '@/types';
 
-async function MatchesPage() {
-  const matches = await getMatchesMin();
-
-  if (!matches) notFound();
-  return (
-    <div className="min-h-screen px-6 py-10 md:px-16">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-yellow-400 text-center mb-6">Matches</h2>
-
-        <div className="overflow-hidden shadow-lg rounded-lg border border-gray-700">
-          <MatchTable matches={matches} />
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-gray-400">Stay updated with the latest matches!</p>
-        </div>
-      </div>
-    </div>
-  );
+interface IMatchesPageProps {
+  params: Promise<{ eventId: string }>;
+  searchParams: Promise<ISearchFilter>;
 }
 
-export default MatchesPage;
+export default async function MatchesPage({ searchParams }: IMatchesPageProps) {
+  const { search = '', division = '', group = '', status = '' } = await searchParams;
+  
+
+  const initialFilter: Partial<ISearchLimitFilter> = {
+    limit: 30,
+    offset: 0,
+    search,
+    division,
+    group,
+    status,
+  };
+
+  return (
+    <PreloadQuery query={SEARCH_MATCHES} variables={{ filter: initialFilter }}>
+      {(queryRef) => <MatchesMainContainer queryRef={queryRef as QueryRef<{ searchMatches: ISearchMatchResponse }>} initialSearchParams={{ search, division, group, status }} />}
+    </PreloadQuery>
+  );
+}

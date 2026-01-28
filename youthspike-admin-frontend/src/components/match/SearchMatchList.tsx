@@ -7,7 +7,7 @@ import { useError } from '@/lib/ErrorProvider';
 
 interface IMatchListProps {
   matchList?: IMatch[];
-  eventId: string;
+  eventId?: string;
 }
 
 function SearchMatchList({ matchList = [], eventId }: IMatchListProps) {

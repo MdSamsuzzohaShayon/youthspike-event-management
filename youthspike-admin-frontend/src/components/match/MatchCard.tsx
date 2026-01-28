@@ -25,14 +25,13 @@ import { useMutation } from '@apollo/client/react';
 interface MatchCardProps {
   match: IMatchExpRel;
   sl: number;
-  eventId: string;
   isChecked: boolean;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
-  refetchFunc?: () => void;
+  eventId?: string;
 }
 
-function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, refetchFunc }: MatchCardProps) {
+function MatchCard({ match, isChecked, handleSelectMatch, setActErr, eventId }: MatchCardProps) {
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -271,7 +270,7 @@ function MatchCard({ match, eventId, isChecked, handleSelectMatch, setActErr, re
           {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
             <React.Fragment>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`}>Edit</Link>
+                <Link href={`/${match.event}/matches/${match._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
                 <button type="button" onClick={(e) => deleteEl.current?.showModal()}>

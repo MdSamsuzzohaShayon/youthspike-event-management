@@ -121,7 +121,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
       <div className="space-y-2">
         <PlayerList
           playerList={activePlayers}
-          eventId={event._id}
+          eventId={event?._id}
           setIsLoading={setIsLoading}
           rankControls
           refetchFunc={refetchFunc}

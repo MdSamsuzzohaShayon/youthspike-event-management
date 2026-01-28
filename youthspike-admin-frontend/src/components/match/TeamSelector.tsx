@@ -68,7 +68,7 @@ const TeamSelector = ({ teamList, setAddMatch }: ITeamSelectorProps) => {
           key="ts-si-1"
           name="teamA"
           value={teamA}
-          optionList={availableTeamsForA.map((t, i) => ({ id: i + 1, value: t._id, text: `${t.name} - ${t.activePlayers}/${t.totalPlayers} Players` }))}
+          optionList={availableTeamsForA.map((t, i) => ({ id: i + 1, value: t._id, text: `${t.name} - ${t.activePlayers} Players` }))}
           label="Team A (Placing first)"
           handleSelect={handleTeamAChange}
           className="w-full"
@@ -79,7 +79,7 @@ const TeamSelector = ({ teamList, setAddMatch }: ITeamSelectorProps) => {
           key="ts-si-2"
           name="teamB"
           value={teamB}
-          optionList={availableTeamsForB.map((t, i) => ({ id: i + 1, value: t._id, text: `${t.name} - ${t.activePlayers}/${t.totalPlayers} Players` }))}
+          optionList={availableTeamsForB.map((t, i) => ({ id: i + 1, value: t._id, text: `${t.name} - ${t.activePlayers} Players` }))}
           label="Team B"
           handleSelect={handleTeamBChange}
           className="w-full"
