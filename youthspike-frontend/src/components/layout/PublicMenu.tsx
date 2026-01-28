@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLdoId } from "@/lib/LdoProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import LocalStorageService from "@/utils/LocalStorageService";
-import { EEventItem } from "@/types/event";
-import { ACCESS_CODE, EVENT_ITEM } from "@/utils/constant";
+import { ACCESS_CODE } from "@/utils/constant";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import { IAccessCode } from "@/types";
 import { removeCookie } from "@/utils/cookie";
@@ -137,7 +136,7 @@ function PublicMenu({ accessCodeList }: IPublicMenuProps) {
                 <li className="text-lg capitalize">
                   <Link
                     onClick={handleCloseMenu}
-                    href={`/events/${eventId}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.TEAM}`}
+                    href={`/events/${eventId}/teams/${ldoIdUrl}`}
                     className="flex items-center hover:text-yellow-400 transition-all"
                   >
                     <Image
@@ -153,7 +152,7 @@ function PublicMenu({ accessCodeList }: IPublicMenuProps) {
                 <li className="text-lg capitalize">
                   <Link
                     onClick={handleCloseMenu}
-                    href={`/events/${eventId}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.PLAYER}`}
+                    href={`/events/${eventId}/players/${ldoIdUrl}`}
                     className="flex items-center hover:text-yellow-400 transition-all"
                   >
                     <Image
@@ -169,7 +168,7 @@ function PublicMenu({ accessCodeList }: IPublicMenuProps) {
                 <li className="text-lg capitalize">
                   <Link
                     onClick={handleCloseMenu}
-                    href={`/events/${eventId}/${ldoIdUrl}${redirectSymbol}${EVENT_ITEM}=${EEventItem.MATCH}`}
+                    href={`/events/${eventId}/matches/${ldoIdUrl}`}
                     className="flex items-center hover:text-yellow-400 transition-all"
                   >
                     <Image
