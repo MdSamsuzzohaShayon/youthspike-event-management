@@ -14,6 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+
       # 2️⃣ Set up SSH key for VPS
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -43,17 +44,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v6
 
-      # 2️⃣ Set up SSH key for VPS
+      - name: Test SSH connectivity
+        run: |
+          nc -zv ${{ secrets.YS_FRONTEND_VPS_IP }} 22 || exit 1
+
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_FRONTEND_PRIVATE_KEY }}
 
-      # 3️⃣ Copy only the frontend project
       - name: Copy frontend to VPS
         run: |
           ssh -o StrictHostKeyChecking=no shayon@${{ secrets.YS_FRONTEND_VPS_IP }} "mkdir -p ~/youthspike-frontend"
@@ -63,13 +65,11 @@ jobs:
             ./youthspike-frontend/ \
             shayon@${{ secrets.YS_FRONTEND_VPS_IP }}:~/youthspike-frontend/
 
-
-      # 4️⃣ Build and run Docker Compose
       - name: Deploy Docker Compose
         run: |
-          ssh shayon@${{ secrets.YS_FRONTEND_VPS_IP }} "
-            cd ~/youthspike-frontend &&
-            docker compose pull &&
-            docker compose up -d --build --remove-orphans &&
+          ssh -o StrictHostKeyChecking=no shayon@${{ secrets.YS_FRONTEND_VPS_IP }} << 'EOF'
+            cd ~/youthspike-frontend
+            docker compose pull
+            docker compose up -d --build --remove-orphans
             docker ps
-          "
+          EOF
