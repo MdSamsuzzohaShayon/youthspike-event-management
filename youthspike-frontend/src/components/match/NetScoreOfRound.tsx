@@ -281,7 +281,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
             <NetCard
               key={net._id}
               currRoom={currRoom}
-              boardHeight={boardHeight}
               net={net}
               screenWidth={screenWidth}
             />
@@ -290,7 +289,6 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
           <NetCard
             key={currNetNum}
             currRoom={currRoom}
-            boardHeight={boardHeight}
             net={filteredNets}
             screenWidth={screenWidth}
           />

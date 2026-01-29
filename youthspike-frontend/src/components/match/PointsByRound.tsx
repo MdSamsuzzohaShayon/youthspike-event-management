@@ -28,6 +28,7 @@ export default function PointsByRound({
   // --------- Determine Plus/Minus and Score for a Round ----------
   const renderRoundScore = useCallback(
     (round: IRoundRelatives) => {
+      // Get round score from an object
       const roundScore = roundMap[round._id];
       if (!roundScore) return null;
 
