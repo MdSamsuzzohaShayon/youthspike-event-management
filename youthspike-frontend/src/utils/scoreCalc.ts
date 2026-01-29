@@ -9,13 +9,6 @@ import {
   IRoundScore,
   ITeam,
 } from "@/types";
-import { ETeam } from "@/types/team";
-
-interface IReturnScore {
-  score: number;
-  plusMinusScore: number;
-}
-
 
 /**
  * Calculate match score and plus-minus for a specific team in a round.

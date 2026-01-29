@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-cycle
 import { IResponse } from './elements';
-import { EActionProcess } from './room';
+import { EActionProcess, ITeiBreakerAction } from './room';
+import { IRoundRelatives } from './round';
 
 // eslint-disable-next-line no-shadow
 export enum ETieBreaker {
@@ -46,16 +47,16 @@ interface INetUpdate {
   teamBScore?: number | null;
 }
 
-interface ICommonNetRound{
+interface ICommonNetRound {
   _id: string;
   teamAScore: number;
   teamBScore: number;
 }
 
-interface INetScoreUpdate extends ICommonNetRound{
+interface INetScoreUpdate extends ICommonNetRound {
 }
 
-interface IRoundScoreUpdate extends ICommonNetRound{
+interface IRoundScoreUpdate extends ICommonNetRound {
   completed: boolean;
 }
 
@@ -76,13 +77,21 @@ interface INetPlayers {
   teamBPlayerB: string | null;
 }
 
-interface INetResponse extends IResponse{
-    data: INetRelatives;
+interface INetResponse extends IResponse {
+  data: INetRelatives;
 
 }
 
 export interface IUpdateNetResponse {
   updateNet: INetResponse;
+}
+
+export interface ITieBreakerNetResponse {
+  data: ITeiBreakerAction;
+  dispatch: React.Dispatch<React.SetStateAction<any>>;
+  currRoundNets: INetRelatives[];
+  allNets: INetRelatives[];
+  roundList: IRoundRelatives[];
 }
 
 // eslint-disable-next-line no-shadow

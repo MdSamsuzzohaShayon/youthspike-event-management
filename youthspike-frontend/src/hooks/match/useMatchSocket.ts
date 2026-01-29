@@ -148,7 +148,6 @@ export default function useMatchSocket({
           allNets,
           currRoundNets,
           roundList,
-          match,
         }),
       "error-from-server": (error: string) =>
         listener.handleError(error, dispatch),

@@ -34,7 +34,7 @@ import {
   IUpdatePointsResponse,
   IUpdateRound,
 } from "@/types";
-import { ETieBreaker } from "@/types/net";
+import { ETieBreaker, ITieBreakerNetResponse } from "@/types/net";
 import { IRoomRoundProcess } from "@/types/room";
 import { gql, StoreObject } from "@apollo/client";
 import React from "react";
@@ -358,8 +358,7 @@ class SocketEventListener {
     currRoundNets,
     allNets,
     roundList,
-    match,
-  }: IUpdateNetResponse) {
+  }: ITieBreakerNetResponse) {
     this.dispatch = dispatch;
     // Update current round nets and all nets
     const updatedCRN = [...currRoundNets];
@@ -385,6 +384,7 @@ class SocketEventListener {
     );
     if (lockedNets.length > 1) {
       const lnIds = lockedNets.map((n) => n._id);
+      let twoPointsNetId = null;
       for (let i = 0; i < updatedCRN.length; i += 1) {
         if (
           !lnIds.includes(updatedCRN[i]._id) &&
@@ -395,11 +395,12 @@ class SocketEventListener {
             points: 2,
             netType: ETieBreaker.TIE_BREAKER_NET,
           };
+          twoPointsNetId = updatedCRN[i]._id;
         }
       }
 
       for (let i = 0; i < updatedN.length; i += 1) {
-        if (!lnIds.includes(updatedN[i]._id)) {
+        if (twoPointsNetId && twoPointsNetId === updatedN[i]._id) {
           updatedN[i] = {
             ...updatedN[i],
             points: 2,
@@ -409,10 +410,6 @@ class SocketEventListener {
       }
     }
 
-    // Update current round nets and all nets
-    // if (data.match === match._id) {
-    //   dispatch(setMatchInfo({ ...match, completed: true }));
-    // }
 
     dispatch(setCurrentRoundNets(updatedCRN));
     dispatch(setNets(updatedN));

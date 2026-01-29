@@ -125,6 +125,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
 
   useEffect(() => {
     const { matchScore, roundMap } = calcScore(allNets, roundList);
+    
     dispatch(setMatchScore(matchScore));
     dispatch(setRoundMap(roundMap));
   }, [allNets, roundList, dispatch]);
