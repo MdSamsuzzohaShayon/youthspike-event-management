@@ -77,15 +77,11 @@ export class EmailsenderResolver {
       }
       const subject = `${eventExist.name} Captain's Login Credentials & Rankings`;
       const htmlFileName = 'send-credentials.html';
-
-      console.log("EventId", eventId);
       
 
       const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
       const directorExist = await this.userService.findById(ldoExist.director.toString());
 
-
-      console.log("Director and ldo exist: ", ldoExist, directorExist);
       
 
       // Check user role

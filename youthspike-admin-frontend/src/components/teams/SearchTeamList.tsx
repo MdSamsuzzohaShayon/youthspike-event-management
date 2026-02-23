@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ICheckedInput, IError, IEvent, IGroup, IOption, IResponse, ITeam } from '@/types';
+import { IEvent, IGroup, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -16,10 +16,11 @@ import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 import { divisionsToOptionList, updateItemByIdMutable } from '@/utils/helper';
 import Loader from '../elements/Loader';
 
-interface IProps {
+interface ISearchTeamListProps {
   event: IEvent | null;
   teamList: ITeam[];
   groupList: IGroup[];
+  captainMap: Map<string, IPlayer>;
   refetchFunc?: () => void;
 }
 
@@ -250,7 +251,7 @@ const DeleteConfirmDialog: React.FC<IDeleteConfirmDialogProps> = ({ deleteDialog
 
 
 // Main Component
-function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
+function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }: ISearchTeamListProps) {
   if (!event) {
     throw new Error('Event not found!');
   }
@@ -595,7 +596,7 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
         {filteredTeamList.map((team) => (
           <TeamCard
             key={team._id}
-            team={team}
+            team={({ ...team, captain: team.captain ? (captainMap.get(String(team.captain)) as unknown as IPlayerExpRel || null): null })}
             eventId={event._id}
             groupList={groupList}
             isChecked={checkedTeamsMap.get(team._id) ?? false}

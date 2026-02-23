@@ -716,6 +716,7 @@ type TeamSearch {
   nets: [CustomNet!]
   rounds: [CustomRound!]
   matches: [CustomMatch!]
+  captains: [CustomPlayer!]
 }
 
 type GetTeamSearchResponse {

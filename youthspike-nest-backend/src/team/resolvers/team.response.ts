@@ -252,6 +252,10 @@ export class TeamSearch {
 
   @Field((_type) => [CustomMatch], { nullable: true })
   matches: CustomMatch[];
+  
+
+  @Field((_type) => [CustomPlayer], { nullable: true })
+  captains: CustomPlayer[];
 }
 
 @ObjectType()

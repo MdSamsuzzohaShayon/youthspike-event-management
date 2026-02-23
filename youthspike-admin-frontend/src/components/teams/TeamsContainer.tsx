@@ -3,9 +3,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
-import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage } from '@/types';
+import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage, IPlayer } from '@/types';
 import FilterContent from '../event/FilterContent';
-import { SEARCH_TEAMS } from '@/graphql/teams';
+import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
 import SearchTeamList from './SearchTeamList';
 import EventNavigation from '../layout/EventNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
@@ -44,11 +44,12 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
   // Server data state
   const [teams, setTeams] = useState<ITeam[]>([]);
-  const [nets, setNets] = useState<INetRelatives[]>([]);
-  const [matches, setMatches] = useState<IMatch[]>([]);
-  const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
+  // const [nets, setNets] = useState<INetRelatives[]>([]);
+  // const [matches, setMatches] = useState<IMatch[]>([]);
+  // const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
+  const [playerMap, setPlayerMap] = useState<Map<string, IPlayer>>(new Map());
 
   // Loading states
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -77,10 +78,16 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     if (!searchData) return;
 
     setTeams(searchData.teams || []);
-    setNets(searchData.nets || []);
-    setMatches(searchData.matches || []);
-    setRounds(searchData.rounds || []);
+    // setNets(searchData.nets || []);
+    // setMatches(searchData.matches || []);
+    // setRounds(searchData.rounds || []);
     setGroups(searchData.groups || []);
+    const map = new Map<string, IPlayer>();
+    for (let i = 0; i < (searchData.captains || []).length; i++) {
+      const cap = searchData.captains[i];
+      map.set(cap._id, cap);
+    }
+    setPlayerMap(map);
     setEvent(searchData.event || null);
     setHasMore((searchData.teams || []).length === PAGE_SIZE);
   }, []);
@@ -90,7 +97,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     async (filter: ITeamFilter, offset: number = 0) => {
       try {
         const result = await apolloClient.query({
-          query: SEARCH_TEAMS,
+          query: SEARCH_TEAM_LIST_LIGHT,
           variables: buildQueryVariables(filter, offset),
           fetchPolicy: 'network-only',
         });
@@ -134,13 +141,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     }
   }, [localFilter, executeSearchQuery, updateAllData, router]);
 
-  const groupMap = useMemo(() => {
-    const map = new Map<string, IGroup>();
-    for (const group of groups) {
-      map.set(group._id, group);
-    }
-    return map;
-  }, [groups])
+
 
   // Clear filters
   const handleClearFilters = useCallback(async () => {
@@ -180,6 +181,9 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     }
   }, [teams.length, appliedFilter, executeSearchQuery]);
 
+  console.log(initialData);
+  
+
   // Initialize with preloaded data
   useEffect(() => {
     if (isInitial.current && initialData) {
@@ -198,6 +202,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const hasUnsavedChanges = JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && teams.length === 0;
+  
 
   return (
     <div className="animate-fade-in">
@@ -248,7 +253,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={event} />
+              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={event} captainMap={playerMap} />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}

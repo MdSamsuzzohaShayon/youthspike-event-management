@@ -260,6 +260,8 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
       </div>
     );
 
+    
+
 
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">

@@ -7,7 +7,7 @@ import { PreloadQuery } from '@/lib/client';
 import Loader from '@/components/elements/Loader';
 import { QueryRef } from '@apollo/client/react';
 import { ISearchLimitFilter, ISearchTeamResponse, ITeamFilter } from '@/types';
-import { SEARCH_TEAMS } from '@/graphql/teams';
+import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
 import TeamsContainer from '@/components/teams/TeamsContainer';
 
 interface ITeamsProps {
@@ -27,7 +27,7 @@ export default async function Teams({ division, eventId, group, search }: ITeams
   };
 
   return (
-    <PreloadQuery query={SEARCH_TEAMS} variables={{ eventId, filter: initialFilter }}>
+    <PreloadQuery query={SEARCH_TEAM_LIST_LIGHT} variables={{ eventId, filter: initialFilter }}>
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <TeamsContainer queryRef={queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>} eventId={eventId} initialSearchParams={{ search, division, group }} />

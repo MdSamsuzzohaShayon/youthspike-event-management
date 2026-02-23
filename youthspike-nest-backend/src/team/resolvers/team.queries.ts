@@ -441,18 +441,23 @@ export class TeamQueries {
       const teams = await this.teamService.find(teamQuery, offset, limit);
 
       const matchIds = new Set<string>();
+      const captainIds = new Set<string>();
       for (const t of teams) {
         if (t.matches) {
           for (const m of t.matches) {
             matchIds.add(String(m));
           }
         }
+        if(t?.captain){
+          captainIds.add(String(t.captain));
+        }
       }
 
-      const [matches, nets, rounds] = await Promise.all([
+      const [matches, nets, rounds, captains] = await Promise.all([
         this.matchService.find({ _id: { $in: [...matchIds] } }),
         this.netService.find({ match: { $in: [...matchIds] } }),
         this.roundService.find({ match: { $in: [...matchIds] } }),
+        this.playerService.find({_id: {$in: [...captainIds]}})
       ]);
 
       return {
@@ -465,6 +470,7 @@ export class TeamQueries {
           nets,
           rounds,
           matches,
+          captains
         },
       };
     } catch (err) {
