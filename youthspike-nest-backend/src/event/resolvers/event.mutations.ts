@@ -115,6 +115,7 @@ export class EventMutations implements IEventMutations {
         teams: [],
         matches: [],
         groups: [],
+        templates: []
       };
 
       const savedEvent = await this.eventService.create(eventData);

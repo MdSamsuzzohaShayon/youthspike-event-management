@@ -2,6 +2,28 @@
 // Email Template Editor – shared TypeScript types
 // ─────────────────────────────────────────────────────────────
 
+import { IEvent, IResponse } from ".";
+
+export enum ETemplateType {
+    PLAYER = "PLAYER",
+    TEAM = "TEAM",
+    EVENT = "EVENT",
+}
+
+export type TPlaceholder = "tournamentName" | "playerName" | "startDate" | "teamName" | "matchTime" | "courtNumber";
+
+export interface ITemplate {
+    _id: string;
+    name: string;
+    type: ETemplateType,
+    subject: string;
+    body: string;
+    images: string[];
+    placeholders: TPlaceholder[],
+    event: IEvent
+
+}
+
 export interface ITemplatePlaceholder {
     key: string;          // e.g. "player_username"
     label: string;        // human-readable label
@@ -44,4 +66,10 @@ export interface IPlaceholderValidationResult {
     valid: boolean;
     missing: string[];    // placeholders in body but no sample value
     unused: string[];     // defined but not used in body
+}
+
+
+
+export interface ITemplateResponse extends IResponse {
+    data: ITemplate[]
 }

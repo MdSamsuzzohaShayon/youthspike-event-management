@@ -10,6 +10,7 @@ import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Team } from 'src/team/team.schema';
+import { Template } from 'src/template/template.schema';
 
 
 // For filtering
@@ -122,6 +123,10 @@ export class Event extends AppDocument {
   @Field(() => ProStats, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
   weight?: string | ProStats;
+
+  @Field(() => [Template], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }] })
+  templates: Template[] | string[];
 
 
   /**

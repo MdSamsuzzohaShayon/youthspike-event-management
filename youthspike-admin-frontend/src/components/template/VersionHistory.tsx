@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // components/VersionHistory.tsx
 // ─────────────────────────────────────────────────────────────
-'use client';
 
 import React from 'react';
 import { TemplateVersion } from '@/types';

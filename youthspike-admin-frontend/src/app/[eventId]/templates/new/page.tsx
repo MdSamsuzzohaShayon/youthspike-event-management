@@ -13,11 +13,11 @@ import {
 } from '@/utils/defaultTemplateData';
 import { extractPlaceholders, validatePlaceholders } from '@/utils/templates';
 import { useTemplateVersions } from '@/hooks/useTemplateVersions';
-import SampleUserSelector from '@/components/templates/SampleUserSelector';
-import RichEditor from '@/components/templates/RichEditor';
-import EmailPreview from '@/components/templates/EmailPreview';
-import PlaceholderPanel from '@/components/templates/PlaceholderPanel';
-import VersionHistory from '@/components/templates/VersionHistory';
+import SampleUserSelector from '@/components/template/SampleUserSelector';
+import RichEditor from '@/components/template/RichEditor';
+import EmailPreview from '@/components/template/EmailPreview';
+import PlaceholderPanel from '@/components/template/PlaceholderPanel';
+import VersionHistory from '@/components/template/VersionHistory';
 import { TemplateVersion } from '@/types';
 import InputField from '@/components/elements/forms/InputField';
 
@@ -49,12 +49,33 @@ export default function NewTemplatePage() {
   );
 
   // ── actions ─────────────────────────────────────────────────
-  const handleInputChange = (e: React.SyntheticEvent)=>{
+  const handleInputChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    const inputEl  = e.target as HTMLInputElement;
+    const inputEl = e.target as HTMLInputElement;
     setSubject(inputEl.value);
   }
   const handleSave = useCallback(() => {
+    // Format 
+    /**
+     {
+  "input":{
+    "name": "Welcome Tournament Email - 3",
+    "type": "PLAYER",
+    "subject": "Welcome to {{tournamentName}}, {{playerName}}!",
+    "body": "<h1>Hello {{playerName}}!</h1><p>We're excited to have you join the {{tournamentName}} tournament starting on {{startDate}}.</p><p>Your team: {{teamName}}</p><p>First match: {{matchTime}} on Court {{courtNumber}}</p><p>See you there!</p><p>Best regards,<br/>The Tournament Team</p>",
+    "images": [],
+    "placeholders": [
+      "tournamentName",
+      "playerName", 
+      "startDate",
+      "teamName",
+      "matchTime",
+      "courtNumber"
+    ],
+    "event": "68afc5f30bf9dbb4ac0f69cb"
+	}
+}
+     */
     saveVersion({
       templateId: 'new-template',
       subject,
@@ -67,6 +88,11 @@ export default function NewTemplatePage() {
         updatedAt: new Date().toISOString(),
       },
     });
+
+    // Optional: Save to backend
+    // saveTemplateToBackend();
+
+
     setSaveMsg('Saved!');
     setTimeout(() => setSaveMsg(''), 2000);
   }, [saveVersion, subject, body]);
@@ -77,6 +103,8 @@ export default function NewTemplatePage() {
       setSubject(restored.subject);
       setBody(restored.body);
       setSidebarTab('placeholders');
+      console.log(restored);
+
     },
     [restoreVersion],
   );
@@ -105,13 +133,13 @@ export default function NewTemplatePage() {
 
             {/* Validation badge */}
             {validation.missing.length > 0 ? (
-              <span className="btn-danger">
+              <button className="btn-danger">
                 ⚠ {validation.missing.length} missing value{validation.missing.length > 1 ? 's' : ''}
-              </span>
+              </button>
             ) : (
-              <span className="btn-success">
+              <button className="btn-success">
                 ✓ All placeholders resolved
-              </span>
+              </button>
             )}
 
             <button
@@ -139,6 +167,7 @@ export default function NewTemplatePage() {
               {t === 'editor' ? '✏️ Editor' : '👁 Preview'}
             </button>
           ))}
+
         </div>
       </div>
 

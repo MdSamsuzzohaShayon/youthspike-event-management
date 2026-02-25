@@ -26,6 +26,7 @@ import { RedisModule } from './redis/redis.module';
 import { EEnv, NODE_ENV } from './utils/keys';
 import { PlayerStatsModule } from './player-stats/player-stats.module';
 import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-receiver-on-net.module';
+import { TemplateModule } from './template/template.module';
 
 @Module({
   imports: [
@@ -53,6 +54,8 @@ import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-recei
 
       inject: [ConfigService],
     }),
+
+    TemplateModule,
 
     UserModule,
 
@@ -87,6 +90,7 @@ import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-recei
     PlayerStatsModule,
 
     ServerReceiverOnNetModule,
+
 
   ],
   controllers: [AppController],

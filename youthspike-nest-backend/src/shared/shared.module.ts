@@ -42,6 +42,8 @@ import { PlayerStats, PlayerStatsSchemaFactory, ProStats, ProStatsSchemaFactory 
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
 import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSinglePlay, ServerReceiverSinglePlaySchemaFactory } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
+import { Template, TemplateSchemaFactory } from 'src/template/template.schema';
+import { TemplateService } from 'src/template/template.service';
 
 @Module({
   imports: [
@@ -132,6 +134,12 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSi
         name: ProStats.name,
         useFactory: ProStatsSchemaFactory,
       },
+
+
+      {
+        name: Template.name,
+        useFactory: TemplateSchemaFactory,
+      },
     ]),
 
     ConfigModule,
@@ -139,6 +147,7 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSi
 
   providers: [
     CloudinaryService,
+    TemplateService,
     UserService,
     JwtStrategy,
     JwtAuthGuard,
@@ -151,7 +160,6 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSi
     PlayerService,
     LdoService,
     SponsorService,
-    // { provide: APP_GUARD, useClass: RolesGuard },
     RoomService,
     EmailsenderService,
     PlayerRankingService,
@@ -162,6 +170,7 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSi
   ],
   exports: [
     CloudinaryService,
+    TemplateService,
     UserService,
     PlayerService,
     TeamService,
@@ -182,7 +191,7 @@ import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSi
   ],
 })
 export class SharedModule {
-  constructor(private modRef: ModuleRef, private configService: ConfigService) {}
+  constructor(private modRef: ModuleRef, private configService: ConfigService) { }
 
   async onApplicationBootstrap() {
     try {

@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // components/EmailPreview.tsx
 // ─────────────────────────────────────────────────────────────
-'use client';
 
 import React, { useEffect, useRef } from 'react';
 import { ISampleUser } from '@/types';

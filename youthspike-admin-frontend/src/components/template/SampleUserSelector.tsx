@@ -1,9 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 // components/SampleUserSelector.tsx
 // ─────────────────────────────────────────────────────────────
-'use client';
 
-import React from 'react';
 import { ISampleUser } from '@/types';
 
 interface Props {
