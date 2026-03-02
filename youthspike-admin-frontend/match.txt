@@ -491,6 +491,29 @@ You need to do:
 
 
 
+1. Let's use MJML, then save TipTap → MJML → HTML
+2. Debounce onChange to Avoid rerender spam, then Lazy load editor
+3. Right now TipTap outputs web HTML, but email clients require: inline styles, table-based layout, limited CSS support, no modern layout rules, Outlook compatibility
+4. Use this Architecture:
+```
+TipTap Editor
+      ↓
+Raw Editor HTML
+      ↓
+Email Transformer Layer ✅
+      ↓
+Email-safe HTML
+      ↓
+Stored Template
+      ↓
+Preview / Send
+```
+5. Add Email Transform Pipeline
+6. Let's get rid of Images, CodeBlock, Subscript, Superset, Highlight. But make sure ordered list, number list, bullt points, color are working properly
+7. Placeholder System Should NOT Be Text-Based, instead create Placeholder Node Extension (a custom TipTap node), Example concept: `<span data-placeholder="user_name">{{user_name}}</span>`
+8. Email Preview Should Use iframe Isolation, and make sure NO app CSS leakage, NO Tailwind, NO dark mode
+9. Need Template Compilation Layer
+10. Add Layout Blocks Sections, Columns, Spacer, Button, Divider, Hero, Footer. And make sure those are working properly
 
 
 

@@ -280,6 +280,24 @@ type Sponsor {
   event: Event
 }
 
+type Template {
+  _id: String
+  name: String!
+  default: Boolean!
+  type: ETemplateType!
+  subject: String!
+  body: String!
+  images: [String!]
+  placeholders: [String!]
+  event: Event!
+}
+
+enum ETemplateType {
+  PLAYER
+  TEAM
+  EVENT
+}
+
 type Event {
   _id: String
   name: String!
@@ -298,6 +316,7 @@ type Event {
   sponsors: [Sponsor!]!
   multiplayer: ProStats
   weight: ProStats
+  templates: [Template!]!
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -589,6 +608,7 @@ type CustomEvent {
   sponsors: [Sponsor!]!
   multiplayer: ProStats
   weight: ProStats
+  templates: [Template!]!
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -716,6 +736,7 @@ type TeamSearch {
   nets: [CustomNet!]
   rounds: [CustomRound!]
   matches: [CustomMatch!]
+  captains: [CustomPlayer!]
 }
 
 type GetTeamSearchResponse {
@@ -1206,6 +1227,39 @@ type GetGroupResponse {
   data: Group!
 }
 
+type CreateOrUpdateTemplateResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Template
+}
+
+type GetTemplatesResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [Template!]
+}
+
+type GetTemplateResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: Template
+}
+
+type TemplateSearch {
+  event: Event
+  templates: [Template!]
+}
+
+type GetTemplateSearchResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TemplateSearch
+}
+
 input EventSponsorInput {
   company: String!
   logo: Upload!
@@ -1293,6 +1347,9 @@ input UpdateEventInput {
 
 type Query {
   getAbout: AppAbout!
+  getTemplates(eventId: String): GetTemplatesResponse!
+  getTemplate(templateId: String!): GetTemplateResponse!
+  searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
   getEventDetails(eventId: String!, filter: EventFilterInput!): GetEventDetailsResponse!
@@ -1329,6 +1386,13 @@ type Query {
   getPlayersStats: PlayersStatsResponse!
   getPlayerWithStats(playerId: String!, group: Boolean): PlayerWithStatsResponse!
   searchPlayerStats(eventId: String!, filter: PlayerStatsSearchFilter): PlayersStatsSearchResponse!
+}
+
+input TemplateSearchFilter {
+  event: String
+  search: String
+  offset: Int = 0
+  limit: Int = 30
 }
 
 input EventFilterInput {
@@ -1399,6 +1463,9 @@ input PlayerStatsSearchFilter {
 }
 
 type Mutation {
+  createTemplate(input: CreateTemplateInput!): CreateOrUpdateTemplateResponse!
+  updateTemplate(input: UpdateTemplateInput!, templateId: String!, eventId: String!): CreateOrUpdateTemplateResponse!
+  deleteTemplate(templateId: String!): CreateOrUpdateTemplateResponse!
   login(email: String!, password: String!, passcode: String): LoginResponse!
   updateUser(userId: String!, updateInput: UpdateUser!, profile: Upload): UserResponse!
   createEvent(sponsorsInput: [EventSponsorInput!]!, input: CreateEventInput!, multiplayerInput: ProStatsInput, weightInput: ProStatsInput, logo: Upload): CreateOrUpdateEventResponse!
@@ -1434,6 +1501,28 @@ type Mutation {
   createGroup(input: CreateGroupInput!): GetGroupResponse!
   updateGroup(updateInput: UpdateGroupInput!, eventId: String): GetGroupResponse!
   deleteGroup(groupId: String): GetGroupResponse!
+}
+
+input CreateTemplateInput {
+  name: String!
+  default: Boolean! = false
+  type: ETemplateType!
+  subject: String!
+  body: String!
+  images: [String!]
+  placeholders: [String!]
+  event: String!
+}
+
+input UpdateTemplateInput {
+  name: String
+  default: Boolean = false
+  type: ETemplateType
+  subject: String
+  body: String
+  images: [String!]
+  placeholders: [String!]
+  event: String
 }
 
 input UpdateUser {

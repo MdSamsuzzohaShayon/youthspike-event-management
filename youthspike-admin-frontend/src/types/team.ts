@@ -152,6 +152,7 @@ interface ISearchTeamData {
   nets: INetRelatives[];
   rounds: IRoundRelatives[];
   teams: ITeam[];
+  captains: IPlayer[];
 }
 
 export interface ISearchTeamResponse extends IResponse {

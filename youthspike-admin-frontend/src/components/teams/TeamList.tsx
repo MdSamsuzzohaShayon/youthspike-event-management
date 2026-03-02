@@ -150,8 +150,6 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       .filter(([_, isChecked]) => isChecked) // Filter for checked items
       .map(([teamId]) => teamId); // Map to just the team IDs
 
-    // console.log({ groupId: inputEl.value, checkedTeamIds });
-
     // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
@@ -180,6 +178,9 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       setIsLoading(false);
     }
   };
+
+  const handleDeleteTeamOpen=(e: React.SyntheticEvent, t: ITeam)=>{}
+  const handleMoveTeamOpen=(e: React.SyntheticEvent, t: ITeam)=>{}
 
   const handleSendCredential = async (e: React.SyntheticEvent, teamId: string) => {
     try {
@@ -291,13 +292,12 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
                 key={team._id}
                 team={team}
                 eventId={eventId}
-                eventList={eventList || []}
                 groupList={groupList}
-                setIsLoading={setIsLoading}
                 isChecked={checkedTeams.get(team._id) ?? false}
-                refetchFunc={refetchFunc}
                 handleSendCredential={handleSendCredential}
                 handleCheckedTeam={handleCheckedTeam}
+                handleDeleteTeamOpen={handleDeleteTeamOpen}
+                handleMoveTeamOpen={handleMoveTeamOpen}
               />
             );
           }

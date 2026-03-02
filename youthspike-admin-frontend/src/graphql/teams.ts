@@ -703,6 +703,64 @@ query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
         matches
         division
         players
+        captain
+      }
+    }
+  }
+}
+
+`;
+
+const SEARCH_TEAM_LIST_LIGHT = gql`
+query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
+  searchTeams(eventId: $eventId, filter: $filter) {
+    code
+    message
+    success
+    data {
+      event {
+        _id
+        name
+        logo
+        divisions
+        startDate
+        endDate
+        location
+        description
+        groups
+      }
+      groups {
+        _id
+        division
+        active
+        matches
+        name
+        teams
+      }
+      captains{
+        _id
+        captainofteams
+        cocaptainofteams
+        division
+        email
+        firstName
+        lastName
+        phone
+        profile
+        status
+        username
+      }
+      teams {
+        _id
+        group
+        logo
+        name
+        num
+        nets
+        matches
+        division
+        players
+        captain
       }
     }
   }
@@ -891,5 +949,6 @@ export {
   GET_TEAMS,
   GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS,
   GET_EVENT_WITH_TEAMS_LIGHT,
-  SEARCH_TEAMS
+  SEARCH_TEAMS,
+  SEARCH_TEAM_LIST_LIGHT
 };

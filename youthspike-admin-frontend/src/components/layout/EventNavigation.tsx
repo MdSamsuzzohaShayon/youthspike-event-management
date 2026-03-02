@@ -164,7 +164,7 @@ const NavigationBar = ({
   userRoleFlags: UserRoleFlags;
   teamId: string | null
 }) => {
-  const { isPlayer, isAdmin, isCaptain, isCoCaptain, isAdminOrDirector } = userRoleFlags;
+  const { isPlayer, isAdmin, isCaptain, isCoCaptain, isAdminOrDirector, isDirector } = userRoleFlags;
 
   const navigationItems: NavigationItem[] = [
     {
@@ -195,6 +195,11 @@ const NavigationBar = ({
     {
       label: 'Account',
       href: `/account`,
+      shouldShow: isDirector // Always show for all users
+    },
+    {
+      label: 'Email Template',
+      href: `/${eventId}/templates/${ldoIdUrl}`,
       shouldShow: isAdminOrDirector // Always show for all users
     },
     {
@@ -202,11 +207,11 @@ const NavigationBar = ({
       href: `/${eventId}/matches/${ldoIdUrl}`,
       shouldShow: true // Always show for all users
     },
-    {
-      label: 'Admin',
-      href: `/admin`,
-      shouldShow: isAdmin
-    },
+    // {
+    //   label: 'Admin',
+    //   href: `/admin`,
+    //   shouldShow: isAdmin
+    // },
     {
       label: 'LDOs',
       href: `/admin/directors`,

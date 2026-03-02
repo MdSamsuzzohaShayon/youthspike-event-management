@@ -151,32 +151,38 @@ const AdminMenu = () => {
                       </Link>
                     </motion.li>
                   )}
-                  {user.info?.role === UserRole.admin ||
-                    (user.info?.role === UserRole.director && (
+                  {(user.info?.role === UserRole.admin ||
+                    user.info?.role === UserRole.director) && (
                       <React.Fragment>
                         <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                           <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                            <img src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
+                            <Image height={20} width={20} src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
                             Teams
                           </Link>
                         </motion.li>
                         <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                           <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/groups/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                            <img src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
+                            <Image height={20} width={20} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
                             Groups
                           </Link>
                         </motion.li>
+                        <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
+                          <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/templates/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                            <Image height={20} width={20} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
+                            Email Template
+                          </Link>
+                        </motion.li>
                       </React.Fragment>
-                    ))}
+                    )}
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                     <Link onClick={() => setIsMenuOpen(false)} href={(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && user.info.teamId ? `/teams/${user.info.teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <img src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
+                      <Image height={20} width={20} src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
                       Roster
                     </Link>
                   </motion.li>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                     <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/matches/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <img src="/icons/trophy.svg" alt="Matches" className="w-6 mr-4 svg-white" />
+                      <Image height={20} width={20} src="/icons/trophy.svg" alt="Matches" className="w-6 mr-4 svg-white" />
                       Matches
                     </Link>
                   </motion.li>
@@ -186,7 +192,7 @@ const AdminMenu = () => {
               {user?.info?.role === UserRole.director && (
                 <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                   <Link onClick={() => setIsMenuOpen(false)} href="/account" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                    <img src="/icons/account.svg" alt="Account" className="w-6 mr-4 svg-white" />
+                    <Image height={20} width={20} src="/icons/account.svg" alt="Account" className="w-6 mr-4 svg-white" />
                     Account
                   </Link>
                 </motion.li>
@@ -195,14 +201,8 @@ const AdminMenu = () => {
               {user?.info?.role === UserRole.admin && (
                 <>
                   <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href="/admin" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <img src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
-                      Admin
-                    </Link>
-                  </motion.li>
-                  <motion.li variants={itemVariants} whileHover="hover" className="text-lg capitalize">
                     <Link onClick={() => setIsMenuOpen(false)} href="/admin/directors" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <img src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
+                      <Image height={20} width={20} src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
                       LDOs
                     </Link>
                   </motion.li>

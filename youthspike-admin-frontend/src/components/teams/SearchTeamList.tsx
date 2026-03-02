@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ICheckedInput, IError, IEvent, IGroup, IOption, IResponse, ITeam } from '@/types';
+import { IEvent, IGroup, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -16,10 +16,11 @@ import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 import { divisionsToOptionList, updateItemByIdMutable } from '@/utils/helper';
 import Loader from '../elements/Loader';
 
-interface IProps {
+interface ISearchTeamListProps {
   event: IEvent | null;
   teamList: ITeam[];
   groupList: IGroup[];
+  captainMap: Map<string, IPlayer>;
   refetchFunc?: () => void;
 }
 
@@ -250,7 +251,7 @@ const DeleteConfirmDialog: React.FC<IDeleteConfirmDialogProps> = ({ deleteDialog
 
 
 // Main Component
-function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
+function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }: ISearchTeamListProps) {
   if (!event) {
     throw new Error('Event not found!');
   }
@@ -347,8 +348,10 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
 
     try {
       setIsLoading(true);
-      await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
-      if (refetchFunc) await refetchFunc();
+      const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
+      // @ts-ignore
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setActErr);
+      if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -407,10 +410,13 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
   const handleSendSingleTeamCredential = async (e: React.SyntheticEvent, teamId: string): Promise<void> => {
     try {
       setIsLoading(true);
-      await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
-      if (refetchFunc) await refetchFunc();
+      const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
+      // @ts-ignore
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setActErr);
+      if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
+      handleError({error, setActErr});
     } finally {
       setIsLoading(false);
     }
@@ -595,7 +601,7 @@ function SearchTeamList({ teamList, groupList, event, refetchFunc }: IProps) {
         {filteredTeamList.map((team) => (
           <TeamCard
             key={team._id}
-            team={team}
+            team={({ ...team, captain: team.captain ? (captainMap.get(String(team.captain)) as unknown as IPlayerExpRel || null): null })}
             eventId={event._id}
             groupList={groupList}
             isChecked={checkedTeamsMap.get(team._id) ?? false}
