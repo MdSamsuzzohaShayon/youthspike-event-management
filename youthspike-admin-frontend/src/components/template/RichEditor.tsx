@@ -179,7 +179,7 @@ export default function RichEditor({ content, onChange, missingPlaceholderKeys =
 
   if (!isMounted) {
     return (
-      <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper}`}>
+      <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper} p-4`}>
         <div className="h-12 bg-gray-700 animate-pulse" />
         <div style={{ minHeight: 420, background: '#fff' }} className="flex items-center justify-center text-gray-400 text-sm">
           Loading editor…
@@ -189,7 +189,7 @@ export default function RichEditor({ content, onChange, missingPlaceholderKeys =
   }
 
   return (
-    <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper}`}>
+    <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper} p-4`}>
       <EditorToolbar editor={editor} />
       <div className="overflow-y-auto max-h-[600px]">
         <EditorContent editor={editor} />

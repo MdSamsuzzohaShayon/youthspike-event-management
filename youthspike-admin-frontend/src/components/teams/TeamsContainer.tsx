@@ -44,9 +44,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
   // Server data state
   const [teams, setTeams] = useState<ITeam[]>([]);
-  // const [nets, setNets] = useState<INetRelatives[]>([]);
-  // const [matches, setMatches] = useState<IMatch[]>([]);
-  // const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
   const [playerMap, setPlayerMap] = useState<Map<string, IPlayer>>(new Map());

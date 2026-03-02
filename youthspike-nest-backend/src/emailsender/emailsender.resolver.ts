@@ -57,7 +57,7 @@ export class EmailsenderResolver {
   private buildTemplateValues({
     playerUsername,
     captainName,
-    coachPassword,
+    playerPassword,
     ldoName,
     ldoDirectorName,
     directorEmail,
@@ -72,7 +72,7 @@ export class EmailsenderResolver {
   }: {
     playerUsername: string;
     captainName: string;
-    coachPassword: string;
+    playerPassword: string;
     ldoName: string;
     ldoDirectorName: string;
     directorEmail: string;
@@ -89,7 +89,7 @@ export class EmailsenderResolver {
       // Player
       player_username: playerUsername,
       captain: captainName,
-      coach_password: coachPassword,
+      player_password: playerPassword,
 
       // LDO / Director
       ldo_name: ldoName,
@@ -154,14 +154,12 @@ export class EmailsenderResolver {
       let templateHtml: string | null = null;
       let emailSubject = `${eventExist.name} Captain's Login Credentials & Rankings`;
 
-      const eventTemplates = await this.templateService.find({
+      const eventTemplate = await this.templateService.findOne({
         event: eventId,
-        // Optionally filter by type: type: ETemplateType.TEAM
-        type: ETemplateType.TEAM
+        // type: ETemplateType.TEAM,
+        default: true
       });
 
-      // Get the last one as default
-      const eventTemplate = eventTemplates.length > 0 ? eventTemplates[1] : null;
 
       if (eventTemplate) {
         templateHtml = eventTemplate.body; // compiled email-safe HTML from editor
@@ -217,7 +215,7 @@ export class EmailsenderResolver {
         const values = this.buildTemplateValues({
           playerUsername: playerExist.username,
           captainName: playerExist.firstName,
-          coachPassword: eventExist.coachPassword,
+          playerPassword: eventExist.coachPassword,
           ldoName: ldoExist.name,
           ldoDirectorName: `${directorExist.firstName} ${directorExist.lastName}`,
           directorEmail: directorExist.email,
